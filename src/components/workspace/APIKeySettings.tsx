@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -49,6 +50,7 @@ interface APIKey {
 }
 
 export function APIKeySettings() {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -115,11 +117,11 @@ export function APIKeySettings() {
       queryClient.invalidateQueries({ queryKey: ['workspace-api-keys'] });
       setGeneratedKey(key);
       setNewKey({ name: '', permissions: 'read' });
-      toast.success('API key created');
+      toast.success(t("api_key_created", "API key created"));
     },
     onError: (error) => {
       console.error('Failed to create API key:', error);
-      toast.error('Failed to create API key');
+      toast.error(t("failed_to_create_api", "Failed to create API key"));
     },
   });
 
@@ -136,13 +138,13 @@ export function APIKeySettings() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['workspace-api-keys'] });
       setDeleteKeyId(null);
-      toast.success('API key revoked');
+      toast.success(t("api_key_revoked", "API key revoked"));
     },
   });
 
   const copyToClipboard = async (text: string) => {
     await navigator.clipboard.writeText(text);
-    toast.success('Copied to clipboard');
+    toast.success(t("copied_to_clipboard", "Copied to clipboard"));
   };
 
   const handleCreateClose = () => {
@@ -177,7 +179,7 @@ export function APIKeySettings() {
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Create API Key</DialogTitle>
+                  <DialogTitle>{t("create_api_key", "Create API Key")}</DialogTitle>
                   <DialogDescription>
                     Generate a new API key for accessing your workspace data
                   </DialogDescription>
@@ -219,16 +221,16 @@ export function APIKeySettings() {
                 ) : (
                   <div className="space-y-4">
                     <div>
-                      <Label htmlFor="key-name">Key Name</Label>
+                      <Label htmlFor="key-name">{t("key_name", "Key Name")}</Label>
                       <Input
                         id="key-name"
-                        placeholder="e.g., Production API"
+                        placeholder={t("eg_production_api", "e.g., Production API")}
                         value={newKey.name}
                         onChange={(e) => setNewKey((prev) => ({ ...prev, name: e.target.value }))}
                       />
                     </div>
                     <div>
-                      <Label>Permissions</Label>
+                      <Label>{t("permissions", "Permissions")}</Label>
                       <Select
                         value={newKey.permissions}
                         onValueChange={(value) => setNewKey((prev) => ({ ...prev, permissions: value }))}
@@ -237,8 +239,8 @@ export function APIKeySettings() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="read">Read Only</SelectItem>
-                          <SelectItem value="read-write">Read & Write</SelectItem>
+                          <SelectItem value="read">{t("read_only", "Read Only")}</SelectItem>
+                          <SelectItem value="read-write">{t("read_write", "Read & Write")}</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -270,8 +272,8 @@ export function APIKeySettings() {
           ) : apiKeys.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               <Key className="h-12 w-12 mx-auto mb-2 opacity-50" />
-              <p>No API keys created</p>
-              <p className="text-sm">Create an API key to access your data programmatically</p>
+              <p>{t("no_api_keys_created", "No API keys created")}</p>
+              <p className="text-sm">{t("create_an_api_key", "Create an API key to access your data programmatically")}</p>
             </div>
           ) : (
             <ScrollArea className="max-h-[300px]">
@@ -314,13 +316,13 @@ export function APIKeySettings() {
       <AlertDialog open={!!deleteKeyId} onOpenChange={() => setDeleteKeyId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Revoke API Key?</AlertDialogTitle>
+            <AlertDialogTitle>{t("revoke_api_key", "Revoke API Key?")}</AlertDialogTitle>
             <AlertDialogDescription>
               This action cannot be undone. Any applications using this key will lose access.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t("cancel", "Cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => deleteKeyId && deleteKey.mutate(deleteKeyId)}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"

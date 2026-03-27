@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { X, Pin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -24,6 +25,7 @@ interface PinnedMessagesPanelProps {
 }
 
 const PinnedMessagesPanel = ({ channelId, onClose, onJumpToMessage }: PinnedMessagesPanelProps) => {
+  const { t } = useTranslation('meetings');
   const [pinnedMessages, setPinnedMessages] = useState<Message[]>([]);
 
   useEffect(() => {
@@ -83,9 +85,9 @@ const PinnedMessagesPanel = ({ channelId, onClose, onJumpToMessage }: PinnedMess
       <div className="h-12 px-4 flex items-center justify-between border-b border-border">
         <div className="flex items-center gap-2">
           <Pin className="w-4 h-4 text-primary" />
-          <h3 className="font-semibold text-sm">Pinned Messages</h3>
+          <h3 className="font-semibold text-sm">{t('livehub.pinnedMessages')}</h3>
         </div>
-        <Button variant="ghost" size="icon" onClick={onClose} aria-label="Close pinned messages">
+        <Button variant="ghost" size="icon" onClick={onClose} aria-label={t('livehub.closePinnedMessages')}>
           <X className="w-4 h-4" aria-hidden="true" />
         </Button>
       </div>
@@ -96,7 +98,7 @@ const PinnedMessagesPanel = ({ channelId, onClose, onJumpToMessage }: PinnedMess
           {pinnedMessages.length === 0 ? (
             <div className="text-center py-8">
               <Pin className="w-12 h-12 mx-auto text-muted-foreground mb-2" />
-              <p className="text-sm text-muted-foreground">No pinned messages</p>
+              <p className="text-sm text-muted-foreground">{t('livehub.noPinnedMessages')}</p>
             </div>
           ) : (
             pinnedMessages.map((message) => (
@@ -115,7 +117,7 @@ const PinnedMessagesPanel = ({ channelId, onClose, onJumpToMessage }: PinnedMess
                   <div className="flex-1 min-w-0">
                     <div className="flex items-baseline gap-2">
                       <span className="font-semibold text-sm">
-                        {message.user?.full_name || 'Unknown User'}
+                        {message.user?.full_name || t('livehub.unknownUser')}
                       </span>
                       <span className="text-xs text-muted-foreground">
                         {format(new Date(message.created_at), 'MMM d, HH:mm')}

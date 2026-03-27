@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,6 +17,7 @@ interface FreelanceRatesSectionProps {
 }
 
 export function FreelanceRatesSection({ userId, freelanceProfile, onUpdate }: FreelanceRatesSectionProps) {
+  const { t } = useTranslation('common');
   const [saving, setSaving] = useState(false);
   const [hourlyRateMin, setHourlyRateMin] = useState<number>(freelanceProfile?.hourly_rate_min || 50);
   const [hourlyRateMax, setHourlyRateMax] = useState<number>(freelanceProfile?.hourly_rate_max || 150);
@@ -35,7 +37,7 @@ export function FreelanceRatesSection({ userId, freelanceProfile, onUpdate }: Fr
 
   const handleSave = async () => {
     if (hourlyRateMin > hourlyRateMax) {
-      toast.error("Minimum rate cannot exceed maximum rate");
+      toast.error(t("minimum_rate_cannot_exceed", "Minimum rate cannot exceed maximum rate"));
       return;
     }
 
@@ -54,11 +56,11 @@ export function FreelanceRatesSection({ userId, freelanceProfile, onUpdate }: Fr
         }, { onConflict: 'id' });
 
       if (error) throw error;
-      toast.success("Rate settings saved");
+      toast.success(t("rate_settings_saved", "Rate settings saved"));
       onUpdate();
     } catch (error: unknown) {
       console.error("Error saving rates:", error);
-      toast.error("Failed to save rate settings");
+      toast.error(t("failed_to_save_rate", "Failed to save rate settings"));
     } finally {
       setSaving(false);
     }
@@ -82,15 +84,15 @@ export function FreelanceRatesSection({ userId, freelanceProfile, onUpdate }: Fr
       <CardContent className="space-y-6">
         {/* Currency */}
         <div className="space-y-2">
-          <Label>Currency</Label>
+          <Label>{t("currency", "Currency")}</Label>
           <Select value={currency} onValueChange={setCurrency}>
             <SelectTrigger className="w-32">
-              <SelectValue placeholder="Currency" />
+              <SelectValue placeholder={t("currency", "Currency")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="EUR">€ EUR</SelectItem>
-              <SelectItem value="USD">$ USD</SelectItem>
-              <SelectItem value="GBP">£ GBP</SelectItem>
+              <SelectItem value="EUR">{t("eur", "€ EUR")}</SelectItem>
+              <SelectItem value="USD">{t("usd", "$ USD")}</SelectItem>
+              <SelectItem value="GBP">{t("gbp", "£ GBP")}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -98,7 +100,7 @@ export function FreelanceRatesSection({ userId, freelanceProfile, onUpdate }: Fr
         {/* Hourly Rate Range */}
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="rate-min">Minimum Hourly Rate</Label>
+            <Label htmlFor="rate-min">{t("minimum_hourly_rate", "Minimum Hourly Rate")}</Label>
             <div className="relative">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
                 {currency === 'EUR' ? '€' : currency === 'USD' ? '$' : '£'}
@@ -114,7 +116,7 @@ export function FreelanceRatesSection({ userId, freelanceProfile, onUpdate }: Fr
             </div>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="rate-max">Maximum Hourly Rate</Label>
+            <Label htmlFor="rate-max">{t("maximum_hourly_rate", "Maximum Hourly Rate")}</Label>
             <div className="relative">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
                 {currency === 'EUR' ? '€' : currency === 'USD' ? '$' : '£'}
@@ -133,7 +135,7 @@ export function FreelanceRatesSection({ userId, freelanceProfile, onUpdate }: Fr
 
         {/* Minimum Project Value */}
         <div className="space-y-2">
-          <Label htmlFor="min-project">Minimum Project Value</Label>
+          <Label htmlFor="min-project">{t("minimum_project_value", "Minimum Project Value")}</Label>
           <div className="relative">
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
               {currency === 'EUR' ? '€' : currency === 'USD' ? '$' : '£'}
@@ -154,19 +156,19 @@ export function FreelanceRatesSection({ userId, freelanceProfile, onUpdate }: Fr
 
         {/* Rate Preference */}
         <div className="space-y-3">
-          <Label>Preferred Pricing Model</Label>
+          <Label>{t("preferred_pricing_model", "Preferred Pricing Model")}</Label>
           <RadioGroup value={ratePreference} onValueChange={setRatePreference}>
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="hourly" id="hourly" />
-              <Label htmlFor="hourly" className="font-normal">Hourly rate</Label>
+              <Label htmlFor="hourly" className="font-normal">{t("hourly_rate", "Hourly rate")}</Label>
             </div>
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="fixed" id="fixed" />
-              <Label htmlFor="fixed" className="font-normal">Fixed project price</Label>
+              <Label htmlFor="fixed" className="font-normal">{t("fixed_project_price", "Fixed project price")}</Label>
             </div>
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="both" id="both" />
-              <Label htmlFor="both" className="font-normal">Both (flexible)</Label>
+              <Label htmlFor="both" className="font-normal">{t("both_flexible", "Both (flexible)")}</Label>
             </div>
           </RadioGroup>
         </div>
@@ -176,18 +178,18 @@ export function FreelanceRatesSection({ userId, freelanceProfile, onUpdate }: Fr
           <CardContent className="pt-4">
             <div className="flex items-center gap-2 mb-3">
               <Calculator className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm font-medium">Earnings Estimate</span>
+              <span className="text-sm font-medium">{t("earnings_estimate", "Earnings Estimate")}</span>
             </div>
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
-                <p className="text-muted-foreground">Monthly (at min rate)</p>
+                <p className="text-muted-foreground">{t("monthly_at_min_rate", "Monthly (at min rate)")}</p>
                 <p className="text-xl font-bold">
                   {currency === 'EUR' ? '€' : currency === 'USD' ? '$' : '£'}
                   {estimatedMonthly.toLocaleString()}
                 </p>
               </div>
               <div>
-                <p className="text-muted-foreground">Yearly (at min rate)</p>
+                <p className="text-muted-foreground">{t("yearly_at_min_rate", "Yearly (at min rate)")}</p>
                 <p className="text-xl font-bold">
                   {currency === 'EUR' ? '€' : currency === 'USD' ? '$' : '£'}
                   {estimatedYearly.toLocaleString()}

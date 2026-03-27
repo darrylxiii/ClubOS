@@ -1,7 +1,30 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useNotifications } from '../useNotifications';
-import { supabase } from '@/integrations/supabase/client';
+
+vi.mock('@/integrations/supabase/client', () => {
+  const channelMock = { on: vi.fn().mockReturnThis(), subscribe: vi.fn().mockReturnThis() };
+  return {
+    supabase: {
+      from: vi.fn().mockReturnValue({
+        select: vi.fn().mockReturnValue({
+          eq: vi.fn().mockReturnValue({
+            or: vi.fn().mockReturnValue({
+              order: vi.fn().mockReturnValue({
+                limit: vi.fn().mockResolvedValue({ data: [], error: null }),
+              }),
+            }),
+          }),
+        }),
+        update: vi.fn().mockReturnValue({
+          eq: vi.fn().mockResolvedValue({ data: null, error: null }),
+        }),
+      }),
+      channel: vi.fn().mockReturnValue(channelMock),
+      removeChannel: vi.fn(),
+    },
+  };
+});
 
 vi.mock('@/contexts/AuthContext', () => ({
   useAuth: () => ({ user: { id: 'test-user-id', email: 'test@example.com' } }),

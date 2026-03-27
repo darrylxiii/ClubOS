@@ -8,6 +8,7 @@ import { Loader2, UserCheck, AlertCircle, Briefcase } from "lucide-react";
 import { memberApprovalService } from "@/services/memberApprovalService";
 import { formatDistanceToNow } from "date-fns";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useTranslation } from 'react-i18next';
 
 interface MergeDetectionStepProps {
   email: string;
@@ -22,6 +23,7 @@ export const MergeDetectionStep = ({
   onSelectMerges, 
   onSkip 
 }: MergeDetectionStepProps) => {
+  const { t } = useTranslation('admin');
   const [suggestions, setSuggestions] = useState<MergeSuggestionForApproval[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedSuggestions, setSelectedSuggestions] = useState<Set<string>>(new Set());
@@ -110,7 +112,7 @@ export const MergeDetectionStep = ({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <UserCheck className="w-5 h-5 text-primary" />
-          <h3 className="text-lg font-semibold">Potential Profile Matches Found</h3>
+          <h3 className="text-lg font-semibold">{t('approval.mergeDetectionStep.potentialProfileMatchesFound')}</h3>
         </div>
         <Button variant="outline" size="sm" onClick={handleSelectAll}>
           {selectedSuggestions.size === suggestions.length ? 'Deselect All' : `Select All (${suggestions.length})`}

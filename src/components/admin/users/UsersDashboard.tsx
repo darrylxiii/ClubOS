@@ -5,8 +5,10 @@ import { ActivityStatusCard } from "./ActivityStatusCard";
 import { CompanyMembersCard } from "./CompanyMembersCard";
 import { useUserMetrics } from "@/hooks/useUserMetrics";
 import { useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from 'react-i18next';
 
 export const UsersDashboard = () => {
+  const { t } = useTranslation('admin');
   const queryClient = useQueryClient();
   const { isLoading } = useUserMetrics();
 
@@ -17,7 +19,7 @@ export const UsersDashboard = () => {
   return (
     <div className="space-y-6">
       <DashboardHeader
-        title="User Management"
+        title={t('users.usersDashboard.userManagement')}
         description="Manage user accounts, roles, and permissions"
         onRefresh={handleRefresh}
         isRefreshing={isLoading}

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -24,6 +25,7 @@ interface TimeTrackingSettingsData {
 }
 
 export function TimeTrackingSettings() {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [saving, setSaving] = useState(false);
   const [settings, setSettings] = useState<TimeTrackingSettingsData>({
@@ -64,10 +66,10 @@ export function TimeTrackingSettings() {
     try {
       // Store in localStorage as these columns may not exist in DB
       localStorage.setItem(`time_tracking_settings_${user.id}`, JSON.stringify(settings));
-      toast.success('Time tracking settings saved');
+      toast.success(t("time_tracking_settings_saved", "Time tracking settings saved"));
     } catch (error) {
       console.error('Error saving settings:', error);
-      toast.error('Failed to save settings');
+      toast.error(t("failed_to_save_settings", "Failed to save settings"));
     } finally {
       setSaving(false);
     }
@@ -81,11 +83,11 @@ export function TimeTrackingSettings() {
             <Clock className="w-5 h-5" />
             Timer Settings
           </CardTitle>
-          <CardDescription>Configure how the time tracker behaves</CardDescription>
+          <CardDescription>{t("configure_how_the_time", "Configure how the time tracker behaves")}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-2">
-            <Label>Default Hourly Rate (€)</Label>
+            <Label>{t("default_hourly_rate", "Default Hourly Rate (€)")}</Label>
             <div className="flex items-center gap-4">
               <Slider
                 value={[settings.default_hourly_rate]}
@@ -97,13 +99,13 @@ export function TimeTrackingSettings() {
               />
               <span className="text-sm font-medium w-16 text-right">€{settings.default_hourly_rate}</span>
             </div>
-            <p className="text-xs text-muted-foreground">Applied to new time entries without a project rate</p>
+            <p className="text-xs text-muted-foreground">{t("applied_to_new_time", "Applied to new time entries without a project rate")}</p>
           </div>
 
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label>Auto-start Timer</Label>
-              <p className="text-xs text-muted-foreground">Automatically start timer when selecting a task</p>
+              <Label>{t("autostart_timer", "Auto-start Timer")}</Label>
+              <p className="text-xs text-muted-foreground">{t("automatically_start_timer_when", "Automatically start timer when selecting a task")}</p>
             </div>
             <Switch
               checked={settings.auto_start_timer}
@@ -119,13 +121,13 @@ export function TimeTrackingSettings() {
             <Activity className="w-5 h-5" />
             Activity Monitoring
           </CardTitle>
-          <CardDescription>Track your productivity and activity levels</CardDescription>
+          <CardDescription>{t("track_your_productivity_and", "Track your productivity and activity levels")}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label>Activity Tracking</Label>
-              <p className="text-xs text-muted-foreground">Monitor keyboard and mouse activity</p>
+              <Label>{t("activity_tracking", "Activity Tracking")}</Label>
+              <p className="text-xs text-muted-foreground">{t("monitor_keyboard_and_mouse", "Monitor keyboard and mouse activity")}</p>
             </div>
             <Switch
               checked={settings.activity_tracking_enabled}
@@ -135,8 +137,8 @@ export function TimeTrackingSettings() {
 
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label>Idle Detection</Label>
-              <p className="text-xs text-muted-foreground">Detect when you're away from your computer</p>
+              <Label>{t("idle_detection", "Idle Detection")}</Label>
+              <p className="text-xs text-muted-foreground">{t("detect_when_youre_away", "Detect when you're away from your computer")}</p>
             </div>
             <Switch
               checked={settings.idle_detection_enabled}
@@ -146,7 +148,7 @@ export function TimeTrackingSettings() {
 
           {settings.idle_detection_enabled && (
             <div className="space-y-2 pl-4 border-l-2 border-muted">
-              <Label>Idle Threshold</Label>
+              <Label>{t("idle_threshold", "Idle Threshold")}</Label>
               <Select
                 value={settings.idle_threshold_minutes.toString()}
                 onValueChange={(value) => setSettings({ ...settings, idle_threshold_minutes: parseInt(value) })}
@@ -155,10 +157,10 @@ export function TimeTrackingSettings() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="3">3 minutes</SelectItem>
-                  <SelectItem value="5">5 minutes</SelectItem>
-                  <SelectItem value="10">10 minutes</SelectItem>
-                  <SelectItem value="15">15 minutes</SelectItem>
+                  <SelectItem value="3">{t("3_minutes", "3 minutes")}</SelectItem>
+                  <SelectItem value="5">{t("5_minutes", "5 minutes")}</SelectItem>
+                  <SelectItem value="10">{t("10_minutes", "10 minutes")}</SelectItem>
+                  <SelectItem value="15">{t("15_minutes", "15 minutes")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -172,13 +174,13 @@ export function TimeTrackingSettings() {
             <Camera className="w-5 h-5" />
             Screenshots
           </CardTitle>
-          <CardDescription>Optional screenshot capture for verification</CardDescription>
+          <CardDescription>{t("optional_screenshot_capture_for", "Optional screenshot capture for verification")}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label>Enable Screenshots</Label>
-              <p className="text-xs text-muted-foreground">Capture periodic screenshots while tracking</p>
+              <Label>{t("enable_screenshots", "Enable Screenshots")}</Label>
+              <p className="text-xs text-muted-foreground">{t("capture_periodic_screenshots_while", "Capture periodic screenshots while tracking")}</p>
             </div>
             <Switch
               checked={settings.screenshot_enabled}
@@ -189,7 +191,7 @@ export function TimeTrackingSettings() {
           {settings.screenshot_enabled && (
             <>
               <div className="space-y-2 pl-4 border-l-2 border-muted">
-                <Label>Screenshot Frequency</Label>
+                <Label>{t("screenshot_frequency", "Screenshot Frequency")}</Label>
                 <Select
                   value={settings.screenshot_frequency_minutes.toString()}
                   onValueChange={(value) => setSettings({ ...settings, screenshot_frequency_minutes: parseInt(value) })}
@@ -198,18 +200,18 @@ export function TimeTrackingSettings() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="5">Every 5 minutes</SelectItem>
-                    <SelectItem value="10">Every 10 minutes</SelectItem>
-                    <SelectItem value="15">Every 15 minutes</SelectItem>
-                    <SelectItem value="30">Every 30 minutes</SelectItem>
+                    <SelectItem value="5">{t("every_5_minutes", "Every 5 minutes")}</SelectItem>
+                    <SelectItem value="10">{t("every_10_minutes", "Every 10 minutes")}</SelectItem>
+                    <SelectItem value="15">{t("every_15_minutes", "Every 15 minutes")}</SelectItem>
+                    <SelectItem value="30">{t("every_30_minutes", "Every 30 minutes")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="flex items-center justify-between pl-4 border-l-2 border-muted">
                 <div className="space-y-0.5">
-                  <Label>Blur Screenshots</Label>
-                  <p className="text-xs text-muted-foreground">Blur sensitive content in screenshots</p>
+                  <Label>{t("blur_screenshots", "Blur Screenshots")}</Label>
+                  <p className="text-xs text-muted-foreground">{t("blur_sensitive_content_in", "Blur sensitive content in screenshots")}</p>
                 </div>
                 <Switch
                   checked={settings.blur_screenshots}
@@ -227,13 +229,13 @@ export function TimeTrackingSettings() {
             <Bell className="w-5 h-5" />
             Reminders
           </CardTitle>
-          <CardDescription>Get reminded to submit your timesheets</CardDescription>
+          <CardDescription>{t("get_reminded_to_submit", "Get reminded to submit your timesheets")}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label>Timesheet Reminders</Label>
-              <p className="text-xs text-muted-foreground">Weekly reminder to submit your timesheet</p>
+              <Label>{t("timesheet_reminders", "Timesheet Reminders")}</Label>
+              <p className="text-xs text-muted-foreground">{t("weekly_reminder_to_submit", "Weekly reminder to submit your timesheet")}</p>
             </div>
             <Switch
               checked={settings.timesheet_reminder_enabled}
@@ -243,7 +245,7 @@ export function TimeTrackingSettings() {
 
           {settings.timesheet_reminder_enabled && (
             <div className="space-y-2 pl-4 border-l-2 border-muted">
-              <Label>Reminder Day</Label>
+              <Label>{t("reminder_day", "Reminder Day")}</Label>
               <Select
                 value={settings.timesheet_reminder_day}
                 onValueChange={(value) => setSettings({ ...settings, timesheet_reminder_day: value })}
@@ -252,10 +254,10 @@ export function TimeTrackingSettings() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="thursday">Thursday</SelectItem>
-                  <SelectItem value="friday">Friday</SelectItem>
-                  <SelectItem value="saturday">Saturday</SelectItem>
-                  <SelectItem value="sunday">Sunday</SelectItem>
+                  <SelectItem value="thursday">{t("thursday", "Thursday")}</SelectItem>
+                  <SelectItem value="friday">{t("friday", "Friday")}</SelectItem>
+                  <SelectItem value="saturday">{t("saturday", "Saturday")}</SelectItem>
+                  <SelectItem value="sunday">{t("sunday", "Sunday")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>

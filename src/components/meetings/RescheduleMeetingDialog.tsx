@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -25,6 +26,7 @@ export function RescheduleMeetingDialog({
   currentDate,
   onRescheduled,
 }: RescheduleMeetingDialogProps) {
+  const { t } = useTranslation('common');
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(
     currentDate ? new Date(currentDate) : undefined
   );
@@ -73,7 +75,7 @@ export function RescheduleMeetingDialog({
 
   const handleSubmit = async () => {
     if (!selectedDate || !selectedTime) {
-      toast.error("Please select both date and time");
+      toast.error(t("please_select_both_date", "Please select both date and time"));
       return;
     }
 
@@ -98,7 +100,7 @@ export function RescheduleMeetingDialog({
 
       if (error) throw error;
 
-      toast.success("Meeting rescheduled successfully");
+      toast.success(t("meeting_rescheduled_successfully", "Meeting rescheduled successfully"));
       setSelectedDate(undefined);
       setSelectedTime("");
       onOpenChange(false);
@@ -115,7 +117,7 @@ export function RescheduleMeetingDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Reschedule Meeting</DialogTitle>
+          <DialogTitle>{t("reschedule_meeting", "Reschedule Meeting")}</DialogTitle>
           <DialogDescription>
             Select a new date and time for this meeting
           </DialogDescription>
@@ -123,7 +125,7 @@ export function RescheduleMeetingDialog({
 
         <div className="space-y-4">
           <div>
-            <Label>Date</Label>
+            <Label>{t("date", "Date")}</Label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button
@@ -134,7 +136,7 @@ export function RescheduleMeetingDialog({
                   {selectedDate ? (
                     format(selectedDate, "PPP")
                   ) : (
-                    <span>Pick a date</span>
+                    <span>{t("pick_a_date", "Pick a date")}</span>
                   )}
                 </Button>
               </PopoverTrigger>
@@ -151,10 +153,10 @@ export function RescheduleMeetingDialog({
           </div>
 
           <div>
-            <Label>Time</Label>
+            <Label>{t("time", "Time")}</Label>
             <Select value={selectedTime} onValueChange={setSelectedTime}>
               <SelectTrigger>
-                <SelectValue placeholder="Select time" />
+                <SelectValue placeholder={t("select_time", "Select time")} />
               </SelectTrigger>
               <SelectContent className="max-h-[200px]">
                 {timeSlots.map((time) => (

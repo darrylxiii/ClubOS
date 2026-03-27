@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { DynamicChart } from '@/components/charts/DynamicChart';
 import { Badge } from '@/components/ui/badge';
@@ -13,6 +14,7 @@ interface PredictiveRevenueModelProps {
 }
 
 export function PredictiveRevenueModel({ legalEntity }: PredictiveRevenueModelProps) {
+  const { t } = useTranslation('common');
   const { data, isLoading } = useQuery({
     queryKey: ['predictive-revenue-model', legalEntity],
     queryFn: async () => {
@@ -148,18 +150,18 @@ export function PredictiveRevenueModel({ legalEntity }: PredictiveRevenueModelPr
         {/* Summary Cards */}
         <div className="grid gap-3 md:grid-cols-3">
           <div className="p-3 rounded-lg border">
-            <p className="text-sm text-muted-foreground">Next Quarter (P50)</p>
+            <p className="text-sm text-muted-foreground">{t("next_quarter_p50", "Next Quarter (P50)")}</p>
             <p className="text-lg font-bold">{formatCurrency(data?.nextQuarterP50 || 0)}</p>
           </div>
           <div className="p-3 rounded-lg border">
-            <p className="text-sm text-muted-foreground">Pipeline Value (Weighted)</p>
+            <p className="text-sm text-muted-foreground">{t("pipeline_value_weighted", "Pipeline Value (Weighted)")}</p>
             <div className="flex items-center gap-2">
               <p className="text-lg font-bold">{formatCurrency(data?.pipelineValue || 0)}</p>
               <Badge variant="outline">{data?.totalPipelineDeals || 0} deals</Badge>
             </div>
           </div>
           <div className="p-3 rounded-lg border">
-            <p className="text-sm text-muted-foreground">QoQ Growth Trend</p>
+            <p className="text-sm text-muted-foreground">{t("qoq_growth_trend", "QoQ Growth Trend")}</p>
             <p className={`text-lg font-bold ${(data?.quarterlyGrowthRate || 0) >= 0 ? 'text-green-500' : 'text-destructive'}`}>
               {(data?.quarterlyGrowthRate || 0) >= 0 ? '+' : ''}{(data?.quarterlyGrowthRate || 0).toFixed(1)}%
             </p>

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { DollarSign, TrendingUp, Clock, Briefcase } from "lucide-react";
@@ -11,6 +12,7 @@ export function CandidateCompensationDisplay({
   candidate, 
   showCurrency = true 
 }: CandidateCompensationDisplayProps) {
+  const { t } = useTranslation('common');
   const currency = candidate.final_currency || candidate.preferred_currency || 'USD';
   const currentMin = candidate.current_salary_min;
   const currentMax = candidate.current_salary_max;
@@ -40,7 +42,7 @@ export function CandidateCompensationDisplay({
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <Briefcase className="w-4 h-4 text-muted-foreground" />
-              <h4 className="font-medium">Current Salary</h4>
+              <h4 className="font-medium">{t("current_salary", "Current Salary")}</h4>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-2xl font-bold">
@@ -60,7 +62,7 @@ export function CandidateCompensationDisplay({
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <TrendingUp className="w-4 h-4 text-muted-foreground" />
-              <h4 className="font-medium">Desired Salary</h4>
+              <h4 className="font-medium">{t("desired_salary", "Desired Salary")}</h4>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-2xl font-bold text-primary">
@@ -79,7 +81,7 @@ export function CandidateCompensationDisplay({
         <div className="grid grid-cols-2 gap-4 pt-4 border-t">
           {candidate.employment_type_preference && (
             <div>
-              <p className="text-sm text-muted-foreground mb-1">Employment Type</p>
+              <p className="text-sm text-muted-foreground mb-1">{t("employment_type", "Employment Type")}</p>
               <Badge variant="secondary">
                 {candidate.employment_type_preference}
               </Badge>
@@ -88,7 +90,7 @@ export function CandidateCompensationDisplay({
 
           {candidate.final_notice_period && (
             <div>
-              <p className="text-sm text-muted-foreground mb-1">Notice Period</p>
+              <p className="text-sm text-muted-foreground mb-1">{t("notice_period", "Notice Period")}</p>
               <Badge variant="outline" className="flex items-center gap-1 w-fit">
                 <Clock className="w-3 h-3" />
                 {candidate.final_notice_period}
@@ -98,7 +100,7 @@ export function CandidateCompensationDisplay({
 
           {candidate.remote_work_preference && (
             <div>
-              <p className="text-sm text-muted-foreground mb-1">Remote Preference</p>
+              <p className="text-sm text-muted-foreground mb-1">{t("remote_preference", "Remote Preference")}</p>
               <Badge variant="secondary">
                 {candidate.remote_work_preference}
               </Badge>
@@ -107,7 +109,7 @@ export function CandidateCompensationDisplay({
 
           {candidate.freelance_hourly_rate_min && (
             <div>
-              <p className="text-sm text-muted-foreground mb-1">Freelance Rate</p>
+              <p className="text-sm text-muted-foreground mb-1">{t("freelance_rate", "Freelance Rate")}</p>
               <p className="font-medium">
                 {formatCurrency(candidate.freelance_hourly_rate_min)}
                 {candidate.freelance_hourly_rate_max && 
@@ -121,11 +123,11 @@ export function CandidateCompensationDisplay({
         {/* Work Hours */}
         {(candidate.fulltime_hours_per_week_min || candidate.freelance_hours_per_week_min) && (
           <div className="pt-4 border-t">
-            <h4 className="font-medium mb-3">Preferred Hours per Week</h4>
+            <h4 className="font-medium mb-3">{t("preferred_hours_per_week", "Preferred Hours per Week")}</h4>
             <div className="grid grid-cols-2 gap-4">
               {candidate.fulltime_hours_per_week_min && (
                 <div>
-                  <p className="text-sm text-muted-foreground mb-1">Full-time</p>
+                  <p className="text-sm text-muted-foreground mb-1">{t("fulltime", "Full-time")}</p>
                   <p className="font-medium">
                     {candidate.fulltime_hours_per_week_min}
                     {candidate.fulltime_hours_per_week_max && 
@@ -136,7 +138,7 @@ export function CandidateCompensationDisplay({
               )}
               {candidate.freelance_hours_per_week_min && (
                 <div>
-                  <p className="text-sm text-muted-foreground mb-1">Freelance</p>
+                  <p className="text-sm text-muted-foreground mb-1">{t("freelance", "Freelance")}</p>
                   <p className="font-medium">
                     {candidate.freelance_hours_per_week_min}
                     {candidate.freelance_hours_per_week_max && 
@@ -152,7 +154,7 @@ export function CandidateCompensationDisplay({
         {/* Location Preferences */}
         {candidate.preferred_work_locations && candidate.preferred_work_locations.length > 0 && (
           <div className="pt-4 border-t">
-            <h4 className="font-medium mb-2">Preferred Locations</h4>
+            <h4 className="font-medium mb-2">{t("preferred_locations", "Preferred Locations")}</h4>
             <div className="flex flex-wrap gap-2">
               {candidate.preferred_work_locations.map((location: string, index: number) => (
                 <Badge key={index} variant="outline">

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -21,6 +22,7 @@ export function ContinueLearningCard({
   illustration,
   nextLesson,
 }: ContinueLearningCardProps) {
+  const { t } = useTranslation('common');
   const bgColors = {
     design: "from-blue-100 to-cyan-100",
     blend: "from-purple-100 to-pink-100",
@@ -51,7 +53,7 @@ export function ContinueLearningCard({
 
             <div className="space-y-2">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Progress:</span>
+                <span className="text-muted-foreground">{t("progress", "Progress:")}</span>
                 <span className="font-semibold">{progress}%</span>
               </div>
               <Progress value={progress} className="h-2" />
@@ -65,7 +67,7 @@ export function ContinueLearningCard({
                 <span>Advance your learning with <span className="text-primary font-medium">{nextLesson.split('with ')[1]}</span></span>
               </p>
             )}
-            <Button className="squircle-sm">Continue</Button>
+            <Button className="squircle-sm">{t("continue", "Continue")}</Button>
           </div>
         </div>
       </div>

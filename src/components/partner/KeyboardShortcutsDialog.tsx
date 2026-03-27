@@ -9,6 +9,7 @@ import {
 import { Kbd } from '@/components/ui/kbd';
 import { JOB_KEYBOARD_SHORTCUTS } from '@/hooks/useJobsKeyboardNav';
 import { Keyboard } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface KeyboardShortcutsDialogProps {
   open: boolean;
@@ -19,17 +20,16 @@ export const KeyboardShortcutsDialog = memo(({
   open,
   onOpenChange,
 }: KeyboardShortcutsDialogProps) => {
+  const { t } = useTranslation('partner');
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md glass-card">
         <DialogHeader>
           <div className="flex items-center gap-3 mb-2">
             <Keyboard className="w-6 h-6 text-primary" />
-            <DialogTitle className="text-xl">Keyboard Shortcuts</DialogTitle>
+            <DialogTitle className="text-xl">{t('keyboardShortcutsDialog.dialogTitle')}</DialogTitle>
           </div>
-          <DialogDescription>
-            Navigate and manage jobs efficiently with these shortcuts
-          </DialogDescription>
+          <DialogDescription>{t('keyboardShortcutsDialog.dialogDescription')}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-1 mt-4">

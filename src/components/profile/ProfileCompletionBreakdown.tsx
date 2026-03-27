@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { CheckCircle2, Circle, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ProfileTask } from "@/lib/profileStrengthTasks";
@@ -16,6 +17,7 @@ export const ProfileCompletionBreakdown = ({
   maxToShow = 5,
   onTaskClick
 }: ProfileCompletionBreakdownProps) => {
+  const { t } = useTranslation('common');
   // Separate completed and incomplete tasks
   const incompleteTasks = tasks.filter(t => !completedTasks.has(t.key));
   const completed = tasks.filter(t => completedTasks.has(t.key));
@@ -36,7 +38,7 @@ export const ProfileCompletionBreakdown = ({
         <div className="flex items-center gap-2 px-1">
           <AlertCircle className="h-4 w-4 text-amber-500" />
           <span className="text-sm text-muted-foreground">
-            {totalIncomplete} {totalIncomplete === 1 ? 'item' : 'items'} to complete
+            {t('profile.itemsToComplete', { count: totalIncomplete })}
           </span>
         </div>
       )}
@@ -110,7 +112,7 @@ export const ProfileCompletionBreakdown = ({
       {/* Show more indicator */}
       {incompleteTasks.length > maxToShow && (
         <p className="text-xs text-muted-foreground text-center pt-1">
-          +{incompleteTasks.length - maxToShow} more items to complete
+          {t('profile.moreItemsToComplete', { count: incompleteTasks.length - maxToShow })}
         </p>
       )}
     </div>

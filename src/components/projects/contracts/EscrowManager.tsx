@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -33,6 +34,7 @@ interface EscrowTransaction {
 }
 
 export function EscrowManager({ contractId }: EscrowManagerProps) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [showFundDialog, setShowFundDialog] = useState(false);
@@ -117,7 +119,7 @@ export function EscrowManager({ contractId }: EscrowManagerProps) {
     },
     onSuccess: (data) => {
       if (data.url) {
-        toast.success("Redirecting to payment...");
+        toast.success(t("redirecting_to_payment", "Redirecting to payment..."));
         window.location.href = data.url;
       }
     },
@@ -183,7 +185,7 @@ export function EscrowManager({ contractId }: EscrowManagerProps) {
       <Card>
         <CardContent className="py-8 text-center">
           <AlertCircle className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
-          <p className="text-muted-foreground">Contract not found</p>
+          <p className="text-muted-foreground">{t("contract_not_found", "Contract not found")}</p>
         </CardContent>
       </Card>
     );
@@ -201,7 +203,7 @@ export function EscrowManager({ contractId }: EscrowManagerProps) {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Shield className="h-5 w-5 text-primary" />
-              <CardTitle>Escrow Protection</CardTitle>
+              <CardTitle>{t("escrow_protection", "Escrow Protection")}</CardTitle>
             </div>
             <Badge variant="outline" className={`gap-1 ${escrowFunded ? 'bg-green-100 text-green-800' : ''}`}>
               {escrowFunded ? (
@@ -227,29 +229,29 @@ export function EscrowManager({ contractId }: EscrowManagerProps) {
             <div className="p-4 bg-muted rounded-lg text-center">
               <Wallet className="h-5 w-5 mx-auto text-muted-foreground mb-2" />
               <p className="text-2xl font-bold">€{totalMilestoneValue.toLocaleString()}</p>
-              <p className="text-xs text-muted-foreground">Contract Value</p>
+              <p className="text-xs text-muted-foreground">{t("contract_value", "Contract Value")}</p>
             </div>
             <div className="p-4 bg-primary/10 rounded-lg text-center">
               <Lock className="h-5 w-5 mx-auto text-primary mb-2" />
               <p className="text-2xl font-bold text-primary">€{escrowBalance.toLocaleString()}</p>
-              <p className="text-xs text-muted-foreground">In Escrow</p>
+              <p className="text-xs text-muted-foreground">{t("in_escrow", "In Escrow")}</p>
             </div>
             <div className="p-4 bg-green-50 dark:bg-green-950 rounded-lg text-center">
               <Unlock className="h-5 w-5 mx-auto text-green-600 mb-2" />
               <p className="text-2xl font-bold text-green-600">€{paidMilestoneValue.toLocaleString()}</p>
-              <p className="text-xs text-muted-foreground">Released</p>
+              <p className="text-xs text-muted-foreground">{t("released", "Released")}</p>
             </div>
             <div className="p-4 bg-muted rounded-lg text-center">
               <DollarSign className="h-5 w-5 mx-auto text-muted-foreground mb-2" />
               <p className="text-2xl font-bold">€{platformFee.toLocaleString()}</p>
-              <p className="text-xs text-muted-foreground">Platform Fee (12%)</p>
+              <p className="text-xs text-muted-foreground">{t("platform_fee_12", "Platform Fee (12%)")}</p>
             </div>
           </div>
 
           {/* Progress */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium">Payment Progress</span>
+              <span className="text-sm font-medium">{t("payment_progress", "Payment Progress")}</span>
               <span className="text-sm text-muted-foreground">
                 {progressPercentage.toFixed(0)}% released
               </span>
@@ -270,19 +272,19 @@ export function EscrowManager({ contractId }: EscrowManagerProps) {
                   </DialogTrigger>
                   <DialogContent>
                     <DialogHeader>
-                      <DialogTitle>Fund Escrow</DialogTitle>
+                      <DialogTitle>{t("fund_escrow", "Fund Escrow")}</DialogTitle>
                       <DialogDescription>
                         Add funds to the escrow account. You'll be redirected to Stripe to complete payment.
                       </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4 py-4">
                       <div>
-                        <Label>Amount (€)</Label>
+                        <Label>{t("amount", "Amount (€)")}</Label>
                         <Input
                           type="number"
                           value={fundAmount}
                           onChange={(e) => setFundAmount(e.target.value)}
-                          placeholder="Enter amount"
+                          placeholder={t("enter_amount", "Enter amount")}
                           min="1"
                         />
                         {totalMilestoneValue > 0 && (
@@ -339,7 +341,7 @@ export function EscrowManager({ contractId }: EscrowManagerProps) {
                     </DialogTrigger>
                     <DialogContent>
                       <DialogHeader>
-                        <DialogTitle>Release Milestone Payment</DialogTitle>
+                        <DialogTitle>{t("release_milestone_payment", "Release Milestone Payment")}</DialogTitle>
                         <DialogDescription>
                           Select an approved milestone to release payment to the freelancer.
                         </DialogDescription>

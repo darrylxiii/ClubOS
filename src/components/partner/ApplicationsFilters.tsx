@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface ApplicationsFiltersProps {
@@ -29,6 +30,7 @@ export const ApplicationsFilters = ({
   jobs,
   companies
 }: ApplicationsFiltersProps) => {
+  const { t } = useTranslation('partner');
   // Extract unique companies from jobs
   const uniqueCompanies = Array.from(
     new Map(
@@ -44,14 +46,14 @@ export const ApplicationsFilters = ({
         <label className="text-sm font-medium">Status</label>
         <Select value={selectedStage} onValueChange={setSelectedStage}>
           <SelectTrigger>
-            <SelectValue placeholder="All statuses" />
+            <SelectValue placeholder={t('applicationsFilters.placeholder.allStatuses')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Statuses</SelectItem>
-            <SelectItem value="active">Active</SelectItem>
-            <SelectItem value="hired">Hired</SelectItem>
-            <SelectItem value="rejected">Rejected</SelectItem>
-            <SelectItem value="withdrawn">Withdrawn</SelectItem>
+            <SelectItem value="all">{t('applicationsFilters.option.allStatuses')}</SelectItem>
+            <SelectItem value="active">{t('applicationsFilters.option.active')}</SelectItem>
+            <SelectItem value="hired">{t('applicationsFilters.option.hired')}</SelectItem>
+            <SelectItem value="rejected">{t('applicationsFilters.option.rejected')}</SelectItem>
+            <SelectItem value="withdrawn">{t('applicationsFilters.option.withdrawn')}</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -60,10 +62,10 @@ export const ApplicationsFilters = ({
         <label className="text-sm font-medium">Job</label>
         <Select value={selectedJob} onValueChange={setSelectedJob}>
           <SelectTrigger>
-            <SelectValue placeholder="All jobs" />
+            <SelectValue placeholder={t('applicationsFilters.placeholder.allJobs')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Jobs</SelectItem>
+            <SelectItem value="all">{t('applicationsFilters.option.allJobs')}</SelectItem>
             {jobs.map((job) => (
               <SelectItem key={job.id} value={job.id}>
                 {job.title}
@@ -77,10 +79,10 @@ export const ApplicationsFilters = ({
         <label className="text-sm font-medium">Company</label>
         <Select value={selectedCompany} onValueChange={setSelectedCompany}>
           <SelectTrigger>
-            <SelectValue placeholder="All companies" />
+            <SelectValue placeholder={t('applicationsFilters.placeholder.allCompanies')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Companies</SelectItem>
+            <SelectItem value="all">{t('applicationsFilters.option.allCompanies')}</SelectItem>
             {uniqueCompanies.map((company: any) => (
               <SelectItem key={company.id} value={company.id}>
                 {company.name}
@@ -94,14 +96,14 @@ export const ApplicationsFilters = ({
         <label className="text-sm font-medium">Source</label>
         <Select value={selectedSource} onValueChange={setSelectedSource}>
           <SelectTrigger>
-            <SelectValue placeholder="All sources" />
+            <SelectValue placeholder={t('applicationsFilters.placeholder.allSources')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Sources</SelectItem>
-            <SelectItem value="linkedin">LinkedIn</SelectItem>
-            <SelectItem value="referral">Referral</SelectItem>
-            <SelectItem value="direct">Direct</SelectItem>
-            <SelectItem value="agency">Agency</SelectItem>
+            <SelectItem value="all">{t('applicationsFilters.option.allSources')}</SelectItem>
+            <SelectItem value="linkedin">{t('applicationsFilters.option.linkedin')}</SelectItem>
+            <SelectItem value="referral">{t('applicationsFilters.option.referral')}</SelectItem>
+            <SelectItem value="direct">{t('applicationsFilters.option.direct')}</SelectItem>
+            <SelectItem value="agency">{t('applicationsFilters.option.agency')}</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -110,13 +112,13 @@ export const ApplicationsFilters = ({
         <label className="text-sm font-medium">Urgency</label>
         <Select value={urgencyFilter} onValueChange={setUrgencyFilter}>
           <SelectTrigger>
-            <SelectValue placeholder="All urgency" />
+            <SelectValue placeholder={t('applicationsFilters.placeholder.allUrgency')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All</SelectItem>
+            <SelectItem value="all">{t('applicationsFilters.option.all')}</SelectItem>
             <SelectItem value="urgent">Urgent (14+ days)</SelectItem>
             <SelectItem value="needs-followup">Needs Follow-up (7+ days)</SelectItem>
-            <SelectItem value="recent">Recent Activity</SelectItem>
+            <SelectItem value="recent">{t('applicationsFilters.option.recentActivity')}</SelectItem>
           </SelectContent>
         </Select>
       </div>

@@ -1,4 +1,5 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useTranslation } from 'react-i18next';
 import { LayoutDashboard, Briefcase, Gift, Settings } from "lucide-react";
 import { RevenueDistributionSummary } from "@/components/admin/revenue/RevenueDistributionSummary";
 import { RecruiterCommissionsTable } from "@/components/admin/revenue/RecruiterCommissionsTable";
@@ -9,6 +10,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
 export default function RevenueSharesPage() {
+  const { t } = useTranslation('admin');
   const { data: revenueShares = [] } = useQuery({
     queryKey: ['revenue-shares-page'],
     queryFn: async () => {

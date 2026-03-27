@@ -1,0 +1,303 @@
+{
+  "title": "Mensajes",
+  "subtitle": "Sus conversaciones",
+  "compose": {
+    "title": "Redactar mensaje",
+    "newMessage": "Nuevo mensaje",
+    "to": "Para",
+    "subject": "Asunto",
+    "body": "Mensaje",
+    "send": "Enviar",
+    "cancel": "Cancelar",
+    "saveDraft": "Guardar borrador",
+    "attachFile": "Adjuntar archivo",
+    "insertEmoji": "Insertar emoji"
+  },
+  "inbox": {
+    "title": "Bandeja de entrada",
+    "all": "Todos los mensajes",
+    "unread": "No leídos",
+    "starred": "Destacados",
+    "archived": "Archivados",
+    "spam": "Spam",
+    "trash": "Papelera",
+    "empty": "Su bandeja de entrada está vacía"
+  },
+  "sent": {
+    "title": "Enviados",
+    "empty": "No hay mensajes enviados"
+  },
+  "drafts": {
+    "title": "Borradores",
+    "empty": "No hay borradores"
+  },
+  "search": {
+    "placeholder": "Buscar mensajes...",
+    "noResults": "No se encontraron mensajes",
+    "inConversation": "En esta conversación",
+    "filters": "Filtros de búsqueda"
+  },
+  "actions": {
+    "reply": "Responder",
+    "replyAll": "Responder a todos",
+    "forward": "Reenviar",
+    "delete": "Eliminar",
+    "archive": "Archivar",
+    "unarchive": "Desarchivar",
+    "markAsRead": "Marcar como leído",
+    "markAsUnread": "Marcar como no leído",
+    "star": "Destacar",
+    "unstar": "Quitar destacado",
+    "moveToTrash": "Mover a papelera",
+    "markAsSpam": "Marcar como spam",
+    "print": "Imprimir"
+  },
+  "conversation": {
+    "title": "Conversación",
+    "typeMessage": "Escriba un mensaje...",
+    "send": "Enviar",
+    "sendMessage": "Enviar mensaje",
+    "loadMore": "Cargar más mensajes",
+    "noMessages": "No messages yet",
+    "startConversation": "Inicie la conversación"
+  },
+  "attachments": {
+    "title": "Archivos adjuntos",
+    "add": "Agregar archivo adjunto",
+    "remove": "Eliminar",
+    "download": "Descargar",
+    "preview": "Vista previa",
+    "maxSize": "Tamaño máximo de archivo: 25 MB",
+    "supportedFormats": "Formatos compatibles: PDF, DOC, DOCX, JPG, PNG"
+  },
+  "notifications": {
+    "newMessage": "Nuevo mensaje recibido",
+    "messageSent": "Mensaje enviado exitosamente",
+    "messageDeleted": "Mensaje eliminado",
+    "messageArchived": "Mensaje archivado",
+    "draftSaved": "Borrador guardado"
+  },
+  "templates": {
+    "title": "Plantillas de mensajes",
+    "create": "Crear plantilla",
+    "edit": "Editar plantilla",
+    "delete": "Eliminar plantilla",
+    "use": "Usar plantilla",
+    "name": "Nombre de la plantilla",
+    "content": "Contenido de la plantilla"
+  },
+  "filters": {
+    "all": "Todos",
+    "unread": "No leídos",
+    "hasAttachments": "Con archivos adjuntos",
+    "fromMe": "De mí",
+    "toMe": "Para mí",
+    "dateRange": "Rango de fechas"
+  },
+  "labels": {
+    "title": "Etiquetas",
+    "create": "Crear etiqueta",
+    "edit": "Editar etiqueta",
+    "delete": "Eliminar etiqueta",
+    "apply": "Aplicar etiqueta",
+    "remove": "Quitar etiqueta",
+    "noLabels": "Sin etiquetas"
+  },
+  "settings": {
+    "title": "Configuración de mensajes",
+    "notifications": "Preferencias de notificación",
+    "signature": "Firma de correo",
+    "autoReply": "Respuesta automática",
+    "blockedSenders": "Remitentes bloqueados"
+  },
+  "bulk": {
+    "selectAll": "Seleccionar todos",
+    "deselectAll": "Deseleccionar todos",
+    "selected": "seleccionados",
+    "deleteSelected": "Eliminar seleccionados",
+    "archiveSelected": "Archivar seleccionados",
+    "markAllRead": "Marcar todos como leídos"
+  },
+  "status": {
+    "sending": "Enviando...",
+    "sent": "Enviado",
+    "delivered": "Entregado",
+    "read": "Leído",
+    "failed": "Failed to send"
+  },
+  "empty": {
+    "noConversations": "No conversations yet",
+    "startNew": "Inicie una nueva conversación",
+    "noResults": "Ningún mensaje coincide con su búsqueda"
+  },
+  "quickReplies": {
+    "title": "Respuestas rápidas",
+    "thankYou": "¡Gracias por su mensaje!",
+    "willReply": "Le responderé pronto.",
+    "acknowledged": "¡Recibido, gracias!",
+    "custom": "Respuesta personalizada..."
+  },
+  "typing": {
+    "indicator": "está escribiendo...",
+    "multiple": "están escribiendo..."
+  },
+  "online": {
+    "online": "En línea",
+    "offline": "Desconectado",
+    "away": "Ausente",
+    "busy": "Ocupado"
+  },
+  "videoCall": {
+    "joinedRoom": "Se unió a la sala de reunión",
+    "mediaConnected": "Cámara y micrófono conectados",
+    "joinedNoMedia": "Se unió sin cámara/micrófono. Puede intentar reconectarse desde la configuración.",
+    "dbError": "Error de base de datos. Reintentando...",
+    "connectFailed": "Could no connect to meeting room. Please try again.",
+    "joinFailed": "Failed to join call. Please try again.",
+    "cameraRequired": "Se requiere acceso a cámara/micrófono",
+    "enablePermissions": "Active los permisos de cámara y micrófono en su navegador para iniciar una videollamada.",
+    "howToEnable": "Cómo activar los permisos:",
+    "step1": "Haga clic en el icono de la cámara en la barra de direcciones de su navegador",
+    "step2": "Seleccione \"Permitir\" para cámara y micrófono",
+    "step3": "Haga clic en el botón \"Intentar de nuevo\" a continuación",
+    "mediaReconnected": "Cámara y micrófono reconectados",
+    "mediaConnectFailed": "No se pudieron conectar los medios. Verifique sus permisos.",
+    "screenShareStarted": "Se inició la pantalla compartida",
+    "screenShareFailed": "No se pudo iniciar la pantalla compartida",
+    "waitingForOthers": "Esperando que otros se unan",
+    "shareLinkOrWait": "Comparta el enlace de la reunión o espere a los otros participantes",
+    "mediaNotConnected": "Su cámara y micrófono no están conectados",
+    "connectCameraMic": "Conectar cámara y micrófono",
+    "connected": "Conectado",
+    "participantCount": "{{count}} participante",
+    "you": "Usted",
+    "annotate": "Anotar",
+    "startVideoCall": "Iniciar videollamada",
+    "callLogMessage": "Videollamada finalizada - Duración: {{duration}} - {{count}} participante{{suffix}}"
+  },
+  "voiceRecorder": {
+    "recordingStarted": "Grabación iniciada",
+    "micDenied": "Acceso al micrófono denegado. Active los permisos del micrófono en la configuración de su navegador.",
+    "micNotFound": "No se encontró micrófono en su dispositivo.",
+    "micAccessFailed": "No se pudo acceder al micrófono. Verifique la configuración de su dispositivo.",
+    "transcribed": "Audio transcrito exitosamente",
+    "transcribeFailed": "No se pudo transcribir el audio, enviando sin transcripción",
+    "sent": "Nota de voz enviada",
+    "sendFailed": "No se pudo enviar la nota de voz",
+    "cancelRecording": "Cancelar grabación",
+    "stopAndSend": "Detener y enviar",
+    "stop": "Detener",
+    "transcribing": "Transcribiendo audio...",
+    "uploading": "Subiendo nota de voz...",
+    "recordVoiceNote": "Grabar nota de voz",
+    "microphone": "Micrófono"
+  },
+  "youtube": {
+    "invalidUrl": "URL de YouTube no válida",
+    "pasteValidLink": "Pegue un enlace válido de video de YouTube",
+    "videoAdded": "Video de YouTube agregado",
+    "shareVideo": "Compartir video de YouTube",
+    "shareVideoTitle": "Compartir video de YouTube",
+    "pasteUrl": "Pegue una URL de video de YouTube para compartir",
+    "preview": "Vista previa",
+    "addVideo": "Agregar video",
+    "videoLabel": "Video de YouTube",
+    "videoPlayer": "Reproductor de video de YouTube",
+    "popOut": "Abrir en ventana",
+    "thumbnailAlt": "Miniatura del video de YouTube"
+  },
+  "call": {
+    "microphone": "Micrófono",
+    "endCall": "Finalizar llamada",
+    "voiceCallLogMessage": "Llamada de voz finalizada - Duración: {{duration}}",
+    "micAccessGranted": "Acceso al micrófono concedido",
+    "micAccessDenied": "Acceso al micrófono denegado. Active los permisos en su navegador.",
+    "micNotFound": "No se encontró micrófono en su dispositivo.",
+    "micAccessFailed": "No se pudo acceder al micrófono. Verifique su dispositivo.",
+    "micRequired": "Se requiere acceso al micrófono",
+    "enableMicPermissions": "Active los permisos del micrófono en su navegador para iniciar una llamada de voz.",
+    "clickMicIcon": "Haga clic en el icono del micrófono en la barra de direcciones de su navegador para permitir el acceso.",
+    "close": "Cerrar",
+    "startVoice": "Iniciar llamada de voz",
+    "chooseHow": "Elija cómo conectarse",
+    "audioCall": "Llamada de audio",
+    "videoCall": "Videollamada",
+    "encrypted": "Su llamada estará cifrada de extremo a extremo"
+  },
+  "group": {
+    "groupInfo": "Información del grupo",
+    "chatInfo": "Información del chat",
+    "closeInfoPanel": "Cerrar panel de información",
+    "members": "miembros",
+    "membersLabel": "Miembros",
+    "noParticipantData": "No hay datos de participantes disponibles",
+    "member": "Miembro",
+    "sharedFiles": "Archivos compartidos",
+    "sharedLinks": "Enlaces compartidos"
+  },
+  "messageActions": {
+    "options": "Opciones del mensaje",
+    "replyInThread": "Responder en hilo",
+    "forwardMessage": "Reenviar mensaje",
+    "editMessage": "Editar mensaje",
+    "deleteMessage": "Eliminar mensaje",
+    "deleteConfirmation": "Esto eliminará permanentemente este mensaje. Esta acción no se puede deshacer.",
+    "deleteFailed": "No se pudo eliminar el mensaje",
+    "translatedSuccess": "Traducido exitosamente",
+    "translateFailed": "No se pudo traducir el mensaje",
+    "translateDutch": "Traducir al neerlandés",
+    "translateEnglish": "Traducir al inglés",
+    "translateSpanish": "Traducir al español"
+  },
+  "thread": {
+    "title": "Hilo",
+    "replySent": "Respuesta enviada",
+    "replyFailed": "No se pudo enviar la respuesta",
+    "replyPlaceholder": "Responder al hilo...",
+    "sendReply": "Enviar respuesta",
+    "edited": "editado"
+  },
+  "story": {
+    "forwarded": "Historia reenviada exitosamente",
+    "forwardFailed": "No se pudo reenviar la historia",
+    "altText": "Historia",
+    "forward": "Reenviar historia",
+    "forwardTo": "Reenviar historia a"
+  },
+  "sharedMedia": {
+    "loading": "Cargando medios...",
+    "noFiles": "No files shared yet",
+    "images": "Imágenes",
+    "videos": "Videos",
+    "documents": "Documentos",
+    "fileDownloaded": "Archivo descargado",
+    "downloadFailed": "No se pudo descargar el archivo"
+  },
+  "communicationIntelligence": {
+    "desc": "Vista unificada de todas las comunicaciones con información impulsada por IA",
+    "text2": "Inteligencia de comunicación",
+    "text3": "Todas las entidades",
+    "text4": "Candidatos",
+    "text5": "Prospectos",
+    "text6": "Socios",
+    "text7": "Saludable",
+    "text8": "Necesita atención",
+    "text9": "En riesgo",
+    "text10": "Crítico",
+    "text11": "Cronología de comunicación",
+    "text12": "No relationships tracked yet",
+    "text13": "Patrones detectados",
+    "text14": "No se detectaron patrones"
+  },
+  "messages": {
+    "text1": "Bienvenido a Mensajes",
+    "text2": "Inicie conversaciones con su red",
+    "text3": "Mensajes",
+    "text4": "Buscar conversaciones y mensajes...",
+    "text5": "Seleccione una conversación",
+    "text6": "Elija entre sus conversaciones existentes o inicie una nueva"
+  },
+  "whatsAppInbox": {
+    "text1": "WhatsApp Business"
+  }
+}

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 /**
  * Data Quality Indicator Component
  * 
@@ -41,6 +42,7 @@ export function DataQualityIndicator({
   confidenceScore,
   sources = { platform: 0, seed: 100, external: 0 }
 }: DataQualityIndicatorProps) {
+  const { t } = useTranslation('common');
   const [isOpen, setIsOpen] = useState(false);
 
   const getConfidenceLevel = (score: number): { label: string; color: string } => {
@@ -77,7 +79,7 @@ export function DataQualityIndicator({
           >
             <div className="flex items-center gap-3">
               <Shield className="w-4 h-4 text-muted-foreground" />
-              <span className="text-sm font-medium">Data Quality & Sources</span>
+              <span className="text-sm font-medium">{t("data_quality_sources", "Data Quality & Sources")}</span>
               <Badge variant="outline" className={confidence.color}>
                 {confidence.label} Confidence
               </Badge>
@@ -97,7 +99,7 @@ export function DataQualityIndicator({
               <div className="flex items-center gap-2">
                 <Users className="w-4 h-4 text-muted-foreground" />
                 <div>
-                  <p className="text-xs text-muted-foreground">Sample Size</p>
+                  <p className="text-xs text-muted-foreground">{t("sample_size", "Sample Size")}</p>
                   <p className="font-semibold">{sampleSize.toLocaleString()} data points</p>
                 </div>
               </div>
@@ -105,7 +107,7 @@ export function DataQualityIndicator({
               <div className="flex items-center gap-2">
                 <Clock className="w-4 h-4 text-muted-foreground" />
                 <div>
-                  <p className="text-xs text-muted-foreground">Last Updated</p>
+                  <p className="text-xs text-muted-foreground">{t("last_updated", "Last Updated")}</p>
                   <p className="font-semibold">{getTimeAgo(lastUpdated)}</p>
                 </div>
               </div>
@@ -113,7 +115,7 @@ export function DataQualityIndicator({
               <div className="flex items-center gap-2">
                 <Info className="w-4 h-4 text-muted-foreground" />
                 <div>
-                  <p className="text-xs text-muted-foreground">Confidence Score</p>
+                  <p className="text-xs text-muted-foreground">{t("confidence_score", "Confidence Score")}</p>
                   <p className="font-semibold">{Math.round(confidenceScore * 100)}%</p>
                 </div>
               </div>
@@ -128,7 +130,7 @@ export function DataQualityIndicator({
                 {sources.seed > 0 && (
                   <div className="flex items-center gap-1.5 px-2 py-1 rounded bg-background border border-border/50">
                     <Database className="w-3 h-3 text-primary" />
-                    <span className="text-xs">Market Data</span>
+                    <span className="text-xs">{t("market_data", "Market Data")}</span>
                     <Badge variant="secondary" className="text-xs px-1.5">
                       {Math.round((sources.seed / totalSources) * 100)}%
                     </Badge>
@@ -137,7 +139,7 @@ export function DataQualityIndicator({
                 {sources.platform > 0 && (
                   <div className="flex items-center gap-1.5 px-2 py-1 rounded bg-background border border-border/50">
                     <Users className="w-3 h-3 text-accent-gold" />
-                    <span className="text-xs">Platform Intelligence</span>
+                    <span className="text-xs">{t("platform_intelligence", "Platform Intelligence")}</span>
                     <Badge variant="secondary" className="text-xs px-1.5">
                       {Math.round((sources.platform / totalSources) * 100)}%
                     </Badge>
@@ -146,7 +148,7 @@ export function DataQualityIndicator({
                 {sources.external > 0 && (
                   <div className="flex items-center gap-1.5 px-2 py-1 rounded bg-background border border-border/50">
                     <Globe className="w-3 h-3 text-success" />
-                    <span className="text-xs">External APIs</span>
+                    <span className="text-xs">{t("external_apis", "External APIs")}</span>
                     <Badge variant="secondary" className="text-xs px-1.5">
                       {Math.round((sources.external / totalSources) * 100)}%
                     </Badge>

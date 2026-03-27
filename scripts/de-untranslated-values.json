@@ -1,0 +1,888 @@
+{
+  "common": [
+    {
+      "key": "models.gpt5",
+      "en": "GPT-5"
+    },
+    {
+      "key": "achievements.categories.innovation",
+      "en": "Innovation"
+    },
+    {
+      "key": "achievements.rarities.quantum",
+      "en": "Quantum"
+    },
+    {
+      "key": "toast.0",
+      "en": "T"
+    },
+    {
+      "key": "toast.1",
+      "en": "o"
+    },
+    {
+      "key": "toast.2",
+      "en": "a"
+    },
+    {
+      "key": "toast.3",
+      "en": "s"
+    },
+    {
+      "key": "toast.4",
+      "en": "t"
+    },
+    {
+      "key": "clubDJ.title",
+      "en": "Club DJ Dashboard"
+    },
+    {
+      "key": "courseEdit.text10",
+      "en": "Details"
+    },
+    {
+      "key": "expertMarketplace.text10",
+      "en": "React, Node.js, TypeScript"
+    },
+    {
+      "key": "interactionsFeed.text13",
+      "en": "Neutral"
+    },
+    {
+      "key": "interviewPrepChat.text5",
+      "en": "Position"
+    },
+    {
+      "key": "radio.text2",
+      "en": "Quantum Club Radio"
+    },
+    {
+      "key": "teamManagementPage.text6",
+      "en": "Acme Digital Agency"
+    },
+    {
+      "key": "termsOfService.desc7",
+      "en": "THE PLATFORM IS PROVIDED ')AS IS' WITHOUT WARRANTIES OF ANY KIND."
+    },
+    {
+      "key": "whatsAppImport.text11",
+      "en": "Choose ')Without Media'"
+    },
+    {
+      "key": "suppressionList.text2",
+      "en": "Domain"
+    },
+    {
+      "key": "suppressionList.text4",
+      "en": "Instantly"
+    },
+    {
+      "key": "suppressionList.text18",
+      "en": "Domain"
+    },
+    {
+      "key": "activeMeetingsWidget.badge.live",
+      "en": "Live"
+    },
+    {
+      "key": "recruiterTeamWidget.placements",
+      "en": "Placements"
+    },
+    {
+      "key": "landing.janeSmith",
+      "en": "Jane Smith"
+    },
+    {
+      "key": "landing.12345678900",
+      "en": "+1 234 567 8900"
+    },
+    {
+      "key": "landing.amsterdam",
+      "en": "Amsterdam,"
+    },
+    {
+      "key": "landing.qCXXXXXX",
+      "en": "QC-XXXXXX"
+    },
+    {
+      "key": "landing.acmeInc",
+      "en": "Acme Inc."
+    },
+    {
+      "key": "landing.seniorProductManager",
+      "en": "Senior Product Manager"
+    },
+    {
+      "key": "valuesPoker.optionA",
+      "en": "Option A"
+    },
+    {
+      "key": "valuesPoker.optionB",
+      "en": "Option B"
+    },
+    {
+      "key": "assessment_id, score, is_latest",
+      "en": "Assessment_id, score, is_latest"
+    },
+    {
+      "key": "company_id, companies!inner(id, name, logo_url)",
+      "en": "Company_id, companies!inner(id, name, logo_url)"
+    },
+    {
+      "key": "conversation_id, sender_id, created_at",
+      "en": "Conversation_id, sender_id, created_at"
+    },
+    {
+      "key": "current_stage_index, stages, updated_at",
+      "en": "Current_stage_index, stages, updated_at"
+    },
+    {
+      "key": "current_title, created_at",
+      "en": "Current_title, created_at"
+    },
+    {
+      "key": "current_title, location",
+      "en": "Current_title, location"
+    },
+    {
+      "key": "document_type, file_url, file_name, uploaded_at",
+      "en": "Document_type, file_url, file_name, uploaded_at"
+    },
+    {
+      "key": "duration_seconds, hourly_rate, is_running",
+      "en": "Duration_seconds, hourly_rate, is_running"
+    },
+    {
+      "key": "en-EU",
+      "en": "En- E U"
+    },
+    {
+      "key": "full_name, avatar_url",
+      "en": "Full_name, avatar_url"
+    },
+    {
+      "key": "full_name, current_title, bio, avatar_url, phone, location, linkedin_url, preferred_currency, resume_url, current_salary_min",
+      "en": "Full_name, current_title, bio, avatar_url, phone, location, linkedin_url, preferred_currency, resume_url, current_salary_min"
+    },
+    {
+      "key": "id",
+      "en": "Id"
+    },
+    {
+      "key": "id, applied_at, position, user_id",
+      "en": "Id, applied_at, position, user_id"
+    },
+    {
+      "key": "id, applied_at, position, user_id, current_stage_index, stages, updated_at",
+      "en": "Id, applied_at, position, user_id, current_stage_index, stages, updated_at"
+    },
+    {
+      "key": "id, content, created_at, is_read, sender_id",
+      "en": "Id, content, created_at, is_read, sender_id"
+    },
+    {
+      "key": "id, email",
+      "en": "Id, email"
+    },
+    {
+      "key": "id, error_message, severity, created_at",
+      "en": "Id, error_message, severity, created_at"
+    },
+    {
+      "key": "id, event_type, action, actor_email, created_at, result",
+      "en": "Id, event_type, action, actor_email, created_at, result"
+    },
+    {
+      "key": "id, full_name",
+      "en": "Id, full_name"
+    },
+    {
+      "key": "id, full_name, avatar_url",
+      "en": "Id, full_name, avatar_url"
+    },
+    {
+      "key": "id, full_name, avatar_url, current_title",
+      "en": "Id, full_name, avatar_url, current_title"
+    },
+    {
+      "key": "id, full_name, current_title, location, years_of_experience, skills, desired_salary_min, desired_salary_max",
+      "en": "Id, full_name, current_title, location, years_of_experience, skills, desired_salary_min, desired_salary_max"
+    },
+    {
+      "key": "id, full_name, email, avatar_url, created_at",
+      "en": "Id, full_name, email, avatar_url, created_at"
+    },
+    {
+      "key": "id, full_name, email, avatar_url, current_title",
+      "en": "Id, full_name, email, avatar_url, current_title"
+    },
+    {
+      "key": "id, guest_name, meeting_type, interview_type, scheduled_start, scheduled_end, status, video_meeting_link, quantum_meeting_link, google_meet_hangout_link, job_id, notes",
+      "en": "Id, guest_name, meeting_type, interview_type, scheduled_start, scheduled_end, status, video_meeting_link, quantum_meeting_link, google_meet_hangout_link, job_id, notes"
+    },
+    {
+      "key": "id, job_id, job:jobs(id, title, location, companies:company_id(name))",
+      "en": "Id, job_id, job:jobs(id, title, location, companies:company_id(name))"
+    },
+    {
+      "key": "id, position, company_name, status, stage_updated_at, updated_at, current_stage_index",
+      "en": "Id, position, company_name, status, stage_updated_at, updated_at, current_stage_index"
+    },
+    {
+      "key": "id, scheduled_start",
+      "en": "Id, scheduled_start"
+    },
+    {
+      "key": "id, scheduled_start, scheduled_end, video_meeting_link, quantum_meeting_link, job_id",
+      "en": "Id, scheduled_start, scheduled_end, video_meeting_link, quantum_meeting_link, job_id"
+    },
+    {
+      "key": "id, scheduled_start, video_meeting_link, guest_name, guest_email",
+      "en": "Id, scheduled_start, video_meeting_link, guest_name, guest_email"
+    },
+    {
+      "key": "id, status",
+      "en": "Id, status"
+    },
+    {
+      "key": "id, title",
+      "en": "Id, title"
+    },
+    {
+      "key": "id, title, created_at",
+      "en": "Id, title, created_at"
+    },
+    {
+      "key": "id, title, created_at, scheduled_start",
+      "en": "Id, title, created_at, scheduled_start"
+    },
+    {
+      "key": "id, title, due_date, priority, status",
+      "en": "Id, title, due_date, priority, status"
+    },
+    {
+      "key": "id, title, location, companies:company_id(name)",
+      "en": "Id, title, location, companies:company_id(name)"
+    },
+    {
+      "key": "id, title, priority_score, status, completed_at",
+      "en": "Id, title, priority_score, status, completed_at"
+    },
+    {
+      "key": "id, title, status",
+      "en": "Id, title, status"
+    },
+    {
+      "key": "id, title, status, created_at",
+      "en": "Id, title, status, created_at"
+    },
+    {
+      "key": "id, title, status, priority, due_date, is_overdue",
+      "en": "Id, title, status, priority, due_date, is_overdue"
+    },
+    {
+      "key": "job_id, current_stage_index, stages",
+      "en": "Job_id, current_stage_index, stages"
+    },
+    {
+      "key": "job_id, overall_score",
+      "en": "Job_id, overall_score"
+    },
+    {
+      "key": "nl-NL",
+      "en": "Nl- N L"
+    },
+    {
+      "key": "quantum_achievements(points)",
+      "en": "Quantum_achievements(points)"
+    },
+    {
+      "key": "resume_url, resume_filename, updated_at",
+      "en": "Resume_url, resume_filename, updated_at"
+    },
+    {
+      "key": "skills, current_title, work_authorization, industries, resume_url",
+      "en": "Skills, current_title, work_authorization, industries, resume_url"
+    },
+    {
+      "key": "sourced_by, status",
+      "en": "Sourced_by, status"
+    },
+    {
+      "key": "stage, estimated_annual_value",
+      "en": "Stage, estimated_annual_value"
+    },
+    {
+      "key": "task_id, user_id",
+      "en": "Task_id, user_id"
+    },
+    {
+      "key": "title, companies:company_id(name)",
+      "en": "Title, companies:company_id(name)"
+    },
+    {
+      "key": "value, previous_value, trend_direction",
+      "en": "Value, previous_value, trend_direction"
+    },
+    {
+      "key": "timeline.via",
+      "en": "via {{source}}"
+    }
+  ],
+  "admin": [
+    {
+      "key": "kpi.sLAStatusPanel.sla",
+      "en": "SLA"
+    },
+    {
+      "key": "system.systemHealthDashboard.system",
+      "en": "System"
+    },
+    {
+      "key": "announcementsPage.text3",
+      "en": "Banner"
+    },
+    {
+      "key": "announcementsPage.text4",
+      "en": "Modal"
+    },
+    {
+      "key": "announcementsPage.text5",
+      "en": "Toast"
+    },
+    {
+      "key": "announcementsPage.text8",
+      "en": "Normal"
+    },
+    {
+      "key": "employeeManagement.text15",
+      "en": "Onboarding"
+    },
+    {
+      "key": "investorMetrics.text12",
+      "en": "Rule of 40"
+    },
+    {
+      "key": "jobPostingTemplates.text12",
+      "en": "Global"
+    },
+    {
+      "key": "templateManagement.text4",
+      "en": "System"
+    },
+    {
+      "key": "templateManagement.text10",
+      "en": "System"
+    },
+    {
+      "key": "whatsAppSettings.text8",
+      "en": "Webhook"
+    }
+  ],
+  "candidates": [
+    {
+      "key": "talentPoolLists.text10",
+      "en": "Name"
+    },
+    {
+      "key": "talentPoolLists.text16",
+      "en": "Name"
+    },
+    {
+      "key": "comparison.dimension",
+      "en": "Dimension"
+    }
+  ],
+  "jobs": [
+    {
+      "key": "jobDetail.text4",
+      "en": "Details"
+    }
+  ],
+  "meetings": [
+    {
+      "key": "meetingIntelligence.text17",
+      "en": "Neutral"
+    }
+  ],
+  "partner": [
+    {
+      "key": "adminBoardTools.badge.quantumClubAdmin",
+      "en": "QUANTUM CLUB ADMIN"
+    },
+    {
+      "key": "candidateDetailDialog.option.neutral",
+      "en": "Neutral"
+    },
+    {
+      "key": "candidateInteractionLog.option.meeting",
+      "en": "Meeting"
+    },
+    {
+      "key": "candidatePipelineStatus.progress",
+      "en": "Progress"
+    },
+    {
+      "key": "companyAchievements.unlockCriteria",
+      "en": "Unlock Criteria"
+    },
+    {
+      "key": "companyBranding.logosAssets",
+      "en": "Logos & Assets"
+    },
+    {
+      "key": "companyBrandingEditor.placeholder.interRobotoEtc",
+      "en": "Inter, Roboto, etc."
+    },
+    {
+      "key": "pipelineCustomizer.toast.signatureSecure",
+      "en": "Signature Secure ✓"
+    },
+    {
+      "key": "textDocumentCreator.placeholder.typeOrPasteYourContentHere1010youCanIncl",
+      "en": "Type or paste your content here...&#10;&#10;You can include:&#10;• Interview questions&#10;• Company information&#10;• Benefits details&#10;• Technical requirements&#10;• Any other relevant text"
+    },
+    {
+      "key": "upcomingInterviewsWidget.label.feedback",
+      "en": "Feedback"
+    },
+    {
+      "key": "targetCompanies.beheerBedrijvenVoorHeadhuntingKandidaten",
+      "en": "Beheer bedrijven voor headhunting kandidaten"
+    },
+    {
+      "key": "targetCompanyDetailDialog.nogGeenComments",
+      "en": "Nog geen comments"
+    },
+    {
+      "key": "targetCompanyDialog.zoekBestaandeBedrijvenNaamEnWebsiteWorde",
+      "en": "Zoek bestaande bedrijven - naam en website worden automatisch ingevuld"
+    },
+    {
+      "key": "targetCompanyDialog.selecteerDeJobWaarvoorDitBedrijfGetarget",
+      "en": "Selecteer de job waarvoor dit bedrijf getarget wordt, of laat leeg voor alle jobs"
+    },
+    {
+      "key": "targetCompanyTable.laden",
+      "en": "Laden..."
+    },
+    {
+      "key": "targetCompanyTable.geenBedrijvenGevonden",
+      "en": "Geen bedrijven gevonden"
+    },
+    {
+      "key": "jobsCompactHeader.menu.navigation",
+      "en": "Navigation"
+    },
+    {
+      "key": "jobsUnifiedFilterBar.menu.layout",
+      "en": "Layout"
+    },
+    {
+      "key": "1_hour",
+      "en": "1_hour"
+    },
+    {
+      "key": "1_month",
+      "en": "1_month"
+    },
+    {
+      "key": "1_week",
+      "en": "1_week"
+    },
+    {
+      "key": "123_business_st_city",
+      "en": "123_business_st_city"
+    },
+    {
+      "key": "15_hours",
+      "en": "15_hours"
+    },
+    {
+      "key": "15_minutes",
+      "en": "15_minutes"
+    },
+    {
+      "key": "2_hours",
+      "en": "2_hours"
+    },
+    {
+      "key": "2_months",
+      "en": "2_months"
+    },
+    {
+      "key": "2_weeks",
+      "en": "2_weeks"
+    },
+    {
+      "key": "3_months",
+      "en": "3_months"
+    },
+    {
+      "key": "30_minutes",
+      "en": "30_minutes"
+    },
+    {
+      "key": "45_minutes",
+      "en": "45_minutes"
+    },
+    {
+      "key": "a",
+      "en": "A"
+    },
+    {
+      "key": "acties",
+      "en": "Acties"
+    },
+    {
+      "key": "allowed",
+      "en": "Allowed"
+    },
+    {
+      "key": "bedrijfsnaam",
+      "en": "Bedrijfsnaam"
+    },
+    {
+      "key": "cad",
+      "en": "Cad"
+    },
+    {
+      "key": "candidate_id, candidate_email, candidate_full_name",
+      "en": "Candidate_id, candidate_email, candidate_full_name"
+    },
+    {
+      "key": "chatmessaging",
+      "en": "Chatmessaging"
+    },
+    {
+      "key": "company_id, companies(id, name)",
+      "en": "Company_id, companies(id, name)"
+    },
+    {
+      "key": "company_member_id, external_user_id",
+      "en": "Company_member_id, external_user_id"
+    },
+    {
+      "key": "created_at, source_channel, created_by",
+      "en": "Created_at, source_channel, created_by"
+    },
+    {
+      "key": "created_at, submitted_at, meeting_id",
+      "en": "Created_at, submitted_at, meeting_id"
+    },
+    {
+      "key": "eg_1_234_567",
+      "en": "Eg_1_234_567"
+    },
+    {
+      "key": "eg_1_month_2",
+      "en": "Eg_1_month_2"
+    },
+    {
+      "key": "eg_100000",
+      "en": "Eg_100000"
+    },
+    {
+      "key": "eg_120000",
+      "en": "Eg_120000"
+    },
+    {
+      "key": "eg_150000",
+      "en": "Eg_150000"
+    },
+    {
+      "key": "eg_5",
+      "en": "Eg_5"
+    },
+    {
+      "key": "eg_5_years_typescript",
+      "en": "Eg_5_years_typescript"
+    },
+    {
+      "key": "eg_80000",
+      "en": "Eg_80000"
+    },
+    {
+      "key": "eg_h1b_green_card",
+      "en": "Eg_h1b_green_card"
+    },
+    {
+      "key": "emailbedrijfnl",
+      "en": "Emailbedrijfnl"
+    },
+    {
+      "key": "en-US",
+      "en": "En- U S"
+    },
+    {
+      "key": "engagement_score, fit_score",
+      "en": "Engagement_score, fit_score"
+    },
+    {
+      "key": "enterprise_500",
+      "en": "Enterprise_500"
+    },
+    {
+      "key": "eur",
+      "en": "Eur"
+    },
+    {
+      "key": "feedback",
+      "en": "Feedback"
+    },
+    {
+      "key": "full_name, avatar_url",
+      "en": "Full_name, avatar_url"
+    },
+    {
+      "key": "full_name, email, current_title, current_company",
+      "en": "Full_name, email, current_title, current_company"
+    },
+    {
+      "key": "functies",
+      "en": "Functies"
+    },
+    {
+      "key": "gbp",
+      "en": "Gbp"
+    },
+    {
+      "key": "hoog_10",
+      "en": "Hoog_10"
+    },
+    {
+      "key": "id",
+      "en": "Id"
+    },
+    {
+      "key": "id, candidate_full_name, candidate_email, current_stage_index",
+      "en": "Id, candidate_full_name, candidate_email, current_stage_index"
+    },
+    {
+      "key": "id, content, created_at, sender_id",
+      "en": "Id, content, created_at, sender_id"
+    },
+    {
+      "key": "id, email, full_name, avatar_url",
+      "en": "Id, email, full_name, avatar_url"
+    },
+    {
+      "key": "id, full_name",
+      "en": "Id, full_name"
+    },
+    {
+      "key": "id, full_name, avatar_url",
+      "en": "Id, full_name, avatar_url"
+    },
+    {
+      "key": "id, full_name, avatar_url, current_title",
+      "en": "Id, full_name, avatar_url, current_title"
+    },
+    {
+      "key": "id, full_name, email",
+      "en": "Id, full_name, email"
+    },
+    {
+      "key": "id, full_name, email, avatar_url",
+      "en": "Id, full_name, email, avatar_url"
+    },
+    {
+      "key": "id, full_name, email, avatar_url, current_title, current_company, linkedin_url, tags",
+      "en": "Id, full_name, email, avatar_url, current_title, current_company, linkedin_url, tags"
+    },
+    {
+      "key": "id, full_name, linkedin_url",
+      "en": "Id, full_name, linkedin_url"
+    },
+    {
+      "key": "id, job_id, candidate_id, current_stage_index, created_at, sourced_by",
+      "en": "Id, job_id, candidate_id, current_stage_index, created_at, sourced_by"
+    },
+    {
+      "key": "id, job_id, status, applied_at, current_stage_index, stages, created_at, updated_at",
+      "en": "Id, job_id, status, applied_at, current_stage_index, stages, created_at, updated_at"
+    },
+    {
+      "key": "id, job_title, user_id",
+      "en": "Id, job_title, user_id"
+    },
+    {
+      "key": "id, name",
+      "en": "Id, name"
+    },
+    {
+      "key": "id, reviewer_id, is_primary, assigned_at",
+      "en": "Id, reviewer_id, is_primary, assigned_at"
+    },
+    {
+      "key": "id, role, profiles:user_id (full_name, avatar_url)",
+      "en": "Id, role, profiles:user_id (full_name, avatar_url)"
+    },
+    {
+      "key": "id, status",
+      "en": "Id, status"
+    },
+    {
+      "key": "id, status, scheduled_start",
+      "en": "Id, status, scheduled_start"
+    },
+    {
+      "key": "id, status, updated_at",
+      "en": "Id, status, updated_at"
+    },
+    {
+      "key": "id, title",
+      "en": "Id, title"
+    },
+    {
+      "key": "id, title, companies(name)",
+      "en": "Id, title, companies(name)"
+    },
+    {
+      "key": "id, title, company_name, status, pipeline_stages",
+      "en": "Id, title, company_name, status, pipeline_stages"
+    },
+    {
+      "key": "id, title, pipeline_stages, status",
+      "en": "Id, title, pipeline_stages, status"
+    },
+    {
+      "key": "id, title, status",
+      "en": "Id, title, status"
+    },
+    {
+      "key": "id, user_id, full_name, title, bio, email, availability, photo_url",
+      "en": "Id, user_id, full_name, title, bio, email, availability, photo_url"
+    },
+    {
+      "key": "id, user_id, granted_by, granted_at",
+      "en": "Id, user_id, granted_by, granted_at"
+    },
+    {
+      "key": "id, user_id, job_title",
+      "en": "Id, user_id, job_title"
+    },
+    {
+      "key": "industrie",
+      "en": "Industrie"
+    },
+    {
+      "key": "job_description_url, supporting_documents",
+      "en": "Job_description_url, supporting_documents"
+    },
+    {
+      "key": "laag_1",
+      "en": "Laag_1"
+    },
+    {
+      "key": "linkedin",
+      "en": "Linkedin"
+    },
+    {
+      "key": "locatie",
+      "en": "Locatie"
+    },
+    {
+      "key": "logo_url, website_url, headquarters_location",
+      "en": "Logo_url, website_url, headquarters_location"
+    },
+    {
+      "key": "naam",
+      "en": "Naam"
+    },
+    {
+      "key": "name",
+      "en": "Name"
+    },
+    {
+      "key": "nicetohave",
+      "en": "Nicetohave"
+    },
+    {
+      "key": "nl-NL",
+      "en": "Nl- N L"
+    },
+    {
+      "key": "notities",
+      "en": "Notities"
+    },
+    {
+      "key": "partnersthequantumclubcom",
+      "en": "Partnersthequantumclubcom"
+    },
+    {
+      "key": "prioriteit",
+      "en": "Prioriteit"
+    },
+    {
+      "key": "recruiter",
+      "en": "Recruiter"
+    },
+    {
+      "key": "resumes/",
+      "en": "Resumes/"
+    },
+    {
+      "key": "rol",
+      "en": "Rol"
+    },
+    {
+      "key": "scaleup_50500",
+      "en": "Scaleup_50500"
+    },
+    {
+      "key": "scheduled_start, scheduled_end, user_id",
+      "en": "Scheduled_start, scheduled_end, user_id"
+    },
+    {
+      "key": "sourced_by, source_context, created_at",
+      "en": "Sourced_by, source_context, created_at"
+    },
+    {
+      "key": "startup_lt50",
+      "en": "Startup_lt50"
+    },
+    {
+      "key": "T",
+      "en": "T"
+    },
+    {
+      "key": "telefoon",
+      "en": "Telefoon"
+    },
+    {
+      "key": "title, bio, availability",
+      "en": "Title, bio, availability"
+    },
+    {
+      "key": "title, created_at",
+      "en": "Title, created_at"
+    },
+    {
+      "key": "usd",
+      "en": "Usd"
+    },
+    {
+      "key": "user_id, role",
+      "en": "User_id, role"
+    },
+    {
+      "key": "voltooid",
+      "en": "Voltooid"
+    },
+    {
+      "key": "دإ_aed",
+      "en": "دإ_aed"
+    }
+  ],
+  "settings": [
+    {
+      "key": "scheduling.text15",
+      "en": "Round Robin (Team)"
+    },
+    {
+      "key": "scheduling.text40",
+      "en": "Workflows"
+    }
+  ]
+}

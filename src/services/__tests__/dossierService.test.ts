@@ -6,6 +6,23 @@ import {
 } from '../dossierService';
 import { supabase } from '@/integrations/supabase/client';
 
+vi.mock('@/integrations/supabase/client', () => ({
+  supabase: {
+    auth: {
+      getUser: vi.fn().mockResolvedValue({ data: { user: null }, error: null }),
+    },
+    from: vi.fn().mockReturnValue({
+      insert: vi.fn().mockReturnThis(),
+      select: vi.fn().mockReturnThis(),
+      single: vi.fn().mockResolvedValue({ data: null, error: null }),
+      eq: vi.fn().mockReturnThis(),
+      order: vi.fn().mockResolvedValue({ data: [], error: null }),
+      update: vi.fn().mockReturnThis(),
+    }),
+    rpc: vi.fn().mockResolvedValue({ data: null, error: null }),
+  },
+}));
+
 describe('dossierService', () => {
   beforeEach(() => {
     vi.clearAllMocks();

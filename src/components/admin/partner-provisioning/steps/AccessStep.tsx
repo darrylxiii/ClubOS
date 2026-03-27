@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { UseFormReturn } from 'react-hook-form';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -24,6 +25,7 @@ const PASSWORD_RULES = [
 ];
 
 export function AccessStep({ form, strategists, onBack, onNext }: AccessStepProps) {
+  const { t } = useTranslation('common');
   const { watch, setValue, register, formState: { errors } } = form;
   const provisionMethod = watch('provisionMethod');
   const temporaryPassword = watch('temporaryPassword') || '';
@@ -65,11 +67,11 @@ export function AccessStep({ form, strategists, onBack, onNext }: AccessStepProp
       {provisionMethod === 'password' && (
         <div className="space-y-3">
           <div className="space-y-2">
-            <Label>Temporary Password *</Label>
+            <Label>{t("temporary_password", "Temporary Password *")}</Label>
             <Input
               type="password"
               {...register('temporaryPassword')}
-              placeholder="Min 12 characters"
+              placeholder={t("min_12_characters", "Min 12 characters")}
               aria-invalid={!!errors.temporaryPassword}
             />
             {errors.temporaryPassword && (
@@ -108,10 +110,10 @@ export function AccessStep({ form, strategists, onBack, onNext }: AccessStepProp
           onValueChange={(v) => setValue('assignedStrategistId', v === 'none' ? '' : v, { shouldDirty: true })}
         >
           <SelectTrigger>
-            <SelectValue placeholder="Assign a strategist (optional)" />
+            <SelectValue placeholder={t("assign_a_strategist_optional", "Assign a strategist (optional)")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="none">No strategist</SelectItem>
+            <SelectItem value="none">{t("no_strategist", "No strategist")}</SelectItem>
             {strategists.map((s) => (
               <SelectItem key={s.id} value={s.id}>
                 {s.full_name || s.email}
@@ -128,10 +130,10 @@ export function AccessStep({ form, strategists, onBack, onNext }: AccessStepProp
           Welcome Experience
         </h3>
         <div className="space-y-2">
-          <Label>Personal Welcome Message</Label>
+          <Label>{t("personal_welcome_message", "Personal Welcome Message")}</Label>
           <Textarea
             {...register('welcomeMessage')}
-            placeholder="We're excited to have you join The Quantum Club..."
+            placeholder={t("were_excited_to_have", "We're excited to have you join The Quantum Club...")}
             rows={3}
           />
           {errors.welcomeMessage && (
@@ -141,7 +143,7 @@ export function AccessStep({ form, strategists, onBack, onNext }: AccessStepProp
       </div>
 
       <div className="flex justify-between">
-        <Button type="button" variant="outline" onClick={onBack}>Back</Button>
+        <Button type="button" variant="outline" onClick={onBack}>{t("back", "Back")}</Button>
         <Button type="button" onClick={onNext} disabled={!passwordValid}>
           Review
         </Button>

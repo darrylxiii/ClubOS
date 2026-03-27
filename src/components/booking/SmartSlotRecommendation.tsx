@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Sparkles } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useTranslation } from "react-i18next";
 
 interface SlotRecommendation {
   time_slot: string;
@@ -51,22 +52,23 @@ export function useSmartRecommendations(bookingLinkId: string, date: Date | null
 }
 
 export function SmartSlotBadge({ isRecommended }: { isRecommended: boolean }) {
+  const { t } = useTranslation('common');
   if (!isRecommended) return null;
 
   return (
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
-          <Badge 
-            variant="secondary" 
+          <Badge
+            variant="secondary"
             className="ml-auto text-[10px] px-1.5 py-0 gap-0.5 bg-primary/10 text-primary border-primary/20"
           >
             <Sparkles className="h-2.5 w-2.5" aria-hidden="true" />
-            Popular
+            {t('booking.popular', 'Popular')}
           </Badge>
         </TooltipTrigger>
         <TooltipContent side="left" className="text-xs max-w-48">
-          <p>Historically popular time with high attendance. Powered by QUIN.</p>
+          <p>{t('booking.popularTooltip', 'Historically popular time with high attendance. Powered by QUIN.')}</p>
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>

@@ -1,10 +1,6 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createHandler } from '../_shared/handler.ts';
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-};
+const corsHeaders: Record<string, string> = {};
 
 // Mapping rules: keyword patterns → tag category + name
 const SENIORITY_PATTERNS: Record<string, string[]> = {
@@ -48,13 +44,9 @@ function matchPatterns(text: string, patterns: Record<string, string[]>): string
   return null;
 }
 
-serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
-
-  try {
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, serviceKey);
+Deno.serve(createHandler(async (req, ctx) => {
+    Object.assign(corsHeaders, ctx.corsHeaders);
+    const supabase = ctx.supabase;
 
     const { candidateId, candidateIds } = await req.json();
     const ids = candidateIds || (candidateId ? [candidateId] : []);
@@ -150,10 +142,4 @@ serve(async (req) => {
     return new Response(JSON.stringify({ success: true, assigned, skipped, total: ids.length }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-  } catch (e) {
-    console.error("auto-tag error:", e);
-    return new Response(JSON.stringify({ error: e.message }), {
-      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  }
-});
+}));

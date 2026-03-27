@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -36,6 +37,7 @@ interface JobMatch {
 }
 
 export function JobRecommendations({ userId }: { userId: string }) {
+  const { t } = useTranslation('common');
   const [recommendations, setRecommendations] = useState<JobMatch[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -158,10 +160,10 @@ export function JobRecommendations({ userId }: { userId: string }) {
       if (error) throw error;
 
       setRecommendations(prev => prev.filter(rec => rec.job_id !== jobId));
-      toast.success("Job removed from recommendations");
+      toast.success(t("job_removed_from_recommendations", "Job removed from recommendations"));
     } catch (error) {
       console.error('Error dismissing job:', error);
-      toast.error("Failed to dismiss job");
+      toast.error(t("failed_to_dismiss_job", "Failed to dismiss job"));
     }
   };
 
@@ -283,7 +285,7 @@ export function JobRecommendations({ userId }: { userId: string }) {
             </div>
 
             <div className="flex items-center gap-2 text-xs text-primary">
-              <span className="font-medium">View Details</span>
+              <span className="font-medium">{t("view_details", "View Details")}</span>
               <ExternalLink className="w-3 h-3" />
             </div>
           </div>

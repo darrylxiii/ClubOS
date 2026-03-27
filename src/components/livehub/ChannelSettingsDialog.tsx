@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -29,6 +30,7 @@ interface Channel {
 }
 
 export function ChannelSettingsDialog({ open, onOpenChange, channelId }: ChannelSettingsDialogProps) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [channel, setChannel] = useState<Channel | null>(null);
   const [loading, setLoading] = useState(false);
@@ -93,7 +95,7 @@ export function ChannelSettingsDialog({ open, onOpenChange, channelId }: Channel
       setIsLocked(data.is_locked || false);
     } catch (error) {
       console.error('Error loading channel:', error);
-      toast.error('Failed to load channel');
+      toast.error(t("failed_to_load_channel", "Failed to load channel"));
     } finally {
       setLoading(false);
     }
@@ -145,10 +147,10 @@ export function ChannelSettingsDialog({ open, onOpenChange, channelId }: Channel
 
       if (error) throw error;
 
-      toast.success('Channel updated successfully');
+      toast.success(t("channel_updated_successfully", "Channel updated successfully"));
     } catch (error) {
       console.error('Error updating channel:', error);
-      toast.error('Failed to update channel');
+      toast.error(t("failed_to_update_channel", "Failed to update channel"));
     } finally {
       setSaving(false);
     }
@@ -163,10 +165,10 @@ export function ChannelSettingsDialog({ open, onOpenChange, channelId }: Channel
         await setChannelPermissions(channelId, role as UserRole, perms);
       }
 
-      toast.success('Permissions updated successfully');
+      toast.success(t("permissions_updated_successfully", "Permissions updated successfully"));
     } catch (error) {
       console.error('Error updating permissions:', error);
-      toast.error('Failed to update permissions');
+      toast.error(t("failed_to_update_permissions", "Failed to update permissions"));
     } finally {
       setSaving(false);
     }
@@ -183,11 +185,11 @@ export function ChannelSettingsDialog({ open, onOpenChange, channelId }: Channel
 
       if (error) throw error;
 
-      toast.success('Channel deleted successfully');
+      toast.success(t("channel_deleted_successfully", "Channel deleted successfully"));
       onOpenChange(false);
     } catch (error) {
       console.error('Error deleting channel:', error);
-      toast.error('Failed to delete channel');
+      toast.error(t("failed_to_delete_channel", "Failed to delete channel"));
     }
   };
 
@@ -223,14 +225,14 @@ export function ChannelSettingsDialog({ open, onOpenChange, channelId }: Channel
         ) : (
           <Tabs defaultValue="general" className="w-full">
             <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="general">General</TabsTrigger>
-              <TabsTrigger value="permissions">Permissions</TabsTrigger>
-              <TabsTrigger value="danger">Danger Zone</TabsTrigger>
+              <TabsTrigger value="general">{t("general", "General")}</TabsTrigger>
+              <TabsTrigger value="permissions">{t("permissions", "Permissions")}</TabsTrigger>
+              <TabsTrigger value="danger">{t("danger_zone", "Danger Zone")}</TabsTrigger>
             </TabsList>
 
             <TabsContent value="general" className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="channel-name">Channel Name</Label>
+                <Label htmlFor="channel-name">{t("channel_name", "Channel Name")}</Label>
                 <Input
                   id="channel-name"
                   value={name}
@@ -240,19 +242,19 @@ export function ChannelSettingsDialog({ open, onOpenChange, channelId }: Channel
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="channel-description">Description</Label>
+                <Label htmlFor="channel-description">{t("description", "Description")}</Label>
                 <Textarea
                   id="channel-description"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Channel description..."
+                  placeholder={t("channel_description", "Channel description...")}
                   rows={3}
                 />
               </div>
 
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label>Locked Channel</Label>
+                  <Label>{t("locked_channel", "Locked Channel")}</Label>
                   <p className="text-sm text-muted-foreground">
                     Prevent members from sending messages
                   </p>
@@ -304,7 +306,7 @@ export function ChannelSettingsDialog({ open, onOpenChange, channelId }: Channel
 
             <TabsContent value="danger" className="space-y-4">
               <div className="p-4 border border-destructive rounded-lg space-y-3">
-                <h4 className="font-medium text-destructive">Delete Channel</h4>
+                <h4 className="font-medium text-destructive">{t("delete_channel", "Delete Channel")}</h4>
                 <p className="text-sm text-muted-foreground">
                   This action cannot be undone. All messages and data will be permanently deleted.
                 </p>

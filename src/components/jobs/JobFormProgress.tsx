@@ -1,5 +1,6 @@
 import { CheckCircle2, Circle, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslation } from 'react-i18next';
 
 interface JobFormProgressProps {
   currentStep: "idle" | "creating" | "uploading" | "finalizing" | "complete";
@@ -7,10 +8,11 @@ interface JobFormProgressProps {
 }
 
 export const JobFormProgress = ({ currentStep, uploadProgress = 0 }: JobFormProgressProps) => {
+  const { t } = useTranslation('jobs');
   const steps = [
-    { id: "creating", label: "Creating job" },
-    { id: "uploading", label: "Uploading files" },
-    { id: "finalizing", label: "Finalizing" },
+    { id: "creating", label: t('jobFormProgress.creating', 'Creating job') },
+    { id: "uploading", label: t('jobFormProgress.uploading', 'Uploading files') },
+    { id: "finalizing", label: t('jobFormProgress.finalizing', 'Finalizing') },
   ];
 
   const getStepStatus = (stepId: string) => {
@@ -72,7 +74,7 @@ export const JobFormProgress = ({ currentStep, uploadProgress = 0 }: JobFormProg
       {currentStep === "uploading" && uploadProgress > 0 && (
         <div className="space-y-2">
           <div className="flex justify-between text-xs text-muted-foreground">
-            <span>Uploading files...</span>
+            <span>{t('jobFormProgress.uploadingFiles', 'Uploading files...')}</span>
             <span>{uploadProgress}%</span>
           </div>
           <div className="h-2 bg-muted rounded-full overflow-hidden">

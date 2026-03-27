@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import {
   DropdownMenu,
@@ -52,6 +53,7 @@ export function CompanyRowActions({
   onDelete,
   onRefresh,
 }: CompanyRowActionsProps) {
+  const { t } = useTranslation('common');
   const [suspendDialogOpen, setSuspendDialogOpen] = useState(false);
   const [restoreDialogOpen, setRestoreDialogOpen] = useState(false);
   const [strategistDialogOpen, setStrategistDialogOpen] = useState(false);
@@ -75,7 +77,7 @@ export function CompanyRowActions({
       onRefresh();
     } catch (error) {
       console.error("Error toggling company status:", error);
-      toast.error("Failed to update company status");
+      toast.error(t("failed_to_update_company", "Failed to update company status"));
     }
   };
 
@@ -97,7 +99,7 @@ export function CompanyRowActions({
       onRefresh();
     } catch (error) {
       console.error("Error restoring company:", error);
-      toast.error("Failed to restore company");
+      toast.error(t("failed_to_restore_company", "Failed to restore company"));
     }
   };
 
@@ -189,7 +191,7 @@ export function CompanyRowActions({
       <ConfirmDialog
         open={restoreDialogOpen}
         onOpenChange={setRestoreDialogOpen}
-        title="Restore Company?"
+        title={t("restore_company", "Restore Company?")}
         description={`This will restore ${company.name} from the archive and make it active again.`}
         confirmText="Restore"
         onConfirm={handleRestore}

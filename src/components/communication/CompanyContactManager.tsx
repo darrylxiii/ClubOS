@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from '@/lib/motion';
 import { 
@@ -30,6 +31,7 @@ interface CompanyContactManagerProps {
 }
 
 export function CompanyContactManager({ companyId, companyName }: CompanyContactManagerProps) {
+  const { t } = useTranslation('common');
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('contacts');
   const [editingContact, setEditingContact] = useState<string | null>(null);
@@ -124,40 +126,40 @@ export function CompanyContactManager({ companyId, companyName }: CompanyContact
             {/* Add New Contact Form */}
             <Card className="bg-muted/30">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Add New Contact</CardTitle>
+                <CardTitle className="text-sm font-medium">{t("add_new_contact", "Add New Contact")}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <Label className="text-xs">Email *</Label>
+                    <Label className="text-xs">{t("email", "Email *")}</Label>
                     <Input
                       type="email"
-                      placeholder="contact@company.com"
+                      placeholder={t("contactcompanycom", "contact@company.com")}
                       value={newContact.email}
                       onChange={(e) => setNewContact(prev => ({ ...prev, email: e.target.value }))}
                       className="h-8 text-sm"
                     />
                   </div>
                   <div>
-                    <Label className="text-xs">Full Name</Label>
+                    <Label className="text-xs">{t("full_name", "Full Name")}</Label>
                     <Input
-                      placeholder="John Doe"
+                      placeholder={t("john_doe", "John Doe")}
                       value={newContact.full_name}
                       onChange={(e) => setNewContact(prev => ({ ...prev, full_name: e.target.value }))}
                       className="h-8 text-sm"
                     />
                   </div>
                   <div>
-                    <Label className="text-xs">Role</Label>
+                    <Label className="text-xs">{t("role", "Role")}</Label>
                     <Input
-                      placeholder="HR Manager"
+                      placeholder={t("hr_manager", "HR Manager")}
                       value={newContact.role}
                       onChange={(e) => setNewContact(prev => ({ ...prev, role: e.target.value }))}
                       className="h-8 text-sm"
                     />
                   </div>
                   <div>
-                    <Label className="text-xs">Phone</Label>
+                    <Label className="text-xs">{t("phone", "Phone")}</Label>
                     <Input
                       placeholder="+31 6 12345678"
                       value={newContact.phone}
@@ -183,8 +185,8 @@ export function CompanyContactManager({ companyId, companyName }: CompanyContact
                 {contacts.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
                     <AlertCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                    <p className="text-sm">No contacts yet</p>
-                    <p className="text-xs">Add contacts to track email sentiment</p>
+                    <p className="text-sm">{t("no_contacts_yet", "No contacts yet")}</p>
+                    <p className="text-xs">{t("add_contacts_to_track", "Add contacts to track email sentiment")}</p>
                   </div>
                 ) : (
                   <AnimatePresence>
@@ -208,7 +210,7 @@ export function CompanyContactManager({ companyId, companyName }: CompanyContact
                                 {contact.full_name || contact.email}
                               </span>
                               {contact.is_primary && (
-                                <Badge variant="secondary" className="text-xs">Primary</Badge>
+                                <Badge variant="secondary" className="text-xs">{t("primary", "Primary")}</Badge>
                               )}
                               <Badge variant="outline" className="text-xs capitalize">
                                 {contact.source}
@@ -268,12 +270,12 @@ export function CompanyContactManager({ companyId, companyName }: CompanyContact
             {/* Add New Domain Form */}
             <Card className="bg-muted/30">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Add Email Domain</CardTitle>
+                <CardTitle className="text-sm font-medium">{t("add_email_domain", "Add Email Domain")}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex gap-2">
                   <Input
-                    placeholder="company.com"
+                    placeholder={t("companycom", "company.com")}
                     value={newDomain}
                     onChange={(e) => setNewDomain(e.target.value)}
                     className="flex-1"
@@ -298,8 +300,8 @@ export function CompanyContactManager({ companyId, companyName }: CompanyContact
                 {domains.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
                     <Globe className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                    <p className="text-sm">No domains configured</p>
-                    <p className="text-xs">Add domains to auto-match emails</p>
+                    <p className="text-sm">{t("no_domains_configured", "No domains configured")}</p>
+                    <p className="text-xs">{t("add_domains_to_automatch", "Add domains to auto-match emails")}</p>
                   </div>
                 ) : (
                   <AnimatePresence>
@@ -317,10 +319,10 @@ export function CompanyContactManager({ companyId, companyName }: CompanyContact
                             <div className="flex items-center gap-2">
                               <span className="font-medium">@{domain.domain}</span>
                               {domain.is_primary && (
-                                <Badge variant="secondary" className="text-xs">Primary</Badge>
+                                <Badge variant="secondary" className="text-xs">{t("primary", "Primary")}</Badge>
                               )}
                               {domain.is_blocked && (
-                                <Badge variant="destructive" className="text-xs">Blocked</Badge>
+                                <Badge variant="destructive" className="text-xs">{t("blocked", "Blocked")}</Badge>
                               )}
                             </div>
                           </div>

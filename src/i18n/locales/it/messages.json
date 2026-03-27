@@ -1,0 +1,225 @@
+{
+  "compose": {
+    "title": "Scrivi messaggio",
+    "to": "A",
+    "subject": "Oggetto",
+    "body": "Messaggio",
+    "send": "Invia",
+    "saveDraft": "Salva come bozza",
+    "discard": "Elimina",
+    "attachFile": "Allega file",
+    "cc": "CC",
+    "bcc": "CCN"
+  },
+  "inbox": {
+    "title": "Posta in arrivo",
+    "unread": "Non letti",
+    "all": "Tutti",
+    "markRead": "Segna come letto",
+    "markUnread": "Segna come non letto",
+    "refresh": "Aggiorna"
+  },
+  "sent": {
+    "title": "Inviati",
+    "noMessages": "Nessun messaggio inviato"
+  },
+  "drafts": {
+    "title": "Bozze",
+    "noDrafts": "Nessuna bozza",
+    "edit": "Modifica bozza",
+    "delete": "Elimina bozza"
+  },
+  "search": {
+    "placeholder": "Cerca messaggi...",
+    "noResults": "Nessun messaggio trovato",
+    "advanced": "Ricerca avanzata"
+  },
+  "actions": {
+    "reply": "Rispondi",
+    "replyAll": "Rispondi a tutti",
+    "forward": "Inoltra",
+    "delete": "Elimina",
+    "archive": "Archivia",
+    "star": "Segna come importante",
+    "unstar": "Rimuovi importanza",
+    "markSpam": "Segnala come spam",
+    "move": "Sposta in"
+  },
+  "conversation": {
+    "title": "Conversazione",
+    "participants": "Partecipanti",
+    "addParticipant": "Aggiungi partecipante",
+    "leaveConversation": "Lascia conversazione",
+    "muteConversation": "Silenzia conversazione"
+  },
+  "attachments": {
+    "title": "Allegati",
+    "upload": "Carica file",
+    "download": "Scarica",
+    "preview": "Anteprima",
+    "remove": "Rimuovi allegato",
+    "maxSize": "Dimensione massima: {{size}}MB",
+    "unsupportedType": "Tipo di file non supportato"
+  },
+  "notifications": {
+    "newMessage": "Nuovo messaggio ricevuto",
+    "messageSent": "Messaggio inviato con successo",
+    "draftSaved": "Bozza salvata",
+    "messageDeleted": "Messaggio eliminato",
+    "movedToTrash": "Spostato nel cestino"
+  },
+  "templates": {
+    "title": "Modelli di messaggio",
+    "create": "Crea modello",
+    "edit": "Modifica modello",
+    "delete": "Elimina modello",
+    "use": "Usa modello",
+    "browse": "Sfoglia modelli"
+  },
+  "filters": {
+    "all": "Tutti i messaggi",
+    "unread": "Non letti",
+    "starred": "Importanti",
+    "attachments": "Con allegati",
+    "fromMe": "Inviati da me"
+  },
+  "labels": {
+    "title": "Etichette",
+    "create": "Crea etichetta",
+    "edit": "Modifica etichetta",
+    "delete": "Elimina etichetta",
+    "apply": "Applica etichetta",
+    "remove": "Rimuovi etichetta"
+  },
+  "settings": {
+    "title": "Impostazioni messaggi",
+    "notifications": "Notifiche",
+    "signature": "Firma",
+    "autoReply": "Risposta automatica",
+    "displayDensity": "Densita di visualizzazione"
+  },
+  "bulk": {
+    "selectAll": "Seleziona tutto",
+    "deselectAll": "Deseleziona tutto",
+    "deleteSelected": "Elimina selezionati",
+    "markReadSelected": "Segna come letti",
+    "archiveSelected": "Archivia selezionati"
+  },
+  "status": {
+    "sending": "Invio in corso...",
+    "sent": "Inviato",
+    "delivered": "Recapitato",
+    "read": "Letto",
+    "failed": "Invio non riuscito"
+  },
+  "empty": {
+    "noMessages": "Nessun messaggio",
+    "inboxEmpty": "La Sua posta in arrivo e vuota",
+    "startConversation": "Inizi una conversazione"
+  },
+  "quickReplies": {
+    "title": "Risposte rapide",
+    "thankYou": "Grazie per il Suo messaggio!",
+    "willReview": "Esaminero e Le rispondero a breve.",
+    "gotIt": "Ricevuto, grazie!"
+  },
+  "typing": {
+    "isTyping": "{{name}} sta scrivendo...",
+    "areTyping": "{{count}} persone stanno scrivendo..."
+  },
+  "online": {
+    "status": "Online",
+    "lastSeen": "Ultimo accesso {{time}}",
+    "offline": "Offline"
+  },
+  "videoCall": {
+    "start": "Avvia videochiamata",
+    "join": "Partecipa alla videochiamata",
+    "end": "Termina videochiamata"
+  },
+  "voiceRecorder": {
+    "record": "Registra messaggio vocale",
+    "stop": "Ferma registrazione",
+    "play": "Riproduci",
+    "send": "Invia messaggio vocale",
+    "cancel": "Annulla registrazione"
+  },
+  "youtube": {
+    "title": "YouTube",
+    "searchPlaceholder": "Cerca video YouTube...",
+    "noResults": "Nessun video trovato"
+  },
+  "call": {
+    "incoming": "Chiamata in arrivo",
+    "outgoing": "Chiamata in uscita",
+    "missed": "Chiamata persa",
+    "duration": "Durata: {{duration}}",
+    "callBack": "Richiama"
+  },
+  "group": {
+    "create": "Crea gruppo",
+    "addMembers": "Aggiungi membri",
+    "removeMembers": "Rimuovi membri",
+    "leaveGroup": "Lascia il gruppo",
+    "groupName": "Nome del gruppo",
+    "groupPhoto": "Foto del gruppo",
+    "admin": "Amministratore",
+    "settings": "Impostazioni gruppo"
+  },
+  "messageActions": {
+    "copy": "Copia testo",
+    "edit": "Modifica messaggio",
+    "delete": "Elimina messaggio",
+    "pin": "Fissa messaggio",
+    "unpin": "Rimuovi messaggio fissato",
+    "react": "Reagisci",
+    "translate": "Traduci"
+  },
+  "thread": {
+    "title": "Thread",
+    "reply": "Rispondi nel thread",
+    "viewThread": "Visualizza thread",
+    "replies": "{{count}} risposte"
+  },
+  "story": {
+    "title": "Storie",
+    "create": "Crea storia",
+    "viewers": "Visualizzatori",
+    "expired": "Scaduta"
+  },
+  "sharedMedia": {
+    "title": "Media condivisi",
+    "photos": "Foto",
+    "videos": "Video",
+    "documents": "Documenti",
+    "links": "Link"
+  },
+  "communicationIntelligence": {
+    "desc": "Panoramica dell'intelligence delle comunicazioni",
+    "text2": "Intelligence delle comunicazioni",
+    "text3": "Analytics e approfondimenti sulle comunicazioni alimentati dall'AI",
+    "text4": "Panoramica",
+    "text5": "Email",
+    "text6": "Chiamate",
+    "text7": "Riunioni",
+    "text8": "Segnali"
+  },
+  "messages": {
+    "desc": "Cerca persone o messaggi",
+    "text2": "Messaggi",
+    "text3": "Conversazioni",
+    "text4": "Canali",
+    "text5": "Diretti",
+    "text6": "Seleziona una conversazione",
+    "text7": "Scriva un messaggio..."
+  },
+  "whatsAppInbox": {
+    "desc": "Seleziona un contatto per visualizzare la conversazione",
+    "text2": "Posta WhatsApp",
+    "text3": "Gestisca le conversazioni WhatsApp con candidati e clienti",
+    "text4": "Tutte le conversazioni",
+    "text5": "In attesa",
+    "text6": "Risolte",
+    "text7": "Cerca contatti..."
+  }
+}

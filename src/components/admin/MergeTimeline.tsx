@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { 
@@ -24,6 +25,7 @@ interface MergeTimelineProps {
 }
 
 export function MergeTimeline({ events }: MergeTimelineProps) {
+  const { t } = useTranslation('common');
   const getIcon = (type: TimelineEvent['type']) => {
     switch (type) {
       case 'created':
@@ -65,7 +67,7 @@ export function MergeTimeline({ events }: MergeTimelineProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Profile Merge Timeline</CardTitle>
+        <CardTitle>{t("profile_merge_timeline", "Profile Merge Timeline")}</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">

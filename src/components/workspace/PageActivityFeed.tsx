@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React from 'react';
 import { usePageActivity, ActivityType } from '@/hooks/usePageActivity';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
@@ -37,6 +38,7 @@ const ACTIVITY_CONFIG: Record<ActivityType, { icon: React.ElementType; label: st
 };
 
 export function PageActivityFeed({ pageId, open, onOpenChange }: PageActivityFeedProps) {
+  const { t } = useTranslation('common');
   const { activities, isLoading } = usePageActivity(pageId);
 
   // WS-5: Using centralized getInitials from @/lib/strings
@@ -59,7 +61,7 @@ export function PageActivityFeed({ pageId, open, onOpenChange }: PageActivityFee
           ) : activities.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-8 text-center">
               <Activity className="h-10 w-10 text-muted-foreground mb-2 opacity-50" />
-              <p className="text-sm text-muted-foreground">No activity recorded yet</p>
+              <p className="text-sm text-muted-foreground">{t("no_activity_recorded_yet", "No activity recorded yet")}</p>
               <p className="text-xs text-muted-foreground mt-1">
                 Activity will appear here as users interact with this page
               </p>

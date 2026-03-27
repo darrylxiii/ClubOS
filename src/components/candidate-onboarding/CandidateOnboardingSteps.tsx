@@ -1326,7 +1326,7 @@ export function CandidateOnboardingSteps() {
                 )}
 
                 {formData.preferred_work_locations.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mt-2" role="list" aria-label="Selected preferred locations">
+                  <div className="flex flex-wrap gap-2 mt-2" role="list" aria-label={t("selected_preferred_locations", "Selected preferred locations")}>
                     {formData.preferred_work_locations.map((location, index) => (
                       <div
                         key={`${location.city}-${location.country}-${index}`}
@@ -1672,7 +1672,7 @@ export function CandidateOnboardingSteps() {
       </div>
 
       {/* Progress Indicator */}
-      <nav className="mb-8" aria-label="Onboarding progress">
+      <nav className="mb-8" aria-label={t("onboarding_progress", "Onboarding progress")}>
         <div className="flex justify-between items-center mb-4">
           {stepLabels.map((step, index) => {
             const Icon = step.icon;
@@ -1749,7 +1749,7 @@ export function CandidateOnboardingSteps() {
 
       {/* Keyboard Shortcut Hint */}
       <p className="text-xs text-muted-foreground text-center mt-4 hidden sm:block">
-        {t('candidate.keyboard.pressEnter', 'Press')} <kbd className="px-1.5 py-0.5 bg-muted rounded text-xs">Enter</kbd> {t('candidate.keyboard.toContinue', 'to continue or')} <kbd className="px-1.5 py-0.5 bg-muted rounded text-xs">Esc</kbd> {t('candidate.keyboard.toGoBack', 'to go back')}
+        {t('candidate.keyboard.pressEnter', 'Press')} <kbd className="px-1.5 py-0.5 bg-muted rounded text-xs">{t("enter", "Enter")}</kbd> {t('candidate.keyboard.toContinue', 'to continue or')} <kbd className="px-1.5 py-0.5 bg-muted rounded text-xs">{t("esc", "Esc")}</kbd> {t('candidate.keyboard.toGoBack', 'to go back')}
       </p>
 
       {/* Trust Badges */}

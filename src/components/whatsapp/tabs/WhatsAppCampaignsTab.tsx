@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -20,6 +21,7 @@ interface Campaign {
 }
 
 export function WhatsAppCampaignsTab() {
+  const { t } = useTranslation('common');
   const [showBuilder, setShowBuilder] = useState(false);
 
   // Fetch from real whatsapp_broadcast_campaigns table
@@ -75,8 +77,8 @@ export function WhatsAppCampaignsTab() {
     <div className="p-6 space-y-6 w-full">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold">Broadcast Campaigns</h2>
-          <p className="text-sm text-muted-foreground">Create and manage bulk WhatsApp message campaigns</p>
+          <h2 className="text-xl font-bold">{t("broadcast_campaigns", "Broadcast Campaigns")}</h2>
+          <p className="text-sm text-muted-foreground">{t("create_and_manage_bulk", "Create and manage bulk WhatsApp message campaigns")}</p>
         </div>
         <Button onClick={() => setShowBuilder(true)} className="bg-[#25d366] hover:bg-[#25d366]/90">
           <Plus className="w-4 h-4 mr-2" />
@@ -94,7 +96,7 @@ export function WhatsAppCampaignsTab() {
               </div>
               <div>
                 <p className="text-2xl font-bold">{campaigns?.length || 0}</p>
-                <p className="text-xs text-muted-foreground">Total Campaigns</p>
+                <p className="text-xs text-muted-foreground">{t("total_campaigns", "Total Campaigns")}</p>
               </div>
             </div>
           </CardContent>
@@ -109,7 +111,7 @@ export function WhatsAppCampaignsTab() {
                 <p className="text-2xl font-bold">
                   {campaigns?.filter(c => c.status === 'completed').length || 0}
                 </p>
-                <p className="text-xs text-muted-foreground">Completed</p>
+                <p className="text-xs text-muted-foreground">{t("completed", "Completed")}</p>
               </div>
             </div>
           </CardContent>
@@ -124,7 +126,7 @@ export function WhatsAppCampaignsTab() {
                 <p className="text-2xl font-bold">
                   {campaigns?.reduce((sum, c) => sum + (c.recipient_count || 0), 0) || 0}
                 </p>
-                <p className="text-xs text-muted-foreground">Total Recipients</p>
+                <p className="text-xs text-muted-foreground">{t("total_recipients", "Total Recipients")}</p>
               </div>
             </div>
           </CardContent>
@@ -141,7 +143,7 @@ export function WhatsAppCampaignsTab() {
                     campaigns.reduce((sum, c) => sum + ((c.delivered_count || 0) / Math.max(c.sent_count || 1, 1)) * 100, 0) / campaigns.length
                   ) : 0}%
                 </p>
-                <p className="text-xs text-muted-foreground">Avg. Delivery Rate</p>
+                <p className="text-xs text-muted-foreground">{t("avg_delivery_rate", "Avg. Delivery Rate")}</p>
               </div>
             </div>
           </CardContent>
@@ -151,8 +153,8 @@ export function WhatsAppCampaignsTab() {
       {/* Campaign List */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">All Campaigns</CardTitle>
-          <CardDescription>View and manage your broadcast campaigns</CardDescription>
+          <CardTitle className="text-base">{t("all_campaigns", "All Campaigns")}</CardTitle>
+          <CardDescription>{t("view_and_manage_your", "View and manage your broadcast campaigns")}</CardDescription>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -195,7 +197,7 @@ export function WhatsAppCampaignsTab() {
           ) : (
             <div className="text-center py-12">
               <Megaphone className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-              <h3 className="font-medium mb-2">No campaigns yet</h3>
+              <h3 className="font-medium mb-2">{t("no_campaigns_yet", "No campaigns yet")}</h3>
               <p className="text-sm text-muted-foreground mb-4">
                 Create your first broadcast campaign to reach multiple contacts at once
               </p>

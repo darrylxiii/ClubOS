@@ -16,8 +16,8 @@ serve(async (req) => {
     const startTime = Date.now();
     const clientInfo = extractClientInfo(req);
 
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) throw new Error('LOVABLE_API_KEY not configured');
+    const GOOGLE_API_KEY = Deno.env.get('GOOGLE_API_KEY');
+    if (!GOOGLE_API_KEY) throw new Error('GOOGLE_API_KEY not configured');
 
     const { createClient } = await import("https://esm.sh/@supabase/supabase-js@2");
     const supabase = createClient(
@@ -26,14 +26,14 @@ serve(async (req) => {
     );
 
     // Use the correct supported image generation model
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    const response = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        Authorization: `Bearer ${GOOGLE_API_KEY}`,
       },
       body: JSON.stringify({
-        model: 'google/gemini-3-pro-image-preview',
+        model: 'gemini-2.0-flash-exp',
         messages: [
           {
             role: 'user',
@@ -51,7 +51,7 @@ serve(async (req) => {
         });
       }
       if (response.status === 402) {
-        return new Response(JSON.stringify({ error: 'AI credits exhausted', code: 'AI_CREDITS_EXHAUSTED' }), {
+        return new Response(JSON.stringify({ error: 'AI quota exceeded', code: 'AI_QUOTA_EXCEEDED' }), {
           status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }

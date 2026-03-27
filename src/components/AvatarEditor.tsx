@@ -5,6 +5,7 @@ import { Slider } from "@/components/ui/slider";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ZoomIn, ZoomOut, RotateCw, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslation } from 'react-i18next';
 
 // Keep legacy AvatarEditor functional but avoid a static import that inflates build memory.
 const Cropper = lazy(() => import('react-easy-crop').then((m) => ({ default: m.default })));
@@ -98,6 +99,7 @@ const getCroppedImg = async (
 };
 
 export const AvatarEditor = ({ image, open, onClose, onSave }: AvatarEditorProps) => {
+  const { t } = useTranslation('common');
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [rotation, setRotation] = useState(0);
@@ -177,7 +179,7 @@ export const AvatarEditor = ({ image, open, onClose, onSave }: AvatarEditorProps
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Edit Profile Picture</DialogTitle>
+          <DialogTitle>{t('avatareditor.editProfilePicture', 'Edit Profile Picture')}</DialogTitle>
         </DialogHeader>
         
         <div className="space-y-6">
@@ -201,7 +203,7 @@ export const AvatarEditor = ({ image, open, onClose, onSave }: AvatarEditorProps
 
           <Tabs defaultValue="adjust" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="adjust">Adjust</TabsTrigger>
+              <TabsTrigger value="adjust">{t('avatareditor.adjust', 'Adjust')}</TabsTrigger>
               <TabsTrigger value="filters" className="flex items-center gap-2">
                 <Sparkles className="w-4 h-4" />
                 Filters
@@ -246,7 +248,7 @@ export const AvatarEditor = ({ image, open, onClose, onSave }: AvatarEditorProps
 
             <TabsContent value="filters" className="space-y-4 mt-4">
               <div>
-                <p className="text-sm font-medium mb-3">Preset Filters</p>
+                <p className="text-sm font-medium mb-3">{t('avatareditor.presetFilters', 'Preset Filters')}</p>
                 <div className="grid grid-cols-4 gap-2">
                   {Object.keys(FILTER_PRESETS).map((preset) => (
                     <button
@@ -274,11 +276,11 @@ export const AvatarEditor = ({ image, open, onClose, onSave }: AvatarEditorProps
               </div>
 
               <div className="space-y-3 pt-2">
-                <p className="text-sm font-medium">Custom Adjustments</p>
+                <p className="text-sm font-medium">{t('avatareditor.customAdjustments', 'Custom Adjustments')}</p>
                 
                 <div className="space-y-2">
                   <div className="flex items-center justify-between text-sm">
-                    <span>Brightness</span>
+                    <span>{t('avatareditor.brightness', 'Brightness')}</span>
                     <span className="text-muted-foreground">{filters.brightness}%</span>
                   </div>
                   <Slider
@@ -294,7 +296,7 @@ export const AvatarEditor = ({ image, open, onClose, onSave }: AvatarEditorProps
 
                 <div className="space-y-2">
                   <div className="flex items-center justify-between text-sm">
-                    <span>Contrast</span>
+                    <span>{t('avatareditor.contrast', 'Contrast')}</span>
                     <span className="text-muted-foreground">{filters.contrast}%</span>
                   </div>
                   <Slider
@@ -310,7 +312,7 @@ export const AvatarEditor = ({ image, open, onClose, onSave }: AvatarEditorProps
 
                 <div className="space-y-2">
                   <div className="flex items-center justify-between text-sm">
-                    <span>Saturation</span>
+                    <span>{t('avatareditor.saturation', 'Saturation')}</span>
                     <span className="text-muted-foreground">{filters.saturation}%</span>
                   </div>
                   <Slider
@@ -328,41 +330,39 @@ export const AvatarEditor = ({ image, open, onClose, onSave }: AvatarEditorProps
           </Tabs>
 
           <div className="bg-muted/50 rounded-lg p-4">
-            <p className="text-sm font-medium mb-3">Live Preview</p>
+            <p className="text-sm font-medium mb-3">{t('avatareditor.livePreview', 'Live Preview')}</p>
             <div className="flex items-center justify-center gap-6">
               <div className="text-center space-y-2">
                 <div className="w-12 h-12 rounded-full bg-background overflow-hidden mx-auto border-2 border-border">
                   {previewUrl && (
-                    <img src={previewUrl} alt="Small preview" className="w-full h-full object-cover" />
+                    <img src={previewUrl} alt={t('avatareditor.smallPreview', 'Small preview')} className="w-full h-full object-cover" />
                   )}
                 </div>
-                <span className="text-xs text-muted-foreground">Small</span>
+                <span className="text-xs text-muted-foreground">{t('avatareditor.small', 'Small')}</span>
               </div>
               <div className="text-center space-y-2">
                 <div className="w-16 h-16 rounded-full bg-background overflow-hidden mx-auto border-2 border-border">
                   {previewUrl && (
-                    <img src={previewUrl} alt="Medium preview" className="w-full h-full object-cover" />
+                    <img src={previewUrl} alt={t('avatareditor.mediumPreview', 'Medium preview')} className="w-full h-full object-cover" />
                   )}
                 </div>
-                <span className="text-xs text-muted-foreground">Medium</span>
+                <span className="text-xs text-muted-foreground">{t('avatareditor.medium', 'Medium')}</span>
               </div>
               <div className="text-center space-y-2">
                 <div className="w-24 h-24 rounded-full bg-background overflow-hidden mx-auto border-2 border-border">
                   {previewUrl && (
-                    <img src={previewUrl} alt="Large preview" className="w-full h-full object-cover" />
+                    <img src={previewUrl} alt={t('avatareditor.largePreview', 'Large preview')} className="w-full h-full object-cover" />
                   )}
                 </div>
-                <span className="text-xs text-muted-foreground">Large</span>
+                <span className="text-xs text-muted-foreground">{t('avatareditor.large', 'Large')}</span>
               </div>
             </div>
           </div>
 
           <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={onClose} disabled={saving}>
-              Cancel
-            </Button>
+            <Button variant="outline" onClick={onClose} disabled={saving}>{t('avatareditor.cancel', 'Cancel')}</Button>
             <Button onClick={handleSave} disabled={saving || !croppedAreaPixels}>
-              {saving ? "Saving..." : "Save"}
+              {saving ? t('avatareditor.saving', 'Saving...') : t('avatareditor.save', 'Save')}
             </Button>
           </div>
         </div>

@@ -2,6 +2,7 @@ import { memo, useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
 import { useDebounce } from '@/hooks/use-debounce';
+import { useTranslation } from 'react-i18next';
 
 interface EnhancedSearchBarProps {
   value: string;
@@ -13,9 +14,10 @@ interface EnhancedSearchBarProps {
 export const EnhancedSearchBar = memo<EnhancedSearchBarProps>(({
   value,
   onChange,
-  placeholder = 'Search courses, skills, topics...',
+  placeholder,
   resultsCount,
 }) => {
+  const { t } = useTranslation('common');
   const [localValue, setLocalValue] = useState(value);
   const debouncedValue = useDebounce(localValue, 300);
 
@@ -29,12 +31,12 @@ export const EnhancedSearchBar = memo<EnhancedSearchBarProps>(({
       <Input
         value={localValue}
         onChange={(e) => setLocalValue(e.target.value)}
-        placeholder={placeholder}
+        placeholder={placeholder || t('academy.searchPlaceholder', 'Search courses, skills, topics...')}
         className="pl-10 h-12 text-base"
       />
       {localValue && resultsCount !== undefined && (
         <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
-          {resultsCount} {resultsCount === 1 ? 'result' : 'results'}
+          {t('academy.resultCount', '{{count}} result', { count: resultsCount })}
         </span>
       )}
     </div>

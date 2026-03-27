@@ -17,6 +17,7 @@ import { format, differenceInDays } from "date-fns";
 import { Progress } from "@/components/ui/progress";
 import { useResumeUpload } from "@/hooks/useResumeUpload";
 import { useRole } from "@/contexts/RoleContext";
+import { useTranslation } from 'react-i18next';
 
 interface Props {
   candidateId: string;
@@ -52,6 +53,7 @@ const DOCUMENT_TYPES = {
 };
 
 export const CandidateDocumentsViewer = ({ candidateId, canUpload }: Props) => {
+  const { t } = useTranslation('partner');
   const { currentRole: role } = useRole();
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
@@ -86,7 +88,7 @@ export const CandidateDocumentsViewer = ({ candidateId, canUpload }: Props) => {
 
     if (error) {
       console.error('Error loading documents:', error);
-      toast.error('Failed to load documents');
+      toast.error(t('candidateDocumentsViewer.toast.failedToLoadDocuments'));
       setLoading(false);
       return;
     }
@@ -236,7 +238,7 @@ export const CandidateDocumentsViewer = ({ candidateId, canUpload }: Props) => {
       await loadDocuments();
     } catch (error) {
       console.error('Archive error:', error);
-      toast.error('Failed to update document');
+      toast.error(t('candidateDocumentsViewer.toast.failedToUpdateDocument'));
     }
   };
 
@@ -273,11 +275,11 @@ export const CandidateDocumentsViewer = ({ candidateId, canUpload }: Props) => {
 
       if (dbError) throw dbError;
 
-      toast.success('Document deleted');
+      toast.success(t('candidateDocumentsViewer.toast.documentDeleted'));
       await loadDocuments();
     } catch (error) {
       console.error('Delete error:', error);
-      toast.error('Failed to delete document');
+      toast.error(t('candidateDocumentsViewer.toast.failedToDeleteDocument'));
     }
   };
 
@@ -286,7 +288,7 @@ export const CandidateDocumentsViewer = ({ candidateId, canUpload }: Props) => {
       <div className="flex items-center justify-center py-12">
         <div className="text-center space-y-3">
           <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
-          <p className="text-sm text-muted-foreground">Loading documents</p>
+          <p className="text-sm text-muted-foreground">{t('candidateDocumentsViewer.loadingDocuments')}</p>
         </div>
       </div>
     );
@@ -356,9 +358,7 @@ export const CandidateDocumentsViewer = ({ candidateId, canUpload }: Props) => {
                       PDF, DOC, DOCX, JPG, PNG up to 10MB
                     </p>
                     {dragActive && (
-                      <p className="text-sm font-medium text-primary animate-pulse">
-                        Release to upload
-                      </p>
+                      <p className="text-sm font-medium text-primary animate-pulse">{t('candidateDocumentsViewer.releaseToUpload')}</p>
                     )}
                   </div>
                 </div>
@@ -412,7 +412,7 @@ export const CandidateDocumentsViewer = ({ candidateId, canUpload }: Props) => {
                   {doc.is_verified && (
                     <div className="flex items-center gap-1 text-green-400">
                       <CheckCircle2 className="w-4 h-4" />
-                      <span className="text-xs font-medium">Verified</span>
+                      <span className="text-xs font-medium">{t('candidateDocumentsViewer.verified')}</span>
                     </div>
                   )}
                 </div>
@@ -457,7 +457,7 @@ export const CandidateDocumentsViewer = ({ candidateId, canUpload }: Props) => {
                     onClick={() => setPreviewDoc(doc)}
                   >
                     <Eye className="w-3.5 h-3.5 mr-1.5" />
-                    View
+                    {t('common:view')}
                   </Button>
                   <Button
                     size="sm"
@@ -505,8 +505,8 @@ export const CandidateDocumentsViewer = ({ candidateId, canUpload }: Props) => {
             <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-muted/20 flex items-center justify-center">
               <FileText className="w-8 h-8 text-muted-foreground" />
             </div>
-            <p className="text-base font-medium text-foreground mb-1">No documents yet</p>
-            <p className="text-sm text-muted-foreground">Upload the first document to get started</p>
+            <p className="text-base font-medium text-foreground mb-1">{t('candidateDocumentsViewer.noDocumentsYet')}</p>
+            <p className="text-sm text-muted-foreground">{t('candidateDocumentsViewer.uploadTheFirstDocumentToGetStarted')}</p>
           </CardContent>
         </Card>
       )}
@@ -515,7 +515,7 @@ export const CandidateDocumentsViewer = ({ candidateId, canUpload }: Props) => {
       <Dialog open={showTypeSelector} onOpenChange={setShowTypeSelector}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Select Document Type</DialogTitle>
+            <DialogTitle>{t('candidateDocumentsViewer.dialogTitle')}</DialogTitle>
           </DialogHeader>
           <div className="space-y-6 py-4">
             {selectedFile && (
@@ -529,9 +529,7 @@ export const CandidateDocumentsViewer = ({ candidateId, canUpload }: Props) => {
             )}
             
             <div className="space-y-3">
-              <Label htmlFor="document-type" className="text-sm font-medium">
-                Document Type
-              </Label>
+              <Label htmlFor="document-type" className="text-sm font-medium">{t('candidateDocumentsViewer.label.documentType')}</Label>
               <Select value={selectedType} onValueChange={setSelectedType}>
                 <SelectTrigger id="document-type">
                   <SelectValue />
@@ -551,12 +549,8 @@ export const CandidateDocumentsViewer = ({ candidateId, canUpload }: Props) => {
 
             {isAdminOrPartner && (
               <div className="space-y-3">
-                <Label htmlFor="expiry-date" className="text-sm font-medium">
-                  Expiry Date (Optional)
-                </Label>
-                <p className="text-xs text-muted-foreground">
-                  Documents will be automatically archived after this date for GDPR compliance
-                </p>
+                <Label htmlFor="expiry-date" className="text-sm font-medium">{t('candidateDocumentsViewer.label.expiryDateOptional')}</Label>
+                <p className="text-xs text-muted-foreground">{t('candidateDocumentsViewer.documentsWillBeAutomaticallyArchivedAfte')}</p>
                 <Input
                   id="expiry-date"
                   type="date"
@@ -587,7 +581,7 @@ export const CandidateDocumentsViewer = ({ candidateId, canUpload }: Props) => {
                 }}
                 disabled={uploading}
               >
-                Cancel
+                {t('common:cancel')}
               </Button>
               <Button
                 className="flex-1"
@@ -622,7 +616,7 @@ export const CandidateDocumentsViewer = ({ candidateId, canUpload }: Props) => {
               <iframe
                 src={previewDoc.file_url}
                 className="w-full h-[70vh]"
-                title="Document preview"
+                title={t('candidateDocumentsViewer.title.documentPreview')}
               />
             )}
           </div>

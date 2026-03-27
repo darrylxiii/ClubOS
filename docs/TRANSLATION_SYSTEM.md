@@ -9,7 +9,7 @@ All translations are stored in the Supabase `translations` table.
 ### Backend Architecture
 1. **i18n Config** (`src/i18n/config.ts`) uses `SupabaseBackend` to fetch translations
 2. **English translations** in the database are the source of truth
-3. **Other languages** are AI-generated from English using Lovable AI
+3. **Other languages** are AI-generated from English using Google Gemini
 4. Translations are cached in the browser for performance
 
 ### Frontend Integration
@@ -116,7 +116,7 @@ const { t } = useTranslation();
 
 ### Generation Stuck on Loading
 1. Check the edge function logs for rate limit errors
-2. Wait 5 minutes and try again (Lovable AI rate limits)
+2. Wait 5 minutes and try again (Google Gemini rate limits)
 3. Use **"Translate Missing Only"** for smaller batches
 
 ## Cost Optimization

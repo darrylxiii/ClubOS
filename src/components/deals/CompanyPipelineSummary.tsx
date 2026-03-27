@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -21,6 +22,7 @@ interface CompanySummary {
 }
 
 export function CompanyPipelineSummary({ onCompanyFilter }: { onCompanyFilter?: (companyId: string | null) => void }) {
+  const { t } = useTranslation('common');
   const { data: deals } = useDealPipeline();
   const [sortKey, setSortKey] = useState<SortKey>("weighted");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
@@ -117,12 +119,12 @@ export function CompanyPipelineSummary({ onCompanyFilter }: { onCompanyFilter?: 
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead><SortButton field="company">Company</SortButton></TableHead>
-              <TableHead className="text-center"><SortButton field="deals">Deals</SortButton></TableHead>
-              <TableHead className="text-right"><SortButton field="gross">Gross Pipeline</SortButton></TableHead>
-              <TableHead className="text-right"><SortButton field="weighted">Weighted</SortButton></TableHead>
-              <TableHead><SortButton field="stage">Top Stage</SortButton></TableHead>
-              <TableHead className="text-right">Share</TableHead>
+              <TableHead><SortButton field="company">{t("company", "Company")}</SortButton></TableHead>
+              <TableHead className="text-center"><SortButton field="deals">{t("deals", "Deals")}</SortButton></TableHead>
+              <TableHead className="text-right"><SortButton field="gross">{t("gross_pipeline", "Gross Pipeline")}</SortButton></TableHead>
+              <TableHead className="text-right"><SortButton field="weighted">{t("weighted", "Weighted")}</SortButton></TableHead>
+              <TableHead><SortButton field="stage">{t("top_stage", "Top Stage")}</SortButton></TableHead>
+              <TableHead className="text-right">{t("share", "Share")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

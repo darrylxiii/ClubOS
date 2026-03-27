@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Search, TrendingUp, Sparkles } from "lucide-react";
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
 interface GifPickerProps {
@@ -20,6 +21,7 @@ const TRENDING_GIFS = [
 ];
 
 export const GifPicker = ({ onSelect }: GifPickerProps) => {
+  const { t } = useTranslation('messages');
   const [searchQuery, setSearchQuery] = useState("");
   const [gifs, setGifs] = useState<string[]>(TRENDING_GIFS);
   const [open, setOpen] = useState(false);
@@ -37,7 +39,7 @@ export const GifPicker = ({ onSelect }: GifPickerProps) => {
   const handleSelect = (gifUrl: string) => {
     onSelect(gifUrl);
     setOpen(false);
-    toast.success("GIF added");
+    toast.success(t('gif.added'));
   };
 
   return (
@@ -47,7 +49,7 @@ export const GifPicker = ({ onSelect }: GifPickerProps) => {
           variant="ghost" 
           size="icon" 
           className="flex-shrink-0 hover:bg-accent/50"
-          title="Send GIF"
+          title={t('gif.send')}
         >
           <Sparkles className="h-5 w-5" />
         </Button>
@@ -57,7 +59,7 @@ export const GifPicker = ({ onSelect }: GifPickerProps) => {
           <div className="relative">
             <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search GIFs..."
+              placeholder={t('gif.searchPlaceholder')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-8 glass-subtle border-border/50"
@@ -66,7 +68,7 @@ export const GifPicker = ({ onSelect }: GifPickerProps) => {
         </div>
         <div className="p-2 flex items-center gap-2 text-xs text-muted-foreground border-b border-border/50">
           <TrendingUp className="h-3 w-3" />
-          <span>Trending</span>
+          <span>{t('gif.trending')}</span>
         </div>
         <ScrollArea className="h-80">
           <div className="grid grid-cols-2 gap-2 p-2">

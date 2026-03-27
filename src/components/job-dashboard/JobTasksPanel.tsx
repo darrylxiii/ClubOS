@@ -11,6 +11,7 @@ import { PartnerTaskRequestDialog } from "./PartnerTaskRequestDialog";
 import { useRole } from "@/contexts/RoleContext";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { useTranslation } from 'react-i18next';
 
 interface JobTasksPanelProps {
   jobId: string;
@@ -19,6 +20,7 @@ interface JobTasksPanelProps {
 }
 
 export const JobTasksPanel = ({ jobId, companyId, jobTitle }: JobTasksPanelProps) => {
+  const { t } = useTranslation('jobs');
   const { currentRole } = useRole();
   const queryClient = useQueryClient();
   const [showCreateTask, setShowCreateTask] = useState(false);

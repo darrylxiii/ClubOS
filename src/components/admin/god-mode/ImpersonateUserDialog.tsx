@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Eye, AlertTriangle } from 'lucide-react';
 import {
@@ -26,6 +27,7 @@ export function ImpersonateUserDialog({
   userId,
   userName,
 }: ImpersonateUserDialogProps) {
+  const { t } = useTranslation('common');
   const [reason, setReason] = useState('');
   const { startImpersonation, isLoading } = useImpersonation();
 
@@ -56,22 +58,22 @@ export function ImpersonateUserDialog({
             <div className="flex gap-3">
               <AlertTriangle className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
               <div className="text-sm">
-                <p className="font-medium text-amber-500 mb-1">Important</p>
+                <p className="font-medium text-amber-500 mb-1">{t("important", "Important")}</p>
                 <ul className="text-muted-foreground space-y-1 list-disc list-inside">
-                  <li>Session expires after 1 hour</li>
-                  <li>All actions are logged in audit trail</li>
-                  <li>Write operations are blocked</li>
-                  <li>You cannot impersonate super admins</li>
+                  <li>{t("session_expires_after_1", "Session expires after 1 hour")}</li>
+                  <li>{t("all_actions_are_logged", "All actions are logged in audit trail")}</li>
+                  <li>{t("write_operations_are_blocked", "Write operations are blocked")}</li>
+                  <li>{t("you_cannot_impersonate_super", "You cannot impersonate super admins")}</li>
                 </ul>
               </div>
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="reason">Reason for impersonation</Label>
+            <Label htmlFor="reason">{t("reason_for_impersonation", "Reason for impersonation")}</Label>
             <Textarea
               id="reason"
-              placeholder="e.g., Debugging user-reported issue #1234"
+              placeholder={t("eg_debugging_userreported_issue", "e.g., Debugging user-reported issue #1234")}
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               className="min-h-[80px]"

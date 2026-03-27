@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from '@/lib/motion';
 import { Keyboard, X } from 'lucide-react';
@@ -41,6 +42,7 @@ interface KPIKeyboardShortcutsHelpProps {
 }
 
 export function KPIKeyboardShortcutsHelp({ open, onOpenChange }: KPIKeyboardShortcutsHelpProps) {
+  const { t } = useTranslation('common');
   // Listen for ? key to toggle
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -100,8 +102,8 @@ export function KPIKeyboardShortcutsHelp({ open, onOpenChange }: KPIKeyboardShor
                   <Keyboard className="h-5 w-5 text-accent" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-semibold">Keyboard Shortcuts</h2>
-                  <p className="text-xs text-muted-foreground">Press ? anytime to show this</p>
+                  <h2 className="text-lg font-semibold">{t("keyboard_shortcuts", "Keyboard Shortcuts")}</h2>
+                  <p className="text-xs text-muted-foreground">{t("press_anytime_to_show", "Press ? anytime to show this")}</p>
                 </div>
               </div>
               <Button
@@ -154,7 +156,7 @@ export function KPIKeyboardShortcutsHelp({ open, onOpenChange }: KPIKeyboardShor
             {/* Footer */}
             <div className="px-6 py-3 border-t border-border bg-muted/30">
               <p className="text-xs text-muted-foreground text-center">
-                Press <kbd className="px-1.5 py-0.5 text-xs bg-muted rounded border border-border/50">Esc</kbd> to close
+                Press <kbd className="px-1.5 py-0.5 text-xs bg-muted rounded border border-border/50">{t("esc", "Esc")}</kbd> to close
               </p>
             </div>
           </motion.div>

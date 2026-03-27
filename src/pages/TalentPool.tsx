@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { DashboardHeader } from '@/components/admin/shared/DashboardHeader';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -30,6 +31,7 @@ import { useNavigate } from 'react-router-dom';
 type ViewMode = 'table' | 'kanban';
 
 export default function TalentPool() {
+  const { t } = useTranslation('candidates');
   const navigate = useNavigate();
   const [viewMode, setViewMode] = useState<ViewMode>('table');
   const [filters, setFilters] = useState<Filters>({});
@@ -47,7 +49,7 @@ export default function TalentPool() {
   // Handle bulk move probability calculation
   const handleBulkCalculate = useCallback(async () => {
     setIsBulkCalculating(true);
-    const toastId = toast.loading('Calculating move probabilities...');
+    const toastId = toast.loading("Calculating move probabilities...");
 
     try {
       const { data, error } = await supabase.functions.invoke('calculate-move-probability-bulk', {
@@ -67,7 +69,7 @@ export default function TalentPool() {
       }
     } catch (error) {
       console.error('Bulk calculation error:', error);
-      toast.error('Failed to calculate move probabilities', { id: toastId });
+      toast.error("Failed to calculate move probabilities", { id: toastId });
     } finally {
       setIsBulkCalculating(false);
     }
@@ -142,16 +144,16 @@ export default function TalentPool() {
 
   const handleGenerateDossier = useCallback(async () => {
     if (!quickViewCandidate) return;
-    const toastId = toast.loading('Generating dossier...');
+    const toastId = toast.loading("Generating dossier...");
     try {
       const { error } = await supabase.functions.invoke('generate-candidate-dossier', {
         body: { candidate_id: quickViewCandidate.id }
       });
       if (error) throw error;
-      toast.success('Dossier generated successfully', { id: toastId });
+      toast.success("Dossier generated successfully", { id: toastId });
     } catch (error) {
       console.error('Dossier error:', error);
-      toast.error('Failed to generate dossier', { id: toastId });
+      toast.error("Failed to generate dossier", { id: toastId });
     }
   }, [quickViewCandidate]);
 
@@ -165,8 +167,8 @@ export default function TalentPool() {
   return (
     <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         <DashboardHeader
-          title="Talent Pool"
-          description="AI-powered talent intelligence and pipeline management"
+          title={t('talentPool.text1')}
+          description={t('talentPool.text2')}
           onRefresh={refetch}
           isRefreshing={isLoading}
           actions={

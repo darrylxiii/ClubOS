@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -28,6 +29,7 @@ const patternConfig: Record<string, { icon: React.ElementType; color: string; bg
 };
 
 export function CrossChannelPatternsCard({ entityType, entityId, compact = false }: CrossChannelPatternsCardProps) {
+  const { t } = useTranslation('common');
   const { 
     activeAlerts, 
     loading, 
@@ -76,8 +78,8 @@ export function CrossChannelPatternsCard({ entityType, entityId, compact = false
         ) : displayPatterns.length === 0 ? (
           <div className="text-center py-6 text-muted-foreground">
             <CheckCircle className="h-8 w-8 mx-auto mb-2 text-green-500" />
-            <p>No active patterns detected</p>
-            <p className="text-sm">Communication is healthy</p>
+            <p>{t("no_active_patterns_detected", "No active patterns detected")}</p>
+            <p className="text-sm">{t("communication_is_healthy", "Communication is healthy")}</p>
           </div>
         ) : (
           <AnimatePresence>

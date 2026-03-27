@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { 
   RefreshCw, Plus, LayoutGrid, List, 
@@ -34,6 +35,7 @@ import { MilestoneManagementModal } from './MilestoneManagementModal';
 type ViewMode = 'grid' | 'list';
 
 export function RevenueLadderDashboard() {
+  const { t } = useTranslation('common');
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [selectedMilestone, setSelectedMilestone] = useState<RevenueMilestone | null>(null);
   const [showProposalForm, setShowProposalForm] = useState(false);
@@ -186,7 +188,7 @@ export function RevenueLadderDashboard() {
             <div className="space-y-4">
               <h2 className="text-heading-sm font-semibold flex items-center gap-2">
                 Annual Track
-                <Badge variant="outline" className="font-normal">Execution Focus</Badge>
+                <Badge variant="outline" className="font-normal">{t("execution_focus", "Execution Focus")}</Badge>
               </h2>
               <div className={cn(viewMode === 'grid' ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" : "space-y-4")}>
                 {annualLadder.revenue_milestones?.map((milestone) => (
@@ -206,7 +208,7 @@ export function RevenueLadderDashboard() {
             <div className="space-y-4">
               <h2 className="text-heading-sm font-semibold flex items-center gap-2">
                 Lifetime Track
-                <Badge variant="outline" className="font-normal">Vision Focus</Badge>
+                <Badge variant="outline" className="font-normal">{t("vision_focus", "Vision Focus")}</Badge>
               </h2>
               <div className={cn(viewMode === 'grid' ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" : "space-y-4")}>
                 {cumulativeLadder.revenue_milestones?.map((milestone) => (
@@ -233,8 +235,8 @@ export function RevenueLadderDashboard() {
               <div className="mx-auto w-16 h-16 rounded-full bg-muted/50 flex items-center justify-center">
                 <Plus className="h-8 w-8 text-muted-foreground" />
               </div>
-              <p className="text-heading-sm font-medium">No proposals yet</p>
-              <p className="text-body-sm text-muted-foreground">Unlock a milestone to start proposing rewards</p>
+              <p className="text-heading-sm font-medium">{t("no_proposals_yet", "No proposals yet")}</p>
+              <p className="text-body-sm text-muted-foreground">{t("unlock_a_milestone_to", "Unlock a milestone to start proposing rewards")}</p>
             </div>
           )}
         </TabsContent>

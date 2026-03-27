@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from "react-router-dom";
 import { useRole } from "@/contexts/RoleContext";
 import { Loader2, Music2, Radio, Upload } from "lucide-react";
@@ -14,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function ClubDJ() {
+  const { t } = useTranslation('common');
   const { currentRole, loading } = useRole();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("playlists");
@@ -146,12 +148,8 @@ export default function ClubDJ() {
               <Radio className="h-8 w-8 text-primary" />
             </div>
             <div>
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-                Club DJ Dashboard
-              </h1>
-              <p className="text-muted-foreground mt-1">
-                Manage playlists, upload tracks, and DJ live for The Quantum Club Radio
-              </p>
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">{t('clubDJ.title')}</h1>
+              <p className="text-muted-foreground mt-1">{t('clubDJ.desc')}</p>
             </div>
           </div>
         </div>
@@ -205,10 +203,8 @@ export default function ClubDJ() {
                     <div className="flex items-center gap-3">
                       <div className="h-3 w-3 rounded-full bg-red-500 animate-pulse" />
                       <div>
-                        <h3 className="text-xl font-bold">DJ Now Live!</h3>
-                        <p className="text-sm text-muted-foreground">
-                          Broadcasting to The Quantum Club Radio
-                        </p>
+                        <h3 className="text-xl font-bold">{t('clubDJ.text3')}</h3>
+                        <p className="text-sm text-muted-foreground">{t('clubDJ.desc2')}</p>
                       </div>
                     </div>
                     <Button

@@ -79,7 +79,7 @@ INSERT INTO public.company_interactions (
 **Test the `extract-interaction-insights` function:**
 
 ```bash
-curl -X POST 'https://dpjucecmoyfzrduhlctt.supabase.co/functions/v1/extract-interaction-insights' \
+curl -X POST 'https://chgrkvftjfibufoopmav.supabase.co/functions/v1/extract-interaction-insights' \
   -H "Authorization: Bearer YOUR_ANON_KEY" \
   -H "Content-Type: application/json" \
   -d '{"interaction_id": "your-interaction-id"}'
@@ -102,7 +102,7 @@ ORDER BY created_at DESC;
 **Test the `calculate-stakeholder-influence` function:**
 
 ```bash
-curl -X POST 'https://dpjucecmoyfzrduhlctt.supabase.co/functions/v1/calculate-stakeholder-influence' \
+curl -X POST 'https://chgrkvftjfibufoopmav.supabase.co/functions/v1/calculate-stakeholder-influence' \
   -H "Authorization: Bearer YOUR_ANON_KEY" \
   -H "Content-Type: application/json" \
   -d '{"company_id": "your-company-id"}'
@@ -126,7 +126,7 @@ ORDER BY engagement_score DESC;
 **Test the `generate-company-intelligence-report` function:**
 
 ```bash
-curl -X POST 'https://dpjucecmoyfzrduhlctt.supabase.co/functions/v1/generate-company-intelligence-report' \
+curl -X POST 'https://chgrkvftjfibufoopmav.supabase.co/functions/v1/generate-company-intelligence-report' \
   -H "Authorization: Bearer YOUR_ANON_KEY" \
   -H "Content-Type: application/json" \
   -d '{"company_id": "your-company-id", "period_days": 90}'
@@ -306,7 +306,7 @@ For best intelligence results:
 
 ## 🔐 Security Notes
 
-- All edge functions use Lovable AI (Gemini 2.5 Flash) - no external API keys required
+- All edge functions use Google Gemini (Gemini 2.5 Flash) - no external API keys required
 - RLS policies ensure users only see their company's intelligence
 - AI usage is logged in `ai_usage_logs` for monitoring
 - Partner members can only see intelligence for their assigned companies
@@ -329,7 +329,7 @@ For best intelligence results:
 ## 📧 Support
 
 If issues persist after following this guide:
-1. Check edge function logs in Lovable Cloud backend
+1. Check edge function logs in Supabase backend
 2. Review browser console for client-side errors
 3. Verify database schema matches migration
 4. Ensure all RLS policies are active

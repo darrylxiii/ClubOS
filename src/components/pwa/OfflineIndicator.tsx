@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from '@/lib/motion';
 import { WifiOff, Cloud, CloudOff } from 'lucide-react';
@@ -8,6 +9,7 @@ interface OfflineIndicatorProps {
 }
 
 export function OfflineIndicator({ pendingActions = 0, isSyncing = false }: OfflineIndicatorProps) {
+  const { t } = useTranslation('common');
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [showIndicator, setShowIndicator] = useState(false);
 
@@ -66,7 +68,7 @@ export function OfflineIndicator({ pendingActions = 0, isSyncing = false }: Offl
             isSyncing ? (
               <>
                 <Cloud className="w-4 h-4 animate-pulse" />
-                <span>Syncing...</span>
+                <span>{t("syncing", "Syncing...")}</span>
               </>
             ) : pendingActions > 0 ? (
               <>
@@ -76,7 +78,7 @@ export function OfflineIndicator({ pendingActions = 0, isSyncing = false }: Offl
             ) : (
               <>
                 <Cloud className="w-4 h-4" />
-                <span>Back online</span>
+                <span>{t("back_online", "Back online")}</span>
               </>
             )
           ) : (

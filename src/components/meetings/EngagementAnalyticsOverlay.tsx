@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -34,6 +35,7 @@ export function EngagementAnalyticsOverlay({
   elapsedTimeMs,
   onClose
 }: EngagementAnalyticsOverlayProps) {
+  const { t } = useTranslation('common');
   const [expanded, setExpanded] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
 
@@ -113,7 +115,7 @@ export function EngagementAnalyticsOverlay({
                 ) : (
                   <>
                     <MicOff className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm text-muted-foreground">No one speaking</span>
+                    <span className="text-sm text-muted-foreground">{t("no_one_speaking", "No one speaking")}</span>
                   </>
                 )}
               </div>
@@ -153,7 +155,7 @@ export function EngagementAnalyticsOverlay({
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <Activity className="h-4 w-4 text-primary" />
-              <span className="font-semibold text-sm">Engagement Analytics</span>
+              <span className="font-semibold text-sm">{t("engagement_analytics", "Engagement Analytics")}</span>
             </div>
             <div className="flex items-center gap-1">
               <Button
@@ -183,15 +185,15 @@ export function EngagementAnalyticsOverlay({
               <div className={cn('text-lg font-bold', getEngagementColor(averageEngagement).split(' ')[0])}>
                 {averageEngagement}%
               </div>
-              <div className="text-xs text-muted-foreground">Engagement</div>
+              <div className="text-xs text-muted-foreground">{t("engagement", "Engagement")}</div>
             </div>
             <div className="text-center p-2 rounded-lg bg-muted/50">
               <div className="text-lg font-bold">{participants.length}</div>
-              <div className="text-xs text-muted-foreground">Participants</div>
+              <div className="text-xs text-muted-foreground">{t("participants", "Participants")}</div>
             </div>
             <div className="text-center p-2 rounded-lg bg-muted/50">
               <div className="text-lg font-bold">{formatTime(elapsedTimeMs)}</div>
-              <div className="text-xs text-muted-foreground">Duration</div>
+              <div className="text-xs text-muted-foreground">{t("duration", "Duration")}</div>
             </div>
           </div>
 

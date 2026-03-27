@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { resilientFetch } from '../_shared/resilient-fetch.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -48,11 +49,16 @@ serve(async (req) => {
 
     // Test API call to /accounts/me
     const start = Date.now();
-    const response = await fetch('https://api.instantly.ai/api/v2/accounts/me', {
-      headers: { 
+    const { response } = await resilientFetch('https://api.instantly.ai/api/v2/accounts/me', {
+      headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
       }
+    }, {
+      timeoutMs: 10_000,
+      maxRetries: 1,
+      service: 'instantly',
+      operation: 'test-connection',
     });
     const latency = Date.now() - start;
 

@@ -9,6 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { AlertTriangle, Linkedin, Mail, Briefcase, TrendingUp } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { useTranslation } from 'react-i18next';
 
 interface DuplicateCandidate {
   id: string;
@@ -45,6 +46,7 @@ export const DuplicateCandidateDialog = ({
   onProceed,
   onCancel,
 }: DuplicateCandidateDialogProps) => {
+  const { t } = useTranslation('partner');
   const getMatchTypeText = () => {
     switch (matchType) {
       case "email":
@@ -67,9 +69,7 @@ export const DuplicateCandidateDialog = ({
               <AlertTriangle className="w-6 h-6 text-white" />
             </div>
             <div className="flex-1">
-              <DialogTitle className="text-2xl font-black uppercase text-orange-500">
-                Candidate Already in Pipeline
-              </DialogTitle>
+              <DialogTitle className="text-2xl font-black uppercase text-orange-500">{t('duplicateCandidateDialog.dialogTitle')}</DialogTitle>
               <DialogDescription className="text-base mt-1">
                 {duplicates.length === 1 ? "A candidate" : `${duplicates.length} candidates`} {getMatchTypeText()} already {duplicates.length === 1 ? "exists" : "exist"} in <strong className="text-foreground">{jobTitle || "this job"}</strong>
               </DialogDescription>
@@ -90,14 +90,10 @@ export const DuplicateCandidateDialog = ({
                       {duplicate.candidate_profiles.full_name || "Unnamed Candidate"}
                     </h4>
                     {matchType === "name" || matchType === "both" ? (
-                      <Badge variant="secondary" className="bg-orange-500/20 text-orange-700 dark:text-orange-300">
-                        Name Match
-                      </Badge>
+                      <Badge variant="secondary" className="bg-orange-500/20 text-orange-700 dark:text-orange-300">{t('duplicateCandidateDialog.badge.nameMatch')}</Badge>
                     ) : null}
                     {matchType === "linkedin" || matchType === "both" ? (
-                      <Badge variant="secondary" className="bg-blue-500/20 text-blue-700 dark:text-blue-300">
-                        LinkedIn Match
-                      </Badge>
+                      <Badge variant="secondary" className="bg-blue-500/20 text-blue-700 dark:text-blue-300">{t('duplicateCandidateDialog.badge.linkedinMatch')}</Badge>
                     ) : null}
                   </div>
 

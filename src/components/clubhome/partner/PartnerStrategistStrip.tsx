@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -11,6 +12,7 @@ interface PartnerStrategistStripProps {
 }
 
 export function PartnerStrategistStrip({ companyId }: PartnerStrategistStripProps) {
+  const { t } = useTranslation('common');
   const { data: assignment, isLoading } = useStrategistAssignment(companyId);
   const assignmentData = assignment as any;
   const strategist = assignmentData?.strategist;
@@ -36,7 +38,7 @@ export function PartnerStrategistStrip({ companyId }: PartnerStrategistStripProp
             <Sparkles className="h-4 w-4 text-primary" />
           </div>
           <div>
-            <p className="text-sm font-medium">Your Talent Strategist</p>
+            <p className="text-sm font-medium">{t("your_talent_strategist", "Your Talent Strategist")}</p>
             <p className="text-xs text-muted-foreground">
               Your strategist will help you define your first role — post one now to get started
             </p>
@@ -71,13 +73,9 @@ export function PartnerStrategistStrip({ companyId }: PartnerStrategistStripProp
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
           <p className="text-sm font-semibold truncate">{strategist.full_name}</p>
-          <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 shrink-0">
-            Strategist
-          </Badge>
+          <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 shrink-0">{t('partnerStrategistStrip.badge.strategist')}</Badge>
         </div>
-        <p className="text-xs text-muted-foreground">
-          Your dedicated talent partner at The Quantum Club
-        </p>
+        <p className="text-xs text-muted-foreground">{t('partnerStrategistStrip.yourDedicatedTalentPartnerAtTheQuantumCl')}</p>
       </div>
 
       <div className="flex items-center gap-2 shrink-0">

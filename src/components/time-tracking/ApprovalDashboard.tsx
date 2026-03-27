@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -18,6 +19,7 @@ import {
 import { ApprovalActionDialog } from './ApprovalActionDialog';
 
 export function ApprovalDashboard() {
+  const { t } = useTranslation('common');
   const { pendingApprovals, isLoadingApprovals } = useTimesheets();
   const [search, setSearch] = useState('');
   const [selectedTimesheet, setSelectedTimesheet] = useState<TimesheetPeriod | null>(null);
@@ -38,9 +40,9 @@ export function ApprovalDashboard() {
     const daysWaiting = differenceInDays(new Date(), parseISO(timesheet.submitted_at));
     
     if (daysWaiting >= 5) {
-      return <Badge className="bg-destructive/20 text-destructive">Urgent</Badge>;
+      return <Badge className="bg-destructive/20 text-destructive">{t("urgent", "Urgent")}</Badge>;
     } else if (daysWaiting >= 3) {
-      return <Badge className="bg-amber-500/20 text-amber-400">Pending 3+ days</Badge>;
+      return <Badge className="bg-amber-500/20 text-amber-400">{t("pending_3_days", "Pending 3+ days")}</Badge>;
     }
     return null;
   };
@@ -70,7 +72,7 @@ export function ApprovalDashboard() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-semibold text-foreground">Timesheet Approvals</h2>
+          <h2 className="text-2xl font-semibold text-foreground">{t("timesheet_approvals", "Timesheet Approvals")}</h2>
           <p className="text-sm text-muted-foreground">
             {pendingApprovals.length} pending approval{pendingApprovals.length !== 1 ? 's' : ''}
           </p>
@@ -81,7 +83,7 @@ export function ApprovalDashboard() {
       <div className="relative max-w-sm">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="Search by name or email..."
+          placeholder={t("search_by_name_or", "Search by name or email...")}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="pl-9"
@@ -103,7 +105,7 @@ export function ApprovalDashboard() {
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <CheckCircle2 className="h-12 w-12 text-emerald-500 mb-4" />
-            <h3 className="text-lg font-medium">All Caught Up</h3>
+            <h3 className="text-lg font-medium">{t("all_caught_up", "All Caught Up")}</h3>
             <p className="text-sm text-muted-foreground">
               No timesheets pending approval
             </p>
@@ -152,7 +154,7 @@ export function ApprovalDashboard() {
 
                         {timesheet.user_notes && (
                           <div className="mt-2 p-2 rounded bg-muted/50 text-sm">
-                            <span className="text-muted-foreground">Note:</span> {timesheet.user_notes}
+                            <span className="text-muted-foreground">{t("note", "Note:")}</span> {timesheet.user_notes}
                           </div>
                         )}
                       </div>

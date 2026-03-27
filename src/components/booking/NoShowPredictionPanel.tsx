@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -34,6 +35,7 @@ export function NoShowPredictionPanel({
   isRefreshing,
   className,
 }: NoShowPredictionPanelProps) {
+  const { t } = useTranslation('common');
   const { data: domainPatterns, isLoading: loadingPatterns } = useDomainBehaviorPatterns();
 
   const predictionList = Object.values(predictions);
@@ -73,7 +75,7 @@ export function NoShowPredictionPanel({
           <CardContent className="pt-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Total Bookings</p>
+                <p className="text-sm text-muted-foreground">{t("total_bookings", "Total Bookings")}</p>
                 <p className="text-2xl font-bold">{totalPredictions}</p>
               </div>
               <Users className="h-8 w-8 text-muted-foreground/50" />
@@ -85,7 +87,7 @@ export function NoShowPredictionPanel({
           <CardContent className="pt-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">High Risk</p>
+                <p className="text-sm text-muted-foreground">{t("high_risk", "High Risk")}</p>
                 <p className="text-2xl font-bold text-destructive">{highRiskCount}</p>
               </div>
               <AlertTriangle className="h-8 w-8 text-destructive/50" />
@@ -97,7 +99,7 @@ export function NoShowPredictionPanel({
           <CardContent className="pt-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Avg Risk Score</p>
+                <p className="text-sm text-muted-foreground">{t("avg_risk_score", "Avg Risk Score")}</p>
                 <p className="text-2xl font-bold">{averageScore}%</p>
               </div>
               <BarChart3 className="h-8 w-8 text-muted-foreground/50" />
@@ -110,7 +112,7 @@ export function NoShowPredictionPanel({
           <CardContent className="pt-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Interventions</p>
+                <p className="text-sm text-muted-foreground">{t("interventions", "Interventions")}</p>
                 <p className="text-2xl font-bold text-amber-600">{interventionsTriggered}</p>
               </div>
               <Mail className="h-8 w-8 text-amber-600/50" />
@@ -124,8 +126,8 @@ export function NoShowPredictionPanel({
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-lg">Risk Distribution</CardTitle>
-              <CardDescription>Breakdown of upcoming bookings by risk level</CardDescription>
+              <CardTitle className="text-lg">{t("risk_distribution", "Risk Distribution")}</CardTitle>
+              <CardDescription>{t("breakdown_of_upcoming_bookings", "Breakdown of upcoming bookings by risk level")}</CardDescription>
             </div>
             {onRefresh && (
               <Button 
@@ -167,8 +169,8 @@ export function NoShowPredictionPanel({
       {/* High Risk Domains */}
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-lg">High Risk Domains</CardTitle>
-          <CardDescription>Email domains with highest historical no-show rates</CardDescription>
+          <CardTitle className="text-lg">{t("high_risk_domains", "High Risk Domains")}</CardTitle>
+          <CardDescription>{t("email_domains_with_highest", "Email domains with highest historical no-show rates")}</CardDescription>
         </CardHeader>
         <CardContent>
           {loadingPatterns ? (
@@ -219,8 +221,8 @@ export function NoShowPredictionPanel({
           ) : (
             <div className="text-center py-8 text-muted-foreground">
               <TrendingDown className="h-8 w-8 mx-auto mb-2 opacity-50" />
-              <p className="text-sm">Not enough data yet</p>
-              <p className="text-xs">Domain patterns will appear after more bookings</p>
+              <p className="text-sm">{t("not_enough_data_yet", "Not enough data yet")}</p>
+              <p className="text-xs">{t("domain_patterns_will_appear", "Domain patterns will appear after more bookings")}</p>
             </div>
           )}
         </CardContent>

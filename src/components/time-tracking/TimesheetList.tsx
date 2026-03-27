@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -27,6 +28,7 @@ const statusConfig: Record<string, { label: string; color: string; icon: React.R
 };
 
 export function TimesheetList() {
+  const { t } = useTranslation('common');
   const { timesheets, isLoading, generateTimesheet } = useTimesheets();
   const [selectedTimesheet, setSelectedTimesheet] = useState<TimesheetPeriod | null>(null);
   const [showSubmitDialog, setShowSubmitDialog] = useState(false);
@@ -50,8 +52,8 @@ export function TimesheetList() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-semibold text-foreground">My Timesheets</h2>
-          <p className="text-sm text-muted-foreground">Weekly time tracking summaries</p>
+          <h2 className="text-2xl font-semibold text-foreground">{t("my_timesheets", "My Timesheets")}</h2>
+          <p className="text-sm text-muted-foreground">{t("weekly_time_tracking_summaries", "Weekly time tracking summaries")}</p>
         </div>
         <Button
           onClick={() => generateTimesheet.mutate(new Date())}
@@ -76,7 +78,7 @@ export function TimesheetList() {
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <Calendar className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-medium">No Timesheets Yet</h3>
+            <h3 className="text-lg font-medium">{t("no_timesheets_yet", "No Timesheets Yet")}</h3>
             <p className="text-sm text-muted-foreground mb-4">
               Generate your first weekly timesheet to get started
             </p>
@@ -146,7 +148,7 @@ export function TimesheetList() {
 
                   {timesheet.approver_comment && (
                     <div className="mt-3 p-3 rounded-lg bg-muted/50 text-sm">
-                      <span className="font-medium">Approver Note:</span> {timesheet.approver_comment}
+                      <span className="font-medium">{t("approver_note", "Approver Note:")}</span> {timesheet.approver_comment}
                     </div>
                   )}
                 </CardContent>

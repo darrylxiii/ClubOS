@@ -1,6 +1,5 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.58.0";
-import { publicCorsHeaders, handleCorsPreFlight } from '../_shared/cors-config.ts';
+import { createHandler } from '../_shared/handler.ts';
 import { checkUserRateLimit, createRateLimitResponse } from '../_shared/rate-limiter.ts';
 import { logAIUsage, extractClientInfo } from '../_shared/ai-logger.ts';
 
@@ -13,87 +12,78 @@ interface AnalyticsQuery {
   };
 }
 
-Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return handleCorsPreFlight(publicCorsHeaders);
-  }
-
+Deno.serve(createHandler(async (req, ctx) => {
   const startTime = Date.now();
   const clientInfo = extractClientInfo(req);
   let userId: string | undefined;
 
-  try {
-    console.log('[analytics-ai-assistant] Processing request');
-    
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY')!;
-    
-    const supabase = createClient(supabaseUrl, supabaseKey);
+  console.log('[analytics-ai-assistant] Processing request');
 
-    // Verify admin authentication
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      console.log('[analytics-ai-assistant] Missing authorization header');
-      return new Response(
-        JSON.stringify({ error: 'Missing authorization header' }),
-        { status: 401, headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
+  const googleApiKey = Deno.env.get('GOOGLE_API_KEY')!;
 
-    const { data: { user }, error: authError } = await supabase.auth.getUser(
-      authHeader.replace('Bearer ', '')
+  // Verify admin authentication
+  const authHeader = req.headers.get('Authorization');
+  if (!authHeader) {
+    console.log('[analytics-ai-assistant] Missing authorization header');
+    return new Response(
+      JSON.stringify({ error: 'Missing authorization header' }),
+      { status: 401, headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } }
     );
+  }
 
-    if (authError || !user) {
-      console.log('[analytics-ai-assistant] Unauthorized:', authError?.message);
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
-        { status: 401, headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
+  const { data: { user }, error: authError } = await ctx.supabase.auth.getUser(
+    authHeader.replace('Bearer ', '')
+  );
 
-    userId = user.id;
+  if (authError || !user) {
+    console.log('[analytics-ai-assistant] Unauthorized:', authError?.message);
+    return new Response(
+      JSON.stringify({ error: 'Unauthorized' }),
+      { status: 401, headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
 
-    // Verify admin role
-    const { data: roles } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', user.id)
-      .single();
+  userId = user.id;
 
-    if (roles?.role !== 'admin') {
-      console.log('[analytics-ai-assistant] Admin access required for user:', userId);
-      return new Response(
-        JSON.stringify({ error: 'Admin access required' }),
-        { status: 403, headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
+  // Verify admin role
+  const { data: roles } = await ctx.supabase
+    .from('user_roles')
+    .select('role')
+    .eq('user_id', user.id)
+    .single();
 
-    // Rate limiting: 15 requests per hour for admins
-    const rateLimit = await checkUserRateLimit(userId, 'analytics-ai-assistant', 15);
-    if (!rateLimit.allowed) {
-      console.log('[analytics-ai-assistant] Rate limit exceeded for admin:', userId);
-      await logAIUsage({
-        userId,
-        functionName: 'analytics-ai-assistant',
-        ...clientInfo,
-        rateLimitHit: true,
-        success: false,
-        errorMessage: 'Rate limit exceeded'
-      });
-      return createRateLimitResponse(rateLimit.retryAfter!, publicCorsHeaders);
-    }
+  if (roles?.role !== 'admin') {
+    console.log('[analytics-ai-assistant] Admin access required for user:', userId);
+    return new Response(
+      JSON.stringify({ error: 'Admin access required' }),
+      { status: 403, headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
 
-    const { query, context }: AnalyticsQuery = await req.json();
+  // Rate limiting: 15 requests per hour for admins
+  const rateLimit = await checkUserRateLimit(userId, 'analytics-ai-assistant', 15);
+  if (!rateLimit.allowed) {
+    console.log('[analytics-ai-assistant] Rate limit exceeded for admin:', userId);
+    await logAIUsage({
+      userId,
+      functionName: 'analytics-ai-assistant',
+      ...clientInfo,
+      rateLimitHit: true,
+      success: false,
+      errorMessage: 'Rate limit exceeded'
+    });
+    return createRateLimitResponse(rateLimit.retryAfter!, ctx.corsHeaders);
+  }
 
-    console.log('[analytics-ai-assistant] Query received:', { query, context, userId });
+  const { query, context }: AnalyticsQuery = await req.json();
 
-    // Fetch relevant analytics context
-    const analyticsContext = await fetchAnalyticsContext(supabase, context);
+  console.log('[analytics-ai-assistant] Query received:', { query, context, userId });
 
-    // Build system prompt for Club AI
-    const systemPrompt = `You are Club AI, an analytics expert for The Quantum Club platform. You help admins understand user behavior patterns, churn risks, and optimization opportunities.
+  // Fetch relevant analytics context
+  const analyticsContext = await fetchAnalyticsContext(ctx.supabase, context);
+
+  // Build system prompt for Club AI
+  const systemPrompt = `You are Club AI, an analytics expert for The Quantum Club platform. You help admins understand user behavior patterns, churn risks, and optimization opportunities.
 
 Current Analytics Context:
 ${JSON.stringify(analyticsContext, null, 2)}
@@ -111,117 +101,97 @@ When asked about:
 - Anomalies: Explain unusual patterns with data-driven reasoning
 - Trends: Project future outcomes with confidence levels`;
 
-    console.log('[analytics-ai-assistant] Calling Lovable AI Gateway');
+  console.log('[analytics-ai-assistant] Calling Google Gemini API');
 
-    // Call Lovable AI Gateway
-    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${lovableApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash-lite',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: query }
-        ],
-        temperature: 0.7,
-        max_tokens: 1000,
-      }),
-    });
+  // Call Google Gemini API
+  const aiResponse = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${googleApiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'gemini-2.5-flash-lite',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: query }
+      ],
+      temperature: 0.7,
+      max_tokens: 1000,
+    }),
+  });
 
-    if (!aiResponse.ok) {
-      const errorMessage = aiResponse.status === 429 ? 'AI rate limit exceeded' :
-                          aiResponse.status === 402 ? 'AI credits exhausted' :
-                          'AI service error';
-      
-      await logAIUsage({
-        userId,
-        functionName: 'analytics-ai-assistant',
-        ...clientInfo,
-        responseTimeMs: Date.now() - startTime,
-        success: false,
-        errorMessage
-      });
+  if (!aiResponse.ok) {
+    const errorMessage = aiResponse.status === 429 ? 'AI rate limit exceeded' :
+                        aiResponse.status === 402 ? 'AI quota exceeded' :
+                        'AI service error';
 
-      const errorText = await aiResponse.text();
-      console.error('[analytics-ai-assistant] AI API error:', errorText);
-      throw new Error(`AI API error: ${aiResponse.status}`);
-    }
-
-    const aiData = await aiResponse.json();
-    const responseText = aiData.choices[0].message.content;
-
-    // Store the query and response
-    await supabase.from('admin_analytics_queries').insert({
-      admin_id: user.id,
-      query_text: query,
-      response_text: responseText,
-      query_context: context || {},
-    });
-
-    // Generate and store insight if applicable
-    const insightType = determineInsightType(query);
-    if (insightType) {
-      await supabase.from('analytics_ai_insights').insert({
-        insight_type: insightType,
-        user_segment: context?.segment,
-        insight_content: {
-          query,
-          response: responseText,
-          context: analyticsContext,
-        },
-        confidence_score: 0.85,
-        expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-        action_items: extractActionItems(responseText),
-      });
-    }
-
-    await logAIUsage({
-      userId,
-      functionName: 'analytics-ai-assistant',
-      ...clientInfo,
-      responseTimeMs: Date.now() - startTime,
-      success: true
-    });
-
-    console.log('[analytics-ai-assistant] Response generated successfully');
-
-    return new Response(
-      JSON.stringify({
-        response: responseText,
-        context: analyticsContext,
-        insight_type: insightType,
-      }),
-      { headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' } }
-    );
-
-  } catch (error) {
-    console.error('[analytics-ai-assistant] Error:', error);
     await logAIUsage({
       userId,
       functionName: 'analytics-ai-assistant',
       ...clientInfo,
       responseTimeMs: Date.now() - startTime,
       success: false,
-      errorMessage: error instanceof Error ? error.message : 'Unknown error'
+      errorMessage
     });
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    return new Response(
-      JSON.stringify({ error: errorMessage }),
-      { 
-        status: errorMessage.includes('Unauthorized') ? 401 : 500,
-        headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' } 
-      }
-    );
+
+    const errorText = await aiResponse.text();
+    console.error('[analytics-ai-assistant] AI API error:', errorText);
+    throw new Error(`AI API error: ${aiResponse.status}`);
   }
-});
+
+  const aiData = await aiResponse.json();
+  const responseText = aiData.choices[0].message.content;
+
+  // Store the query and response
+  await ctx.supabase.from('admin_analytics_queries').insert({
+    admin_id: user.id,
+    query_text: query,
+    response_text: responseText,
+    query_context: context || {},
+  });
+
+  // Generate and store insight if applicable
+  const insightType = determineInsightType(query);
+  if (insightType) {
+    await ctx.supabase.from('analytics_ai_insights').insert({
+      insight_type: insightType,
+      user_segment: context?.segment,
+      insight_content: {
+        query,
+        response: responseText,
+        context: analyticsContext,
+      },
+      confidence_score: 0.85,
+      expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      action_items: extractActionItems(responseText),
+    });
+  }
+
+  await logAIUsage({
+    userId,
+    functionName: 'analytics-ai-assistant',
+    ...clientInfo,
+    responseTimeMs: Date.now() - startTime,
+    success: true
+  });
+
+  console.log('[analytics-ai-assistant] Response generated successfully');
+
+  return new Response(
+    JSON.stringify({
+      response: responseText,
+      context: analyticsContext,
+      insight_type: insightType,
+    }),
+    { headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } }
+  );
+}));
 
 async function fetchAnalyticsContext(supabase: any, context?: any) {
   const timeRange = context?.timeRange || '7d';
   const daysAgo = timeRange === '7d' ? 7 : timeRange === '30d' ? 30 : 1;
-  
+
   const startDate = new Date();
   startDate.setDate(startDate.getDate() - daysAgo);
 
@@ -233,20 +203,20 @@ async function fetchAnalyticsContext(supabase: any, context?: any) {
       .gte('detected_at', startDate.toISOString())
       .order('risk_score', { ascending: false })
       .limit(10),
-    
+
     supabase
       .from('user_behavior_embeddings')
       .select('cluster_id, segment_label, anomaly_score')
       .not('cluster_id', 'is', null)
       .limit(100),
-    
+
     supabase
       .from('user_engagement_scores')
       .select('*')
       .gte('calculation_date', startDate.toISOString())
       .order('engagement_score', { ascending: false })
       .limit(50),
-    
+
     supabase
       .from('user_frustration_signals')
       .select('signal_type, count')
@@ -299,15 +269,15 @@ function determineInsightType(query: string): string | null {
 function extractActionItems(response: string): string[] {
   const items: string[] = [];
   const lines = response.split('\n');
-  
+
   for (const line of lines) {
-    if (line.match(/^[-•*]\s/) || line.match(/^\d+\.\s/)) {
-      const cleaned = line.replace(/^[-•*\d.]\s*/, '').trim();
+    if (line.match(/^[-\u2022*]\s/) || line.match(/^\d+\.\s/)) {
+      const cleaned = line.replace(/^[-\u2022*\d.]\s*/, '').trim();
       if (cleaned.length > 10 && cleaned.length < 200) {
         items.push(cleaned);
       }
     }
   }
-  
+
   return items.slice(0, 5);
 }

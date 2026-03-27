@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -85,6 +86,7 @@ const notificationPreferences = [
 ];
 
 export function AutonomySettings() {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
@@ -140,10 +142,10 @@ export function AutonomySettings() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['autonomy-settings'] });
-      toast.success("Settings updated");
+      toast.success(t("settings_updated", "Settings updated"));
     },
     onError: (error) => {
-      toast.error("Failed to update settings: " + error.message);
+      toast.error(t("failed_to_update_settings", "Failed to update settings:") + error.message);
     }
   });
 
@@ -174,7 +176,7 @@ export function AutonomySettings() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Agent Autonomy Settings</CardTitle>
+          <CardTitle>{t("agent_autonomy_settings", "Agent Autonomy Settings")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-6">
@@ -233,7 +235,7 @@ export function AutonomySettings() {
 
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2">
-                    <Label className="text-xs text-muted-foreground">Autonomy Level</Label>
+                    <Label className="text-xs text-muted-foreground">{t("autonomy_level", "Autonomy Level")}</Label>
                     <Select
                       value={currentLevel}
                       onValueChange={(value) => 
@@ -244,7 +246,7 @@ export function AutonomySettings() {
                       }
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Select level" />
+                        <SelectValue placeholder={t("select_level", "Select level")} />
                       </SelectTrigger>
                       <SelectContent>
                         {autonomyLevels.map((level) => (
@@ -276,7 +278,7 @@ export function AutonomySettings() {
                       }
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Select preference" />
+                        <SelectValue placeholder={t("select_preference", "Select preference")} />
                       </SelectTrigger>
                       <SelectContent>
                         {notificationPreferences.map((pref) => (

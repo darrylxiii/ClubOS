@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -65,6 +66,7 @@ export function RejectedCandidateDetailDialog({
   jobId,
   onRefresh 
 }: Props) {
+  const { t } = useTranslation('common');
   const [loading, setLoading] = useState(false);
 
   const handleReconsider = async () => {
@@ -108,12 +110,12 @@ export function RejectedCandidateDetailDialog({
 
       if (logError) console.error('Failed to log reconsideration:', logError);
 
-      toast.success("Candidate moved back to active pipeline");
+      toast.success(t("candidate_moved_back_to", "Candidate moved back to active pipeline"));
       onRefresh();
       onOpenChange(false);
     } catch (error) {
       console.error('Error reconsidering candidate:', error);
-      toast.error("Failed to reconsider candidate");
+      toast.error(t("failed_to_reconsider_candidate", "Failed to reconsider candidate"));
     } finally {
       setLoading(false);
     }
@@ -168,23 +170,23 @@ export function RejectedCandidateDetailDialog({
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div className="flex items-center gap-2">
                   <Clock className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-muted-foreground">Applied:</span>
+                  <span className="text-muted-foreground">{t("applied", "Applied:")}</span>
                   <span className="font-medium">{new Date(candidate.applied_at).toLocaleDateString()}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Clock className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-muted-foreground">Rejected:</span>
+                  <span className="text-muted-foreground">{t("rejected", "Rejected:")}</span>
                   <span className="font-medium">{new Date(candidate.rejected_at).toLocaleDateString()}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <TrendingUp className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-muted-foreground">Days in pipeline:</span>
+                  <span className="text-muted-foreground">{t("days_in_pipeline", "Days in pipeline:")}</span>
                   <span className="font-medium">{calculateDaysInPipeline()}</span>
                 </div>
                 {candidate.reviewer_name && (
                   <div className="flex items-center gap-2">
                     <User className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-muted-foreground">Reviewed by:</span>
+                    <span className="text-muted-foreground">{t("reviewed_by", "Reviewed by:")}</span>
                     <span className="font-medium">{candidate.reviewer_name}</span>
                   </div>
                 )}
@@ -194,7 +196,7 @@ export function RejectedCandidateDetailDialog({
                 <>
                   <Separator />
                   <div>
-                    <h4 className="font-semibold mb-2">Detailed Feedback</h4>
+                    <h4 className="font-semibold mb-2">{t("detailed_feedback", "Detailed Feedback")}</h4>
                     <p className="text-sm text-muted-foreground leading-relaxed">
                       {candidate.feedback_text}
                     </p>
@@ -207,7 +209,7 @@ export function RejectedCandidateDetailDialog({
           {/* Pipeline Journey */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Pipeline Journey</CardTitle>
+              <CardTitle className="text-lg">{t("pipeline_journey", "Pipeline Journey")}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex items-center justify-between">
@@ -252,14 +254,14 @@ export function RejectedCandidateDetailDialog({
           {(candidate.skills_mismatch?.length > 0 || candidate.salary_mismatch || candidate.location_mismatch || candidate.seniority_mismatch) && (
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Mismatch Analysis</CardTitle>
+                <CardTitle className="text-lg">{t("mismatch_analysis", "Mismatch Analysis")}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 {candidate.skills_mismatch && candidate.skills_mismatch.length > 0 && (
                   <div>
                     <div className="flex items-center gap-2 mb-2">
                       <Briefcase className="w-4 h-4 text-orange-500" />
-                      <h4 className="font-semibold">Skills Gap</h4>
+                      <h4 className="font-semibold">{t("skills_gap", "Skills Gap")}</h4>
                     </div>
                     <div className="flex flex-wrap gap-2">
                       {candidate.skills_mismatch.map((skill: string) => (
@@ -273,7 +275,7 @@ export function RejectedCandidateDetailDialog({
                   <div>
                     <div className="flex items-center gap-2 mb-2">
                       <TrendingUp className="w-4 h-4 text-purple-500" />
-                      <h4 className="font-semibold">Seniority Level</h4>
+                      <h4 className="font-semibold">{t("seniority_level", "Seniority Level")}</h4>
                     </div>
                     <Badge variant="outline">
                       {candidate.seniority_mismatch === 'too_junior' ? 'Too Junior for this role' : 'Too Senior for this role'}
@@ -285,9 +287,9 @@ export function RejectedCandidateDetailDialog({
                   <div>
                     <div className="flex items-center gap-2 mb-2">
                       <DollarSign className="w-4 h-4 text-red-500" />
-                      <h4 className="font-semibold">Compensation</h4>
+                      <h4 className="font-semibold">{t("compensation", "Compensation")}</h4>
                     </div>
-                    <Badge variant="destructive">Salary expectations too high</Badge>
+                    <Badge variant="destructive">{t("salary_expectations_too_high", "Salary expectations too high")}</Badge>
                   </div>
                 )}
 
@@ -295,9 +297,9 @@ export function RejectedCandidateDetailDialog({
                   <div>
                     <div className="flex items-center gap-2 mb-2">
                       <MapPin className="w-4 h-4 text-green-500" />
-                      <h4 className="font-semibold">Location</h4>
+                      <h4 className="font-semibold">{t("location", "Location")}</h4>
                     </div>
-                    <Badge variant="destructive">Location not aligned with role requirements</Badge>
+                    <Badge variant="destructive">{t("location_not_aligned_with", "Location not aligned with role requirements")}</Badge>
                   </div>
                 )}
               </CardContent>
@@ -307,7 +309,7 @@ export function RejectedCandidateDetailDialog({
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Close
+            {t('common:close')}
           </Button>
           <Button onClick={handleReconsider} disabled={loading}>
             Reconsider Candidate

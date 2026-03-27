@@ -3,8 +3,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Database, Clock, Trash2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export const DataRetentionPanel = () => {
+  const { t } = useTranslation('admin');
   const { data: policies } = useQuery({
     queryKey: ['retention-policies'],
     queryFn: async () => {

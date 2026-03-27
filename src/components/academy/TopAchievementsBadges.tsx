@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Award } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -11,6 +12,7 @@ interface Achievement {
 }
 
 export const TopAchievementsBadges = () => {
+  const { t } = useTranslation('common');
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -62,9 +64,7 @@ export const TopAchievementsBadges = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-muted-foreground">
-            Complete courses to unlock achievements!
-          </p>
+          <p className="text-sm text-muted-foreground">{t('academy.completeCoursesToUnlockAchievements')}</p>
         </CardContent>
       </Card>
     );

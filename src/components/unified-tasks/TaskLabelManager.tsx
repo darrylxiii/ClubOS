@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -30,6 +31,7 @@ const PRESET_COLORS = [
 ];
 
 export const TaskLabelManager = ({ taskId, assignedLabels, onLabelsChange }: TaskLabelManagerProps) => {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [allLabels, setAllLabels] = useState<TaskLabel[]>([]);
   const [loading, setLoading] = useState(true);
@@ -82,10 +84,10 @@ export const TaskLabelManager = ({ taskId, assignedLabels, onLabelsChange }: Tas
       setAllLabels([...allLabels, data]);
       setNewLabelName("");
       setCreateDialogOpen(false);
-      toast.success("Label created");
+      toast.success(t('tasks.labelCreated', 'Label created'));
     } catch (error) {
       console.error("Error creating label:", error);
-      toast.error("Failed to create label");
+      toast.error(t('tasks.failedToCreateLabel', 'Failed to create label'));
     } finally {
       setCreating(false);
     }
@@ -114,7 +116,7 @@ export const TaskLabelManager = ({ taskId, assignedLabels, onLabelsChange }: Tas
       onLabelsChange();
     } catch (error) {
       console.error("Error toggling label:", error);
-      toast.error("Failed to update label");
+      toast.error(t('tasks.failedToUpdateLabel', 'Failed to update label'));
     }
   };
 
@@ -130,7 +132,7 @@ export const TaskLabelManager = ({ taskId, assignedLabels, onLabelsChange }: Tas
       onLabelsChange();
     } catch (error) {
       console.error("Error removing label:", error);
-      toast.error("Failed to remove label");
+      toast.error(t('tasks.failedToRemoveLabel', 'Failed to remove label'));
     }
   };
 
@@ -158,38 +160,38 @@ export const TaskLabelManager = ({ taskId, assignedLabels, onLabelsChange }: Tas
           <PopoverTrigger asChild>
             <Button variant="outline" size="sm" className="h-6 gap-1">
               <Tag className="h-3 w-3" />
-              Add Label
+              {t('tasks.addLabel', 'Add Label')}
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-[200px] p-0" align="start">
             <Command>
-              <CommandInput placeholder="Search labels..." />
+              <CommandInput placeholder={t('tasks.searchLabels', 'Search labels...')} />
               <CommandList>
                 <CommandEmpty>
                   <div className="p-2">
-                    <p className="text-sm text-muted-foreground mb-2">No labels found</p>
+                    <p className="text-sm text-muted-foreground mb-2">{t('tasks.noLabelsFound', 'No labels found')}</p>
                     <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
                       <DialogTrigger asChild>
                         <Button size="sm" variant="outline" className="w-full gap-1">
                           <Plus className="h-3 w-3" />
-                          Create Label
+                          {t('tasks.createLabel', 'Create Label')}
                         </Button>
                       </DialogTrigger>
                       <DialogContent>
                         <DialogHeader>
-                          <DialogTitle>Create New Label</DialogTitle>
+                          <DialogTitle>{t('tasks.createNewLabel', 'Create New Label')}</DialogTitle>
                         </DialogHeader>
                         <div className="space-y-4">
                           <div className="space-y-2">
-                            <Label>Name</Label>
+                            <Label>{t('tasks.name', 'Name')}</Label>
                             <Input
                               value={newLabelName}
                               onChange={e => setNewLabelName(e.target.value)}
-                              placeholder="Label name"
+                              placeholder={t('tasks.labelName', 'Label name')}
                             />
                           </div>
                           <div className="space-y-2">
-                            <Label>Color</Label>
+                            <Label>{t('tasks.color', 'Color')}</Label>
                             <div className="flex gap-2 flex-wrap">
                               {PRESET_COLORS.map(color => (
                                 <button
@@ -210,7 +212,7 @@ export const TaskLabelManager = ({ taskId, assignedLabels, onLabelsChange }: Tas
                             disabled={creating || !newLabelName.trim()}
                             className="w-full"
                           >
-                            {creating ? <Loader2 className="h-4 w-4 animate-spin" /> : "Create"}
+                            {creating ? <Loader2 className="h-4 w-4 animate-spin" /> : t('tasks.create', 'Create')}
                           </Button>
                         </div>
                       </DialogContent>

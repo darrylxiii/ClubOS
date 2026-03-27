@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
@@ -21,6 +22,7 @@ interface ActivityTimelineProps {
 }
 
 export function ActivityTimeline({ userId, viewMode = 'grid' }: ActivityTimelineProps) {
+  const { t } = useTranslation('common');
   const [activities, setActivities] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -80,7 +82,7 @@ export function ActivityTimeline({ userId, viewMode = 'grid' }: ActivityTimeline
       <Card className="glass-card">
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
-            <span>Recent Activity</span>
+            <span>{t("recent_activity", "Recent Activity")}</span>
             <Badge variant="secondary">{activities.length}</Badge>
           </CardTitle>
         </CardHeader>
@@ -116,7 +118,7 @@ export function ActivityTimeline({ userId, viewMode = 'grid' }: ActivityTimeline
   return (
     <Card className="glass-card">
       <CardHeader>
-        <CardTitle>Activity Timeline</CardTitle>
+        <CardTitle>{t("activity_timeline", "Activity Timeline")}</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">

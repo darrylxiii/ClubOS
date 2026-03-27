@@ -9,6 +9,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { FeedbackFlow } from "./FeedbackFlow";
 import { toast } from "sonner";
 import { formatDate } from "@/lib/format";
+import { useTranslation } from 'react-i18next';
 
 interface ClosedPipeline {
   id: string;
@@ -21,6 +22,7 @@ interface ClosedPipeline {
 }
 
 export const PendingFeedbackTasks = () => {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [pendingFeedback, setPendingFeedback] = useState<ClosedPipeline[]>([]);
   const [selectedPipeline, setSelectedPipeline] = useState<ClosedPipeline | null>(null);

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import {
   Dialog,
   DialogContent,
@@ -31,6 +32,7 @@ export function ConflictResolutionDialog({
   onProceed,
   onReschedule,
 }: ConflictResolutionDialogProps) {
+  const { t } = useTranslation('common');
   const isError = conflicts.severity === 'error';
 
   return (
@@ -48,7 +50,7 @@ export function ConflictResolutionDialog({
 
         <div className="space-y-4">
           <div className="bg-muted/50 rounded-lg p-3">
-            <p className="text-sm font-medium mb-1">Proposed Time</p>
+            <p className="text-sm font-medium mb-1">{t("proposed_time", "Proposed Time")}</p>
             <p className="text-sm text-muted-foreground">
               {format(proposedStart, 'EEEE, MMMM d, yyyy')}
             </p>

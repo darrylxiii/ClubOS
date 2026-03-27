@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from 'react-i18next';
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { notify } from "@/lib/notify";
 import { FileText, Search, Download, Send } from "lucide-react";
 export default function LegalAgreementsPage() {
+  const { t } = useTranslation('compliance');
   const [agreements, setAgreements] = useState<any[]>([]);
   const [templates, setTemplates] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -51,14 +53,14 @@ export default function LegalAgreementsPage() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Legal Agreements</h1>
+            <h1 className="text-3xl font-bold text-foreground">{t('legalAgreements.title')}</h1>
             <p className="text-muted-foreground mt-1">
-              Manage DPAs, BAAs, and other legal documents with e-signature workflow
+              {t('legalAgreements.description')}
             </p>
           </div>
           <Button>
             <FileText className="h-4 w-4 mr-2" />
-            Create from Template
+            {t('legalAgreements.createFromTemplate')}
           </Button>
         </div>
 
@@ -67,7 +69,7 @@ export default function LegalAgreementsPage() {
           <CardContent className="pt-6">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Search agreements..." className="pl-10" />
+              <Input placeholder={t('legalAgreements.searchPlaceholder')} className="pl-10" />
             </div>
           </CardContent>
         </Card>
@@ -77,13 +79,13 @@ export default function LegalAgreementsPage() {
           {loading ? (
             <Card>
               <CardContent className="py-12 text-center text-muted-foreground">
-                Loading agreements...
+                {t('legalAgreements.loading')}
               </CardContent>
             </Card>
           ) : agreements.length === 0 ? (
             <Card>
               <CardContent className="py-12 text-center text-muted-foreground">
-                No agreements found. Create your first agreement from a template.
+                {t('legalAgreements.noResults')}
               </CardContent>
             </Card>
           ) : (
@@ -103,12 +105,12 @@ export default function LegalAgreementsPage() {
                     <div className="flex gap-2">
                       <Button size="sm" variant="outline">
                         <Download className="h-4 w-4 mr-1" />
-                        Download
+                        {t('legalAgreements.download')}
                       </Button>
                       {agreement.status === "draft" && (
                         <Button size="sm">
                           <Send className="h-4 w-4 mr-1" />
-                          Send for Signature
+                          {t('legalAgreements.sendForSignature')}
                         </Button>
                       )}
                     </div>
@@ -117,13 +119,13 @@ export default function LegalAgreementsPage() {
                 <CardContent>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                     <div>
-                      <p className="text-muted-foreground">Created</p>
+                      <p className="text-muted-foreground">{t('legalAgreements.created')}</p>
                       <p className="font-medium text-foreground">
                         {new Date(agreement.created_at).toLocaleDateString()}
                       </p>
                     </div>
                     <div>
-                      <p className="text-muted-foreground">Effective Date</p>
+                      <p className="text-muted-foreground">{t('legalAgreements.effectiveDate')}</p>
                       <p className="font-medium text-foreground">
                         {agreement.effective_date
                           ? new Date(agreement.effective_date).toLocaleDateString()
@@ -131,7 +133,7 @@ export default function LegalAgreementsPage() {
                       </p>
                     </div>
                     <div>
-                      <p className="text-muted-foreground">Expiration Date</p>
+                      <p className="text-muted-foreground">{t('legalAgreements.expirationDate')}</p>
                       <p className="font-medium text-foreground">
                         {agreement.expiration_date
                           ? new Date(agreement.expiration_date).toLocaleDateString()
@@ -139,7 +141,7 @@ export default function LegalAgreementsPage() {
                       </p>
                     </div>
                     <div>
-                      <p className="text-muted-foreground">Contact</p>
+                      <p className="text-muted-foreground">{t('legalAgreements.contact')}</p>
                       <p className="font-medium text-foreground">
                         {agreement.contact_email || "N/A"}
                       </p>

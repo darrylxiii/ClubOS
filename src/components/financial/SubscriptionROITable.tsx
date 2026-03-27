@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -6,6 +7,7 @@ import { useVendorSubscriptions } from '@/hooks/useVendorSubscriptions';
 import { formatCurrency } from '@/lib/revenueCalculations';
 
 export function SubscriptionROITable() {
+  const { t } = useTranslation('common');
   const { data: subscriptions, isLoading } = useVendorSubscriptions('active');
 
   if (isLoading) {
@@ -16,8 +18,8 @@ export function SubscriptionROITable() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Subscription ROI</CardTitle>
-          <CardDescription>No active subscriptions to display.</CardDescription>
+          <CardTitle>{t("subscription_roi", "Subscription ROI")}</CardTitle>
+          <CardDescription>{t("no_active_subscriptions_to", "No active subscriptions to display.")}</CardDescription>
         </CardHeader>
       </Card>
     );
@@ -35,19 +37,19 @@ export function SubscriptionROITable() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Subscription ROI Overview</CardTitle>
-        <CardDescription>Active subscriptions with cost justification and utilization</CardDescription>
+        <CardTitle>{t("subscription_roi_overview", "Subscription ROI Overview")}</CardTitle>
+        <CardDescription>{t("active_subscriptions_with_cost", "Active subscriptions with cost justification and utilization")}</CardDescription>
       </CardHeader>
       <CardContent>
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Vendor</TableHead>
-              <TableHead>Category</TableHead>
+              <TableHead>{t("vendor", "Vendor")}</TableHead>
+              <TableHead>{t("category", "Category")}</TableHead>
               <TableHead className="text-right">MRC</TableHead>
-              <TableHead>Criticality</TableHead>
-              <TableHead>Utilization</TableHead>
-              <TableHead>Revenue Attribution</TableHead>
+              <TableHead>{t("criticality", "Criticality")}</TableHead>
+              <TableHead>{t("utilization", "Utilization")}</TableHead>
+              <TableHead>{t("revenue_attribution", "Revenue Attribution")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

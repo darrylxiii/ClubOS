@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { useCreateBlockNote } from '@blocknote/react';
 import { BlockNoteView } from '@blocknote/mantine';
@@ -31,6 +32,7 @@ const CATEGORIES = [
 const EMOJI_OPTIONS = ['📄', '📝', '📋', '📊', '💼', '🎯', '✅', '📌', '💡', '🚀', '⭐', '🔥'];
 
 export function TemplateEditor({ template, onSave, onCancel }: TemplateEditorProps) {
+  const { t } = useTranslation('common');
   const { resolvedTheme } = useTheme();
   const { createTemplate, updateTemplate, deleteTemplate } = useTemplates();
   
@@ -104,7 +106,7 @@ export function TemplateEditor({ template, onSave, onCancel }: TemplateEditorPro
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="p-4 space-y-4 lg:col-span-1">
-          <h3 className="font-medium">Template Details</h3>
+          <h3 className="font-medium">{t("template_details", "Template Details")}</h3>
           
           <div className="flex items-start gap-3">
             <Select value={icon} onValueChange={setIcon}>
@@ -118,18 +120,18 @@ export function TemplateEditor({ template, onSave, onCancel }: TemplateEditorPro
               </SelectContent>
             </Select>
             <div className="flex-1 space-y-2">
-              <Label>Name *</Label>
-              <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Template name" />
+              <Label>{t("name", "Name *")}</Label>
+              <Input value={name} onChange={(e) => setName(e.target.value)} placeholder={t("template_name", "Template name")} />
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label>Description</Label>
-            <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Brief description" rows={3} />
+            <Label>{t("description", "Description")}</Label>
+            <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder={t("brief_description", "Brief description")} rows={3} />
           </div>
 
           <div className="space-y-2">
-            <Label>Category</Label>
+            <Label>{t("category", "Category")}</Label>
             <Select value={category} onValueChange={setCategory}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
@@ -141,26 +143,26 @@ export function TemplateEditor({ template, onSave, onCancel }: TemplateEditorPro
           </div>
 
           <div className="space-y-2">
-            <Label>Visibility</Label>
+            <Label>{t("visibility", "Visibility")}</Label>
             <Select value={visibility} onValueChange={(v) => setVisibility(v as any)}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="system">System (All Users)</SelectItem>
-                <SelectItem value="company">Company Only</SelectItem>
-                <SelectItem value="personal">Personal</SelectItem>
+                <SelectItem value="system">{t("system_all_users", "System (All Users)")}</SelectItem>
+                <SelectItem value="company">{t("company_only", "Company Only")}</SelectItem>
+                <SelectItem value="personal">{t("personal", "Personal")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <div className="space-y-2">
-            <Label>Cover Image URL</Label>
+            <Label>{t("cover_image_url", "Cover Image URL")}</Label>
             <Input value={coverUrl} onChange={(e) => setCoverUrl(e.target.value)} placeholder="https://..." />
           </div>
         </Card>
 
         <Card className={cn("lg:col-span-2 overflow-hidden", showPreview && "pointer-events-none")}>
           <div className="p-4 border-b">
-            <h3 className="font-medium">Template Content</h3>
+            <h3 className="font-medium">{t("template_content", "Template Content")}</h3>
           </div>
           <div className="min-h-[400px]">
             <BlockNoteView editor={editor} editable={!showPreview} theme={resolvedTheme === 'dark' ? 'dark' : 'light'} />

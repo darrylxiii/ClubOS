@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Pin, PinOff } from "lucide-react";
@@ -12,6 +13,7 @@ interface PostPinningProps {
 }
 
 export function PostPinning({ postId, isPinned, onToggle }: PostPinningProps) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [pinnedCount, setPinnedCount] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -35,12 +37,12 @@ export function PostPinning({ postId, isPinned, onToggle }: PostPinningProps) {
 
   const handleTogglePin = async () => {
     if (!user) {
-      toast.error("Please sign in to pin posts");
+      toast.error(t("please_sign_in_to", "Please sign in to pin posts"));
       return;
     }
 
     if (!isPinned && pinnedCount >= 3) {
-      toast.error("You can only pin up to 3 posts. Unpin a post first.");
+      toast.error(t("you_can_only_pin", "You can only pin up to 3 posts. Unpin a post first."));
       return;
     }
 
@@ -54,7 +56,7 @@ export function PostPinning({ postId, isPinned, onToggle }: PostPinningProps) {
           .eq('post_id', postId);
 
         if (error) throw error;
-        toast.success("Post unpinned");
+        toast.success(t("post_unpinned", "Post unpinned"));
       } else {
         const { error } = await supabase
           .from('pinned_posts')
@@ -65,14 +67,14 @@ export function PostPinning({ postId, isPinned, onToggle }: PostPinningProps) {
           });
 
         if (error) throw error;
-        toast.success("Post pinned to your profile");
+        toast.success(t("post_pinned_to_your", "Post pinned to your profile"));
       }
       
       onToggle();
       checkPinnedCount();
     } catch (error) {
       console.error('Error toggling pin:', error);
-      toast.error("Failed to update pin status");
+      toast.error(t("failed_to_update_pin", "Failed to update pin status"));
     } finally {
       setLoading(false);
     }
@@ -89,12 +91,12 @@ export function PostPinning({ postId, isPinned, onToggle }: PostPinningProps) {
       {isPinned ? (
         <>
           <PinOff className="w-4 h-4" />
-          <span className="text-xs">Unpin</span>
+          <span className="text-xs">{t("unpin", "Unpin")}</span>
         </>
       ) : (
         <>
           <Pin className="w-4 h-4" />
-          <span className="text-xs">Pin to profile</span>
+          <span className="text-xs">{t("pin_to_profile", "Pin to profile")}</span>
         </>
       )}
     </Button>

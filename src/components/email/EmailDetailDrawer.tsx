@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { EmailDetail } from "./EmailDetail";
 import { Button } from "@/components/ui/button";
@@ -28,6 +29,7 @@ export function EmailDetailDrawer({
   onToggleStar,
   onSnooze,
 }: EmailDetailDrawerProps) {
+  const { t } = useTranslation('messages');
   return (
     <Drawer open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
       <DrawerContent className="h-[90vh] max-h-[90vh]">
@@ -37,7 +39,7 @@ export function EmailDetailDrawer({
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <DrawerTitle className="text-base truncate flex-1">
-              {email?.subject || "Email"}
+              {email?.subject || t('email')}
             </DrawerTitle>
           </div>
         </DrawerHeader>

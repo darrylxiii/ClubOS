@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { ThumbsUp, ThumbsDown, AlertTriangle, DollarSign, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -27,6 +28,7 @@ export function MLFeedbackButtons({
   compact = false,
   onFeedbackSubmitted,
 }: MLFeedbackButtonsProps) {
+  const { t } = useTranslation('common');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
   const { toast } = useToast();
@@ -106,7 +108,7 @@ export function MLFeedbackButtons({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuLabel>How's this match?</DropdownMenuLabel>
+          <DropdownMenuLabel>{t("hows_this_match", "How's this match?")}</DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => submitFeedback('great_match', 5)}>
             <ThumbsUp className="mr-2 h-4 w-4 text-success" />

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -49,6 +50,7 @@ const BOOST_PACKAGES = [
 ];
 
 export function BoostModal({ open, onOpenChange, entityType, entityId, entityTitle }: BoostModalProps) {
+  const { t } = useTranslation('common');
   const [selectedPackage, setSelectedPackage] = useState<string | null>(null);
 
   const boostMutation = useMutation({
@@ -90,7 +92,7 @@ export function BoostModal({ open, onOpenChange, entityType, entityId, entityTit
       onOpenChange(false);
     },
     onError: (error: Error) => {
-      toast.error("Failed to boost", { description: error.message });
+      toast.error(t("failed_to_boost", "Failed to boost"), { description: error.message });
     },
   });
 
@@ -126,7 +128,7 @@ export function BoostModal({ open, onOpenChange, entityType, entityId, entityTit
                   onClick={() => setSelectedPackage(pkg.id)}
                 >
                   {pkg.popular && (
-                    <Badge className="absolute -top-2 left-1/2 -translate-x-1/2">Popular</Badge>
+                    <Badge className="absolute -top-2 left-1/2 -translate-x-1/2">{t("popular", "Popular")}</Badge>
                   )}
                   <CardContent className="pt-6 text-center">
                     <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-3">

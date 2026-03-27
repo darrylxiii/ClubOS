@@ -1,0 +1,223 @@
+{
+  "title": "Vagas",
+  "subtitle": "Gira anuncios de emprego e candidaturas",
+  "create": {
+    "title": "Criar Vaga",
+    "fromTemplate": "Criar a partir de Modelo",
+    "fromScratch": "Criar de Raiz",
+    "duplicate": "Duplicar Vaga"
+  },
+  "edit": {
+    "title": "Editar Vaga",
+    "save": "Guardar Alteracoes",
+    "publish": "Publicar Vaga",
+    "unpublish": "Retirar Publicacao"
+  },
+  "apply": {
+    "title": "Candidatar-se Agora",
+    "button": "Candidatar-se a esta Posicao",
+    "submitted": "Candidatura Submetida",
+    "alreadyApplied": "Ja se Candidatou",
+    "requiresLogin": "Inicie Sessao para se Candidatar"
+  },
+  "details": {
+    "title": "Detalhes da Vaga",
+    "description": "Descricao",
+    "requirements": "Requisitos",
+    "responsibilities": "Responsabilidades",
+    "benefits": "Beneficios",
+    "salary": "Intervalo Salarial",
+    "location": "Localizacao",
+    "department": "Departamento",
+    "reportingTo": "Reporta a",
+    "startDate": "Data de Inicio",
+    "deadline": "Prazo de Candidatura"
+  },
+  "status": {
+    "draft": "Rascunho",
+    "published": "Publicada",
+    "closed": "Encerrada",
+    "paused": "Pausada",
+    "archived": "Arquivada",
+    "filled": "Posicao Preenchida"
+  },
+  "types": {
+    "fullTime": "Tempo Inteiro",
+    "partTime": "Tempo Parcial",
+    "contract": "Contrato",
+    "freelance": "Freelance",
+    "internship": "Estagio",
+    "temporary": "Temporario"
+  },
+  "workMode": {
+    "remote": "Remoto",
+    "hybrid": "Hibrido",
+    "onsite": "Presencial",
+    "flexible": "Flexivel"
+  },
+  "experience": {
+    "entry": "Nivel Inicial",
+    "junior": "Junior (1-2 anos)",
+    "mid": "Nivel Intermedio (3-5 anos)",
+    "senior": "Senior (5-8 anos)",
+    "lead": "Lider (8+ anos)",
+    "executive": "Executivo"
+  },
+  "pipeline": {
+    "title": "Pipeline",
+    "applied": "Candidatado",
+    "screening": "Triagem",
+    "interview": "Entrevista",
+    "assessment": "Avaliacao",
+    "offer": "Oferta",
+    "hired": "Contratado",
+    "rejected": "Rejeitado",
+    "candidatesInStage": "Candidatos nesta fase"
+  },
+  "filters": {
+    "title": "Filtros",
+    "all": "Todas as Vagas",
+    "location": "Localizacao",
+    "department": "Departamento",
+    "type": "Tipo de Trabalho",
+    "experience": "Nivel de Experiencia",
+    "salary": "Intervalo Salarial",
+    "posted": "Data de Publicacao",
+    "remote": "Apenas Remoto",
+    "clearAll": "Limpar Todos os Filtros"
+  },
+  "search": {
+    "placeholder": "Pesquisar vagas por titulo, empresa ou competencias...",
+    "noResults": "Nenhuma vaga encontrada",
+    "results": "vagas encontradas",
+    "savedSearches": "Pesquisas Guardadas"
+  },
+  "actions": {
+    "view": "Ver Vaga",
+    "edit": "Editar Vaga",
+    "delete": "Eliminar Vaga",
+    "duplicate": "Duplicar Vaga",
+    "share": "Partilhar Vaga",
+    "bookmark": "Guardar Vaga",
+    "removeBookmark": "Remover dos Guardados",
+    "publish": "Publicar",
+    "unpublish": "Retirar Publicacao",
+    "close": "Encerrar Posicao",
+    "reopen": "Reabrir Posicao"
+  },
+  "applicants": {
+    "title": "Candidatos",
+    "new": "Novos Candidatos",
+    "total": "Total de Candidatos",
+    "qualified": "Qualificados",
+    "shortlisted": "Lista Restrita",
+    "viewAll": "Ver Todos os Candidatos"
+  },
+  "posting": {
+    "title": "Publicacao de Vaga",
+    "preview": "Pre-visualizar Publicacao",
+    "visibility": "Visibilidade",
+    "public": "Publica",
+    "private": "Privada",
+    "internal": "Apenas Interna",
+    "expiry": "Expiracao da Publicacao",
+    "boost": "Promover esta Vaga"
+  },
+  "analytics": {
+    "title": "Analytics da Vaga",
+    "views": "Visualizacoes da Vaga",
+    "applications": "Candidaturas",
+    "conversionRate": "Taxa de Conversao",
+    "avgTimeToApply": "Tempo Medio de Candidatura",
+    "topSources": "Principais Fontes"
+  },
+  "recommendations": {
+    "title": "Recomendadas para Si",
+    "basedOn": "Baseado no seu perfil",
+    "similar": "Vagas Semelhantes",
+    "trending": "Vagas em Destaque"
+  },
+  "alerts": {
+    "title": "Alertas de Vagas",
+    "create": "Criar Alerta",
+    "manage": "Gerir Alertas",
+    "frequency": "Frequencia de Alertas",
+    "daily": "Diario",
+    "weekly": "Semanal",
+    "instant": "Instantaneo"
+  },
+  "company": {
+    "about": "Sobre a Empresa",
+    "culture": "Cultura da Empresa",
+    "size": "Dimensao da Empresa",
+    "industry": "Setor",
+    "website": "Website",
+    "otherJobs": "Outras Vagas nesta Empresa"
+  },
+  "application": {
+    "resume": "Curriculo",
+    "coverLetter": "Carta de Apresentacao",
+    "questions": "Perguntas da Candidatura",
+    "attachments": "Anexos",
+    "submit": "Submeter Candidatura",
+    "withdraw": "Retirar Candidatura"
+  },
+  "empty": {
+    "noJobs": "Sem vagas disponiveis",
+    "noSavedJobs": "Sem vagas guardadas",
+    "noApplications": "Sem candidaturas ainda",
+    "createFirst": "Publique a sua primeira vaga"
+  },
+  "notifications": {
+    "published": "Vaga publicada com sucesso",
+    "updated": "Vaga atualizada com sucesso",
+    "closed": "Vaga encerrada",
+    "applicationReceived": "Nova candidatura recebida"
+  },
+  "companyJobsDashboard": {
+    "desc": "Gira as suas vagas e personalize o pipeline de contratacao",
+    "desc2": "Estas fases serao usadas como modelo para todas as novas vagas",
+    "desc3": "Nova Candidatura",
+    "desc4": "Receba notificacoes quando um candidato se candidata",
+    "desc5": "Alteracoes de Fase",
+    "desc6": "Receba notificacoes quando os candidatos mudam de fase",
+    "desc7": "Rejeicoes",
+    "desc8": "Receba notificacoes quando os candidatos sao rejeitados",
+    "desc9": "Configure como os candidatos sao avaliados para esta funcao"
+  },
+  "jobDetail": {
+    "text1": "Vaga nao encontrada",
+    "text2": "Voltar as Vagas",
+    "text3": "Visao Geral",
+    "text4": "Detalhes",
+    "text5": "Correspondencias",
+    "text6": "Empresa",
+    "text7": "Atividade",
+    "text8": "Gerar uma Carta de Apresentacao",
+    "text9": "Crie uma carta de apresentacao baseada em IA para esta funcao",
+    "text10": "Criador de Cartas de Apresentacao",
+    "text11": "Principais Responsabilidades",
+    "text12": "Principais areas de trabalho",
+    "text13": "Principais Beneficios",
+    "text14": "O que oferecemos",
+    "text15": "Analytics da Vaga",
+    "text16": "Metricas de desempenho e informacoes",
+    "text17": "Total de Candidaturas",
+    "text18": "Total de Visualizacoes",
+    "text19": "Taxa de Conversao",
+    "text20": "Dias Ativa"
+  },
+  "jobs": {
+    "title": "Sem vagas guardadas ainda",
+    "desc": "Funcoes selecionadas para membros do The Quantum Club",
+    "desc2": "Explore oportunidades e guarde funcoes que lhe interessam"
+  },
+  "sharedPipelineView": {
+    "desc": "Este pipeline esta protegido. Introduza a palavra-passe para o visualizar.",
+    "text2": "Link indisponivel",
+    "text3": "Palavra-passe necessaria",
+    "text4": "Introduzir palavra-passe",
+    "text5": "Sem candidatos neste pipeline ainda.",
+    "text6": "The Quantum Club"
+  }
+}

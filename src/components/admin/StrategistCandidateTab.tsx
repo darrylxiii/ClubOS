@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -25,6 +26,7 @@ interface CandidateWithStrategist {
 }
 
 export function StrategistCandidateTab() {
+  const { t } = useTranslation('common');
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
   const [unassignedOnly, setUnassignedOnly] = useState(false);
@@ -102,10 +104,10 @@ export function StrategistCandidateTab() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['candidates-with-assignments'] });
       queryClient.invalidateQueries({ queryKey: ['strategist-workload'] });
-      toast.success("Strategist assigned");
+      toast.success(t("strategist_assigned", "Strategist assigned"));
     },
     onError: () => {
-      toast.error("Failed to assign strategist");
+      toast.error(t("failed_to_assign_strategist", "Failed to assign strategist"));
     },
   });
 
@@ -121,10 +123,10 @@ export function StrategistCandidateTab() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['candidates-with-assignments'] });
       queryClient.invalidateQueries({ queryKey: ['strategist-workload'] });
-      toast.success("Assignment removed");
+      toast.success(t("assignment_removed", "Assignment removed"));
     },
     onError: () => {
-      toast.error("Failed to remove assignment");
+      toast.error(t("failed_to_remove_assignment", "Failed to remove assignment"));
     },
   });
 
@@ -142,10 +144,10 @@ export function StrategistCandidateTab() {
       queryClient.invalidateQueries({ queryKey: ['strategist-workload'] });
       setSelectedCandidates(new Set());
       setBulkStrategist("");
-      toast.success("Bulk assignment completed");
+      toast.success(t("bulk_assignment_completed", "Bulk assignment completed"));
     },
     onError: () => {
-      toast.error("Failed to complete bulk assignment");
+      toast.error(t("failed_to_complete_bulk", "Failed to complete bulk assignment"));
     },
   });
 
@@ -194,7 +196,7 @@ export function StrategistCandidateTab() {
         <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search candidates..."
+            placeholder={t("search_candidates", "Search candidates...")}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-9"
@@ -222,7 +224,7 @@ export function StrategistCandidateTab() {
           <span className="text-sm font-medium">{selectedCandidates.size} selected</span>
           <Select value={bulkStrategist} onValueChange={setBulkStrategist}>
             <SelectTrigger className="w-[200px]">
-              <SelectValue placeholder="Select strategist..." />
+              <SelectValue placeholder={t("select_strategist", "Select strategist...")} />
             </SelectTrigger>
             <SelectContent>
               {strategists?.map((s) => (
@@ -287,7 +289,7 @@ export function StrategistCandidateTab() {
 
               {/* Status */}
               {!candidate.is_active && (
-                <Badge variant="secondary" className="text-xs">Inactive</Badge>
+                <Badge variant="secondary" className="text-xs">{t("inactive", "Inactive")}</Badge>
               )}
 
               {/* Current Strategist */}
@@ -303,7 +305,7 @@ export function StrategistCandidateTab() {
                     <span className="text-sm">{candidate.strategist.full_name}</span>
                   </>
                 ) : (
-                  <Badge variant="secondary" className="text-xs">Unassigned</Badge>
+                  <Badge variant="secondary" className="text-xs">{t("unassigned", "Unassigned")}</Badge>
                 )}
               </div>
 
@@ -318,7 +320,7 @@ export function StrategistCandidateTab() {
                   }}
                 >
                   <SelectTrigger className="w-[150px] h-8">
-                    <SelectValue placeholder="Assign..." />
+                    <SelectValue placeholder={t("assign", "Assign...")} />
                   </SelectTrigger>
                   <SelectContent>
                     {strategists?.map((s) => (

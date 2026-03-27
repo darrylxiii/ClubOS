@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -36,6 +37,7 @@ interface BadgeCardProps {
 }
 
 export const BadgeCard = ({ achievement, isTimeline = false }: BadgeCardProps) => {
+  const { t } = useTranslation('common');
   // If locked and has progress data, use the progress card
   if (!achievement.is_unlocked && achievement.progress) {
     return <AchievementProgressCard achievement={achievement} progress={achievement.progress} />;
@@ -137,21 +139,21 @@ export const BadgeCard = ({ achievement, isTimeline = false }: BadgeCardProps) =
 
         <div className="space-y-4">
           <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">Category</span>
+            <span className="text-muted-foreground">{t('achievements.category')}</span>
             <Badge variant="outline" className="capitalize">
               {achievement.category}
             </Badge>
           </div>
 
           <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">Rarity</span>
+            <span className="text-muted-foreground">{t('achievements.rarity')}</span>
             <Badge variant="outline" className="capitalize">
               {achievement.rarity}
             </Badge>
           </div>
 
           <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">Points</span>
+            <span className="text-muted-foreground">{t('achievements.points')}</span>
             <Badge variant="secondary" className="gap-1">
               <Sparkles className="h-3 w-3" />
               {achievement.points} XP
@@ -160,7 +162,7 @@ export const BadgeCard = ({ achievement, isTimeline = false }: BadgeCardProps) =
 
           {achievement.unlocked_at && (
             <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Unlocked</span>
+              <span className="text-muted-foreground">{t('achievements.unlocked')}</span>
               <span>{new Date(achievement.unlocked_at).toLocaleDateString()}</span>
             </div>
           )}
@@ -168,7 +170,7 @@ export const BadgeCard = ({ achievement, isTimeline = false }: BadgeCardProps) =
           {!achievement.is_unlocked && (
             <div className="p-4 rounded-lg bg-muted/50 border border-border">
               <p className="text-sm text-muted-foreground text-center">
-                🔒 Complete the challenge to unlock this achievement
+                {t('achievements.completeChallengeToUnlock')}
               </p>
             </div>
           )}
@@ -176,7 +178,7 @@ export const BadgeCard = ({ achievement, isTimeline = false }: BadgeCardProps) =
           {achievement.is_unlocked && (
             <Button onClick={handleShare} className="w-full gap-2">
               <Sparkles className="h-4 w-4" />
-              Share Achievement
+              {t('achievements.shareAchievement')}
             </Button>
           )}
         </div>

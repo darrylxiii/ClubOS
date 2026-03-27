@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Card } from "@/components/ui/card";
@@ -20,6 +21,7 @@ export function GuestPlatformSelector({
   hostName = "the host",
   hasGoogleCalendar,
 }: GuestPlatformSelectorProps) {
+  const { t } = useTranslation('common');
   // Filter out platforms that shouldn't be shown
   const validPlatforms = availablePlatforms.filter(platform => {
     if (platform === 'google_meet') {
@@ -37,7 +39,7 @@ export function GuestPlatformSelector({
   return (
     <div className="space-y-4 pb-6 border-b">
       <div className="space-y-2">
-        <Label className="text-base font-semibold">Choose Your Meeting Platform</Label>
+        <Label className="text-base font-semibold">{t("choose_your_meeting_platform", "Choose Your Meeting Platform")}</Label>
         <p className="text-sm text-muted-foreground">
           {hostName} has enabled multiple video platforms. Select your preferred option below.
         </p>
@@ -54,8 +56,8 @@ export function GuestPlatformSelector({
               <div className="flex-1 space-y-2">
                 <Label htmlFor="guest-quantum" className="flex items-center gap-2 cursor-pointer text-base">
                   <Video className="h-5 w-5 text-primary" />
-                  <span className="font-semibold">TQC Meetings</span>
-                  <Badge variant="secondary" className="ml-auto">Recommended</Badge>
+                  <span className="font-semibold">{t("tqc_meetings", "TQC Meetings")}</span>
+                  <Badge variant="secondary" className="ml-auto">{t("recommended", "Recommended")}</Badge>
                 </Label>
                 <p className="text-sm text-muted-foreground leading-relaxed">
                   Full-featured video calls with AI intelligence, recording, and advanced interview features.
@@ -89,7 +91,7 @@ export function GuestPlatformSelector({
               <div className="flex-1 space-y-2">
                 <Label htmlFor="guest-google" className="flex items-center gap-2 cursor-pointer text-base">
                   <Video className="h-5 w-5 text-blue-500" />
-                  <span className="font-semibold">Google Meet</span>
+                  <span className="font-semibold">{t("google_meet", "Google Meet")}</span>
                 </Label>
                 <p className="text-sm text-muted-foreground leading-relaxed">
                   Familiar interface for Google users. Meeting link will be automatically added to your calendar.

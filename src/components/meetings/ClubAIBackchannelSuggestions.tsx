@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -31,6 +32,7 @@ export function ClubAIBackchannelSuggestions({
   recentTranscript,
   onSuggestionUsed
 }: ClubAIBackchannelSuggestionsProps) {
+  const { t } = useTranslation('common');
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [loading, setLoading] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -128,11 +130,11 @@ export function ClubAIBackchannelSuggestions({
   const getPriorityBadge = (priority: Suggestion['priority']) => {
     switch (priority) {
       case 'high':
-        return <Badge variant="destructive" className="text-xs">High</Badge>;
+        return <Badge variant="destructive" className="text-xs">{t("high", "High")}</Badge>;
       case 'medium':
-        return <Badge variant="secondary" className="text-xs">Medium</Badge>;
+        return <Badge variant="secondary" className="text-xs">{t("medium", "Medium")}</Badge>;
       case 'low':
-        return <Badge variant="outline" className="text-xs">Low</Badge>;
+        return <Badge variant="outline" className="text-xs">{t("low", "Low")}</Badge>;
     }
   };
 
@@ -158,8 +160,8 @@ export function ClubAIBackchannelSuggestions({
         {suggestions.length === 0 ? (
           <div className="text-center py-6 text-muted-foreground">
             <Sparkles className="h-8 w-8 mx-auto mb-2 opacity-30" />
-            <p className="text-sm">Club AI is analyzing the conversation...</p>
-            <p className="text-xs mt-1">Suggestions will appear as the interview progresses</p>
+            <p className="text-sm">{t("club_ai_is_analyzing", "Club AI is analyzing the conversation...")}</p>
+            <p className="text-xs mt-1">{t("suggestions_will_appear_as", "Suggestions will appear as the interview progresses")}</p>
           </div>
         ) : (
           <ScrollArea className="h-[300px] pr-2">

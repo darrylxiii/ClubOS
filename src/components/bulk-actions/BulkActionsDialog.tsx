@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -47,6 +48,7 @@ export function BulkActionsDialog({
   stages = [],
   onSuccess 
 }: BulkActionsDialogProps) {
+  const { t } = useTranslation('common');
   const [loading, setLoading] = useState(false);
   const [template, setTemplate] = useState('');
   const [subject, setSubject] = useState('');
@@ -85,7 +87,7 @@ export function BulkActionsDialog({
       switch (type) {
         case 'email':
           if (!template || !subject) {
-            toast.error('Please fill in all required fields');
+            toast.error(t("please_fill_in_all", "Please fill in all required fields"));
             return;
           }
           const emailContent = template === 'custom' ? customMessage : template;
@@ -94,7 +96,7 @@ export function BulkActionsDialog({
           
         case 'assessment':
           if (!assessmentType) {
-            toast.error('Please select an assessment type');
+            toast.error(t("please_select_an_assessment", "Please select an assessment type"));
             return;
           }
           result = await bulkActionsService.bulkScheduleAssessments(selectedIds, assessmentType, dueDate);
@@ -102,7 +104,7 @@ export function BulkActionsDialog({
           
         case 'stage':
           if (!targetStage) {
-            toast.error('Please select a target stage');
+            toast.error(t("please_select_a_target", "Please select a target stage"));
             return;
           }
           result = await bulkActionsService.bulkAdvanceStage(selectedIds, parseInt(targetStage));
@@ -150,10 +152,10 @@ export function BulkActionsDialog({
           {type === 'email' && (
             <>
               <div className="space-y-2">
-                <Label htmlFor="template">Email Template</Label>
+                <Label htmlFor="template">{t("email_template", "Email Template")}</Label>
                 <Select value={template} onValueChange={setTemplate}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select template" />
+                    <SelectValue placeholder={t("select_template", "Select template")} />
                   </SelectTrigger>
                   <SelectContent>
                     {EMAIL_TEMPLATES.map(t => (
@@ -164,23 +166,23 @@ export function BulkActionsDialog({
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="subject">Subject Line</Label>
+                <Label htmlFor="subject">{t("subject_line", "Subject Line")}</Label>
                 <Input 
                   id="subject"
                   value={subject}
                   onChange={(e) => setSubject(e.target.value)}
-                  placeholder="Enter email subject"
+                  placeholder={t("enter_email_subject", "Enter email subject")}
                 />
               </div>
 
               {template === 'custom' && (
                 <div className="space-y-2">
-                  <Label htmlFor="message">Message</Label>
+                  <Label htmlFor="message">{t("message", "Message")}</Label>
                   <Textarea
                     id="message"
                     value={customMessage}
                     onChange={(e) => setCustomMessage(e.target.value)}
-                    placeholder="Enter your custom message..."
+                    placeholder={t("enter_your_custom_message", "Enter your custom message...")}
                     rows={4}
                   />
                 </div>
@@ -191,10 +193,10 @@ export function BulkActionsDialog({
           {type === 'assessment' && (
             <>
               <div className="space-y-2">
-                <Label>Assessment Type</Label>
+                <Label>{t("assessment_type", "Assessment Type")}</Label>
                 <Select value={assessmentType} onValueChange={setAssessmentType}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select assessment" />
+                    <SelectValue placeholder={t("select_assessment", "Select assessment")} />
                   </SelectTrigger>
                   <SelectContent>
                     {ASSESSMENT_TYPES.map(a => (
@@ -205,7 +207,7 @@ export function BulkActionsDialog({
               </div>
 
               <div className="space-y-2">
-                <Label>Due Date (Optional)</Label>
+                <Label>{t("due_date_optional", "Due Date (Optional)")}</Label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
@@ -234,10 +236,10 @@ export function BulkActionsDialog({
 
           {type === 'stage' && (
             <div className="space-y-2">
-              <Label>Target Stage</Label>
+              <Label>{t("target_stage", "Target Stage")}</Label>
               <Select value={targetStage} onValueChange={setTargetStage}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select stage" />
+                  <SelectValue placeholder={t("select_stage", "Select stage")} />
                 </SelectTrigger>
                 <SelectContent>
                   {stages.map((stage, idx) => (
@@ -252,14 +254,14 @@ export function BulkActionsDialog({
 
           {type === 'export' && (
             <div className="space-y-2">
-              <Label>Export Format</Label>
+              <Label>{t("export_format", "Export Format")}</Label>
               <Select value={exportFormat} onValueChange={(v) => setExportFormat(v as 'csv' | 'pdf')}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="csv">CSV (Spreadsheet)</SelectItem>
-                  <SelectItem value="pdf">PDF (Document)</SelectItem>
+                  <SelectItem value="csv">{t("csv_spreadsheet", "CSV (Spreadsheet)")}</SelectItem>
+                  <SelectItem value="pdf">{t("pdf_document", "PDF (Document)")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>

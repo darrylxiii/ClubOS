@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,6 +27,7 @@ interface FreelanceCertificationsSectionProps {
 }
 
 export function FreelanceCertificationsSection({ userId, freelanceProfile, onUpdate }: FreelanceCertificationsSectionProps) {
+  const { t } = useTranslation('common');
   const [saving, setSaving] = useState(false);
   const [certifications, setCertifications] = useState<Certification[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -73,7 +75,7 @@ export function FreelanceCertificationsSection({ userId, freelanceProfile, onUpd
 
   const handleSaveCert = async () => {
     if (!name.trim() || !issuer.trim()) {
-      toast.error("Name and issuer are required");
+      toast.error(t("name_and_issuer_are", "Name and issuer are required"));
       return;
     }
 
@@ -115,7 +117,7 @@ export function FreelanceCertificationsSection({ userId, freelanceProfile, onUpd
       onUpdate();
     } catch (error: unknown) {
       console.error("Error saving certification:", error);
-      toast.error("Failed to save certification");
+      toast.error(t("failed_to_save_certification", "Failed to save certification"));
     } finally {
       setSaving(false);
     }
@@ -137,11 +139,11 @@ export function FreelanceCertificationsSection({ userId, freelanceProfile, onUpd
       if (error) throw error;
 
       setCertifications(updatedCerts);
-      toast.success("Certification deleted");
+      toast.success(t("certification_deleted", "Certification deleted"));
       onUpdate();
     } catch (error: unknown) {
       console.error("Error deleting certification:", error);
-      toast.error("Failed to delete certification");
+      toast.error(t("failed_to_delete_certification", "Failed to delete certification"));
     } finally {
       setSaving(false);
     }
@@ -175,10 +177,10 @@ export function FreelanceCertificationsSection({ userId, freelanceProfile, onUpd
               </DialogHeader>
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
-                  <Label htmlFor="cert-name">Certification Name *</Label>
+                  <Label htmlFor="cert-name">{t("certification_name", "Certification Name *")}</Label>
                   <Input
                     id="cert-name"
-                    placeholder="AWS Solutions Architect"
+                    placeholder={t("aws_solutions_architect", "AWS Solutions Architect")}
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                   />
@@ -190,7 +192,7 @@ export function FreelanceCertificationsSection({ userId, freelanceProfile, onUpd
                   </Label>
                   <Input
                     id="cert-issuer"
-                    placeholder="Amazon Web Services"
+                    placeholder={t("amazon_web_services", "Amazon Web Services")}
                     value={issuer}
                     onChange={(e) => setIssuer(e.target.value)}
                   />
@@ -209,7 +211,7 @@ export function FreelanceCertificationsSection({ userId, freelanceProfile, onUpd
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="expiry-date">Expiry Date</Label>
+                    <Label htmlFor="expiry-date">{t("expiry_date", "Expiry Date")}</Label>
                     <Input
                       id="expiry-date"
                       type="date"
@@ -219,16 +221,16 @@ export function FreelanceCertificationsSection({ userId, freelanceProfile, onUpd
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="credential-id">Credential ID</Label>
+                  <Label htmlFor="credential-id">{t("credential_id", "Credential ID")}</Label>
                   <Input
                     id="credential-id"
-                    placeholder="ABC123XYZ"
+                    placeholder={t("abc123xyz", "ABC123XYZ")}
                     value={credentialId}
                     onChange={(e) => setCredentialId(e.target.value)}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="credential-url">Credential URL</Label>
+                  <Label htmlFor="credential-url">{t("credential_url", "Credential URL")}</Label>
                   <Input
                     id="credential-url"
                     type="url"
@@ -254,8 +256,8 @@ export function FreelanceCertificationsSection({ userId, freelanceProfile, onUpd
         {certifications.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
             <Award className="h-12 w-12 mx-auto mb-4 opacity-20" />
-            <p>No certifications added yet</p>
-            <p className="text-sm">Add certifications to build trust with clients</p>
+            <p>{t("no_certifications_added_yet", "No certifications added yet")}</p>
+            <p className="text-sm">{t("add_certifications_to_build", "Add certifications to build trust with clients")}</p>
           </div>
         ) : (
           <div className="space-y-3">

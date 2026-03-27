@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
@@ -52,6 +53,7 @@ export const CompensationSettings = ({
   onSave,
   saving
 }: CompensationSettingsProps) => {
+  const { t } = useTranslation('settings');
   const formatSalary = (value: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -91,14 +93,14 @@ export const CompensationSettings = ({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <DollarSign className="w-5 h-5" />
-            Compensation & Salary Bands
+            {t('compensation.title')}
           </CardTitle>
-          <CardDescription>Help us match you with appropriate opportunities</CardDescription>
+          <CardDescription>{t('compensation.description')}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-8">
           {/* Employment Type Preference */}
           <div className="space-y-4">
-            <Label className="text-base font-semibold">Employment Type Preference</Label>
+            <Label className="text-base font-semibold">{t('compensation.employmentType')}</Label>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               <Button
                 type="button"
@@ -107,7 +109,7 @@ export const CompensationSettings = ({
                 className="w-full"
               >
                 <Briefcase className="w-4 h-4 mr-2" />
-                Full-Time
+                {t('compensation.fullTime')}
               </Button>
               <Button
                 type="button"
@@ -116,7 +118,7 @@ export const CompensationSettings = ({
                 className="w-full"
               >
                 <DollarSign className="w-4 h-4 mr-2" />
-                Freelance
+                {t('compensation.freelance')}
               </Button>
               <Button
                 type="button"
@@ -124,7 +126,7 @@ export const CompensationSettings = ({
                 onClick={() => setEmploymentType('both')}
                 className="w-full"
               >
-                Both
+                {t('compensation.both')}
               </Button>
             </div>
           </div>
@@ -136,12 +138,12 @@ export const CompensationSettings = ({
             <div className="space-y-6">
               <h4 className="text-base font-semibold flex items-center gap-2">
                 <Briefcase className="w-4 h-4 text-primary" />
-                Full-Time Compensation
+                {t('compensation.fullTimeCompensation')}
               </h4>
               
               <div>
                 <div className="flex justify-between items-center mb-4">
-                  <Label className="text-base font-semibold">Current Salary Range (Optional)</Label>
+                  <Label className="text-base font-semibold">{t('compensation.currentSalaryRange')}</Label>
                   <span className="text-sm font-bold">
                     {formatSalary(currentSalaryRange[0])} - {formatSalary(currentSalaryRange[1])}
                   </span>
@@ -161,7 +163,7 @@ export const CompensationSettings = ({
 
               <div>
                 <div className="flex justify-between items-center mb-4">
-                  <Label className="text-base font-semibold">Desired Salary Range</Label>
+                  <Label className="text-base font-semibold">{t('compensation.desiredSalaryRange')}</Label>
                   <span className="text-sm font-bold">
                     {formatSalary(desiredSalaryRange[0])} - {formatSalary(desiredSalaryRange[1])}
                   </span>
@@ -181,7 +183,7 @@ export const CompensationSettings = ({
 
               <div>
                 <div className="flex justify-between items-center mb-4">
-                  <Label>Preferred Hours Per Week</Label>
+                  <Label>{t('compensation.preferredHoursPerWeek')}</Label>
                   <span className="text-sm font-bold">
                     {fulltimeHoursPerWeek[0]} - {fulltimeHoursPerWeek[1]} hours/week
                   </span>
@@ -204,12 +206,12 @@ export const CompensationSettings = ({
             <div className="space-y-6">
               <h4 className="text-base font-semibold flex items-center gap-2">
                 <DollarSign className="w-4 h-4 text-primary" />
-                Freelance Compensation
+                {t('compensation.freelanceCompensation')}
               </h4>
 
               <div>
                 <div className="flex justify-between items-center mb-4">
-                  <Label>Hourly Rate Range</Label>
+                  <Label>{t('compensation.hourlyRateRange')}</Label>
                   <span className="text-sm font-bold">
                     {formatSalary(freelanceHourlyRate[0])}/hr - {formatSalary(freelanceHourlyRate[1])}/hr
                   </span>
@@ -225,7 +227,7 @@ export const CompensationSettings = ({
 
               <div>
                 <div className="flex justify-between items-center mb-4">
-                  <Label>Available Hours Per Week</Label>
+                  <Label>{t('compensation.availableHoursPerWeek')}</Label>
                   <span className="text-sm font-bold">
                     {freelanceHoursPerWeek[0]} - {freelanceHoursPerWeek[1]} hours/week
                   </span>
@@ -248,34 +250,34 @@ export const CompensationSettings = ({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Calendar className="w-5 h-5" />
-            Notice Period & Contract
+            {t('compensation.noticePeriodContract')}
           </CardTitle>
           <CardDescription>
-            Information about your current employment situation
+            {t('compensation.noticePeriodContractDesc')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label>Notice Period</Label>
+            <Label>{t('compensation.noticePeriod')}</Label>
             <Select value={noticePeriod} onValueChange={setNoticePeriod}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="immediate">Immediate</SelectItem>
-                <SelectItem value="2_weeks">2 Weeks</SelectItem>
-                <SelectItem value="1_month">1 Month</SelectItem>
-                <SelectItem value="2_months">2 Months</SelectItem>
-                <SelectItem value="3_months">3 Months</SelectItem>
+                <SelectItem value="immediate">{t('compensation.immediate')}</SelectItem>
+                <SelectItem value="2_weeks">{t('compensation.twoWeeks')}</SelectItem>
+                <SelectItem value="1_month">{t('compensation.oneMonth')}</SelectItem>
+                <SelectItem value="2_months">{t('compensation.twoMonths')}</SelectItem>
+                <SelectItem value="3_months">{t('compensation.threeMonths')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label>Indefinite Contract</Label>
+              <Label>{t('compensation.indefiniteContract')}</Label>
               <p className="text-sm text-muted-foreground">
-                Do you have a permanent contract?
+                {t('compensation.permanentContractQuestion')}
               </p>
             </div>
             <Switch
@@ -286,7 +288,7 @@ export const CompensationSettings = ({
 
           {!hasIndefiniteContract && (
             <div className="space-y-2">
-              <Label>Contract End Date</Label>
+              <Label>{t('compensation.contractEndDate')}</Label>
               <input
                 type="date"
                 value={contractEndDate?.toISOString().split('T')[0] || ''}
@@ -297,7 +299,7 @@ export const CompensationSettings = ({
           )}
 
           <Button onClick={onSave} disabled={saving} className="w-full">
-            {saving ? 'Saving...' : 'Save Compensation Settings'}
+            {saving ? t('common:status.saving') : t('compensation.saveCompensation')}
           </Button>
         </CardContent>
       </Card>

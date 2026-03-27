@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import * as React from "react";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
@@ -25,6 +26,7 @@ export function FormField({
   className,
   children,
 }: FormFieldProps) {
+  const { t } = useTranslation('common');
   const id = React.useId();
   
   // Clone children and inject error/success props if they accept them
@@ -52,7 +54,7 @@ export function FormField({
       >
         {label}
         {required && <span className="text-destructive ml-1" aria-hidden="true">*</span>}
-        {required && <span className="sr-only">(required)</span>}
+        {required && <span className="sr-only">{t("required", "(required)")}</span>}
       </Label>
       
       {enhancedChildren}

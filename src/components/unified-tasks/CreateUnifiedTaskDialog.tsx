@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -47,6 +48,7 @@ export const CreateUnifiedTaskDialog = ({
   companyId,
   jobTitle,
 }: CreateUnifiedTaskDialogProps) => {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const { currentBoard } = useTaskBoard();
   const [internalOpen, setInternalOpen] = useState(false);
@@ -237,13 +239,13 @@ export const CreateUnifiedTaskDialog = ({
         if (assignError) throw assignError;
       }
 
-      toast.success("Task created successfully!");
+      toast.success(t('tasks.taskCreatedSuccessfully', 'Task created successfully!'));
       setOpen(false);
       resetForm();
       onTaskCreated();
     } catch (error) {
       console.error("Error creating task:", error);
-      toast.error("Failed to create task");
+      toast.error(t('tasks.failedToCreateTask', 'Failed to create task'));
     } finally {
       setLoading(false);
     }
@@ -298,11 +300,11 @@ export const CreateUnifiedTaskDialog = ({
       </DialogTrigger>
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Create New Task</DialogTitle>
+          <DialogTitle>{t('tasks.createNewTask', 'Create New Task')}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <Label htmlFor="title">Title *</Label>
+            <Label htmlFor="title">{t('tasks.titleRequired', 'Title *')}</Label>
             <Input
               id="title"
               value={formData.title}
@@ -312,7 +314,7 @@ export const CreateUnifiedTaskDialog = ({
           </div>
 
           <div>
-            <Label htmlFor="description">Description</Label>
+            <Label htmlFor="description">{t('tasks.description', 'Description')}</Label>
             <Textarea
               id="description"
               value={formData.description}
@@ -322,13 +324,13 @@ export const CreateUnifiedTaskDialog = ({
           </div>
 
           <div>
-            <Label htmlFor="objective">Objective (Optional)</Label>
+            <Label htmlFor="objective">{t('tasks.objectiveOptional', 'Objective (Optional)')}</Label>
             <Select value={selectedObjective || "none"} onValueChange={(val) => setSelectedObjective(val === "none" ? undefined : val)}>
               <SelectTrigger>
-                <SelectValue placeholder="Select objective" />
+                <SelectValue placeholder={t('tasks.selectObjective', 'Select objective')} />
               </SelectTrigger>
               <SelectContent className="bg-popover z-50">
-                <SelectItem value="none">No objective</SelectItem>
+                <SelectItem value="none">{t('tasks.noObjective', 'No objective')}</SelectItem>
                 {objectives.map((obj) => (
                   <SelectItem key={obj.id} value={obj.id}>
                     {obj.title}
@@ -339,13 +341,13 @@ export const CreateUnifiedTaskDialog = ({
           </div>
 
           <div>
-            <Label htmlFor="project">Project (Optional)</Label>
+            <Label htmlFor="project">{t('tasks.projectOptional', 'Project (Optional)')}</Label>
             <Select value={selectedProject || "none"} onValueChange={(val) => setSelectedProject(val === "none" ? undefined : val)}>
               <SelectTrigger>
-                <SelectValue placeholder="Select project" />
+                <SelectValue placeholder={t('tasks.selectProject', 'Select project')} />
               </SelectTrigger>
               <SelectContent className="bg-popover z-50">
-                <SelectItem value="none">No project</SelectItem>
+                <SelectItem value="none">{t('tasks.noProject', 'No project')}</SelectItem>
                 {projects.map((proj) => (
                   <SelectItem key={proj.id} value={proj.id}>
                     <div className="flex items-center gap-2">
@@ -361,7 +363,7 @@ export const CreateUnifiedTaskDialog = ({
           {/* Link to Job — only shown when not pre-filled from Job Dashboard */}
           {!jobId && (
             <div>
-              <Label htmlFor="linked-job">Link to Job (Optional)</Label>
+              <Label htmlFor="linked-job">{t('tasks.linkToJobOptional', 'Link to Job (Optional)')}</Label>
               <Select
                 value={selectedJobId || "none"}
                 onValueChange={(val) => {
@@ -376,10 +378,10 @@ export const CreateUnifiedTaskDialog = ({
                 }}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select a job" />
+                  <SelectValue placeholder={t('tasks.selectAJob', 'Select a job')} />
                 </SelectTrigger>
                 <SelectContent className="bg-popover z-50">
-                  <SelectItem value="none">No job linked</SelectItem>
+                  <SelectItem value="none">{t('tasks.noJobLinked', 'No job linked')}</SelectItem>
                   {availableJobs.map((j: any) => (
                     <SelectItem key={j.id} value={j.id}>
                       <div className="flex items-center gap-2">
@@ -398,7 +400,7 @@ export const CreateUnifiedTaskDialog = ({
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="status">Status</Label>
+              <Label htmlFor="status">{t('tasks.status', 'Status')}</Label>
               <Select
                 value={formData.status}
                 onValueChange={(value) => setFormData({ ...formData, status: value })}
@@ -407,16 +409,16 @@ export const CreateUnifiedTaskDialog = ({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="bg-popover z-50">
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="in_progress">In Progress</SelectItem>
-                  <SelectItem value="on_hold">On Hold</SelectItem>
-                  <SelectItem value="completed">Completed</SelectItem>
+                  <SelectItem value="pending">{t('tasks.pending', 'Pending')}</SelectItem>
+                  <SelectItem value="in_progress">{t('tasks.inProgress', 'In Progress')}</SelectItem>
+                  <SelectItem value="on_hold">{t('tasks.onHold', 'On Hold')}</SelectItem>
+                  <SelectItem value="completed">{t('tasks.completed', 'Completed')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div>
-              <Label htmlFor="priority">Priority</Label>
+              <Label htmlFor="priority">{t('tasks.priority', 'Priority')}</Label>
               <Select
                 value={formData.priority}
                 onValueChange={(value) => setFormData({ ...formData, priority: value })}
@@ -425,9 +427,9 @@ export const CreateUnifiedTaskDialog = ({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="bg-popover z-50">
-                  <SelectItem value="low">Low</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="high">High</SelectItem>
+                  <SelectItem value="low">{t('tasks.low', 'Low')}</SelectItem>
+                  <SelectItem value="medium">{t('tasks.medium', 'Medium')}</SelectItem>
+                  <SelectItem value="high">{t('tasks.high', 'High')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -435,7 +437,7 @@ export const CreateUnifiedTaskDialog = ({
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="task_type">Task Type</Label>
+              <Label htmlFor="task_type">{t('tasks.taskType', 'Task Type')}</Label>
               <Select
                 value={formData.task_type}
                 onValueChange={(value) => setFormData({ ...formData, task_type: value })}
@@ -444,18 +446,18 @@ export const CreateUnifiedTaskDialog = ({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="bg-popover z-50">
-                  <SelectItem value="general">General</SelectItem>
-                  <SelectItem value="interview_prep">Interview Prep</SelectItem>
-                  <SelectItem value="application">Application</SelectItem>
-                  <SelectItem value="follow_up">Follow Up</SelectItem>
-                  <SelectItem value="research">Research</SelectItem>
-                  <SelectItem value="meeting">Meeting</SelectItem>
+                  <SelectItem value="general">{t('tasks.general', 'General')}</SelectItem>
+                  <SelectItem value="interview_prep">{t('tasks.interviewPrep', 'Interview Prep')}</SelectItem>
+                  <SelectItem value="application">{t('tasks.application', 'Application')}</SelectItem>
+                  <SelectItem value="follow_up">{t('tasks.followUp', 'Follow Up')}</SelectItem>
+                  <SelectItem value="research">{t('tasks.research', 'Research')}</SelectItem>
+                  <SelectItem value="meeting">{t('tasks.meeting', 'Meeting')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div>
-              <Label htmlFor="scheduling_mode">Scheduling</Label>
+              <Label htmlFor="scheduling_mode">{t('tasks.scheduling', 'Scheduling')}</Label>
               <Select
                 value={formData.scheduling_mode}
                 onValueChange={(value) => setFormData({ ...formData, scheduling_mode: value })}
@@ -464,9 +466,9 @@ export const CreateUnifiedTaskDialog = ({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="bg-popover z-50">
-                  <SelectItem value="manual">Manual</SelectItem>
-                  <SelectItem value="ai">AI Scheduled</SelectItem>
-                  <SelectItem value="hybrid">Hybrid</SelectItem>
+                  <SelectItem value="manual">{t('tasks.manual', 'Manual')}</SelectItem>
+                  <SelectItem value="ai">{t('tasks.aiScheduled', 'AI Scheduled')}</SelectItem>
+                  <SelectItem value="hybrid">{t('tasks.hybrid', 'Hybrid')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -474,12 +476,12 @@ export const CreateUnifiedTaskDialog = ({
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label>Due Date</Label>
+              <Label>{t('tasks.dueDate', 'Due Date')}</Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button variant="outline" className="w-full justify-start text-left font-normal">
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {formData.due_date ? format(formData.due_date, "PPP") : <span>Pick a date</span>}
+                    {formData.due_date ? format(formData.due_date, "PPP") : <span>{t('tasks.pickADate', 'Pick a date')}</span>}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0 bg-popover z-50">
@@ -494,7 +496,7 @@ export const CreateUnifiedTaskDialog = ({
             </div>
 
             <div>
-              <Label htmlFor="duration">Duration (minutes)</Label>
+              <Label htmlFor="duration">{t('tasks.durationMinutes', 'Duration (minutes)')}</Label>
               <Input
                 id="duration"
                 type="number"
@@ -507,7 +509,7 @@ export const CreateUnifiedTaskDialog = ({
           </div>
 
           <div className="space-y-3">
-            <Label>Assign To</Label>
+            <Label>{t('tasks.assignTo', 'Assign To')}</Label>
 
             {/* Assign to myself button */}
             <Button
@@ -518,7 +520,7 @@ export const CreateUnifiedTaskDialog = ({
               className="w-full gap-2"
             >
               <User className="h-4 w-4" />
-              {assignToSelf ? "✓ Assigned to myself" : "Assign to myself"}
+              {assignToSelf ? t('tasks.assignedToMyself', 'Assigned to myself') : t('tasks.assignToMyself', 'Assign to myself')}
             </Button>
 
             {/* Assign to others button */}
@@ -530,7 +532,7 @@ export const CreateUnifiedTaskDialog = ({
               className="w-full gap-2"
             >
               <Users className="h-4 w-4" />
-              Assign to others
+              {t('tasks.assignToOthers', 'Assign to others')}
             </Button>
 
             {/* Selected assignees */}
@@ -567,7 +569,7 @@ export const CreateUnifiedTaskDialog = ({
                   <div className="relative">
                     <Users className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
-                      placeholder="Search by name..."
+                      placeholder={t('tasks.searchByName', 'Search by name...')}
                       value={assigneeSearch}
                       onChange={(e) => setAssigneeSearch(e.target.value)}
                       className="pl-9 h-9 text-sm"
@@ -576,7 +578,7 @@ export const CreateUnifiedTaskDialog = ({
                   </div>
                   <div className="max-h-48 overflow-y-auto space-y-1">
                     {filteredProfiles.length === 0 ? (
-                      <p className="text-sm text-muted-foreground text-center py-3">No results found</p>
+                      <p className="text-sm text-muted-foreground text-center py-3">{t('tasks.noResultsFound', 'No results found')}</p>
                     ) : (
                       filteredProfiles.map((profile) => (
                         <button
@@ -591,7 +593,7 @@ export const CreateUnifiedTaskDialog = ({
                           </Avatar>
                           <span className="text-sm flex-1 text-left">{profile.full_name || "Unknown"}</span>
                           {selectedAssignees.includes(profile.id) && (
-                            <Badge variant="default" className="text-xs">Selected</Badge>
+                            <Badge variant="default" className="text-xs">{t('tasks.selected', 'Selected')}</Badge>
                           )}
                         </button>
                       ))
@@ -603,8 +605,8 @@ export const CreateUnifiedTaskDialog = ({
           </div>
 
           <div className="space-y-3">
-            <Label>Blocking (Optional)</Label>
-            <p className="text-xs text-muted-foreground">Tasks that THIS task blocks</p>
+            <Label>{t('tasks.blockingOptional', 'Blocking (Optional)')}</Label>
+            <p className="text-xs text-muted-foreground">{t('tasks.tasksThisBlocks', 'Tasks that THIS task blocks')}</p>
             <Select
               value=""
               onValueChange={(value) => {
@@ -614,7 +616,7 @@ export const CreateUnifiedTaskDialog = ({
               }}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Select tasks to block" />
+                <SelectValue placeholder={t('tasks.selectTasksToBlock', 'Select tasks to block')} />
               </SelectTrigger>
               <SelectContent className="bg-popover z-50">
                 {allTasks
@@ -648,8 +650,8 @@ export const CreateUnifiedTaskDialog = ({
           </div>
 
           <div className="space-y-3">
-            <Label>Blocked By (Optional)</Label>
-            <p className="text-xs text-muted-foreground">Tasks that block THIS task</p>
+            <Label>{t('tasks.blockedByOptional', 'Blocked By (Optional)')}</Label>
+            <p className="text-xs text-muted-foreground">{t('tasks.tasksThatBlockThis', 'Tasks that block THIS task')}</p>
             <Select
               value=""
               onValueChange={(value) => {
@@ -659,7 +661,7 @@ export const CreateUnifiedTaskDialog = ({
               }}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Select blocking tasks" />
+                <SelectValue placeholder={t('tasks.selectBlockingTasks', 'Select blocking tasks')} />
               </SelectTrigger>
               <SelectContent className="bg-popover z-50">
                 {allTasks
@@ -698,10 +700,10 @@ export const CreateUnifiedTaskDialog = ({
               variant="outline"
               onClick={() => setOpen(false)}
             >
-              Cancel
+              {t('tasks.cancel', 'Cancel')}
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? "Creating..." : "Create Task"}
+              {loading ? t('tasks.creating', 'Creating...') : t('tasks.createTask', 'Create Task')}
             </Button>
           </div>
         </form>

@@ -8,8 +8,10 @@ import { toast } from "sonner";
 import { Send, Loader2, UserPlus, AlertCircle } from "lucide-react";
 import { CandidateSelectorTable } from "./CandidateSelectorTable";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useTranslation } from 'react-i18next';
 
 export const BulkInvitationTab = () => {
+  const { t } = useTranslation('admin');
   const [selectedCandidates, setSelectedCandidates] = useState<string[]>([]);
   const [customMessage, setCustomMessage] = useState("");
 
@@ -105,7 +107,7 @@ export const BulkInvitationTab = () => {
 
       {/* Candidate Selection - filter to those without accounts */}
       <div>
-        <Label className="mb-2 block">Select Candidates (Without Accounts)</Label>
+        <Label className="mb-2 block">{t('bulk-ops.bulkInvitationTab.selectCandidatesWithoutAccounts')}</Label>
         <CandidateSelectorTable
           selectedCandidates={selectedCandidates}
           onSelectionChange={setSelectedCandidates}
@@ -116,12 +118,12 @@ export const BulkInvitationTab = () => {
       {/* Custom Message */}
       <div className="space-y-4 border-t pt-6">
         <div>
-          <Label htmlFor="message">Custom Message (Optional)</Label>
+          <Label htmlFor="message">{t('bulk-ops.bulkInvitationTab.customMessageOptional')}</Label>
           <Textarea
             id="message"
             value={customMessage}
             onChange={(e) => setCustomMessage(e.target.value)}
-            placeholder="Add a personalized message to the invitation email..."
+            placeholder={t('bulk-ops.bulkInvitationTab.addAPersonalizedMessageToThe')}
             rows={4}
             className="mt-1.5"
           />

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Dialog,
   DialogContent,
@@ -66,6 +67,7 @@ export function TaskCompletionFeedbackModal({
   onSubmit,
   onClose,
 }: TaskCompletionFeedbackModalProps) {
+  const { t } = useTranslation('common');
   const [timeSpent, setTimeSpent] = useState<number | null>(null);
   const [difficulty, setDifficulty] = useState(5);
   const [showOptional, setShowOptional] = useState(false);
@@ -132,17 +134,17 @@ export function TaskCompletionFeedbackModal({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Sparkles className="h-4 w-4 text-primary" />
-            Task Debrief
+            {t('tasks.taskDebrief', 'Task Debrief')}
           </DialogTitle>
           <DialogDescription className="truncate">
-            Completing: {taskTitle}
+            {t('tasks.completing', 'Completing: {{title}}', { title: taskTitle })}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-5 py-2">
           {/* Time spent */}
           <div className="space-y-2">
-            <label className="text-sm font-medium">Time spent</label>
+            <label className="text-sm font-medium">{t('tasks.timeSpent', 'Time spent')}</label>
             <div className="flex flex-wrap gap-2">
               {TIME_PRESETS.map((p) => (
                 <button
@@ -164,7 +166,7 @@ export function TaskCompletionFeedbackModal({
           {/* Difficulty */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <label className="text-sm font-medium">Difficulty</label>
+              <label className="text-sm font-medium">{t('tasks.difficulty', 'Difficulty')}</label>
               <span className={cn("text-xs font-medium", diffMeta.className)}>
                 {difficulty}/10 — {diffMeta.label}
               </span>
@@ -185,14 +187,14 @@ export function TaskCompletionFeedbackModal({
             className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
           >
             {showOptional ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-            {showOptional ? "Hide details" : "Add more detail (optional)"}
+            {showOptional ? t('tasks.hideDetails', 'Hide details') : t('tasks.addMoreDetail', 'Add more detail (optional)')}
           </button>
 
           {showOptional && (
             <div className="space-y-4 animate-in fade-in-0 slide-in-from-top-2 duration-200">
               {/* Outcome quality */}
               <div className="space-y-2">
-                <label className="text-sm font-medium">Outcome quality</label>
+                <label className="text-sm font-medium">{t('tasks.outcomeQuality', 'Outcome quality')}</label>
                 <div className="flex gap-1">
                   {[1, 2, 3, 4, 5].map((star) => (
                     <button
@@ -215,7 +217,7 @@ export function TaskCompletionFeedbackModal({
 
               {/* Blockers */}
               <div className="space-y-2">
-                <label className="text-sm font-medium">Blockers encountered</label>
+                <label className="text-sm font-medium">{t('tasks.blockersEncountered', 'Blockers encountered')}</label>
                 <div className="flex flex-wrap gap-1.5">
                   {BLOCKER_OPTIONS.map((b) => (
                     <Badge
@@ -232,7 +234,7 @@ export function TaskCompletionFeedbackModal({
 
               {/* Improvements */}
               <div className="space-y-2">
-                <label className="text-sm font-medium">What would help next time?</label>
+                <label className="text-sm font-medium">{t('tasks.whatWouldHelp', 'What would help next time?')}</label>
                 <div className="flex flex-wrap gap-1.5">
                   {IMPROVEMENT_OPTIONS.map((i) => (
                     <Badge
@@ -249,9 +251,9 @@ export function TaskCompletionFeedbackModal({
 
               {/* Notes */}
               <div className="space-y-2">
-                <label className="text-sm font-medium">Notes</label>
+                <label className="text-sm font-medium">{t('tasks.notes', 'Notes')}</label>
                 <Input
-                  placeholder="Any context to capture..."
+                  placeholder={t('tasks.anyContextToCapture', 'Any context to capture...')}
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   className="text-sm"
@@ -269,14 +271,14 @@ export function TaskCompletionFeedbackModal({
             disabled={submitting}
             className="text-muted-foreground text-xs"
           >
-            Skip Feedback
+            {t('tasks.skipFeedback', 'Skip Feedback')}
           </Button>
           <Button
             onClick={handleSubmit}
             disabled={submitting || timeSpent === null}
             className="bg-emerald-600 hover:bg-emerald-700 text-white"
           >
-            Complete Task
+            {t('tasks.completeTask', 'Complete Task')}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Hash, Send, Pin, PinOff, MessageSquare, MoreVertical, Paperclip, X, Edit2, Trash2 } from 'lucide-react';
@@ -54,6 +55,7 @@ interface Message {
 }
 
 const TextChannel = ({ channelId }: TextChannelProps) => {
+  const { t } = useTranslation('meetings');
   const { user } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
@@ -182,7 +184,7 @@ const TextChannel = ({ channelId }: TextChannelProps) => {
 
     if (uploadError) {
       console.error('Error uploading file:', uploadError);
-      toast.error('Failed to upload file');
+      toast.error(t('livehub.failedToUploadFile'));
       return null;
     }
 
@@ -228,7 +230,7 @@ const TextChannel = ({ channelId }: TextChannelProps) => {
       attachments = uploaded.filter(a => a !== null) as Attachment[];
 
       if (attachments.length === 0 && uploadingFiles.length > 0) {
-        toast.error('Failed to upload files');
+        toast.error(t('livehub.failedToUploadFiles'));
         return;
       }
     }
@@ -245,7 +247,7 @@ const TextChannel = ({ channelId }: TextChannelProps) => {
 
     if (error) {
       console.error('Error sending message:', error);
-      toast.error('Failed to send message');
+      toast.error(t('livehub.failedToSendMessage'));
       return;
     }
 
@@ -287,10 +289,10 @@ const TextChannel = ({ channelId }: TextChannelProps) => {
 
       if (pollError) throw pollError;
 
-      toast.success('Poll created');
+      toast.success(t('livehub.pollCreated'));
     } catch (error: unknown) {
       console.error('Error creating poll:', error);
-      toast.error('Failed to create poll');
+      toast.error(t('livehub.failedToCreatePoll'));
     }
   };
 
@@ -308,17 +310,17 @@ const TextChannel = ({ channelId }: TextChannelProps) => {
 
     if (error) {
       console.error('Error editing message:', error);
-      toast.error('Failed to edit message');
+      toast.error(t('livehub.failedToEditMessage'));
       return;
     }
 
     setEditingMessageId(null);
     setEditingContent('');
-    toast.success('Message edited');
+    toast.success(t('livehub.messageEdited'));
   };
 
   const deleteMessage = async (messageId: string) => {
-    if (!confirm('Are you sure you want to delete this message?')) return;
+    if (!confirm(t('livehub.confirmDeleteMessage'))) return;
 
     const { error } = await supabase
       .from('live_channel_messages')
@@ -327,11 +329,11 @@ const TextChannel = ({ channelId }: TextChannelProps) => {
 
     if (error) {
       console.error('Error deleting message:', error);
-      toast.error('Failed to delete message');
+      toast.error(t('livehub.failedToDeleteMessage'));
       return;
     }
 
-    toast.success('Message deleted');
+    toast.success(t('livehub.messageDeleted'));
   };
 
   const handleInputChange = (value: string) => {
@@ -395,11 +397,11 @@ const TextChannel = ({ channelId }: TextChannelProps) => {
 
     if (error) {
       console.error('Error toggling pin:', error);
-      toast.error('Failed to update message');
+      toast.error(t('livehub.failedToUpdateMessage'));
       return;
     }
 
-    toast.success(currentlyPinned ? 'Message unpinned' : 'Message pinned');
+    toast.success(currentlyPinned ? t('livehub.messageUnpinned') : t('livehub.messagePinned'));
   };
 
   const pinnedCount = messages.filter(m => m.is_pinned).length;
@@ -421,7 +423,7 @@ const TextChannel = ({ channelId }: TextChannelProps) => {
               className="gap-2"
             >
               <Pin className="w-4 h-4" />
-              {pinnedCount} {pinnedCount === 1 ? 'Pinned' : 'Pinned'}
+              {pinnedCount} {t('livehub.pinned')}
             </Button>
           )}
         </div>
@@ -451,7 +453,7 @@ const TextChannel = ({ channelId }: TextChannelProps) => {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-baseline gap-2">
                       <span className="font-semibold text-sm">
-                        {message.user?.full_name || 'Unknown User'}
+                        {message.user?.full_name || t('livehub.unknownUser')}
                       </span>
                       <span className="text-xs text-muted-foreground">
                         {format(new Date(message.created_at), 'HH:mm')}
@@ -459,7 +461,7 @@ const TextChannel = ({ channelId }: TextChannelProps) => {
                       {message.is_pinned && (
                         <Badge variant="secondary" className="h-4 px-1 text-xs">
                           <Pin className="w-3 h-3 mr-1" />
-                          Pinned
+                          {t('livehub.pinned')}
                         </Badge>
                       )}
                     </div>
@@ -484,7 +486,7 @@ const TextChannel = ({ channelId }: TextChannelProps) => {
                           autoFocus
                         />
                         <Button size="sm" onClick={() => editMessage(message.id, editingContent)}>
-                          Save
+                          {t('livehub.save')}
                         </Button>
                         <Button
                           size="sm"
@@ -494,7 +496,7 @@ const TextChannel = ({ channelId }: TextChannelProps) => {
                             setEditingContent('');
                           }}
                         >
-                          Cancel
+                          {t('livehub.cancel')}
                         </Button>
                       </div>
                     ) : isPoll && pollData ? (
@@ -508,7 +510,7 @@ const TextChannel = ({ channelId }: TextChannelProps) => {
                           <MessageFormatter content={message.content} />
                         </div>
                         {(message as any).is_edited && (
-                          <span className="text-xs text-muted-foreground">(edited)</span>
+                          <span className="text-xs text-muted-foreground">({t('livehub.edited')})</span>
                         )}
                       </>
                     )}
@@ -533,7 +535,7 @@ const TextChannel = ({ channelId }: TextChannelProps) => {
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem onClick={() => setThreadMessage(message)}>
                           <MessageSquare className="w-4 h-4 mr-2" />
-                          Start Thread
+                          {t('livehub.startThread')}
                         </DropdownMenuItem>
                         {message.user_id === user?.id && !isPoll && (
                           <>
@@ -542,14 +544,14 @@ const TextChannel = ({ channelId }: TextChannelProps) => {
                               setEditingContent(message.content);
                             }}>
                               <Edit2 className="w-4 h-4 mr-2" />
-                              Edit Message
+                              {t('livehub.editMessage')}
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() => deleteMessage(message.id)}
                               className="text-red-600"
                             >
                               <Trash2 className="w-4 h-4 mr-2" />
-                              Delete Message
+                              {t('livehub.deleteMessage')}
                             </DropdownMenuItem>
                           </>
                         )}
@@ -557,12 +559,12 @@ const TextChannel = ({ channelId }: TextChannelProps) => {
                           {message.is_pinned ? (
                             <>
                               <PinOff className="w-4 h-4 mr-2" />
-                              Unpin Message
+                              {t('livehub.unpinMessage')}
                             </>
                           ) : (
                             <>
                               <Pin className="w-4 h-4 mr-2" />
-                              Pin Message
+                              {t('livehub.pinMessage')}
                             </>
                           )}
                         </DropdownMenuItem>
@@ -642,7 +644,7 @@ const TextChannel = ({ channelId }: TextChannelProps) => {
                   sendMessage();
                 }
               }}
-              placeholder={`Message #${channelName} (supports **bold**, *italic*, \`code\`, @mentions)`}
+              placeholder={t('livehub.messageInputPlaceholder', { channel: channelName })}
               className="flex-1 resize-none rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 min-h-[40px] max-h-[120px]"
               rows={1}
             />

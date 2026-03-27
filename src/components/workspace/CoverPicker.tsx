@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -38,6 +39,7 @@ const COVER_IMAGES = [
 ];
 
 export function CoverPicker({ onSelect, onClose, currentCover }: CoverPickerProps) {
+  const { t } = useTranslation('common');
   const [linkUrl, setLinkUrl] = useState('');
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -77,7 +79,7 @@ export function CoverPicker({ onSelect, onClose, currentCover }: CoverPickerProp
       <div className="bg-card border rounded-lg shadow-xl w-[500px] max-h-[500px] overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b">
-          <span className="font-medium">Choose cover</span>
+          <span className="font-medium">{t("choose_cover", "Choose cover")}</span>
           <Button variant="ghost" size="icon" onClick={onClose}>
             <X className="h-4 w-4" />
           </Button>
@@ -85,9 +87,9 @@ export function CoverPicker({ onSelect, onClose, currentCover }: CoverPickerProp
 
         <Tabs defaultValue="gallery" className="w-full">
           <TabsList className="w-full justify-start px-4 pt-2">
-            <TabsTrigger value="gallery">Gallery</TabsTrigger>
-            <TabsTrigger value="gradient">Gradients</TabsTrigger>
-            <TabsTrigger value="link">Link</TabsTrigger>
+            <TabsTrigger value="gallery">{t("gallery", "Gallery")}</TabsTrigger>
+            <TabsTrigger value="gradient">{t("gradients", "Gradients")}</TabsTrigger>
+            <TabsTrigger value="link">{t("link", "Link")}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="gallery" className="m-0">
@@ -134,7 +136,7 @@ export function CoverPicker({ onSelect, onClose, currentCover }: CoverPickerProp
                 <Input
                   value={linkUrl}
                   onChange={(e) => setLinkUrl(e.target.value)}
-                  placeholder="Paste image URL..."
+                  placeholder={t("paste_image_url", "Paste image URL...")}
                   className="flex-1"
                 />
                 <Button onClick={handleLinkSubmit} disabled={!linkUrl.trim()}>

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -40,6 +41,7 @@ interface LeadPrediction {
 }
 
 export function LeadPriorityQueue() {
+  const { t } = useTranslation('common');
   const queryClient = useQueryClient();
   const [refreshing, setRefreshing] = useState(false);
 
@@ -211,7 +213,7 @@ export function LeadPriorityQueue() {
         ) : (
           <div className="text-center py-8">
             <Target className="w-12 h-12 mx-auto text-muted-foreground/50 mb-3" />
-            <p className="text-muted-foreground">No lead predictions available</p>
+            <p className="text-muted-foreground">{t("no_lead_predictions_available", "No lead predictions available")}</p>
             <Button 
               variant="outline" 
               size="sm" 

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from 'react-i18next';
 import { ErrorState } from "@/components/ui/error-state";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -52,6 +53,7 @@ interface PrepData {
 }
 
 export default function InterviewPrep() {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [applications, setApplications] = useState<Application[]>([]);
   const [selectedApp, setSelectedApp] = useState<Application | null>(null);
@@ -152,7 +154,7 @@ export default function InterviewPrep() {
     } catch (error) {
       logger.error('Error fetching applications:', { error });
       setFetchError("Failed to load your applications");
-      toast.error("Failed to load interview prep data");
+      toast.error(t('text.interviewprep.failedToLoadInterviewPrepData', 'Failed to load interview prep data'));
     } finally {
       setLoading(false);
     }
@@ -174,7 +176,7 @@ export default function InterviewPrep() {
       }
     } catch (err) {
       logger.error('Error generating AI prep:', { error: err });
-      toast.error("Could not generate AI prep. Using default questions.");
+      toast.error(t('text.interviewprep.couldNotGenerateAiPrepUsing', 'Could not generate AI prep. Using default questions.'));
     } finally {
       setAiLoading(false);
     }
@@ -184,7 +186,7 @@ export default function InterviewPrep() {
     if (!user || !selectedApp) return;
     const hasContent = starAnswers.situation || starAnswers.task || starAnswers.action || starAnswers.result;
     if (!hasContent) {
-      toast.error("Please fill in at least one STAR field");
+      toast.error(t('text.interviewprep.pleaseFillInAtLeastOne', 'Please fill in at least one STAR field'));
       return;
     }
     try {
@@ -199,10 +201,10 @@ export default function InterviewPrep() {
           result: starAnswers.result || null,
         } as any);
       if (error) throw error;
-      toast.success("STAR answer saved to your preparation notes");
+      toast.success(t('text.interviewprep.starAnswerSavedToYourPreparation', 'STAR answer saved to your preparation notes'));
     } catch (err) {
       logger.error('Error saving STAR answer:', { error: err });
-      toast.error("Failed to save answer");
+      toast.error(t('text.interviewprep.failedToSaveAnswer', 'Failed to save answer'));
     }
   };
 
@@ -216,7 +218,7 @@ export default function InterviewPrep() {
   if (fetchError) {
     return (
       <div className="w-full px-4 sm:px-6 lg:px-8 p-6">
-        <ErrorState variant="page" title="Interview Prep Unavailable" message={fetchError} onRetry={fetchApplications} />
+        <ErrorState variant="page" title={t('interviewPrep.text2')} message={fetchError} onRetry={fetchApplications} />
       </div>
     );
   }
@@ -239,12 +241,10 @@ export default function InterviewPrep() {
           <CardContent className="pt-6">
             <div className="text-center py-12 space-y-4">
               <MessageSquare className="w-16 h-16 mx-auto text-muted-foreground opacity-50" />
-              <h3 className="text-xl font-semibold">No Active Interviews</h3>
-              <p className="text-muted-foreground max-w-md mx-auto">
-                Start applying to roles to access company-specific interview preparation
-              </p>
+              <h3 className="text-xl font-semibold">{t('interviewPrep.text3')}</h3>
+              <p className="text-muted-foreground max-w-md mx-auto">{t('interviewPrep.desc')}</p>
               <Button onClick={() => window.location.href = '/jobs'}>
-                Browse Roles
+                {t('text.interviewprep.browseRoles', 'Browse Roles')}
               </Button>
             </div>
           </CardContent>
@@ -256,10 +256,8 @@ export default function InterviewPrep() {
   return (
     <div className="w-full px-4 sm:px-6 lg:px-8 p-6 space-y-6">
       <div>
-        <h1 className="text-3xl font-bold mb-1">Interview Preparation</h1>
-        <p className="text-sm text-muted-foreground">
-          Powered by QUIN — tailored to each role and company
-        </p>
+        <h1 className="text-3xl font-bold mb-1">{t('interviewPrep.text4')}</h1>
+        <p className="text-sm text-muted-foreground">{t('text.interviewprep.poweredByQuinTailoredToEach', 'Powered by QUIN — tailored to each role and company')}</p>
       </div>
 
       {/* Application Selector */}
@@ -304,7 +302,7 @@ export default function InterviewPrep() {
               <Card className="border border-border/50">
                 <CardContent className="py-12 text-center">
                   <Loader2 className="w-8 h-8 animate-spin mx-auto text-muted-foreground mb-3" />
-                  <p className="text-sm text-muted-foreground">QUIN is analyzing the job description...</p>
+                  <p className="text-sm text-muted-foreground">{t('interviewPrep.text5')}</p>
                 </CardContent>
               </Card>
             ) : aiPrep ? (
@@ -312,7 +310,7 @@ export default function InterviewPrep() {
                 {/* Key Themes */}
                 {aiPrep.keyThemesToEmphasize?.length > 0 && (
                   <div className="glass-subtle rounded-xl p-4">
-                    <h3 className="text-xs uppercase tracking-wider text-muted-foreground mb-2">Key themes to emphasize</h3>
+                    <h3 className="text-xs uppercase tracking-wider text-muted-foreground mb-2">{t('interviewPrep.text6')}</h3>
                     <div className="flex flex-wrap gap-2">
                       {aiPrep.keyThemesToEmphasize.map((theme, i) => (
                         <Badge key={i} variant="secondary" className="text-xs">{theme}</Badge>
@@ -324,7 +322,7 @@ export default function InterviewPrep() {
                 {/* Company Insights */}
                 {aiPrep.companyInsights && (
                   <div className="glass-subtle rounded-xl p-4">
-                    <h3 className="text-xs uppercase tracking-wider text-muted-foreground mb-2">Company insights</h3>
+                    <h3 className="text-xs uppercase tracking-wider text-muted-foreground mb-2">{t('interviewPrep.text7')}</h3>
                     <p className="text-sm">{aiPrep.companyInsights}</p>
                   </div>
                 )}
@@ -348,8 +346,8 @@ export default function InterviewPrep() {
                       {questions.map((q, idx) => (
                         <div key={idx} className="p-3 rounded-lg bg-muted/20 border border-border/20 space-y-2">
                           <p className="text-sm font-medium">{q.question}</p>
-                          <p className="text-xs text-muted-foreground"><span className="font-medium">Why they ask:</span> {q.why}</p>
-                          <p className="text-xs text-primary/80"><span className="font-medium">Tip:</span> {q.tip}</p>
+                          <p className="text-xs text-muted-foreground"><span className="font-medium">{t('interviewPrep.text8')}</span> {q.why}</p>
+                          <p className="text-xs text-primary/80"><span className="font-medium">{t('interviewPrep.text9')}</span> {q.tip}</p>
                         </div>
                       ))}
                     </CardContent>
@@ -364,8 +362,8 @@ export default function InterviewPrep() {
             ) : (
               <Card className="border border-border/50">
                 <CardContent className="py-8 text-center">
-                  <p className="text-sm text-muted-foreground mb-3">Could not load AI questions</p>
-                  <Button variant="outline" size="sm" onClick={generateAiPrep}>Try Again</Button>
+                  <p className="text-sm text-muted-foreground mb-3">{t('interviewPrep.text10')}</p>
+                  <Button variant="outline" size="sm" onClick={generateAiPrep}>{t('interviewPrep.text11')}</Button>
                 </CardContent>
               </Card>
             )}
@@ -377,7 +375,7 @@ export default function InterviewPrep() {
               <Card className="border border-border/50">
                 <CardContent className="py-12 text-center">
                   <Loader2 className="w-8 h-8 animate-spin mx-auto text-muted-foreground mb-3" />
-                  <p className="text-sm text-muted-foreground">Generating smart questions...</p>
+                  <p className="text-sm text-muted-foreground">{t('interviewPrep.text12')}</p>
                 </CardContent>
               </Card>
             ) : aiPrep?.smartQuestionsToAsk ? (
@@ -387,16 +385,14 @@ export default function InterviewPrep() {
                     <HelpCircle className="w-4 h-4" />
                     7 Smart Questions to Ask
                   </CardTitle>
-                  <CardDescription>
-                    Impress your interviewer with thoughtful, role-specific questions
-                  </CardDescription>
+                  <CardDescription>{t('text.interviewprep.impressYourInterviewerWithThoughtfulRolespecific', 'Impress your interviewer with thoughtful, role-specific questions')}</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   {aiPrep.smartQuestionsToAsk.map((q, idx) => (
                     <div key={idx} className="p-3 rounded-lg bg-muted/20 border border-border/20">
                       <p className="text-sm font-medium mb-1">{q.question}</p>
                       <p className="text-xs text-muted-foreground">
-                        <span className="font-medium">What it reveals:</span> {q.insight}
+                        <span className="font-medium">{t('interviewPrep.text13')}</span> {q.insight}
                       </p>
                     </div>
                   ))}
@@ -405,7 +401,7 @@ export default function InterviewPrep() {
             ) : (
               <Card className="border border-border/50">
                 <CardContent className="py-8 text-center">
-                  <p className="text-sm text-muted-foreground">Select an application to generate questions</p>
+                  <p className="text-sm text-muted-foreground">{t('interviewPrep.text14')}</p>
                 </CardContent>
               </Card>
             )}
@@ -419,9 +415,7 @@ export default function InterviewPrep() {
                   <Star className="w-4 h-4" />
                   STAR Method Builder
                 </CardTitle>
-                <CardDescription>
-                  Structure your behavioral interview answers
-                </CardDescription>
+                <CardDescription>{t('text.interviewprep.structureYourBehavioralInterviewAnswers', 'Structure your behavioral interview answers')}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 {(['situation', 'task', 'action', 'result'] as const).map((field) => (
@@ -460,7 +454,7 @@ export default function InterviewPrep() {
               jobTitle={selectedApp.job.title}
               companyName={selectedApp.job.company.name}
               onBookingComplete={() => {
-                toast.success("Interview scheduled");
+                toast.success(t('text.interviewprep.interviewScheduled', 'Interview scheduled'));
               }}
             />
           </TabsContent>

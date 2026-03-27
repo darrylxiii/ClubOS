@@ -3,6 +3,7 @@ import { motion, useSpring, useTransform, AnimatePresence } from '@/lib/motion';
 import { TrendingUp, TrendingDown, Sparkles, Target, Trophy, Flame, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
+import { useTranslation } from 'react-i18next';
 
 interface RevenueLadderHeroProps {
   currentRevenue: number;
@@ -16,6 +17,7 @@ interface RevenueLadderHeroProps {
 }
 
 function AnimatedDigits({ value }: { value: number }) {
+  const { t } = useTranslation('common');
   const spring = useSpring(0, { stiffness: 30, damping: 20 });
   const [displayValue, setDisplayValue] = useState('€0');
 

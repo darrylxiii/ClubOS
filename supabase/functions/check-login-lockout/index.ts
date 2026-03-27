@@ -1,5 +1,4 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { getAuthCorsHeaders, authCorsPreFlight } from "../_shared/auth-cors.ts";
+import { createHandler } from '../_shared/handler.ts';
 
 // Progressive lockout delays (in seconds)
 const LOCKOUT_THRESHOLDS = [
@@ -18,27 +17,15 @@ const IP_LOCKOUT_THRESHOLDS = [
 
 const LOCKOUT_WINDOW_MINUTES = 60;
 
-Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return authCorsPreFlight(req);
-  }
-
-  const corsHeaders = getAuthCorsHeaders(req);
-
-  try {
+Deno.serve(createHandler(async (req, ctx) => {
     const { email, action, success: loginSuccess } = await req.json();
 
     if (!email) {
       return new Response(
         JSON.stringify({ error: 'Email is required' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 400, headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
-
-    const supabaseAdmin = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    );
 
     const ipAddress = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || req.headers.get('x-real-ip') || 'unknown';
     const userAgent = req.headers.get('user-agent') || 'unknown';
@@ -47,14 +34,14 @@ Deno.serve(async (req) => {
       const windowStart = new Date(Date.now() - LOCKOUT_WINDOW_MINUTES * 60 * 1000).toISOString();
 
       const [emailResult, ipResult] = await Promise.all([
-        supabaseAdmin
+        ctx.supabase
           .from('login_attempts')
           .select('*')
           .eq('email', email.toLowerCase())
           .eq('success', false)
           .gte('created_at', windowStart)
           .order('created_at', { ascending: false }),
-        supabaseAdmin
+        ctx.supabase
           .from('login_attempts')
           .select('*')
           .eq('ip_address', ipAddress)
@@ -67,7 +54,7 @@ Deno.serve(async (req) => {
         console.error('[check-login-lockout] Error fetching attempts:', emailResult.error);
         return new Response(
           JSON.stringify({ locked: false, attempts: 0 }),
-          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          { status: 200, headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
 
@@ -89,17 +76,17 @@ Deno.serve(async (req) => {
             unlock_at: strictest.unlockAt,
             message: `Too many failed attempts. Try again in ${formatDuration(strictest.remainingSeconds || 0)}.`
           }),
-          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          { status: 200, headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
 
       return new Response(
         JSON.stringify({ locked: false, attempts: emailAttempts }),
-        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 200, headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } }
       );
 
     } else if (action === 'record') {
-      const { error: insertError } = await supabaseAdmin
+      const { error: insertError } = await ctx.supabase
         .from('login_attempts')
         .insert({
           email: email.toLowerCase(),
@@ -113,7 +100,7 @@ Deno.serve(async (req) => {
       }
 
       if (loginSuccess) {
-        await supabaseAdmin
+        await ctx.supabase
           .from('login_attempts')
           .delete()
           .eq('email', email.toLowerCase())
@@ -122,25 +109,16 @@ Deno.serve(async (req) => {
 
       return new Response(
         JSON.stringify({ recorded: true }),
-        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 200, headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } }
       );
 
     } else {
       return new Response(
         JSON.stringify({ error: 'Invalid action' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 400, headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
-
-  } catch (error) {
-    console.error('[check-login-lockout] Error:', error);
-    const corsHeaders = getAuthCorsHeaders(req);
-    return new Response(
-      JSON.stringify({ locked: false, error: 'Check failed' }),
-      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-  }
-});
+}));
 
 interface LockoutResult {
   locked: boolean;

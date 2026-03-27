@@ -6,12 +6,14 @@ import {
   AlertTriangle, CheckCircle2 
 } from "lucide-react";
 import { useFieldPermissions } from "@/hooks/useFieldPermissions";
+import { useTranslation } from 'react-i18next';
 
 interface Props {
   candidate: any;
 }
 
 export const CandidateWorkAuthCard = ({ candidate }: Props) => {
+  const { t } = useTranslation('partner');
   const { canEditField } = useFieldPermissions();
   const workAuth = candidate.work_authorization || {};
   const hasWorkAuth = Object.keys(workAuth).length > 0;
@@ -55,19 +57,19 @@ export const CandidateWorkAuthCard = ({ candidate }: Props) => {
                   {workAuth.sponsorship_required ? (
                     <>
                       <AlertTriangle className="w-4 h-4 text-amber-600" />
-                      <span className="text-sm">Requires sponsorship</span>
+                      <span className="text-sm">{t('candidateWorkAuthCard.requiresSponsorship')}</span>
                     </>
                   ) : (
                     <>
                       <CheckCircle2 className="w-4 h-4 text-green-600" />
-                      <span className="text-sm">No sponsorship required</span>
+                      <span className="text-sm">{t('candidateWorkAuthCard.noSponsorshipRequired')}</span>
                     </>
                   )}
                 </div>
               )}
             </>
           ) : (
-            <p className="text-sm text-muted-foreground">No work authorization data available</p>
+            <p className="text-sm text-muted-foreground">{t('candidateWorkAuthCard.noWorkAuthorizationDataAvailable')}</p>
           )}
         </CardContent>
       </Card>

@@ -11,13 +11,8 @@
  * Returns: { predictions: [...], model_version, shap_explanations }
  */
 
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.58.0';
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { createHandler } from '../_shared/handler.ts';
+import { SupabaseClient } from 'npm:@supabase/supabase-js@2';
 
 interface MatchRequest {
   job_id: string;
@@ -34,26 +29,19 @@ interface Prediction {
   predicted_time_to_hire_days: number;
   rank_position: number;
   shap_values: ShapExplanation[];
-  features_used: Record<string, any>;
+  features_used: Record<string, unknown>;
 }
 
 interface ShapExplanation {
   feature_name: string;
-  feature_value: any;
+  feature_value: unknown;
   shap_value: number;
   impact_direction: 'positive' | 'negative';
   human_readable: string;
 }
 
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
-  }
-
-  try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+Deno.serve(createHandler(async (req, ctx) => {
+    const { supabase, corsHeaders } = ctx;
 
     const { job_id, candidate_ids, limit = 50, ab_test_id }: MatchRequest = await req.json();
 
@@ -91,7 +79,7 @@ serve(async (req) => {
       if (embeddingError) {
         console.error('[ML Match] Failed to generate job embedding:', embeddingError);
         // Fall back to rule-based matching with default version
-        return await fallbackRuleBasedMatching(supabase, job_id, candidate_ids, limit, 1);
+        return await fallbackRuleBasedMatching(supabase, job_id, candidate_ids, limit, 1, corsHeaders);
       }
 
       // Fetch the job again with the new embedding
@@ -119,7 +107,7 @@ serve(async (req) => {
     console.log(`[ML Match] Using model version: ${modelVersion} (${activeModel?.model_type || 'vector_search'})`);
 
     // === VECTOR SEARCH: Semantic Matching ===
-    let candidateMatches: any[] = [];
+    let candidateMatches: Array<{ profile_id: string; similarity: number }> = [];
 
     if (job.embedding && (!candidate_ids || candidate_ids.length === 0)) {
       // Use vector similarity search to find best matches
@@ -133,7 +121,7 @@ serve(async (req) => {
       if (vectorError) {
         console.error('[ML Match] Vector search error:', vectorError);
         // Fall back to rule-based
-        return await fallbackRuleBasedMatching(supabase, job_id, candidate_ids, limit, modelVersion);
+        return await fallbackRuleBasedMatching(supabase, job_id, candidate_ids, limit, modelVersion, corsHeaders);
       }
 
       candidateMatches = vectorMatches || [];
@@ -194,7 +182,7 @@ serve(async (req) => {
         // Calculate derived metrics
         const interviewProbability = hybridScore * 0.45; // ~45% of good matches get interviews
         const baseTimeToHire = 35;
-        const urgencyFactor = features.job_is_urgent ? 0.7 : 1.0;
+        const urgencyFactor = (features.job_is_urgent as boolean) ? 0.7 : 1.0;
         const experienceFactor = features.experience_years_match > 0.8 ? 0.9 : 1.1;
         const predictedTimeToHire = Math.round(baseTimeToHire * urgencyFactor * experienceFactor);
 
@@ -260,19 +248,11 @@ serve(async (req) => {
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
-  } catch (error) {
-    console.error('[ML Match] Error:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    return new Response(
-      JSON.stringify({ error: errorMessage }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-  }
-});
+}));
 
 // === FEATURE-BASED SCORING ===
 // Calculates a 0-1 score from engineered features
-function calculateFeatureScore(features: any): number {
+function calculateFeatureScore(features: Record<string, unknown>): number {
   const weights = {
     skills_match: 0.30,
     experience_match: 0.25,
@@ -284,13 +264,13 @@ function calculateFeatureScore(features: any): number {
 
   let score = 0;
 
-  score += (features.skills_match_percentage || 0) * weights.skills_match;
-  score += (features.experience_years_match || 0) * weights.experience_match;
-  score += (features.salary_in_range || 0.5) * weights.salary_match;
-  score += (features.location_remote_compatible || 0.5) * weights.location_match;
-  score += (features.candidate_profile_completeness || 0.5) * weights.profile_quality;
+  score += ((features.skills_match_percentage as number) || 0) * weights.skills_match;
+  score += ((features.experience_years_match as number) || 0) * weights.experience_match;
+  score += ((features.salary_in_range as number) || 0.5) * weights.salary_match;
+  score += ((features.location_remote_compatible as number) || 0.5) * weights.location_match;
+  score += ((features.candidate_profile_completeness as number) || 0.5) * weights.profile_quality;
 
-  const daysInactive = features.candidate_last_active_days_ago || 30;
+  const daysInactive = (features.candidate_last_active_days_ago as number) || 30;
   const activityScore = Math.max(0, 1 - (daysInactive / 90));
   score += activityScore * weights.activity_level;
 
@@ -299,11 +279,12 @@ function calculateFeatureScore(features: any): number {
 
 // === FALLBACK: Rule-Based Matching ===
 async function fallbackRuleBasedMatching(
-  supabase: any,
+  supabase: SupabaseClient,
   job_id: string,
   candidate_ids: string[] | undefined,
   limit: number,
-  modelVersion: number
+  modelVersion: number,
+  corsHeaders: Record<string, string>
 ) {
   console.log('[ML Match] Using fallback rule-based matching');
 
@@ -371,7 +352,7 @@ async function fallbackRuleBasedMatching(
 
 // === BASELINE PREDICTION MODEL ===
 // Weighted scoring algorithm (will be replaced by trained ML model)
-function calculateBaselinePrediction(features: any): {
+function calculateBaselinePrediction(features: Record<string, unknown>): {
   prediction_score: number;
   interview_probability: number;
   predicted_time_to_hire_days: number;
@@ -391,32 +372,32 @@ function calculateBaselinePrediction(features: any): {
   let score = 0;
 
   // Skills match (0-1)
-  const skillsScore = features.skills_match_percentage || 0;
+  const skillsScore = (features.skills_match_percentage as number) || 0;
   score += skillsScore * weights.skills_match;
 
   // Experience match (0-1)
-  const experienceScore = features.experience_years_match || 0;
+  const experienceScore = (features.experience_years_match as number) || 0;
   score += experienceScore * weights.experience_match;
 
   // Salary match (0-1)
-  const salaryScore = features.salary_in_range || 0.5;
+  const salaryScore = (features.salary_in_range as number) || 0.5;
   score += salaryScore * weights.salary_match;
 
   // Location match (0-1)
-  const locationScore = features.location_remote_compatible || 0.5;
+  const locationScore = (features.location_remote_compatible as number) || 0.5;
   score += locationScore * weights.location_match;
 
   // Profile quality (0-1)
-  const profileScore = features.candidate_profile_completeness || 0.5;
+  const profileScore = (features.candidate_profile_completeness as number) || 0.5;
   score += profileScore * weights.profile_quality;
 
   // Activity level (inverse of days since active, normalized)
-  const daysInactive = features.candidate_last_active_days_ago || 30;
+  const daysInactive = (features.candidate_last_active_days_ago as number) || 30;
   const activityScore = Math.max(0, 1 - (daysInactive / 90));
   score += activityScore * weights.activity_level;
 
   // Job attractiveness (0-1)
-  const jobScore = features.job_attractiveness_score || 0.5;
+  const jobScore = (features.job_attractiveness_score as number) || 0.5;
   score += jobScore * weights.job_attractiveness;
 
   // Normalize to 0-1 range
@@ -427,7 +408,7 @@ function calculateBaselinePrediction(features: any): {
 
   // Predicted time to hire (based on historical averages)
   const baseTimeToHire = 35; // days
-  const urgencyFactor = features.job_is_urgent ? 0.7 : 1.0;
+  const urgencyFactor = (features.job_is_urgent as boolean) ? 0.7 : 1.0;
   const experienceFactor = experienceScore > 0.8 ? 0.9 : 1.1;
   const predictedTimeToHire = Math.round(baseTimeToHire * urgencyFactor * experienceFactor);
 
@@ -439,11 +420,11 @@ function calculateBaselinePrediction(features: any): {
 }
 
 // Generate human-readable SHAP-like explanations
-function generateShapExplanations(features: any, score: number): ShapExplanation[] {
+function generateShapExplanations(features: Record<string, unknown>, score: number): ShapExplanation[] {
   const explanations: ShapExplanation[] = [];
 
   // Skills match
-  const skillsMatch = features.skills_match_percentage || 0;
+  const skillsMatch = (features.skills_match_percentage as number) || 0;
   const skillsImpact = skillsMatch * 0.35;
   if (skillsMatch > 0) {
     explanations.push({
@@ -456,23 +437,23 @@ function generateShapExplanations(features: any, score: number): ShapExplanation
   }
 
   // Experience match
-  const experienceMatch = features.experience_years_match || 0;
+  const experienceMatch = (features.experience_years_match as number) || 0;
   const experienceImpact = experienceMatch * 0.25;
   if (experienceMatch !== 0) {
     explanations.push({
       feature_name: 'experience_years_match',
-      feature_value: features.candidate_years_experience,
+      feature_value: features.candidate_years_experience as number,
       shap_value: experienceImpact,
       impact_direction: experienceMatch > 0.5 ? 'positive' : 'negative',
-      human_readable: `${features.candidate_years_experience || 0} years experience ${experienceMatch > 0.8 ? '(perfect fit)' : experienceMatch < 0.3 ? '(underqualified)' : ''
+      human_readable: `${(features.candidate_years_experience as number) || 0} years experience ${experienceMatch > 0.8 ? '(perfect fit)' : experienceMatch < 0.3 ? '(underqualified)' : ''
         }`,
     });
   }
 
   // Salary match
-  const salaryMatch = features.salary_in_range || 0;
+  const salaryMatch = (features.salary_in_range as number) || 0;
   const salaryImpact = salaryMatch * 0.15;
-  if (features.candidate_expected_salary) {
+  if (features.candidate_expected_salary as number) {
     explanations.push({
       feature_name: 'salary_in_range',
       feature_value: salaryMatch,
@@ -485,7 +466,7 @@ function generateShapExplanations(features: any, score: number): ShapExplanation
   }
 
   // Location/remote
-  const locationMatch = features.location_remote_compatible || 0;
+  const locationMatch = (features.location_remote_compatible as number) || 0;
   const locationImpact = locationMatch * 0.10;
   if (locationMatch !== 0.5) {
     explanations.push({
@@ -500,7 +481,7 @@ function generateShapExplanations(features: any, score: number): ShapExplanation
   }
 
   // Profile quality
-  const profileQuality = features.candidate_profile_completeness || 0;
+  const profileQuality = (features.candidate_profile_completeness as number) || 0;
   const profileImpact = profileQuality * 0.08;
   explanations.push({
     feature_name: 'profile_quality_score',
@@ -518,7 +499,7 @@ function generateShapExplanations(features: any, score: number): ShapExplanation
 }
 
 // Generate human-readable explanations for hybrid model
-function generateHybridExplanations(features: any, vectorScore: number, featureScore: number, hybridScore: number): ShapExplanation[] {
+function generateHybridExplanations(features: Record<string, unknown>, vectorScore: number, featureScore: number, hybridScore: number): ShapExplanation[] {
   const explanations: ShapExplanation[] = [];
 
   // Vector similarity (most important in hybrid model)
@@ -531,50 +512,50 @@ function generateHybridExplanations(features: any, vectorScore: number, featureS
   });
 
   // Skills match
-  const skillsMatch = features.skills_match_percentage || 0;
-  if (skillsMatch > 0) {
+  const skillsMatch2 = (features.skills_match_percentage as number) || 0;
+  if (skillsMatch2 > 0) {
     explanations.push({
       feature_name: 'skills_match_percentage',
-      feature_value: Math.round(skillsMatch * 100),
-      shap_value: skillsMatch * 0.12, // 30% of 40% feature weight
-      impact_direction: skillsMatch > 0.5 ? 'positive' : 'negative',
-      human_readable: `${Math.round(skillsMatch * 100)}% required skills match`,
+      feature_value: Math.round(skillsMatch2 * 100),
+      shap_value: skillsMatch2 * 0.12, // 30% of 40% feature weight
+      impact_direction: skillsMatch2 > 0.5 ? 'positive' : 'negative',
+      human_readable: `${Math.round(skillsMatch2 * 100)}% required skills match`,
     });
   }
 
   // Experience match
-  const experienceMatch = features.experience_years_match || 0;
+  const experienceMatch2 = (features.experience_years_match as number) || 0;
   explanations.push({
     feature_name: 'experience_years_match',
-    feature_value: features.candidate_years_experience,
-    shap_value: experienceMatch * 0.10, // 25% of 40% feature weight
-    impact_direction: experienceMatch > 0.5 ? 'positive' : 'negative',
-    human_readable: `${features.candidate_years_experience || 0} years experience ${experienceMatch > 0.8 ? '(perfect fit)' : experienceMatch < 0.3 ? '(underqualified)' : ''
+    feature_value: features.candidate_years_experience as number,
+    shap_value: experienceMatch2 * 0.10, // 25% of 40% feature weight
+    impact_direction: experienceMatch2 > 0.5 ? 'positive' : 'negative',
+    human_readable: `${(features.candidate_years_experience as number) || 0} years experience ${experienceMatch2 > 0.8 ? '(perfect fit)' : experienceMatch2 < 0.3 ? '(underqualified)' : ''
       }`,
   });
 
   // Location/remote
-  const locationMatch = features.location_remote_compatible || 0;
-  if (locationMatch !== 0.5) {
+  const locationMatch2 = (features.location_remote_compatible as number) || 0;
+  if (locationMatch2 !== 0.5) {
     explanations.push({
       feature_name: 'location_remote_compatible',
-      feature_value: locationMatch,
-      shap_value: locationMatch * 0.06, // 15% of 40% feature weight
-      impact_direction: locationMatch > 0.5 ? 'positive' : 'negative',
-      human_readable: locationMatch > 0.5
+      feature_value: locationMatch2,
+      shap_value: locationMatch2 * 0.06, // 15% of 40% feature weight
+      impact_direction: locationMatch2 > 0.5 ? 'positive' : 'negative',
+      human_readable: locationMatch2 > 0.5
         ? 'Remote/location compatible'
         : 'Location mismatch',
     });
   }
 
   // Profile quality
-  const profileQuality = features.candidate_profile_completeness || 0;
+  const profileQuality2 = (features.candidate_profile_completeness as number) || 0;
   explanations.push({
     feature_name: 'profile_quality_score',
-    feature_value: Math.round(profileQuality * 100),
-    shap_value: profileQuality * 0.04, // 10% of 40% feature weight
-    impact_direction: profileQuality > 0.7 ? 'positive' : 'negative',
-    human_readable: `${Math.round(profileQuality * 100)}% profile completeness`,
+    feature_value: Math.round(profileQuality2 * 100),
+    shap_value: profileQuality2 * 0.04, // 10% of 40% feature weight
+    impact_direction: profileQuality2 > 0.7 ? 'positive' : 'negative',
+    human_readable: `${Math.round(profileQuality2 * 100)}% profile completeness`,
   });
 
   // Sort by absolute impact

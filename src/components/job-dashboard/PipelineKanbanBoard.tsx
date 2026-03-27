@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Plus, Search } from "lucide-react";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { useDebounce } from "@/hooks/use-debounce";
+import { useTranslation } from 'react-i18next';
 
 interface PipelineKanbanBoardProps {
   stages: any[];
@@ -25,6 +26,7 @@ export const PipelineKanbanBoard = memo(({
   onRejectCandidate,
   onViewProfile,
 }: PipelineKanbanBoardProps) => {
+  const { t } = useTranslation('jobs');
   const [searchQuery, setSearchQuery] = useState('');
   const debouncedSearch = useDebounce(searchQuery, 250);
 

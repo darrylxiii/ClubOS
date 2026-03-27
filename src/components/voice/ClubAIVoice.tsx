@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Sparkles, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -9,6 +10,7 @@ import { motion, AnimatePresence } from '@/lib/motion';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 export const ClubAIVoice = () => {
+  const { t } = useTranslation('common');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   
@@ -153,7 +155,7 @@ export const ClubAIVoice = () => {
             </motion.div>
           </TooltipTrigger>
           <TooltipContent side="left" className="flex items-center gap-2">
-            <span>ClubAI Voice</span>
+            <span>{t('voice.clubAIVoice')}</span>
             <kbd className="px-1.5 py-0.5 text-[10px] bg-muted rounded">⌘⇧V</kbd>
           </TooltipContent>
         </Tooltip>
@@ -168,8 +170,8 @@ export const ClubAIVoice = () => {
               className="absolute right-full mr-3 top-1/2 -translate-y-1/2 whitespace-nowrap"
             >
               <div className="px-3 py-2 bg-card/95 backdrop-blur-sm border border-border/40 rounded-lg shadow-lg">
-                <p className="text-sm font-medium text-foreground">Talk to ClubAI</p>
-                <p className="text-xs text-muted-foreground">Voice-powered assistant</p>
+                <p className="text-sm font-medium text-foreground">{t('voice.talkToClubAI')}</p>
+                <p className="text-xs text-muted-foreground">{t('voice.voicepoweredAssistant')}</p>
               </div>
             </motion.div>
           )}

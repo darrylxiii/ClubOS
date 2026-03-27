@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -25,6 +26,7 @@ interface TeamMember {
 }
 
 export function KPIOwnershipManager() {
+  const { t } = useTranslation('common');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDomain, setSelectedDomain] = useState<string>('all');
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
@@ -171,7 +173,7 @@ export function KPIOwnershipManager() {
           <CardContent className="pt-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Total KPIs</p>
+                <p className="text-sm text-muted-foreground">{t("total_kpis", "Total KPIs")}</p>
                 <p className="text-2xl font-bold">{stats.total}</p>
               </div>
               <Users className="h-8 w-8 text-muted-foreground/30" />
@@ -182,7 +184,7 @@ export function KPIOwnershipManager() {
           <CardContent className="pt-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Assigned</p>
+                <p className="text-sm text-muted-foreground">{t("assigned", "Assigned")}</p>
                 <p className="text-2xl font-bold text-emerald-600">{stats.assigned}</p>
               </div>
               <UserCheck className="h-8 w-8 text-emerald-500/30" />
@@ -193,7 +195,7 @@ export function KPIOwnershipManager() {
           <CardContent className="pt-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Unassigned</p>
+                <p className="text-sm text-muted-foreground">{t("unassigned", "Unassigned")}</p>
                 <p className="text-2xl font-bold text-amber-600">{stats.unassigned}</p>
               </div>
               <User className="h-8 w-8 text-amber-500/30" />
@@ -204,7 +206,7 @@ export function KPIOwnershipManager() {
           <CardContent className="pt-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Overdue Reviews</p>
+                <p className="text-sm text-muted-foreground">{t("overdue_reviews", "Overdue Reviews")}</p>
                 <p className="text-2xl font-bold text-rose-600">{stats.overdueReviews}</p>
               </div>
               <Clock className="h-8 w-8 text-rose-500/30" />
@@ -216,15 +218,15 @@ export function KPIOwnershipManager() {
       {/* Filters */}
       <Card className="bg-card/50">
         <CardHeader className="pb-3">
-          <CardTitle className="text-lg">KPI Ownership Assignment</CardTitle>
-          <CardDescription>Assign owners to KPIs for accountability and review tracking</CardDescription>
+          <CardTitle className="text-lg">{t("kpi_ownership_assignment", "KPI Ownership Assignment")}</CardTitle>
+          <CardDescription>{t("assign_owners_to_kpis", "Assign owners to KPIs for accountability and review tracking")}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex gap-4 mb-4">
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search KPIs..."
+                placeholder={t("search_kpis", "Search KPIs...")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-9"
@@ -232,10 +234,10 @@ export function KPIOwnershipManager() {
             </div>
             <Select value={selectedDomain} onValueChange={setSelectedDomain}>
               <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Filter by domain" />
+                <SelectValue placeholder={t("filter_by_domain", "Filter by domain")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Domains</SelectItem>
+                <SelectItem value="all">{t("all_domains", "All Domains")}</SelectItem>
                 {domains.map(domain => (
                   <SelectItem key={domain} value={domain}>
                     {domain.charAt(0).toUpperCase() + domain.slice(1)}
@@ -306,20 +308,20 @@ export function KPIOwnershipManager() {
       <Dialog open={assignDialogOpen} onOpenChange={setAssignDialogOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Assign KPI Owner</DialogTitle>
+            <DialogTitle>{t("assign_kpi_owner", "Assign KPI Owner")}</DialogTitle>
             <DialogDescription>
               {selectedKPI?.displayName}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label>Primary Owner</Label>
+              <Label>{t("primary_owner", "Primary Owner")}</Label>
               <Select value={selectedOwner || "__none__"} onValueChange={(v) => setSelectedOwner(v === "__none__" ? "" : v)}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select owner..." />
+                  <SelectValue placeholder={t("select_owner", "Select owner...")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="__none__">No owner</SelectItem>
+                  <SelectItem value="__none__">{t("no_owner", "No owner")}</SelectItem>
                   {teamMembers?.map(member => (
                     <SelectItem key={member.id} value={member.id}>
                       <div className="flex items-center gap-2">
@@ -341,13 +343,13 @@ export function KPIOwnershipManager() {
             </div>
 
             <div className="space-y-2">
-              <Label>Backup Owner (Optional)</Label>
+              <Label>{t("backup_owner_optional", "Backup Owner (Optional)")}</Label>
               <Select value={selectedBackup || "__none__"} onValueChange={(v) => setSelectedBackup(v === "__none__" ? "" : v)}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select backup..." />
+                  <SelectValue placeholder={t("select_backup", "Select backup...")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="__none__">No backup</SelectItem>
+                  <SelectItem value="__none__">{t("no_backup", "No backup")}</SelectItem>
                   {teamMembers?.filter(m => m.id !== selectedOwner).map(member => (
                     <SelectItem key={member.id} value={member.id}>
                       <div className="flex items-center gap-2">
@@ -366,16 +368,16 @@ export function KPIOwnershipManager() {
             </div>
 
             <div className="space-y-2">
-              <Label>Review Frequency</Label>
+              <Label>{t("review_frequency", "Review Frequency")}</Label>
               <Select value={reviewFrequency} onValueChange={setReviewFrequency}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="daily">Daily</SelectItem>
-                  <SelectItem value="weekly">Weekly</SelectItem>
-                  <SelectItem value="biweekly">Bi-weekly</SelectItem>
-                  <SelectItem value="monthly">Monthly</SelectItem>
+                  <SelectItem value="daily">{t("daily", "Daily")}</SelectItem>
+                  <SelectItem value="weekly">{t("weekly", "Weekly")}</SelectItem>
+                  <SelectItem value="biweekly">{t("biweekly", "Bi-weekly")}</SelectItem>
+                  <SelectItem value="monthly">{t("monthly", "Monthly")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>

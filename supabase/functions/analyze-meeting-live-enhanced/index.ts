@@ -1,9 +1,4 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { createHandler } from '../_shared/handler.ts';
 
 interface TranscriptSegment {
   speaker: string;
@@ -19,15 +14,9 @@ interface EngagementSample {
   speaking_detected: boolean;
 }
 
-Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+Deno.serve(createHandler(async (req, ctx) => {
+    const corsHeaders = ctx.corsHeaders;
+    const supabase = ctx.supabase;
 
     const { meetingId, transcriptSegments, participants } = await req.json();
 
@@ -134,14 +123,7 @@ Deno.serve(async (req) => {
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
-  } catch (error) {
-    console.error('[analyze-meeting-live-enhanced] Error:', error);
-    return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
-    );
-  }
-});
+}));
 
 async function analyzeTranscript(segments: TranscriptSegment[], participants: any[]) {
   if (segments.length === 0) {

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -51,6 +52,7 @@ export const ProfileTab = ({
   setProfileData,
   debouncedSave,
 }: ProfileTabProps) => {
+  const { t } = useTranslation('settings');
   return (
     <div className="space-y-6">
       {/* Personal Information */}
@@ -58,9 +60,9 @@ export const ProfileTab = ({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <User className="w-5 h-5 text-accent" />
-            Personal Information
+            {t('profile.personalInfo')}
           </CardTitle>
-          <CardDescription>Update your personal details</CardDescription>
+          <CardDescription>{t('profile.personalInfoDesc')}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {user && (
@@ -76,7 +78,7 @@ export const ProfileTab = ({
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="firstName">First Name</Label>
+              <Label htmlFor="firstName">{t('profile.firstName')}</Label>
               <Input
                 id="firstName"
                 name="firstName"
@@ -86,7 +88,7 @@ export const ProfileTab = ({
               />
             </div>
             <div>
-              <Label htmlFor="lastName">Last Name</Label>
+              <Label htmlFor="lastName">{t('profile.lastName')}</Label>
               <Input
                 id="lastName"
                 name="lastName"
@@ -113,14 +115,14 @@ export const ProfileTab = ({
           </div>
 
           <div>
-            <Label htmlFor="location">Current Location</Label>
+            <Label htmlFor="location">{t('profile.currentLocation')}</Label>
             <LocationAutocomplete
               value={profileData.location}
               onChange={(value) => {
                 setProfileData({ ...profileData, location: value });
                 debouncedSave();
               }}
-              placeholder="Type to search cities worldwide..."
+              placeholder={t('profile.searchCitiesPlaceholder')}
               className="bg-background/50"
             />
           </div>
@@ -132,13 +134,13 @@ export const ProfileTab = ({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Briefcase className="w-5 h-5 text-accent" />
-            Professional Details
+            {t('profile.professionalDetails')}
           </CardTitle>
-          <CardDescription>Your career information</CardDescription>
+          <CardDescription>{t('profile.careerInfo')}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <Label htmlFor="currentTitle">Current Title</Label>
+            <Label htmlFor="currentTitle">{t('profile.currentTitle')}</Label>
             <Input
               id="currentTitle"
               name="currentTitle"
@@ -149,7 +151,7 @@ export const ProfileTab = ({
           </div>
 
           <div>
-            <Label htmlFor="linkedin">LinkedIn Profile</Label>
+            <Label htmlFor="linkedin">{t('profile.linkedinProfile')}</Label>
             <Input
               id="linkedin"
               name="linkedin"
@@ -162,13 +164,13 @@ export const ProfileTab = ({
           </div>
 
           <div>
-            <Label htmlFor="preferences">Career Preferences</Label>
+            <Label htmlFor="preferences">{t('profile.careerPreferences')}</Label>
             <Textarea
               id="preferences"
               name="preferences"
               value={profileData.preferences}
               onChange={handleInputChange}
-              placeholder="e.g., Remote work, specific industries, company size..."
+              placeholder={t('profile.careerPreferencesPlaceholder')}
               rows={4}
               className="bg-background/50 resize-none"
             />

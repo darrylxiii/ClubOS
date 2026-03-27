@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Monitor, Smartphone, Tablet, Globe, Clock, Users } from "lucide-react";
+import { useTranslation } from 'react-i18next';
 
 export default function RealTimeActivityTab() {
   const { data: liveData } = useQuery({
@@ -70,6 +71,7 @@ export default function RealTimeActivityTab() {
   });
 
   const getDeviceIcon = (device: string) => {
+  const { t } = useTranslation('admin');
     switch (device) {
       case 'mobile': return <Smartphone className="h-4 w-4" />;
       case 'tablet': return <Tablet className="h-4 w-4" />;
@@ -85,7 +87,7 @@ export default function RealTimeActivityTab() {
             <Globe className="h-5 w-5 text-green-500" />
             Active Sessions
           </CardTitle>
-          <CardDescription>Users currently browsing (last 5 minutes)</CardDescription>
+          <CardDescription>{t('activity.realTimeActivityTab.usersCurrentlyBrowsingLast5Minutes')}</CardDescription>
         </CardHeader>
         <CardContent>
           {liveData?.activeSessions && liveData.activeSessions.length > 0 ? (
@@ -117,7 +119,7 @@ export default function RealTimeActivityTab() {
               ))}
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground">No active sessions</p>
+            <p className="text-sm text-muted-foreground">{t('activity.realTimeActivityTab.noActiveSessions')}</p>
           )}
         </CardContent>
       </Card>
@@ -128,7 +130,7 @@ export default function RealTimeActivityTab() {
             <Monitor className="h-5 w-5 text-blue-500" />
             Device Breakdown
           </CardTitle>
-          <CardDescription>Events by device type (last 5 minutes)</CardDescription>
+          <CardDescription>{t('activity.realTimeActivityTab.eventsByDeviceTypeLast5')}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -147,8 +149,8 @@ export default function RealTimeActivityTab() {
 
       <Card className="md:col-span-2">
         <CardHeader>
-          <CardTitle>Recent Events</CardTitle>
-          <CardDescription>Latest user interactions</CardDescription>
+          <CardTitle>{t('activity.realTimeActivityTab.recentEvents')}</CardTitle>
+          <CardDescription>{t('activity.realTimeActivityTab.latestUserInteractions')}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-2 max-h-96 overflow-y-auto">
@@ -184,7 +186,7 @@ export default function RealTimeActivityTab() {
                 </div>
               ))
             ) : (
-              <p className="text-sm text-muted-foreground">No recent events</p>
+              <p className="text-sm text-muted-foreground">{t('activity.realTimeActivityTab.noRecentEvents')}</p>
             )}
           </div>
         </CardContent>

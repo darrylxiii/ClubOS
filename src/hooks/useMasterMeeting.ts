@@ -55,7 +55,7 @@ export interface MasterMeetingReturn {
   meetingState: MeetingState;
   error: string | null;
   isConnected: boolean;
-  connectionStatus: any;
+  connectionStatus: ReturnType<typeof useVoiceChannel>['connectionStats'];
   
   // Core actions
   joinMeeting: () => Promise<void>;
@@ -69,7 +69,7 @@ export interface MasterMeetingReturn {
   toggleRecording: () => void;
   toggleTranscription: () => void;
   getMeetingDuration: () => number;
-  getMeetingStats: () => any;
+  getMeetingStats: () => Record<string, unknown>;
   
   // Voice channel access
   voice: ReturnType<typeof useVoiceChannel>;
@@ -100,9 +100,9 @@ export interface MasterMeetingReturn {
   
   // Network resilience
   networkResilience: {
-    currentStats: any;
-    history: any;
-    connectionState: any;
+    currentStats: ReturnType<typeof useNetworkResilience>['currentStats'];
+    history: ReturnType<typeof useNetworkResilience>['history'];
+    connectionState: ReturnType<typeof useNetworkResilience>['connectionState'];
     getStatusColor: () => string;
     getStatusLabel: () => string;
   };
@@ -110,12 +110,12 @@ export interface MasterMeetingReturn {
   // AI Transcription
   transcription: {
     isTranscribing: boolean;
-    transcripts: any[];
+    transcripts: ReturnType<typeof useAITranscription>['transcripts'];
     currentInterim: string;
     startTranscription: (stream: MediaStream) => void;
     stopTranscription: () => void;
     exportTranscripts: (format: 'txt' | 'srt' | 'vtt' | 'json') => string;
-    searchTranscripts: (query: string) => any[];
+    searchTranscripts: (query: string) => ReturnType<typeof useAITranscription>['transcripts'];
   };
   
   // Gesture recognition
@@ -129,19 +129,19 @@ export interface MasterMeetingReturn {
   
   // Meeting analytics
   analytics: {
-    participantStats: Map<string, any>;
-    meetingMetrics: any;
-    timeline: any[];
-    exportAnalytics: () => any;
+    participantStats: ReturnType<typeof useMeetingAnalytics>['participantStats'];
+    meetingMetrics: ReturnType<typeof useMeetingAnalytics>['meetingMetrics'];
+    timeline: ReturnType<typeof useMeetingAnalytics>['timeline'];
+    exportAnalytics: ReturnType<typeof useMeetingAnalytics>['exportAnalytics'];
     isTracking: boolean;
   };
   
   // Auto highlights
   highlights: {
-    all: any[];
+    all: ReturnType<typeof useAutoHighlight>['highlights'];
     isAnalyzing: boolean;
-    getByType: (type: string) => any[];
-    search: (query: string) => any[];
+    getByType: ReturnType<typeof useAutoHighlight>['getHighlightsByType'];
+    search: ReturnType<typeof useAutoHighlight>['searchHighlights'];
     export: (format: 'json' | 'markdown') => string;
   };
   
@@ -149,7 +149,7 @@ export interface MasterMeetingReturn {
   qualityRecovery: {
     currentQuality: 'high' | 'medium' | 'low';
     forceQuality: (quality: 'high' | 'medium' | 'low') => void;
-    qualityState: any;
+    qualityState: ReturnType<typeof useQualityRecovery>['qualityState'];
     isRecovering: boolean;
   };
   

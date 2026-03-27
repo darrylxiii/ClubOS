@@ -12,6 +12,7 @@ import {
   Target,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useTranslation } from "react-i18next";
 
 interface UserEngagement {
   current_streak: number;
@@ -24,6 +25,7 @@ interface UserEngagement {
 }
 
 export const GamificationDisplay = () => {
+  const { t } = useTranslation("common");
   const [engagement, setEngagement] = useState<UserEngagement | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -64,25 +66,25 @@ export const GamificationDisplay = () => {
   const stats = [
     {
       icon: Flame,
-      label: "Current Streak",
-      value: `${engagement.current_streak} days`,
+      label: t('social.gamification.currentStreak'),
+      value: t('social.gamification.days', { count: engagement.current_streak }),
       color: "text-orange-500",
     },
     {
       icon: Trophy,
-      label: "Longest Streak",
-      value: `${engagement.longest_streak} days`,
+      label: t('social.gamification.longestStreak'),
+      value: t('social.gamification.days', { count: engagement.longest_streak }),
       color: "text-yellow-500",
     },
     {
       icon: Star,
-      label: "Total Posts",
+      label: t('social.gamification.totalPosts'),
       value: engagement.total_posts.toString(),
       color: "text-blue-500",
     },
     {
       icon: Zap,
-      label: "Level",
+      label: t('social.gamification.level'),
       value: engagement.level.toString(),
       color: "text-purple-500",
     },
@@ -105,7 +107,7 @@ export const GamificationDisplay = () => {
               <Target className="h-6 w-6 text-primary" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Level</p>
+              <p className="text-sm text-muted-foreground">{t('social.gamification.level')}</p>
               <p className="text-3xl font-bold">{engagement.level}</p>
             </div>
           </div>
@@ -116,8 +118,7 @@ export const GamificationDisplay = () => {
         </div>
         <Progress value={progressPercentage} className="h-3" />
         <p className="text-xs text-muted-foreground mt-2 text-center">
-          {experienceToNextLevel - engagement.experience_points} XP to Level{" "}
-          {engagement.level + 1}
+          {t('social.gamification.xpToLevel', { xp: experienceToNextLevel - engagement.experience_points, level: engagement.level + 1 })}
         </p>
       </Card>
 
@@ -139,7 +140,7 @@ export const GamificationDisplay = () => {
       <Card className="p-6">
         <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
           <Award className="h-5 w-5 text-primary" />
-          Badges & Achievements
+          {t('social.gamification.badges')}
         </h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {badges.map((badge) => (
@@ -155,7 +156,7 @@ export const GamificationDisplay = () => {
               <p className="text-sm font-medium text-center">{badge.name}</p>
               {!badge.unlocked && (
                 <Badge variant="secondary" className="mt-2 text-xs">
-                  Locked
+                  {t('social.gamification.locked')}
                 </Badge>
               )}
             </div>
@@ -167,9 +168,9 @@ export const GamificationDisplay = () => {
       <Card className="p-6 bg-gradient-to-br from-yellow-500/10 to-orange-500/10 border-yellow-500/20">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-lg font-semibold mb-1">Weekly Leaderboard</h3>
+            <h3 className="text-lg font-semibold mb-1">{t('social.gamification.weeklyLeaderboard')}</h3>
             <p className="text-sm text-muted-foreground">
-              You're in the top 20% of creators this week!
+              {t('social.gamification.leaderboardDescription')}
             </p>
           </div>
           <TrendingUp className="h-12 w-12 text-yellow-500" />

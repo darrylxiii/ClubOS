@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
@@ -51,6 +52,7 @@ export function DatabaseViewSwitcher({
   onViewChange,
   onAddView,
 }: DatabaseViewSwitcherProps) {
+  const { t } = useTranslation('common');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [newViewName, setNewViewName] = useState('');
   const [newViewType, setNewViewType] = useState<ViewType>('table');
@@ -118,19 +120,19 @@ export function DatabaseViewSwitcher({
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Add new view</DialogTitle>
+            <DialogTitle>{t("add_new_view", "Add new view")}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label>View name</Label>
+              <Label>{t("view_name", "View name")}</Label>
               <Input
                 value={newViewName}
                 onChange={(e) => setNewViewName(e.target.value)}
-                placeholder="View name..."
+                placeholder={t("view_name", "View name...")}
               />
             </div>
             <div className="space-y-2">
-              <Label>View type</Label>
+              <Label>{t("view_type", "View type")}</Label>
               <div className="grid grid-cols-5 gap-2">
                 {(['table', 'board', 'gallery', 'calendar', 'timeline'] as ViewType[]).map((type) => (
                   <Button

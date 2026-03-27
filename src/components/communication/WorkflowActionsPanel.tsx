@@ -15,6 +15,7 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/lib/notify';
 import { motion } from '@/lib/motion';
+import { useTranslation } from 'react-i18next';
 
 interface WorkflowActionsPanelProps {
   entityType: string;
@@ -22,41 +23,42 @@ interface WorkflowActionsPanelProps {
   patternType?: string;
 }
 
-const workflowActions = [
-  {
-    id: 'create_task',
-    label: 'Create Follow-up Task',
-    description: 'Add a task to Club Pilot for this relationship',
-    icon: ListTodo,
-    color: 'text-blue-500'
-  },
-  {
-    id: 'send_notification',
-    label: 'Send Alert',
-    description: 'Notify assigned strategist about this pattern',
-    icon: Bell,
-    color: 'text-yellow-500'
-  },
-  {
-    id: 'schedule_followup',
-    label: 'Schedule Follow-up',
-    description: 'Set a reminder for future outreach',
-    icon: Calendar,
-    color: 'text-green-500'
-  },
-  {
-    id: 'assign_strategist',
-    label: 'Escalate to Strategist',
-    description: 'Assign a senior strategist to this case',
-    icon: UserPlus,
-    color: 'text-purple-500'
-  }
-];
-
 export function WorkflowActionsPanel({ entityType, entityId, patternType }: WorkflowActionsPanelProps) {
+  const { t } = useTranslation('common');
   const [executing, setExecuting] = useState<string | null>(null);
   const [executed, setExecuted] = useState<Set<string>>(new Set());
   const { toast } = useToast();
+
+  const workflowActions = [
+    {
+      id: 'create_task',
+      label: t('communication.workflow.createTask', 'Create Follow-up Task'),
+      description: t('communication.workflow.createTaskDesc', 'Add a task to Club Pilot for this relationship'),
+      icon: ListTodo,
+      color: 'text-blue-500'
+    },
+    {
+      id: 'send_notification',
+      label: t('communication.workflow.sendAlert', 'Send Alert'),
+      description: t('communication.workflow.sendAlertDesc', 'Notify assigned strategist about this pattern'),
+      icon: Bell,
+      color: 'text-yellow-500'
+    },
+    {
+      id: 'schedule_followup',
+      label: t('communication.workflow.scheduleFollowup', 'Schedule Follow-up'),
+      description: t('communication.workflow.scheduleFollowupDesc', 'Set a reminder for future outreach'),
+      icon: Calendar,
+      color: 'text-green-500'
+    },
+    {
+      id: 'assign_strategist',
+      label: t('communication.workflow.escalate', 'Escalate to Strategist'),
+      description: t('communication.workflow.escalateDesc', 'Assign a senior strategist to this case'),
+      icon: UserPlus,
+      color: 'text-purple-500'
+    }
+  ];
 
   const executeAction = async (actionType: string) => {
     setExecuting(actionType);
@@ -80,13 +82,13 @@ export function WorkflowActionsPanel({ entityType, entityId, patternType }: Work
 
       setExecuted(prev => new Set([...prev, actionType]));
       toast({
-        title: 'Action executed',
-        description: `Successfully executed ${actionType.replace(/_/g, ' ')}`
+        title: t('communication.workflow.actionExecuted', 'Action executed'),
+        description: t('communication.workflow.actionExecutedDesc', 'Successfully executed {{action}}', { action: actionType.replace(/_/g, ' ') })
       });
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to execute action';
+      const message = err instanceof Error ? err.message : t('communication.workflow.actionFailedDesc', 'Failed to execute action');
       toast({
-        title: 'Action failed',
+        title: t('communication.workflow.actionFailed', 'Action failed'),
         description: message,
         variant: 'destructive'
       });
@@ -113,13 +115,13 @@ export function WorkflowActionsPanel({ entityType, entityId, patternType }: Work
       if (error) throw error;
 
       toast({
-        title: 'Workflow executed',
-        description: `Executed ${data?.actions_executed || 0} recommended actions`
+        title: t('communication.workflow.workflowExecuted', 'Workflow executed'),
+        description: t('communication.workflow.workflowExecutedDesc', 'Executed {{count}} recommended actions', { count: data?.actions_executed || 0 })
       });
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to execute workflow';
+      const message = err instanceof Error ? err.message : t('communication.workflow.workflowFailedDesc', 'Failed to execute workflow');
       toast({
-        title: 'Workflow failed',
+        title: t('communication.workflow.workflowFailed', 'Workflow failed'),
         description: message,
         variant: 'destructive'
       });
@@ -134,7 +136,7 @@ export function WorkflowActionsPanel({ entityType, entityId, patternType }: Work
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg font-semibold flex items-center gap-2">
             <Zap className="h-5 w-5 text-primary" />
-            Quick Actions
+            {t('communication.workflow.quickActions', 'Quick Actions')}
           </CardTitle>
           {patternType && (
             <Badge variant="secondary" className="capitalize">
@@ -155,7 +157,7 @@ export function WorkflowActionsPanel({ entityType, entityId, patternType }: Work
             ) : (
               <Zap className="h-4 w-4 mr-2" />
             )}
-            Execute Recommended Actions
+            {t('communication.workflow.executeRecommended', 'Execute Recommended Actions')}
           </Button>
         )}
 

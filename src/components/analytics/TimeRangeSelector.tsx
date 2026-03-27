@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from 'react-i18next';
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -15,23 +16,24 @@ interface TimeRangeSelectorProps {
   onChange: (range: TimeRange, customRange?: { from: Date; to: Date }) => void;
 }
 
-const timeRangeLabels: Record<TimeRange, string> = {
-  "1h": "Last Hour",
-  "3h": "Last 3 Hours",
-  "12h": "Last 12 Hours",
-  "today": "Today",
-  "yesterday": "Yesterday",
-  "3d": "Last 3 Days",
-  "7d": "Last 7 Days",
-  "14d": "Last 14 Days",
-  "30d": "Last 30 Days",
-  "3m": "Last 3 Months",
-  "6m": "Last 6 Months",
-  "12m": "Last Year",
-  "custom": "Custom Range",
+const timeRangeKeys: Record<TimeRange, string> = {
+  "1h": "lastHour",
+  "3h": "last3Hours",
+  "12h": "last12Hours",
+  "today": "today",
+  "yesterday": "yesterday",
+  "3d": "last3Days",
+  "7d": "last7Days",
+  "14d": "last14Days",
+  "30d": "last30Days",
+  "3m": "last3Months",
+  "6m": "last6Months",
+  "12m": "lastYear",
+  "custom": "customRange",
 };
 
 export const TimeRangeSelector = ({ value, customRange, onChange }: TimeRangeSelectorProps) => {
+  const { t } = useTranslation('analytics');
   const [dateRange, setDateRange] = useState<DateRange | undefined>(
     customRange ? { from: customRange.from, to: customRange.to } : undefined
   );
@@ -54,7 +56,7 @@ export const TimeRangeSelector = ({ value, customRange, onChange }: TimeRangeSel
             size="sm"
             onClick={() => onChange(range)}
           >
-            {timeRangeLabels[range]}
+            {t(`timeRange.${timeRangeKeys[range]}`)}
           </Button>
         ))}
       </div>
@@ -68,7 +70,7 @@ export const TimeRangeSelector = ({ value, customRange, onChange }: TimeRangeSel
             <CalendarIcon className="mr-2 h-4 w-4" />
             {value === "custom" && customRange
               ? `${format(customRange.from, "PP")} - ${format(customRange.to, "PP")}`
-              : "Custom Range"}
+              : t('timeRange.customRange')}
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="start">
@@ -85,7 +87,7 @@ export const TimeRangeSelector = ({ value, customRange, onChange }: TimeRangeSel
               disabled={!dateRange?.from || !dateRange?.to}
               className="w-full"
             >
-              Apply Custom Range
+              {t('applyCustomRange')}
             </Button>
           </div>
         </PopoverContent>

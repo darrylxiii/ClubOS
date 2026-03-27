@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,7 +26,7 @@ interface SavedReportsListProps {
 }
 
 export function SavedReportsList({ companyId }: SavedReportsListProps) {
-
+  const { t } = useTranslation('common');
   const { data: reports, isLoading, refetch } = useQuery<SavedReport[]>({
     queryKey: ['saved-reports', companyId],
     queryFn: async () => {
@@ -90,8 +91,8 @@ export function SavedReportsList({ companyId }: SavedReportsListProps) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Saved Reports</CardTitle>
-          <CardDescription>Loading your reports...</CardDescription>
+          <CardTitle>{t("saved_reports", "Saved Reports")}</CardTitle>
+          <CardDescription>{t("loading_your_reports", "Loading your reports...")}</CardDescription>
         </CardHeader>
         <CardContent>
           <ListSkeleton count={3} />
@@ -103,7 +104,7 @@ export function SavedReportsList({ companyId }: SavedReportsListProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Saved Reports</CardTitle>
+        <CardTitle>{t("saved_reports", "Saved Reports")}</CardTitle>
         <CardDescription>
           {reports?.length || 0} report{reports?.length !== 1 ? 's' : ''} saved
         </CardDescription>
@@ -140,7 +141,7 @@ export function SavedReportsList({ companyId }: SavedReportsListProps) {
                   {report.is_scheduled && (
                     <div className="flex items-center gap-1">
                       <Calendar className="h-3 w-3" />
-                      <span>Scheduled</span>
+                      <span>{t("scheduled", "Scheduled")}</span>
                     </div>
                   )}
                   {report.recipients && report.recipients.length > 0 && (
@@ -173,13 +174,13 @@ export function SavedReportsList({ companyId }: SavedReportsListProps) {
                     </AlertDialogTrigger>
                     <AlertDialogContent>
                       <AlertDialogHeader>
-                        <AlertDialogTitle>Delete Report</AlertDialogTitle>
+                        <AlertDialogTitle>{t("delete_report", "Delete Report")}</AlertDialogTitle>
                         <AlertDialogDescription>
                           Are you sure you want to delete "{report.name}"? This action cannot be undone.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogCancel>{t("cancel", "Cancel")}</AlertDialogCancel>
                         <AlertDialogAction
                           onClick={() => handleDeleteReport(report.id)}
                           className="bg-destructive text-destructive-foreground"

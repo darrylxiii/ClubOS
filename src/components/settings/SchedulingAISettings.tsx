@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 /**
  * Scheduling AI Settings Component
  * 
@@ -50,6 +51,7 @@ const defaultPreferences: AIPreferences = {
 };
 
 export function SchedulingAISettings() {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [preferences, setPreferences] = useState<AIPreferences>(defaultPreferences);
   const [isSaving, setIsSaving] = useState(false);
@@ -77,11 +79,11 @@ export function SchedulingAISettings() {
     setIsSaving(true);
     try {
       localStorage.setItem(`scheduling_ai_prefs_${user.id}`, JSON.stringify(preferences));
-      toast.success('AI preferences saved');
+      toast.success(t("ai_preferences_saved", "AI preferences saved"));
       setHasChanges(false);
     } catch (err) {
       console.error('Failed to save preferences:', err);
-      toast.error('Failed to save preferences');
+      toast.error(t("failed_to_save_preferences", "Failed to save preferences"));
     } finally {
       setIsSaving(false);
     }
@@ -113,7 +115,7 @@ export function SchedulingAISettings() {
         <CardContent className="space-y-6">
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label>Enable No-Show Predictions</Label>
+              <Label>{t("enable_noshow_predictions", "Enable No-Show Predictions")}</Label>
               <p className="text-sm text-muted-foreground">
                 Analyze booking patterns to predict potential no-shows
               </p>
@@ -130,7 +132,7 @@ export function SchedulingAISettings() {
 
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <Label>Intervention Threshold</Label>
+                  <Label>{t("intervention_threshold", "Intervention Threshold")}</Label>
                   <Badge variant="outline">{preferences.noShowInterventionThreshold}%</Badge>
                 </div>
                 <p className="text-sm text-muted-foreground">
@@ -145,8 +147,8 @@ export function SchedulingAISettings() {
                   className="w-full"
                 />
                 <div className="flex justify-between text-xs text-muted-foreground">
-                  <span>30% (More interventions)</span>
-                  <span>90% (Fewer interventions)</span>
+                  <span>{t("30_more_interventions", "30% (More interventions)")}</span>
+                  <span>{t("90_fewer_interventions", "90% (Fewer interventions)")}</span>
                 </div>
               </div>
 
@@ -154,7 +156,7 @@ export function SchedulingAISettings() {
 
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label>Send No-Show Alerts</Label>
+                  <Label>{t("send_noshow_alerts", "Send No-Show Alerts")}</Label>
                   <p className="text-sm text-muted-foreground">
                     Get notified about high-risk bookings
                   </p>
@@ -183,7 +185,7 @@ export function SchedulingAISettings() {
         <CardContent className="space-y-6">
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label>Enable Focus Defender</Label>
+              <Label>{t("enable_focus_defender", "Enable Focus Defender")}</Label>
               <p className="text-sm text-muted-foreground">
                 Block meeting requests during protected focus blocks
               </p>
@@ -199,7 +201,7 @@ export function SchedulingAISettings() {
               <Separator />
 
               <div className="space-y-3">
-                <Label>Protection Level</Label>
+                <Label>{t("protection_level", "Protection Level")}</Label>
                 <Select
                   value={preferences.focusProtectionLevel}
                   onValueChange={(v) => updatePreference('focusProtectionLevel', v as 'low' | 'medium' | 'high')}
@@ -210,7 +212,7 @@ export function SchedulingAISettings() {
                   <SelectContent>
                     <SelectItem value="low">
                       <div className="flex flex-col">
-                        <span>Low - Allow with warning</span>
+                        <span>{t("low_allow_with_warning", "Low - Allow with warning")}</span>
                         <span className="text-xs text-muted-foreground">
                           Shows warning but allows booking
                         </span>
@@ -218,7 +220,7 @@ export function SchedulingAISettings() {
                     </SelectItem>
                     <SelectItem value="medium">
                       <div className="flex flex-col">
-                        <span>Medium - Require confirmation</span>
+                        <span>{t("medium_require_confirmation", "Medium - Require confirmation")}</span>
                         <span className="text-xs text-muted-foreground">
                           Asks for approval before allowing
                         </span>
@@ -226,7 +228,7 @@ export function SchedulingAISettings() {
                     </SelectItem>
                     <SelectItem value="high">
                       <div className="flex flex-col">
-                        <span>High - Block completely</span>
+                        <span>{t("high_block_completely", "High - Block completely")}</span>
                         <span className="text-xs text-muted-foreground">
                           No meetings allowed during focus time
                         </span>
@@ -240,7 +242,7 @@ export function SchedulingAISettings() {
 
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label>Focus Time Reminders</Label>
+                  <Label>{t("focus_time_reminders", "Focus Time Reminders")}</Label>
                   <p className="text-sm text-muted-foreground">
                     Get reminded before focus blocks start
                   </p>
@@ -269,7 +271,7 @@ export function SchedulingAISettings() {
         <CardContent className="space-y-6">
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label>Auto-Generate Summaries</Label>
+              <Label>{t("autogenerate_summaries", "Auto-Generate Summaries")}</Label>
               <p className="text-sm text-muted-foreground">
                 Automatically create meeting summaries and action items
               </p>
@@ -284,7 +286,7 @@ export function SchedulingAISettings() {
 
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label>Auto-Block Calendar for Tasks</Label>
+              <Label>{t("autoblock_calendar_for_tasks", "Auto-Block Calendar for Tasks")}</Label>
               <p className="text-sm text-muted-foreground">
                 Automatically block time for action items from meetings
               </p>

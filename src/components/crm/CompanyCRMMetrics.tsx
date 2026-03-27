@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,6 +16,7 @@ interface ProspectMetrics {
 }
 
 export function CompanyCRMMetrics({ companyId }: CompanyCRMMetricsProps) {
+  const { t } = useTranslation('common');
   const [metrics, setMetrics] = useState<ProspectMetrics | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -134,7 +136,7 @@ export function CompanyCRMMetrics({ companyId }: CompanyCRMMetricsProps) {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{metrics.activities_this_month}</div>
-            <p className="text-xs text-muted-foreground">Touchpoints logged</p>
+            <p className="text-xs text-muted-foreground">{t("touchpoints_logged", "Touchpoints logged")}</p>
           </CardContent>
         </Card>
       </div>

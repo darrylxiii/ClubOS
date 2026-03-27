@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -16,6 +17,7 @@ const agentColors: Record<string, string> = {
 };
 
 export function AgentActivityWidget() {
+  const { t } = useTranslation('common');
   const { data: decisions, isLoading: decisionsLoading } = useAgentDecisions();
   const { suggestions, loading: suggestionsLoading } = useAISuggestions();
 
@@ -60,7 +62,7 @@ export function AgentActivityWidget() {
                 <Badge variant="secondary" className="text-xs">{decisions?.length}</Badge>
               )}
             </CardTitle>
-            <CardDescription>Autonomous actions & pending approvals (24h)</CardDescription>
+            <CardDescription>{t("autonomous_actions_pending_approvals", "Autonomous actions & pending approvals (24h)")}</CardDescription>
           </div>
           {pendingApprovals.length > 0 && (
             <Badge className="bg-amber-500/20 text-amber-500 border-amber-500/30">
@@ -84,9 +86,7 @@ export function AgentActivityWidget() {
                 <p className="text-xs font-medium">{suggestion.title}</p>
                 <p className="text-[11px] text-muted-foreground truncate">{suggestion.description}</p>
               </div>
-              <Badge variant="outline" className="text-[10px] shrink-0">
-                Needs approval
-              </Badge>
+              <Badge variant="outline" className="text-[10px] shrink-0">{t('agentActivityWidget.badge.needsApproval')}</Badge>
             </div>
           ))}
 

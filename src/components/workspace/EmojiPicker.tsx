@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,6 +24,7 @@ const EMOJI_CATEGORIES = {
 };
 
 export function EmojiPicker({ onSelect, onClose, currentEmoji }: EmojiPickerProps) {
+  const { t } = useTranslation('common');
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Recent');
   const containerRef = useRef<HTMLDivElement>(null);
@@ -63,7 +65,7 @@ export function EmojiPicker({ onSelect, onClose, currentEmoji }: EmojiPickerProp
       <div className="bg-card border rounded-lg shadow-xl w-[340px] max-h-[400px] overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between p-3 border-b">
-          <span className="font-medium">Choose icon</span>
+          <span className="font-medium">{t("choose_icon", "Choose icon")}</span>
           <Button variant="ghost" size="icon" onClick={onClose}>
             <X className="h-4 w-4" />
           </Button>
@@ -76,7 +78,7 @@ export function EmojiPicker({ onSelect, onClose, currentEmoji }: EmojiPickerProp
             <Input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search emoji..."
+              placeholder={t("search_emoji", "Search emoji...")}
               className="pl-9"
             />
           </div>

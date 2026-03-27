@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Button } from "@/components/ui/button";
 import { Calendar, CheckSquare, FileText, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -19,6 +20,7 @@ export function NextStepHelper({
   onBookPrep,
   onViewMaterials
 }: NextStepHelperProps) {
+  const { t } = useTranslation('common');
   const hasScheduledDate = !!scheduledDate;
   const completedTasks = 0; // This would come from actual data
   
@@ -26,10 +28,10 @@ export function NextStepHelper({
     <div className="p-4 rounded-xl bg-card/30 backdrop-blur-[var(--blur-glass)] border border-border/20 h-full flex flex-col">
       <div className="flex items-start justify-between mb-3">
         <div className="flex-1">
-          <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1">Next Step</div>
+          <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1">{t("next_step", "Next Step")}</div>
           <h3 className="text-base font-medium">{stageName}</h3>
         </div>
-        <Badge variant="outline" className="bg-muted/30 text-xs border-border/30">Active</Badge>
+        <Badge variant="outline" className="bg-muted/30 text-xs border-border/30">{t("active", "Active")}</Badge>
       </div>
 
       {hasScheduledDate && (
@@ -59,7 +61,7 @@ export function NextStepHelper({
         <div className="mb-3 p-2 rounded-lg bg-muted/30">
           <div className="flex items-center gap-2 mb-2">
             <CheckSquare className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
-            <span className="text-xs font-medium">Prep Checklist</span>
+            <span className="text-xs font-medium">{t("prep_checklist", "Prep Checklist")}</span>
             <Badge variant="secondary" className="ml-auto text-[10px]">
               {completedTasks}/{prepTasks.length}
             </Badge>

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -18,6 +19,7 @@ interface FreelancerDashboardProps {
 }
 
 export function FreelancerDashboard({ userId }: FreelancerDashboardProps) {
+  const { t } = useTranslation('common');
   // Fetch proposals stats
   const { data: proposalsStats } = useQuery({
     queryKey: ['freelancer-proposals', userId],
@@ -132,11 +134,11 @@ export function FreelancerDashboard({ userId }: FreelancerDashboardProps) {
       {/* Performance Metrics */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-4">Proposal Performance</h3>
+          <h3 className="text-lg font-semibold mb-4">{t("proposal_performance", "Proposal Performance")}</h3>
           <div className="space-y-4">
             <div>
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-muted-foreground">Win Rate</span>
+                <span className="text-sm text-muted-foreground">{t("win_rate", "Win Rate")}</span>
                 <span className="text-sm font-medium">{proposalsStats?.winRate || 0}%</span>
               </div>
               <Progress value={proposalsStats?.winRate || 0} />
@@ -145,26 +147,26 @@ export function FreelancerDashboard({ userId }: FreelancerDashboardProps) {
             <div className="grid grid-cols-3 gap-3 mt-4 pt-4 border-t">
               <div className="text-center">
                 <p className="text-2xl font-bold text-blue-500">{proposalsStats?.active || 0}</p>
-                <p className="text-xs text-muted-foreground">Active</p>
+                <p className="text-xs text-muted-foreground">{t("active", "Active")}</p>
               </div>
               <div className="text-center">
                 <p className="text-2xl font-bold text-green-500">{proposalsStats?.accepted || 0}</p>
-                <p className="text-xs text-muted-foreground">Accepted</p>
+                <p className="text-xs text-muted-foreground">{t("accepted", "Accepted")}</p>
               </div>
               <div className="text-center">
                 <p className="text-2xl font-bold text-red-500">{proposalsStats?.rejected || 0}</p>
-                <p className="text-xs text-muted-foreground">Rejected</p>
+                <p className="text-xs text-muted-foreground">{t("rejected", "Rejected")}</p>
               </div>
             </div>
           </div>
         </Card>
 
         <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-4">Active Projects</h3>
+          <h3 className="text-lg font-semibold mb-4">{t("active_projects", "Active Projects")}</h3>
           {contractsStats?.active === 0 ? (
             <div className="text-center py-8">
               <AlertCircle className="h-12 w-12 mx-auto mb-3 text-muted-foreground" />
-              <p className="text-muted-foreground">No active projects</p>
+              <p className="text-muted-foreground">{t("no_active_projects", "No active projects")}</p>
               <p className="text-sm text-muted-foreground mt-1">
                 Browse projects to submit your first proposal
               </p>
@@ -172,11 +174,11 @@ export function FreelancerDashboard({ userId }: FreelancerDashboardProps) {
           ) : (
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Active Contracts</span>
+                <span className="text-sm text-muted-foreground">{t("active_contracts", "Active Contracts")}</span>
                 <Badge variant="default">{contractsStats?.active}</Badge>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Total Reviews</span>
+                <span className="text-sm text-muted-foreground">{t("total_reviews", "Total Reviews")}</span>
                 <span className="text-sm font-medium">{ratingsStats?.totalReviews || 0}</span>
               </div>
               <div className="flex items-center gap-2 mt-4 pt-4 border-t">

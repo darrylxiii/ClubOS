@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -29,6 +30,7 @@ interface TalentMatch {
 }
 
 export function TalentRecommendations({ companyId }: { companyId: string }) {
+  const { t } = useTranslation('common');
   const queryClient = useQueryClient();
 
   const { data: matches, isLoading } = useQuery({
@@ -87,12 +89,12 @@ export function TalentRecommendations({ companyId }: { companyId: string }) {
 
   const handleContact = (match: TalentMatch) => {
     updateMatchStatus.mutate({ matchId: match.id, status: 'contacted' });
-    toast.success('Candidate contacted');
+    toast.success(t("candidate_contacted", "Candidate contacted"));
   };
 
   const handleShortlist = (match: TalentMatch) => {
     updateMatchStatus.mutate({ matchId: match.id, status: 'shortlisted' });
-    toast.success('Candidate shortlisted');
+    toast.success(t("candidate_shortlisted", "Candidate shortlisted"));
   };
 
   if (isLoading) {
@@ -127,8 +129,8 @@ export function TalentRecommendations({ companyId }: { companyId: string }) {
         {(!matches || matches.length === 0) && (
           <div className="text-center py-8 text-muted-foreground">
             <Sparkles className="h-8 w-8 mx-auto mb-2 opacity-50" />
-            <p>No talent matches yet</p>
-            <p className="text-sm">Publish your jobs to get AI-powered candidate recommendations</p>
+            <p>{t("no_talent_matches_yet", "No talent matches yet")}</p>
+            <p className="text-sm">{t("publish_your_jobs_to", "Publish your jobs to get AI-powered candidate recommendations")}</p>
           </div>
         )}
 

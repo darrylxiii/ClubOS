@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -11,6 +12,7 @@ interface CandidateComparisonCardProps {
 }
 
 export function CandidateComparisonCard({ candidate }: CandidateComparisonCardProps) {
+  const { t } = useTranslation('common');
   const scoreCategories = [
     { label: "Technical", value: candidate.scores.technical },
     { label: "Communication", value: candidate.scores.communication },
@@ -37,7 +39,7 @@ export function CandidateComparisonCard({ candidate }: CandidateComparisonCardPr
           </div>
         </div>
         <div className="flex items-center justify-between mt-3">
-          <span className="text-sm text-muted-foreground">Overall Score</span>
+          <span className="text-sm text-muted-foreground">{t("overall_score", "Overall Score")}</span>
           <span className={`text-2xl font-bold ${candidate.overallScore > 0 ? getScoreColor(candidate.overallScore) : "text-muted-foreground"}`}>
             {candidate.overallScore > 0 ? `${candidate.overallScore}%` : "—"}
           </span>
@@ -62,7 +64,7 @@ export function CandidateComparisonCard({ candidate }: CandidateComparisonCardPr
             ))}
           </div>
         ) : (
-          <p className="text-sm text-muted-foreground">No scored dimensions available.</p>
+          <p className="text-sm text-muted-foreground">{t("no_scored_dimensions_available", "No scored dimensions available.")}</p>
         )}
 
         {candidate.strengths.length > 0 && (

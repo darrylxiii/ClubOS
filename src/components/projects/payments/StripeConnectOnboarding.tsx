@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
@@ -33,6 +34,7 @@ interface StripeConnectStatus {
 }
 
 export function StripeConnectOnboarding() {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [searchParams] = useSearchParams();
@@ -81,7 +83,7 @@ export function StripeConnectOnboarding() {
         setIsRedirecting(true);
         window.location.href = data.url;
       } else if (data.onboarded) {
-        toast.success("Payment account already set up!");
+        toast.success(t("payment_account_already_set", "Payment account already set up!"));
         refetch();
       }
     },
@@ -93,12 +95,12 @@ export function StripeConnectOnboarding() {
   // Handle return from Stripe
   useEffect(() => {
     if (stripeOnboarded === "true") {
-      toast.success("Payment setup completed!");
+      toast.success(t("payment_setup_completed", "Payment setup completed!"));
       refetch();
       // Clean up URL
       window.history.replaceState({}, "", window.location.pathname);
     } else if (stripeRefresh === "true") {
-      toast.info("Please complete your payment setup");
+      toast.info(t("please_complete_your_payment", "Please complete your payment setup"));
       startOnboardingMutation.mutate();
     }
   }, [stripeOnboarded, stripeRefresh]);
@@ -130,7 +132,7 @@ export function StripeConnectOnboarding() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <CreditCard className="h-5 w-5 text-primary" />
-            <CardTitle>Payment Setup</CardTitle>
+            <CardTitle>{t("payment_setup", "Payment Setup")}</CardTitle>
           </div>
           {connectStatus?.onboarded && (
             <Badge className="gap-1 bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">
@@ -148,7 +150,7 @@ export function StripeConnectOnboarding() {
         {connectStatus?.hasAccount && !connectStatus?.onboarded && (
           <div className="space-y-2">
             <div className="flex items-center justify-between text-sm">
-              <span>Setup Progress</span>
+              <span>{t("setup_progress", "Setup Progress")}</span>
               <span className="text-muted-foreground">{progress}%</span>
             </div>
             <Progress value={progress} className="h-2" />
@@ -161,7 +163,7 @@ export function StripeConnectOnboarding() {
           <div className="space-y-4">
             <Alert>
               <Shield className="h-4 w-4" />
-              <AlertTitle>Secure Payments</AlertTitle>
+              <AlertTitle>{t("secure_payments", "Secure Payments")}</AlertTitle>
               <AlertDescription>
                 We use Stripe Connect to securely process payments. Your earnings 
                 are deposited directly to your bank account.
@@ -171,18 +173,18 @@ export function StripeConnectOnboarding() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
               <div className="p-4 bg-muted rounded-lg">
                 <Shield className="h-8 w-8 mx-auto mb-2 text-primary" />
-                <p className="font-medium">Secure</p>
-                <p className="text-xs text-muted-foreground">Bank-level security</p>
+                <p className="font-medium">{t("secure", "Secure")}</p>
+                <p className="text-xs text-muted-foreground">{t("banklevel_security", "Bank-level security")}</p>
               </div>
               <div className="p-4 bg-muted rounded-lg">
                 <DollarSign className="h-8 w-8 mx-auto mb-2 text-primary" />
-                <p className="font-medium">Fast Payouts</p>
-                <p className="text-xs text-muted-foreground">Direct to your bank</p>
+                <p className="font-medium">{t("fast_payouts", "Fast Payouts")}</p>
+                <p className="text-xs text-muted-foreground">{t("direct_to_your_bank", "Direct to your bank")}</p>
               </div>
               <div className="p-4 bg-muted rounded-lg">
                 <Wallet className="h-8 w-8 mx-auto mb-2 text-primary" />
-                <p className="font-medium">Low Fees</p>
-                <p className="text-xs text-muted-foreground">Competitive rates</p>
+                <p className="font-medium">{t("low_fees", "Low Fees")}</p>
+                <p className="text-xs text-muted-foreground">{t("competitive_rates", "Competitive rates")}</p>
               </div>
             </div>
 
@@ -225,7 +227,7 @@ export function StripeConnectOnboarding() {
               <div className="p-4 bg-muted rounded-lg">
                 <div className="flex items-center gap-2 mb-2">
                   <DollarSign className="h-5 w-5 text-muted-foreground" />
-                  <span className="font-medium">Pending</span>
+                  <span className="font-medium">{t("pending", "Pending")}</span>
                 </div>
                 <p className="text-2xl font-bold">
                   €{connectStatus.balance?.pending?.[0]?.amount.toLocaleString() || "0.00"}
@@ -235,7 +237,7 @@ export function StripeConnectOnboarding() {
 
             <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
               <div>
-                <p className="font-medium">Connected Account</p>
+                <p className="font-medium">{t("connected_account", "Connected Account")}</p>
                 <p className="text-sm text-muted-foreground">
                   {connectStatus.accountId?.slice(0, 12)}...
                 </p>
@@ -267,7 +269,7 @@ export function StripeConnectOnboarding() {
           <div className="space-y-4">
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
-              <AlertTitle>Complete Your Setup</AlertTitle>
+              <AlertTitle>{t("complete_your_setup", "Complete Your Setup")}</AlertTitle>
               <AlertDescription>
                 Your payment account setup is incomplete. Complete the remaining 
                 steps to start receiving payments.
@@ -278,7 +280,7 @@ export function StripeConnectOnboarding() {
             {connectStatus?.requirements?.currently_due && 
              connectStatus.requirements.currently_due.length > 0 && (
               <div className="p-4 bg-muted rounded-lg">
-                <p className="font-medium mb-2">Required Information:</p>
+                <p className="font-medium mb-2">{t("required_information", "Required Information:")}</p>
                 <ul className="text-sm text-muted-foreground space-y-1">
                   {connectStatus.requirements.currently_due.slice(0, 5).map((req, i) => (
                     <li key={i} className="flex items-center gap-2">

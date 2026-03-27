@@ -42,7 +42,7 @@ serve(async (req) => {
       );
     }
 
-    const apiKey = Deno.env.get('LOVABLE_API_KEY');
+    const apiKey = Deno.env.get('GOOGLE_API_KEY');
     if (!apiKey) {
       return new Response(
         JSON.stringify({ error: 'AI API key not configured' }),
@@ -118,14 +118,14 @@ Return ONLY valid JSON with this structure:
   "key_points_addressed": ["list of key points from their reply that you addressed"]
 }`;
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    const response = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash-lite',
+        model: 'gemini-2.5-flash-lite',
         messages: [
           { role: 'system', content: 'You are an expert sales email writer. Respond only with valid JSON.' },
           { role: 'user', content: prompt }
@@ -142,7 +142,7 @@ Return ONLY valid JSON with this structure:
       }
       if (response.status === 402) {
         return new Response(
-          JSON.stringify({ error: 'AI credits exhausted. Please add credits.' }),
+          JSON.stringify({ error: 'AI quota exceeded. Please add credits.' }),
           { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }

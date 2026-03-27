@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -62,6 +63,7 @@ export function TargetCompanyTable({
   onRefresh,
   getStatusIcon,
 }: TargetCompanyTableProps) {
+  const { t } = useTranslation('common');
   const [detailOpen, setDetailOpen] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState<TargetCompany | null>(null);
 
@@ -90,17 +92,13 @@ export function TargetCompanyTable({
 
   if (loading) {
     return (
-      <div className="text-center py-12 text-muted-foreground">
-        Laden...
-      </div>
+      <div className="text-center py-12 text-muted-foreground">{t('targetCompanyTable.laden')}</div>
     );
   }
 
   if (companies.length === 0) {
     return (
-      <div className="text-center py-12 text-muted-foreground">
-        Geen bedrijven gevonden
-      </div>
+      <div className="text-center py-12 text-muted-foreground">{t('targetCompanyTable.geenBedrijvenGevonden')}</div>
     );
   }
 
@@ -110,16 +108,16 @@ export function TargetCompanyTable({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Naam</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Industrie</TableHead>
-              <TableHead>Source</TableHead>
-              <TableHead>Prioriteit</TableHead>
-              <TableHead>Functies</TableHead>
-              <TableHead>Votes</TableHead>
-              <TableHead>Upvoted By</TableHead>
-              <TableHead>Locatie</TableHead>
-              <TableHead className="text-right">Acties</TableHead>
+              <TableHead>{t("naam", "Naam")}</TableHead>
+              <TableHead>{t("status", "Status")}</TableHead>
+              <TableHead>{t("industrie", "Industrie")}</TableHead>
+              <TableHead>{t("source", "Source")}</TableHead>
+              <TableHead>{t("prioriteit", "Prioriteit")}</TableHead>
+              <TableHead>{t("functies", "Functies")}</TableHead>
+              <TableHead>{t("votes", "Votes")}</TableHead>
+              <TableHead>{t("upvoted_by", "Upvoted By")}</TableHead>
+              <TableHead>{t("locatie", "Locatie")}</TableHead>
+              <TableHead className="text-right">{t("acties", "Acties")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -194,7 +192,7 @@ export function TargetCompanyTable({
                         {company.jobs.title}
                       </Badge>
                     ) : (
-                      <span className="text-muted-foreground text-sm">Alle jobs</span>
+                      <span className="text-muted-foreground text-sm">{t("alle_jobs", "Alle jobs")}</span>
                     )}
                   </TableCell>
                   <TableCell>
@@ -224,7 +222,7 @@ export function TargetCompanyTable({
                         </span>
                       )}
                       {!company.target_company_votes?.length && (
-                        <span className="text-xs text-muted-foreground">Geen votes</span>
+                        <span className="text-xs text-muted-foreground">{t("geen_votes", "Geen votes")}</span>
                       )}
                     </div>
                   </TableCell>
@@ -234,7 +232,7 @@ export function TargetCompanyTable({
                   <TableCell className="text-right">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                        <Button variant="ghost" size="icon" aria-label="Company actions">
+                        <Button variant="ghost" size="icon" aria-label={t("company_actions", "Company actions")}>
                           <MoreVertical className="h-4 w-4" aria-hidden="true" />
                         </Button>
                       </DropdownMenuTrigger>

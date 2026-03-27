@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -71,6 +72,7 @@ const TEMPLATES: { name: string; config: Partial<WaitingRoomConfig> }[] = [
 ];
 
 export function WaitingRoomConfigEditor({ meetingId, onSave }: WaitingRoomConfigEditorProps) {
+  const { t } = useTranslation('common');
   const [config, setConfig] = useState<WaitingRoomConfig>({
     welcome_message: '',
     background_color: '#0E0E10',
@@ -129,11 +131,11 @@ export function WaitingRoomConfigEditor({ meetingId, onSave }: WaitingRoomConfig
         });
 
       if (error) throw error;
-      toast.success('Waiting room configuration saved');
+      toast.success(t("waiting_room_configuration_saved", "Waiting room configuration saved"));
       onSave?.();
     } catch (error) {
       console.error('Error saving config:', error);
-      toast.error('Failed to save configuration');
+      toast.error(t("failed_to_save_configuration", "Failed to save configuration"));
     } finally {
       setSaving(false);
     }
@@ -195,7 +197,7 @@ export function WaitingRoomConfigEditor({ meetingId, onSave }: WaitingRoomConfig
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-semibold mb-3">Quick Templates</h3>
+        <h3 className="text-lg font-semibold mb-3">{t("quick_templates", "Quick Templates")}</h3>
         <div className="flex flex-wrap gap-2">
           {TEMPLATES.map(template => (
             <Button
@@ -228,7 +230,7 @@ export function WaitingRoomConfigEditor({ meetingId, onSave }: WaitingRoomConfig
 
         <TabsContent value="appearance" className="space-y-4 mt-4">
           <div className="space-y-2">
-            <Label htmlFor="logo">Company Logo URL</Label>
+            <Label htmlFor="logo">{t("company_logo_url", "Company Logo URL")}</Label>
             <Input
               id="logo"
               value={config.company_logo_url || ''}
@@ -238,7 +240,7 @@ export function WaitingRoomConfigEditor({ meetingId, onSave }: WaitingRoomConfig
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="bg-color">Background Color</Label>
+            <Label htmlFor="bg-color">{t("background_color", "Background Color")}</Label>
             <div className="flex gap-2">
               <Input
                 id="bg-color"
@@ -250,7 +252,7 @@ export function WaitingRoomConfigEditor({ meetingId, onSave }: WaitingRoomConfig
               <Input
                 value={config.background_color || '#0E0E10'}
                 onChange={e => setConfig(prev => ({ ...prev, background_color: e.target.value }))}
-                placeholder="#0E0E10"
+                placeholder={t("0e0e10", "#0E0E10")}
                 className="flex-1"
               />
             </div>
@@ -258,8 +260,8 @@ export function WaitingRoomConfigEditor({ meetingId, onSave }: WaitingRoomConfig
 
           <div className="flex items-center justify-between">
             <div>
-              <Label htmlFor="show-interviewers">Show Interviewer Names</Label>
-              <p className="text-sm text-muted-foreground">Display panel members to guests</p>
+              <Label htmlFor="show-interviewers">{t("show_interviewer_names", "Show Interviewer Names")}</Label>
+              <p className="text-sm text-muted-foreground">{t("display_panel_members_to", "Display panel members to guests")}</p>
             </div>
             <Switch
               id="show-interviewers"
@@ -270,8 +272,8 @@ export function WaitingRoomConfigEditor({ meetingId, onSave }: WaitingRoomConfig
 
           <div className="flex items-center justify-between">
             <div>
-              <Label htmlFor="show-wait">Show Estimated Wait Time</Label>
-              <p className="text-sm text-muted-foreground">Display approximate wait time</p>
+              <Label htmlFor="show-wait">{t("show_estimated_wait_time", "Show Estimated Wait Time")}</Label>
+              <p className="text-sm text-muted-foreground">{t("display_approximate_wait_time", "Display approximate wait time")}</p>
             </div>
             <Switch
               id="show-wait"
@@ -283,18 +285,18 @@ export function WaitingRoomConfigEditor({ meetingId, onSave }: WaitingRoomConfig
 
         <TabsContent value="content" className="space-y-4 mt-4">
           <div className="space-y-2">
-            <Label htmlFor="welcome">Welcome Message</Label>
+            <Label htmlFor="welcome">{t("welcome_message", "Welcome Message")}</Label>
             <Textarea
               id="welcome"
               value={config.welcome_message || ''}
               onChange={e => setConfig(prev => ({ ...prev, welcome_message: e.target.value }))}
-              placeholder="Welcome to your interview. Please wait while we prepare the room."
+              placeholder={t("welcome_to_your_interview", "Welcome to your interview. Please wait while we prepare the room.")}
               rows={3}
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="prep">Preparation Materials URL</Label>
+            <Label htmlFor="prep">{t("preparation_materials_url", "Preparation Materials URL")}</Label>
             <Input
               id="prep"
               value={config.prep_materials_url || ''}
@@ -310,7 +312,7 @@ export function WaitingRoomConfigEditor({ meetingId, onSave }: WaitingRoomConfig
         <TabsContent value="survey" className="space-y-4 mt-4">
           <div className="flex items-center justify-between">
             <div>
-              <h4 className="font-medium">Pre-Meeting Questions</h4>
+              <h4 className="font-medium">{t("premeeting_questions", "Pre-Meeting Questions")}</h4>
               <p className="text-sm text-muted-foreground">
                 Ask guests questions while they wait
               </p>
@@ -324,7 +326,7 @@ export function WaitingRoomConfigEditor({ meetingId, onSave }: WaitingRoomConfig
           {config.survey_questions?.length === 0 ? (
             <Card className="p-6 text-center bg-muted/50">
               <MessageSquare className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-              <p className="text-muted-foreground">No survey questions configured</p>
+              <p className="text-muted-foreground">{t("no_survey_questions_configured", "No survey questions configured")}</p>
               <p className="text-sm text-muted-foreground mt-1">
                 Add questions to gather information from guests while they wait
               </p>
@@ -341,7 +343,7 @@ export function WaitingRoomConfigEditor({ meetingId, onSave }: WaitingRoomConfig
                       <Input
                         value={question.question}
                         onChange={e => updateSurveyQuestion(question.id, { question: e.target.value })}
-                        placeholder="Enter your question..."
+                        placeholder={t("enter_your_question", "Enter your question...")}
                       />
                       <div className="flex items-center gap-4">
                         <select
@@ -349,16 +351,16 @@ export function WaitingRoomConfigEditor({ meetingId, onSave }: WaitingRoomConfig
                           onChange={e => updateSurveyQuestion(question.id, { type: e.target.value as any })}
                           className="text-sm border rounded px-2 py-1 bg-background"
                         >
-                          <option value="text">Text Answer</option>
-                          <option value="rating">Rating (1-5)</option>
-                          <option value="choice">Multiple Choice</option>
+                          <option value="text">{t("text_answer", "Text Answer")}</option>
+                          <option value="rating">{t("rating_15", "Rating (1-5)")}</option>
+                          <option value="choice">{t("multiple_choice", "Multiple Choice")}</option>
                         </select>
                         <div className="flex items-center gap-2">
                           <Switch
                             checked={question.required}
                             onCheckedChange={checked => updateSurveyQuestion(question.id, { required: checked })}
                           />
-                          <Label className="text-sm">Required</Label>
+                          <Label className="text-sm">{t("required", "Required")}</Label>
                         </div>
                       </div>
                       {question.type === 'choice' && (
@@ -367,7 +369,7 @@ export function WaitingRoomConfigEditor({ meetingId, onSave }: WaitingRoomConfig
                           onChange={e => updateSurveyQuestion(question.id, { 
                             options: e.target.value.split(',').map(o => o.trim()).filter(Boolean)
                           })}
-                          placeholder="Option 1, Option 2, Option 3"
+                          placeholder={t("option_1_option_2", "Option 1, Option 2, Option 3")}
                         />
                       )}
                     </div>

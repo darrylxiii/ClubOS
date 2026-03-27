@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
@@ -11,6 +12,7 @@ import { formatDistanceToNow } from "date-fns";
 import { parseEdgeFunctionError, getEdgeFunctionErrorMessage } from "@/utils/edgeFunctionErrors";
 
 export default function ResetPasswordVerify() {
+  const { t } = useTranslation('common');
   const [searchParams] = useSearchParams();
   const email = searchParams.get('email') || '';
   const navigate = useNavigate();
@@ -170,10 +172,8 @@ export default function ResetPasswordVerify() {
             <Lock className="w-8 h-8 text-primary" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Enter Verification Code</h1>
-            <p className="text-muted-foreground mt-2 text-sm">
-              Enter the 6-digit code sent to
-            </p>
+            <h1 className="text-2xl font-bold text-foreground">{t('resetPasswordVerify.text3')}</h1>
+            <p className="text-muted-foreground mt-2 text-sm">{t('resetPasswordVerify.desc')}</p>
             <p className="text-foreground font-medium text-sm">{email}</p>
           </div>
         </CardHeader>
@@ -200,7 +200,7 @@ export default function ResetPasswordVerify() {
           ) : (
             <div className="flex items-center justify-center gap-2 text-sm text-destructive">
               <AlertCircle className="w-4 h-4" />
-              <span>Code expired</span>
+              <span>{t('resetPasswordVerify.text4')}</span>
             </div>
           )}
 
@@ -214,14 +214,12 @@ export default function ResetPasswordVerify() {
           {attemptsRemaining === 0 && (
             <div className="flex items-center justify-center gap-2 text-sm text-destructive">
               <AlertCircle className="w-4 h-4" />
-              <span>Too many failed attempts</span>
+              <span>{t('resetPasswordVerify.text5')}</span>
             </div>
           )}
 
           <div className="text-center space-y-3">
-            <p className="text-sm text-muted-foreground">
-              Didn't receive the code?
-            </p>
+            <p className="text-sm text-muted-foreground">{t('resetPasswordVerify.desc2')}</p>
             <Button
               variant="outline"
               onClick={handleResend}

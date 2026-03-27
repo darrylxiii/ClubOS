@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 /**
  * No Data Available Component
  * 
@@ -23,9 +24,10 @@ export function NoDataAvailable({
   experience,
   onResetFilters 
 }: NoDataAvailableProps) {
+  const { t } = useTranslation('common');
 
   const handleRequestData = () => {
-    toast.success('Request submitted', {
+    toast.success(t("request_submitted", "Request submitted"), {
       description: `We'll gather data for ${role} in ${location} and notify you when available.`
     });
   };
@@ -39,7 +41,7 @@ export function NoDataAvailable({
           </div>
           
           <div className="space-y-2">
-            <h3 className="text-lg font-bold">No Salary Data Available</h3>
+            <h3 className="text-lg font-bold">{t("no_salary_data_available", "No Salary Data Available")}</h3>
             <p className="text-sm text-muted-foreground max-w-md">
               We don't have enough data for <span className="font-medium">{role}</span> in{' '}
               <span className="font-medium">{location}</span> with{' '}
@@ -64,7 +66,7 @@ export function NoDataAvailable({
             <div className="flex items-start gap-2 text-left">
               <AlertCircle className="w-4 h-4 text-muted-foreground shrink-0 mt-0.5" />
               <p className="text-xs text-muted-foreground">
-                <span className="font-medium">Tip:</span> Try broadening your search by selecting 
+                <span className="font-medium">{t("tip", "Tip:")}</span> Try broadening your search by selecting 
                 "Remote" for location or choosing a more common role title. Our data coverage is 
                 strongest for Software Engineers, Product Managers, and Designers in major European cities.
               </p>

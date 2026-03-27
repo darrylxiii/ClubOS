@@ -6,6 +6,7 @@ import { Progress } from "@/components/ui/progress";
 import { TrendingUp, TrendingDown, DollarSign } from "lucide-react";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
+import { useTranslation } from 'react-i18next';
 
 interface PlacementRevenueWidgetProps {
   companyId: string;
@@ -13,6 +14,7 @@ interface PlacementRevenueWidgetProps {
 
 // Animated counter hook
 function useAnimatedCounter(end: number, duration: number = 1000) {
+  const { t } = useTranslation('partner');
   const [count, setCount] = useState(0);
   
   useEffect(() => {
@@ -126,7 +128,7 @@ export function PlacementRevenueWidget({ companyId }: PlacementRevenueWidgetProp
               <div className="p-2 rounded-lg bg-primary/10">
                 <DollarSign className="h-5 w-5 text-primary" />
               </div>
-              <span className="text-lg font-semibold">Placement Revenue</span>
+              <span className="text-lg font-semibold">{"Placement Revenue"}</span>
             </span>
             <Badge 
               variant="outline" 
@@ -147,12 +149,12 @@ export function PlacementRevenueWidget({ companyId }: PlacementRevenueWidgetProp
             <span className="text-4xl font-bold text-foreground tracking-tight">
               €{animatedRevenue.toLocaleString()}
             </span>
-            <span className="text-sm text-muted-foreground">this quarter</span>
+            <span className="text-sm text-muted-foreground">{"this quarter"}</span>
           </div>
 
           <div className="space-y-2">
             <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Progress to goal</span>
+              <span className="text-muted-foreground">{"Progress to goal"}</span>
               <span className="font-medium">
                 {Math.min(100, revenueData?.progressPercent || 0).toFixed(0)}%
               </span>

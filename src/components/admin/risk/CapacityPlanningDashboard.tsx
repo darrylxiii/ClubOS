@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -46,6 +47,7 @@ const metricIcons: Record<string, typeof Database> = {
 };
 
 export function CapacityPlanningDashboard() {
+  const { t } = useTranslation('common');
   const queryClient = useQueryClient();
   const [isAddTriggerOpen, setIsAddTriggerOpen] = useState(false);
   const [newTrigger, setNewTrigger] = useState({ metric: '', threshold: '', action: '' });
@@ -89,11 +91,11 @@ export function CapacityPlanningDashboard() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['scaling-triggers'] });
-      toast.success('Scaling trigger added');
+      toast.success(t("scaling_trigger_added", "Scaling trigger added"));
       setIsAddTriggerOpen(false);
       setNewTrigger({ metric: '', threshold: '', action: '' });
     },
-    onError: (error) => toast.error('Failed to add trigger: ' + error.message),
+    onError: (error) => toast.error(t("failed_to_add_trigger", "Failed to add trigger:") + error.message),
   });
 
   // Update trigger status mutation
@@ -107,7 +109,7 @@ export function CapacityPlanningDashboard() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['scaling-triggers'] });
-      toast.success('Trigger updated');
+      toast.success(t("trigger_updated", "Trigger updated"));
     },
   });
 
@@ -119,7 +121,7 @@ export function CapacityPlanningDashboard() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['scaling-triggers'] });
-      toast.success('Trigger deleted');
+      toast.success(t("trigger_deleted", "Trigger deleted"));
     },
   });
 
@@ -198,7 +200,7 @@ export function CapacityPlanningDashboard() {
                   </div>
                   <div className="text-right">
                     <p className="text-lg font-bold text-primary">{proj.revenue}</p>
-                    <p className="text-xs text-muted-foreground">MRR target</p>
+                    <p className="text-xs text-muted-foreground">{t("mrr_target", "MRR target")}</p>
                   </div>
                 </div>
               ))}
@@ -222,29 +224,29 @@ export function CapacityPlanningDashboard() {
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
-                    <DialogTitle>Add Scaling Trigger</DialogTitle>
+                    <DialogTitle>{t("add_scaling_trigger", "Add Scaling Trigger")}</DialogTitle>
                   </DialogHeader>
                   <div className="space-y-4">
                     <div>
-                      <Label>Metric</Label>
+                      <Label>{t("metric", "Metric")}</Label>
                       <Input
-                        placeholder="e.g., CPU Usage"
+                        placeholder={t("eg_cpu_usage", "e.g., CPU Usage")}
                         value={newTrigger.metric}
                         onChange={(e) => setNewTrigger({ ...newTrigger, metric: e.target.value })}
                       />
                     </div>
                     <div>
-                      <Label>Threshold</Label>
+                      <Label>{t("threshold", "Threshold")}</Label>
                       <Input
-                        placeholder="e.g., >80%"
+                        placeholder={t("eg_80", "e.g., >80%")}
                         value={newTrigger.threshold}
                         onChange={(e) => setNewTrigger({ ...newTrigger, threshold: e.target.value })}
                       />
                     </div>
                     <div>
-                      <Label>Action</Label>
+                      <Label>{t("action", "Action")}</Label>
                       <Input
-                        placeholder="e.g., Add 2 instances"
+                        placeholder={t("eg_add_2_instances", "e.g., Add 2 instances")}
                         value={newTrigger.action}
                         onChange={(e) => setNewTrigger({ ...newTrigger, action: e.target.value })}
                       />
@@ -286,9 +288,9 @@ export function CapacityPlanningDashboard() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="active">Active</SelectItem>
-                          <SelectItem value="paused">Paused</SelectItem>
-                          <SelectItem value="triggered">Triggered</SelectItem>
+                          <SelectItem value="active">{t("active", "Active")}</SelectItem>
+                          <SelectItem value="paused">{t("paused", "Paused")}</SelectItem>
+                          <SelectItem value="triggered">{t("triggered", "Triggered")}</SelectItem>
                         </SelectContent>
                       </Select>
                       <Button
@@ -329,7 +331,7 @@ export function CapacityPlanningDashboard() {
             ))}
             <li className="flex items-start gap-2">
               <span className="text-yellow-600">•</span>
-              <span>User growth trending - prepare for 10x capacity by Q4</span>
+              <span>{t("user_growth_trending_prepare", "User growth trending - prepare for 10x capacity by Q4")}</span>
             </li>
           </ul>
         </CardContent>

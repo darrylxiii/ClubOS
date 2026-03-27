@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import {
   Table,
@@ -53,6 +54,7 @@ export function TalentPoolTable({
   isFetchingNextPage,
   onLoadMore,
 }: TalentPoolTableProps) {
+  const { t } = useTranslation('common');
   const [sortField, setSortField] = useState<'tier_score' | 'move_probability' | 'last_activity'>('tier_score');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
@@ -110,7 +112,7 @@ export function TalentPoolTable({
   if (candidates.length === 0) {
     return (
       <div className="text-center py-12 text-muted-foreground">
-        <p>No candidates found matching your criteria.</p>
+        <p>{t("no_candidates_found_matching", "No candidates found matching your criteria.")}</p>
       </div>
     );
   }
@@ -126,9 +128,9 @@ export function TalentPoolTable({
                 onCheckedChange={toggleSelectAll}
               />
             </TableHead>
-            <TableHead className="min-w-[250px]">Candidate</TableHead>
-            <TableHead>Company</TableHead>
-            <TableHead>Location</TableHead>
+            <TableHead className="min-w-[250px]">{t("candidate", "Candidate")}</TableHead>
+            <TableHead>{t("company", "Company")}</TableHead>
+            <TableHead>{t("location", "Location")}</TableHead>
             <TableHead className="cursor-pointer" onClick={() => {
               if (sortField === 'tier_score') {
                 setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc');

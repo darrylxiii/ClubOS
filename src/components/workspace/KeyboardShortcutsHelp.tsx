@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import {
   Dialog,
   DialogContent,
@@ -24,6 +25,7 @@ interface ShortcutCategory {
 }
 
 export function KeyboardShortcutsHelp({ open, onOpenChange }: KeyboardShortcutsHelpProps) {
+  const { t } = useTranslation('common');
   const isMac = useMemo(() => 
     typeof navigator !== 'undefined' && navigator.platform.toUpperCase().indexOf('MAC') >= 0,
     []
@@ -83,7 +85,7 @@ export function KeyboardShortcutsHelp({ open, onOpenChange }: KeyboardShortcutsH
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>Keyboard Shortcuts</DialogTitle>
+          <DialogTitle>{t("keyboard_shortcuts", "Keyboard Shortcuts")}</DialogTitle>
         </DialogHeader>
         <ScrollArea className="max-h-[60vh]">
           <div className="space-y-6 pr-4">

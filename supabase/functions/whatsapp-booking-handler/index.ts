@@ -28,7 +28,7 @@ serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const lovableKey = Deno.env.get('LOVABLE_API_KEY')!;
+    const googleApiKey = Deno.env.get('GOOGLE_API_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const { 
@@ -220,14 +220,14 @@ Respond as JSON:
   "matched_slot": "ISO datetime string or null"
 }`;
 
-    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    const aiResponse = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${lovableKey}`,
+        'Authorization': `Bearer ${googleApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash-lite',
+        model: 'gemini-2.5-flash-lite',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: message }

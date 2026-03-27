@@ -15,6 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { useTranslation } from 'react-i18next';
 
 export const AssignmentTrackingTab = memo(() => {
   const { getAssignments, sendReminder } = useAssessmentAssignments();
@@ -38,6 +39,7 @@ export const AssignmentTrackingTab = memo(() => {
   };
 
   const getStatusBadgeVariant = (status: string) => {
+  const { t } = useTranslation('admin');
     switch (status) {
       case 'completed':
         return 'default';

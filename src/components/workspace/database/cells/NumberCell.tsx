@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 
 interface NumberCellProps {
@@ -7,6 +8,7 @@ interface NumberCellProps {
 }
 
 export function NumberCell({ value, onChange }: NumberCellProps) {
+  const { t } = useTranslation('common');
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(value?.toString() || '');
   const inputRef = useRef<HTMLInputElement>(null);
@@ -58,7 +60,7 @@ export function NumberCell({ value, onChange }: NumberCellProps) {
       )}
       onClick={() => setIsEditing(true)}
     >
-      {value ?? 'Empty'}
+      {value ?? t('workspace.empty', 'Empty')}
     </div>
   );
 }

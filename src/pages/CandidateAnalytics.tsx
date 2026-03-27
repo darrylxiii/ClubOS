@@ -1,4 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useTranslation } from 'react-i18next';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCandidateAnalytics } from "@/hooks/useCandidateAnalytics";
 import { useAuth as useSupabaseAuth } from "@/contexts/AuthContext";
@@ -11,6 +12,7 @@ import { toast } from "sonner";
 
 
 export default function CandidateAnalytics() {
+  const { t } = useTranslation('candidates');
   const { user } = useSupabaseAuth();
   const { data, loading } = useCandidateAnalytics(user?.id);
 
@@ -32,7 +34,7 @@ export default function CandidateAnalytics() {
     };
 
     exportToCSV([exportData], 'candidate-analytics');
-    toast.success('Analytics exported successfully');
+    toast.success("Analytics exported successfully");
   };
 
   if (loading) {
@@ -56,8 +58,8 @@ export default function CandidateAnalytics() {
       <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex flex-col items-center justify-center min-h-[400px] text-center">
           <Eye className="h-16 w-16 text-muted-foreground mb-4" />
-          <h2 className="text-xl font-semibold mb-2">No Analytics Data Yet</h2>
-          <p className="text-muted-foreground max-w-md">Analytics data will appear once your profile starts receiving views and applications.</p>
+          <h2 className="text-xl font-semibold mb-2">{t('candidateAnalytics.text2')}</h2>
+          <p className="text-muted-foreground max-w-md">{t('candidateAnalytics.desc')}</p>
         </div>
       </div>
     );
@@ -75,8 +77,8 @@ export default function CandidateAnalytics() {
       <div className="w-full px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold">Your Career Analytics</h1>
-            <p className="text-muted-foreground">Track your job search performance and insights</p>
+            <h1 className="text-3xl font-bold">{t('candidateAnalytics.text3')}</h1>
+            <p className="text-muted-foreground">{t('candidateAnalytics.text4')}</p>
           </div>
           <Button onClick={handleExport} variant="outline">
             <Download className="mr-2 h-4 w-4" />
@@ -94,7 +96,7 @@ export default function CandidateAnalytics() {
                 </div>
                 <div>
                   <p className="text-2xl font-bold">{data.profileViews.total}</p>
-                  <p className="text-sm text-muted-foreground">Profile Views</p>
+                  <p className="text-sm text-muted-foreground">{t('candidateAnalytics.text5')}</p>
                   <p className="text-xs text-muted-foreground">{data.profileViews.unique} unique</p>
                 </div>
               </div>
@@ -109,7 +111,7 @@ export default function CandidateAnalytics() {
                 </div>
                 <div>
                   <p className="text-2xl font-bold">{data.applicationMetrics.total}</p>
-                  <p className="text-sm text-muted-foreground">Applications</p>
+                  <p className="text-sm text-muted-foreground">{t('candidateAnalytics.text6')}</p>
                   <p className="text-xs text-muted-foreground">{data.applicationMetrics.active} active</p>
                 </div>
               </div>
@@ -124,7 +126,7 @@ export default function CandidateAnalytics() {
                 </div>
                 <div>
                   <p className="text-2xl font-bold">{data.applicationMetrics.interviews}</p>
-                  <p className="text-sm text-muted-foreground">Interviews</p>
+                  <p className="text-sm text-muted-foreground">{t('candidateAnalytics.text7')}</p>
                   <p className="text-xs text-muted-foreground">{data.interviewPerformance.completed} completed</p>
                 </div>
               </div>
@@ -139,7 +141,7 @@ export default function CandidateAnalytics() {
                 </div>
                 <div>
                   <p className="text-2xl font-bold">{data.applicationMetrics.successRate}%</p>
-                  <p className="text-sm text-muted-foreground">Success Rate</p>
+                  <p className="text-sm text-muted-foreground">{t('candidateAnalytics.text8')}</p>
                   <p className="text-xs text-muted-foreground">{data.applicationMetrics.offers} offers</p>
                 </div>
               </div>
@@ -150,19 +152,19 @@ export default function CandidateAnalytics() {
         {/* Detailed Analytics Tabs */}
         <Tabs defaultValue="profile" className="space-y-6">
           <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-5 h-auto min-h-[44px]">
-            <TabsTrigger value="profile">Profile</TabsTrigger>
-            <TabsTrigger value="applications">Applications</TabsTrigger>
-            <TabsTrigger value="interviews">Interviews</TabsTrigger>
-            <TabsTrigger value="search">Job Search</TabsTrigger>
-            <TabsTrigger value="network">Network</TabsTrigger>
+            <TabsTrigger value="profile">{t('candidateAnalytics.text9')}</TabsTrigger>
+            <TabsTrigger value="applications">{t('candidateAnalytics.text10')}</TabsTrigger>
+            <TabsTrigger value="interviews">{t('candidateAnalytics.text11')}</TabsTrigger>
+            <TabsTrigger value="search">{t('candidateAnalytics.text12')}</TabsTrigger>
+            <TabsTrigger value="network">{t('candidateAnalytics.text13')}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="profile" className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Card>
                 <CardHeader>
-                  <CardTitle>Profile Views Trend</CardTitle>
-                  <CardDescription>Daily profile views over the last 30 days</CardDescription>
+                  <CardTitle>{t('candidateAnalytics.text14')}</CardTitle>
+                  <CardDescription>{t('candidateAnalytics.text15')}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <DynamicChart
@@ -181,8 +183,8 @@ export default function CandidateAnalytics() {
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Top Companies Viewing You</CardTitle>
-                  <CardDescription>Companies that viewed your profile most</CardDescription>
+                  <CardTitle>{t('candidateAnalytics.text16')}</CardTitle>
+                  <CardDescription>{t('candidateAnalytics.text17')}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
@@ -199,25 +201,25 @@ export default function CandidateAnalytics() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Document Engagement</CardTitle>
-                <CardDescription>How recruiters interact with your documents</CardDescription>
+                <CardTitle>{t('candidateAnalytics.text18')}</CardTitle>
+                <CardDescription>{t('candidateAnalytics.text19')}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-3 gap-4">
                   <div className="text-center p-4 border rounded-lg">
                     <Download className="h-6 w-6 mx-auto mb-2 text-primary" />
                     <p className="text-2xl font-bold">{data.documentEngagement.cvDownloads}</p>
-                    <p className="text-sm text-muted-foreground">CV Downloads</p>
+                    <p className="text-sm text-muted-foreground">{t('candidateAnalytics.text20')}</p>
                   </div>
                   <div className="text-center p-4 border rounded-lg">
                     <Eye className="h-6 w-6 mx-auto mb-2 text-primary" />
                     <p className="text-2xl font-bold">{data.documentEngagement.portfolioViews}</p>
-                    <p className="text-sm text-muted-foreground">Portfolio Views</p>
+                    <p className="text-sm text-muted-foreground">{t('candidateAnalytics.text21')}</p>
                   </div>
                   <div className="text-center p-4 border rounded-lg">
                     <FileText className="h-6 w-6 mx-auto mb-2 text-primary" />
                     <p className="text-2xl font-bold">{data.documentEngagement.documentsShared}</p>
-                    <p className="text-sm text-muted-foreground">Docs Shared</p>
+                    <p className="text-sm text-muted-foreground">{t('candidateAnalytics.text22')}</p>
                   </div>
                 </div>
               </CardContent>
@@ -228,8 +230,8 @@ export default function CandidateAnalytics() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <Card>
                 <CardHeader>
-                  <CardTitle>Application Timeline</CardTitle>
-                  <CardDescription>Your application activity over time</CardDescription>
+                  <CardTitle>{t('candidateAnalytics.text23')}</CardTitle>
+                  <CardDescription>{t('candidateAnalytics.text24')}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <DynamicChart
@@ -248,8 +250,8 @@ export default function CandidateAnalytics() {
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Applications by Stage</CardTitle>
-                  <CardDescription>Current distribution of your applications</CardDescription>
+                  <CardTitle>{t('candidateAnalytics.text25')}</CardTitle>
+                  <CardDescription>{t('candidateAnalytics.text26')}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <DynamicChart
@@ -272,8 +274,8 @@ export default function CandidateAnalytics() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <Card>
                 <CardHeader>
-                  <CardTitle>Interview Performance</CardTitle>
-                  <CardDescription>Your average scores across different dimensions</CardDescription>
+                  <CardTitle>{t('candidateAnalytics.text27')}</CardTitle>
+                  <CardDescription>{t('candidateAnalytics.text28')}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <DynamicChart
@@ -290,25 +292,25 @@ export default function CandidateAnalytics() {
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Interview Metrics</CardTitle>
-                  <CardDescription>Overall interview statistics</CardDescription>
+                  <CardTitle>{t('candidateAnalytics.text29')}</CardTitle>
+                  <CardDescription>{t('candidateAnalytics.text30')}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
                     <div className="flex justify-between items-center">
-                      <span>Total Interviews</span>
+                      <span>{t('candidateAnalytics.text31')}</span>
                       <span className="font-bold">{data.interviewPerformance.total}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span>Completed</span>
+                      <span>{t('candidateAnalytics.text32')}</span>
                       <span className="font-bold">{data.interviewPerformance.completed}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span>Average Rating</span>
+                      <span>{t('candidateAnalytics.text33')}</span>
                       <span className="font-bold">{data.interviewPerformance.avgRating.toFixed(2)}/5</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span>No-Show Rate</span>
+                      <span>{t('candidateAnalytics.text34')}</span>
                       <span className="font-bold">{data.interviewPerformance.noShowRate}%</span>
                     </div>
                   </div>
@@ -320,13 +322,13 @@ export default function CandidateAnalytics() {
           <TabsContent value="search" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>Job Search Behavior</CardTitle>
-                <CardDescription>What you're looking for</CardDescription>
+                <CardTitle>{t('candidateAnalytics.text35')}</CardTitle>
+                <CardDescription>{t('candidateAnalytics.text36')}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-6">
                   <div>
-                    <h4 className="text-sm font-medium mb-3">Top Search Terms</h4>
+                    <h4 className="text-sm font-medium mb-3">{t('candidateAnalytics.text37')}</h4>
                     <div className="space-y-2">
                       {data.jobSearchBehavior.topSearchTerms.slice(0, 5).map((term, idx) => (
                         <div key={idx} className="flex items-center justify-between">
@@ -354,7 +356,7 @@ export default function CandidateAnalytics() {
                   <div className="text-center">
                     <Users className="h-8 w-8 mx-auto mb-2 text-primary" />
                     <p className="text-3xl font-bold">{data.networkActivity.referralsMade}</p>
-                    <p className="text-sm text-muted-foreground">Referrals Made</p>
+                    <p className="text-sm text-muted-foreground">{t('candidateAnalytics.text38')}</p>
                   </div>
                 </CardContent>
               </Card>
@@ -364,7 +366,7 @@ export default function CandidateAnalytics() {
                   <div className="text-center">
                     <Award className="h-8 w-8 mx-auto mb-2 text-primary" />
                     <p className="text-3xl font-bold">{data.networkActivity.referralsHired}</p>
-                    <p className="text-sm text-muted-foreground">Referrals Hired</p>
+                    <p className="text-sm text-muted-foreground">{t('candidateAnalytics.text39')}</p>
                   </div>
                 </CardContent>
               </Card>
@@ -374,7 +376,7 @@ export default function CandidateAnalytics() {
                   <div className="text-center">
                     <TrendingUp className="h-8 w-8 mx-auto mb-2 text-primary" />
                     <p className="text-3xl font-bold">€{data.networkActivity.rewardsEarned}</p>
-                    <p className="text-sm text-muted-foreground">Rewards Earned</p>
+                    <p className="text-sm text-muted-foreground">{t('candidateAnalytics.text40')}</p>
                   </div>
                 </CardContent>
               </Card>

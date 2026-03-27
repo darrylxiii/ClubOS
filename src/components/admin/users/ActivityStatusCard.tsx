@@ -3,8 +3,10 @@ import { MetricCardSkeleton } from "../shared/MetricCardSkeleton";
 import { AnimatedCard, CardVisual, CardBody, CardTitle, CardDescription } from "@/components/ui/animated-card";
 import { Visual1 } from "@/components/ui/visual-1";
 import { TrendingUp } from "lucide-react";
+import { useTranslation } from 'react-i18next';
 
 export const ActivityStatusCard = () => {
+  const { t } = useTranslation('admin');
   const { metrics, isLoading } = useUserMetrics();
 
   if (isLoading || !metrics) {
@@ -22,7 +24,7 @@ export const ActivityStatusCard = () => {
       <CardBody>
         <div className="flex items-start justify-between">
           <div className="space-y-1">
-            <CardDescription>New Users (7d)</CardDescription>
+            <CardDescription>{t('users.activityStatusCard.newUsers7d')}</CardDescription>
             <CardTitle>{metrics.new_users_7d}</CardTitle>
           </div>
           <div className="flex items-center gap-1 text-green-500 text-sm font-medium">
@@ -34,7 +36,7 @@ export const ActivityStatusCard = () => {
           Active growth this week
         </p>
         <div className="mt-3 inline-flex items-center px-2 py-1 rounded-full bg-green-500/10 border border-green-500/20">
-          <span className="text-xs font-medium text-green-600 dark:text-green-400">Strong Growth</span>
+          <span className="text-xs font-medium text-green-600 dark:text-green-400">{t('users.activityStatusCard.strongGrowth')}</span>
         </div>
       </CardBody>
     </AnimatedCard>

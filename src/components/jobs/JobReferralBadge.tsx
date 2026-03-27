@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Badge } from "@/components/ui/badge";
 import { Gift, TrendingUp } from "lucide-react";
 import { formatCurrency } from "@/lib/revenueCalculations";
@@ -18,6 +19,7 @@ export function JobReferralBadge({
   size = "md",
   className 
 }: JobReferralBadgeProps) {
+  const { t } = useTranslation('jobs');
   if (potentialEarnings <= 0) return null;
 
   const sizeClasses = {
@@ -42,7 +44,7 @@ export function JobReferralBadge({
       )}
     >
       <Gift className={iconSizes[size]} />
-      <span>Earn up to {formatCurrency(potentialEarnings)}</span>
+      <span>{t('referral.earnUpTo', 'Earn up to {{amount}}', { amount: formatCurrency(potentialEarnings) })}</span>
       {showPercentage && (
         <span className="text-muted-foreground ml-1">
           ({referralPercentage}%)
@@ -63,6 +65,7 @@ export function JobReferralChip({
   showReferralBonus = true,
   className,
 }: JobReferralChipProps) {
+  const { t } = useTranslation('jobs');
   if (!showReferralBonus || potentialEarnings <= 0) return null;
 
   return (
@@ -73,7 +76,7 @@ export function JobReferralChip({
       className
     )}>
       <TrendingUp className="h-3 w-3" />
-      <span>Refer & Earn {formatCurrency(potentialEarnings)}</span>
+      <span>{t('referral.referAndEarn', 'Refer & Earn {{amount}}', { amount: formatCurrency(potentialEarnings) })}</span>
     </div>
   );
 }

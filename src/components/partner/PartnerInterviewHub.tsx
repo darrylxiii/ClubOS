@@ -22,6 +22,7 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { format, formatDistanceToNow, isToday, isTomorrow } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 interface PartnerInterview {
   id: string;
@@ -53,6 +54,7 @@ interface PartnerInterviewHubProps {
 }
 
 export const PartnerInterviewHub = ({ companyId }: PartnerInterviewHubProps) => {
+  const { t } = useTranslation('partner');
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('upcoming');
   const [upcomingInterviews, setUpcomingInterviews] = useState<PartnerInterview[]>([]);
@@ -306,7 +308,7 @@ export const PartnerInterviewHub = ({ companyId }: PartnerInterviewHubProps) => 
               {isUpcoming ? (
                 <Button variant="outline" size="sm" className="gap-2">
                   <Calendar className="w-4 h-4" />
-                  View Details
+                  {t('common:viewDetails')}
                 </Button>
               ) : (
                 <>
@@ -356,9 +358,7 @@ export const PartnerInterviewHub = ({ companyId }: PartnerInterviewHubProps) => 
           <Video className="w-5 h-5 text-primary" />
           Interview Hub
         </CardTitle>
-        <CardDescription>
-          Track interviews, review insights, and make hiring decisions
-        </CardDescription>
+        <CardDescription>{t('partnerInterviewHub.description')}</CardDescription>
       </CardHeader>
       <CardContent>
         <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -381,7 +381,7 @@ export const PartnerInterviewHub = ({ companyId }: PartnerInterviewHubProps) => 
             {upcomingInterviews.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
                 <Calendar className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                <p>No upcoming interviews scheduled</p>
+                <p>{t('partnerInterviewHub.noUpcomingInterviewsScheduled')}</p>
               </div>
             ) : (
               <div className="space-y-4">
@@ -394,7 +394,7 @@ export const PartnerInterviewHub = ({ companyId }: PartnerInterviewHubProps) => 
             {completedInterviews.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
                 <CheckCircle2 className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                <p>No completed interviews yet</p>
+                <p>{t('partnerInterviewHub.noCompletedInterviewsYet')}</p>
               </div>
             ) : (
               <div className="space-y-4">
@@ -407,8 +407,8 @@ export const PartnerInterviewHub = ({ companyId }: PartnerInterviewHubProps) => 
             {decisionReady.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
                 <ThumbsUp className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                <p>No candidates ready for decision</p>
-                <p className="text-sm mt-1">Interviews need scorecards before decisions</p>
+                <p>{t('partnerInterviewHub.noCandidatesReadyForDecision')}</p>
+                <p className="text-sm mt-1">{t('partnerInterviewHub.interviewsNeedScorecardsBeforeDecisions')}</p>
               </div>
             ) : (
               <div className="space-y-4">
@@ -417,9 +417,7 @@ export const PartnerInterviewHub = ({ companyId }: PartnerInterviewHubProps) => 
                     <CardContent className="pt-6">
                       {renderInterviewCard(interview, false)}
                       <div className="mt-4 pt-4 border-t flex items-center justify-between">
-                        <div className="text-sm text-muted-foreground">
-                          All evaluators have submitted scorecards
-                        </div>
+                        <div className="text-sm text-muted-foreground">{t('partnerInterviewHub.allEvaluatorsHaveSubmittedScorecards')}</div>
                         <div className="flex items-center gap-2">
                           <Button variant="outline" size="sm">
                             <ThumbsDown className="w-4 h-4 mr-2" />

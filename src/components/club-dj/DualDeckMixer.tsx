@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useRef, useEffect } from "react";
 import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
@@ -24,6 +25,7 @@ interface DualDeckMixerProps {
 }
 
 export function DualDeckMixer({ trackA, trackB, onTrackEnd, liveSessionId, queueTracks = [] }: DualDeckMixerProps) {
+  const { t } = useTranslation('common');
   const { play: managedPlay, pause: managedPause } = useAudioManager('dj');
   
   // Deck A
@@ -397,7 +399,7 @@ export function DualDeckMixer({ trackA, trackB, onTrackEnd, liveSessionId, queue
                 <div className="text-cyan-400/70 truncate max-w-[200px]">{track.artist}</div>
               </div>
             ) : (
-              <div className="text-cyan-500/50">NO TRACK LOADED</div>
+              <div className="text-cyan-500/50">{t("no_track_loaded", "NO TRACK LOADED")}</div>
             )}
           </div>
           <div className="text-cyan-300 text-xs font-mono">
@@ -425,7 +427,7 @@ export function DualDeckMixer({ trackA, trackB, onTrackEnd, liveSessionId, queue
             }
           }}
           disabled={!track}
-          title="Cue"
+          title={t("cue", "Cue")}
         >
           <RotateCcw className="h-5 w-5" />
         </Button>
@@ -495,7 +497,7 @@ export function DualDeckMixer({ trackA, trackB, onTrackEnd, liveSessionId, queue
 
       {/* STEMS Section */}
       <div className="px-2 pt-2 border-t border-white/10">
-        <Label className="text-xs text-muted-foreground mb-3 block text-center">STEMS CONTROL</Label>
+        <Label className="text-xs text-muted-foreground mb-3 block text-center">{t("stems_control", "STEMS CONTROL")}</Label>
         <div className="grid grid-cols-4 gap-2">
           <div className="space-y-1">
             <div className="flex flex-col items-center gap-1">
@@ -622,7 +624,7 @@ export function DualDeckMixer({ trackA, trackB, onTrackEnd, liveSessionId, queue
           <div className="grid grid-cols-4 gap-3 h-72">
             {/* Deck A EQ */}
             <div className="space-y-2">
-              <Label className="text-xs text-blue-400 text-center block">A-LOW</Label>
+              <Label className="text-xs text-blue-400 text-center block">{t("alow", "A-LOW")}</Label>
               <div className="h-full flex flex-col items-center justify-end">
                 <Slider
                   value={eqLowA}
@@ -637,7 +639,7 @@ export function DualDeckMixer({ trackA, trackB, onTrackEnd, liveSessionId, queue
             </div>
 
             <div className="space-y-2">
-              <Label className="text-xs text-blue-400 text-center block">A-HIGH</Label>
+              <Label className="text-xs text-blue-400 text-center block">{t("ahigh", "A-HIGH")}</Label>
               <div className="h-full flex flex-col items-center justify-end">
                 <Slider
                   value={eqHighA}
@@ -653,7 +655,7 @@ export function DualDeckMixer({ trackA, trackB, onTrackEnd, liveSessionId, queue
 
             {/* Deck B EQ */}
             <div className="space-y-2">
-              <Label className="text-xs text-orange-400 text-center block">B-LOW</Label>
+              <Label className="text-xs text-orange-400 text-center block">{t("blow", "B-LOW")}</Label>
               <div className="h-full flex flex-col items-center justify-end">
                 <Slider
                   value={eqLowB}
@@ -668,7 +670,7 @@ export function DualDeckMixer({ trackA, trackB, onTrackEnd, liveSessionId, queue
             </div>
 
             <div className="space-y-2">
-              <Label className="text-xs text-orange-400 text-center block">B-HIGH</Label>
+              <Label className="text-xs text-orange-400 text-center block">{t("bhigh", "B-HIGH")}</Label>
               <div className="h-full flex flex-col items-center justify-end">
                 <Slider
                   value={eqHighB}

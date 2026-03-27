@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Eye, EyeOff, Briefcase } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTranslation } from 'react-i18next';
 
 interface ProfileView {
   id: string;
@@ -28,6 +29,7 @@ interface ProfileView {
 }
 
 export const ProfileViewers = () => {
+  const { t } = useTranslation('common');
   const [views, setViews] = useState<ProfileView[]>([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();

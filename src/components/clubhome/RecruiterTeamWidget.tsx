@@ -5,6 +5,7 @@ import { Users, TrendingUp, Trophy, Target } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
+import { useTranslation } from 'react-i18next';
 
 interface RecruiterStats {
   id: string;
@@ -15,6 +16,7 @@ interface RecruiterStats {
 }
 
 export const RecruiterTeamWidget = () => {
+  const { t } = useTranslation('common');
   const { data: teamStats, isLoading } = useQuery({
     queryKey: ['recruiter-team-stats'],
     queryFn: async () => {
@@ -117,24 +119,24 @@ export const RecruiterTeamWidget = () => {
             <div className="text-center p-2 rounded-lg bg-muted/50">
               <Target className="h-4 w-4 mx-auto text-blue-500 mb-1" />
               <div className="text-lg font-bold">{teamStats?.totalSourced || 0}</div>
-              <div className="text-[10px] text-muted-foreground">Sourced</div>
+              <div className="text-[10px] text-muted-foreground">{t('recruiterTeamWidget.sourced')}</div>
             </div>
             <div className="text-center p-2 rounded-lg bg-muted/50">
               <Trophy className="h-4 w-4 mx-auto text-amber-500 mb-1" />
               <div className="text-lg font-bold">{teamStats?.totalPlacements || 0}</div>
-              <div className="text-[10px] text-muted-foreground">Placements</div>
+              <div className="text-[10px] text-muted-foreground">{t('recruiterTeamWidget.placements')}</div>
             </div>
             <div className="text-center p-2 rounded-lg bg-muted/50">
               <TrendingUp className="h-4 w-4 mx-auto text-emerald-500 mb-1" />
               <div className="text-lg font-bold">{teamStats?.placementRate || 0}%</div>
-              <div className="text-[10px] text-muted-foreground">Rate</div>
+              <div className="text-[10px] text-muted-foreground">{t('recruiterTeamWidget.rate')}</div>
             </div>
           </div>
 
           {/* Top Performers */}
           {teamStats?.recruiters && teamStats.recruiters.length > 0 ? (
             <div className="space-y-2">
-              <div className="text-xs font-medium text-muted-foreground">Top Performers</div>
+              <div className="text-xs font-medium text-muted-foreground">{t('recruiterTeamWidget.topPerformers')}</div>
               {teamStats.recruiters.slice(0, 3).map((recruiter, index) => (
                 <div 
                   key={recruiter.id} 
@@ -170,9 +172,7 @@ export const RecruiterTeamWidget = () => {
               ))}
             </div>
           ) : (
-            <div className="text-center py-4 text-sm text-muted-foreground">
-              No recruiter activity yet
-            </div>
+            <div className="text-center py-4 text-sm text-muted-foreground">{t('recruiterTeamWidget.noRecruiterActivityYet')}</div>
           )}
         </CardContent>
       </Card>

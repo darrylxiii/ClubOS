@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -38,6 +39,7 @@ interface PendingJob {
 }
 
 const JobApprovals = () => {
+  const { t } = useTranslation('admin');
   const queryClient = useQueryClient();
   const [declineJobId, setDeclineJobId] = useState<string | null>(null);
 
@@ -64,11 +66,11 @@ const JobApprovals = () => {
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success('Job approved and published.');
+      toast.success("Job approved and published.");
       queryClient.invalidateQueries({ queryKey: ['pending-jobs'] });
       queryClient.invalidateQueries({ queryKey: ['jobs'] });
     },
-    onError: () => toast.error('Failed to approve job.'),
+    onError: () => toast.error("Failed to approve job."),
   });
 
   const declineMutation = useMutation({
@@ -80,12 +82,12 @@ const JobApprovals = () => {
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success('Job declined and moved to draft.');
+      toast.success("Job declined and moved to draft.");
       setDeclineJobId(null);
       queryClient.invalidateQueries({ queryKey: ['pending-jobs'] });
       queryClient.invalidateQueries({ queryKey: ['jobs'] });
     },
-    onError: () => toast.error('Failed to decline job.'),
+    onError: () => toast.error("Failed to decline job."),
   });
 
   const formatSalary = (min: number | null, max: number | null, currency: string | null) => {
@@ -102,10 +104,8 @@ const JobApprovals = () => {
         <div className="max-w-4xl mx-auto p-6 space-y-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-semibold text-foreground">Job Approvals</h1>
-              <p className="text-sm text-muted-foreground mt-1">
-                Review and approve jobs submitted by partners.
-              </p>
+              <h1 className="text-2xl font-semibold text-foreground">{t('jobApprovals.title')}</h1>
+              <p className="text-sm text-muted-foreground mt-1">{t('jobApprovals.desc')}</p>
             </div>
             {pendingJobs && pendingJobs.length > 0 && (
               <Badge variant="secondary" className="text-sm">
@@ -120,7 +120,7 @@ const JobApprovals = () => {
             <Card>
               <CardContent className="py-16 text-center">
                 <Briefcase className="w-12 h-12 mx-auto text-muted-foreground/40 mb-4" />
-                <p className="text-muted-foreground">No jobs pending approval.</p>
+                <p className="text-muted-foreground">{t('jobApprovals.desc2')}</p>
               </CardContent>
             </Card>
           ) : (

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -49,13 +50,13 @@ const domainColors: Record<KPIDomain, { bg: string; text: string; border: string
   costs: { bg: 'bg-rose-500/10', text: 'text-rose-500', border: 'border-rose-500/20' },
 };
 
-function DomainHealthCard({ 
-  domain, 
+function DomainHealthCard({  domain, 
   onSelectCategory 
 }: { 
   domain: DomainHealth; 
   onSelectCategory: (domain: KPIDomain, category: string) => void;
 }) {
+const { t } = useTranslation('common');
   const Icon = domainIcons[domain.domain];
   const colors = domainColors[domain.domain];
 
@@ -85,15 +86,15 @@ function DomainHealthCard({
         <div className="grid grid-cols-3 gap-2 text-center">
           <div className="p-2 rounded-lg bg-emerald-500/10">
             <p className="text-lg font-bold text-emerald-500">{domain.onTarget}</p>
-            <p className="text-[10px] text-muted-foreground">On Target</p>
+            <p className="text-[10px] text-muted-foreground">{t("on_target", "On Target")}</p>
           </div>
           <div className="p-2 rounded-lg bg-amber-500/10">
             <p className="text-lg font-bold text-amber-500">{domain.warnings}</p>
-            <p className="text-[10px] text-muted-foreground">Warning</p>
+            <p className="text-[10px] text-muted-foreground">{t("warning", "Warning")}</p>
           </div>
           <div className="p-2 rounded-lg bg-rose-500/10">
             <p className="text-lg font-bold text-rose-500">{domain.critical}</p>
-            <p className="text-[10px] text-muted-foreground">Critical</p>
+            <p className="text-[10px] text-muted-foreground">{t("critical", "Critical")}</p>
           </div>
         </div>
 
@@ -136,7 +137,7 @@ function AlertsCard({ alerts }: { alerts: CriticalAlert[] }) {
           <AlertCircle className="h-5 w-5 text-rose-500" />
           Alerts ({alerts.length})
         </CardTitle>
-        <CardDescription>KPIs requiring immediate attention</CardDescription>
+        <CardDescription>{t("kpis_requiring_immediate_attention", "KPIs requiring immediate attention")}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-3 max-h-[300px] overflow-auto">
         {criticalAlerts.slice(0, 5).map((alert, i) => (
@@ -186,7 +187,7 @@ function InsightsCard({ allKPIs }: { allKPIs: UnifiedKPI[] }) {
           <Lightbulb className="h-5 w-5 text-amber-500" />
           Cross-Domain Insights
         </CardTitle>
-        <CardDescription>AI-detected correlations and recommendations</CardDescription>
+        <CardDescription>{t("aidetected_correlations_and_recommendations", "AI-detected correlations and recommendations")}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
         {insights.map((insight, i) => (

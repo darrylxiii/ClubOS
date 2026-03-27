@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -49,6 +50,7 @@ interface CommissionTier {
 }
 
 export function EmployeeCommissionSettings() {
+  const { t } = useTranslation('common');
   const queryClient = useQueryClient();
 
   const { data: employees, isLoading: loadingEmployees } = useQuery({
@@ -115,12 +117,12 @@ export function EmployeeCommissionSettings() {
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success("Employee settings updated");
+      toast.success(t("employee_settings_updated", "Employee settings updated"));
       queryClient.invalidateQueries({ queryKey: ["employee-profiles-with-tiers"] });
     },
     onError: (error) => {
       console.error("Update error:", error);
-      toast.error("Failed to update employee settings");
+      toast.error(t("failed_to_update_employee", "Failed to update employee settings"));
     },
   });
 
@@ -147,10 +149,10 @@ export function EmployeeCommissionSettings() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Employee</TableHead>
-              <TableHead>Commission Tier</TableHead>
-              <TableHead>Effective Rate</TableHead>
-              <TableHead>Annual Target</TableHead>
+              <TableHead>{t("employee", "Employee")}</TableHead>
+              <TableHead>{t("commission_tier", "Commission Tier")}</TableHead>
+              <TableHead>{t("effective_rate", "Effective Rate")}</TableHead>
+              <TableHead>{t("annual_target", "Annual Target")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -181,10 +183,10 @@ export function EmployeeCommissionSettings() {
                     }}
                   >
                     <SelectTrigger className="w-40">
-                      <SelectValue placeholder="Select tier..." />
+                      <SelectValue placeholder={t("select_tier", "Select tier...")} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="none">No Tier</SelectItem>
+                      <SelectItem value="none">{t("no_tier", "No Tier")}</SelectItem>
                       {tiers?.map((tier) => (
                         <SelectItem key={tier.id} value={tier.id}>
                           {tier.name} ({tier.percentage}%)

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -18,6 +19,7 @@ import {
 } from 'lucide-react';
 
 export function ReferralShareGenerator() {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [copied, setCopied] = useState(false);
   const [customTag, setCustomTag] = useState('');
@@ -30,10 +32,10 @@ export function ReferralShareGenerator() {
     try {
       await navigator.clipboard.writeText(text);
       setCopied(true);
-      toast.success('Link copied to clipboard');
+      toast.success(t("link_copied_to_clipboard", "Link copied to clipboard"));
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
-      toast.error('Failed to copy link');
+      toast.error(t("failed_to_copy_link", "Failed to copy link"));
     }
   };
 
@@ -94,7 +96,7 @@ export function ReferralShareGenerator() {
       <CardContent className="space-y-6">
         {/* Referral Link */}
         <div className="space-y-2">
-          <Label>Your Referral Link</Label>
+          <Label>{t("your_referral_link", "Your Referral Link")}</Label>
           <div className="flex gap-2">
             <Input 
               value={referralLink} 
@@ -117,11 +119,11 @@ export function ReferralShareGenerator() {
 
         {/* Custom Campaign Tag */}
         <div className="space-y-2">
-          <Label>Custom Campaign Tag (optional)</Label>
+          <Label>{t("custom_campaign_tag_optional", "Custom Campaign Tag (optional)")}</Label>
           <Input 
             value={customTag}
             onChange={(e) => setCustomTag(e.target.value.replace(/[^a-zA-Z0-9-_]/g, ''))}
-            placeholder="e.g., linkedin-post, email-campaign"
+            placeholder={t("eg_linkedinpost_emailcampaign", "e.g., linkedin-post, email-campaign")}
             className="font-mono text-sm"
           />
           <p className="text-xs text-muted-foreground">
@@ -131,7 +133,7 @@ export function ReferralShareGenerator() {
 
         {/* Quick Share Buttons */}
         <div className="space-y-2">
-          <Label>Quick Share</Label>
+          <Label>{t("quick_share", "Quick Share")}</Label>
           <div className="flex gap-2">
             <Button 
               onClick={shareViaLinkedIn}
@@ -160,9 +162,9 @@ export function ReferralShareGenerator() {
         {/* Message Templates */}
         <Tabs defaultValue="linkedin" className="w-full">
           <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="linkedin">LinkedIn</TabsTrigger>
-            <TabsTrigger value="whatsapp">WhatsApp</TabsTrigger>
-            <TabsTrigger value="email">Email</TabsTrigger>
+            <TabsTrigger value="linkedin">{t("linkedin", "LinkedIn")}</TabsTrigger>
+            <TabsTrigger value="whatsapp">{t("whatsapp", "WhatsApp")}</TabsTrigger>
+            <TabsTrigger value="email">{t("email", "Email")}</TabsTrigger>
           </TabsList>
           {shareTemplates.map((template) => (
             <TabsContent 
@@ -173,7 +175,7 @@ export function ReferralShareGenerator() {
               <div className="p-4 rounded-lg bg-muted/50 space-y-3">
                 <div className="flex items-center gap-2 text-sm font-medium">
                   {template.icon}
-                  <span>Ready-to-share message</span>
+                  <span>{t("readytoshare_message", "Ready-to-share message")}</span>
                 </div>
                 <p className="text-sm whitespace-pre-wrap">{template.message}</p>
                 <Button 
@@ -204,15 +206,15 @@ export function ReferralShareGenerator() {
         <div className="grid grid-cols-3 gap-4 pt-4 border-t">
           <div className="text-center">
             <div className="text-2xl font-bold">12</div>
-            <div className="text-xs text-muted-foreground">Link Clicks</div>
+            <div className="text-xs text-muted-foreground">{t("link_clicks", "Link Clicks")}</div>
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold">5</div>
-            <div className="text-xs text-muted-foreground">Sign Ups</div>
+            <div className="text-xs text-muted-foreground">{t("sign_ups", "Sign Ups")}</div>
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold">42%</div>
-            <div className="text-xs text-muted-foreground">Conversion</div>
+            <div className="text-xs text-muted-foreground">{t("conversion", "Conversion")}</div>
           </div>
         </div>
       </CardContent>

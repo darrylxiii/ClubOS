@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -47,6 +48,7 @@ const statusColors: Record<string, string> = {
 };
 
 export function UserEditDrawer({ userId, userName, open, onClose, onSaved }: UserEditDrawerProps) {
+  const { t } = useTranslation('common');
   const queryClient = useQueryClient();
   const { suspendUser, unsuspendUser } = useGodMode();
   const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
@@ -100,7 +102,7 @@ export function UserEditDrawer({ userId, userName, open, onClose, onSaved }: Use
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
       if (selectedRoles.length === 0) {
-        toast.error("User must have at least one role");
+        toast.error(t("user_must_have_at", "User must have at least one role"));
         return;
       }
       await supabase.from("user_roles").delete().eq("user_id", userId);
@@ -116,7 +118,7 @@ export function UserEditDrawer({ userId, userName, open, onClose, onSaved }: Use
         metadata: { timestamp: new Date().toISOString(), admin_email: user.email },
       });
       queryClient.invalidateQueries({ queryKey: ["user-edit-drawer", userId] });
-      toast.success("User updated successfully");
+      toast.success(t("user_updated_successfully", "User updated successfully"));
       onSaved();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to save");
@@ -129,9 +131,9 @@ export function UserEditDrawer({ userId, userName, open, onClose, onSaved }: Use
     try {
       await supabase.from("company_members").update({ is_active: false }).eq("id", membershipId);
       queryClient.invalidateQueries({ queryKey: ["user-edit-drawer", userId] });
-      toast.success("Company membership removed");
+      toast.success(t("company_membership_removed", "Company membership removed"));
     } catch {
-      toast.error("Failed to remove membership");
+      toast.error(t("failed_to_remove_membership", "Failed to remove membership"));
     }
   };
 
@@ -149,9 +151,9 @@ export function UserEditDrawer({ userId, userName, open, onClose, onSaved }: Use
       queryClient.invalidateQueries({ queryKey: ["user-edit-drawer", userId] });
       setNewCompanyId("");
       setNewCompanyRole("member");
-      toast.success("Company added");
+      toast.success(t("company_added", "Company added"));
     } catch {
-      toast.error("Failed to add company");
+      toast.error(t("failed_to_add_company", "Failed to add company"));
     } finally {
       setAddingCompany(false);
     }
@@ -168,7 +170,7 @@ export function UserEditDrawer({ userId, userName, open, onClose, onSaved }: Use
       if (error) throw error;
       toast.success(`MFA reset for ${userName}`);
     } catch {
-      toast.error("Failed to reset MFA");
+      toast.error(t("failed_to_reset_mfa", "Failed to reset MFA"));
     }
   };
 
@@ -208,7 +210,7 @@ export function UserEditDrawer({ userId, userName, open, onClose, onSaved }: Use
           <section className="space-y-3">
             <div className="flex items-center gap-2">
               <User className="w-4 h-4 text-muted-foreground" />
-              <Label className="text-sm font-semibold text-foreground">System Roles</Label>
+              <Label className="text-sm font-semibold text-foreground">{t("system_roles", "System Roles")}</Label>
             </div>
             <div className="rounded-xl border border-border/40 bg-card/60 p-4 space-y-3">
               {AVAILABLE_ROLES.map((role) => (
@@ -238,11 +240,11 @@ export function UserEditDrawer({ userId, userName, open, onClose, onSaved }: Use
           <section className="space-y-3">
             <div className="flex items-center gap-2">
               <Building2 className="w-4 h-4 text-muted-foreground" />
-              <Label className="text-sm font-semibold text-foreground">Company Memberships</Label>
+              <Label className="text-sm font-semibold text-foreground">{t("company_memberships", "Company Memberships")}</Label>
             </div>
             <div className="rounded-xl border border-border/40 bg-card/60 p-4 space-y-3">
               {userData?.memberships.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-2">No company memberships</p>
+                <p className="text-sm text-muted-foreground text-center py-2">{t("no_company_memberships", "No company memberships")}</p>
               ) : (
                 <div className="space-y-2">
                   {userData?.memberships.map((m) => (
@@ -273,7 +275,7 @@ export function UserEditDrawer({ userId, userName, open, onClose, onSaved }: Use
                 <div className="flex-1 min-w-0">
                   <Select value={newCompanyId} onValueChange={setNewCompanyId}>
                     <SelectTrigger className="h-8 text-xs">
-                      <SelectValue placeholder="Add company..." />
+                      <SelectValue placeholder={t("add_company", "Add company...")} />
                     </SelectTrigger>
                     <SelectContent>
                       {availableCompanies.map((c) => (
@@ -311,7 +313,7 @@ export function UserEditDrawer({ userId, userName, open, onClose, onSaved }: Use
           <section className="space-y-3">
             <div className="flex items-center gap-2">
               <ShieldOff className="w-4 h-4 text-muted-foreground" />
-              <Label className="text-sm font-semibold text-foreground">Account Actions</Label>
+              <Label className="text-sm font-semibold text-foreground">{t("account_actions", "Account Actions")}</Label>
             </div>
             <div className="rounded-xl border border-border/40 bg-card/60 p-4">
               <div className="flex flex-wrap gap-2">

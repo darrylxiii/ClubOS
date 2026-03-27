@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -37,6 +38,7 @@ interface UnifiedTasksByMemberProps {
 }
 
 export function UnifiedTasksByMember({ objectiveId, onRefresh }: UnifiedTasksByMemberProps) {
+  const { t } = useTranslation('common');
   const [tasksByMember, setTasksByMember] = useState<TasksByMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedTask, setSelectedTask] = useState<any | null>(null);
@@ -199,14 +201,14 @@ export function UnifiedTasksByMember({ objectiveId, onRefresh }: UnifiedTasksByM
   };
 
   if (loading) {
-    return <div className="text-center py-12 text-muted-foreground">Loading members...</div>;
+    return <div className="text-center py-12 text-muted-foreground">{t("loading_members", "Loading members...")}</div>;
   }
 
   if (tasksByMember.length === 0) {
     return (
       <div className="text-center py-12">
         <User className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-        <p className="text-muted-foreground">No members with assigned tasks found</p>
+        <p className="text-muted-foreground">{t("no_members_with_assigned", "No members with assigned tasks found")}</p>
       </div>
     );
   }

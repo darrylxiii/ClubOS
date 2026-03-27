@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import {
   Dialog,
   DialogContent,
@@ -28,11 +29,12 @@ const shortcuts = [
 ];
 
 export function CRMKeyboardShortcutsDialog({ open, onOpenChange }: CRMKeyboardShortcutsDialogProps) {
+  const { t } = useTranslation('common');
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Keyboard Shortcuts</DialogTitle>
+          <DialogTitle>{t("keyboard_shortcuts", "Keyboard Shortcuts")}</DialogTitle>
           <DialogDescription>
             Navigate and manage your CRM faster with keyboard shortcuts
           </DialogDescription>

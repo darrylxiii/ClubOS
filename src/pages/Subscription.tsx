@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -18,6 +19,7 @@ const PLAN_DETAILS = {
 };
 
 export default function Subscription() {
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
   const { subscription, loading, refetch } = useSubscription();
   const [managingPortal, setManagingPortal] = useState(false);
@@ -56,8 +58,8 @@ export default function Subscription() {
   return (
     <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Subscription Management</h1>
-          <p className="text-muted-foreground">Manage your subscription and billing</p>
+          <h1 className="text-3xl font-bold mb-2">{t("subscription_management", "Subscription Management")}</h1>
+          <p className="text-muted-foreground">{t("manage_your_subscription_and", "Manage your subscription and billing")}</p>
         </div>
 
         {!subscription?.subscribed ? (
@@ -72,7 +74,7 @@ export default function Subscription() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button onClick={() => navigate("/pricing")}>View Plans</Button>
+              <Button onClick={() => navigate("/pricing")}>{t("view_plans", "View Plans")}</Button>
             </CardContent>
           </Card>
         ) : (
@@ -99,7 +101,7 @@ export default function Subscription() {
                       <div className="flex items-start gap-3">
                         <Calendar className="w-5 h-5 text-muted-foreground mt-0.5" />
                         <div>
-                          <p className="text-sm font-medium">Billing Period</p>
+                          <p className="text-sm font-medium">{t("billing_period", "Billing Period")}</p>
                           <p className="text-sm text-muted-foreground">
                             Renews {formatDistanceToNow(periodEnd, { addSuffix: true })}
                           </p>
@@ -112,7 +114,7 @@ export default function Subscription() {
                       <div className="flex items-start gap-3">
                         <Check className="w-5 h-5 text-muted-foreground mt-0.5" />
                         <div>
-                          <p className="text-sm font-medium">Status</p>
+                          <p className="text-sm font-medium">{t("status", "Status")}</p>
                           <p className="text-sm text-muted-foreground">
                             {sub.cancel_at_period_end
                               ? "Cancels at period end"

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { motion } from "framer-motion";
 import { Medal, Award, Trophy, Crown, Gem, ChevronRight, Check, Lock } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -56,6 +57,7 @@ const TierBadge = ({
 };
 
 export function ReferralTierProgress() {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const { data: currentTier, isLoading: tierLoading } = useUserReferralTier(user?.id);
   const { data: allTiers, isLoading: tiersLoading } = useAllReferralTiers();
@@ -175,7 +177,7 @@ export function ReferralTierProgress() {
 
         {/* Current Perks */}
         <div className="space-y-2 pt-2">
-          <h4 className="text-sm font-medium text-foreground">Your Perks</h4>
+          <h4 className="text-sm font-medium text-foreground">{t("your_perks", "Your Perks")}</h4>
           <div className="grid gap-2">
             {perks.map((perk, index) => (
               <motion.div

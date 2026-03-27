@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
@@ -18,6 +19,7 @@ interface TaskBurndownChartProps {
 }
 
 export const TaskBurndownChart = ({ objectiveId }: TaskBurndownChartProps) => {
+  const { t } = useTranslation('common');
   const [data, setData] = useState<BurndownData[]>([]);
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState("14");
@@ -97,23 +99,23 @@ export const TaskBurndownChart = ({ objectiveId }: TaskBurndownChartProps) => {
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="flex items-center gap-2">
           <TrendingDown className="h-5 w-5 text-primary" />
-          Burndown Chart
+          {t('tasks.burndownChart', 'Burndown Chart')}
         </CardTitle>
         <Select value={timeRange} onValueChange={setTimeRange}>
           <SelectTrigger className="w-[120px]">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="7">Last 7 days</SelectItem>
-            <SelectItem value="14">Last 14 days</SelectItem>
-            <SelectItem value="30">Last 30 days</SelectItem>
+            <SelectItem value="7">{t('tasks.last7Days', 'Last 7 days')}</SelectItem>
+            <SelectItem value="14">{t('tasks.last14Days', 'Last 14 days')}</SelectItem>
+            <SelectItem value="30">{t('tasks.last30Days', 'Last 30 days')}</SelectItem>
           </SelectContent>
         </Select>
       </CardHeader>
       <CardContent>
         {data.length === 0 ? (
           <div className="flex items-center justify-center h-[250px] text-muted-foreground">
-            No data available for this period
+            {t('tasks.noDataForPeriod', 'No data available for this period')}
           </div>
         ) : (
           <ResponsiveContainer width="100%" height={250}>

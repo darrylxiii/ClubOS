@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import { useTranslation } from 'react-i18next';
 import { Check, ChevronsUpDown, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -34,8 +35,9 @@ export const UserSelectCombobox = ({
   placeholder,
   companyId 
 }: UserSelectComboboxProps) => {
+  const { t } = useTranslation('common');
   const [open, setOpen] = useState(false);
-  
+
   // CRITICAL: Pass companyId directly - undefined means "wait", string means "filter by company"
   // Do NOT convert undefined to null here - that triggers wrong code path
   const { data: users, isLoading, error } = useAvailableUsers(true, companyId);
@@ -83,12 +85,12 @@ export const UserSelectCombobox = ({
           {isWaitingForCompany ? (
             <div className="flex items-center gap-2 text-muted-foreground">
               <Loader2 className="h-4 w-4 animate-spin" />
-              <span>Loading company...</span>
+              <span>{t('employees.loadingCompany')}</span>
             </div>
           ) : isLoading ? (
             <div className="flex items-center gap-2 text-muted-foreground">
               <Loader2 className="h-4 w-4 animate-spin" />
-              <span>Loading users...</span>
+              <span>{t('employees.loadingUsers')}</span>
             </div>
           ) : selectedUser ? (
             <div className="flex items-center gap-3">
@@ -109,7 +111,7 @@ export const UserSelectCombobox = ({
               )}
             </div>
           ) : (
-            <span className="text-muted-foreground">{placeholder || "Select a user..."}</span>
+            <span className="text-muted-foreground">{placeholder || t('employees.selectUser')}</span>
           )}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
@@ -122,7 +124,7 @@ export const UserSelectCombobox = ({
       >
         <Command className="rounded-lg border-0">
           <CommandInput 
-            placeholder="Search by name, email, or role..." 
+            placeholder={t('employees.searchByNameEmailRole')} 
             className="h-10"
           />
           <CommandList className="max-h-[280px] overflow-y-auto overscroll-contain">
@@ -132,16 +134,16 @@ export const UserSelectCombobox = ({
               </div>
             ) : error ? (
               <div className="py-6 text-center text-sm text-destructive">
-                Error loading users. Please try again.
+                {t('employees.errorLoadingUsers')}
               </div>
             ) : !users?.length ? (
               <CommandEmpty>
-                {companyId 
-                  ? "No available users in this company." 
-                  : "No users found."}
+                {companyId
+                  ? t('employees.noUsersInCompany')
+                  : t('employees.noUsersFound')}
               </CommandEmpty>
             ) : (
-              <CommandGroup heading={`${users?.length || 0} users available`}>
+              <CommandGroup heading={t('employees.usersAvailable', { count: users?.length || 0 })}>
                 {users?.map((user) => (
                   <CommandItem
                     key={user.id}

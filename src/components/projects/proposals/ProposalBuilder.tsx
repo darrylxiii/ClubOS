@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -25,6 +26,7 @@ interface ProposalBuilderProps {
 }
 
 export function ProposalBuilder({ projectId, project, onSuccess }: ProposalBuilderProps) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -97,12 +99,12 @@ export function ProposalBuilder({ projectId, project, onSuccess }: ProposalBuild
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["project-proposals"] });
-      toast.success("Proposal submitted successfully!");
+      toast.success(t("proposal_submitted_successfully", "Proposal submitted successfully!"));
       onSuccess?.();
       navigate(`/projects/${projectId}`);
     },
     onError: (error) => {
-      toast.error("Failed to submit proposal: " + error.message);
+      toast.error(t("failed_to_submit_proposal", "Failed to submit proposal:") + error.message);
     },
   });
 
@@ -133,9 +135,9 @@ I would love to discuss this opportunity further. Please feel free to reach out 
 Best regards`;
 
       setFormData({ ...formData, cover_letter: generatedLetter });
-      toast.success("AI-enhanced cover letter generated!");
+      toast.success(t("aienhanced_cover_letter_generated", "AI-enhanced cover letter generated!"));
     } catch (error) {
-      toast.error("Failed to generate AI cover letter");
+      toast.error(t("failed_to_generate_ai", "Failed to generate AI cover letter"));
     } finally {
       setIsGeneratingAI(false);
     }
@@ -183,7 +185,7 @@ Best regards`;
       <Card className="max-w-2xl mx-auto">
         <CardContent className="py-12 text-center">
           <CheckCircle2 className="h-12 w-12 mx-auto text-green-500 mb-4" />
-          <h2 className="text-2xl font-bold mb-2">Proposal Already Submitted</h2>
+          <h2 className="text-2xl font-bold mb-2">{t("proposal_already_submitted", "Proposal Already Submitted")}</h2>
           <p className="text-muted-foreground mb-6">
             You have already submitted a proposal for this project.
             Status: <Badge className="ml-2">{existingProposal.status}</Badge>
@@ -220,7 +222,7 @@ Best regards`;
         {/* Cover Letter */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <Label>Cover Letter *</Label>
+            <Label>{t("cover_letter", "Cover Letter *")}</Label>
             <Button
               variant="outline"
               size="sm"
@@ -233,7 +235,7 @@ Best regards`;
             </Button>
           </div>
           <Textarea
-            placeholder="Introduce yourself and explain why you're the best fit for this project..."
+            placeholder={t("introduce_yourself_and_explain", "Introduce yourself and explain why you're the best fit for this project...")}
             rows={10}
             value={formData.cover_letter}
             onChange={(e) => setFormData({ ...formData, cover_letter: e.target.value })}
@@ -279,9 +281,9 @@ Best regards`;
 
         {/* Availability Statement */}
         <div className="space-y-2">
-          <Label>Availability Statement</Label>
+          <Label>{t("availability_statement", "Availability Statement")}</Label>
           <Textarea
-            placeholder="Describe your current availability and when you can start..."
+            placeholder={t("describe_your_current_availability", "Describe your current availability and when you can start...")}
             rows={3}
             value={formData.availability_statement}
             onChange={(e) => setFormData({ ...formData, availability_statement: e.target.value })}
@@ -291,7 +293,7 @@ Best regards`;
         {/* Portfolio Highlights */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <Label>Portfolio Highlights</Label>
+            <Label>{t("portfolio_highlights", "Portfolio Highlights")}</Label>
             <Button variant="outline" size="sm" onClick={addPortfolioItem}>
               <Plus className="h-4 w-4 mr-1" />
               Add
@@ -307,7 +309,7 @@ Best regards`;
               {formData.portfolio_highlights.map((item, index) => (
                 <div key={index} className="flex gap-2">
                   <Input
-                    placeholder="Project title"
+                    placeholder={t("project_title", "Project title")}
                     value={item.title}
                     onChange={(e) => updatePortfolioItem(index, "title", e.target.value)}
                     className="flex-1"
@@ -333,10 +335,10 @@ Best regards`;
 
         {/* Questions for Client */}
         <div className="space-y-3">
-          <Label>Questions for the Client</Label>
+          <Label>{t("questions_for_the_client", "Questions for the Client")}</Label>
           <div className="flex gap-2">
             <Input
-              placeholder="Ask a clarifying question..."
+              placeholder={t("ask_a_clarifying_question", "Ask a clarifying question...")}
               value={newQuestion}
               onChange={(e) => setNewQuestion(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && addQuestion()}
@@ -371,7 +373,7 @@ Best regards`;
               <div className="flex items-center gap-3">
                 <Sparkles className="h-5 w-5 text-primary" />
                 <div>
-                  <p className="font-medium">Club AI Enhancement</p>
+                  <p className="font-medium">{t("club_ai_enhancement", "Club AI Enhancement")}</p>
                   <p className="text-sm text-muted-foreground">
                     Let AI optimize your proposal for better visibility
                   </p>

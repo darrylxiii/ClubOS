@@ -3,15 +3,10 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
 import { Heading, Paragraph, Spacer, Card, AlertBox } from "../_shared/email-templates/components.ts";
 import { EMAIL_SENDERS } from "../_shared/email-config.ts";
-
-const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+import { sendEmail } from '../_shared/resend-client.ts';
+import { getCorsHeaders } from '../_shared/cors.ts';
 const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
 const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
 
 interface TestEmailRequest {
   templateKey: string;
@@ -19,6 +14,7 @@ interface TestEmailRequest {
 }
 
 serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -98,22 +94,13 @@ serve(async (req) => {
       showFooter: true,
     });
 
-    // Send via Resend API
-    const emailResponse = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${RESEND_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        from: EMAIL_SENDERS.system,
-        to: [testEmail],
-        subject: `[TEST] ${template.subject_template}`,
-        html: htmlContent,
-      }),
+    // Send via shared Resend client
+    const emailData = await sendEmail({
+      from: EMAIL_SENDERS.system,
+      to: [testEmail],
+      subject: `[TEST] ${template.subject_template}`,
+      html: htmlContent,
     });
-
-    const emailData = await emailResponse.json();
 
     console.log('[send-test-email] Sent successfully:', emailData);
 

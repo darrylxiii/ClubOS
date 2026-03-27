@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { format, isPast, isToday, isTomorrow } from "date-fns";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 
 interface TaskCardCompactProps {
   task: any;
@@ -45,6 +46,7 @@ export const TaskCardCompact = ({
   isFocused,
   taskIndex,
 }: TaskCardCompactProps) => {
+  const { t } = useTranslation("common");
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({ id: task.id, data: task });
 
@@ -129,13 +131,13 @@ export const TaskCardCompact = ({
 
             {/* Dependency indicators */}
             {blockedByCount > 0 && (
-              <span className="inline-flex items-center gap-0.5 text-destructive font-medium" title={`Blocked by ${blockedByCount}`}>
+              <span className="inline-flex items-center gap-0.5 text-destructive font-medium" title={t('tasks.card.blockedBy', { count: blockedByCount })}>
                 <Lock className="h-2.5 w-2.5" />
                 {blockedByCount}
               </span>
             )}
             {blockingCount > 0 && (
-              <span className="inline-flex items-center gap-0.5 text-amber-500 font-medium" title={`Blocking ${blockingCount}`}>
+              <span className="inline-flex items-center gap-0.5 text-amber-500 font-medium" title={t('tasks.card.blocking', { count: blockingCount })}>
                 <Link2 className="h-2.5 w-2.5" />
                 {blockingCount}
               </span>
@@ -155,7 +157,7 @@ export const TaskCardCompact = ({
                 )}
               >
                 <Calendar className="h-2.5 w-2.5" />
-                {isOverdue ? "Overdue" : isDueToday ? "Today" : isDueTomorrow ? "Tmr" : format(dueDate, "MMM d")}
+                {isOverdue ? t('tasks.card.overdue') : isDueToday ? t('tasks.card.today') : isDueTomorrow ? t('tasks.card.tomorrow') : format(dueDate, "MMM d")}
               </span>
             )}
 

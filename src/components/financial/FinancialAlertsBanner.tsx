@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useFinancialAlerts, RenewalAlert } from '@/hooks/useRenewalAlerts';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
@@ -17,6 +18,7 @@ const severityStyles = {
 };
 
 export function FinancialAlertsBanner() {
+  const { t } = useTranslation('common');
   const alerts = useFinancialAlerts();
 
   if (alerts.length === 0) return null;
@@ -56,7 +58,7 @@ export function FinancialAlertsBanner() {
       })}
       {alerts.length > 5 && (
         <p className="text-xs text-muted-foreground text-center">
-          +{alerts.length - 5} more alerts
+          {t('financial.moreAlerts', { count: alerts.length - 5 })}
         </p>
       )}
     </div>

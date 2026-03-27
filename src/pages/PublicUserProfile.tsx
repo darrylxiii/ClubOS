@@ -1,5 +1,6 @@
 import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { useTranslation } from 'react-i18next';
 import { supabase } from "@/integrations/supabase/client";
 import EnhancedProfile from "./EnhancedProfile";
 import { MinimalHeader } from "@/components/MinimalHeader";
@@ -7,6 +8,7 @@ import { Loader2 } from "lucide-react";
 import { useProfileViewTracking } from "@/hooks/useProfileViewTracking";
 
 export default function PublicUserProfile() {
+  const { t } = useTranslation('common');
   const { userIdOrSlug } = useParams<{ userIdOrSlug: string }>();
   const [userId, setUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -60,7 +62,7 @@ export default function PublicUserProfile() {
       <div className="min-h-screen flex flex-col">
         <MinimalHeader />
         <div className="flex-1 flex items-center justify-center">
-          <p className="text-muted-foreground">Profile not found</p>
+          <p className="text-muted-foreground">{t('profile.notFound')}</p>
         </div>
       </div>
     );

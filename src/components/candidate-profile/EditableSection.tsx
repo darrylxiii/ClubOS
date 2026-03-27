@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, ReactNode } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -35,6 +36,7 @@ export function EditableSection({
   onViewHistory,
   className,
 }: EditableSectionProps) {
+  const { t } = useTranslation('common');
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const { isLocked, lockedBy, hasLock, acquireLock, releaseLock } = useEditLock(
@@ -64,13 +66,13 @@ export function EditableSection({
       setIsEditing(false);
       
       if (requiresApproval) {
-        toast.success('Changes submitted for approval');
+        toast.success(t("changes_submitted_for_approval", "Changes submitted for approval"));
       } else {
-        toast.success('Changes saved successfully');
+        toast.success(t("changes_saved_successfully", "Changes saved successfully"));
       }
     } catch (error) {
       console.error('Error saving:', error);
-      toast.error('Failed to save changes');
+      toast.error(t("failed_to_save_changes", "Failed to save changes"));
     } finally {
       setIsSaving(false);
     }
@@ -102,7 +104,7 @@ export function EditableSection({
 
             {/* Approval required badge */}
             {requiresApproval && isEditing && (
-              <Badge variant="secondary">Requires Approval</Badge>
+              <Badge variant="secondary">{t("requires_approval", "Requires Approval")}</Badge>
             )}
 
             {/* History button */}

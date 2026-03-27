@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Briefcase, TrendingUp, Euro, CheckCircle2, Clock, AlertCircle } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { useTranslation } from "react-i18next";
 
 interface ReferralWithPipeline {
   id: string;
@@ -51,6 +52,7 @@ const getStatusIcon = (status: string) => {
 };
 
 export const ReferralPipelineTracker = () => {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [referrals, setReferrals] = useState<ReferralWithPipeline[]>([]);
   const [loading, setLoading] = useState(true);
@@ -203,7 +205,7 @@ export const ReferralPipelineTracker = () => {
     return (
       <Card className="glass-card">
         <CardContent className="py-12 text-center">
-          <div className="animate-pulse text-muted-foreground">Loading referral pipelines...</div>
+          <div className="animate-pulse text-muted-foreground">{t('referrals.loadingPipelines', 'Loading referral pipelines...')}</div>
         </CardContent>
       </Card>
     );
@@ -214,9 +216,9 @@ export const ReferralPipelineTracker = () => {
       <Card className="glass-card">
         <CardContent className="py-12 text-center">
           <TrendingUp className="w-12 h-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-          <h3 className="text-lg font-semibold mb-2">No Active Referrals</h3>
+          <h3 className="text-lg font-semibold mb-2">{t('referrals.noActiveReferrals', 'No Active Referrals')}</h3>
           <p className="text-muted-foreground mb-4">
-            Start referring friends to track their journey and earn rewards
+            {t('referrals.startReferring', 'Start referring friends to track their journey and earn rewards')}
           </p>
         </CardContent>
       </Card>
@@ -241,9 +243,9 @@ export const ReferralPipelineTracker = () => {
                       className={getStatusColor(referral.status)}
                     >
                       <StatusIcon className="w-3 h-3 mr-1" />
-                      {referral.status === 'completed' ? 'Hired' : 
-                       referral.status === 'rejected' ? 'Not Selected' :
-                       referral.status === 'active' ? 'In Progress' : 'Pending'}
+                      {referral.status === 'completed' ? t('referrals.statusHired', 'Hired') :
+                       referral.status === 'rejected' ? t('referrals.statusNotSelected', 'Not Selected') :
+                       referral.status === 'active' ? t('referrals.statusInProgress', 'In Progress') : t('referrals.statusPending', 'Pending')}
                     </Badge>
                   </div>
                   
@@ -254,7 +256,7 @@ export const ReferralPipelineTracker = () => {
 
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Clock className="w-4 h-4" />
-                    Referred {formatDistanceToNow(new Date(referral.referredDate), { addSuffix: true })}
+                    {t('referrals.referred', 'Referred')} {formatDistanceToNow(new Date(referral.referredDate), { addSuffix: true })}
                   </div>
                 </div>
 
@@ -266,7 +268,7 @@ export const ReferralPipelineTracker = () => {
                         €{referral.potentialReward.toLocaleString()}
                       </div>
                       <div className="text-xs text-muted-foreground">
-                        {referral.status === 'completed' ? 'Earned' : 'Potential'}
+                        {referral.status === 'completed' ? t('referrals.earned', 'Earned') : t('referrals.potential', 'Potential')}
                       </div>
                     </div>
                   </div>
@@ -280,7 +282,7 @@ export const ReferralPipelineTracker = () => {
                 <div className="flex items-center justify-between text-sm">
                   <span className="font-medium">{referral.currentStage}</span>
                   <span className="text-muted-foreground">
-                    Stage {referral.currentStageIndex + 1} of {referral.totalStages}
+                    {t('referrals.stageOf', 'Stage {{current}} of {{total}}', { current: referral.currentStageIndex + 1, total: referral.totalStages })}
                   </span>
                 </div>
                 <Progress value={progressPercentage} className="h-2" />
@@ -289,19 +291,19 @@ export const ReferralPipelineTracker = () => {
               {/* Additional Details */}
               <div className="grid grid-cols-3 gap-4 pt-4 border-t border-border/50">
                 <div>
-                  <div className="text-xs text-muted-foreground mb-1">Status</div>
+                  <div className="text-xs text-muted-foreground mb-1">{t('common:status.label', 'Status')}</div>
                   <div className="text-sm font-medium capitalize">{referral.status}</div>
                 </div>
                 <div>
-                  <div className="text-xs text-muted-foreground mb-1">Invite Code</div>
+                  <div className="text-xs text-muted-foreground mb-1">{t('referrals.inviteCode', 'Invite Code')}</div>
                   <div className="text-sm font-mono">{referral.inviteCode}</div>
                 </div>
                 <div>
-                  <div className="text-xs text-muted-foreground mb-1">Last Activity</div>
+                  <div className="text-xs text-muted-foreground mb-1">{t('referrals.lastActivity', 'Last Activity')}</div>
                   <div className="text-sm">
                     {referral.lastActivity 
                       ? formatDistanceToNow(new Date(referral.lastActivity), { addSuffix: true })
-                      : 'No activity yet'}
+                      : t('referrals.noActivityYet', 'No activity yet')}
                   </div>
                 </div>
               </div>

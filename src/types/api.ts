@@ -1,12 +1,58 @@
 /**
  * API Request/Response Types
- * 
+ *
  * Type definitions for all API endpoints, edge functions, and RPC calls.
  * Provides type safety for client-server communication.
  */
 
 import { User, Session } from '@supabase/supabase-js';
 import type { Database } from '@/integrations/supabase/types';
+
+// ============= Database Table Convenience Types =============
+
+type Tables = Database['public']['Tables'];
+
+/** Row type for the profiles table */
+export type Profile = Tables['profiles']['Row'];
+/** Row type for the companies table */
+export type Company = Tables['companies']['Row'];
+/** Row type for the jobs table */
+export type Job = Tables['jobs']['Row'];
+/** Row type for the applications table */
+export type Application = Tables['applications']['Row'];
+/** Row type for the company_members table */
+export type CompanyMember = Tables['company_members']['Row'];
+/** Row type for the user_preferences table */
+export type UserPreference = Tables['user_preferences']['Row'];
+/** Row type for the user_roles table */
+export type UserRoleRow = Tables['user_roles']['Row'];
+/** Row type for the crm_prospects table */
+export type CrmProspect = Tables['crm_prospects']['Row'];
+/** Row type for the bookings table */
+export type Booking = Tables['bookings']['Row'];
+/** Row type for the meetings table */
+export type Meeting = Tables['meetings']['Row'];
+/** Row type for the interviews table */
+export type Interview = Tables['interviews']['Row'];
+/** Row type for the notifications table */
+export type Notification = Tables['notifications']['Row'];
+/** Row type for the tasks table */
+export type Task = Tables['tasks']['Row'];
+/** Row type for the blog_posts table */
+export type BlogPost = Tables['blog_posts']['Row'];
+/** Row type for the error_logs table */
+export type ErrorLog = Tables['error_logs']['Row'];
+
+// ============= Edge Function Response Wrapper =============
+
+/**
+ * Discriminated union for edge function responses.
+ * Success returns `{ data: T; error: null }`.
+ * Failure returns `{ data: null; error: string }`.
+ */
+export type EdgeFunctionResponse<T> =
+  | { data: T; error: null }
+  | { data: null; error: string };
 
 // ============= Base API Types =============
 

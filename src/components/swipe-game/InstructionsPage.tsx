@@ -1,4 +1,5 @@
 import { memo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowUp, ArrowRight, ArrowLeft, ArrowDown } from 'lucide-react';
@@ -9,15 +10,14 @@ interface InstructionsPageProps {
 }
 
 export const InstructionsPage = memo(({ onStart }: InstructionsPageProps) => {
+  const { t } = useTranslation('common');
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-background to-background/80">
       <Card className="max-w-2xl w-full">
         <CardContent className="p-8 space-y-6">
           <div className="text-center space-y-2">
-            <h1 className="text-3xl font-bold">How to Play</h1>
-            <p className="text-muted-foreground">
-              Swipe through 50 scenarios to discover your work personality
-            </p>
+            <h1 className="text-3xl font-bold">{t('swipeGame.howToPlay')}</h1>
+            <p className="text-muted-foreground">{t('swipeGame.swipeThrough50ScenariosToDiscoverYourWor')}</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -52,9 +52,7 @@ export const InstructionsPage = memo(({ onStart }: InstructionsPageProps) => {
             </ul>
           </div>
 
-          <Button onClick={onStart} size="lg" className="w-full">
-            Got it, let's go! 🚀
-          </Button>
+          <Button onClick={onStart} size="lg" className="w-full">{t('swipeGame.gotItLetsGo ')}</Button>
         </CardContent>
       </Card>
     </div>

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -12,6 +13,7 @@ interface MessageEditorProps {
 }
 
 export function MessageEditor({ messageId, currentContent, onSave, onCancel }: MessageEditorProps) {
+  const { t } = useTranslation('common');
   const [content, setContent] = useState(currentContent);
   const [saving, setSaving] = useState(false);
 
@@ -43,11 +45,11 @@ export function MessageEditor({ messageId, currentContent, onSave, onCancel }: M
 
       if (updateError) throw updateError;
 
-      toast.success('Message updated');
+      toast.success(t("message_updated", "Message updated"));
       onSave();
     } catch (error) {
       console.error('Error editing message:', error);
-      toast.error('Failed to update message');
+      toast.error(t("failed_to_update_message", "Failed to update message"));
     } finally {
       setSaving(false);
     }

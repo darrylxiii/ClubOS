@@ -1,9 +1,4 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { createHandler } from '../_shared/handler.ts';
 
 interface FrustrationHotspot {
   page: string;
@@ -16,19 +11,9 @@ interface PageStats {
   total: number;
 }
 
-Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  try {
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    );
-
+Deno.serve(createHandler(async (req, ctx) => {
     const { timeframe = '7d' } = await req.json();
-    
+
     const daysBack = timeframe === '24h' ? 1 : timeframe === '7d' ? 7 : 30;
     const startDate = new Date(Date.now() - daysBack * 86400000).toISOString();
 
@@ -39,10 +24,10 @@ Deno.serve(async (req) => {
       journeyData,
       searchAnalytics
     ] = await Promise.all([
-      supabase.from('user_page_analytics').select('*').gte('entry_timestamp', startDate),
-      supabase.from('user_frustration_signals').select('*').gte('created_at', startDate),
-      supabase.from('user_journey_tracking').select('*').gte('created_at', startDate),
-      supabase.from('user_search_analytics').select('*').gte('created_at', startDate),
+      ctx.supabase.from('user_page_analytics').select('*').gte('entry_timestamp', startDate),
+      ctx.supabase.from('user_frustration_signals').select('*').gte('created_at', startDate),
+      ctx.supabase.from('user_journey_tracking').select('*').gte('created_at', startDate),
+      ctx.supabase.from('user_search_analytics').select('*').gte('created_at', startDate),
     ]);
 
     // Generate insights
@@ -103,7 +88,7 @@ Deno.serve(async (req) => {
     }
 
     // Store insights
-    await supabase.from('analytics_insights').insert(
+    await ctx.supabase.from('analytics_insights').insert(
       insights.map(insight => ({
         user_id: null,
         insight_type: insight.type,
@@ -116,21 +101,11 @@ Deno.serve(async (req) => {
 
     return new Response(
       JSON.stringify({ success: true, insights, count: insights.length }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } }
     );
-  } catch (error: any) {
-    console.error('Error generating insights:', error);
-    return new Response(
-      JSON.stringify({ error: error?.message || 'Unknown error' }),
-      { 
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      }
-    );
-  }
-});
+}));
 
-function calculateBounceRates(pageData: any[]) {
+function calculateBounceRates(pageData: Record<string, unknown>[]) {
   const pageStats = pageData.reduce((acc, page) => {
     if (!acc[page.page_path]) {
       acc[page.page_path] = { total: 0, bounces: 0 };
@@ -150,7 +125,7 @@ function calculateBounceRates(pageData: any[]) {
   });
 }
 
-function analyzeFrustrationSignals(signals: any[]): FrustrationHotspot[] {
+function analyzeFrustrationSignals(signals: Record<string, unknown>[]): FrustrationHotspot[] {
   const hotspots = signals.reduce((acc, signal) => {
     const key = `${signal.page_path}-${signal.signal_type}`;
     if (!acc[key]) {
@@ -163,7 +138,7 @@ function analyzeFrustrationSignals(signals: any[]): FrustrationHotspot[] {
   return (Object.values(hotspots) as FrustrationHotspot[]).sort((a, b) => b.count - a.count);
 }
 
-function analyzeJourneyDropoffs(journeyData: any[]) {
+function analyzeJourneyDropoffs(journeyData: Record<string, unknown>[]) {
   const transitions = journeyData.reduce((acc, step) => {
     const key = `${step.from_page}->${step.to_page}`;
     if (!acc[key]) {
@@ -172,23 +147,23 @@ function analyzeJourneyDropoffs(journeyData: any[]) {
     acc[key].total++;
     if (step.conversion_event) acc[key].completed++;
     return acc;
-  }, {} as Record<string, any>);
+  }, {} as Record<string, { from: string; to: string; total: number; completed: number }>);
 
   return Object.values(transitions)
-    .map((t: any) => ({
+    .map((t) => ({
       ...t,
       rate: Math.round(((t.total - t.completed) / t.total) * 100),
     }))
-    .filter((t: any) => t.rate > 50)
-    .sort((a: any, b: any) => b.rate - a.rate);
+    .filter((t) => t.rate > 50)
+    .sort((a, b) => b.rate - a.rate);
 }
 
-function analyzeSearchPerformance(searchData: any[]) {
-  const zeroResults = searchData.filter(s => s.results_count === 0).length;
+function analyzeSearchPerformance(searchData: Record<string, unknown>[]) {
+  const zeroResults = searchData.filter(s => (s.results_count as number) === 0).length;
   const totalSearches = searchData.length || 1;
 
   return {
     zeroResultsRate: Math.round((zeroResults / totalSearches) * 100),
-    avgTimeToClick: searchData.reduce((sum, s) => sum + (s.time_to_first_click_ms || 0), 0) / totalSearches,
+    avgTimeToClick: searchData.reduce((sum, s) => sum + ((s.time_to_first_click_ms as number) || 0), 0) / totalSearches,
   };
 }

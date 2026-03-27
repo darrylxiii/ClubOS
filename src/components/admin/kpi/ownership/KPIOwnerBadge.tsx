@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -13,6 +14,7 @@ interface KPIOwnerBadgeProps {
 }
 
 export function KPIOwnerBadge({ kpiName, compact = false, showReviewStatus = false }: KPIOwnerBadgeProps) {
+  const { t } = useTranslation('common');
   const { getOwnerForKPI } = useKPIOwnership();
   const ownership = getOwnerForKPI(kpiName);
 
@@ -24,11 +26,11 @@ export function KPIOwnerBadge({ kpiName, compact = false, showReviewStatus = fal
           <TooltipTrigger asChild>
             <Badge variant="outline" className="gap-1 text-muted-foreground border-dashed">
               <User className="h-3 w-3" />
-              <span className="text-xs">Unassigned</span>
+              <span className="text-xs">{t("unassigned", "Unassigned")}</span>
             </Badge>
           </TooltipTrigger>
           <TooltipContent>
-            <p>This KPI has no owner assigned</p>
+            <p>{t("this_kpi_has_no", "This KPI has no owner assigned")}</p>
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>

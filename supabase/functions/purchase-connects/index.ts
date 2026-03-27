@@ -1,11 +1,5 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import Stripe from "https://esm.sh/stripe@14.21.0";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+import { createAuthenticatedHandler } from '../_shared/handler.ts';
+import { createStripeClient, withStripeResilience, generateIdempotencyKey } from '../_shared/stripe-client.ts';
 
 // Connects packages
 const CONNECTS_PACKAGES = {
@@ -15,54 +9,42 @@ const CONNECTS_PACKAGES = {
   enterprise: { connects: 250, price: 3999, name: "Enterprise Pack" },
 };
 
-serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+Deno.serve(createAuthenticatedHandler(async (req, { supabase, user, corsHeaders }) => {
+  if (!user.email) throw new Error("User email not available");
+
+  const { packageId } = await req.json();
+
+  if (!packageId || !CONNECTS_PACKAGES[packageId as keyof typeof CONNECTS_PACKAGES]) {
+    throw new Error("Invalid package selected");
   }
 
-  try {
-    const supabaseClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_ANON_KEY") ?? ""
-    );
+  const selectedPackage = CONNECTS_PACKAGES[packageId as keyof typeof CONNECTS_PACKAGES];
 
-    const authHeader = req.headers.get("Authorization")!;
-    const token = authHeader.replace("Bearer ", "");
-    const { data: userData } = await supabaseClient.auth.getUser(token);
-    const user = userData.user;
-    
-    if (!user?.email) {
-      throw new Error("User not authenticated");
-    }
+  const stripe = createStripeClient();
 
-    const { packageId } = await req.json();
-    
-    if (!packageId || !CONNECTS_PACKAGES[packageId as keyof typeof CONNECTS_PACKAGES]) {
-      throw new Error("Invalid package selected");
-    }
+  // Get or create Stripe customer
+  const customers = await withStripeResilience(
+    () => stripe.customers.list({ email: user.email, limit: 1 }),
+    { operation: 'list-customers' },
+  );
+  let customerId: string;
 
-    const selectedPackage = CONNECTS_PACKAGES[packageId as keyof typeof CONNECTS_PACKAGES];
-
-    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
-      apiVersion: "2023-10-16",
-    });
-
-    // Get or create Stripe customer
-    const customers = await stripe.customers.list({ email: user.email, limit: 1 });
-    let customerId: string;
-    
-    if (customers.data.length > 0) {
-      customerId = customers.data[0].id;
-    } else {
-      const customer = await stripe.customers.create({
+  if (customers.data.length > 0) {
+    customerId = customers.data[0].id;
+  } else {
+    const customer = await withStripeResilience(
+      () => stripe.customers.create({
         email: user.email,
         metadata: { user_id: user.id },
-      });
-      customerId = customer.id;
-    }
+      }),
+      { operation: 'create-customer', idempotencyKey: generateIdempotencyKey(user.id, 'create-customer', user.email!) },
+    );
+    customerId = customer.id;
+  }
 
-    // Create Checkout Session for connects purchase
-    const session = await stripe.checkout.sessions.create({
+  // Create Checkout Session for connects purchase
+  const session = await withStripeResilience(
+    () => stripe.checkout.sessions.create({
       customer: customerId,
       line_items: [
         {
@@ -86,20 +68,14 @@ serve(async (req) => {
         connects_amount: selectedPackage.connects.toString(),
         type: "connects_purchase",
       },
-    });
+    }),
+    { operation: 'create-connects-checkout', idempotencyKey: generateIdempotencyKey(user.id, 'connects-checkout', packageId) },
+  );
 
-    console.log(`[PURCHASE-CONNECTS] Created checkout session for ${selectedPackage.connects} connects`);
+  console.log(`[PURCHASE-CONNECTS] Created checkout session for ${selectedPackage.connects} connects`);
 
-    return new Response(JSON.stringify({ url: session.url }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 200,
-    });
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    console.error("[PURCHASE-CONNECTS] Error:", error);
-    return new Response(JSON.stringify({ error: errorMessage }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 500,
-    });
-  }
-});
+  return new Response(JSON.stringify({ url: session.url }), {
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+    status: 200,
+  });
+}));

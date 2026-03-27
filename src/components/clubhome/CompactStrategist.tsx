@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { MessageCircle, Clock } from "lucide-react";
+import { useTranslation } from 'react-i18next';
 
 interface Strategist {
   id: string;
@@ -21,6 +22,7 @@ function formatSla(minutes: number): string {
 }
 
 export function CompactStrategist() {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const navigate = useNavigate();
 

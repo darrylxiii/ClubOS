@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from 'react-i18next';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,6 +32,7 @@ interface UserProfile {
 }
 
 export const CreateObjectiveDialog = ({ children, open, onOpenChange, onCreated }: CreateObjectiveDialogProps) => {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -92,7 +94,7 @@ export const CreateObjectiveDialog = ({ children, open, onOpenChange, onCreated 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || !title.trim()) {
-      toast.error("Please fill in all required fields");
+      toast.error(t('objectives.pleaseFillInAllRequiredFields'));
       return;
     }
 
@@ -115,13 +117,13 @@ export const CreateObjectiveDialog = ({ children, open, onOpenChange, onCreated 
 
       if (error) throw error;
 
-      toast.success("Objective created successfully");
+      toast.success(t('objectives.objectiveCreatedSuccessfully'));
       onCreated();
       onOpenChange(false);
       resetForm();
     } catch (error) {
       console.error("Error creating objective:", error);
-      toast.error("Failed to create objective");
+      toast.error(t('objectives.failedToCreateObjective'));
     } finally {
       setLoading(false);
     }
@@ -147,45 +149,42 @@ export const CreateObjectiveDialog = ({ children, open, onOpenChange, onCreated 
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Create New Objective</DialogTitle>
-          <DialogDescription>
-            Define a new project objective with goals, timeline, and owners.
-          </DialogDescription>
+          <DialogTitle>{t('objectives.createNewObjective')}</DialogTitle>
+          <DialogDescription>{t('objectives.defineANewProjectObjectiveWithGoalsTimel')}</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Title */}
           <div className="space-y-2">
-            <Label htmlFor="title">Title *</Label>
+            <Label htmlFor="title">{t('objectives.title ')}</Label>
             <Input
               id="title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="e.g., Launch Product V2.0"
-              required
+              placeholder="e.g., Launch Product V2.0 required"
             />
           </div>
 
           {/* Description */}
           <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
+            <Label htmlFor="description">{t('objectives.description')}</Label>
             <Textarea
               id="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Describe the objective and its context..."
+              placeholder={t('objectives.describeTheObjectiveAndItsContext')}
               rows={3}
             />
           </div>
 
           {/* Goals */}
           <div className="space-y-2">
-            <Label htmlFor="goals">Goals & Success Criteria</Label>
+            <Label htmlFor="goals">{t('objectives.goalsSuccessCriteria')}</Label>
             <Textarea
               id="goals"
               value={goals}
               onChange={(e) => setGoals(e.target.value)}
-              placeholder="Define what success looks like for this objective..."
+              placeholder={t('objectives.defineWhatSuccessLooksLikeForThisObjecti')}
               rows={3}
             />
           </div>
@@ -193,22 +192,22 @@ export const CreateObjectiveDialog = ({ children, open, onOpenChange, onCreated 
           {/* Priority and Milestone Type */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="priority">Priority</Label>
+              <Label htmlFor="priority">{t('objectives.priority')}</Label>
               <Select value={priority} onValueChange={setPriority}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="low">Low</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="high">High</SelectItem>
-                  <SelectItem value="critical">Critical</SelectItem>
+                  <SelectItem value="low">{t('objectives.createobjectivedialog.low', 'Low')}</SelectItem>
+                  <SelectItem value="medium">{t('objectives.createobjectivedialog.medium', 'Medium')}</SelectItem>
+                  <SelectItem value="high">{t('objectives.createobjectivedialog.high', 'High')}</SelectItem>
+                  <SelectItem value="critical">{t('objectives.createobjectivedialog.critical', 'Critical')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="milestone">Milestone Type</Label>
+              <Label htmlFor="milestone">{t('objectives.milestoneType')}</Label>
               <Input
                 id="milestone"
                 value={milestoneType}
@@ -221,7 +220,7 @@ export const CreateObjectiveDialog = ({ children, open, onOpenChange, onCreated 
           {/* Dates */}
           <div className="grid grid-cols-3 gap-4">
             <div className="space-y-2">
-              <Label>Start Date</Label>
+              <Label>{t('objectives.startDate')}</Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !startDate && "text-muted-foreground")}>
@@ -236,7 +235,7 @@ export const CreateObjectiveDialog = ({ children, open, onOpenChange, onCreated 
             </div>
 
             <div className="space-y-2">
-              <Label>Due Date</Label>
+              <Label>{t('objectives.dueDate')}</Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !dueDate && "text-muted-foreground")}>
@@ -251,7 +250,7 @@ export const CreateObjectiveDialog = ({ children, open, onOpenChange, onCreated 
             </div>
 
             <div className="space-y-2">
-              <Label>Hard Deadline</Label>
+              <Label>{t('objectives.hardDeadline')}</Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !hardDeadline && "text-muted-foreground")}>
@@ -268,18 +267,16 @@ export const CreateObjectiveDialog = ({ children, open, onOpenChange, onCreated 
 
           {/* Tags */}
           <div className="space-y-2">
-            <Label htmlFor="tags">Tags</Label>
+            <Label htmlFor="tags">{t('objectives.tags')}</Label>
             <div className="flex gap-2">
               <Input
                 id="tags"
                 value={tagInput}
                 onChange={(e) => setTagInput(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddTag())}
-                placeholder="Add tags (press Enter)"
+                placeholder={t('objectives.addTagsPressEnter')}
               />
-              <Button type="button" onClick={handleAddTag} variant="secondary">
-                Add
-              </Button>
+              <Button type="button" onClick={handleAddTag} variant="secondary">{t('objectives.add')}</Button>
             </div>
             {tags.length > 0 && (
               <div className="flex flex-wrap gap-2 mt-2">
@@ -295,7 +292,7 @@ export const CreateObjectiveDialog = ({ children, open, onOpenChange, onCreated 
 
           {/* Owners */}
           <div className="space-y-2">
-            <Label>Objective Owners</Label>
+            <Label>{t('objectives.objectiveOwners')}</Label>
             <div className="space-y-3">
               {/* Selected Owners */}
               {selectedOwners.length > 0 && (
@@ -329,7 +326,7 @@ export const CreateObjectiveDialog = ({ children, open, onOpenChange, onCreated 
                 className="gap-2"
               >
                 <UserPlus className="h-4 w-4" />
-                {showOwnerSelector ? "Hide Users" : "Add Owners"}
+                {showOwnerSelector ? t('objectives.createobjectivedialog.hideUsers', 'Hide Users') : t('objectives.createobjectivedialog.addOwners', 'Add Owners')}
               </Button>
 
               {/* Owner Selection */}
@@ -355,10 +352,10 @@ export const CreateObjectiveDialog = ({ children, open, onOpenChange, onCreated 
           {/* Actions */}
           <div className="flex justify-end gap-2 pt-4">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
+              {t('objectives.createobjectivedialog.cancel', 'Cancel')}
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? "Creating..." : "Create Objective"}
+              {loading ? t('objectives.createobjectivedialog.creating', 'Creating...') : t('objectives.createobjectivedialog.createObjective', 'Create Objective')}
             </Button>
           </div>
         </form>

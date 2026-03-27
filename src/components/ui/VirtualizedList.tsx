@@ -1,4 +1,5 @@
 import { useRef, ReactNode, CSSProperties } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { cn } from '@/lib/utils';
 
@@ -25,8 +26,10 @@ export function VirtualizedList<T>({
   className,
   itemClassName,
   gap = 0,
-  emptyMessage = 'No items found',
+  emptyMessage,
 }: VirtualizedListProps<T>) {
+  const { t } = useTranslation('common');
+  const resolvedEmptyMessage = emptyMessage ?? t('empty.noItemsFound', 'No items found');
   const parentRef = useRef<HTMLDivElement>(null);
 
   const virtualizer = useVirtualizer({
@@ -41,7 +44,7 @@ export function VirtualizedList<T>({
   if (items.length === 0) {
     return (
       <div className="flex items-center justify-center py-12 text-muted-foreground">
-        {emptyMessage}
+        {resolvedEmptyMessage}
       </div>
     );
   }

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -8,6 +9,7 @@ import { Briefcase, TrendingUp } from "lucide-react";
 import { formatCurrency } from "@/lib/revenueCalculations";
 
 export function RecruiterCommissionsTable() {
+  const { t } = useTranslation('common');
   const currentYear = new Date().getFullYear();
   const startOfYear = `${currentYear}-01-01`;
 
@@ -127,11 +129,11 @@ export function RecruiterCommissionsTable() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Recruiter</TableHead>
-                  <TableHead className="text-center">Placements</TableHead>
-                  <TableHead className="text-right">Total Earned</TableHead>
-                  <TableHead className="text-right">Paid</TableHead>
-                  <TableHead className="text-right">Pending</TableHead>
+                  <TableHead>{t("recruiter", "Recruiter")}</TableHead>
+                  <TableHead className="text-center">{t("placements", "Placements")}</TableHead>
+                  <TableHead className="text-right">{t("total_earned", "Total Earned")}</TableHead>
+                  <TableHead className="text-right">{t("paid", "Paid")}</TableHead>
+                  <TableHead className="text-right">{t("pending", "Pending")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

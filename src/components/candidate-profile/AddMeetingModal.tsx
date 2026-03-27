@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 /**
  * AddMeetingModal
  *
@@ -117,6 +118,7 @@ export function AddMeetingModal({
   candidateName,
   jobId: defaultJobId,
 }: AddMeetingModalProps) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [contentOpen, setContentOpen] = useState(true);
@@ -295,21 +297,21 @@ export function AddMeetingModal({
         <div className="space-y-6 py-2">
           {/* ── Section: Meeting Details ─────────────────────────── */}
           <section className="space-y-4">
-            <h3 className="text-sm font-semibold text-foreground">Meeting Details</h3>
+            <h3 className="text-sm font-semibold text-foreground">{t("meeting_details", "Meeting Details")}</h3>
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label className="text-xs">Title *</Label>
+                <Label className="text-xs">{t("title", "Title *")}</Label>
                 <Input
-                  placeholder="e.g. Screening call with Barbara"
+                  placeholder={t("eg_screening_call_with", "e.g. Screening call with Barbara")}
                   value={form.title}
                   onChange={(e) => set('title', e.target.value)}
                 />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs">Meeting Type *</Label>
+                <Label className="text-xs">{t("meeting_type", "Meeting Type *")}</Label>
                 <Select value={form.meetingType} onValueChange={(v) => set('meetingType', v)}>
-                  <SelectTrigger><SelectValue placeholder="Select type" /></SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder={t("select_type", "Select type")} /></SelectTrigger>
                   <SelectContent>
                     {MEETING_TYPES.map((t) => (
                       <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
@@ -321,7 +323,7 @@ export function AddMeetingModal({
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label className="text-xs">Date & Time</Label>
+                <Label className="text-xs">{t("date_time", "Date & Time")}</Label>
                 <Input
                   type="datetime-local"
                   value={form.meetingDate}
@@ -329,9 +331,9 @@ export function AddMeetingModal({
                 />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs">Duration</Label>
+                <Label className="text-xs">{t("duration", "Duration")}</Label>
                 <Select value={form.duration} onValueChange={(v) => set('duration', v)}>
-                  <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder={t("select", "Select")} /></SelectTrigger>
                   <SelectContent>
                     {DURATIONS.map((d) => (
                       <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>
@@ -342,9 +344,9 @@ export function AddMeetingModal({
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs">Description</Label>
+              <Label className="text-xs">{t("description", "Description")}</Label>
               <Textarea
-                placeholder="Brief description of the meeting..."
+                placeholder={t("brief_description_of_the", "Brief description of the meeting...")}
                 value={form.description}
                 onChange={(e) => set('description', e.target.value)}
                 className="min-h-[60px] text-sm"
@@ -352,9 +354,9 @@ export function AddMeetingModal({
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs">Agenda</Label>
+              <Label className="text-xs">{t("agenda", "Agenda")}</Label>
               <Textarea
-                placeholder="Meeting agenda or discussion topics..."
+                placeholder={t("meeting_agenda_or_discussion", "Meeting agenda or discussion topics...")}
                 value={form.agenda}
                 onChange={(e) => set('agenda', e.target.value)}
                 className="min-h-[60px] text-sm"
@@ -383,17 +385,17 @@ export function AddMeetingModal({
               <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${contentOpen ? 'rotate-180' : ''}`} />
             </CollapsibleTrigger>
             <CollapsibleContent className="pt-3 space-y-4">
-              <p className="text-xs text-muted-foreground">Provide at least one: transcript, video, or audio.</p>
+              <p className="text-xs text-muted-foreground">{t("provide_at_least_one", "Provide at least one: transcript, video, or audio.")}</p>
 
               {/* Transcript */}
               <div className="space-y-1.5">
                 <div className="flex items-center gap-2">
                   <FileText className="h-3.5 w-3.5 text-muted-foreground" />
-                  <Label className="text-xs">Paste Transcript</Label>
+                  <Label className="text-xs">{t("paste_transcript", "Paste Transcript")}</Label>
                   {form.transcript.trim().length > 0 && <Check className="h-3.5 w-3.5 text-primary" />}
                 </div>
                 <Textarea
-                  placeholder="Paste meeting transcript here..."
+                  placeholder={t("paste_meeting_transcript_here", "Paste meeting transcript here...")}
                   className="min-h-[100px] text-xs font-mono"
                   value={form.transcript}
                   onChange={(e) => set('transcript', e.target.value)}
@@ -404,7 +406,7 @@ export function AddMeetingModal({
               <div className="space-y-1.5">
                 <div className="flex items-center gap-2">
                   <Video className="h-3.5 w-3.5 text-muted-foreground" />
-                  <Label className="text-xs">Video Recording</Label>
+                  <Label className="text-xs">{t("video_recording", "Video Recording")}</Label>
                   {form.videoFile && <Check className="h-3.5 w-3.5 text-primary" />}
                 </div>
                 {form.videoFile ? (
@@ -427,7 +429,7 @@ export function AddMeetingModal({
                   >
                     <input {...videoDropzone.getInputProps()} />
                     <Upload className="h-4 w-4 mx-auto mb-1 text-muted-foreground" />
-                    <p className="text-[11px] text-muted-foreground">Drop MP4, WebM, or MOV (max 50MB)</p>
+                    <p className="text-[11px] text-muted-foreground">{t("drop_mp4_webm_or", "Drop MP4, WebM, or MOV (max 50MB)")}</p>
                   </div>
                 )}
               </div>
@@ -436,7 +438,7 @@ export function AddMeetingModal({
               <div className="space-y-1.5">
                 <div className="flex items-center gap-2">
                   <Mic className="h-3.5 w-3.5 text-muted-foreground" />
-                  <Label className="text-xs">Audio Recording</Label>
+                  <Label className="text-xs">{t("audio_recording", "Audio Recording")}</Label>
                   {form.audioFile && <Check className="h-3.5 w-3.5 text-primary" />}
                 </div>
                 {form.audioFile ? (
@@ -459,7 +461,7 @@ export function AddMeetingModal({
                   >
                     <input {...audioDropzone.getInputProps()} />
                     <Upload className="h-4 w-4 mx-auto mb-1 text-muted-foreground" />
-                    <p className="text-[11px] text-muted-foreground">Drop MP3, WAV, M4A, or WebM (max 50MB)</p>
+                    <p className="text-[11px] text-muted-foreground">{t("drop_mp3_wav_m4a", "Drop MP3, WAV, M4A, or WebM (max 50MB)")}</p>
                   </div>
                 )}
               </div>
@@ -477,9 +479,9 @@ export function AddMeetingModal({
             </CollapsibleTrigger>
             <CollapsibleContent className="pt-3 space-y-4">
               <div className="space-y-1.5">
-                <Label className="text-xs">Strategist Notes</Label>
+                <Label className="text-xs">{t("strategist_notes", "Strategist Notes")}</Label>
                 <Textarea
-                  placeholder="Your observations, impressions, or context..."
+                  placeholder={t("your_observations_impressions_or", "Your observations, impressions, or context...")}
                   value={form.notes}
                   onChange={(e) => set('notes', e.target.value)}
                   className="min-h-[80px] text-sm"
@@ -490,11 +492,11 @@ export function AddMeetingModal({
                   <Tags className="h-3 w-3" /> Tags
                 </Label>
                 <Input
-                  placeholder="e.g. senior, frontend, strong-communicator"
+                  placeholder={t("eg_senior_frontend_strongcommunicator", "e.g. senior, frontend, strong-communicator")}
                   value={form.tags}
                   onChange={(e) => set('tags', e.target.value)}
                 />
-                <p className="text-[10px] text-muted-foreground">Comma-separated. Used for search and clustering.</p>
+                <p className="text-[10px] text-muted-foreground">{t("commaseparated_used_for_search", "Comma-separated. Used for search and clustering.")}</p>
               </div>
             </CollapsibleContent>
           </Collapsible>
@@ -534,14 +536,14 @@ export function AddMeetingModal({
 
         {/* ── Footer ──────────────────────────────────────────────── */}
         <div className="flex items-center justify-between pt-4 border-t">
-          <p className="text-[10px] text-muted-foreground">Powered by QUIN</p>
+          <p className="text-[10px] text-muted-foreground">{t("powered_by_quin", "Powered by QUIN")}</p>
           <div className="flex gap-2">
             <Button variant="outline" onClick={handleClose} disabled={isSubmitting}>
               Cancel
             </Button>
             <Button onClick={handleSubmit} disabled={!canSubmit || isSubmitting}>
               {isSubmitting ? (
-                <><Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> Processing...</>
+                <><Loader2 className="h-4 w-4 mr-1.5 animate-spin" />{t("processing", "Processing...")}</>
               ) : (
                 'Submit Meeting'
               )}

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { QuickTip } from "@/types/quickTip";
 import { TipCard } from "./TipCard";
@@ -12,6 +13,7 @@ interface QuickTipsCarouselProps {
 }
 
 export function QuickTipsCarousel({ tips }: QuickTipsCarouselProps) {
+  const { t } = useTranslation('common');
   const [cardsPerView, setCardsPerView] = useState(3);
 
   const {
@@ -63,7 +65,7 @@ export function QuickTipsCarousel({ tips }: QuickTipsCarouselProps) {
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       role="region"
-      aria-label="Quick tips carousel"
+      aria-label={t("quick_tips_carousel", "Quick tips carousel")}
     >
       {/* Carousel Container */}
       <div className="relative overflow-hidden">
@@ -102,7 +104,7 @@ export function QuickTipsCarousel({ tips }: QuickTipsCarouselProps) {
               "hidden md:flex",
               currentIndex === 0 && "opacity-50 cursor-not-allowed"
             )}
-            aria-label="Previous tip"
+            aria-label={t("previous_tip", "Previous tip")}
           >
             <ChevronLeft className="h-5 w-5" />
           </Button>
@@ -120,7 +122,7 @@ export function QuickTipsCarousel({ tips }: QuickTipsCarouselProps) {
               "hidden md:flex",
               currentIndex >= maxIndex && "opacity-50 cursor-not-allowed"
             )}
-            aria-label="Next tip"
+            aria-label={t("next_tip", "Next tip")}
           >
             <ChevronRight className="h-5 w-5" />
           </Button>

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,6 +18,7 @@ interface InvoiceWithCompany extends InvoiceForReconciliation {
 }
 
 export default function InvoiceReconciliation() {
+  const { t } = useTranslation('admin');
   const [year] = useState(new Date().getFullYear());
   const [search, setSearch] = useState("");
   const [selectedInvoice, setSelectedInvoice] = useState<InvoiceWithCompany | null>(null);
@@ -89,7 +91,7 @@ export default function InvoiceReconciliation() {
       return data;
     },
     onSuccess: () => {
-      toast.success('Invoice unlinked');
+      toast.success("Invoice unlinked");
       queryClient.invalidateQueries({ queryKey: ['reconciliation-invoices'] });
     },
     onError: (error) => {
@@ -163,10 +165,8 @@ export default function InvoiceReconciliation() {
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h1 className="text-2xl font-bold">Invoice Reconciliation</h1>
-          <p className="text-muted-foreground">
-            Link Moneybird invoices to companies for revenue attribution
-          </p>
+          <h1 className="text-2xl font-bold">{t('invoiceReconciliation.text2')}</h1>
+          <p className="text-muted-foreground">{t('invoiceReconciliation.desc')}</p>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" onClick={handleExportCSV}>
@@ -190,7 +190,7 @@ export default function InvoiceReconciliation() {
       <div className="grid gap-4 md:grid-cols-5">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Invoices</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">{t('invoiceReconciliation.text3')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.total}</div>
@@ -198,7 +198,7 @@ export default function InvoiceReconciliation() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Matched</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">{t('invoiceReconciliation.text4')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">{stats.matched}</div>
@@ -206,7 +206,7 @@ export default function InvoiceReconciliation() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Unmatched</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">{t('invoiceReconciliation.text5')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-amber-600">{stats.unmatched}</div>
@@ -214,7 +214,7 @@ export default function InvoiceReconciliation() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Needs Review</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">{t('invoiceReconciliation.text6')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-red-600">{stats.needsReview}</div>
@@ -222,7 +222,7 @@ export default function InvoiceReconciliation() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Match Rate</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">{t('invoiceReconciliation.text7')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.matchRate}%</div>
@@ -233,7 +233,7 @@ export default function InvoiceReconciliation() {
       <div className="relative max-w-sm">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="Search invoices..."
+          placeholder={t('invoiceReconciliation.text8')}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="pl-9"
@@ -261,7 +261,7 @@ export default function InvoiceReconciliation() {
         <TabsContent value="unmatched">
           <Card>
             <CardHeader>
-              <CardTitle>Unmatched Invoices</CardTitle>
+              <CardTitle>{t('invoiceReconciliation.text9')}</CardTitle>
               <CardDescription>
                 Click "Reconcile" to link each invoice to a company with full data capture
               </CardDescription>
@@ -270,11 +270,11 @@ export default function InvoiceReconciliation() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Invoice #</TableHead>
-                    <TableHead>Moneybird Contact</TableHead>
-                    <TableHead>Amount</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Status</TableHead>
+                    <TableHead>{"Invoice #"}</TableHead>
+                    <TableHead>{t('invoiceReconciliation.text10')}</TableHead>
+                    <TableHead>{t('invoiceReconciliation.text11')}</TableHead>
+                    <TableHead>{t('invoiceReconciliation.text12')}</TableHead>
+                    <TableHead>{t('invoiceReconciliation.text13')}</TableHead>
                     <TableHead></TableHead>
                   </TableRow>
                 </TableHeader>
@@ -324,7 +324,7 @@ export default function InvoiceReconciliation() {
         <TabsContent value="matched">
           <Card>
             <CardHeader>
-              <CardTitle>Matched Invoices</CardTitle>
+              <CardTitle>{t('invoiceReconciliation.text14')}</CardTitle>
               <CardDescription>
                 Invoices linked to companies for revenue tracking
               </CardDescription>
@@ -333,12 +333,12 @@ export default function InvoiceReconciliation() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Invoice #</TableHead>
-                    <TableHead>Moneybird Contact</TableHead>
-                    <TableHead>Linked Company</TableHead>
-                    <TableHead>Amount</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Date</TableHead>
+                    <TableHead>{"Invoice #"}</TableHead>
+                    <TableHead>{t('invoiceReconciliation.text15')}</TableHead>
+                    <TableHead>{t('invoiceReconciliation.text16')}</TableHead>
+                    <TableHead>{t('invoiceReconciliation.text17')}</TableHead>
+                    <TableHead>{t('invoiceReconciliation.text18')}</TableHead>
+                    <TableHead>{t('invoiceReconciliation.text19')}</TableHead>
                     <TableHead></TableHead>
                   </TableRow>
                 </TableHeader>
@@ -399,7 +399,7 @@ export default function InvoiceReconciliation() {
         <TabsContent value="review">
           <Card>
             <CardHeader>
-              <CardTitle>Needs Finance Review</CardTitle>
+              <CardTitle>{t('invoiceReconciliation.text20')}</CardTitle>
               <CardDescription>
                 Invoices flagged for finance team review
               </CardDescription>
@@ -408,12 +408,12 @@ export default function InvoiceReconciliation() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Invoice #</TableHead>
-                    <TableHead>Company</TableHead>
-                    <TableHead>Amount</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Variance</TableHead>
-                    <TableHead>Notes</TableHead>
+                    <TableHead>{"Invoice #"}</TableHead>
+                    <TableHead>{t('invoiceReconciliation.text21')}</TableHead>
+                    <TableHead>{t('invoiceReconciliation.text22')}</TableHead>
+                    <TableHead>{t('invoiceReconciliation.text23')}</TableHead>
+                    <TableHead>{t('invoiceReconciliation.text24')}</TableHead>
+                    <TableHead>{t('invoiceReconciliation.text25')}</TableHead>
                     <TableHead></TableHead>
                   </TableRow>
                 </TableHeader>

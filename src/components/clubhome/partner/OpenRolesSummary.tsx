@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,6 +25,7 @@ interface OpenRolesSummaryProps {
 }
 
 export function OpenRolesSummary({ companyId }: OpenRolesSummaryProps) {
+  const { t } = useTranslation('common');
   const { data: roles, isLoading } = useQuery({
     queryKey: ['open-roles-summary', companyId],
     queryFn: async (): Promise<RoleSummary[]> => {
@@ -121,7 +123,7 @@ export function OpenRolesSummary({ companyId }: OpenRolesSummaryProps) {
         {!roles || roles.length === 0 ? (
           <div className="text-center py-8">
             <Briefcase className="h-10 w-10 mx-auto text-muted-foreground/40 mb-3" />
-            <p className="text-sm font-medium mb-1">No open roles yet</p>
+            <p className="text-sm font-medium mb-1">{t("no_open_roles_yet", "No open roles yet")}</p>
             <p className="text-xs text-muted-foreground mb-4">
               Partners typically receive their first shortlist within 48 hours
             </p>
@@ -163,7 +165,7 @@ export function OpenRolesSummary({ companyId }: OpenRolesSummaryProps) {
             ))}
 
             <Button variant="outline" size="sm" className="w-full mt-2" asChild>
-              <Link to="/company-jobs">View All Roles</Link>
+              <Link to="/company-jobs">{t("view_all_roles", "View All Roles")}</Link>
             </Button>
           </div>
         )}

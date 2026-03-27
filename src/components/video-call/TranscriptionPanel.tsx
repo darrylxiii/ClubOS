@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -17,6 +18,7 @@ interface TranscriptionPanelProps {
 }
 
 export function TranscriptionPanel({ meetingId }: TranscriptionPanelProps) {
+  const { t } = useTranslation('common');
   const [transcripts, setTranscripts] = useState<Transcript[]>([]);
 
   // In a real implementation, this would use Speech-to-Text API
@@ -41,7 +43,7 @@ export function TranscriptionPanel({ meetingId }: TranscriptionPanelProps) {
       <ScrollArea className="flex-1 p-4">
         {transcripts.length === 0 ? (
           <div className="text-center text-muted-foreground py-8">
-            <p>Transcription will appear here during the meeting</p>
+            <p>{t("transcription_will_appear_here", "Transcription will appear here during the meeting")}</p>
           </div>
         ) : (
           <div className="space-y-3">

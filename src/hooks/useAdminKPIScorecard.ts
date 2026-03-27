@@ -25,13 +25,42 @@ export interface KPIScorecardData {
   pipeline: PipelineSnapshot;
 }
 
-function calcNPS(surveys: any[], type: string): number | null {
-  const filtered = surveys.filter((s: any) =>
+interface NPSSurveyRow {
+  nps_score: number;
+  respondent_type: string;
+  response_date: string;
+}
+
+interface ApplicationRow {
+  status: string;
+  created_at: string;
+  updated_at: string;
+  stage_updated_at: string | null;
+}
+
+interface JobRow {
+  status: string;
+  hired_count: number | null;
+}
+
+interface HireRow {
+  placement_fee: number | null;
+  company_id: string | null;
+}
+
+interface FeeRow {
+  fee_amount: number | null;
+  status: string;
+  created_at: string;
+}
+
+function calcNPS(surveys: NPSSurveyRow[], type: string): number | null {
+  const filtered = surveys.filter((s) =>
     type === 'candidate' ? s.respondent_type === 'candidate' : ['partner', 'client'].includes(s.respondent_type)
   );
   if (filtered.length === 0) return null;
-  const promoters = filtered.filter((s: any) => s.nps_score >= 9).length;
-  const detractors = filtered.filter((s: any) => s.nps_score <= 6).length;
+  const promoters = filtered.filter((s) => s.nps_score >= 9).length;
+  const detractors = filtered.filter((s) => s.nps_score <= 6).length;
   return Math.round(((promoters - detractors) / filtered.length) * 100);
 }
 
@@ -96,12 +125,12 @@ export function useAdminKPIScorecard(range: KPIRange = '30d') {
 
       const overdueRes = await overduePromise;
 
-      const apps = appsRes.data || [];
-      const jobs = jobsRes.data || [];
-      const hires = hiresRes.data || [];
-      const npsSurveys = npsRes.data || [];
-      const interviews = interviewsRes.data || [];
-      const fees = feesRes.data || [];
+      const apps = (appsRes.data || []) as ApplicationRow[];
+      const jobs = (jobsRes.data || []) as JobRow[];
+      const hires = (hiresRes.data || []) as HireRow[];
+      const npsSurveys = (npsRes.data || []) as NPSSurveyRow[];
+      const interviews = (interviewsRes.data || []) as { id: string; created_at: string }[];
+      const fees = (feesRes.data || []) as FeeRow[];
 
       // === Pipeline snapshot ===
       const stageCounts: Record<string, number> = {};
@@ -114,30 +143,30 @@ export function useAdminKPIScorecard(range: KPIRange = '30d') {
       const overdueCount = overdueRes.count || 0;
 
       // === Efficiency ===
-      const shortlistApps = apps.filter((a: any) => a.stage_updated_at && a.status !== 'applied');
+      const shortlistApps = apps.filter((a) => a.stage_updated_at && a.status !== 'applied');
       let timeToShortlist: number | null = null;
       if (shortlistApps.length > 0) {
-        const totalDays = shortlistApps.reduce((sum: number, a: any) => {
+        const totalDays = shortlistApps.reduce((sum: number, a) => {
           const diff = (new Date(a.stage_updated_at).getTime() - new Date(a.created_at).getTime()) / 86400000;
           return sum + diff;
         }, 0);
         timeToShortlist = Math.round((totalDays / shortlistApps.length) * 10) / 10;
       }
 
-      const activeApps = apps.filter((a: any) => ['active', 'screening', 'interview'].includes(a.status));
+      const activeApps = apps.filter((a) => ['active', 'screening', 'interview'].includes(a.status));
       let slaCompliance: number | null = null;
       if (activeApps.length > 0) {
-        const compliant = activeApps.filter((a: any) => {
+        const compliant = activeApps.filter((a) => {
           const diff = (new Date(a.updated_at).getTime() - new Date(a.created_at).getTime()) / 86400000;
           return diff <= 7;
         }).length;
         slaCompliance = Math.round((compliant / activeApps.length) * 100);
       }
 
-      const hiredApps = apps.filter((a: any) => a.status === 'hired' && a.stage_updated_at);
+      const hiredApps = apps.filter((a) => a.status === 'hired' && a.stage_updated_at);
       let timeToHire: number | null = null;
       if (hiredApps.length > 0) {
-        const totalDays = hiredApps.reduce((sum: number, a: any) => {
+        const totalDays = hiredApps.reduce((sum: number, a) => {
           const diff = (new Date(a.stage_updated_at).getTime() - new Date(a.created_at).getTime()) / 86400000;
           return sum + diff;
         }, 0);
@@ -145,38 +174,38 @@ export function useAdminKPIScorecard(range: KPIRange = '30d') {
       }
 
       // === Profitability ===
-      const paidHires = hires.filter((h: any) => h.placement_fee > 0);
+      const paidHires = hires.filter((h) => (h.placement_fee ?? 0) > 0);
       const revenuePerPlacement = paidHires.length > 0
-        ? Math.round(paidHires.reduce((s: number, h: any) => s + Number(h.placement_fee), 0) / paidHires.length)
+        ? Math.round(paidHires.reduce((s: number, h) => s + Number(h.placement_fee), 0) / paidHires.length)
         : null;
 
       const pipelineConversion = apps.length > 0
-        ? Math.round((apps.filter((a: any) => a.status === 'hired').length / apps.length) * 1000) / 10
+        ? Math.round((apps.filter((a) => a.status === 'hired').length / apps.length) * 1000) / 10
         : null;
 
-      const activeFees = fees.filter((f: any) => f.status !== 'cancelled');
+      const activeFees = fees.filter((f) => f.status !== 'cancelled');
       const totalRevenue = activeFees.length > 0
-        ? Math.round(activeFees.reduce((s: number, f: any) => s + Number(f.fee_amount || 0), 0))
+        ? Math.round(activeFees.reduce((s: number, f) => s + Number(f.fee_amount || 0), 0))
         : null;
 
       // === Operations ===
-      const relevantJobs = jobs.filter((j: any) => j.status === 'closed' || (j.hired_count && j.hired_count > 0));
+      const relevantJobs = jobs.filter((j) => j.status === 'closed' || (j.hired_count && j.hired_count > 0));
       const fillRate = relevantJobs.length > 0
-        ? Math.round((relevantJobs.filter((j: any) => j.hired_count > 0).length / relevantJobs.length) * 100)
+        ? Math.round((relevantJobs.filter((j) => (j.hired_count ?? 0) > 0).length / relevantJobs.length) * 100)
         : null;
 
-      const hiredOrRejected = apps.filter((a: any) => ['hired', 'rejected'].includes(a.status));
+      const hiredOrRejected = apps.filter((a) => ['hired', 'rejected'].includes(a.status));
       const offerAcceptance = hiredOrRejected.length > 0
-        ? Math.round((hiredOrRejected.filter((a: any) => a.status === 'hired').length / hiredOrRejected.length) * 100)
+        ? Math.round((hiredOrRejected.filter((a) => a.status === 'hired').length / hiredOrRejected.length) * 100)
         : null;
 
-      const hiredCount = apps.filter((a: any) => a.status === 'hired').length;
+      const hiredCount = apps.filter((a) => a.status === 'hired').length;
       const interviewCount = interviews.length;
       const interviewToHire = hiredCount > 0 ? Math.round((interviewCount / hiredCount) * 10) / 10 : null;
 
       // Repeat placement rate
       const companyHires: Record<string, number> = {};
-      hires.forEach((h: any) => {
+      hires.forEach((h) => {
         if (h.company_id) companyHires[h.company_id] = (companyHires[h.company_id] || 0) + 1;
       });
       const companiesWithHires = Object.keys(companyHires).length;

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -43,6 +44,7 @@ export function WeeklyAvailabilityGrid({
   value,
   onChange,
 }: WeeklyAvailabilityGridProps) {
+  const { t } = useTranslation('common');
   const schedule = value || DEFAULT_SCHEDULE;
 
   const updateDay = (day: string, update: Partial<DaySchedule>) => {
@@ -59,7 +61,7 @@ export function WeeklyAvailabilityGrid({
           <Clock className="h-5 w-5" />
           Weekly Availability
         </CardTitle>
-        <CardDescription>Set your available hours for each day of the week</CardDescription>
+        <CardDescription>{t("set_your_available_hours", "Set your available hours for each day of the week")}</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="space-y-3">
@@ -97,7 +99,7 @@ export function WeeklyAvailabilityGrid({
                     />
                   </div>
                 ) : (
-                  <span className="text-xs text-muted-foreground italic">Unavailable</span>
+                  <span className="text-xs text-muted-foreground italic">{t("unavailable", "Unavailable")}</span>
                 )}
               </div>
             );

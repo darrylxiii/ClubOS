@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -45,6 +46,7 @@ export function TalentPoolTags({
   onTagsChange,
   size = 'md',
 }: TalentPoolTagsProps) {
+  const { t } = useTranslation('common');
   const [tags, setTags] = useState<string[]>(initialTags);
   const [open, setOpen] = useState(false);
   const [customTag, setCustomTag] = useState('');
@@ -78,7 +80,7 @@ export function TalentPoolTags({
       onTagsChange?.(newTags);
     } catch (error) {
       console.error('Error saving tags:', error);
-      toast.error('Failed to update tags');
+      toast.error(t("failed_to_update_tags", "Failed to update tags"));
     } finally {
       setSaving(false);
     }
@@ -149,12 +151,12 @@ export function TalentPoolTags({
           </PopoverTrigger>
           <PopoverContent className="w-64 p-0" align="start">
             <Command>
-              <CommandInput placeholder="Search or create tag..." />
+              <CommandInput placeholder={t("search_or_create_tag", "Search or create tag...")} />
               <CommandList>
                 <CommandEmpty>
                   <div className="p-2">
                     <Input
-                      placeholder="Create custom tag..."
+                      placeholder={t("create_custom_tag", "Create custom tag...")}
                       value={customTag}
                       onChange={(e) => setCustomTag(e.target.value)}
                       onKeyDown={(e) => {

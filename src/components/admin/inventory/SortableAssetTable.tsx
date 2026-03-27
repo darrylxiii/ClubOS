@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
@@ -20,6 +21,7 @@ type SortField = 'inventory_number' | 'asset_name' | 'category' | 'total_purchas
 type SortDirection = 'asc' | 'desc';
 
 export function SortableAssetTable({ assets, onEdit, onStatusChange }: SortableAssetTableProps) {
+  const { t } = useTranslation('common');
   const [sortField, setSortField] = useState<SortField>('inventory_number');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [selectedAsset, setSelectedAsset] = useState<InventoryAsset | null>(null);
@@ -111,14 +113,14 @@ export function SortableAssetTable({ assets, onEdit, onStatusChange }: SortableA
         <Table>
           <TableHeader>
             <TableRow>
-              <SortableHeader field="inventory_number">Inventory #</SortableHeader>
-              <SortableHeader field="asset_name">Name</SortableHeader>
-              <SortableHeader field="category">Category</SortableHeader>
-              <SortableHeader field="purchase_date">Purchase Date</SortableHeader>
-              <SortableHeader field="total_purchase_value" className="text-right">Purchase Value</SortableHeader>
-              <SortableHeader field="current_book_value" className="text-right">Book Value</SortableHeader>
-              <SortableHeader field="status">Status</SortableHeader>
-              <TableHead className="w-[100px]">Actions</TableHead>
+              <SortableHeader field="inventory_number">{t("inventory", "Inventory #")}</SortableHeader>
+              <SortableHeader field="asset_name">{t("name", "Name")}</SortableHeader>
+              <SortableHeader field="category">{t("category", "Category")}</SortableHeader>
+              <SortableHeader field="purchase_date">{t("purchase_date", "Purchase Date")}</SortableHeader>
+              <SortableHeader field="total_purchase_value" className="text-right">{t("purchase_value", "Purchase Value")}</SortableHeader>
+              <SortableHeader field="current_book_value" className="text-right">{t("book_value", "Book Value")}</SortableHeader>
+              <SortableHeader field="status">{t("status", "Status")}</SortableHeader>
+              <TableHead className="w-[100px]">{t("actions", "Actions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

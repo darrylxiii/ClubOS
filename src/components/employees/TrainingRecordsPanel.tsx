@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -21,6 +22,7 @@ import {
 } from "lucide-react";
 
 export function TrainingRecordsPanel() {
+  const { t } = useTranslation('common');
   const { data: records, isLoading } = useTrainingRecords();
   const { data: employees } = useAllEmployees();
   const createRecord = useCreateTrainingRecord();
@@ -39,7 +41,7 @@ export function TrainingRecordsPanel() {
 
   const handleCreate = async () => {
     if (!newRecord.employee_id || !newRecord.training_name) {
-      toast.error('Please fill in required fields');
+      toast.error(t("please_fill_in_required", "Please fill in required fields"));
       return;
     }
     try {
@@ -55,9 +57,9 @@ export function TrainingRecordsPanel() {
         certificate_url: '',
         status: 'not_started',
       });
-      toast.success('Training record added');
+      toast.success(t("training_record_added", "Training record added"));
     } catch (error) {
-      toast.error('Failed to add record');
+      toast.error(t("failed_to_add_record", "Failed to add record"));
     }
   };
 
@@ -104,17 +106,17 @@ export function TrainingRecordsPanel() {
             </DialogTrigger>
             <DialogContent className="max-w-lg">
               <DialogHeader>
-                <DialogTitle>Add Training Record</DialogTitle>
+                <DialogTitle>{t("add_training_record", "Add Training Record")}</DialogTitle>
               </DialogHeader>
               <div className="space-y-4 mt-4">
                 <div className="space-y-2">
-                  <Label>Employee</Label>
+                  <Label>{t("employee", "Employee")}</Label>
                   <Select
                     value={newRecord.employee_id}
                     onValueChange={(v) => setNewRecord(prev => ({ ...prev, employee_id: v }))}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select employee" />
+                      <SelectValue placeholder={t("select_employee", "Select employee")} />
                     </SelectTrigger>
                     <SelectContent>
                       {employees?.map(emp => (
@@ -128,15 +130,15 @@ export function TrainingRecordsPanel() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>Training Name *</Label>
+                    <Label>{t("training_name", "Training Name *")}</Label>
                     <Input
                       value={newRecord.training_name}
                       onChange={(e) => setNewRecord(prev => ({ ...prev, training_name: e.target.value }))}
-                      placeholder="e.g. GDPR Compliance"
+                      placeholder={t("eg_gdpr_compliance", "e.g. GDPR Compliance")}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Type</Label>
+                    <Label>{t("type", "Type")}</Label>
                     <Select
                       value={newRecord.training_type}
                       onValueChange={(v) => setNewRecord(prev => ({ ...prev, training_type: v }))}
@@ -145,27 +147,27 @@ export function TrainingRecordsPanel() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="certification">Certification</SelectItem>
-                        <SelectItem value="course">Course</SelectItem>
-                        <SelectItem value="workshop">Workshop</SelectItem>
-                        <SelectItem value="compliance">Compliance</SelectItem>
+                        <SelectItem value="certification">{t("certification", "Certification")}</SelectItem>
+                        <SelectItem value="course">{t("course", "Course")}</SelectItem>
+                        <SelectItem value="workshop">{t("workshop", "Workshop")}</SelectItem>
+                        <SelectItem value="compliance">{t("compliance", "Compliance")}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Provider</Label>
+                  <Label>{t("provider", "Provider")}</Label>
                   <Input
                     value={newRecord.provider}
                     onChange={(e) => setNewRecord(prev => ({ ...prev, provider: e.target.value }))}
-                    placeholder="e.g. LinkedIn Learning"
+                    placeholder={t("eg_linkedin_learning", "e.g. LinkedIn Learning")}
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>Completion Date</Label>
+                    <Label>{t("completion_date", "Completion Date")}</Label>
                     <Input
                       type="date"
                       value={newRecord.completion_date}
@@ -173,7 +175,7 @@ export function TrainingRecordsPanel() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Expiry Date</Label>
+                    <Label>{t("expiry_date", "Expiry Date")}</Label>
                     <Input
                       type="date"
                       value={newRecord.expiry_date}
@@ -183,7 +185,7 @@ export function TrainingRecordsPanel() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Status</Label>
+                  <Label>{t("status", "Status")}</Label>
                   <Select
                     value={newRecord.status}
                     onValueChange={(v) => setNewRecord(prev => ({ ...prev, status: v }))}
@@ -192,15 +194,15 @@ export function TrainingRecordsPanel() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="not_started">Not Started</SelectItem>
-                      <SelectItem value="in_progress">In Progress</SelectItem>
-                      <SelectItem value="completed">Completed</SelectItem>
+                      <SelectItem value="not_started">{t("not_started", "Not Started")}</SelectItem>
+                      <SelectItem value="in_progress">{t("in_progress", "In Progress")}</SelectItem>
+                      <SelectItem value="completed">{t("completed", "Completed")}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Certificate URL</Label>
+                  <Label>{t("certificate_url", "Certificate URL")}</Label>
                   <Input
                     type="url"
                     value={newRecord.certificate_url}
@@ -232,7 +234,7 @@ export function TrainingRecordsPanel() {
         ) : !records?.length ? (
           <div className="text-center py-8 text-muted-foreground">
             <GraduationCap className="h-12 w-12 mx-auto mb-2 opacity-50" />
-            <p>No training records yet</p>
+            <p>{t("no_training_records_yet", "No training records yet")}</p>
           </div>
         ) : (
           <div className="space-y-3 max-h-[400px] overflow-y-auto">

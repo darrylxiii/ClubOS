@@ -1,4 +1,5 @@
 import { memo, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { LOADING_FACTS } from '@/data/assessments';
@@ -8,6 +9,7 @@ interface LoadingScreenProps {
 }
 
 export const LoadingScreen = memo(({ onComplete }: LoadingScreenProps) => {
+  const { t } = useTranslation('common');
   const [progress, setProgress] = useState(0);
   const [factIndex, setFactIndex] = useState(0);
 
@@ -41,7 +43,7 @@ export const LoadingScreen = memo(({ onComplete }: LoadingScreenProps) => {
           <div className="text-6xl animate-pulse">🧠</div>
           
           <div className="space-y-2">
-            <h2 className="text-2xl font-bold">Analyzing Your Personality...</h2>
+            <h2 className="text-2xl font-bold">{t('swipeGame.analyzingYourPersonality')}</h2>
             <p className="text-muted-foreground min-h-[3rem] flex items-center justify-center">
               {LOADING_FACTS[factIndex]}
             </p>

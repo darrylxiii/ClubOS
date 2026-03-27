@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
@@ -32,6 +33,7 @@ interface RescheduleDialogProps {
 }
 
 export function RescheduleDialog({ open, onOpenChange, booking, bookingLink, onRescheduled }: RescheduleDialogProps) {
+  const { t } = useTranslation('common');
   const [step, setStep] = useState<"date" | "time" | "reason">("date");
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedTime, setSelectedTime] = useState<string>("");
@@ -74,7 +76,7 @@ export function RescheduleDialog({ open, onOpenChange, booking, bookingLink, onR
 
       if (error) throw error;
 
-      toast.success("Booking rescheduled successfully!");
+      toast.success(t("booking_rescheduled_successfully", "Booking rescheduled successfully!"));
       onRescheduled?.();
       onOpenChange(false);
       
@@ -95,7 +97,7 @@ export function RescheduleDialog({ open, onOpenChange, booking, bookingLink, onR
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Reschedule Booking</DialogTitle>
+          <DialogTitle>{t("reschedule_booking", "Reschedule Booking")}</DialogTitle>
           <DialogDescription>
             Choose a new date and time for your meeting with {booking.guest_name}
           </DialogDescription>
@@ -104,7 +106,7 @@ export function RescheduleDialog({ open, onOpenChange, booking, bookingLink, onR
         <div className="space-y-6">
           {step === "date" && (
             <div>
-              <h3 className="font-semibold mb-4">Select a new date</h3>
+              <h3 className="font-semibold mb-4">{t("select_a_new_date", "Select a new date")}</h3>
               <BookingCalendar
                 bookingLink={bookingLink}
                 onDateSelect={handleDateSelect}
@@ -142,7 +144,7 @@ export function RescheduleDialog({ open, onOpenChange, booking, bookingLink, onR
               </Button>
 
               <div className="bg-muted/50 p-4 rounded-lg">
-                <p className="text-sm font-medium mb-1">New meeting time:</p>
+                <p className="text-sm font-medium mb-1">{t("new_meeting_time", "New meeting time:")}</p>
                 <p className="text-lg font-bold">
                   {selectedDate?.toLocaleDateString("en-US", {
                     weekday: "long",
@@ -154,12 +156,12 @@ export function RescheduleDialog({ open, onOpenChange, booking, bookingLink, onR
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="reason">Reason for rescheduling (optional)</Label>
+                <Label htmlFor="reason">{t("reason_for_rescheduling_optional", "Reason for rescheduling (optional)")}</Label>
                 <Textarea
                   id="reason"
                   value={reason}
                   onChange={(e) => setReason(e.target.value)}
-                  placeholder="Let them know why you're rescheduling..."
+                  placeholder={t("let_them_know_why", "Let them know why you're rescheduling...")}
                   rows={3}
                 />
               </div>

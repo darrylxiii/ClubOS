@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { motion } from '@/lib/motion';
 import { supabase } from '@/integrations/supabase/client';
@@ -23,6 +24,7 @@ import quantumLogoDark from '@/assets/quantum-club-logo.png';
 type SetupStep = 'password' | 'profile' | 'team' | 'complete';
 
 const PartnerSetup = () => {
+  const { t } = useTranslation('partner');
   const navigate = useNavigate();
   const { user, loading } = useAuth();
   const [step, setStep] = useState<SetupStep>('password');
@@ -76,7 +78,7 @@ const PartnerSetup = () => {
       return;
     }
     if (password !== confirmPassword) {
-      toast.error('Passwords do not match.');
+      toast.error(t('text.partnersetup.passwordsDoNotMatch', 'Passwords do not match.'));
       return;
     }
 
@@ -93,11 +95,11 @@ const PartnerSetup = () => {
       // Refresh session so ProtectedRoute sees updated metadata
       await supabase.auth.refreshSession();
 
-      toast.success('Password set successfully.');
+      toast.success(t('text.partnersetup.passwordSetSuccessfully', 'Password set successfully.'));
       setStep('profile');
     } catch (error) {
       logger.error('Password set error', error instanceof Error ? error : new Error(String(error)), { componentName: 'PartnerSetup' });
-      const message = error instanceof Error ? error.message : 'Failed to set password.';
+      const message = error instanceof Error ? error.message : t('text.partnersetup.failedToSetPassword', 'Failed to set password.');
       toast.error(message);
     } finally {
       setIsSubmitting(false);
@@ -106,11 +108,11 @@ const PartnerSetup = () => {
 
   const handleFetchLinkedInAvatar = async () => {
     if (!linkedinUrl.trim()) {
-      toast.error('Please enter your LinkedIn URL first.');
+      toast.error(t('text.partnersetup.pleaseEnterYourLinkedinUrlFirst', 'Please enter your LinkedIn URL first.'));
       return;
     }
     if (!linkedinUrl.includes('linkedin.com/in/')) {
-      toast.error('Please enter a valid LinkedIn profile URL.');
+      toast.error(t('text.partnersetup.pleaseEnterAValidLinkedinProfile', 'Please enter a valid LinkedIn profile URL.'));
       return;
     }
 
@@ -127,13 +129,13 @@ const PartnerSetup = () => {
       if (error) throw error;
       if (data?.avatarUrl) {
         setAvatarUrl(data.avatarUrl);
-        toast.success('Profile photo imported from LinkedIn.');
+        toast.success(t('text.partnersetup.profilePhotoImportedFromLinkedin', 'Profile photo imported from LinkedIn.'));
       } else {
-        toast.info('No profile photo found on LinkedIn. You can upload one manually.');
+        toast.info(t('text.partnersetup.noProfilePhotoFoundOnLinkedin', 'No profile photo found on LinkedIn. You can upload one manually.'));
       }
     } catch (error) {
       logger.warn('LinkedIn avatar fetch failed', { componentName: 'PartnerSetup', error });
-      toast.error('Could not fetch LinkedIn photo. You can upload one manually.');
+      toast.error(t('text.partnersetup.couldNotFetchLinkedinPhotoYou', 'Could not fetch LinkedIn photo. You can upload one manually.'));
     } finally {
       setFetchingAvatar(false);
     }
@@ -144,7 +146,7 @@ const PartnerSetup = () => {
     if (!file || !user) return;
 
     if (file.size > 5 * 1024 * 1024) {
-      toast.error('Image must be under 5MB.');
+      toast.error(t('text.partnersetup.imageMustBeUnder5mb', 'Image must be under 5MB.'));
       return;
     }
 
@@ -164,9 +166,9 @@ const PartnerSetup = () => {
 
       await supabase.from('profiles').update({ avatar_url: publicUrl }).eq('id', user.id);
       setAvatarUrl(publicUrl);
-      toast.success('Profile photo uploaded.');
+      toast.success(t('text.partnersetup.profilePhotoUploaded', 'Profile photo uploaded.'));
     } catch (error) {
-      toast.error('Failed to upload photo.');
+      toast.error(t('text.partnersetup.failedToUploadPhoto', 'Failed to upload photo.'));
     } finally {
       setIsSubmitting(false);
     }
@@ -211,7 +213,7 @@ const PartnerSetup = () => {
         actor_id: user.id,
         actor_role: 'user',
         resource_type: 'profile',
-        description: 'Partner completed initial account setup (password + profile)',
+        description: t('text.partnersetup.partnerCompletedInitialAccountSetupPassword', 'Partner completed initial account setup (password + profile)'),
         after_value: {
           has_avatar: !!avatarUrl,
           has_linkedin: !!linkedinUrl.trim(),
@@ -222,7 +224,7 @@ const PartnerSetup = () => {
       setStep('complete');
       setTimeout(() => navigate('/partner-welcome'), 2000);
     } catch (error) {
-      toast.error('Something went wrong. Please try again.');
+      toast.error(t('text.partnersetup.somethingWentWrongPleaseTryAgain', 'Something went wrong. Please try again.'));
       logger.error('Partner setup completion failed', error instanceof Error ? error : new Error(String(error)), { componentName: 'PartnerSetup' });
     } finally {
       setIsSubmitting(false);
@@ -250,8 +252,8 @@ const PartnerSetup = () => {
         <Card className="bg-card/95 border border-border/50 shadow-2xl rounded-2xl overflow-hidden">
           <CardHeader className="text-center pt-10 pb-6">
             <div className="flex justify-center mb-4">
-              <img src={quantumLogoDark} alt="The Quantum Club" className="h-16 w-auto dark:hidden" />
-              <img src={quantumLogoLight} alt="The Quantum Club" className="h-16 w-auto hidden dark:block" />
+              <img src={quantumLogoDark} alt={t('text.partnersetup.theQuantumClub', 'The Quantum Club')} className="h-16 w-auto dark:hidden" />
+              <img src={quantumLogoLight} alt={t('text.partnersetup.theQuantumClub', 'The Quantum Club')} className="h-16 w-auto hidden dark:block" />
             </div>
             <CardTitle className="text-2xl font-bold">
               {step === 'password' && 'Secure Your Account'}
@@ -346,7 +348,7 @@ const PartnerSetup = () => {
                       className="hidden"
                     />
                   </div>
-                  <p className="text-xs text-muted-foreground">Click the camera icon to upload</p>
+                  <p className="text-xs text-muted-foreground">{t('partnerSetup.desc')}</p>
                 </div>
 
                 {/* LinkedIn section */}
@@ -369,7 +371,7 @@ const PartnerSetup = () => {
                       onClick={handleFetchLinkedInAvatar}
                       disabled={!linkedinUrl.trim() || fetchingAvatar}
                       className="h-11 px-3 rounded-xl"
-                      title="Import photo from LinkedIn"
+                      title={t('text.partnersetup.importPhotoFromLinkedin', 'Import photo from LinkedIn')}
                     >
                       {fetchingAvatar ? (
                         <Loader2 className="h-4 w-4 animate-spin" />
@@ -379,13 +381,9 @@ const PartnerSetup = () => {
                     </Button>
                   </div>
                   {fetchingAvatar ? (
-                    <p className="text-xs text-primary font-medium animate-pulse">
-                      Fetching your photo from LinkedIn — this may take a moment…
-                    </p>
+                    <p className="text-xs text-primary font-medium animate-pulse">{t('text.partnersetup.fetchingYourPhotoFromLinkedinThis', 'Fetching your photo from LinkedIn — this may take a moment…')}</p>
                   ) : (
-                    <p className="text-xs text-muted-foreground">
-                      We can import your profile photo from LinkedIn automatically.
-                    </p>
+                    <p className="text-xs text-muted-foreground">{t('partnerSetup.desc2')}</p>
                   )}
                 </div>
 
@@ -403,14 +401,14 @@ const PartnerSetup = () => {
                     disabled={isSubmitting}
                     className="flex-1 h-12 rounded-xl"
                   >
-                    Skip for now
+                    {t('text.partnersetup.skipForNow', 'Skip for now')}
                   </Button>
                   <RainbowButton
                     onClick={() => setStep('team')}
                     disabled={isSubmitting}
                     className="flex-1 h-12 rounded-xl font-semibold"
                   >
-                    Continue <ArrowRight className="h-4 w-4 ml-2" />
+                    {t('text.partnersetup.continue', 'Continue')} <ArrowRight className="h-4 w-4 ml-2" />
                   </RainbowButton>
                 </div>
               </motion.div>
@@ -435,9 +433,7 @@ const PartnerSetup = () => {
                 <p className="text-lg font-semibold text-center">
                   Welcome to The Quantum Club, {profileName.split(' ')[0]}.
                 </p>
-                <p className="text-sm text-muted-foreground text-center">
-                  Redirecting you to your partner portal…
-                </p>
+                <p className="text-sm text-muted-foreground text-center">{t('text.partnersetup.redirectingYouToYourPartnerPortal', 'Redirecting you to your partner portal…')}</p>
               </motion.div>
             )}
           </CardContent>

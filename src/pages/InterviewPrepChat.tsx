@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,6 +17,7 @@ interface Message {
 }
 
 export default function InterviewPrepChat() {
+  const { t } = useTranslation('common');
   const { applicationId } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -226,10 +228,8 @@ export default function InterviewPrepChat() {
       <div className="space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold mb-2">Interview Prep Room</h1>
-          <p className="text-muted-foreground">
-            Practice your interview with an AI interviewer that knows your company and role
-          </p>
+          <h1 className="text-3xl font-bold mb-2">{t('interviewPrepChat.text3')}</h1>
+          <p className="text-muted-foreground">{t('interviewPrepChat.desc')}</p>
         </div>
 
         {/* Company & Role Info */}
@@ -239,14 +239,14 @@ export default function InterviewPrepChat() {
               <div className="flex items-start gap-3">
                 <Building2 className="h-5 w-5 text-primary mt-1" />
                 <div>
-                  <p className="text-sm text-muted-foreground">Company</p>
+                  <p className="text-sm text-muted-foreground">{t('interviewPrepChat.text4')}</p>
                   <p className="font-medium">{applicationData.company_name}</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
                 <Briefcase className="h-5 w-5 text-primary mt-1" />
                 <div>
-                  <p className="text-sm text-muted-foreground">Position</p>
+                  <p className="text-sm text-muted-foreground">{t('interviewPrepChat.text5')}</p>
                   <p className="font-medium">{applicationData.position}</p>
                 </div>
               </div>
@@ -264,7 +264,7 @@ export default function InterviewPrepChat() {
                 </label>
                 <Select value={selectedStage} onValueChange={setSelectedStage}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Choose a stage" />
+                    <SelectValue placeholder={t('interviewPrepChat.text6')} />
                   </SelectTrigger>
                   <SelectContent>
                     {applicationData.stages.map((stage: any, index: number) => (
@@ -275,9 +275,7 @@ export default function InterviewPrepChat() {
                   </SelectContent>
                 </Select>
               </div>
-              <Button onClick={startInterview} className="w-full" size="lg">
-                Start Interview Practice
-              </Button>
+              <Button onClick={startInterview} className="w-full" size="lg">{t('interviewPrepChat.btn2')}</Button>
             </div>
           </Card>
         )}
@@ -327,7 +325,7 @@ export default function InterviewPrepChat() {
                       sendMessage();
                     }
                   }}
-                  placeholder="Type your response..."
+                  placeholder={t('interviewPrepChat.text7')}
                   className="min-h-[60px] resize-none"
                   disabled={isLoading}
                 />

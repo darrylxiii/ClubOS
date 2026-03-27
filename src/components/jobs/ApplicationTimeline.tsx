@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Lightbulb, Clock } from "lucide-react";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
@@ -54,6 +55,7 @@ export function ApplicationTimeline({
   stages,
   currentStage 
 }: ApplicationTimelineProps) {
+  const { t } = useTranslation('common');
   // Convert job pipeline stages to display format if provided
   const displayStages = jobPipelineStages?.map(stage => ({
     name: stage.name,
@@ -67,7 +69,7 @@ export function ApplicationTimeline({
         <div className="flex items-center gap-3">
           <Clock className="w-6 h-6 text-primary flex-shrink-0" />
           <div>
-            <h3 className="text-xl font-black">Application Process</h3>
+            <h3 className="text-xl font-black">{t("application_process", "Application Process")}</h3>
             <p className="text-sm text-muted-foreground">
               Typical timeline: ~2-3 weeks
             </p>
@@ -134,7 +136,7 @@ export function ApplicationTimeline({
                           <div className="flex items-start gap-2 p-2 rounded bg-accent/5 border border-accent/20">
                             <Lightbulb className="w-4 h-4 text-accent flex-shrink-0 mt-0.5" />
                             <p className="text-xs text-muted-foreground">
-                              <span className="font-medium text-accent">Tip:</span> {stage.tip}
+                              <span className="font-medium text-accent">{t("tip", "Tip:")}</span> {stage.tip}
                             </p>
                           </div>
                         </div>
@@ -148,7 +150,7 @@ export function ApplicationTimeline({
             {/* Average time estimate */}
             <div className="p-3 rounded-lg bg-muted/30 border border-border/50 mt-6">
               <p className="text-sm text-muted-foreground">
-                <span className="font-medium text-foreground">Average time to hire:</span> 2-3 weeks
+                <span className="font-medium text-foreground">{t("average_time_to_hire", "Average time to hire:")}</span> 2-3 weeks
               </p>
             </div>
           </CardContent>

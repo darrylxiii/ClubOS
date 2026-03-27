@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -11,6 +12,7 @@ interface OrgChartViewProps {
 }
 
 export function OrgChartView({ companyId }: OrgChartViewProps) {
+  const { t } = useTranslation('common');
   const { orgTree, members, loading } = useOrgChart(companyId);
 
   if (loading) {
@@ -29,7 +31,7 @@ export function OrgChartView({ companyId }: OrgChartViewProps) {
       <Card className="border-dashed">
         <CardContent className="py-12 text-center">
           <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-          <h3 className="text-lg font-semibold mb-2">No Team Members Yet</h3>
+          <h3 className="text-lg font-semibold mb-2">{t("no_team_members_yet", "No Team Members Yet")}</h3>
           <p className="text-sm text-muted-foreground">
             Add team members to start building your organization chart
           </p>
@@ -43,7 +45,7 @@ export function OrgChartView({ companyId }: OrgChartViewProps) {
       <Card className="border-dashed">
         <CardContent className="py-12 text-center">
           <Building2 className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-          <h3 className="text-lg font-semibold mb-2">No Reporting Structure</h3>
+          <h3 className="text-lg font-semibold mb-2">{t("no_reporting_structure", "No Reporting Structure")}</h3>
           <p className="text-sm text-muted-foreground mb-4">
             {assignedCount === 0 
               ? "Start by assigning team members to departments in the Manage tab"

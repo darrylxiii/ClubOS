@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -23,6 +24,7 @@ interface EmailTemplate {
 }
 
 export default function EmailTemplateManager() {
+  const { t } = useTranslation('admin');
   const [templates, setTemplates] = useState<EmailTemplate[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedTemplate, setSelectedTemplate] = useState<EmailTemplate | null>(null);
@@ -44,7 +46,7 @@ export default function EmailTemplateManager() {
       setTemplates(data || []);
     } catch (error) {
       console.error('Error fetching templates:', error);
-      toast.error('Failed to load email templates');
+      toast.error("Failed to load email templates");
     } finally {
       setLoading(false);
     }
@@ -120,10 +122,10 @@ export default function EmailTemplateManager() {
                     <CardContent>
                       <div className="space-y-2">
                         <div className="text-sm text-muted-foreground">
-                          <strong>Subject:</strong> {template.subject_template}
+                          <strong>{t('emailTemplateManager.text1')}</strong> {template.subject_template}
                         </div>
                         <div className="text-sm text-muted-foreground">
-                          <strong>Function:</strong> {template.edge_function}
+                          <strong>{t('emailTemplateManager.text2')}</strong> {template.edge_function}
                         </div>
                         <div className="flex gap-2 mt-4">
                           <Button 

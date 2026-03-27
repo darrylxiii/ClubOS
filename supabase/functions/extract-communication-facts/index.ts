@@ -1,10 +1,4 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.58.0";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { createHandler } from '../_shared/handler.ts';
 
 interface ExtractedFact {
   fact: string;
@@ -12,23 +6,17 @@ interface ExtractedFact {
   confidence: number;
 }
 
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
+Deno.serve(createHandler(async (req, ctx) => {
+  const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+  const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
-  try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
-    const { communication_id, batch_mode = false, limit = 50 } = await req.json();
+  const { communication_id, batch_mode = false, limit = 50 } = await req.json();
 
     let communicationsToProcess = [];
 
     if (batch_mode) {
       // Process multiple communications that haven't been analyzed yet
-      const { data, error } = await supabase
+      const { data, error } = await ctx.supabase
         .from('unified_communications')
         .select('*')
         .not('content_preview', 'is', null)
@@ -39,7 +27,7 @@ serve(async (req) => {
       communicationsToProcess = data || [];
     } else if (communication_id) {
       // Process single communication
-      const { data, error } = await supabase
+      const { data, error } = await ctx.supabase
         .from('unified_communications')
         .select('*')
         .eq('id', communication_id)
@@ -50,7 +38,7 @@ serve(async (req) => {
     } else {
       return new Response(
         JSON.stringify({ error: 'Either communication_id or batch_mode is required' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 400, headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -129,7 +117,7 @@ If no significant facts can be extracted, return an empty array: []`;
         for (const fact of facts) {
           if (fact.confidence >= 0.6 && comm.entity_id) {
             // Check for duplicates
-            const { data: existing } = await supabase
+            const { data: existing } = await ctx.supabase
               .from('ai_memory')
               .select('id, content')
               .eq('user_id', comm.entity_id)
@@ -138,7 +126,7 @@ If no significant facts can be extracted, return an empty array: []`;
               .limit(1);
 
             if (!existing || existing.length === 0) {
-              await supabase.from('ai_memory').insert({
+              await ctx.supabase.from('ai_memory').insert({
                 user_id: comm.entity_id,
                 memory_type: fact.category,
                 content: fact.fact,
@@ -176,15 +164,7 @@ If no significant facts can be extracted, return an empty array: []`;
         total_facts_stored: totalFacts,
         results
       }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } }
     );
 
-  } catch (error) {
-    console.error('Error in extract-communication-facts:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    return new Response(
-      JSON.stringify({ error: errorMessage }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-  }
-});
+}));

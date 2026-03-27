@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -17,6 +18,7 @@ interface RoutingFormRendererProps {
 }
 
 export function RoutingFormRenderer({ questions, onComplete }: RoutingFormRendererProps) {
+  const { t } = useTranslation('common');
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
 
@@ -51,7 +53,7 @@ export function RoutingFormRenderer({ questions, onComplete }: RoutingFormRender
           <HelpCircle className="h-5 w-5 text-primary" />
           Quick Question {currentIndex + 1} of {questions.length}
         </CardTitle>
-        <CardDescription>Help us direct you to the right person</CardDescription>
+        <CardDescription>{t("help_us_direct_you", "Help us direct you to the right person")}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         <div>

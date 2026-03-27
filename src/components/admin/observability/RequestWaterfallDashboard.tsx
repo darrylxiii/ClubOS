@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 /**
  * Request Waterfall Dashboard
  * Visual representation of HTTP request timing for performance analysis
@@ -32,6 +33,7 @@ interface WaterfallBarProps {
 }
 
 function WaterfallBar({ timing, duration, maxDuration, startOffset, totalWidth }: WaterfallBarProps) {
+  const { t } = useTranslation('common');
   const scale = (value: number) => (value / maxDuration) * totalWidth;
   const offsetPx = scale(startOffset);
   const widthPx = Math.max(scale(duration), 2);
@@ -161,17 +163,17 @@ function RequestRow({
         <div className="px-4 pb-3 space-y-2 bg-muted/30">
           <div className="text-xs space-y-1">
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Full URL:</span>
+              <span className="text-muted-foreground">{t("full_url", "Full URL:")}</span>
               <span className="font-mono">{request.url}</span>
             </div>
             {request.traceId && (
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Trace ID:</span>
+                <span className="text-muted-foreground">{t("trace_id", "Trace ID:")}</span>
                 <span className="font-mono">{request.traceId}</span>
               </div>
             )}
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Type:</span>
+              <span className="text-muted-foreground">{t("type", "Type:")}</span>
               <span>{request.type}</span>
             </div>
           </div>
@@ -300,21 +302,21 @@ export function RequestWaterfallDashboard() {
         {/* Stats bar */}
         <div className="flex gap-4 mt-3 text-sm">
           <div className="flex items-center gap-1">
-            <span className="text-muted-foreground">Requests:</span>
+            <span className="text-muted-foreground">{t("requests", "Requests:")}</span>
             <span className="font-medium">{stats.total}</span>
           </div>
           <div className="flex items-center gap-1">
             <Clock className="h-3 w-3 text-muted-foreground" />
-            <span className="text-muted-foreground">Avg:</span>
+            <span className="text-muted-foreground">{t("avg", "Avg:")}</span>
             <span className="font-medium">{stats.avgDuration.toFixed(0)}ms</span>
           </div>
           <div className="flex items-center gap-1">
             <ArrowDown className="h-3 w-3 text-muted-foreground" />
-            <span className="text-muted-foreground">TTFB:</span>
+            <span className="text-muted-foreground">{t("ttfb", "TTFB:")}</span>
             <span className="font-medium">{stats.avgTTFB.toFixed(0)}ms</span>
           </div>
           <div className="flex items-center gap-1">
-            <span className="text-muted-foreground">Size:</span>
+            <span className="text-muted-foreground">{t("size", "Size:")}</span>
             <span className="font-medium">{formatBytes(stats.totalSize)}</span>
           </div>
           {stats.errorRate > 0 && (
@@ -329,7 +331,7 @@ export function RequestWaterfallDashboard() {
         <div className="relative mt-3">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Filter by URL pattern..."
+            placeholder={t("filter_by_url_pattern", "Filter by URL pattern...")}
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
             className="pl-9"
@@ -340,10 +342,10 @@ export function RequestWaterfallDashboard() {
       <CardContent className="flex-1 p-0">
         {/* Column headers */}
         <div className="grid grid-cols-[120px_1fr_80px_80px] gap-2 px-4 py-2 text-xs font-medium text-muted-foreground border-b bg-muted/30">
-          <div>Method</div>
-          <div>Waterfall</div>
-          <div className="text-right">Time</div>
-          <div className="text-right">Size</div>
+          <div>{t("method", "Method")}</div>
+          <div>{t("waterfall", "Waterfall")}</div>
+          <div className="text-right">{t("time", "Time")}</div>
+          <div className="text-right">{t("size", "Size")}</div>
         </div>
 
         {/* Requests list */}
@@ -351,7 +353,7 @@ export function RequestWaterfallDashboard() {
           {filteredRequests.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-32 text-muted-foreground">
               <Activity className="h-8 w-8 mb-2 opacity-50" />
-              <p>No requests recorded yet</p>
+              <p>{t("no_requests_recorded_yet", "No requests recorded yet")}</p>
             </div>
           ) : (
             filteredRequests.map((request) => (
@@ -386,7 +388,7 @@ export function RequestWaterfallDashboard() {
           </div>
           <div className="flex items-center gap-1">
             <span className="w-3 h-2 bg-blue-500 rounded" />
-            <span>Download</span>
+            <span>{t("download", "Download")}</span>
           </div>
         </div>
       </CardContent>

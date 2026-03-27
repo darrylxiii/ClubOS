@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 /**
  * Enhanced Recording Indicator
  * Shows recording status with participant count and duration
@@ -31,6 +32,7 @@ export function EnhancedRecordingIndicator({
   onLayoutChange,
   className
 }: EnhancedRecordingIndicatorProps) {
+  const { t } = useTranslation('common');
   const [duration, setDuration] = useState(0);
 
   useEffect(() => {
@@ -104,7 +106,7 @@ export function EnhancedRecordingIndicator({
                 <span className="font-mono tabular-nums">{formatDuration(duration)}</span>
               </div>
             </TooltipTrigger>
-            <TooltipContent>Recording duration</TooltipContent>
+            <TooltipContent>{t("recording_duration", "Recording duration")}</TooltipContent>
           </Tooltip>
         </TooltipProvider>
 
@@ -120,7 +122,7 @@ export function EnhancedRecordingIndicator({
                 <span>{participantCount}</span>
               </div>
             </TooltipTrigger>
-            <TooltipContent>Participants being recorded</TooltipContent>
+            <TooltipContent>{t("participants_being_recorded", "Participants being recorded")}</TooltipContent>
           </Tooltip>
         </TooltipProvider>
 

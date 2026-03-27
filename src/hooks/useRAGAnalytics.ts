@@ -40,6 +40,14 @@ export interface PromptExperimentResult {
   is_control: boolean;
 }
 
+interface RAGEvalMetricRow {
+  precision_at_5: number | null;
+  recall_at_5: number | null;
+  retrieval_time_ms: number | null;
+  context_utilization: number | null;
+  created_at: string;
+}
+
 export function useRAGAnalytics(dateRange: { start: Date; end: Date }) {
   const [metrics, setMetrics] = useState<RAGMetrics | null>(null);
   const [trends, setTrends] = useState<RAGTrend[]>([]);
@@ -74,10 +82,11 @@ export function useRAGAnalytics(dateRange: { start: Date; end: Date }) {
       let avgContextUtil = 0;
 
       if (evalMetrics && evalMetrics.length > 0) {
-        avgPrecision = evalMetrics.reduce((sum, m: any) => sum + (m.precision_at_5 || 0), 0) / totalQueries;
-        avgRecall = evalMetrics.reduce((sum, m: any) => sum + (m.recall_at_5 || 0), 0) / totalQueries;
-        avgLatency = evalMetrics.reduce((sum, m: any) => sum + (m.retrieval_time_ms || 0), 0) / totalQueries;
-        avgContextUtil = evalMetrics.reduce((sum, m: any) => sum + (m.context_utilization || 0), 0) / totalQueries;
+        const metrics = evalMetrics as RAGEvalMetricRow[];
+        avgPrecision = metrics.reduce((sum, m) => sum + (m.precision_at_5 || 0), 0) / totalQueries;
+        avgRecall = metrics.reduce((sum, m) => sum + (m.recall_at_5 || 0), 0) / totalQueries;
+        avgLatency = metrics.reduce((sum, m) => sum + (m.retrieval_time_ms || 0), 0) / totalQueries;
+        avgContextUtil = metrics.reduce((sum, m) => sum + (m.context_utilization || 0), 0) / totalQueries;
       }
 
       // Calculate F1 score
@@ -86,7 +95,7 @@ export function useRAGAnalytics(dateRange: { start: Date; end: Date }) {
         : 0;
 
       // Calculate P95 latency
-      const latencies = evalMetrics?.map((m: any) => m.retrieval_time_ms || 0).sort((a, b) => a - b) || [];
+      const latencies = (evalMetrics as RAGEvalMetricRow[] | null)?.map((m) => m.retrieval_time_ms || 0).sort((a, b) => a - b) || [];
       const p95Index = Math.floor(latencies.length * 0.95);
       const p95Latency = latencies[p95Index] || 0;
 
@@ -168,7 +177,7 @@ export function useRAGAnalytics(dateRange: { start: Date; end: Date }) {
     }
 
     // Group by date
-    const byDate = new Map<string, any[]>();
+    const byDate = new Map<string, RAGEvalMetricRow[]>();
     for (const metric of data) {
       const date = new Date(metric.created_at).toISOString().split('T')[0];
       if (!byDate.has(date)) {
@@ -179,9 +188,9 @@ export function useRAGAnalytics(dateRange: { start: Date; end: Date }) {
 
     const trendData: RAGTrend[] = [];
     for (const [date, metrics] of byDate.entries()) {
-      const avgPrecision = metrics.reduce((sum, m: any) => sum + (m.precision_at_5 || 0), 0) / metrics.length;
-      const avgRecall = metrics.reduce((sum, m: any) => sum + (m.recall_at_5 || 0), 0) / metrics.length;
-      const avgLatency = metrics.reduce((sum, m: any) => sum + (m.retrieval_time_ms || 0), 0) / metrics.length;
+      const avgPrecision = metrics.reduce((sum, m) => sum + (m.precision_at_5 || 0), 0) / metrics.length;
+      const avgRecall = metrics.reduce((sum, m) => sum + (m.recall_at_5 || 0), 0) / metrics.length;
+      const avgLatency = metrics.reduce((sum, m) => sum + (m.retrieval_time_ms || 0), 0) / metrics.length;
       const f1 = avgPrecision + avgRecall > 0
         ? 2 * (avgPrecision * avgRecall) / (avgPrecision + avgRecall)
         : 0;
@@ -286,7 +295,7 @@ export function useRAGFeedback() {
       comment?: string;
       resultId?: string;
       resultRank?: number;
-      contextUsed?: any;
+      contextUsed?: Record<string, unknown>;
     }
   ) => {
     setSubmitting(true);

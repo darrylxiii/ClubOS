@@ -5,6 +5,16 @@ import { supabase } from '@/integrations/supabase/client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React, { ReactNode } from 'react';
 
+vi.mock('@/integrations/supabase/client', () => ({
+  supabase: {
+    from: vi.fn().mockReturnValue({
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      order: vi.fn().mockResolvedValue({ data: [], error: null }),
+    }),
+  },
+}));
+
 vi.mock('@/contexts/AuthContext', () => ({
   useAuth: () => ({ user: { id: 'test-user-id', email: 'test@example.com' } }),
 }));
@@ -47,10 +57,17 @@ describe('useReferralEarnings', () => {
 
 describe('useReferralStats', () => {
   it('should calculate referral statistics', async () => {
-    vi.mocked(supabase.from).mockReturnValue({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockResolvedValue({ data: [], error: null }),
-    } as any);
+    // useReferralStats chains multiple .eq() calls, so eq must be chainable AND thenable
+    const createChain = () => {
+      const chain: any = {
+        select: vi.fn(() => chain),
+        eq: vi.fn(() => chain),
+        order: vi.fn(() => chain),
+        then: (resolve: any) => resolve({ data: [], error: null }),
+      };
+      return chain;
+    };
+    vi.mocked(supabase.from).mockReturnValue(createChain() as any);
 
     const { result } = renderHook(() => useReferralStats(), { wrapper: createWrapper() });
     await new Promise(resolve => setTimeout(resolve, 100));

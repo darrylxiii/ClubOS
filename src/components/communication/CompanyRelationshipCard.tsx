@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { format, formatDistanceToNow } from 'date-fns';
 import { motion } from '@/lib/motion';
 import { 
@@ -26,6 +27,7 @@ const riskConfig = {
 };
 
 export function CompanyRelationshipCard({ relationship, onSendMessage }: CompanyRelationshipCardProps) {
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
   const risk = riskConfig[relationship.risk_level] || riskConfig.medium;
   const RiskIcon = risk.icon;
@@ -97,7 +99,7 @@ export function CompanyRelationshipCard({ relationship, onSendMessage }: Company
           {/* Engagement Score */}
           <div>
             <div className="flex items-center justify-between text-sm mb-1">
-              <span className="text-muted-foreground">Engagement</span>
+              <span className="text-muted-foreground">{t("engagement", "Engagement")}</span>
               <span className="font-medium">{relationship.engagement_score?.toFixed(1) || '0'}/10</span>
             </div>
             <Progress value={engagementPercent} className="h-2" />
@@ -107,11 +109,11 @@ export function CompanyRelationshipCard({ relationship, onSendMessage }: Company
           <div className="grid grid-cols-3 gap-3 text-center">
             <div className="p-2 rounded-lg bg-muted/50">
               <p className="text-lg font-bold">{responseRate}%</p>
-              <p className="text-xs text-muted-foreground">Response Rate</p>
+              <p className="text-xs text-muted-foreground">{t("response_rate", "Response Rate")}</p>
             </div>
             <div className="p-2 rounded-lg bg-muted/50">
               <p className="text-lg font-bold">{relationship.total_communications || 0}</p>
-              <p className="text-xs text-muted-foreground">Emails</p>
+              <p className="text-xs text-muted-foreground">{t("emails", "Emails")}</p>
             </div>
             <div className="p-2 rounded-lg bg-muted/50">
               <div className="flex items-center justify-center gap-1">
@@ -128,14 +130,14 @@ export function CompanyRelationshipCard({ relationship, onSendMessage }: Company
                   {avgSentiment !== 0 ? `${Math.round(avgSentiment * 100)}%` : '—'}
                 </span>
               </div>
-              <p className="text-xs text-muted-foreground">Sentiment</p>
+              <p className="text-xs text-muted-foreground">{t("sentiment", "Sentiment")}</p>
             </div>
           </div>
 
           {/* Sentiment Breakdown */}
           {relationship.sentiment_breakdown && (
             <div className="flex items-center gap-2 text-xs">
-              <span className="text-muted-foreground">Breakdown:</span>
+              <span className="text-muted-foreground">{t("breakdown", "Breakdown:")}</span>
               <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-500/20">
                 +{relationship.sentiment_breakdown.positive || 0}
               </Badge>
@@ -151,7 +153,7 @@ export function CompanyRelationshipCard({ relationship, onSendMessage }: Company
           {/* Email Health Score */}
           {relationship.email_health_score !== null && (
             <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Email Health</span>
+              <span className="text-muted-foreground">{t("email_health", "Email Health")}</span>
               <Badge variant={
                 relationship.email_health_score >= 80 ? 'default' :
                 relationship.email_health_score >= 60 ? 'secondary' :
@@ -166,7 +168,7 @@ export function CompanyRelationshipCard({ relationship, onSendMessage }: Company
           <div className="flex items-center justify-between text-sm">
             <div className="flex items-center gap-1 text-muted-foreground">
               <Clock className="h-4 w-4" />
-              <span>Last contact</span>
+              <span>{t("last_contact", "Last contact")}</span>
             </div>
             <span className={cn(
               "font-medium",
@@ -182,7 +184,7 @@ export function CompanyRelationshipCard({ relationship, onSendMessage }: Company
           {/* Preferred Channel */}
           {relationship.preferred_channel && (
             <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Preferred channel</span>
+              <span className="text-muted-foreground">{t("preferred_channel", "Preferred channel")}</span>
               <Badge variant="secondary" className="capitalize">
                 {relationship.preferred_channel}
               </Badge>
@@ -192,7 +194,7 @@ export function CompanyRelationshipCard({ relationship, onSendMessage }: Company
           {/* Recommended Action */}
           {relationship.recommended_action && (
             <div className="p-3 rounded-lg bg-primary/5 border border-primary/20">
-              <p className="text-xs font-medium text-primary mb-1">Recommended Action</p>
+              <p className="text-xs font-medium text-primary mb-1">{t("recommended_action", "Recommended Action")}</p>
               <p className="text-sm">{relationship.recommended_action}</p>
             </div>
           )}

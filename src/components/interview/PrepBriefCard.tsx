@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { 
@@ -26,6 +27,7 @@ interface PrepBriefCardProps {
 }
 
 export function PrepBriefCard({ brief }: PrepBriefCardProps) {
+  const { t } = useTranslation('common');
   const questions = brief.suggested_questions as { question: string; why: string }[] | null;
 
   return (
@@ -136,7 +138,7 @@ export function PrepBriefCard({ brief }: PrepBriefCardProps) {
         {/* Suggested Questions with Context */}
         {questions && questions.length > 0 && (
           <div className="space-y-2">
-            <h4 className="font-semibold">Expected Questions</h4>
+            <h4 className="font-semibold">{t("expected_questions", "Expected Questions")}</h4>
             <div className="space-y-3">
               {questions.slice(0, 5).map((q, idx) => (
                 <div key={idx} className="p-3 rounded-lg border bg-muted/20">

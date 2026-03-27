@@ -1,4 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
+import { useTranslation } from 'react-i18next';
 import { Button } from "@/components/ui/button";
 import { ModelSelector } from "@/components/ui/model-selector";
 import { Badge } from "@/components/ui/badge";
@@ -23,6 +24,7 @@ import { useAISuggestions } from "@/hooks/useAISuggestions";
 import { useClubAIChat } from "@/hooks/useClubAIChat";
 
 const ClubAI = () => {
+  const { t } = useTranslation('common');
   const {
     messages,
     isLoading,
@@ -87,9 +89,7 @@ const ClubAI = () => {
               <Sparkles className="w-7 h-7 text-primary" />
               Club AI
             </h1>
-            <p className="text-sm text-muted-foreground">
-              Your personal AI career strategist, available 24/7
-            </p>
+            <p className="text-sm text-muted-foreground">{t('clubAI.desc')}</p>
           </div>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={createNewConversation}>
@@ -106,7 +106,7 @@ const ClubAI = () => {
                 <ScrollArea className="h-[calc(100vh-120px)] mt-6">
                   <div className="space-y-2">
                     {conversations.length === 0 ? (
-                      <p className="text-sm text-muted-foreground text-center py-8">No conversations yet. Start chatting!</p>
+                      <p className="text-sm text-muted-foreground text-center py-8">{t('clubAI.desc2')}</p>
                     ) : (
                       conversations.map((conv) => {
                         const firstMessage = Array.isArray(conv.messages) && conv.messages.length > 0
@@ -149,7 +149,7 @@ const ClubAI = () => {
               {messages.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-center py-12 max-w-4xl mx-auto">
                   <Sparkles className="w-16 h-16 text-primary mb-6" />
-                  <h2 className="text-2xl font-bold mb-3">Welcome to Club AI</h2>
+                  <h2 className="text-2xl font-bold mb-3">{t('clubAI.title')}</h2>
                   <p className="text-muted-foreground mb-8 max-w-md">
                     I'm here to help you with career strategy, interview prep, salary negotiation, and more. Choose a suggested prompt or ask me anything!
                   </p>
@@ -277,7 +277,7 @@ const ClubAI = () => {
                   }}
                 />
                 {isLoading && (
-                  <p className="text-xs text-muted-foreground mt-2 text-center">Club AI is thinking...</p>
+                  <p className="text-xs text-muted-foreground mt-2 text-center">{t('clubAI.desc3')}</p>
                 )}
               </div>
             </div>

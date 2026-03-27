@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { UnifiedCalendarEvent } from "@/types/calendar";
 import { Card } from "@/components/ui/card";
 import { calculateOverlappingPositions, getEventColor } from "@/utils/calendarLayout";
@@ -18,6 +19,7 @@ const END_HOUR = 20;
 const HOURS = Array.from({ length: END_HOUR - START_HOUR }, (_, i) => START_HOUR + i);
 
 export function CalendarWeekGrid({ events, selectedDate, onEventClick }: CalendarWeekGridProps) {
+  const { t } = useTranslation('common');
   const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
@@ -176,7 +178,7 @@ export function CalendarWeekGrid({ events, selectedDate, onEventClick }: Calenda
                     <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
                       <div className="text-center text-muted-foreground">
                         <Clock className="h-6 w-6 mx-auto mb-1 opacity-30" />
-                        <p className="text-[10px]">No events</p>
+                        <p className="text-[10px]">{t("no_events", "No events")}</p>
                       </div>
                     </div>
                   )}

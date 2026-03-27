@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -36,6 +37,7 @@ interface PollMessageProps {
 }
 
 function SortableRankingItem({ id, index, option, isClosed }: { id: number; index: number; option: string; isClosed: boolean }) {
+  const { t } = useTranslation('common');
   const {
     attributes,
     listeners,
@@ -95,7 +97,7 @@ export const PollMessage = ({ pollId, pollData }: PollMessageProps) => {
                 const timeout = closeTime.getTime() - now.getTime();
                 setTimeout(() => {
                     setIsClosed(true);
-                    toast.info('Poll has closed');
+                    toast.info(t("poll_has_closed", "Poll has closed"));
                 }, timeout);
             }
         }
@@ -195,10 +197,10 @@ export const PollMessage = ({ pollId, pollData }: PollMessageProps) => {
 
         if (error) {
             console.error('Error voting:', error);
-            toast.error('Failed to submit vote');
+            toast.error(t("failed_to_submit_vote", "Failed to submit vote"));
             loadVotes();
         } else {
-            toast.success('Vote submitted');
+            toast.success(t("vote_submitted", "Vote submitted"));
         }
     };
 
@@ -228,7 +230,7 @@ export const PollMessage = ({ pollId, pollData }: PollMessageProps) => {
 
         if (error) {
             console.error('Error voting:', error);
-            toast.error('Failed to submit vote');
+            toast.error(t("failed_to_submit_vote", "Failed to submit vote"));
             loadVotes();
         }
     };
@@ -261,10 +263,10 @@ export const PollMessage = ({ pollId, pollData }: PollMessageProps) => {
 
         if (error) {
             console.error('Error voting:', error);
-            toast.error('Failed to submit vote');
+            toast.error(t("failed_to_submit_vote", "Failed to submit vote"));
         } else {
             setUserVote(rankedOptions);
-            toast.success('Ranking submitted');
+            toast.success(t("ranking_submitted", "Ranking submitted"));
         }
     };
 
@@ -377,7 +379,7 @@ export const PollMessage = ({ pollId, pollData }: PollMessageProps) => {
                         </div>
                     ) : (
                         <>
-                            <p className="text-sm text-muted-foreground">Drag to rank your preferences</p>
+                            <p className="text-sm text-muted-foreground">{t("drag_to_rank_your", "Drag to rank your preferences")}</p>
                             <DndContext
                                 sensors={sensors}
                                 collisionDetection={closestCenter}

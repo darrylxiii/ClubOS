@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -19,6 +20,7 @@ const SEVERITY_CONFIG = {
 };
 
 export default function ErrorLogs() {
+  const { t } = useTranslation('common');
   const [searchQuery, setSearchQuery] = useState('');
   const [severityFilter, setSeverityFilter] = useState<string>('all');
 
@@ -58,15 +60,15 @@ export default function ErrorLogs() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-end">
-        <Button variant="outline" onClick={() => refetch()}><RefreshCw className="h-4 w-4 mr-2" />Refresh</Button>
+        <Button variant="outline" onClick={() => refetch()}><RefreshCw className="h-4 w-4 mr-2" />{t("refresh", "Refresh")}</Button>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-        <Card><CardContent className="pt-6"><p className="text-sm text-muted-foreground">Total Errors</p><p className="text-2xl font-bold">{errorStats?.total || 0}</p></CardContent></Card>
-        <Card className="border-red-500/50"><CardContent className="pt-6"><p className="text-sm text-red-500">Critical</p><p className="text-2xl font-bold text-red-500">{errorStats?.critical || 0}</p></CardContent></Card>
-        <Card className="border-orange-500/50"><CardContent className="pt-6"><p className="text-sm text-orange-500">Errors</p><p className="text-2xl font-bold text-orange-500">{errorStats?.error || 0}</p></CardContent></Card>
-        <Card className="border-yellow-500/50"><CardContent className="pt-6"><p className="text-sm text-yellow-500">Warnings</p><p className="text-2xl font-bold text-yellow-500">{errorStats?.warning || 0}</p></CardContent></Card>
-        <Card className="border-blue-500/50"><CardContent className="pt-6"><p className="text-sm text-blue-500">Info</p><p className="text-2xl font-bold text-blue-500">{errorStats?.info || 0}</p></CardContent></Card>
+        <Card><CardContent className="pt-6"><p className="text-sm text-muted-foreground">{t("total_errors", "Total Errors")}</p><p className="text-2xl font-bold">{errorStats?.total || 0}</p></CardContent></Card>
+        <Card className="border-red-500/50"><CardContent className="pt-6"><p className="text-sm text-red-500">{t("critical", "Critical")}</p><p className="text-2xl font-bold text-red-500">{errorStats?.critical || 0}</p></CardContent></Card>
+        <Card className="border-orange-500/50"><CardContent className="pt-6"><p className="text-sm text-orange-500">{t("errors", "Errors")}</p><p className="text-2xl font-bold text-orange-500">{errorStats?.error || 0}</p></CardContent></Card>
+        <Card className="border-yellow-500/50"><CardContent className="pt-6"><p className="text-sm text-yellow-500">{t("warnings", "Warnings")}</p><p className="text-2xl font-bold text-yellow-500">{errorStats?.warning || 0}</p></CardContent></Card>
+        <Card className="border-blue-500/50"><CardContent className="pt-6"><p className="text-sm text-blue-500">{t("info", "Info")}</p><p className="text-2xl font-bold text-blue-500">{errorStats?.info || 0}</p></CardContent></Card>
       </div>
 
       <Card>
@@ -74,14 +76,14 @@ export default function ErrorLogs() {
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Search errors..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-10" />
+              <Input placeholder={t("search_errors", "Search errors...")} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-10" />
             </div>
             <Tabs value={severityFilter} onValueChange={setSeverityFilter}>
               <TabsList>
-                <TabsTrigger value="all">All</TabsTrigger>
-                <TabsTrigger value="critical">Critical</TabsTrigger>
-                <TabsTrigger value="error">Error</TabsTrigger>
-                <TabsTrigger value="warning">Warning</TabsTrigger>
+                <TabsTrigger value="all">{t("all", "All")}</TabsTrigger>
+                <TabsTrigger value="critical">{t("critical", "Critical")}</TabsTrigger>
+                <TabsTrigger value="error">{t("error", "Error")}</TabsTrigger>
+                <TabsTrigger value="warning">{t("warning", "Warning")}</TabsTrigger>
               </TabsList>
             </Tabs>
           </div>
@@ -90,12 +92,12 @@ export default function ErrorLogs() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Recent Errors</CardTitle>
+          <CardTitle>{t("recent_errors", "Recent Errors")}</CardTitle>
           <CardDescription>Showing {filteredLogs?.length || 0} errors</CardDescription>
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="text-center py-8 text-muted-foreground">Loading errors...</div>
+            <div className="text-center py-8 text-muted-foreground">{t("loading_errors", "Loading errors...")}</div>
           ) : filteredLogs && filteredLogs.length > 0 ? (
             <ScrollArea className="h-[500px]">
               <div className="space-y-3">
@@ -125,7 +127,7 @@ export default function ErrorLogs() {
               </div>
             </ScrollArea>
           ) : (
-            <EmptyState icon={CheckCircle} title="No Errors Found" description="Everything is running smoothly. No errors have been logged." />
+            <EmptyState icon={CheckCircle} title={t("no_errors_found", "No Errors Found")} description={t("everything_is_running_smoothly", "Everything is running smoothly. No errors have been logged.")} />
           )}
         </CardContent>
       </Card>

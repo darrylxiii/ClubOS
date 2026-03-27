@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect, useMemo } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -45,6 +46,7 @@ export function AICommandPalette({
   onStar,
   onReply,
 }: AICommandPaletteProps) {
+  const { t } = useTranslation('common');
   const [search, setSearch] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
 
@@ -161,7 +163,7 @@ export function AICommandPalette({
         <div className="flex items-center border-b border-border px-4 py-3">
           <Search className="h-5 w-5 text-muted-foreground mr-3" />
           <Input
-            placeholder="Type a command or search..."
+            placeholder={t("type_a_command_or", "Type a command or search...")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 text-base"
@@ -224,8 +226,8 @@ export function AICommandPalette({
         </ScrollArea>
 
         <div className="border-t border-border px-4 py-2 text-xs text-muted-foreground flex items-center justify-between">
-          <span>Navigate with ↑↓ • Select with ↵</span>
-          <span>Press ESC to close</span>
+          <span>{t("navigate_with_select_with", "Navigate with ↑↓ • Select with ↵")}</span>
+          <span>{t("press_esc_to_close", "Press ESC to close")}</span>
         </div>
       </DialogContent>
     </Dialog>

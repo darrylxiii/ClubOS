@@ -1,12 +1,10 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.7";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+import { getCorsHeaders } from '../_shared/cors.ts';
 
 serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
+
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -73,9 +71,9 @@ serve(async (req) => {
       (importRecord.parsed_content?.messages?.map((m: any) => `${m.sender}: ${m.content}`).join("\n"));
 
     if (contentToAnalyze) {
-      const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+      const GOOGLE_API_KEY = Deno.env.get("GOOGLE_API_KEY");
 
-      if (LOVABLE_API_KEY) {
+      if (GOOGLE_API_KEY) {
         try {
           const analysisPrompt = `Analyze this ${importRecord.content_type.replace("_", " ")} content and extract:
 1. A concise summary (max 200 words)
@@ -97,14 +95,14 @@ Respond in this exact JSON format:
   "urgency_level": "normal"
 }`;
 
-          const aiResponse = await fetch("https://api.lovable.dev/ai/chat", {
+          const aiResponse = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
-              "Authorization": `Bearer ${LOVABLE_API_KEY}`,
+              "Authorization": `Bearer ${GOOGLE_API_KEY}`,
             },
             body: JSON.stringify({
-              model: "google/gemini-2.5-flash-lite",
+              model: "gemini-2.5-flash-lite",
               messages: [{ role: "user", content: analysisPrompt }],
             }),
           });
@@ -221,12 +219,12 @@ Summary: ${importRecord.ai_summary}
 Topics: ${(importRecord.key_topics || []).join(", ")}
 Action Items: ${(actionItems || []).join(", ")}`;
 
-        const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-        if (LOVABLE_API_KEY) {
-          const embeddingResp = await fetch("https://ai.gateway.lovable.dev/v1/embeddings", {
+        const GOOGLE_API_KEY = Deno.env.get("GOOGLE_API_KEY");
+        if (GOOGLE_API_KEY) {
+          const embeddingResp = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/embeddings", {
             method: "POST",
             headers: {
-              "Authorization": `Bearer ${LOVABLE_API_KEY}`,
+              "Authorization": `Bearer ${GOOGLE_API_KEY}`,
               "Content-Type": "application/json"
             },
             body: JSON.stringify({

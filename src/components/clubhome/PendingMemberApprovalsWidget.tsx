@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { formatDistanceToNow } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
 import { getInitials } from "@/lib/strings";
+import { useTranslation } from 'react-i18next';
 
 interface PendingMember {
   id: string;
@@ -21,6 +22,7 @@ interface PendingMember {
 }
 
 export const PendingMemberApprovalsWidget = () => {
+  const { t } = useTranslation('common');
   const [pendingMembers, setPendingMembers] = useState<PendingMember[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -102,13 +104,13 @@ export const PendingMemberApprovalsWidget = () => {
         <div>
           <CardTitle className="flex items-center gap-2">
             <UserCheck className="h-5 w-5 text-primary" />
-            <span className="hidden sm:inline">Pending Approvals</span>
-            <span className="sm:hidden">Approvals</span>
+            <span className="hidden sm:inline">{t('pendingMemberApprovalsWidget.pendingApprovals')}</span>
+            <span className="sm:hidden">{t('pendingMemberApprovalsWidget.approvals')}</span>
             {totalCount > 0 && (
               <Badge variant="secondary" className="animate-pulse">{totalCount}</Badge>
             )}
           </CardTitle>
-          <CardDescription className="hidden sm:block">New members awaiting review</CardDescription>
+          <CardDescription className="hidden sm:block">{t('pendingMemberApprovalsWidget.description')}</CardDescription>
         </div>
         <div className="flex items-center gap-2">
           <Button
@@ -122,7 +124,7 @@ export const PendingMemberApprovalsWidget = () => {
           </Button>
           <Button variant="ghost" size="sm" asChild className="hidden sm:flex">
             <Link to="/admin/member-requests" className="flex items-center gap-1">
-              View All <ArrowRight className="h-4 w-4" />
+              {t('common:viewAll')} <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>
         </div>
@@ -135,8 +137,8 @@ export const PendingMemberApprovalsWidget = () => {
             className="text-center py-6 text-muted-foreground"
           >
             <UserCheck className="h-10 w-10 mx-auto mb-2 opacity-50" />
-            <p>No pending approvals</p>
-            <p className="text-sm mt-1 hidden sm:block">All member requests have been processed</p>
+            <p>{t('pendingMemberApprovalsWidget.noPendingApprovals')}</p>
+            <p className="text-sm mt-1 hidden sm:block">{t('pendingMemberApprovalsWidget.allMemberRequestsHaveBeenProcessed')}</p>
           </motion.div>
         ) : (
           <AnimatePresence mode="popLayout">
@@ -188,7 +190,7 @@ export const PendingMemberApprovalsWidget = () => {
         {/* Mobile-only View All button */}
         <Button variant="outline" size="sm" asChild className="w-full mt-4 sm:hidden">
           <Link to="/admin/member-requests" className="flex items-center justify-center gap-1">
-            View All <ArrowRight className="h-4 w-4" />
+            {t('common:viewAll')} <ArrowRight className="h-4 w-4" />
           </Link>
         </Button>
       </CardContent>

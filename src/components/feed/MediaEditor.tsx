@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -17,6 +18,7 @@ interface MediaEditorProps {
 }
 
 export function MediaEditor({ file, open, onClose, onSave }: MediaEditorProps) {
+  const { t } = useTranslation('common');
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [fabricCanvas, setFabricCanvas] = useState<FabricCanvasType | null>(null);
   const [image, setImage] = useState<FabricImageType | null>(null);
@@ -170,7 +172,7 @@ export function MediaEditor({ file, open, onClose, onSave }: MediaEditorProps) {
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl">
         <DialogHeader>
-          <DialogTitle>Edit Image</DialogTitle>
+          <DialogTitle>{t("edit_image", "Edit Image")}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
@@ -178,7 +180,7 @@ export function MediaEditor({ file, open, onClose, onSave }: MediaEditorProps) {
             {isLoading ? (
               <div className="flex flex-col items-center gap-2">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                <p className="text-sm text-muted-foreground">Loading editor...</p>
+                <p className="text-sm text-muted-foreground">{t("loading_editor", "Loading editor...")}</p>
               </div>
             ) : (
               <canvas ref={canvasRef} className="max-w-full" />
@@ -187,15 +189,15 @@ export function MediaEditor({ file, open, onClose, onSave }: MediaEditorProps) {
 
           <Tabs defaultValue="adjust" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="adjust">Adjust</TabsTrigger>
-              <TabsTrigger value="transform">Transform</TabsTrigger>
+              <TabsTrigger value="adjust">{t("adjust", "Adjust")}</TabsTrigger>
+              <TabsTrigger value="transform">{t("transform", "Transform")}</TabsTrigger>
             </TabsList>
 
             <TabsContent value="adjust" className="space-y-4">
               <div className="space-y-3">
                 <div className="flex items-center gap-3">
                   <Sun className="w-4 h-4" />
-                  <span className="text-sm w-24">Brightness</span>
+                  <span className="text-sm w-24">{t("brightness", "Brightness")}</span>
                   <Slider
                     value={[brightness]}
                     onValueChange={(v) => setBrightness(v[0])}
@@ -209,7 +211,7 @@ export function MediaEditor({ file, open, onClose, onSave }: MediaEditorProps) {
 
                 <div className="flex items-center gap-3">
                   <Contrast className="w-4 h-4" />
-                  <span className="text-sm w-24">Contrast</span>
+                  <span className="text-sm w-24">{t("contrast", "Contrast")}</span>
                   <Slider
                     value={[contrast]}
                     onValueChange={(v) => setContrast(v[0])}
@@ -223,7 +225,7 @@ export function MediaEditor({ file, open, onClose, onSave }: MediaEditorProps) {
 
                 <div className="flex items-center gap-3">
                   <Droplets className="w-4 h-4" />
-                  <span className="text-sm w-24">Saturation</span>
+                  <span className="text-sm w-24">{t("saturation", "Saturation")}</span>
                   <Slider
                     value={[saturation]}
                     onValueChange={(v) => setSaturation(v[0])}

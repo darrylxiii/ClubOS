@@ -5,13 +5,15 @@ import { AuditLogsTable } from './compliance/AuditLogsTable';
 import { SecurityIncidentsPanel } from './compliance/SecurityIncidentsPanel';
 import { DataRetentionPanel } from './compliance/DataRetentionPanel';
 import { ComplianceMetrics } from './compliance/ComplianceMetrics';
+import { useTranslation } from 'react-i18next';
 
 export const ComplianceDashboard = () => {
+  const { t } = useTranslation('admin');
   return (
     <div className="space-y-6 p-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Security & Compliance</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{t('complianceDashboard.securityCompliance')}</h1>
           <p className="text-muted-foreground">
             SOC 2 compliant audit trails, security monitoring, and data governance
           </p>
@@ -44,7 +46,7 @@ export const ComplianceDashboard = () => {
         <TabsContent value="audit-logs" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Comprehensive Audit Trail</CardTitle>
+              <CardTitle>{t('complianceDashboard.comprehensiveAuditTrail')}</CardTitle>
               <CardDescription>
                 SOC 2 compliant logging of all system events, data access, and modifications
               </CardDescription>
@@ -66,7 +68,7 @@ export const ComplianceDashboard = () => {
         <TabsContent value="reports" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Compliance Reports</CardTitle>
+              <CardTitle>{t('complianceDashboard.complianceReports')}</CardTitle>
               <CardDescription>
                 Generate reports for SOC 2, GDPR, and CCPA compliance audits
               </CardDescription>
@@ -77,7 +79,7 @@ export const ComplianceDashboard = () => {
                   <div className="flex items-center gap-3">
                     <Clock className="h-5 w-5 text-muted-foreground" />
                     <div>
-                      <p className="font-medium">SOC 2 Audit Report (Last 90 Days)</p>
+                      <p className="font-medium">{t('complianceDashboard.soc2AuditReportLast90')}</p>
                       <p className="text-sm text-muted-foreground">
                         Comprehensive audit trail for external auditors
                       </p>
@@ -92,7 +94,7 @@ export const ComplianceDashboard = () => {
                   <div className="flex items-center gap-3">
                     <FileText className="h-5 w-5 text-muted-foreground" />
                     <div>
-                      <p className="font-medium">GDPR Compliance Report</p>
+                      <p className="font-medium">{t('complianceDashboard.gdprComplianceReport')}</p>
                       <p className="text-sm text-muted-foreground">
                         Data processing activities and consent tracking
                       </p>
@@ -107,7 +109,7 @@ export const ComplianceDashboard = () => {
                   <div className="flex items-center gap-3">
                     <Database className="h-5 w-5 text-muted-foreground" />
                     <div>
-                      <p className="font-medium">Data Retention Compliance</p>
+                      <p className="font-medium">{t('complianceDashboard.dataRetentionCompliance')}</p>
                       <p className="text-sm text-muted-foreground">
                         Status of scheduled deletions and retention policies
                       </p>

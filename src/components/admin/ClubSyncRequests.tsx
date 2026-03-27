@@ -16,6 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { CheckCircle2, XCircle, Clock, Building2, Briefcase, User } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useTranslation } from 'react-i18next';
 
 interface ClubSyncRequest {
   id: string;
@@ -42,6 +43,7 @@ interface ClubSyncRequest {
 }
 
 export const ClubSyncRequests = () => {
+  const { t } = useTranslation('admin');
   const [requests, setRequests] = useState<ClubSyncRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedRequest, setSelectedRequest] = useState<ClubSyncRequest | null>(null);
@@ -76,7 +78,7 @@ export const ClubSyncRequests = () => {
       setRequests(data as any);
     } catch (error) {
       console.error('Error fetching Club Sync requests:', error);
-      toast.error('Failed to load requests');
+      toast.error(t('clubSyncRequests.failedToLoadRequests'));
     } finally {
       setLoading(false);
     }
@@ -143,7 +145,7 @@ export const ClubSyncRequests = () => {
       fetchRequests();
     } catch (error) {
       console.error('Error reviewing request:', error);
-      toast.error('Failed to process request');
+      toast.error(t('clubSyncRequests.failedToProcessRequest'));
     } finally {
       setSubmitting(false);
     }
@@ -152,11 +154,11 @@ export const ClubSyncRequests = () => {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'pending':
-        return <Badge variant="outline" className="gap-1"><Clock className="h-3 w-3" /> Pending</Badge>;
+        return <Badge variant="outline" className="gap-1"><Clock className="h-3 w-3" />Pending</Badge>;
       case 'approved':
-        return <Badge variant="default" className="gap-1 bg-green-600"><CheckCircle2 className="h-3 w-3" /> Approved</Badge>;
+        return <Badge variant="default" className="gap-1 bg-green-600"><CheckCircle2 className="h-3 w-3" />Approved</Badge>;
       case 'declined':
-        return <Badge variant="destructive" className="gap-1"><XCircle className="h-3 w-3" /> Declined</Badge>;
+        return <Badge variant="destructive" className="gap-1"><XCircle className="h-3 w-3" />Declined</Badge>;
       default:
         return null;
     }

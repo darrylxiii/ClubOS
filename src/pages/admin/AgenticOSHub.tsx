@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { lazy, Suspense, useState } from 'react';
 import { Zap } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -13,6 +14,7 @@ const AgentChatView = lazy(() => import('@/components/admin/agentic/AgentChatVie
 const SourcingCommandPanel = lazy(() => import('@/components/admin/agentic/SourcingCommandPanel'));
 
 export default function AgenticOSHub() {
+  const { t } = useTranslation('common');
   const [searchParams, setSearchParams] = useSearchParams();
   const currentTab = searchParams.get('tab') || 'mission';
   const [chatAgent, setChatAgent] = useState<string | undefined>();
@@ -33,8 +35,8 @@ export default function AgenticOSHub() {
           <Zap className="h-5 w-5 text-primary" />
         </div>
         <div>
-          <h1 className="text-xl font-bold uppercase tracking-wider">Agentic OS</h1>
-          <p className="text-xs text-muted-foreground">Enterprise Command Center</p>
+          <h1 className="text-xl font-bold uppercase tracking-wider">{t("agentic_os", "Agentic OS")}</h1>
+          <p className="text-xs text-muted-foreground">{t("enterprise_command_center", "Enterprise Command Center")}</p>
         </div>
       </div>
 
@@ -43,12 +45,12 @@ export default function AgenticOSHub() {
       <Tabs value={currentTab} onValueChange={handleTabChange}>
         <div className="overflow-x-auto">
           <TabsList className="inline-flex w-auto min-w-full sm:grid sm:grid-cols-6 sm:w-full h-auto bg-card/50 backdrop-blur-sm rounded-lg p-1">
-            <TabsTrigger value="mission">Mission Control</TabsTrigger>
-            <TabsTrigger value="intelligence">Intelligence</TabsTrigger>
-            <TabsTrigger value="agents">Agents</TabsTrigger>
-            <TabsTrigger value="briefings">Briefings</TabsTrigger>
-            <TabsTrigger value="chat">Agent Chat</TabsTrigger>
-            <TabsTrigger value="sourcing">Sourcing</TabsTrigger>
+            <TabsTrigger value="mission">{t("mission_control", "Mission Control")}</TabsTrigger>
+            <TabsTrigger value="intelligence">{t("intelligence", "Intelligence")}</TabsTrigger>
+            <TabsTrigger value="agents">{t("agents", "Agents")}</TabsTrigger>
+            <TabsTrigger value="briefings">{t("briefings", "Briefings")}</TabsTrigger>
+            <TabsTrigger value="chat">{t("agent_chat", "Agent Chat")}</TabsTrigger>
+            <TabsTrigger value="sourcing">{t("sourcing", "Sourcing")}</TabsTrigger>
           </TabsList>
         </div>
 

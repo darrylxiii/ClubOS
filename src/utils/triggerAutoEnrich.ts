@@ -16,7 +16,7 @@ export async function triggerAutoEnrich(
   if (!session?.access_token) return;
 
   const token = session.access_token;
-  const apiKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+  const apiKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
   const baseUrl = import.meta.env.VITE_SUPABASE_URL;
 
   if (!options?.silent) {

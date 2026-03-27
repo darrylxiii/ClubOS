@@ -1,4 +1,5 @@
 import { memo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -9,22 +10,19 @@ interface ValuesPokerIntroProps {
 }
 
 export const ValuesPokerIntro = memo(({ onStart }: ValuesPokerIntroProps) => {
+  const { t } = useTranslation('common');
   return (
     <div className="container mx-auto p-6 max-w-3xl">
       <Card>
         <CardHeader>
           <div className="text-6xl mb-4 text-center">🎲</div>
-          <CardTitle className="text-3xl text-center">Values Poker</CardTitle>
-          <p className="text-center text-muted-foreground mt-2">
-            Discover what truly motivates you at work
-          </p>
+          <CardTitle className="text-3xl text-center">{t('valuesPoker.valuesPoker')}</CardTitle>
+          <p className="text-center text-muted-foreground mt-2">{t('valuesPoker.discoverWhatTrulyMotivatesYouAtWork')}</p>
         </CardHeader>
         <CardContent className="space-y-6">
           <Alert>
             <Coins className="h-4 w-4" />
-            <AlertDescription>
-              Allocate 100 points across work values, then make trade-offs in realistic scenarios. We'll compare what you say matters vs. what you actually choose.
-            </AlertDescription>
+            <AlertDescription>{t('valuesPoker.allocate100PointsAcrossWorkValuesThenMak')}</AlertDescription>
           </Alert>
 
           <div className="space-y-4">
@@ -35,15 +33,15 @@ export const ValuesPokerIntro = memo(({ onStart }: ValuesPokerIntroProps) => {
             <div className="space-y-3 text-sm text-muted-foreground">
               <div className="flex gap-3">
                 <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs">1</span>
-                <p><strong>Allocate Points:</strong> Distribute 100 points across 10 work values</p>
+                <p><strong>Allocate Points:</strong>Distribute 100 points across 10 work values</p>
               </div>
               <div className="flex gap-3">
                 <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs">2</span>
-                <p><strong>Make Trade-offs:</strong> Choose between 20 realistic job scenarios</p>
+                <p><strong>Make Trade-offs:</strong>Choose between 20 realistic job scenarios</p>
               </div>
               <div className="flex gap-3">
                 <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs">3</span>
-                <p><strong>Reveal Truth:</strong> See if your actions match your words</p>
+                <p><strong>Reveal Truth:</strong>See if your actions match your words</p>
               </div>
             </div>
           </div>
@@ -73,9 +71,7 @@ export const ValuesPokerIntro = memo(({ onStart }: ValuesPokerIntroProps) => {
             </div>
           </div>
 
-          <Button onClick={onStart} className="w-full" size="lg">
-            Start Assessment
-          </Button>
+          <Button onClick={onStart} className="w-full" size="lg">{t('valuesPoker.startAssessment')}</Button>
         </CardContent>
       </Card>
     </div>

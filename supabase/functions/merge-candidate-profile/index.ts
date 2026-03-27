@@ -1,11 +1,6 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 import { logSecurityEvent } from "../_shared/security-logger.ts";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { createHandler } from '../_shared/handler.ts';
 
 const requestSchema = z.object({
   candidateId: z.string().uuid(),
@@ -15,20 +10,13 @@ const requestSchema = z.object({
   mergedBy: z.string().uuid().optional()
 });
 
-Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
+Deno.serve(createHandler(async (req, ctx) => {
+    const { supabase, corsHeaders } = ctx;
 
-  let body: any;
-  try {
+    let body: any;
+    try {
     body = await req.json();
     const { candidateId, userId, invitationToken, mergeType, mergedBy } = requestSchema.parse(body);
-    
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-    );
 
     const startTime = Date.now();
     console.log('Starting profile merge:', { candidateId, userId, mergeType, mergedBy });
@@ -312,4 +300,4 @@ Deno.serve(async (req) => {
       }
     );
   }
-});
+}));

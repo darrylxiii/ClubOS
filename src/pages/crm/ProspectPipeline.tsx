@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useMemo, useRef, useCallback, useEffect } from 'react';
 import { RoleGate } from '@/components/RoleGate';
 import { motion } from '@/lib/motion';
@@ -68,6 +69,7 @@ const PRIMARY_STAGES = ['replied', 'qualified', 'meeting_booked', 'proposal_sent
 const SYNC_TIMEOUT_MS = 30000;
 
 function ProspectPipelineContent() {
+  const { t } = useTranslation('common');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCampaign, setSelectedCampaign] = useState<string>('all');
   const [selectedOwner, setSelectedOwner] = useState<string>('all');
@@ -233,12 +235,12 @@ function ProspectPipelineContent() {
           refetch();
         } catch (error) {
           console.error('Bulk assign error:', error);
-          toast.error('Failed to assign prospects');
+          toast.error(t("failed_to_assign_prospects", "Failed to assign prospects"));
         }
       };
       assignToOwner();
     } else {
-      toast.info('No owners available for assignment');
+      toast.info(t("no_owners_available_for", "No owners available for assignment"));
     }
   }, [selectedIds, owners, refetch]);
 
@@ -251,7 +253,7 @@ function ProspectPipelineContent() {
   // Sync leads from Instantly with timeout guard
   const handleSyncFromInstantly = async () => {
     setSyncingInstantly(true);
-    toast.info('Starting sync from Instantly…');
+    toast.info(t("starting_sync_from_instantly", "Starting sync from Instantly…"));
 
     // Create abort controller for timeout
     const controller = new AbortController();
@@ -284,14 +286,14 @@ function ProspectPipelineContent() {
         const firstError = data?.errors?.[0]?.error || 'Unknown error';
         toast.error(`Sync failed: ${firstError}`);
       } else {
-        toast.info('All leads are up to date');
+        toast.info(t("all_leads_are_up", "All leads are up to date"));
       }
     } catch (error: unknown) {
       clearTimeout(timeoutId);
       const err = error as { name?: string; message?: string };
       // Check if it was a timeout
       if (err.name === 'AbortError' || controller.signal.aborted) {
-        toast.info('Sync is still running in the background. Results will appear after refresh.');
+        toast.info(t("sync_is_still_running", "Sync is still running in the background. Results will appear after refresh."));
         // Still refetch in case some data came through
         setTimeout(() => {
           refetch();
@@ -317,11 +319,11 @@ function ProspectPipelineContent() {
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div className="flex items-center gap-3">
             <div>
-              <h1 className="text-2xl font-bold">Prospect Pipeline</h1>
+              <h1 className="text-2xl font-bold">{t("prospect_pipeline", "Prospect Pipeline")}</h1>
               <p className="text-sm text-muted-foreground">
                 {prospects.length} prospects • Drag to move stages
                 {lastUpdate && (
-                  <span className="ml-2 text-xs text-primary">• Live</span>
+                  <span className="ml-2 text-xs text-primary">{t("live", "• Live")}</span>
                 )}
               </p>
             </div>
@@ -336,7 +338,7 @@ function ProspectPipelineContent() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
                 ref={searchInputRef}
-                placeholder="Search prospects..."
+                placeholder={t("search_prospects", "Search prospects...")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-9 w-48 bg-muted/20 border-border/30"
@@ -345,10 +347,10 @@ function ProspectPipelineContent() {
 
             <Select value={selectedCampaign} onValueChange={setSelectedCampaign}>
               <SelectTrigger className="w-40 bg-muted/20 border-border/30">
-                <SelectValue placeholder="All Campaigns" />
+                <SelectValue placeholder={t("all_campaigns", "All Campaigns")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Campaigns</SelectItem>
+                <SelectItem value="all">{t("all_campaigns", "All Campaigns")}</SelectItem>
                 {campaigns.map(campaign => (
                   <SelectItem key={campaign.id} value={campaign.id}>
                     {campaign.name}
@@ -377,7 +379,7 @@ function ProspectPipelineContent() {
               <PopoverContent className="w-80 p-4" align="end">
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <h4 className="font-medium">Advanced Filters</h4>
+                    <h4 className="font-medium">{t("advanced_filters", "Advanced Filters")}</h4>
                     {hasActiveFilters && (
                       <Button variant="ghost" size="sm" onClick={clearFilters}>
                         <X className="w-3 h-3 mr-1" />
@@ -388,13 +390,13 @@ function ProspectPipelineContent() {
 
                   {/* Owner Filter */}
                   <div className="space-y-2">
-                    <Label>Owner</Label>
+                    <Label>{t("owner", "Owner")}</Label>
                     <Select value={selectedOwner} onValueChange={setSelectedOwner}>
                       <SelectTrigger className="w-full">
-                        <SelectValue placeholder="All Owners" />
+                        <SelectValue placeholder={t("all_owners", "All Owners")} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all">All Owners</SelectItem>
+                        <SelectItem value="all">{t("all_owners", "All Owners")}</SelectItem>
                         {owners.map(owner => (
                           <SelectItem key={owner.id} value={owner.id}>
                             {owner.full_name}
@@ -407,7 +409,7 @@ function ProspectPipelineContent() {
                   {/* Score Range Filter */}
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <Label>Lead Score Range</Label>
+                      <Label>{t("lead_score_range", "Lead Score Range")}</Label>
                       <span className="text-sm text-muted-foreground">
                         {scoreRange[0]} - {scoreRange[1]}
                       </span>
@@ -455,7 +457,7 @@ function ProspectPipelineContent() {
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Pull hot leads (replied/interested/meeting booked) from Instantly</p>
+                <p>{t("pull_hot_leads_repliedinterestedmeeting", "Pull hot leads (replied/interested/meeting booked) from Instantly")}</p>
               </TooltipContent>
             </Tooltip>
 
@@ -480,7 +482,7 @@ function ProspectPipelineContent() {
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Keyboard shortcuts (?)</p>
+                <p>{t("keyboard_shortcuts", "Keyboard shortcuts (?)")}</p>
               </TooltipContent>
             </Tooltip>
           </div>

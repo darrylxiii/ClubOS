@@ -13,6 +13,7 @@ FROM public.jobs j
 WHERE m.job_id = j.id AND m.company_id IS NULL;
 
 -- 4. Create entity_relationships table for knowledge graph
+DROP TABLE IF EXISTS public.entity_relationships CASCADE;
 CREATE TABLE IF NOT EXISTS public.entity_relationships (
   id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   source_type TEXT NOT NULL, -- 'company', 'stakeholder', 'candidate', 'job', 'meeting', 'interaction'

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export type LegalEntityFilter = 'all' | 'tqc_nl' | 'tqc_dubai';
@@ -7,13 +8,14 @@ interface EntitySelectorProps {
   onChange: (value: LegalEntityFilter) => void;
 }
 
-const ENTITY_OPTIONS: { value: LegalEntityFilter; label: string; flag: string }[] = [
-  { value: 'all', label: 'All Entities', flag: '🌐' },
-  { value: 'tqc_nl', label: 'Netherlands', flag: '🇳🇱' },
-  { value: 'tqc_dubai', label: 'Dubai', flag: '🇦🇪' },
-];
-
 export function EntitySelector({ value, onChange }: EntitySelectorProps) {
+  const { t } = useTranslation('common');
+
+  const ENTITY_OPTIONS: { value: LegalEntityFilter; label: string; flag: string }[] = [
+    { value: 'all', label: t('financial.allEntities'), flag: '🌐' },
+    { value: 'tqc_nl', label: t('financial.netherlands'), flag: '🇳🇱' },
+    { value: 'tqc_dubai', label: t('financial.dubai'), flag: '🇦🇪' },
+  ];
   return (
     <Select value={value} onValueChange={(v) => onChange(v as LegalEntityFilter)}>
       <SelectTrigger className="w-[160px]">

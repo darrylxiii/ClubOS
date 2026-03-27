@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from 'react-i18next';
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
@@ -10,6 +11,7 @@ import { Shield, Search, Filter } from "lucide-react";
 import { PartnerGlassCard } from "@/components/partner/PartnerGlassCard";
 
 export default function AuditLog() {
+  const { t } = useTranslation('partner');
   const { companyId } = useRole();
   const [search, setSearch] = useState("");
   const [actionFilter, setActionFilter] = useState<string>("all");
@@ -71,7 +73,7 @@ export default function AuditLog() {
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
             <Input
-              placeholder="Search by user or action..."
+              placeholder={t('auditLog.searchPlaceholder')}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="pl-10 bg-card/50 border-border/30"
@@ -83,11 +85,11 @@ export default function AuditLog() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Actions</SelectItem>
-              <SelectItem value="candidate_moved">Candidate Moved</SelectItem>
-              <SelectItem value="job_created">Job Created</SelectItem>
-              <SelectItem value="team_invited">Team Invited</SelectItem>
-              <SelectItem value="application_rejected">Application Rejected</SelectItem>
+              <SelectItem value="all">{t('auditLog.allActions')}</SelectItem>
+              <SelectItem value="candidate_moved">{t('auditLog.candidateMoved')}</SelectItem>
+              <SelectItem value="job_created">{t('auditLog.jobCreated')}</SelectItem>
+              <SelectItem value="team_invited">{t('auditLog.teamInvited')}</SelectItem>
+              <SelectItem value="application_rejected">{t('auditLog.applicationRejected')}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -134,7 +136,7 @@ export default function AuditLog() {
         ) : (
           <div className="text-center py-12 text-muted-foreground">
             <Shield className="w-12 h-12 mx-auto mb-4 opacity-30" />
-            <p>No audit log entries found</p>
+            <p>{t('auditLog.noEntries')}</p>
           </div>
         )}
       </PartnerGlassCard>

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { motion } from '@/lib/motion';
 import { Sparkles, Eye, EyeOff, TrendingUp, Search, ShieldCheck } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -18,6 +19,7 @@ const recommendationConfig: Record<string, { label: string; className: string }>
 };
 
 export function TalentIntelligenceBanner({ candidate, className }: TalentIntelligenceBannerProps) {
+  const { t } = useTranslation('common');
   const {
     talent_tier,
     tier_score,
@@ -46,8 +48,8 @@ export function TalentIntelligenceBanner({ candidate, className }: TalentIntelli
     >
       <div className="flex items-center gap-2 mb-3">
         <Sparkles className="w-4 h-4 text-primary" />
-        <h3 className="text-sm font-semibold tracking-tight">Talent Intelligence</h3>
-        <span className="text-[10px] text-muted-foreground ml-auto">Powered by QUIN</span>
+        <h3 className="text-sm font-semibold tracking-tight">{t("talent_intelligence", "Talent Intelligence")}</h3>
+        <span className="text-[10px] text-muted-foreground ml-auto">{t("powered_by_quin", "Powered by QUIN")}</span>
       </div>
 
       <div className="flex flex-wrap items-center gap-2 sm:gap-3">
@@ -64,7 +66,7 @@ export function TalentIntelligenceBanner({ candidate, className }: TalentIntelli
 
         {move_probability != null && (
           <div className="flex items-center gap-1.5">
-            <span className="text-xs text-muted-foreground">Move:</span>
+            <span className="text-xs text-muted-foreground">{t("move", "Move:")}</span>
             <MoveProbabilityBadge probability={move_probability} size="md" />
           </div>
         )}

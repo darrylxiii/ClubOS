@@ -4,12 +4,14 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { BookOpen, Clock, Bookmark } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "react-i18next";
 
 interface PopularCourseCardProps {
   course: any;
 }
 
 export function PopularCourseCard({ course }: PopularCourseCardProps) {
+  const { t } = useTranslation('common');
   const categoryColors = {
     Design: "from-red-200 via-orange-200 to-yellow-200",
     Business: "from-pink-200 via-purple-200 to-blue-200",
@@ -85,7 +87,7 @@ export function PopularCourseCard({ course }: PopularCourseCardProps) {
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-1">
                 <BookOpen className="h-4 w-4" />
-                <span>{Math.floor((course.estimated_hours || 12) * 2)} Lessons</span>
+                <span>{t('academy.lessonCount', '{{count}} Lessons', { count: Math.floor((course.estimated_hours || 12) * 2) })}</span>
               </div>
               <div className="flex items-center gap-1">
                 <Clock className="h-4 w-4" />

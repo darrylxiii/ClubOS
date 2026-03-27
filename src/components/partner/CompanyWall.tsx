@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { Plus, Heart, MessageCircle, Eye, Calendar } from "lucide-react";
 import { CreatePostDialog } from "./CreatePostDialog";
 import { format } from "date-fns";
+import { useTranslation } from 'react-i18next';
 
 interface CompanyWallProps {
   companyId: string;
@@ -15,6 +16,7 @@ interface CompanyWallProps {
 }
 
 export const CompanyWall = ({ companyId, canCreate = false }: CompanyWallProps) => {
+  const { t } = useTranslation('partner');
   const [posts, setPosts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
@@ -42,7 +44,7 @@ export const CompanyWall = ({ companyId, canCreate = false }: CompanyWallProps) 
       setPosts(data || []);
     } catch (error) {
       console.error('Error fetching posts:', error);
-      toast.error("Failed to load company posts");
+      toast.error(t('companyWall.toast.failedToLoadCompanyPosts'));
     } finally {
       setLoading(false);
     }
@@ -76,8 +78,8 @@ export const CompanyWall = ({ companyId, canCreate = false }: CompanyWallProps) 
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-2xl font-black uppercase">Company Wall</CardTitle>
-              <CardDescription>Latest news, updates, and announcements</CardDescription>
+              <CardTitle className="text-2xl font-black uppercase">{t('companyWall.title')}</CardTitle>
+              <CardDescription>{t('companyWall.description')}</CardDescription>
             </div>
             {canCreate && (
               <Button onClick={() => setShowCreateDialog(true)}>
@@ -90,7 +92,7 @@ export const CompanyWall = ({ companyId, canCreate = false }: CompanyWallProps) 
         <CardContent className="space-y-6">
           {posts.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
-              <p>No posts yet. Be the first to share something!</p>
+              <p>{t('companyWall.noPostsYetBeTheFirstToShareSomething')}</p>
             </div>
           ) : (
             posts.map((post) => (
@@ -135,7 +137,7 @@ export const CompanyWall = ({ companyId, canCreate = false }: CompanyWallProps) 
                       <span>{post.view_count || 0}</span>
                     </div>
                     {post.is_featured && (
-                      <Badge variant="secondary">Featured</Badge>
+                      <Badge variant="secondary">{t('companyWall.badge.featured')}</Badge>
                     )}
                   </div>
                 </CardContent>

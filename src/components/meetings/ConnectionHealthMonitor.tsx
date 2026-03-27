@@ -6,6 +6,7 @@ import { useState, useEffect } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Wifi, WifiOff, AlertTriangle, CheckCircle2, Loader2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 
 interface ConnectionStats {
@@ -27,6 +28,7 @@ export function ConnectionHealthMonitor({
   className,
   compact = false
 }: ConnectionHealthMonitorProps) {
+  const { t } = useTranslation("meetings");
   const [stats, setStats] = useState<Map<string, ConnectionStats>>(new Map());
 
   useEffect(() => {
@@ -167,10 +169,10 @@ export function ConnectionHealthMonitor({
           </TooltipTrigger>
           <TooltipContent side="bottom" className="max-w-xs">
             <div className="space-y-2">
-              <p className="font-medium">{stats.size} peer connection(s)</p>
+              <p className="font-medium">{t('connection.peerConnections', { count: stats.size })}</p>
               <div className="text-xs space-y-1 text-muted-foreground">
-                <p>Avg. Packet Loss: {avgPacketLoss.toFixed(1)}%</p>
-                <p>Avg. RTT: {avgRTT.toFixed(0)}ms</p>
+                <p>{t('connection.avgPacketLoss')}: {avgPacketLoss.toFixed(1)}%</p>
+                <p>{t('connection.avgRTT')}: {avgRTT.toFixed(0)}ms</p>
               </div>
             </div>
           </TooltipContent>

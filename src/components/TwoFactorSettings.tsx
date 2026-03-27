@@ -9,8 +9,10 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Shield, QrCode, Key, CheckCircle2, AlertTriangle, Copy } from 'lucide-react';
 import { toast } from 'sonner';
 import QRCode from 'qrcode';
+import { useTranslation } from 'react-i18next';
 
 export const TwoFactorSettings = () => {
+  const { t } = useTranslation('common');
   const queryClient = useQueryClient();
   const [mfaEnabled, setMfaEnabled] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -43,7 +45,7 @@ export const TwoFactorSettings = () => {
       setMfaEnabled(hasVerifiedFactor);
     } catch (error) {
       console.error('Error checking MFA status:', error);
-      toast.error('Failed to check 2FA status');
+      toast.error(t('twofactorsettings.failedToCheck2faStatus', 'Failed to check 2FA status'));
     } finally {
       setLoading(false);
     }
@@ -62,7 +64,7 @@ export const TwoFactorSettings = () => {
 
       if (error) throw error;
 
-      toast.success('2FA factor removed successfully');
+      toast.success(t('twofactorsettings.2faFactorRemovedSuccessfully', '2FA factor removed successfully'));
       
       // Reset all states
       setQrCode('');
@@ -76,7 +78,7 @@ export const TwoFactorSettings = () => {
       invalidateAuthCache();
     } catch (error: unknown) {
       console.error('Error removing MFA factor:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to remove 2FA factor');
+      toast.error(error instanceof Error ? error.message : t('twofactorsettings.failedToRemove2faFactor', 'Failed to remove 2FA factor'));
     } finally {
       setResetting(false);
     }
@@ -88,7 +90,7 @@ export const TwoFactorSettings = () => {
     );
 
     if (existingAuthFactor) {
-      toast.error('An Authenticator App is already registered. Please remove it first.');
+      toast.error(t('twofactorsettings.anAuthenticatorAppIsAlreadyRegistered', 'An Authenticator App is already registered. Please remove it first.'));
       return;
     }
 
@@ -101,7 +103,7 @@ export const TwoFactorSettings = () => {
 
       if (error) {
         if (error.message?.includes('factor with the friendly name')) {
-          toast.error('2FA factor already exists. Refreshing status...');
+          toast.error(t('twofactorsettings.2faFactorAlreadyExistsRefreshingStatus', '2FA factor already exists. Refreshing status...'));
           await checkMFAStatus();
           return;
         }
@@ -115,13 +117,13 @@ export const TwoFactorSettings = () => {
         const qr = await QRCode.toDataURL(data.totp.uri);
         setQrCode(qr);
         
-        toast.success('Scan the QR code with your authenticator app');
+        toast.success(t('twofactorsettings.scanTheQrCodeWithYour', 'Scan the QR code with your authenticator app'));
         
         await checkMFAStatus();
       }
     } catch (error: unknown) {
       console.error('Error enabling MFA:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to enable 2FA');
+      toast.error(error instanceof Error ? error.message : t('twofactorsettings.failedToEnable2fa', 'Failed to enable 2FA'));
     } finally {
       setEnrolling(false);
     }
@@ -129,7 +131,7 @@ export const TwoFactorSettings = () => {
 
   const handleVerifyAndEnable = async () => {
     if (verifyCode.length !== 6) {
-      toast.error('Please enter a valid 6-digit code');
+      toast.error(t('twofactorsettings.pleaseEnterAValid6digitCode', 'Please enter a valid 6-digit code'));
       return;
     }
 
@@ -141,27 +143,27 @@ export const TwoFactorSettings = () => {
 
       if (error) throw error;
 
-      toast.loading('Generating secure recovery codes...');
+      toast.loading("Generating secure recovery codes...");
       
       const { data: recoveryData, error: recoveryError } = await supabase.functions.invoke('generate-recovery-codes');
       
       if (recoveryError) {
         console.error('Error generating recovery codes:', recoveryError);
         toast.dismiss();
-        toast.warning('2FA enabled, but failed to generate recovery codes. Please regenerate them in settings.');
+        toast.warning(t('twofactorsettings.2faEnabledButFailedToGenerate', '2FA enabled, but failed to generate recovery codes. Please regenerate them in settings.'));
       } else if (recoveryData?.codes) {
         toast.dismiss();
         setRecoveryCodes(recoveryData.codes);
       }
 
-      toast.success('2FA enabled successfully!');
+      toast.success(t('twofactorsettings.2faEnabledSuccessfully', '2FA enabled successfully!'));
       setMfaEnabled(true);
       setQrCode('');
       setVerifyCode('');
       invalidateAuthCache();
     } catch (error: unknown) {
       console.error('Error verifying MFA:', error);
-      toast.error(error instanceof Error ? error.message : 'Invalid code. Please try again.');
+      toast.error(error instanceof Error ? error.message : t('twofactorsettings.invalidCodePleaseTryAgain', 'Invalid code. Please try again.'));
     }
   };
 
@@ -183,19 +185,19 @@ export const TwoFactorSettings = () => {
 
       if (error) throw error;
 
-      toast.success('2FA disabled');
+      toast.success(t('twofactorsettings.2faDisabled', '2FA disabled'));
       setMfaEnabled(false);
       setRecoveryCodes([]);
       invalidateAuthCache();
     } catch (error: unknown) {
       console.error('Error disabling MFA:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to disable 2FA');
+      toast.error(error instanceof Error ? error.message : t('twofactorsettings.failedToDisable2fa', 'Failed to disable 2FA'));
     }
   };
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
-    toast.success('Copied to clipboard');
+    toast.success(t('twofactorsettings.copiedToClipboard', 'Copied to clipboard'));
   };
 
   if (loading) {
@@ -217,14 +219,12 @@ export const TwoFactorSettings = () => {
           <Shield className="w-5 h-5" />
           Two-Factor Authentication (2FA)
         </CardTitle>
-        <CardDescription>
-          Add an extra layer of security to your account using an authenticator app
-        </CardDescription>
+        <CardDescription>{t('twofactorsettings.addAnExtraLayerOfSecurity', 'Add an extra layer of security to your account using an authenticator app')}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         {existingFactors.length > 0 && (
           <div className="space-y-3">
-            <Label className="text-sm font-semibold">Current 2FA Factors:</Label>
+            <Label className="text-sm font-semibold">{t('twofactorsettings.current2faFactors', 'Current 2FA Factors:')}</Label>
             {existingFactors.map((factor) => (
               <div
                 key={factor.id}
@@ -249,7 +249,7 @@ export const TwoFactorSettings = () => {
                     onClick={() => handleRemoveFactor(factor.id)}
                     disabled={resetting}
                   >
-                    {resetting ? 'Removing...' : 'Remove'}
+                    {resetting ? t('twofactorsettings.removing', 'Removing...') : t('twofactorsettings.remove', 'Remove')}
                   </Button>
                 )}
               </div>
@@ -271,10 +271,10 @@ export const TwoFactorSettings = () => {
 
             <div className="space-y-4">
               <div className="space-y-2">
-                <h4 className="font-semibold text-sm">What you'll need:</h4>
+                <h4 className="font-semibold text-sm">{t('twofactorsettings.whatYoullNeed', 'What you\'ll need:')}</h4>
                 <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
-                  <li>An authenticator app (Google Authenticator, Authy, 1Password, etc.)</li>
-                  <li>Access to your email for account recovery</li>
+                  <li>{t('twofactorsettings.anAuthenticatorAppGoogleAuthenticatorAuthy', 'An authenticator app (Google Authenticator, Authy, 1Password, etc.)')}</li>
+                  <li>{t('twofactorsettings.accessToYourEmailForAccount', 'Access to your email for account recovery')}</li>
                 </ul>
               </div>
 
@@ -283,7 +283,7 @@ export const TwoFactorSettings = () => {
                 disabled={enrolling || existingFactors.some(f => f.friendly_name === 'Authenticator App')}
                 className="w-full"
               >
-                {enrolling ? 'Setting up...' : 'Enable Two-Factor Authentication'}
+                {enrolling ? t('twofactorsettings.settingUp', 'Setting up...') : t('twofactorsettings.enableTwofactorAuthentication', 'Enable Two-Factor Authentication')}
               </Button>
             </div>
           </>
@@ -294,14 +294,14 @@ export const TwoFactorSettings = () => {
             <div className="space-y-4">
               <div className="flex items-center gap-2">
                 <QrCode className="w-5 h-5 text-primary" />
-                <h4 className="font-semibold">Step 1: Scan QR Code</h4>
+                <h4 className="font-semibold">{t('twofactorsettings.step1ScanQrCode', 'Step 1: Scan QR Code')}</h4>
               </div>
               
               <div className="flex flex-col items-center gap-4 p-6 bg-background/50 rounded-lg border">
                 <img src={qrCode} alt="2FA QR Code" className="w-48 h-48" />
                 
                 <div className="space-y-2 w-full">
-                  <Label className="text-xs text-muted-foreground">Or enter this key manually:</Label>
+                  <Label className="text-xs text-muted-foreground">{t('twofactorsettings.orEnterThisKeyManually', 'Or enter this key manually:')}</Label>
                   <div className="flex items-center gap-2">
                     <code className="flex-1 px-3 py-2 bg-background border rounded text-sm font-mono">
                       {secret}
@@ -321,13 +321,11 @@ export const TwoFactorSettings = () => {
             <div className="space-y-4">
               <div className="flex items-center gap-2">
                 <Key className="w-5 h-5 text-primary" />
-                <h4 className="font-semibold">Step 2: Enter Verification Code</h4>
+                <h4 className="font-semibold">{t('twofactorsettings.step2EnterVerificationCode', 'Step 2: Enter Verification Code')}</h4>
               </div>
               
               <div className="flex flex-col items-center gap-4">
-                <p className="text-sm text-muted-foreground text-center">
-                  Enter the 6-digit code from your authenticator app
-                </p>
+                <p className="text-sm text-muted-foreground text-center">{t('twofactorsettings.enterThe6digitCodeFromYour', 'Enter the 6-digit code from your authenticator app')}</p>
                 
                 <InputOTP
                   maxLength={6}
@@ -354,15 +352,13 @@ export const TwoFactorSettings = () => {
                     }}
                     className="flex-1"
                   >
-                    Cancel
+                    {t('twofactorsettings.cancel', 'Cancel')}
                   </Button>
                   <Button
                     onClick={handleVerifyAndEnable}
                     disabled={verifyCode.length !== 6}
                     className="flex-1"
-                  >
-                    Verify & Enable
-                  </Button>
+                  >{t('twofactorsettings.verifyEnable', 'Verify & Enable')}</Button>
                 </div>
               </div>
             </div>
@@ -373,13 +369,11 @@ export const TwoFactorSettings = () => {
           <div className="space-y-4">
             <Alert className="bg-amber-500/10 border-amber-500/20">
               <AlertTriangle className="h-4 w-4 text-amber-500" />
-              <AlertDescription className="text-amber-500">
-                Save these recovery codes in a safe place. You'll need them to access your account if you lose your authenticator device.
-              </AlertDescription>
+              <AlertDescription className="text-amber-500">{t('twofactorsettings.saveTheseRecoveryCodesInA', 'Save these recovery codes in a safe place. You\'ll need them to access your account if you lose your authenticator device.')}</AlertDescription>
             </Alert>
 
             <div className="space-y-2">
-              <Label>Recovery Codes</Label>
+              <Label>{t('twofactorsettings.recoveryCodes', 'Recovery Codes')}</Label>
               <div className="grid grid-cols-2 gap-2 p-4 bg-background/50 rounded-lg border">
                 {recoveryCodes.map((code, i) => (
                   <code key={i} className="px-2 py-1 bg-background rounded text-sm font-mono">
@@ -414,24 +408,18 @@ export const TwoFactorSettings = () => {
           <div className="space-y-4">
             <Alert className="bg-green-500/10 border-green-500/20">
               <CheckCircle2 className="h-4 w-4 text-green-500" />
-              <AlertDescription className="text-green-500">
-                Two-factor authentication is enabled and protecting your account.
-              </AlertDescription>
+              <AlertDescription className="text-green-500">{t('twofactorsettings.twofactorAuthenticationIsEnabledAndProtecting', 'Two-factor authentication is enabled and protecting your account.')}</AlertDescription>
             </Alert>
 
             <div className="space-y-2">
-              <p className="text-sm text-muted-foreground">
-                When signing in, you'll need to enter a code from your authenticator app after your password.
-              </p>
+              <p className="text-sm text-muted-foreground">{t('twofactorsettings.whenSigningInYoullNeedTo', 'When signing in, you\'ll need to enter a code from your authenticator app after your password.')}</p>
             </div>
 
             <Button
               variant="ghost"
               onClick={handleDisableMFA}
               className="w-full"
-            >
-              Disable Two-Factor Authentication
-            </Button>
+            >{t('twofactorsettings.disableTwofactorAuthentication', 'Disable Two-Factor Authentication')}</Button>
           </div>
         )}
       </CardContent>

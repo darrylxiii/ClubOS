@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from 'react-i18next';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -34,6 +35,7 @@ const taskTypeConfig: Record<string, { label: string; icon: any; color: string }
 };
 
 export function PilotTaskTimerIntegration() {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const { startTimer, runningEntry } = useTimeTracking();
   const [startingTaskId, setStartingTaskId] = useState<string | null>(null);
@@ -102,9 +104,7 @@ export function PilotTaskTimerIntegration() {
           <Sparkles className="h-5 w-5 text-primary" />
           Club Pilot Tasks
         </CardTitle>
-        <CardDescription>
-          Start a timer linked to your AI-prioritized tasks
-        </CardDescription>
+        <CardDescription>{t('timeTracking.startATimerLinkedToYourAIprioritizedTask')}</CardDescription>
       </CardHeader>
       <CardContent>
         <ScrollArea className="h-[300px] pr-4">

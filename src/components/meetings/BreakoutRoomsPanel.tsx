@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -24,6 +25,7 @@ interface BreakoutRoomsPanelProps {
 }
 
 export function BreakoutRoomsPanel({ meetingId, isHost, open, onOpenChange }: BreakoutRoomsPanelProps) {
+  const { t } = useTranslation('common');
   const [rooms, setRooms] = useState<BreakoutRoom[]>([]);
   const [newRoomName, setNewRoomName] = useState("");
   const [loading, setLoading] = useState(false);
@@ -82,7 +84,7 @@ export function BreakoutRoomsPanel({ meetingId, isHost, open, onOpenChange }: Br
 
   const createRoom = async () => {
     if (!newRoomName.trim()) {
-      toast.error("Room name is required");
+      toast.error(t("room_name_is_required", "Room name is required"));
       return;
     }
 
@@ -99,10 +101,10 @@ export function BreakoutRoomsPanel({ meetingId, isHost, open, onOpenChange }: Br
       if (error) throw error;
 
       setNewRoomName("");
-      toast.success("Breakout room created");
+      toast.success(t("breakout_room_created", "Breakout room created"));
     } catch (error) {
       console.error('Error creating room:', error);
-      toast.error("Failed to create room");
+      toast.error(t("failed_to_create_room", "Failed to create room"));
     } finally {
       setLoading(false);
     }
@@ -116,10 +118,10 @@ export function BreakoutRoomsPanel({ meetingId, isHost, open, onOpenChange }: Br
         .eq('id', roomId);
 
       if (error) throw error;
-      toast.success("Room closed");
+      toast.success(t("room_closed", "Room closed"));
     } catch (error) {
       console.error('Error deleting room:', error);
-      toast.error("Failed to close room");
+      toast.error(t("failed_to_close_room", "Failed to close room"));
     }
   };
 
@@ -137,13 +139,13 @@ export function BreakoutRoomsPanel({ meetingId, isHost, open, onOpenChange }: Br
         });
 
       if (error) throw error;
-      toast.success("Joined breakout room");
+      toast.success(t("joined_breakout_room", "Joined breakout room"));
     } catch (error: unknown) {
       const err = error as { code?: string };
       if (err.code === '23505') {
-        toast.info("You're already in this room");
+        toast.info(t("youre_already_in_this", "You're already in this room"));
       } else {
-        toast.error("Failed to join room");
+        toast.error(t("failed_to_join_room", "Failed to join room"));
       }
     }
   };
@@ -161,12 +163,12 @@ export function BreakoutRoomsPanel({ meetingId, isHost, open, onOpenChange }: Br
         <div className="p-4 space-y-4">
           {isHost && (
             <Card className="p-4 bg-card/50">
-              <h3 className="font-semibold mb-3">Create Breakout Room</h3>
+              <h3 className="font-semibold mb-3">{t("create_breakout_room", "Create Breakout Room")}</h3>
               <div className="flex gap-2">
                 <Input
                   value={newRoomName}
                   onChange={(e) => setNewRoomName(e.target.value)}
-                  placeholder="Room name (e.g., Technical Discussion)"
+                  placeholder={t("room_name_eg_technical", "Room name (e.g., Technical Discussion)")}
                   onKeyPress={(e) => e.key === 'Enter' && createRoom()}
                 />
                 <Button onClick={createRoom} disabled={loading}>
@@ -181,11 +183,11 @@ export function BreakoutRoomsPanel({ meetingId, isHost, open, onOpenChange }: Br
           )}
 
           <div>
-            <h3 className="font-semibold mb-3">Active Rooms</h3>
+            <h3 className="font-semibold mb-3">{t("active_rooms", "Active Rooms")}</h3>
             {rooms.length === 0 ? (
               <Card className="p-8 text-center bg-card/50">
                 <Users className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
-                <p className="text-muted-foreground">No breakout rooms yet</p>
+                <p className="text-muted-foreground">{t("no_breakout_rooms_yet", "No breakout rooms yet")}</p>
                 {isHost && (
                   <p className="text-sm text-muted-foreground mt-2">
                     Create a room to split participants into smaller groups

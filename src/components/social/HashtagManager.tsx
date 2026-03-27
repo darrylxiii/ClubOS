@@ -4,8 +4,10 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { TrendingUp, Hash, Copy, Plus } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 export const HashtagManager = () => {
+  const { t } = useTranslation("common");
   const trendingHashtags = [
     { tag: "AI", count: 45200, trending: 15 },
     { tag: "TechJobs", count: 32100, trending: 8 },
@@ -28,7 +30,7 @@ export const HashtagManager = () => {
   const copyHashtags = (hashtags: string[]) => {
     const text = hashtags.map(h => `#${h}`).join(" ");
     navigator.clipboard.writeText(text);
-    toast.success("Hashtags copied to clipboard!");
+    toast.success(t('social.hashtags.copied'));
   };
 
   return (
@@ -38,9 +40,9 @@ export const HashtagManager = () => {
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-lg font-semibold flex items-center gap-2">
             <TrendingUp className="h-5 w-5" />
-            Trending Hashtags
+            {t('social.hashtags.trending')}
           </h3>
-          <Button variant="outline" size="sm">Refresh</Button>
+          <Button variant="outline" size="sm">{t('actions.refresh')}</Button>
         </div>
 
         <div className="space-y-3">
@@ -54,7 +56,7 @@ export const HashtagManager = () => {
                   <div>
                     <p className="font-semibold">#{item.tag}</p>
                     <p className="text-sm text-muted-foreground">
-                      {item.count.toLocaleString()} posts
+                      {t('social.hashtags.postsCount', { count: item.count.toLocaleString() })}
                     </p>
                   </div>
                 </div>
@@ -71,10 +73,10 @@ export const HashtagManager = () => {
       {/* Saved Hashtag Sets */}
       <Card className="p-6">
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-lg font-semibold">Saved Hashtag Sets</h3>
+          <h3 className="text-lg font-semibold">{t('social.hashtags.savedSets')}</h3>
           <Button size="sm" className="gap-2">
             <Plus className="h-4 w-4" />
-            New Set
+            {t('social.hashtags.newSet')}
           </Button>
         </div>
 
@@ -90,7 +92,7 @@ export const HashtagManager = () => {
                   className="gap-2"
                 >
                   <Copy className="h-3 w-3" />
-                  Copy
+                  {t('actions.copy')}
                 </Button>
               </div>
               <div className="flex flex-wrap gap-2">
@@ -106,9 +108,9 @@ export const HashtagManager = () => {
 
         {/* Create New Set */}
         <Card className="p-4 bg-card/50 mt-4">
-          <h4 className="font-semibold mb-3">Create Custom Set</h4>
-          <Input placeholder="Enter hashtags separated by commas..." className="mb-3" />
-          <Button className="w-full">Save Hashtag Set</Button>
+          <h4 className="font-semibold mb-3">{t('social.hashtags.createCustom')}</h4>
+          <Input placeholder={t('social.hashtags.enterHashtags')} className="mb-3" />
+          <Button className="w-full">{t('social.hashtags.saveSet')}</Button>
         </Card>
       </Card>
     </div>

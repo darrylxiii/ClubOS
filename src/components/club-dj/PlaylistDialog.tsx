@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -16,6 +17,7 @@ interface PlaylistDialogProps {
 }
 
 export function PlaylistDialog({ open, onOpenChange, playlist, onSuccess }: PlaylistDialogProps) {
+  const { t } = useTranslation('common');
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [coverImage, setCoverImage] = useState<File | null>(null);
@@ -91,7 +93,7 @@ export function PlaylistDialog({ open, onOpenChange, playlist, onSuccess }: Play
         setCoverPreview(URL.createObjectURL(compressedFile));
       } catch (error) {
         console.error('Error compressing image:', error);
-        toast.error('Failed to process image');
+        toast.error(t("failed_to_process_image", "Failed to process image"));
       }
     }
   };
@@ -100,7 +102,7 @@ export function PlaylistDialog({ open, onOpenChange, playlist, onSuccess }: Play
     e.preventDefault();
     
     if (!name.trim()) {
-      toast.error('Playlist name is required');
+      toast.error(t("playlist_name_is_required", "Playlist name is required"));
       return;
     }
 
@@ -152,7 +154,7 @@ export function PlaylistDialog({ open, onOpenChange, playlist, onSuccess }: Play
 
         console.log('Update result:', { data, error });
         if (error) throw error;
-        toast.success('Playlist updated');
+        toast.success(t("playlist_updated", "Playlist updated"));
       } else {
         const { data, error } = await supabase
           .from('playlists')
@@ -161,7 +163,7 @@ export function PlaylistDialog({ open, onOpenChange, playlist, onSuccess }: Play
 
         console.log('Insert result:', { data, error });
         if (error) throw error;
-        toast.success('Playlist created');
+        toast.success(t("playlist_created", "Playlist created"));
       }
 
       onSuccess();
@@ -185,13 +187,13 @@ export function PlaylistDialog({ open, onOpenChange, playlist, onSuccess }: Play
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Cover Image */}
           <div className="space-y-2">
-            <Label>Cover Image</Label>
+            <Label>{t("cover_image", "Cover Image")}</Label>
             <div className="relative">
               {coverPreview ? (
                 <div className="relative aspect-square rounded-2xl overflow-hidden">
                   <img
                     src={coverPreview}
-                    alt="Cover preview"
+                    alt={t("cover_preview", "Cover preview")}
                     className="w-full h-full object-cover"
                   />
                   <label className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 hover:opacity-100 transition-opacity cursor-pointer">
@@ -207,7 +209,7 @@ export function PlaylistDialog({ open, onOpenChange, playlist, onSuccess }: Play
               ) : (
                 <label className="flex flex-col items-center justify-center aspect-square rounded-2xl border-2 border-dashed border-white/20 hover:border-primary/50 transition-colors cursor-pointer">
                   <ImageIcon className="h-12 w-12 text-muted-foreground mb-2" />
-                  <span className="text-sm text-muted-foreground">Upload cover</span>
+                  <span className="text-sm text-muted-foreground">{t("upload_cover", "Upload cover")}</span>
                   <input
                     type="file"
                     accept="image/*"
@@ -221,24 +223,24 @@ export function PlaylistDialog({ open, onOpenChange, playlist, onSuccess }: Play
 
           {/* Name */}
           <div className="space-y-2">
-            <Label htmlFor="name">Playlist Name</Label>
+            <Label htmlFor="name">{t("playlist_name", "Playlist Name")}</Label>
             <Input
               id="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Summer Vibes 2025"
+              placeholder={t("summer_vibes_2025", "Summer Vibes 2025")}
               required
             />
           </div>
 
           {/* Description */}
           <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
+            <Label htmlFor="description">{t("description", "Description")}</Label>
             <Textarea
               id="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="The hottest tracks for summer..."
+              placeholder={t("the_hottest_tracks_for", "The hottest tracks for summer...")}
               rows={3}
             />
           </div>

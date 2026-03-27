@@ -6,6 +6,22 @@ import {
 } from '../blockedDomainsService';
 import { supabase } from '@/integrations/supabase/client';
 
+vi.mock('@/integrations/supabase/client', () => ({
+  supabase: {
+    auth: {
+      getUser: vi.fn().mockResolvedValue({ data: { user: null }, error: null }),
+    },
+    from: vi.fn().mockReturnValue({
+      insert: vi.fn().mockReturnThis(),
+      select: vi.fn().mockReturnThis(),
+      single: vi.fn().mockResolvedValue({ data: null, error: null }),
+      delete: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockResolvedValue({ error: null }),
+    }),
+    rpc: vi.fn().mockResolvedValue({ data: null, error: null }),
+  },
+}));
+
 describe('blockedDomainsService', () => {
   beforeEach(() => {
     vi.clearAllMocks();

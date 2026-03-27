@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -13,6 +14,7 @@ interface MeetingNotesProps {
 }
 
 export function MeetingNotes({ meetingId, meetingTitle }: MeetingNotesProps) {
+  const { t } = useTranslation('common');
   const [notes, setNotes] = useState('');
   const [saving, setSaving] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -31,10 +33,10 @@ export function MeetingNotes({ meetingId, meetingTitle }: MeetingNotesProps) {
         .eq('id', meetingId);
 
       if (error) throw error;
-      toast.success('Notes saved successfully');
+      toast.success(t("notes_saved_successfully", "Notes saved successfully"));
     } catch (error) {
       console.error('[Notes] Failed to save:', error);
-      toast.error('Failed to save notes');
+      toast.error(t("failed_to_save_notes", "Failed to save notes"));
     } finally {
       setSaving(false);
     }
@@ -50,24 +52,24 @@ export function MeetingNotes({ meetingId, meetingTitle }: MeetingNotesProps) {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    toast.success('Notes downloaded');
+    toast.success(t("notes_downloaded", "Notes downloaded"));
   };
 
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(notes);
       setCopied(true);
-      toast.success('Notes copied to clipboard');
+      toast.success(t("notes_copied_to_clipboard", "Notes copied to clipboard"));
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
-      toast.error('Failed to copy notes');
+      toast.error(t("failed_to_copy_notes", "Failed to copy notes"));
     }
   };
 
   return (
     <Card className="flex flex-col h-full backdrop-blur-xl bg-black/60 border-white/10">
       <div className="flex items-center justify-between p-4 border-b border-white/10">
-        <h3 className="font-semibold">Meeting Notes</h3>
+        <h3 className="font-semibold">{t("meeting_notes", "Meeting Notes")}</h3>
         <div className="flex gap-2">
           <Button
             size="sm"

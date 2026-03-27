@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 
 import { Button } from '@/components/ui/button';
@@ -47,6 +48,7 @@ import { cn } from '@/lib/utils';
 import { AIPageCopilot } from '@/components/ai/AIPageCopilot';
 
 export default function Messages() {
+  const { t } = useTranslation('messages');
   const { user } = useAuth();
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -157,7 +159,7 @@ export default function Messages() {
         fireConfetti({ particleCount: 50, spread: 60, origin: { y: 0.7 } });
       }
     } catch (error) {
-      toast.error('Failed to send message');
+      toast.error(t('messages.failedToSendMessage', 'Failed to send message'));
     }
   };
 
@@ -169,12 +171,12 @@ export default function Messages() {
             <MessageCircle className="h-10 w-10 text-white" />
           </div>
           <div>
-            <h2 className="text-2xl font-bold mb-2">Welcome to Messages</h2>
-            <p className="text-muted-foreground">Start conversations with your network</p>
+            <h2 className="text-2xl font-bold mb-2">{t('messages.text1')}</h2>
+            <p className="text-muted-foreground">{t('messages.text2')}</p>
           </div>
           <Button onClick={() => setCreateDialogOpen(true)} size="lg" className="w-full shadow-glass-md hover:shadow-glass-lg transition-shadow">
             <Plus className="h-5 w-5 mr-2" />
-            Start Your First Conversation
+            {t('messages.startYourFirstConversation', 'Start Your First Conversation')}
           </Button>
         </Card>
         <CreateConversationDialog
@@ -247,7 +249,7 @@ export default function Messages() {
             <div className="flex items-center justify-between mb-3 sm:mb-4">
               <h2 className="text-lg sm:text-xl font-bold flex items-center gap-2">
                 <MessageCircle className="h-5 w-5 text-primary" />
-                <span>Messages</span>
+                <span>{t('messages.text3')}</span>
               </h2>
               <Button
                 size="icon"
@@ -260,7 +262,7 @@ export default function Messages() {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search conversations and messages..."
+                placeholder={t('messages.text4')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-9 bg-muted/30 border-border/30 rounded-xl focus:ring-2 focus:ring-primary/20 transition-all text-sm"
@@ -425,8 +427,8 @@ export default function Messages() {
                   <MessageCircle className="h-10 w-10 text-white" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold mb-2">Select a conversation</h3>
-                  <p className="text-muted-foreground">Choose from your existing conversations or start a new one</p>
+                  <h3 className="text-xl font-bold mb-2">{t('messages.text5')}</h3>
+                  <p className="text-muted-foreground">{t('messages.text6')}</p>
                 </div>
               </div>
             </div>

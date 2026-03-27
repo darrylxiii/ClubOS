@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -35,7 +35,7 @@ serve(async (req) => {
 
     const role = profile?.role || 'candidate';
 
-    let insights: any[] = [];
+    let insights: Array<{ type: string; text: string; confidence: number; metadata: Record<string, unknown> }> = [];
 
     if (role === 'candidate') {
       // Generate candidate insights
@@ -74,7 +74,7 @@ serve(async (req) => {
   }
 });
 
-async function generateCandidateInsights(supabase: any, userId: string) {
+async function generateCandidateInsights(supabase: SupabaseClient, userId: string) {
   const insights = [];
 
   // Get profile views trend
@@ -93,7 +93,7 @@ async function generateCandidateInsights(supabase: any, userId: string) {
       .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString());
 
     if (recentViews && recentViews.length > 0) {
-      const uniqueCompanies = new Set(recentViews.map((v: any) => v.companies?.name)).size;
+      const uniqueCompanies = new Set(recentViews.map((v) => v.companies?.name)).size;
       insights.push({
         type: 'profile_engagement',
         text: `Your profile received ${recentViews.length} views from ${uniqueCompanies} companies this week`,
@@ -111,7 +111,7 @@ async function generateCandidateInsights(supabase: any, userId: string) {
     .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
 
   if (recentApps && recentApps.length > 0) {
-    const interviewStage = recentApps.filter((a: any) => ['interview', 'final'].includes(a.status)).length;
+    const interviewStage = recentApps.filter((a) => ['interview', 'final'].includes(a.status)).length;
     if (interviewStage > 0) {
       insights.push({
         type: 'application_progress',
@@ -125,7 +125,7 @@ async function generateCandidateInsights(supabase: any, userId: string) {
   return insights;
 }
 
-async function generatePartnerInsights(supabase: any, userId: string, profile: any) {
+async function generatePartnerInsights(supabase: SupabaseClient, userId: string, profile: Record<string, unknown> | null) {
   const insights = [];
 
   // Get company jobs performance
@@ -135,7 +135,7 @@ async function generatePartnerInsights(supabase: any, userId: string, profile: a
     .eq('company_id', profile.company_id);
 
   if (jobs && jobs.length > 0) {
-    const jobIds = jobs.map((j: any) => j.id);
+    const jobIds = jobs.map((j) => j.id);
     const { data: applications } = await supabase
       .from('applications')
       .select('status, created_at')
@@ -143,7 +143,7 @@ async function generatePartnerInsights(supabase: any, userId: string, profile: a
       .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
 
     if (applications) {
-      const hires = applications.filter((a: any) => a.status === 'hired').length;
+      const hires = applications.filter((a) => a.status === 'hired').length;
       const total = applications.length;
       const conversionRate = total > 0 ? Math.round((hires / total) * 100) : 0;
 
@@ -159,7 +159,7 @@ async function generatePartnerInsights(supabase: any, userId: string, profile: a
   return insights;
 }
 
-async function generateAdminInsights(supabase: any) {
+async function generateAdminInsights(supabase: SupabaseClient) {
   const insights = [];
 
   // Platform-wide metrics

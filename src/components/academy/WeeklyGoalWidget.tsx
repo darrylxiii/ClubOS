@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Target } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
 export const WeeklyGoalWidget = () => {
+  const { t } = useTranslation('common');
   const [hoursThisWeek, setHoursThisWeek] = useState(0);
   const [loading, setLoading] = useState(true);
   const weeklyGoal = 5; // Default goal of 5 hours per week

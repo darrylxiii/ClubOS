@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { WorkspacePage, useWorkspacePages } from '@/hooks/useWorkspacePages';
@@ -47,6 +48,7 @@ function PageTreeItem({
   onToggleFavorite,
   selectedPageId,
 }: PageTreeItemProps) {
+  const { t } = useTranslation('common');
   const [isOpen, setIsOpen] = useState(false);
   const hasChildren = page.children && page.children.length > 0;
 
@@ -203,7 +205,7 @@ export function PageTreeSidebar({ selectedPageId }: PageTreeSidebarProps) {
     <div className="w-64 border-r bg-card/50 flex flex-col h-full">
       {/* Header */}
       <div className="p-3 border-b flex items-center justify-between">
-        <span className="font-semibold text-sm">Pages</span>
+        <span className="font-semibold text-sm">{t("pages", "Pages")}</span>
         <Button
           variant="ghost"
           size="icon"
@@ -251,7 +253,7 @@ export function PageTreeSidebar({ selectedPageId }: PageTreeSidebarProps) {
             </div>
           ) : pageTree.length === 0 ? (
             <div className="p-4 text-center">
-              <p className="text-sm text-muted-foreground mb-2">No pages yet</p>
+              <p className="text-sm text-muted-foreground mb-2">{t("no_pages_yet", "No pages yet")}</p>
               <Button
                 variant="outline"
                 size="sm"

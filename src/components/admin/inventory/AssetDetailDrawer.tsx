@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -54,6 +55,7 @@ const EVENT_LABELS: Record<string, string> = {
 };
 
 export function AssetDetailDrawer({ asset, open, onOpenChange, onEdit, onStatusChange }: AssetDetailDrawerProps) {
+  const { t } = useTranslation('common');
   const { events, loading: eventsLoading, createEvent } = useAssetEvents(asset?.id);
   const [disposeDialogOpen, setDisposeDialogOpen] = useState(false);
   const [disposeForm, setDisposeForm] = useState({ reason: '', value: 0 });
@@ -107,11 +109,11 @@ export function AssetDetailDrawer({ asset, open, onOpenChange, onEdit, onStatusC
         disposal_value: disposeForm.value,
       }, { status: asset.status }, { status: 'disposed' });
 
-      toast.success('Asset disposed successfully');
+      toast.success(t("asset_disposed_successfully", "Asset disposed successfully"));
       setDisposeDialogOpen(false);
       onOpenChange(false);
     } catch (err) {
-      toast.error('Failed to dispose asset');
+      toast.error(t("failed_to_dispose_asset", "Failed to dispose asset"));
       console.error(err);
     } finally {
       setStatusChanging(false);
@@ -154,9 +156,9 @@ export function AssetDetailDrawer({ asset, open, onOpenChange, onEdit, onStatusC
 
           <Tabs defaultValue="details" className="flex-1 flex flex-col overflow-hidden">
             <TabsList className="w-full grid grid-cols-3">
-              <TabsTrigger value="details">Details</TabsTrigger>
-              <TabsTrigger value="timeline">Timeline</TabsTrigger>
-              <TabsTrigger value="actions">Actions</TabsTrigger>
+              <TabsTrigger value="details">{t("details", "Details")}</TabsTrigger>
+              <TabsTrigger value="timeline">{t("timeline", "Timeline")}</TabsTrigger>
+              <TabsTrigger value="actions">{t("actions", "Actions")}</TabsTrigger>
             </TabsList>
 
             <ScrollArea className="flex-1 mt-4">
@@ -170,27 +172,27 @@ export function AssetDetailDrawer({ asset, open, onOpenChange, onEdit, onStatusC
                   </CardHeader>
                   <CardContent className="grid grid-cols-2 gap-3 text-sm">
                     <div>
-                      <span className="text-muted-foreground">Category</span>
+                      <span className="text-muted-foreground">{t("category", "Category")}</span>
                       <p className="font-medium">{CATEGORY_LABELS[asset.category] || asset.category}</p>
                     </div>
                     <div>
-                      <span className="text-muted-foreground">Asset Type</span>
+                      <span className="text-muted-foreground">{t("asset_type", "Asset Type")}</span>
                       <p className="font-medium capitalize">{asset.asset_type}</p>
                     </div>
                     <div>
-                      <span className="text-muted-foreground">Supplier</span>
+                      <span className="text-muted-foreground">{t("supplier", "Supplier")}</span>
                       <p className="font-medium">{asset.supplier || '—'}</p>
                     </div>
                     <div>
-                      <span className="text-muted-foreground">Serial/Invoice #</span>
+                      <span className="text-muted-foreground">{t("serialinvoice", "Serial/Invoice #")}</span>
                       <p className="font-medium">{asset.invoice_reference || '—'}</p>
                     </div>
                     <div>
-                      <span className="text-muted-foreground">Location</span>
+                      <span className="text-muted-foreground">{t("location", "Location")}</span>
                       <p className="font-medium">{asset.cost_center || '—'}</p>
                     </div>
                     <div>
-                      <span className="text-muted-foreground">Assigned To</span>
+                      <span className="text-muted-foreground">{t("assigned_to", "Assigned To")}</span>
                       <p className="font-medium">{asset.assigned_to || '—'}</p>
                     </div>
                   </CardContent>
@@ -205,27 +207,27 @@ export function AssetDetailDrawer({ asset, open, onOpenChange, onEdit, onStatusC
                   </CardHeader>
                   <CardContent className="grid grid-cols-2 gap-3 text-sm">
                     <div>
-                      <span className="text-muted-foreground">Purchase Value</span>
+                      <span className="text-muted-foreground">{t("purchase_value", "Purchase Value")}</span>
                       <p className="font-medium">{formatCurrency(asset.total_purchase_value)}</p>
                     </div>
                     <div>
-                      <span className="text-muted-foreground">Current Book Value</span>
+                      <span className="text-muted-foreground">{t("current_book_value", "Current Book Value")}</span>
                       <p className="font-medium text-primary">{formatCurrency(asset.current_book_value)}</p>
                     </div>
                     <div>
-                      <span className="text-muted-foreground">Accumulated Depreciation</span>
+                      <span className="text-muted-foreground">{t("accumulated_depreciation", "Accumulated Depreciation")}</span>
                       <p className="font-medium">{formatCurrency(asset.accumulated_depreciation)}</p>
                     </div>
                     <div>
-                      <span className="text-muted-foreground">Monthly Depreciation</span>
+                      <span className="text-muted-foreground">{t("monthly_depreciation", "Monthly Depreciation")}</span>
                       <p className="font-medium">{formatCurrency(asset.monthly_depreciation)}</p>
                     </div>
                     <div>
-                      <span className="text-muted-foreground">Useful Life</span>
+                      <span className="text-muted-foreground">{t("useful_life", "Useful Life")}</span>
                       <p className="font-medium">{asset.useful_life_years} years</p>
                     </div>
                     <div>
-                      <span className="text-muted-foreground">Residual Value</span>
+                      <span className="text-muted-foreground">{t("residual_value", "Residual Value")}</span>
                       <p className="font-medium">{formatCurrency(asset.residual_value)}</p>
                     </div>
                   </CardContent>
@@ -240,11 +242,11 @@ export function AssetDetailDrawer({ asset, open, onOpenChange, onEdit, onStatusC
                   </CardHeader>
                   <CardContent className="grid grid-cols-2 gap-3 text-sm">
                     <div>
-                      <span className="text-muted-foreground">Purchase Date</span>
+                      <span className="text-muted-foreground">{t("purchase_date", "Purchase Date")}</span>
                       <p className="font-medium">{format(new Date(asset.purchase_date), 'PPP')}</p>
                     </div>
                     <div>
-                      <span className="text-muted-foreground">Depreciation Start</span>
+                      <span className="text-muted-foreground">{t("depreciation_start", "Depreciation Start")}</span>
                       <p className="font-medium">
                         {asset.depreciation_start_date 
                           ? format(new Date(asset.depreciation_start_date), 'PPP')
@@ -252,7 +254,7 @@ export function AssetDetailDrawer({ asset, open, onOpenChange, onEdit, onStatusC
                       </p>
                     </div>
                     <div>
-                      <span className="text-muted-foreground">Depreciation End</span>
+                      <span className="text-muted-foreground">{t("depreciation_end", "Depreciation End")}</span>
                       <p className="font-medium">
                         {asset.depreciation_end_date 
                           ? format(new Date(asset.depreciation_end_date), 'PPP')
@@ -260,7 +262,7 @@ export function AssetDetailDrawer({ asset, open, onOpenChange, onEdit, onStatusC
                       </p>
                     </div>
                     <div>
-                      <span className="text-muted-foreground">KIA Eligible</span>
+                      <span className="text-muted-foreground">{t("kia_eligible", "KIA Eligible")}</span>
                       <p className="font-medium">{asset.kia_eligible ? 'Yes' : 'No'}</p>
                     </div>
                   </CardContent>
@@ -292,7 +294,7 @@ export function AssetDetailDrawer({ asset, open, onOpenChange, onEdit, onStatusC
                 {(asset.description || asset.notes) && (
                   <Card>
                     <CardHeader className="pb-2">
-                      <CardTitle className="text-sm">Notes</CardTitle>
+                      <CardTitle className="text-sm">{t("notes", "Notes")}</CardTitle>
                     </CardHeader>
                     <CardContent className="text-sm">
                       {asset.description && <p className="mb-2">{asset.description}</p>}
@@ -313,7 +315,7 @@ export function AssetDetailDrawer({ asset, open, onOpenChange, onEdit, onStatusC
                     {eventsLoading ? (
                       <CRMActivitySkeleton />
                     ) : events.length === 0 ? (
-                      <p className="text-sm text-muted-foreground">No events recorded yet.</p>
+                      <p className="text-sm text-muted-foreground">{t("no_events_recorded_yet", "No events recorded yet.")}</p>
                     ) : (
                       <div className="space-y-4">
                         {events.map((event) => (
@@ -347,7 +349,7 @@ export function AssetDetailDrawer({ asset, open, onOpenChange, onEdit, onStatusC
                 {!isDisposed && validTransitions.length > 0 && (
                   <Card>
                     <CardHeader className="pb-2">
-                      <CardTitle className="text-sm">Change Status</CardTitle>
+                      <CardTitle className="text-sm">{t("change_status", "Change Status")}</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-2">
                       {validTransitions.map((newStatus) => {
@@ -374,7 +376,7 @@ export function AssetDetailDrawer({ asset, open, onOpenChange, onEdit, onStatusC
                     <CardContent className="pt-4">
                       <div className="flex items-center gap-2 text-destructive">
                         <AlertCircle className="h-4 w-4" />
-                        <span className="text-sm font-medium">This asset has been disposed</span>
+                        <span className="text-sm font-medium">{t("this_asset_has_been", "This asset has been disposed")}</span>
                       </div>
                       {asset.disposal_reason && (
                         <p className="text-sm text-muted-foreground mt-2">
@@ -394,23 +396,23 @@ export function AssetDetailDrawer({ asset, open, onOpenChange, onEdit, onStatusC
       <Dialog open={disposeDialogOpen} onOpenChange={setDisposeDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Dispose Asset</DialogTitle>
+            <DialogTitle>{t("dispose_asset", "Dispose Asset")}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <p className="text-sm text-muted-foreground">
               This will mark the asset as disposed and stop future depreciation calculations.
             </p>
             <div>
-              <Label>Disposal Reason</Label>
+              <Label>{t("disposal_reason", "Disposal Reason")}</Label>
               <Textarea
                 value={disposeForm.reason}
                 onChange={(e) => setDisposeForm(prev => ({ ...prev, reason: e.target.value }))}
-                placeholder="e.g., End of life, replaced, sold..."
+                placeholder={t("eg_end_of_life", "e.g., End of life, replaced, sold...")}
                 rows={3}
               />
             </div>
             <div>
-              <Label>Disposal Value (€)</Label>
+              <Label>{t("disposal_value", "Disposal Value (€)")}</Label>
               <Input
                 type="number"
                 min={0}
@@ -424,7 +426,7 @@ export function AssetDetailDrawer({ asset, open, onOpenChange, onEdit, onStatusC
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDisposeDialogOpen(false)}>Cancel</Button>
+            <Button variant="outline" onClick={() => setDisposeDialogOpen(false)}>{t("cancel", "Cancel")}</Button>
             <Button variant="outline" className="text-destructive border-destructive hover:bg-destructive/10" onClick={handleDispose} disabled={statusChanging}>
               Confirm Disposal
             </Button>

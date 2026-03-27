@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Repeat2, MessageSquare, Zap } from "lucide-react";
@@ -23,6 +24,7 @@ interface RepostButtonProps {
 }
 
 export function RepostButton({ postId, repostCount, onUpdate, post }: RepostButtonProps) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [comment, setComment] = useState("");
@@ -31,7 +33,7 @@ export function RepostButton({ postId, repostCount, onUpdate, post }: RepostButt
 
   const handleQuickRepost = async () => {
     if (!user) {
-      toast.error("Please sign in to repost");
+      toast.error(t("please_sign_in_to", "Please sign in to repost"));
       return;
     }
 
@@ -60,12 +62,12 @@ export function RepostButton({ postId, repostCount, onUpdate, post }: RepostButt
           repost_post_id: newPost.id
         });
 
-      toast.success("Reposted to your feed");
+      toast.success(t("reposted_to_your_feed", "Reposted to your feed"));
       setOpen(false);
       onUpdate();
     } catch (error) {
       console.error('Error reposting:', error);
-      toast.error("Failed to repost");
+      toast.error(t("failed_to_repost", "Failed to repost"));
     } finally {
       setLoading(false);
     }
@@ -73,7 +75,7 @@ export function RepostButton({ postId, repostCount, onUpdate, post }: RepostButt
 
   const handleRepostWithComment = async () => {
     if (!user) {
-      toast.error("Please sign in to repost");
+      toast.error(t("please_sign_in_to", "Please sign in to repost"));
       return;
     }
 
@@ -114,18 +116,18 @@ export function RepostButton({ postId, repostCount, onUpdate, post }: RepostButt
         }).catch(err => {
           console.error('Failed to generate AI summary:', err);
           // Non-critical: AI summary generation failure shouldn't block repost
-          toast.error('Repost successful, but AI summary generation failed');
+          toast.error(t("repost_successful_but_ai", "Repost successful, but AI summary generation failed"));
         });
       }
 
-      toast.success("Reposted with your thoughts");
+      toast.success(t("reposted_with_your_thoughts", "Reposted with your thoughts"));
       setOpen(false);
       setComment("");
       setShowCommentBox(false);
       onUpdate();
     } catch (error) {
       console.error('Error reposting:', error);
-      toast.error("Failed to repost");
+      toast.error(t("failed_to_repost", "Failed to repost"));
     } finally {
       setLoading(false);
     }
@@ -152,14 +154,14 @@ export function RepostButton({ postId, repostCount, onUpdate, post }: RepostButt
       </DialogTrigger>
       <DialogContent className="w-[95vw] sm:w-full max-w-[95vw] sm:max-w-lg max-h-[90vh] overflow-y-auto glass-card">
         <DialogHeader>
-          <DialogTitle className="text-xl">Repost to your feed</DialogTitle>
+          <DialogTitle className="text-xl">{t("repost_to_your_feed", "Repost to your feed")}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 pb-2">
           {/* Original Post Preview */}
           {post && (
             <div className="space-y-2">
-              <label className="text-sm font-medium text-muted-foreground">Preview</label>
+              <label className="text-sm font-medium text-muted-foreground">{t("preview", "Preview")}</label>
               <RepostedPostCard originalPost={post} />
             </div>
           )}
@@ -177,8 +179,8 @@ export function RepostButton({ postId, repostCount, onUpdate, post }: RepostButt
               >
                 <Zap className="h-6 w-6 text-accent" />
                 <div className="space-y-1 text-center">
-                  <div className="font-semibold">Repost</div>
-                  <div className="text-xs text-muted-foreground">Share instantly</div>
+                  <div className="font-semibold">{t("repost", "Repost")}</div>
+                  <div className="text-xs text-muted-foreground">{t("share_instantly", "Share instantly")}</div>
                 </div>
               </Button>
               <Button
@@ -188,19 +190,19 @@ export function RepostButton({ postId, repostCount, onUpdate, post }: RepostButt
               >
                 <MessageSquare className="h-6 w-6 text-accent" />
                 <div className="space-y-1 text-center">
-                  <div className="font-semibold">Add thoughts</div>
-                  <div className="text-xs text-muted-foreground">Include your comment</div>
+                  <div className="font-semibold">{t("add_thoughts", "Add thoughts")}</div>
+                  <div className="text-xs text-muted-foreground">{t("include_your_comment", "Include your comment")}</div>
                 </div>
               </Button>
             </div>
           ) : (
             <div className="space-y-4 animate-in slide-in-from-bottom-2 duration-200">
               <div className="space-y-2">
-                <label className="text-sm font-medium">Your thoughts</label>
+                <label className="text-sm font-medium">{t("your_thoughts", "Your thoughts")}</label>
                 <Textarea
                   value={comment}
                   onChange={(e) => setComment(e.target.value)}
-                  placeholder="What do you think about this?"
+                  placeholder={t("what_do_you_think", "What do you think about this?")}
                   className="min-h-[120px] resize-none"
                   autoFocus
                 />

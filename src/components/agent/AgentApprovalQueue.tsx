@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -41,6 +42,7 @@ interface PendingAction {
 }
 
 export function AgentApprovalQueue() {
+  const { t } = useTranslation('common');
   const [selectedActions, setSelectedActions] = useState<string[]>([]);
   const [expandedAction, setExpandedAction] = useState<string | null>(null);
   const [feedbackText, setFeedbackText] = useState("");
@@ -82,7 +84,7 @@ export function AgentApprovalQueue() {
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success("Actions approved");
+      toast.success(t("actions_approved", "Actions approved"));
       queryClient.invalidateQueries({ queryKey: ["agent-pending-actions"] });
       setSelectedActions([]);
     },
@@ -104,7 +106,7 @@ export function AgentApprovalQueue() {
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success("Actions rejected with feedback");
+      toast.success(t("actions_rejected_with_feedback", "Actions rejected with feedback"));
       queryClient.invalidateQueries({ queryKey: ["agent-pending-actions"] });
       setSelectedActions([]);
       setFeedbackText("");
@@ -167,7 +169,7 @@ export function AgentApprovalQueue() {
         ) : !pendingActions || pendingActions.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
             <CheckCircle2 className="h-8 w-8 mx-auto mb-2 text-green-500" />
-            <p>No pending actions requiring approval</p>
+            <p>{t("no_pending_actions_requiring", "No pending actions requiring approval")}</p>
           </div>
         ) : (
           <>
@@ -240,7 +242,7 @@ export function AgentApprovalQueue() {
             {selectedActions.length > 0 && (
               <div className="space-y-3 pt-3 border-t border-border/50">
                 <Textarea
-                  placeholder="Optional: Add feedback for rejected actions..."
+                  placeholder={t("optional_add_feedback_for", "Optional: Add feedback for rejected actions...")}
                   value={feedbackText}
                   onChange={(e) => setFeedbackText(e.target.value)}
                   className="min-h-[60px]"

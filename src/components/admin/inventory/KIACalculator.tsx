@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -14,6 +15,7 @@ interface KIACalculatorProps {
 const formatCurrency = (v: number) => new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR' }).format(v);
 
 export function KIACalculator({ currentInvestment }: KIACalculatorProps) {
+  const { t } = useTranslation('common');
   const [plannedInvestment, setPlannedInvestment] = useState(0);
   const [showOptimization, setShowOptimization] = useState(false);
 
@@ -100,14 +102,14 @@ export function KIACalculator({ currentInvestment }: KIACalculatorProps) {
         {/* Current vs Planned */}
         <div className="grid grid-cols-2 gap-4">
           <div className="rounded-lg border p-4">
-            <div className="text-sm text-muted-foreground mb-1">Current KIA Eligible</div>
+            <div className="text-sm text-muted-foreground mb-1">{t("current_kia_eligible", "Current KIA Eligible")}</div>
             <div className="text-2xl font-bold">{formatCurrency(currentInvestment)}</div>
             <div className="text-sm text-muted-foreground">
               Deduction: <span className="text-green-600 font-medium">{formatCurrency(currentDeduction)}</span>
             </div>
           </div>
           <div className="rounded-lg border p-4">
-            <Label htmlFor="planned" className="text-sm text-muted-foreground">Planned Investment</Label>
+            <Label htmlFor="planned" className="text-sm text-muted-foreground">{t("planned_investment", "Planned Investment")}</Label>
             <div className="relative mt-1">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">€</span>
               <Input
@@ -126,23 +128,23 @@ export function KIACalculator({ currentInvestment }: KIACalculatorProps) {
         {/* Projection */}
         <div className="rounded-lg bg-muted/50 p-4 space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium">Total Investment (Projected)</span>
+            <span className="text-sm font-medium">{t("total_investment_projected", "Total Investment (Projected)")}</span>
             <span className="text-xl font-bold">{formatCurrency(totalInvestment)}</span>
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium">Projected KIA Deduction</span>
+            <span className="text-sm font-medium">{t("projected_kia_deduction", "Projected KIA Deduction")}</span>
             <span className="text-xl font-bold text-green-600">{formatCurrency(projectedDeduction)}</span>
           </div>
           {plannedInvestment > 0 && (
             <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Additional Deduction from Planned</span>
+              <span className="text-muted-foreground">{t("additional_deduction_from_planned", "Additional Deduction from Planned")}</span>
               <span className={additionalDeduction > 0 ? 'text-green-600' : 'text-red-600'}>
                 {additionalDeduction >= 0 ? '+' : ''}{formatCurrency(additionalDeduction)}
               </span>
             </div>
           )}
           <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">Current Bracket</span>
+            <span className="text-muted-foreground">{t("current_bracket", "Current Bracket")}</span>
             <span className={`font-medium ${bracket.color}`}>{bracket.label}</span>
           </div>
         </div>
@@ -151,8 +153,8 @@ export function KIACalculator({ currentInvestment }: KIACalculatorProps) {
         <div className="space-y-2">
           <div className="flex justify-between text-xs text-muted-foreground">
             <span>€0</span>
-            <span>Optimal (€65,915)</span>
-            <span>Max (€353,973)</span>
+            <span>{t("optimal_65915", "Optimal (€65,915)")}</span>
+            <span>{t("max_353973", "Max (€353,973)")}</span>
           </div>
           <div className="relative">
             <Progress value={progressPercent} className="h-3" />
@@ -175,7 +177,7 @@ export function KIACalculator({ currentInvestment }: KIACalculatorProps) {
             <div className="flex items-start gap-3">
               <Lightbulb className="h-5 w-5 text-primary shrink-0 mt-0.5" />
               <div className="flex-1">
-                <div className="font-medium mb-1">Optimization Suggestion</div>
+                <div className="font-medium mb-1">{t("optimization_suggestion", "Optimization Suggestion")}</div>
                 <p className="text-sm text-muted-foreground">{optimization.reason}</p>
                 {optimization.amount > 0 && (
                   <div className="mt-2 flex items-center gap-2">
@@ -200,13 +202,13 @@ export function KIACalculator({ currentInvestment }: KIACalculatorProps) {
         {/* Tax Savings */}
         <div className="grid grid-cols-2 gap-4">
           <div className="rounded-lg border p-3 text-center">
-            <div className="text-xs text-muted-foreground mb-1">Tax Savings (25.8% rate)</div>
+            <div className="text-xs text-muted-foreground mb-1">{t("tax_savings_258_rate", "Tax Savings (25.8% rate)")}</div>
             <div className="text-lg font-bold text-green-600">
               {formatCurrency(projectedDeduction * 0.258)}
             </div>
           </div>
           <div className="rounded-lg border p-3 text-center">
-            <div className="text-xs text-muted-foreground mb-1">Effective Reduction</div>
+            <div className="text-xs text-muted-foreground mb-1">{t("effective_reduction", "Effective Reduction")}</div>
             <div className="text-lg font-bold">
               {totalInvestment > 0 ? ((projectedDeduction / totalInvestment) * 100).toFixed(1) : 0}%
             </div>

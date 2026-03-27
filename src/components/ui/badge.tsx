@@ -4,14 +4,15 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const badgeVariants = cva(
-  "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-all focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+  "inline-flex items-center rounded-full border-[0.5px] px-2 py-[2px] text-[10px] uppercase tracking-[0.15em] font-bold transition-all focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 backdrop-blur-sm shadow-inner",
   {
     variants: {
       variant: {
-        default: "border-border/30 bg-card/40 backdrop-blur-[var(--blur-glass-subtle)] text-foreground hover:bg-card/60 hover:border-border/50",
-        secondary: "border-border/30 bg-card/30 backdrop-blur-[var(--blur-glass-subtle)] text-secondary-foreground hover:bg-card/50 hover:border-border/50",
-        destructive: "border-destructive/30 bg-destructive/20 backdrop-blur-[var(--blur-glass-subtle)] text-destructive hover:bg-destructive/30 hover:border-destructive/50",
-        outline: "border-border/30 text-foreground backdrop-blur-[var(--blur-glass-subtle)] hover:bg-card/20",
+        default: "border-foreground/20 bg-foreground/10 text-foreground hover:bg-foreground/20 hover:border-foreground/30 shadow-[inset_0_0_8px_rgba(255,255,255,0.05)]",
+        secondary: "border-primary/20 bg-primary/10 text-primary-foreground hover:bg-primary/20 hover:border-primary/30",
+        destructive: "border-destructive/30 bg-destructive/10 text-destructive hover:bg-destructive/20 hover:border-destructive/50 shadow-[inset_0_0_8px_rgba(239,68,68,0.1)]",
+        outline: "border-white/10 text-foreground/80 hover:bg-white/5 hover:text-foreground",
+        success: "border-emerald-500/30 bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 hover:border-emerald-500/50 shadow-[inset_0_0_8px_rgba(16,185,129,0.1)]",
       },
     },
     defaultVariants: {

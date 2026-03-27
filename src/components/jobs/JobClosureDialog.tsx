@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -31,22 +32,22 @@ interface JobClosureDialogProps {
 type ClosureType = "hired" | "not_filled" | "cancelled" | "on_hold";
 
 const CLOSURE_TYPES = [
-  { value: "hired", label: "Hired", icon: CheckCircle2, color: "text-green-500", description: "Candidate was successfully placed" },
-  { value: "not_filled", label: "Not Filled", icon: XCircle, color: "text-destructive", description: "Role closed without a hire" },
-  { value: "cancelled", label: "Cancelled", icon: Ban, color: "text-muted-foreground", description: "Client cancelled the search" },
-  { value: "on_hold", label: "On Hold", icon: Pause, color: "text-amber-500", description: "Temporarily paused" },
+  { value: "hired", label: t('jobs.jobclosuredialog.hired', 'Hired'), icon: CheckCircle2, color: "text-green-500", description: t('jobs.jobclosuredialog.candidateWasSuccessfullyPlaced', 'Candidate was successfully placed') },
+  { value: "not_filled", label: t('jobs.jobclosuredialog.notFilled', 'Not Filled'), icon: XCircle, color: "text-destructive", description: t('jobs.jobclosuredialog.roleClosedWithoutAHire', 'Role closed without a hire') },
+  { value: "cancelled", label: t('jobs.jobclosuredialog.cancelled', 'Cancelled'), icon: Ban, color: "text-muted-foreground", description: t('jobs.jobclosuredialog.clientCancelledTheSearch', 'Client cancelled the search') },
+  { value: "on_hold", label: t('jobs.jobclosuredialog.onHold', 'On Hold'), icon: Pause, color: "text-amber-500", description: t('jobs.jobclosuredialog.temporarilyPaused', 'Temporarily paused') },
 ];
 
 const LOSS_REASONS = [
-  { value: "budget_cut", label: "Budget Cut" },
-  { value: "role_eliminated", label: "Role Eliminated" },
-  { value: "hired_internally", label: "Hired Internally" },
-  { value: "hired_competitor", label: "Hired via Competitor" },
-  { value: "requirements_changed", label: "Requirements Changed" },
-  { value: "no_qualified_candidates", label: "No Qualified Candidates" },
-  { value: "timing_issues", label: "Timing Issues" },
-  { value: "client_unresponsive", label: "Client Unresponsive" },
-  { value: "other", label: "Other" },
+  { value: "budget_cut", label: t('jobs.jobclosuredialog.budgetCut', 'Budget Cut') },
+  { value: "role_eliminated", label: t('jobs.jobclosuredialog.roleEliminated', 'Role Eliminated') },
+  { value: "hired_internally", label: t('jobs.jobclosuredialog.hiredInternally', 'Hired Internally') },
+  { value: "hired_competitor", label: t('jobs.jobclosuredialog.hiredViaCompetitor', 'Hired via Competitor') },
+  { value: "requirements_changed", label: t('jobs.jobclosuredialog.requirementsChanged', 'Requirements Changed') },
+  { value: "no_qualified_candidates", label: t('jobs.jobclosuredialog.noQualifiedCandidates', 'No Qualified Candidates') },
+  { value: "timing_issues", label: t('jobs.jobclosuredialog.timingIssues', 'Timing Issues') },
+  { value: "client_unresponsive", label: t('jobs.jobclosuredialog.clientUnresponsive', 'Client Unresponsive') },
+  { value: "other", label: t('jobs.jobclosuredialog.other', 'Other') },
 ];
 
 const KEY_LEARNINGS_OPTIONS = [
@@ -86,6 +87,7 @@ const StarRating = ({ value, onChange, label }: { value: number; onChange: (v: n
 );
 
 export function JobClosureDialog({ open, onOpenChange, job, applications, onComplete }: JobClosureDialogProps) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -194,7 +196,7 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
         
         if (profileError) {
           console.error("Error fetching profiles:", profileError);
-          toast.error("Could not load team members");
+          toast.error(t("could_not_load_team", "Could not load team members"));
           return;
         }
 
@@ -205,7 +207,7 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
         setTeamMembers(members);
       } catch (err) {
         console.error("Error loading team members:", err);
-        toast.error("Could not load team members");
+        toast.error(t("could_not_load_team", "Could not load team members"));
       }
     };
     loadTeamMembers();
@@ -371,11 +373,11 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
     if (isSplittingCredit && sourcingCredits.length > 0) {
       const totalPercentage = sourcingCredits.reduce((sum, c) => sum + c.percentage, 0);
       if (totalPercentage !== 100) {
-        toast.error("Sourcing credit percentages must total 100%");
+        toast.error(t("sourcing_credit_percentages_must", "Sourcing credit percentages must total 100%"));
         return;
       }
       if (sourcingCredits.some(c => !c.userId)) {
-        toast.error("Please select a team member for each credit split");
+        toast.error(t("please_select_a_team", "Please select a team member for each credit split"));
         return;
       }
     }
@@ -496,7 +498,7 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
                 console.warn('[JobClosureDialog] Invoice creation failed (non-blocking):', res.error);
               } else {
                 const invoiceData = res.data;
-                toast.success('Invoice draft created', {
+                toast.success(t("invoice_draft_created", "Invoice draft created"), {
                   description: invoiceData?.moneybirdDraft 
                     ? `${invoiceData.invoiceNumber} synced to Moneybird`
                     : `${invoiceData?.invoiceNumber || 'Invoice'} created. Moneybird sync pending.`,
@@ -565,15 +567,14 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
         closureType === "hired" 
           ? "Job closed successfully - Congratulations on the placement!" 
           : closureType === "on_hold"
-            ? "Job placed on hold"
-            : "Job closed successfully"
+            ? t('jobs.jobclosuredialog.jobPlacedOnHold', 'Job placed on hold') : t('jobs.jobclosuredialog.jobClosedSuccessfully', 'Job closed successfully')
       );
       
       onOpenChange(false);
       onComplete();
     } catch (error: unknown) {
       console.error("Error closing job:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to close job");
+      toast.error(error instanceof Error ? error.message : t('jobs.jobclosuredialog.failedToCloseJob', 'Failed to close job'));
     } finally {
       setLoading(false);
     }
@@ -595,7 +596,7 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
             Close Job: {job?.title}
           </DialogTitle>
           <DialogDescription>
-            Step {step} of 4 - {step === 1 ? "Closure Type" : step === 2 ? "Details" : step === 3 ? "Takeaways" : "Review"}
+            Step {step} of 4 - {step === 1 ? "Closure Type" : step === 2 ? "Details" : step === 3 ? t('jobs.jobclosuredialog.takeaways', 'Takeaways') : t('jobs.jobclosuredialog.review', 'Review')}
           </DialogDescription>
         </DialogHeader>
 
@@ -616,7 +617,7 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
         {step === 1 && (
           <div className="space-y-6">
             <div className="space-y-3">
-              <Label>How is this job being closed?</Label>
+              <Label>{t("how_is_this_job", "How is this job being closed?")}</Label>
               <RadioGroup value={closureType} onValueChange={(v) => setClosureType(v as ClosureType)}>
                 <div className="grid grid-cols-2 gap-3">
                   {CLOSURE_TYPES.map((type) => (
@@ -644,7 +645,7 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="closingDate">Actual Closing Date</Label>
+              <Label htmlFor="closingDate">{t("actual_closing_date", "Actual Closing Date")}</Label>
               <Input
                 id="closingDate"
                 type="date"
@@ -652,29 +653,27 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
                 onChange={(e) => setActualClosingDate(e.target.value)}
                 max={format(new Date(), "yyyy-MM-dd")}
               />
-              <p className="text-xs text-muted-foreground">
-                When did this role actually close? (May differ from today)
-              </p>
+              <p className="text-xs text-muted-foreground">{t('jobs.jobclosuredialog.whenDidThisRoleActuallyClose', 'When did this role actually close? (May differ from today)')}</p>
             </div>
 
             {/* Pipeline summary */}
             <div className="rounded-lg border bg-muted/50 p-4">
               <div className="flex items-center gap-2 mb-3">
                 <Users className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm font-medium">Pipeline Summary</span>
+                <span className="text-sm font-medium">{t("pipeline_summary", "Pipeline Summary")}</span>
               </div>
               <div className="grid grid-cols-3 gap-3 text-center">
                 <div>
                   <div className="text-2xl font-bold">{totalApplicants}</div>
-                  <div className="text-xs text-muted-foreground">Total Applicants</div>
+                  <div className="text-xs text-muted-foreground">{t("total_applicants", "Total Applicants")}</div>
                 </div>
                 <div>
                   <div className="text-2xl font-bold">{candidatesInterviewed}</div>
-                  <div className="text-xs text-muted-foreground">Interviewed</div>
+                  <div className="text-xs text-muted-foreground">{t("interviewed", "Interviewed")}</div>
                 </div>
                 <div>
                   <div className="text-2xl font-bold">{candidatesFinalRound}</div>
-                  <div className="text-xs text-muted-foreground">Final Round</div>
+                  <div className="text-xs text-muted-foreground">{t("final_round", "Final Round")}</div>
                 </div>
               </div>
             </div>
@@ -687,7 +686,7 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
             {closureType === "hired" && (
               <>
                 <div className="space-y-2">
-                  <Label>Select Hired Candidate *</Label>
+                  <Label>{t("select_hired_candidate", "Select Hired Candidate *")}</Label>
                   <Select 
                     value={selectedApplicationId} 
                     onValueChange={(appId) => {
@@ -697,7 +696,7 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
                     }}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Choose the hired candidate..." />
+                      <SelectValue placeholder={t("choose_the_hired_candidate", "Choose the hired candidate...")} />
                     </SelectTrigger>
                     <SelectContent>
                       {eligibleForHire.length > 0 ? (
@@ -707,9 +706,7 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
                           </SelectItem>
                         ))
                       ) : (
-                        <SelectItem value="_none" disabled>
-                          No eligible candidates (must be in interview stage+)
-                        </SelectItem>
+                        <SelectItem value="_none" disabled>{t('jobs.jobclosuredialog.noEligibleCandidatesMustBeIn', 'No eligible candidates (must be in interview stage+)')}</SelectItem>
                       )}
                     </SelectContent>
                   </Select>
@@ -717,11 +714,11 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="actualSalary">Actual Salary</Label>
+                    <Label htmlFor="actualSalary">{t("actual_salary", "Actual Salary")}</Label>
                     <Input
                       id="actualSalary"
                       type="number"
-                      placeholder="e.g., 85000"
+                      placeholder={t("eg_85000", "e.g., 85000")}
                       value={actualSalary}
                       onChange={(e) => setActualSalary(e.target.value)}
                     />
@@ -770,15 +767,15 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
                   <div className="p-4 rounded-lg border bg-muted/50">
                     <div className="flex items-center gap-2 mb-2">
                       <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm font-medium">Salary Comparison</span>
+                      <span className="text-sm font-medium">{t("salary_comparison", "Salary Comparison")}</span>
                     </div>
                     <div className="grid grid-cols-2 gap-4 text-sm">
                       <div>
-                        <span className="text-muted-foreground">Estimated Range:</span>
+                        <span className="text-muted-foreground">{t("estimated_range", "Estimated Range:")}</span>
                         <div className="font-medium">€{salaryMin.toLocaleString()} - €{salaryMax.toLocaleString()}</div>
                       </div>
                       <div>
-                        <span className="text-muted-foreground">Actual:</span>
+                        <span className="text-muted-foreground">{t("actual", "Actual:")}</span>
                         <div className="font-medium">€{parseFloat(actualSalary).toLocaleString()}</div>
                       </div>
                     </div>
@@ -805,14 +802,14 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-2">
                         <Award className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm font-medium">Sourcing Credit</span>
+                        <span className="text-sm font-medium">{t("sourcing_credit", "Sourcing Credit")}</span>
                         {(isOverridingSourcer || isSplittingCredit) && (
-                          <Badge variant="outline" className="text-xs">Overriding</Badge>
+                          <Badge variant="outline" className="text-xs">{t("overriding", "Overriding")}</Badge>
                         )}
                       </div>
                       {(isOverridingSourcer || isSplittingCredit) && (
                         <div className="flex items-center gap-2">
-                          <Label className="text-xs text-muted-foreground">Split credit</Label>
+                          <Label className="text-xs text-muted-foreground">{t("split_credit", "Split credit")}</Label>
                           <Switch 
                             checked={isSplittingCredit} 
                             onCheckedChange={(checked) => {
@@ -837,7 +834,7 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
                     {!isOverridingSourcer && !isSplittingCredit ? (
                       <div className="space-y-3">
                         <div>
-                          <Label className="text-xs">Sourced by (gets commission)</Label>
+                          <Label className="text-xs">{t("sourced_by_gets_commission", "Sourced by (gets commission)")}</Label>
                           <div className="mt-1 p-3 rounded-md bg-background border flex items-center justify-between">
                             <div className="flex items-center gap-3">
                               <Avatar className="h-8 w-8">
@@ -858,22 +855,20 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
                               size="sm"
                               onClick={() => setIsOverridingSourcer(true)}
                             >
-                              Override
+                              {t('jobs.jobclosuredialog.override', 'Override')}
                             </Button>
                           </div>
                         </div>
-                        <p className="text-xs text-muted-foreground">
-                          This person will receive the commission for this placement.
-                        </p>
+                        <p className="text-xs text-muted-foreground">{t('jobs.jobclosuredialog.thisPersonWillReceiveTheCommission', 'This person will receive the commission for this placement.')}</p>
                       </div>
                     ) : !isSplittingCredit && isOverridingSourcer ? (
                       /* Override mode: Editable dropdown + reason */
                       <div className="space-y-3">
                         <div>
-                          <Label className="text-xs">Sourced by (gets commission)</Label>
+                          <Label className="text-xs">{t("sourced_by_gets_commission", "Sourced by (gets commission)")}</Label>
                           <Select value={sourcedBy} onValueChange={setSourcedBy}>
                             <SelectTrigger className="mt-1">
-                              <SelectValue placeholder="Select who gets credit..." />
+                              <SelectValue placeholder={t("select_who_gets_credit", "Select who gets credit...")} />
                             </SelectTrigger>
                             <SelectContent className="z-[999]">
                               {teamMembers.map((member) => (
@@ -886,10 +881,10 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
                         </div>
                         
                         <div>
-                          <Label className="text-xs">Reason for override</Label>
+                          <Label className="text-xs">{t("reason_for_override", "Reason for override")}</Label>
                           <Textarea
                             className="mt-1"
-                            placeholder="Why is the sourcing credit being changed?"
+                            placeholder={t("why_is_the_sourcing", "Why is the sourcing credit being changed?")}
                             value={sourcerOverrideReason}
                             onChange={(e) => setSourcerOverrideReason(e.target.value)}
                             rows={2}
@@ -906,17 +901,15 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
                             setSourcerOverrideReason("");
                           }}
                         >
-                          Cancel Override
+                          {t('jobs.jobclosuredialog.cancelOverride', 'Cancel Override')}
                         </Button>
                         
-                        <p className="text-xs text-muted-foreground">
-                          This person will receive the commission for this placement.
-                        </p>
+                        <p className="text-xs text-muted-foreground">{t('jobs.jobclosuredialog.thisPersonWillReceiveTheCommission', 'This person will receive the commission for this placement.')}</p>
                       </div>
                     ) : (
                       /* Split credit mode */
                       <div className="space-y-3">
-                        <Label className="text-xs">Split commission between team members</Label>
+                        <Label className="text-xs">{t("split_commission_between_team", "Split commission between team members")}</Label>
                         {sourcingCredits.map((credit, index) => (
                           <div key={index} className="flex items-center gap-2">
                             <Select 
@@ -929,7 +922,7 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
                               }}
                             >
                               <SelectTrigger className="flex-1">
-                                <SelectValue placeholder="Select person..." />
+                                <SelectValue placeholder={t("select_person", "Select person...")} />
                               </SelectTrigger>
                               <SelectContent className="z-[999]">
                                 {teamMembers.map((member) => (
@@ -986,10 +979,10 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
                         })()}
 
                         <div>
-                          <Label className="text-xs">Reason for override</Label>
+                          <Label className="text-xs">{t("reason_for_override", "Reason for override")}</Label>
                           <Textarea
                             className="mt-1"
-                            placeholder="Why is the sourcing credit being changed?"
+                            placeholder={t("why_is_the_sourcing", "Why is the sourcing credit being changed?")}
                             value={sourcerOverrideReason}
                             onChange={(e) => setSourcerOverrideReason(e.target.value)}
                             rows={2}
@@ -1007,12 +1000,10 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
                             setSourcerOverrideReason("");
                           }}
                         >
-                          Cancel Override
+                          {t('jobs.jobclosuredialog.cancelOverride', 'Cancel Override')}
                         </Button>
                         
-                        <p className="text-xs text-muted-foreground">
-                          Commission will be split according to the percentages above.
-                        </p>
+                        <p className="text-xs text-muted-foreground">{t('jobs.jobclosuredialog.commissionWillBeSplitAccordingTo', 'Commission will be split according to the percentages above.')}</p>
                       </div>
                     )}
                   </div>
@@ -1022,10 +1013,10 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
 
             {closureType === "not_filled" && (
               <div className="space-y-2">
-                <Label>Reason for Not Filling *</Label>
+                <Label>{t("reason_for_not_filling", "Reason for Not Filling *")}</Label>
                 <Select value={lossReason} onValueChange={setLossReason}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select a reason..." />
+                    <SelectValue placeholder={t("select_a_reason", "Select a reason...")} />
                   </SelectTrigger>
                   <SelectContent>
                     {LOSS_REASONS.map((reason) => (
@@ -1041,26 +1032,22 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
             {closureType === "cancelled" && (
               <div className="p-4 rounded-lg bg-muted/50 text-center">
                 <Ban className="w-8 h-8 mx-auto text-muted-foreground mb-2" />
-                <p className="text-sm text-muted-foreground">
-                  The search was cancelled by the client. Continue to capture learnings.
-                </p>
+                <p className="text-sm text-muted-foreground">{t('jobs.jobclosuredialog.theSearchWasCancelledByThe', 'The search was cancelled by the client. Continue to capture learnings.')}</p>
               </div>
             )}
 
             {closureType === "on_hold" && (
               <div className="p-4 rounded-lg bg-amber-500/10 text-center">
                 <Pause className="w-8 h-8 mx-auto text-amber-500 mb-2" />
-                <p className="text-sm text-muted-foreground">
-                  This job will be paused. You can reactivate it later from the job management page.
-                </p>
+                <p className="text-sm text-muted-foreground">{t('jobs.jobclosuredialog.thisJobWillBePausedYou', 'This job will be paused. You can reactivate it later from the job management page.')}</p>
               </div>
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="notes">Additional Notes (Optional)</Label>
+              <Label htmlFor="notes">{t("additional_notes_optional", "Additional Notes (Optional)")}</Label>
               <Textarea
                 id="notes"
-                placeholder="Any additional context about this closure..."
+                placeholder={t("any_additional_context_about", "Any additional context about this closure...")}
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 rows={3}
@@ -1076,27 +1063,27 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
               <StarRating
                 value={candidateQualityRating}
                 onChange={setCandidateQualityRating}
-                label="Candidate Quality"
+                label={t("candidate_quality", "Candidate Quality")}
               />
               <StarRating
                 value={clientResponsivenessRating}
                 onChange={setClientResponsivenessRating}
-                label="Client Responsiveness"
+                label={t("client_responsiveness", "Client Responsiveness")}
               />
               <StarRating
                 value={marketDifficultyRating}
                 onChange={setMarketDifficultyRating}
-                label="Market Difficulty"
+                label={t("market_difficulty", "Market Difficulty")}
               />
             </div>
 
             <Separator />
 
             <div className="space-y-2">
-              <Label htmlFor="whatWentWell">What went well?</Label>
+              <Label htmlFor="whatWentWell">{t("what_went_well", "What went well?")}</Label>
               <Textarea
                 id="whatWentWell"
-                placeholder="Describe what worked well in this search..."
+                placeholder={t("describe_what_worked_well", "Describe what worked well in this search...")}
                 value={whatWentWell}
                 onChange={(e) => setWhatWentWell(e.target.value)}
                 rows={3}
@@ -1104,10 +1091,10 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="whatCouldImprove">What could be improved?</Label>
+              <Label htmlFor="whatCouldImprove">{t("what_could_be_improved", "What could be improved?")}</Label>
               <Textarea
                 id="whatCouldImprove"
-                placeholder="What would you do differently next time?"
+                placeholder={t("what_would_you_do", "What would you do differently next time?")}
                 value={whatCouldImprove}
                 onChange={(e) => setWhatCouldImprove(e.target.value)}
                 rows={3}
@@ -1115,7 +1102,7 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
             </div>
 
             <div className="space-y-2">
-              <Label>Key Learnings (select all that apply)</Label>
+              <Label>{t("key_learnings_select_all", "Key Learnings (select all that apply)")}</Label>
               <div className="flex flex-wrap gap-2">
                 {KEY_LEARNINGS_OPTIONS.map((learning) => (
                   <Badge
@@ -1132,10 +1119,10 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="recommendations">Recommendations for Similar Roles</Label>
+              <Label htmlFor="recommendations">{t("recommendations_for_similar_roles", "Recommendations for Similar Roles")}</Label>
               <Textarea
                 id="recommendations"
-                placeholder="Tips for handling similar roles in the future..."
+                placeholder={t("tips_for_handling_similar", "Tips for handling similar roles in the future...")}
                 value={recommendationsForFuture}
                 onChange={(e) => setRecommendationsForFuture(e.target.value)}
                 rows={2}
@@ -1149,18 +1136,18 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
           <div className="space-y-4">
             <div className="rounded-lg border p-4 space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Closure Type</span>
+                <span className="text-sm text-muted-foreground">{t("closure_type", "Closure Type")}</span>
                 <Badge variant={closureType === "hired" ? "default" : "secondary"}>
                   {CLOSURE_TYPES.find(t => t.value === closureType)?.label}
                 </Badge>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Closing Date</span>
+                <span className="text-sm text-muted-foreground">{t("closing_date", "Closing Date")}</span>
                 <span className="font-medium">{format(new Date(actualClosingDate), "MMM d, yyyy")}</span>
               </div>
               {closureType === "hired" && selectedApplicationId && (
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Hired Candidate</span>
+                  <span className="text-sm text-muted-foreground">{t("hired_candidate", "Hired Candidate")}</span>
                   <span className="font-medium">
                     {eligibleForHire.find(a => a.id === selectedApplicationId)?.candidate_full_name}
                   </span>
@@ -1168,7 +1155,7 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
               )}
               {closureType === "not_filled" && lossReason && (
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Loss Reason</span>
+                  <span className="text-sm text-muted-foreground">{t("loss_reason", "Loss Reason")}</span>
                   <span className="font-medium">
                     {LOSS_REASONS.find(r => r.value === lossReason)?.label}
                   </span>
@@ -1178,7 +1165,7 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
 
             {(candidateQualityRating > 0 || clientResponsivenessRating > 0 || marketDifficultyRating > 0) && (
               <div className="rounded-lg border p-4">
-                <h4 className="text-sm font-medium mb-3">Ratings</h4>
+                <h4 className="text-sm font-medium mb-3">{t("ratings", "Ratings")}</h4>
                 <div className="grid grid-cols-3 gap-4 text-center">
                   {candidateQualityRating > 0 && (
                     <div>
@@ -1187,7 +1174,7 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
                           <Star key={i} className="w-4 h-4 text-amber-400 fill-amber-400" />
                         ))}
                       </div>
-                      <div className="text-xs text-muted-foreground mt-1">Candidate Quality</div>
+                      <div className="text-xs text-muted-foreground mt-1">{t("candidate_quality", "Candidate Quality")}</div>
                     </div>
                   )}
                   {clientResponsivenessRating > 0 && (
@@ -1197,7 +1184,7 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
                           <Star key={i} className="w-4 h-4 text-amber-400 fill-amber-400" />
                         ))}
                       </div>
-                      <div className="text-xs text-muted-foreground mt-1">Client Response</div>
+                      <div className="text-xs text-muted-foreground mt-1">{t("client_response", "Client Response")}</div>
                     </div>
                   )}
                   {marketDifficultyRating > 0 && (
@@ -1207,7 +1194,7 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
                           <Star key={i} className="w-4 h-4 text-amber-400 fill-amber-400" />
                         ))}
                       </div>
-                      <div className="text-xs text-muted-foreground mt-1">Market Difficulty</div>
+                      <div className="text-xs text-muted-foreground mt-1">{t("market_difficulty", "Market Difficulty")}</div>
                     </div>
                   )}
                 </div>
@@ -1216,7 +1203,7 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
 
             {keyLearnings.length > 0 && (
               <div className="rounded-lg border p-4">
-                <h4 className="text-sm font-medium mb-2">Key Learnings</h4>
+                <h4 className="text-sm font-medium mb-2">{t("key_learnings", "Key Learnings")}</h4>
                 <div className="flex flex-wrap gap-1">
                   {keyLearnings.map((learning) => (
                     <Badge key={learning} variant="secondary" className="text-xs">
@@ -1230,20 +1217,20 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
             <div className="rounded-lg border bg-muted/50 p-4">
               <div className="flex items-center gap-2 mb-2">
                 <Clock className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm font-medium">Pipeline Metrics</span>
+                <span className="text-sm font-medium">{t("pipeline_metrics", "Pipeline Metrics")}</span>
               </div>
               <div className="grid grid-cols-3 gap-3 text-center text-sm">
                 <div>
                   <div className="font-bold">{totalApplicants}</div>
-                  <div className="text-xs text-muted-foreground">Total</div>
+                  <div className="text-xs text-muted-foreground">{t("total", "Total")}</div>
                 </div>
                 <div>
                   <div className="font-bold">{candidatesInterviewed}</div>
-                  <div className="text-xs text-muted-foreground">Interviewed</div>
+                  <div className="text-xs text-muted-foreground">{t("interviewed", "Interviewed")}</div>
                 </div>
                 <div>
                   <div className="font-bold">{candidatesFinalRound}</div>
-                  <div className="text-xs text-muted-foreground">Final Round</div>
+                  <div className="text-xs text-muted-foreground">{t("final_round", "Final Round")}</div>
                 </div>
               </div>
             </div>
@@ -1261,7 +1248,7 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
           </div>
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
-              Cancel
+              {t('jobs.jobclosuredialog.cancel', 'Cancel')}
             </Button>
             {step < 4 ? (
               <Button
@@ -1271,13 +1258,13 @@ export function JobClosureDialog({ open, onOpenChange, job, applications, onComp
                   (step === 2 && !canProceedStep2)
                 }
               >
-                Next
+                {t('jobs.jobclosuredialog.next', 'Next')}
                 <ChevronRight className="w-4 h-4 ml-1" />
               </Button>
             ) : (
               <Button onClick={handleSubmit} disabled={loading}>
                 {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                {closureType === "hired" ? "Complete Placement" : "Close Job"}
+                {closureType === "hired" ? t('jobs.jobclosuredialog.completePlacement', 'Complete Placement') : t('jobs.jobclosuredialog.closeJob', 'Close Job')}
               </Button>
             )}
           </div>

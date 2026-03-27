@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from '@/lib/motion';
 import { WifiOff, RefreshCw, CheckCircle, AlertTriangle, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -21,6 +22,7 @@ export function NetworkErrorRecovery({
   showOfflineBanner = true,
   className,
 }: NetworkErrorRecoveryProps) {
+  const { t } = useTranslation('common');
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [isRetrying, setIsRetrying] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
@@ -118,14 +120,14 @@ export function NetworkErrorRecovery({
                   <>
                     <WifiOff className="h-5 w-5 text-destructive-foreground" />
                     <span className="text-sm font-medium text-destructive-foreground">
-                      You're offline. Some features may not work.
+                      {t("errors.offlineMessage", "You're offline. Some features may not work.")}
                     </span>
                   </>
                 ) : (
                   <>
                     <CheckCircle className="h-5 w-5 text-white" />
                     <span className="text-sm font-medium text-white">
-                      Back online!
+                      {t("errors.backOnline", "Back online!")}
                     </span>
                   </>
                 )}
@@ -175,18 +177,18 @@ export function NetworkErrorRecovery({
 
             <h3 className="mb-2 text-lg font-semibold text-foreground">
               {recoveryStatus === 'success'
-                ? 'Connection Restored'
+                ? t("errors.connectionRestored", "Connection Restored")
                 : recoveryStatus === 'retrying'
-                ? 'Reconnecting...'
-                : 'Connection Error'}
+                ? t("errors.reconnecting", "Reconnecting...")
+                : t("errors.connectionError", "Connection Error")}
             </h3>
 
             <p className="mb-4 text-sm text-muted-foreground">
               {recoveryStatus === 'success'
-                ? 'Everything is working again.'
+                ? t("errors.everythingWorking", "Everything is working again.")
                 : recoveryStatus === 'retrying'
-                ? `Attempt ${retryCount} of 3...`
-                : 'We had trouble connecting. Please check your internet connection.'}
+                ? t("errors.reconnectAttempt", "Attempt {{count}} of {{max}}...", { count: retryCount, max: 3 })
+                : t("errors.troubleConnecting", "We had trouble connecting. Please check your internet connection.")}
             </p>
 
             {recoveryStatus !== 'success' && onRetry && (
@@ -197,12 +199,12 @@ export function NetworkErrorRecovery({
                   className="gap-2"
                 >
                   <RefreshCw className={cn('h-4 w-4', isRetrying && 'animate-spin')} />
-                  {isRetrying ? 'Retrying...' : 'Try Again'}
+                  {isRetrying ? t("errors.retrying", "Retrying...") : t("actions.tryAgain", "Try Again")}
                 </Button>
 
                 {retryCount >= 3 && (
                   <Button variant="outline" onClick={() => window.location.reload()}>
-                    Reload Page
+                    {t("actions.reloadPage", "Reload Page")}
                   </Button>
                 )}
               </div>
@@ -210,7 +212,7 @@ export function NetworkErrorRecovery({
 
             {!isOnline && (
               <p className="mt-4 text-xs text-muted-foreground">
-                Will automatically retry when you're back online.
+                {t("errors.autoRetryOnline", "Will automatically retry when you're back online.")}
               </p>
             )}
           </div>

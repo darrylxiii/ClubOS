@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,6 +14,7 @@ interface EmployeeCommissionsTableProps {
 }
 
 export function EmployeeCommissionsTable({ year }: EmployeeCommissionsTableProps) {
+  const { t } = useTranslation('common');
   const { currentRole } = useRole();
   const { data: commissions, isLoading } = useEmployeeCommissions(year);
   const { data: stats } = useCommissionStats(year);
@@ -20,13 +22,13 @@ export function EmployeeCommissionsTable({ year }: EmployeeCommissionsTableProps
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'pending':
-        return <Badge variant="outline" className="bg-amber-500/10 text-amber-600 border-amber-500/30">Pending</Badge>;
+        return <Badge variant="outline" className="bg-amber-500/10 text-amber-600 border-amber-500/30">{t("pending", "Pending")}</Badge>;
       case 'approved':
-        return <Badge variant="outline" className="bg-blue-500/10 text-blue-600 border-blue-500/30">Approved</Badge>;
+        return <Badge variant="outline" className="bg-blue-500/10 text-blue-600 border-blue-500/30">{t("approved", "Approved")}</Badge>;
       case 'paid':
-        return <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 border-emerald-500/30">Paid</Badge>;
+        return <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 border-emerald-500/30">{t("paid", "Paid")}</Badge>;
       case 'cancelled':
-        return <Badge variant="outline" className="bg-destructive/10 text-destructive border-destructive/30">Cancelled</Badge>;
+        return <Badge variant="outline" className="bg-destructive/10 text-destructive border-destructive/30">{t("cancelled", "Cancelled")}</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -58,7 +60,7 @@ export function EmployeeCommissionsTable({ year }: EmployeeCommissionsTableProps
                 <Users className="h-4 w-4 text-primary" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Total Commissions</p>
+                <p className="text-sm text-muted-foreground">{t("total_commissions", "Total Commissions")}</p>
                 <p className="text-xl font-semibold">{formatCurrency(stats?.totalCommissions || 0)}</p>
               </div>
             </div>
@@ -71,7 +73,7 @@ export function EmployeeCommissionsTable({ year }: EmployeeCommissionsTableProps
                 <Clock className="h-4 w-4 text-amber-600" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Pending</p>
+                <p className="text-sm text-muted-foreground">{t("pending", "Pending")}</p>
                 <p className="text-xl font-semibold">{formatCurrency(stats?.pendingCommissions || 0)}</p>
                 <p className="text-xs text-muted-foreground">{stats?.pendingCount || 0} commissions</p>
               </div>
@@ -85,7 +87,7 @@ export function EmployeeCommissionsTable({ year }: EmployeeCommissionsTableProps
                 <CheckCircle className="h-4 w-4 text-blue-600" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Approved</p>
+                <p className="text-sm text-muted-foreground">{t("approved", "Approved")}</p>
                 <p className="text-xl font-semibold">{formatCurrency(stats?.approvedCommissions || 0)}</p>
               </div>
             </div>
@@ -98,7 +100,7 @@ export function EmployeeCommissionsTable({ year }: EmployeeCommissionsTableProps
                 <Banknote className="h-4 w-4 text-emerald-600" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Paid Out</p>
+                <p className="text-sm text-muted-foreground">{t("paid_out", "Paid Out")}</p>
                 <p className="text-xl font-semibold">{formatCurrency(stats?.paidCommissions || 0)}</p>
               </div>
             </div>
@@ -109,7 +111,7 @@ export function EmployeeCommissionsTable({ year }: EmployeeCommissionsTableProps
       {/* Commissions Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Employee Commissions</CardTitle>
+          <CardTitle>{t("employee_commissions", "Employee Commissions")}</CardTitle>
           <CardDescription>
             Commission breakdown by placement fee (no VAT on employee commissions)
           </CardDescription>
@@ -123,13 +125,13 @@ export function EmployeeCommissionsTable({ year }: EmployeeCommissionsTableProps
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Employee</TableHead>
-                  <TableHead>Placement</TableHead>
-                  <TableHead className="text-right">Fee Base</TableHead>
-                  <TableHead className="text-right">Rate</TableHead>
-                  <TableHead className="text-right">Commission</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Date</TableHead>
+                  <TableHead>{t("employee", "Employee")}</TableHead>
+                  <TableHead>{t("placement", "Placement")}</TableHead>
+                  <TableHead className="text-right">{t("fee_base", "Fee Base")}</TableHead>
+                  <TableHead className="text-right">{t("rate", "Rate")}</TableHead>
+                  <TableHead className="text-right">{t("commission", "Commission")}</TableHead>
+                  <TableHead>{t("status", "Status")}</TableHead>
+                  <TableHead>{t("date", "Date")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

@@ -63,9 +63,9 @@ serve(async (req) => {
       .limit(50);
 
     // Generate predictions
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY not configured');
+    const GOOGLE_API_KEY = Deno.env.get('GOOGLE_API_KEY');
+    if (!GOOGLE_API_KEY) {
+      throw new Error('GOOGLE_API_KEY not configured');
     }
 
     const currentDate = new Date();
@@ -149,14 +149,14 @@ Generate a JSON response with predictions:
   ]
 }`;
 
-    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    const aiResponse = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Authorization': `Bearer ${GOOGLE_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash-lite',
+        model: 'gemini-2.5-flash-lite',
         messages: [
           { role: 'system', content: 'You are a predictive hiring analytics AI. Generate data-driven predictions. Always respond with valid JSON.' },
           { role: 'user', content: prompt }

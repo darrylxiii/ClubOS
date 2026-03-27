@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -34,6 +35,7 @@ const defaultSettings: DisplaySettings = {
 };
 
 export function PipelineDisplaySettings({ jobId, settings, onSettingsChange }: PipelineDisplaySettingsProps) {
+  const { t } = useTranslation('common');
   const handleToggle = (key: keyof DisplaySettings) => {
     const newSettings = { ...settings, [key]: !settings[key] };
     onSettingsChange(newSettings);
@@ -55,10 +57,8 @@ export function PipelineDisplaySettings({ jobId, settings, onSettingsChange }: P
       <PopoverContent className="w-80 p-4 bg-background/95 backdrop-blur-xl border-accent/20" align="end">
         <div className="space-y-4">
           <div className="space-y-2">
-            <h4 className="font-semibold text-sm">Pipeline Display Options</h4>
-            <p className="text-xs text-muted-foreground">
-              Customize what information is shown in the pipeline breakdown
-            </p>
+            <h4 className="font-semibold text-sm">{t("pipeline_display_options", "Pipeline Display Options")}</h4>
+            <p className="text-xs text-muted-foreground">{t('pipelineDisplaySettings.customizeWhatInformationIsShownInThePipe')}</p>
           </div>
           
           <div className="space-y-3">
@@ -68,9 +68,7 @@ export function PipelineDisplaySettings({ jobId, settings, onSettingsChange }: P
                 checked={settings.showOwnership}
                 onCheckedChange={() => handleToggle('showOwnership')}
               />
-              <Label htmlFor="ownership" className="text-sm font-medium cursor-pointer flex-1">
-                Show Ownership Icons
-              </Label>
+              <Label htmlFor="ownership" className="text-sm font-medium cursor-pointer flex-1">{t('pipelineDisplaySettings.label.showOwnershipIcons')}</Label>
             </div>
 
             <div className="flex items-center space-x-3 p-2 rounded-lg hover:bg-accent/5 transition-colors">
@@ -79,9 +77,7 @@ export function PipelineDisplaySettings({ jobId, settings, onSettingsChange }: P
                 checked={settings.showFormat}
                 onCheckedChange={() => handleToggle('showFormat')}
               />
-              <Label htmlFor="format" className="text-sm font-medium cursor-pointer flex-1">
-                Show Format Details
-              </Label>
+              <Label htmlFor="format" className="text-sm font-medium cursor-pointer flex-1">{t('pipelineDisplaySettings.label.showFormatDetails')}</Label>
             </div>
 
             <div className="flex items-center space-x-3 p-2 rounded-lg hover:bg-accent/5 transition-colors">
@@ -90,9 +86,7 @@ export function PipelineDisplaySettings({ jobId, settings, onSettingsChange }: P
                 checked={settings.showTeam}
                 onCheckedChange={() => handleToggle('showTeam')}
               />
-              <Label htmlFor="team" className="text-sm font-medium cursor-pointer flex-1">
-                Show Team Assignments
-              </Label>
+              <Label htmlFor="team" className="text-sm font-medium cursor-pointer flex-1">{t('pipelineDisplaySettings.label.showTeamAssignments')}</Label>
             </div>
 
             <div className="flex items-center space-x-3 p-2 rounded-lg hover:bg-accent/5 transition-colors">
@@ -101,9 +95,7 @@ export function PipelineDisplaySettings({ jobId, settings, onSettingsChange }: P
                 checked={settings.showLocationMeeting}
                 onCheckedChange={() => handleToggle('showLocationMeeting')}
               />
-              <Label htmlFor="locationMeeting" className="text-sm font-medium cursor-pointer flex-1">
-                Show Location/Meeting Info
-              </Label>
+              <Label htmlFor="locationMeeting" className="text-sm font-medium cursor-pointer flex-1">{t('pipelineDisplaySettings.label.showLocationmeetingInfo')}</Label>
             </div>
 
             <div className="flex items-center space-x-3 p-2 rounded-lg hover:bg-accent/5 transition-colors">
@@ -123,9 +115,7 @@ export function PipelineDisplaySettings({ jobId, settings, onSettingsChange }: P
                 checked={settings.showEvaluation}
                 onCheckedChange={() => handleToggle('showEvaluation')}
               />
-              <Label htmlFor="evaluation" className="text-sm font-medium cursor-pointer flex-1">
-                Show Evaluation Setup
-              </Label>
+              <Label htmlFor="evaluation" className="text-sm font-medium cursor-pointer flex-1">{t('pipelineDisplaySettings.label.showEvaluationSetup')}</Label>
             </div>
 
             <div className="flex items-center space-x-3 p-2 rounded-lg hover:bg-accent/5 transition-colors">
@@ -134,9 +124,7 @@ export function PipelineDisplaySettings({ jobId, settings, onSettingsChange }: P
                 checked={settings.showScheduling}
                 onCheckedChange={() => handleToggle('showScheduling')}
               />
-              <Label htmlFor="scheduling" className="text-sm font-medium cursor-pointer flex-1">
-                Show Scheduling Details
-              </Label>
+              <Label htmlFor="scheduling" className="text-sm font-medium cursor-pointer flex-1">{t('pipelineDisplaySettings.label.showSchedulingDetails')}</Label>
             </div>
 
             <div className="flex items-center space-x-3 p-2 rounded-lg hover:bg-accent/5 transition-colors">
@@ -145,9 +133,7 @@ export function PipelineDisplaySettings({ jobId, settings, onSettingsChange }: P
                 checked={settings.showMetadata}
                 onCheckedChange={() => handleToggle('showMetadata')}
               />
-              <Label htmlFor="metadata" className="text-sm font-medium cursor-pointer flex-1">
-                Show Advanced Metadata
-              </Label>
+              <Label htmlFor="metadata" className="text-sm font-medium cursor-pointer flex-1">{t('pipelineDisplaySettings.label.showAdvancedMetadata')}</Label>
             </div>
           </div>
         </div>

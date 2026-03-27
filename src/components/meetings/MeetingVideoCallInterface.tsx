@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspense } from 'react';
 import { createPortal } from 'react-dom';
 import { Button } from '@/components/ui/button';
@@ -73,7 +74,7 @@ const LiveKitMeetingWrapper = lazy(() =>
 const LiveKitLoadingFallback = () => (
   <div className="flex flex-col items-center justify-center h-full min-h-[400px] bg-background border rounded-lg">
     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
-    <p className="text-muted-foreground">Loading video conference...</p>
+    <p className="text-muted-foreground">{t("loading_video_conference", "Loading video conference...")}</p>
   </div>
 );
 
@@ -92,6 +93,7 @@ export function MeetingVideoCallInterface({
   isGuest,
   onEnd
 }: MeetingVideoCallInterfaceProps) {
+  const { t } = useTranslation('common');
   // Mobile detection
   const isMobile = useIsMobile();
 
@@ -277,7 +279,7 @@ export function MeetingVideoCallInterface({
 
   const activeTranscriptionSource = isTranscribing 
     ? 'ElevenLabs Scribe' 
-    : (transcript ? 'Browser Speech API' : 'Not connected');
+    : (transcript ? t('meetings.meetingvideocallinterface.browserSpeechApi', 'Browser Speech API') : t('meetings.meetingvideocallinterface.notConnected', 'Not connected'));
 
   const isAnyTranscriptionActive = isTranscribing || !!transcript;
 
@@ -316,7 +318,7 @@ export function MeetingVideoCallInterface({
 
     if (remoteStreams.size >= 3) {
       setUseLiveKitMode(true);
-      toast.info('Switched to server-relayed video for better quality with multiple participants');
+      toast.info(t("switched_to_serverrelayed_video", "Switched to server-relayed video for better quality with multiple participants"));
     }
   }, [remoteStreams.size, liveKitAvailable, useLiveKitMode]);
 
@@ -340,8 +342,8 @@ export function MeetingVideoCallInterface({
     if (suggestedAction === 'audio-only' && isVideoEnabled) {
       log.warn('Meeting', 'Critical network quality detected. Switching to Audio Only.');
       toggleVideo();
-      toast.warning('Poor connection detected', {
-        description: 'Turning off video to preserve audio quality.'
+      toast.warning(t("poor_connection_detected", "Poor connection detected"), {
+        description: t('meetings.meetingvideocallinterface.turningOffVideoToPreserveAudio', 'Turning off video to preserve audio quality.')
       });
     } else if (suggestedAction === 'downgrade-quality' && isVideoEnabled) {
       // Logic for downgrading bitrate is handled internally by WebRTC hook,
@@ -516,7 +518,7 @@ export function MeetingVideoCallInterface({
     try {
       log.debug('Meeting', `Initializing media for ${meeting.title} | ${participantId} | Guest: ${isGuest}`);
       await initializeMedia();
-      toast.success('Joined meeting room');
+      toast.success(t("joined_meeting_room", "Joined meeting room"));
 
       // Show consent modal after joining
       setShowConsentModal(true);
@@ -525,9 +527,9 @@ export function MeetingVideoCallInterface({
       const err = error as { name?: string };
       if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
         setPermissionDenied(true);
-        toast.error('Camera/microphone access denied');
+        toast.error(t("cameramicrophone_access_denied", "Camera/microphone access denied"));
       } else {
-        toast.warning('Joined without camera/microphone');
+        toast.warning(t("joined_without_cameramicrophone", "Joined without camera/microphone"));
         // Still show consent modal
         setShowConsentModal(true);
       }
@@ -557,14 +559,14 @@ export function MeetingVideoCallInterface({
       await startCompositorRecording();
     }
 
-    toast.success('Recording preferences saved');
+    toast.success(t("recording_preferences_saved", "Recording preferences saved"));
   };
 
   const handleConsentDeclined = () => {
     setShowConsentModal(false);
     // Allow user to stay in meeting without recording
     setHasGivenConsent(false);
-    toast.info('You can continue without recording. Your audio and video will not be captured.');
+    toast.info(t("you_can_continue_without", "You can continue without recording. Your audio and video will not be captured."));
   };
 
   const handleRetry = () => {
@@ -574,12 +576,12 @@ export function MeetingVideoCallInterface({
 
   const handleRetryConnection = async () => {
     try {
-      toast.info('Retrying connection...');
+      toast.info(t("retrying_connection", "Retrying connection..."));
       await retryConnection();
-      toast.success('Connection retry initiated');
+      toast.success(t("connection_retry_initiated", "Connection retry initiated"));
     } catch (error) {
       log.error('Meeting', 'Retry failed:', error);
-      toast.error('Retry failed. Please refresh the page.');
+      toast.error(t("retry_failed_please_refresh", "Retry failed. Please refresh the page."));
     }
   };
 
@@ -588,7 +590,7 @@ export function MeetingVideoCallInterface({
     if (isCompositorRecording && stopCompositorRecording) {
       try {
         await stopCompositorRecording();
-        toast.success('Recording saved and analysis started');
+        toast.success(t("recording_saved_and_analysis", "Recording saved and analysis started"));
       } catch (error) {
         log.error('Meeting', 'Failed to save recording:', error);
       }
@@ -641,12 +643,12 @@ export function MeetingVideoCallInterface({
 
   const handleToggleScreenShare = async () => {
     if (!hostSettings.allowScreenShare && meeting.host_id !== participantId) {
-      toast.error('Screen sharing is disabled by the host');
+      toast.error(t("screen_sharing_is_disabled", "Screen sharing is disabled by the host"));
       return;
     }
     const sharing = await toggleScreenShare();
     setIsScreenSharing(sharing);
-    toast(sharing ? 'Screen sharing started' : 'Screen sharing stopped');
+    toast(sharing ? t('meetings.meetingvideocallinterface.screenSharingStarted', 'Screen sharing started') : t('meetings.meetingvideocallinterface.screenSharingStopped', 'Screen sharing stopped'));
   };
 
   const pipVideoRef = useRef<HTMLVideoElement | null>(null);
@@ -654,7 +656,7 @@ export function MeetingVideoCallInterface({
   const handleEnablePiP = async () => {
     try {
       if (!document.pictureInPictureEnabled) {
-        toast.error('Picture-in-Picture not supported');
+        toast.error(t("pictureinpicture_not_supported", "Picture-in-Picture not supported"));
         return;
       }
 
@@ -677,7 +679,7 @@ export function MeetingVideoCallInterface({
       }
 
       if (!targetStream) {
-        toast.error('No video to show in PiP');
+        toast.error(t("no_video_to_show", "No video to show in PiP"));
         return;
       }
 
@@ -704,11 +706,11 @@ export function MeetingVideoCallInterface({
 
       await video.play();
       await video.requestPictureInPicture();
-      toast.success('Picture-in-Picture enabled');
+      toast.success(t("pictureinpicture_enabled", "Picture-in-Picture enabled"));
 
     } catch (error) {
       log.error('Meeting', 'Failed to enable PiP:', error);
-      toast.error('Failed to enable Picture-in-Picture');
+      toast.error(t("failed_to_enable_pictureinpicture", "Failed to enable Picture-in-Picture"));
     }
   };
 
@@ -734,7 +736,7 @@ export function MeetingVideoCallInterface({
   const handleToggleHandRaise = async () => {
     const newState = !isHandRaised;
     setIsHandRaised(newState);
-    toast(isHandRaised ? 'Hand lowered' : 'Hand raised');
+    toast(isHandRaised ? t('meetings.meetingvideocallinterface.handLowered', 'Hand lowered') : t('meetings.meetingvideocallinterface.handRaised', 'Hand raised'));
 
     // Broadcast hand raise to all participants via webrtc_signals
     try {
@@ -763,7 +765,7 @@ export function MeetingVideoCallInterface({
 
   const handleReaction = async (emoji: string) => {
     if (!hostSettings.allowReactions && meeting.host_id !== participantId) {
-      toast.error('Reactions are disabled by the host');
+      toast.error(t("reactions_are_disabled_by", "Reactions are disabled by the host"));
       return;
     }
 
@@ -888,7 +890,7 @@ export function MeetingVideoCallInterface({
           })
           .eq('id', data.id);  // Target specific record by ID
 
-        toast.success('Reconnected to meeting');
+        toast.success(t("reconnected_to_meeting", "Reconnected to meeting"));
       }
     };
 
@@ -1112,26 +1114,20 @@ export function MeetingVideoCallInterface({
             <Video className="h-10 w-10 text-destructive" />
           </div>
           <div>
-            <h3 className="text-xl font-bold mb-2">Camera/Microphone Access Required</h3>
-            <p className="text-muted-foreground mb-4">
-              Please enable camera and microphone permissions in your browser.
-            </p>
+            <h3 className="text-xl font-bold mb-2">{t("cameramicrophone_access_required", "Camera/Microphone Access Required")}</h3>
+            <p className="text-muted-foreground mb-4">{t('meetings.meetingvideocallinterface.pleaseEnableCameraAndMicrophonePermissions', 'Please enable camera and microphone permissions in your browser.')}</p>
             <div className="text-sm text-muted-foreground space-y-2 text-left bg-muted/50 rounded-lg p-4">
-              <p className="font-semibold">How to enable:</p>
+              <p className="font-semibold">{t("how_to_enable", "How to enable:")}</p>
               <ol className="list-decimal list-inside space-y-1">
-                <li>Click the camera icon in your browser's address bar</li>
-                <li>Select "Allow" for camera and microphone</li>
-                <li>Click "Try Again" below</li>
+                <li>{t("click_the_camera_icon", "Click the camera icon in your browser's address bar")}</li>
+                <li>{t("select_allow_for_camera", "Select ')Allow' for camera and microphone")}</li>
+                <li>{t("click_try_again_below", "Click ')Try Again' below")}</li>
               </ol>
             </div>
           </div>
           <div className="flex gap-3">
-            <Button onClick={handleEndCall} variant="outline" className="flex-1">
-              Leave Meeting
-            </Button>
-            <Button onClick={handleRetry} className="flex-1">
-              Try Again
-            </Button>
+            <Button onClick={handleEndCall} variant="outline" className="flex-1">{t('meetings.meetingvideocallinterface.leaveMeeting', 'Leave Meeting')}</Button>
+            <Button onClick={handleRetry} className="flex-1">{t('meetings.meetingvideocallinterface.tryAgain', 'Try Again')}</Button>
           </div>
         </div>
       </div>,
@@ -1180,9 +1176,7 @@ export function MeetingVideoCallInterface({
         <div className="absolute top-8 left-1/2 -translate-x-1/2 z-50 animate-in fade-in slide-in-from-top duration-500">
           <div className="flex items-center gap-3 px-8 py-4 bg-black/60 backdrop-blur-2xl rounded-full border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.4)]">
             <Users className="h-5 w-5 text-white/80" />
-            <span className="text-base font-medium text-white/90 tracking-wide">
-              Waiting for others to join...
-            </span>
+            <span className="text-base font-medium text-white/90 tracking-wide">{t('meetings.meetingvideocallinterface.waitingForOthersToJoin', 'Waiting for others to join...')}</span>
           </div>
         </div>
       )}
@@ -1194,8 +1188,8 @@ export function MeetingVideoCallInterface({
             <div className="flex items-center gap-3">
               <AlertTriangle className="h-4 w-4 text-amber-400 shrink-0" />
               <div className="flex-1">
-                <p className="text-sm font-medium text-white">STUN-only mode</p>
-                <p className="text-xs text-white/60">TURN relay unavailable. Connections behind strict firewalls may fail.</p>
+                <p className="text-sm font-medium text-white">{t("stunonly_mode", "STUN-only mode")}</p>
+                <p className="text-xs text-white/60">{t("turn_relay_unavailable_connections", "TURN relay unavailable. Connections behind strict firewalls may fail.")}</p>
               </div>
               <button
                 onClick={() => setTurnBannerDismissed(true)}
@@ -1216,7 +1210,7 @@ export function MeetingVideoCallInterface({
               <span className="text-yellow-500">⚠️</span>
               <div className="flex-1">
                 <p className="text-sm font-medium text-white">{error.message}</p>
-                <p className="text-xs text-gray-300">Please grant permissions and try again</p>
+                <p className="text-xs text-gray-300">{t("please_grant_permissions_and", "Please grant permissions and try again")}</p>
               </div>
             </div>
           </div>
@@ -1232,7 +1226,7 @@ export function MeetingVideoCallInterface({
                 <WifiOff className="w-6 h-6 text-yellow-500" />
               </div>
               <div className="flex-1">
-                <h3 className="font-semibold text-lg text-foreground">Connection Issue</h3>
+                <h3 className="font-semibold text-lg text-foreground">{t("connection_issue", "Connection Issue")}</h3>
                 <p className="text-sm text-muted-foreground">{error.message}</p>
               </div>
             </div>
@@ -1245,13 +1239,13 @@ export function MeetingVideoCallInterface({
             </div>
 
             <div className="text-xs text-muted-foreground bg-muted/50 rounded-lg p-3">
-              <p className="font-medium mb-2 text-foreground">Troubleshooting tips:</p>
+              <p className="font-medium mb-2 text-foreground">{t("troubleshooting_tips", "Troubleshooting tips:")}</p>
               <ul className="list-disc list-inside space-y-1">
-                <li>Check your internet connection</li>
-                <li>Disable VPN if active</li>
-                <li>Allow camera/microphone access</li>
-                <li>Try a different browser (Chrome works best)</li>
-                <li>Refresh the page if issue persists</li>
+                <li>{t("check_your_internet_connection", "Check your internet connection")}</li>
+                <li>{t("disable_vpn_if_active", "Disable VPN if active")}</li>
+                <li>{t("allow_cameramicrophone_access", "Allow camera/microphone access")}</li>
+                <li>{t("try_a_different_browser", "Try a different browser (Chrome works best)")}</li>
+                <li>{t("refresh_the_page_if", "Refresh the page if issue persists")}</li>
               </ul>
             </div>
           </Card>
@@ -1341,8 +1335,8 @@ export function MeetingVideoCallInterface({
               onFallbackToWebRTC={() => {
                 log.debug('Meeting', 'Falling back to WebRTC P2P mode');
                 setUseLiveKitMode(false);
-                toast.info('Switched to direct peer-to-peer mode', {
-                  description: 'Using direct connection for this meeting'
+                toast.info(t("switched_to_direct_peertopeer", "Switched to direct peer-to-peer mode"), {
+                  description: t('meetings.meetingvideocallinterface.usingDirectConnectionForThisMeeting', 'Using direct connection for this meeting')
                 });
               }}
               className="h-full w-full"
@@ -1404,7 +1398,7 @@ export function MeetingVideoCallInterface({
 
             <div className="space-y-4">
               <h3 className="text-3xl font-bold text-white tracking-tight">
-                {pendingRequestsCount > 0 ? 'Guest Approval Required' : 'Waiting for others to join'}
+                {pendingRequestsCount > 0 ? t('meetings.meetingvideocallinterface.guestApprovalRequired', 'Guest Approval Required') : t('meetings.meetingvideocallinterface.waitingForOthersToJoin1', 'Waiting for others to join')}
               </h3>
               <p className="text-lg text-white/70 leading-relaxed">
                 {pendingRequestsCount > 0 ? (
@@ -1413,7 +1407,7 @@ export function MeetingVideoCallInterface({
                   </>
                 ) : (
                   <>
-                    Share the meeting code: <span className="font-mono text-primary font-bold text-xl">{meeting.meeting_code}</span>
+                    {t('meetings.meetingvideocallinterface.shareTheMeetingCode', 'Share the meeting code:')} <span className="font-mono text-primary font-bold text-xl">{meeting.meeting_code}</span>
                   </>
                 )}
               </p>
@@ -1433,7 +1427,7 @@ export function MeetingVideoCallInterface({
             <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
               <div className="flex items-center gap-1">
                 <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                <span>Your camera is ready</span>
+                <span>{t("your_camera_is_ready", "Your camera is ready")}</span>
               </div>
             </div>
 
@@ -1441,11 +1435,11 @@ export function MeetingVideoCallInterface({
               <Button
                 onClick={() => {
                   setMeetingStarted(true);
-                  toast.success('Meeting started');
+                  toast.success(t("meeting_started", "Meeting started"));
                 }}
                 className="mt-4"
               >
-                Start Meeting Anyway
+                {t('meetings.meetingvideocallinterface.startMeetingAnyway', 'Start Meeting Anyway')}
               </Button>
             )}
           </div>
@@ -1458,7 +1452,7 @@ export function MeetingVideoCallInterface({
           <div className="text-center space-y-4 animate-fade-in">
             <div className="w-16 h-16 rounded-full border-4 border-primary border-t-transparent animate-spin mx-auto" />
             <div className="space-y-2">
-              <h3 className="text-xl font-bold text-white">Connecting video...</h3>
+              <h3 className="text-xl font-bold text-white">{t("connecting_video", "Connecting video...")}</h3>
               <p className="text-muted-foreground text-sm">
                 {totalParticipants} participants in call | Establishing video connection
               </p>
@@ -1606,7 +1600,7 @@ export function MeetingVideoCallInterface({
       <Sheet open={showChat} onOpenChange={setShowChat}>
         <SheetContent side="right" className="w-96 p-0 z-[10200]">
           <SheetHeader className="p-4 border-b">
-            <SheetTitle>Meeting Chat</SheetTitle>
+            <SheetTitle>{t("meeting_chat", "Meeting Chat")}</SheetTitle>
           </SheetHeader>
           <MeetingChatSidebar
             meetingId={meeting.id}
@@ -1620,7 +1614,7 @@ export function MeetingVideoCallInterface({
       <Dialog open={showSettings} onOpenChange={setShowSettings}>
         <DialogContent className="max-w-2xl z-[10200]">
           <DialogHeader>
-            <DialogTitle>Meeting Settings</DialogTitle>
+            <DialogTitle>{t("meeting_settings", "Meeting Settings")}</DialogTitle>
           </DialogHeader>
           <DeviceSelector />
         </DialogContent>
@@ -1630,7 +1624,7 @@ export function MeetingVideoCallInterface({
       <Sheet open={showNotes} onOpenChange={setShowNotes}>
         <SheetContent side="right" className="w-[600px] p-0 z-[10200]">
           <SheetHeader className="p-4 border-b">
-            <SheetTitle>Meeting Notes</SheetTitle>
+            <SheetTitle>{t("meeting_notes", "Meeting Notes")}</SheetTitle>
           </SheetHeader>
           <MeetingNotes meetingId={meeting.id} meetingTitle={meeting.title} />
         </SheetContent>
@@ -1643,16 +1637,16 @@ export function MeetingVideoCallInterface({
             <SheetTitle className="flex items-center gap-2">
               Live Transcription
               {isTranscribing && (
-                <Badge variant="default" className="animate-pulse">Recording</Badge>
+                <Badge variant="default" className="animate-pulse">{t("recording", "Recording")}</Badge>
               )}
             </SheetTitle>
           </SheetHeader>
           <div className="mt-6 space-y-4 max-h-[calc(100vh-200px)] overflow-y-auto pr-2">
             {transcriptions.length === 0 ? (
               <div className="text-center text-muted-foreground py-12">
-                <p className="font-medium">No transcriptions yet</p>
+                <p className="font-medium">{t("no_transcriptions_yet", "No transcriptions yet")}</p>
                 <p className="text-sm mt-2">
-                  {isTranscribing ? 'Listening...' : 'Transcription will appear here when enabled'}
+                  {isTranscribing ? t('meetings.meetingvideocallinterface.listening', 'Listening...') : t('meetings.meetingvideocallinterface.transcriptionWillAppearHereWhenEnabled', 'Transcription will appear here when enabled')}
                 </p>
                 {!transcriptionEnabled && (
                   <Button
@@ -1661,7 +1655,7 @@ export function MeetingVideoCallInterface({
                     size="sm"
                     className="mt-4"
                   >
-                    Enable Transcription
+                    {t('meetings.meetingvideocallinterface.enableTranscription', 'Enable Transcription')}
                   </Button>
                 )}
               </div>
@@ -1723,9 +1717,9 @@ export function MeetingVideoCallInterface({
             <div className="p-4">
               <Tabs defaultValue="live" className="w-full">
                 <TabsList className="grid w-full grid-cols-3">
-                  <TabsTrigger value="prep">Prep</TabsTrigger>
-                  <TabsTrigger value="live">Live Scoring</TabsTrigger>
-                  <TabsTrigger value="report">Report</TabsTrigger>
+                  <TabsTrigger value="prep">{t("prep", "Prep")}</TabsTrigger>
+                  <TabsTrigger value="live">{t("live_scoring", "Live Scoring")}</TabsTrigger>
+                  <TabsTrigger value="report">{t("report", "Report")}</TabsTrigger>
                 </TabsList>
                 <TabsContent value="prep" className="mt-4">
                   <InterviewPrepPanel
@@ -1796,7 +1790,7 @@ export function MeetingVideoCallInterface({
       {showVoting && ['host', 'interviewer', 'observer'].includes(userRole) && (
         <div className="absolute right-4 top-20 w-80 z-[10000] bg-card/95 backdrop-blur-lg rounded-lg border border-border p-4 shadow-2xl">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold">Cast Your Vote</h3>
+            <h3 className="font-semibold">{t("cast_your_vote", "Cast Your Vote")}</h3>
             <Button
               variant="ghost"
               size="sm"
@@ -1843,7 +1837,7 @@ export function MeetingVideoCallInterface({
       {showPredictiveHiring && ['host', 'interviewer'].includes(userRole) && (
         <div className="absolute right-4 top-20 w-96 z-[10000] bg-card/95 backdrop-blur-lg rounded-lg border border-border shadow-2xl">
           <div className="flex items-center justify-between p-3 border-b border-border">
-            <h3 className="text-sm font-semibold">Hiring Signals</h3>
+            <h3 className="text-sm font-semibold">{t("hiring_signals", "Hiring Signals")}</h3>
             <Button variant="ghost" size="sm" onClick={() => setShowPredictiveHiring(false)} className="h-6 w-6 p-0">✕</Button>
           </div>
           <PredictiveHiringPanel

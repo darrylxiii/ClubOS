@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/collapsible";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useTranslation } from 'react-i18next';
 
 export interface PipelineStageData {
   id: string;
@@ -43,6 +44,7 @@ export const ExpandablePipelineStage = ({
   stage,
   isLast = false,
 }: ExpandablePipelineStageProps) => {
+  const { t } = useTranslation('common');
   const [isOpen, setIsOpen] = useState(false);
 
   const isCompleted = stage.status === "completed";

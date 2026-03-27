@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { notify } from "@/lib/notify";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 
 function formatTimeRemaining(timeStr: string | null): string {
   if (!timeStr) return "Ended";
@@ -42,6 +43,7 @@ const challengeTypeIcons: Record<string, React.ComponentType<{ className?: strin
 };
 
 const ChallengeCard = ({ challenge }: { challenge: any }) => {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [isJoining, setIsJoining] = useState(false);
   
@@ -64,12 +66,12 @@ const ChallengeCard = ({ challenge }: { challenge: any }) => {
       
       if (error) throw error;
       
-      notify.success("Joined Challenge!", {
-        description: `You're now competing in "${challenge.title}"`,
+      notify.success(t('referrals.challenges.joinedSuccess', 'Joined Challenge!'), {
+        description: t('referrals.challenges.nowCompeting', 'You\'re now competing in "{{title}}"', { title: challenge.title }),
       });
     } catch (err) {
-      notify.error("Error", {
-        description: "Failed to join challenge",
+      notify.error(t('common:error', 'Error'), {
+        description: t('referrals.challenges.joinFailed', 'Failed to join challenge'),
       });
     } finally {
       setIsJoining(false);
@@ -119,19 +121,19 @@ const ChallengeCard = ({ challenge }: { challenge: any }) => {
               <div className="flex items-center gap-1 text-primary">
                 <Gift className="h-4 w-4" />
                 <span className="font-semibold">€{challenge.reward_pool.toLocaleString()}</span>
-                <span className="text-muted-foreground">pool</span>
+                <span className="text-muted-foreground">{t('referrals.challenges.pool', 'pool')}</span>
               </div>
             )}
             {challenge.bonus_percentage > 0 && (
               <div className="flex items-center gap-1 text-amber-500">
                 <Zap className="h-4 w-4" />
                 <span className="font-semibold">+{challenge.bonus_percentage}%</span>
-                <span className="text-muted-foreground">bonus</span>
+                <span className="text-muted-foreground">{t('referrals.challenges.bonus', 'bonus')}</span>
               </div>
             )}
             <div className="flex items-center gap-1 text-muted-foreground ml-auto">
               <Users className="h-4 w-4" />
-              <span>{challenge.participants_count} joined</span>
+              <span>{t('referrals.challenges.joined', '{{count}} joined', { count: challenge.participants_count })}</span>
             </div>
           </div>
 
@@ -139,7 +141,7 @@ const ChallengeCard = ({ challenge }: { challenge: any }) => {
           {isJoined ? (
             <div className="space-y-2">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Your position</span>
+                <span className="text-muted-foreground">{t('referrals.challenges.yourPosition', 'Your position')}</span>
                 <span className="font-semibold text-foreground">
                   #{challenge.user_rank} of {challenge.participants_count}
                 </span>
@@ -150,19 +152,19 @@ const ChallengeCard = ({ challenge }: { challenge: any }) => {
                     <p className="text-lg font-bold text-foreground">
                       {challenge.user_progress.referrals}
                     </p>
-                    <p className="text-xs text-muted-foreground">Referrals</p>
+                    <p className="text-xs text-muted-foreground">{t('referrals.referrals', 'Referrals')}</p>
                   </div>
                   <div className="bg-muted/50 rounded-lg p-2">
                     <p className="text-lg font-bold text-foreground">
                       {challenge.user_progress.placements}
                     </p>
-                    <p className="text-xs text-muted-foreground">Placements</p>
+                    <p className="text-xs text-muted-foreground">{t('referrals.placements', 'Placements')}</p>
                   </div>
                   <div className="bg-muted/50 rounded-lg p-2">
                     <p className="text-lg font-bold text-primary">
                       €{challenge.user_progress.earnings}
                     </p>
-                    <p className="text-xs text-muted-foreground">Earned</p>
+                    <p className="text-xs text-muted-foreground">{t('referrals.earned', 'Earned')}</p>
                   </div>
                 </div>
               )}
@@ -173,7 +175,7 @@ const ChallengeCard = ({ challenge }: { challenge: any }) => {
               disabled={isJoining}
               className="w-full"
             >
-              {isJoining ? "Joining..." : "Join Challenge"}
+              {isJoining ? t('referrals.challenges.joining', 'Joining...') : t('referrals.challenges.joinChallenge', 'Join Challenge')}
               <ChevronRight className="h-4 w-4 ml-1" />
             </Button>
           )}
@@ -184,6 +186,7 @@ const ChallengeCard = ({ challenge }: { challenge: any }) => {
 };
 
 export function ReferralChallenges() {
+  const { t } = useTranslation('common');
   const { data: challenges, isLoading } = useReferralChallenges();
 
   if (isLoading) {
@@ -207,9 +210,9 @@ export function ReferralChallenges() {
       <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
         <CardContent className="py-12 text-center">
           <Trophy className="h-12 w-12 mx-auto mb-4 text-muted-foreground/30" />
-          <h3 className="text-lg font-semibold text-foreground mb-2">No Active Challenges</h3>
+          <h3 className="text-lg font-semibold text-foreground mb-2">{t('referrals.challenges.noActive', 'No Active Challenges')}</h3>
           <p className="text-muted-foreground text-sm">
-            Check back soon for new referral challenges and competitions!
+            {t('referrals.challenges.checkBack', 'Check back soon for new referral challenges and competitions!')}
           </p>
         </CardContent>
       </Card>
@@ -220,7 +223,7 @@ export function ReferralChallenges() {
     <div className="space-y-4">
       <div className="flex items-center gap-2 mb-4">
         <Zap className="h-5 w-5 text-primary" />
-        <h2 className="text-lg font-semibold text-foreground">Active Challenges</h2>
+        <h2 className="text-lg font-semibold text-foreground">{t('referrals.challenges.activeChallenges', 'Active Challenges')}</h2>
         <Badge variant="secondary" className="ml-auto">
           {challenges.length} active
         </Badge>

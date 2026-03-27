@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect, useCallback } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -61,6 +62,7 @@ interface ReceiptData {
 }
 
 export function AssetFormDialog({ open, onOpenChange, asset, onSave, onUpdate }: AssetFormDialogProps) {
+  const { t } = useTranslation('common');
   const [loading, setLoading] = useState(false);
   const [uploadingFile, setUploadingFile] = useState(false);
   const [scanningReceipt, setScanningReceipt] = useState(false);
@@ -230,7 +232,7 @@ export function AssetFormDialog({ open, onOpenChange, asset, onSave, onUpdate }:
       toast.success(`Extracted ${filled.size} fields from receipt`);
     } catch (err) {
       console.error('Receipt scan error:', err);
-      toast.error('Failed to scan receipt. You can still enter data manually.');
+      toast.error(t("failed_to_scan_receipt", "Failed to scan receipt. You can still enter data manually."));
       setShowForm(true);
     } finally {
       setScanningReceipt(false);
@@ -275,9 +277,9 @@ export function AssetFormDialog({ open, onOpenChange, asset, onSave, onUpdate }:
         .getPublicUrl(filePath);
 
       setForm(prev => ({ ...prev, invoice_file_url: publicUrl }));
-      toast.success('File uploaded successfully');
+      toast.success(t("file_uploaded_successfully", "File uploaded successfully"));
     } catch (err) {
-      toast.error('Failed to upload file');
+      toast.error(t("failed_to_upload_file", "Failed to upload file"));
       console.error(err);
     } finally {
       setUploadingFile(false);
@@ -286,11 +288,11 @@ export function AssetFormDialog({ open, onOpenChange, asset, onSave, onUpdate }:
 
   const handleSubmit = async () => {
     if (!form.asset_name.trim()) {
-      toast.error('Asset name is required');
+      toast.error(t("asset_name_is_required", "Asset name is required"));
       return;
     }
     if (form.purchase_value_excl_vat <= 0) {
-      toast.error('Purchase value must be greater than 0');
+      toast.error(t("purchase_value_must_be", "Purchase value must be greater than 0"));
       return;
     }
 
@@ -349,8 +351,8 @@ export function AssetFormDialog({ open, onOpenChange, asset, onSave, onUpdate }:
             {scanningReceipt ? (
               <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-muted-foreground/25 bg-muted/30 p-10 gap-3">
                 <Loader2 className="h-8 w-8 animate-spin text-accent-gold" />
-                <p className="text-sm font-medium">Scanning receipt...</p>
-                <p className="text-xs text-muted-foreground">Powered by QUIN</p>
+                <p className="text-sm font-medium">{t("scanning_receipt", "Scanning receipt...")}</p>
+                <p className="text-xs text-muted-foreground">{t("powered_by_quin", "Powered by QUIN")}</p>
               </div>
             ) : (
               <>
@@ -377,7 +379,7 @@ export function AssetFormDialog({ open, onOpenChange, asset, onSave, onUpdate }:
                   </div>
                   <div className="flex items-center gap-1.5 text-xs text-muted-foreground/70 mt-1">
                     <Sparkles className="h-3 w-3" />
-                    <span>Powered by QUIN</span>
+                    <span>{t("powered_by_quin", "Powered by QUIN")}</span>
                   </div>
                 </div>
                 <button
@@ -405,17 +407,17 @@ export function AssetFormDialog({ open, onOpenChange, asset, onSave, onUpdate }:
             {/* Basic Info */}
             <div className="grid grid-cols-2 gap-4">
               <div className={cn('col-span-2', fieldHighlight('asset_name'))}>
-                <Label htmlFor="asset_name">Asset Name *</Label>
+                <Label htmlFor="asset_name">{t("asset_name", "Asset Name *")}</Label>
                 <Input
                   id="asset_name"
                   value={form.asset_name}
                   onChange={(e) => setForm(prev => ({ ...prev, asset_name: e.target.value }))}
-                  placeholder="e.g., MacBook Pro 16-inch"
+                  placeholder={t("eg_macbook_pro_16inch", "e.g., MacBook Pro 16-inch")}
                 />
               </div>
 
               <div className={fieldHighlight('category')}>
-                <Label htmlFor="category">Category</Label>
+                <Label htmlFor="category">{t("category", "Category")}</Label>
                 <Select value={form.category} onValueChange={(v) => handleCategoryChange(v as AssetCategory)}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
@@ -427,7 +429,7 @@ export function AssetFormDialog({ open, onOpenChange, asset, onSave, onUpdate }:
               </div>
 
               <div className={fieldHighlight('purchase_date')}>
-                <Label>Purchase Date</Label>
+                <Label>{t("purchase_date", "Purchase Date")}</Label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !form.purchase_date && "text-muted-foreground")}>
@@ -445,7 +447,7 @@ export function AssetFormDialog({ open, onOpenChange, asset, onSave, onUpdate }:
             {/* Financial Info */}
             <div className="grid grid-cols-2 gap-4">
               <div className={fieldHighlight('purchase_value_excl_vat')}>
-                <Label htmlFor="purchase_value">Purchase Value (excl. VAT) *</Label>
+                <Label htmlFor="purchase_value">{t("purchase_value_excl_vat", "Purchase Value (excl. VAT) *")}</Label>
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">€</span>
                   <Input
@@ -461,7 +463,7 @@ export function AssetFormDialog({ open, onOpenChange, asset, onSave, onUpdate }:
               </div>
 
               <div className={fieldHighlight('vat_amount')}>
-                <Label htmlFor="vat_amount">VAT Amount</Label>
+                <Label htmlFor="vat_amount">{t("vat_amount", "VAT Amount")}</Label>
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">€</span>
                   <Input
@@ -477,7 +479,7 @@ export function AssetFormDialog({ open, onOpenChange, asset, onSave, onUpdate }:
               </div>
 
               <div>
-                <Label htmlFor="depreciation_method">Depreciation Method</Label>
+                <Label htmlFor="depreciation_method">{t("depreciation_method", "Depreciation Method")}</Label>
                 <Select value={form.depreciation_method} onValueChange={(v) => setForm(prev => ({ ...prev, depreciation_method: v }))}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
@@ -489,7 +491,7 @@ export function AssetFormDialog({ open, onOpenChange, asset, onSave, onUpdate }:
               </div>
 
               <div>
-                <Label htmlFor="useful_life">Useful Life (years)</Label>
+                <Label htmlFor="useful_life">{t("useful_life_years", "Useful Life (years)")}</Label>
                 <Input
                   id="useful_life"
                   type="number"
@@ -501,7 +503,7 @@ export function AssetFormDialog({ open, onOpenChange, asset, onSave, onUpdate }:
               </div>
 
               <div>
-                <Label htmlFor="residual_value">Residual Value</Label>
+                <Label htmlFor="residual_value">{t("residual_value", "Residual Value")}</Label>
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">€</span>
                   <Input
@@ -523,25 +525,25 @@ export function AssetFormDialog({ open, onOpenChange, asset, onSave, onUpdate }:
                     checked={form.kia_eligible}
                     onCheckedChange={(checked) => setForm(prev => ({ ...prev, kia_eligible: !!checked }))}
                   />
-                  <Label htmlFor="kia_eligible" className="cursor-pointer">KIA Eligible</Label>
+                  <Label htmlFor="kia_eligible" className="cursor-pointer">{t("kia_eligible", "KIA Eligible")}</Label>
                 </div>
               </div>
             </div>
 
             {/* Calculated Values Preview */}
             <div className="rounded-lg bg-muted/50 p-4 space-y-2">
-              <h4 className="font-medium text-sm">Calculated Values</h4>
+              <h4 className="font-medium text-sm">{t("calculated_values", "Calculated Values")}</h4>
               <div className="grid grid-cols-3 gap-4 text-sm">
                 <div>
-                  <span className="text-muted-foreground">Total Value:</span>
+                  <span className="text-muted-foreground">{t("total_value", "Total Value:")}</span>
                   <span className="ml-2 font-medium">€{totalValue.toLocaleString('nl-NL', { minimumFractionDigits: 2 })}</span>
                 </div>
                 <div>
-                  <span className="text-muted-foreground">Annual Depreciation:</span>
+                  <span className="text-muted-foreground">{t("annual_depreciation", "Annual Depreciation:")}</span>
                   <span className="ml-2 font-medium">€{annualDepreciation.toLocaleString('nl-NL', { minimumFractionDigits: 2 })}</span>
                 </div>
                 <div>
-                  <span className="text-muted-foreground">Monthly Depreciation:</span>
+                  <span className="text-muted-foreground">{t("monthly_depreciation", "Monthly Depreciation:")}</span>
                   <span className="ml-2 font-medium">€{(annualDepreciation / 12).toLocaleString('nl-NL', { minimumFractionDigits: 2 })}</span>
                 </div>
               </div>
@@ -550,42 +552,42 @@ export function AssetFormDialog({ open, onOpenChange, asset, onSave, onUpdate }:
             {/* Supplier & Reference */}
             <div className="grid grid-cols-2 gap-4">
               <div className={fieldHighlight('supplier')}>
-                <Label htmlFor="supplier">Supplier / Vendor</Label>
+                <Label htmlFor="supplier">{t("supplier_vendor", "Supplier / Vendor")}</Label>
                 <Input
                   id="supplier"
                   value={form.supplier}
                   onChange={(e) => setForm(prev => ({ ...prev, supplier: e.target.value }))}
-                  placeholder="e.g., Apple Store"
+                  placeholder={t("eg_apple_store", "e.g., Apple Store")}
                 />
               </div>
 
               <div className={fieldHighlight('invoice_reference')}>
-                <Label htmlFor="invoice_reference">Invoice / Serial Number</Label>
+                <Label htmlFor="invoice_reference">{t("invoice_serial_number", "Invoice / Serial Number")}</Label>
                 <Input
                   id="invoice_reference"
                   value={form.invoice_reference}
                   onChange={(e) => setForm(prev => ({ ...prev, invoice_reference: e.target.value }))}
-                  placeholder="e.g., INV-2024-001"
+                  placeholder={t("eg_inv2024001", "e.g., INV-2024-001")}
                 />
               </div>
 
               <div>
-                <Label htmlFor="cost_center">Location / Cost Center</Label>
+                <Label htmlFor="cost_center">{t("location_cost_center", "Location / Cost Center")}</Label>
                 <Input
                   id="cost_center"
                   value={form.cost_center}
                   onChange={(e) => setForm(prev => ({ ...prev, cost_center: e.target.value }))}
-                  placeholder="e.g., Amsterdam Office"
+                  placeholder={t("eg_amsterdam_office", "e.g., Amsterdam Office")}
                 />
               </div>
 
               <div>
-                <Label htmlFor="assigned_to">Assigned To</Label>
+                <Label htmlFor="assigned_to">{t("assigned_to", "Assigned To")}</Label>
                 <Input
                   id="assigned_to"
                   value={form.assigned_to}
                   onChange={(e) => setForm(prev => ({ ...prev, assigned_to: e.target.value }))}
-                  placeholder="e.g., John Doe"
+                  placeholder={t("eg_john_doe", "e.g., John Doe")}
                 />
               </div>
             </div>
@@ -593,7 +595,7 @@ export function AssetFormDialog({ open, onOpenChange, asset, onSave, onUpdate }:
             {/* File Upload (only if no receipt was uploaded) */}
             {!receiptProcessed && (
               <div>
-                <Label>Receipt / Document</Label>
+                <Label>{t("receipt_document", "Receipt / Document")}</Label>
                 <div className="flex items-center gap-2 mt-1">
                   <Input
                     type="file"
@@ -614,7 +616,7 @@ export function AssetFormDialog({ open, onOpenChange, asset, onSave, onUpdate }:
 
             {receiptProcessed && form.invoice_file_url && (
               <div>
-                <Label>Attached Receipt</Label>
+                <Label>{t("attached_receipt", "Attached Receipt")}</Label>
                 <a href={form.invoice_file_url} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline mt-1 inline-block">
                   View uploaded document
                 </a>
@@ -623,23 +625,23 @@ export function AssetFormDialog({ open, onOpenChange, asset, onSave, onUpdate }:
 
             {/* Notes */}
             <div>
-              <Label htmlFor="notes">Notes</Label>
+              <Label htmlFor="notes">{t("notes", "Notes")}</Label>
               <Textarea
                 id="notes"
                 value={form.notes}
                 onChange={(e) => setForm(prev => ({ ...prev, notes: e.target.value }))}
-                placeholder="Additional notes about this asset..."
+                placeholder={t("additional_notes_about_this", "Additional notes about this asset...")}
                 rows={3}
               />
             </div>
 
             <div className={cn('col-span-2', fieldHighlight('description'))}>
-              <Label htmlFor="description">Description</Label>
+              <Label htmlFor="description">{t("description", "Description")}</Label>
               <Textarea
                 id="description"
                 value={form.description}
                 onChange={(e) => setForm(prev => ({ ...prev, description: e.target.value }))}
-                placeholder="Detailed description of the asset..."
+                placeholder={t("detailed_description_of_the", "Detailed description of the asset...")}
                 rows={2}
               />
             </div>
@@ -648,7 +650,7 @@ export function AssetFormDialog({ open, onOpenChange, asset, onSave, onUpdate }:
 
         {showForm && (
           <DialogFooter>
-            <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+            <Button variant="outline" onClick={() => onOpenChange(false)}>{t("cancel", "Cancel")}</Button>
             <Button onClick={handleSubmit} disabled={loading}>
               {loading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               {asset ? 'Update Asset' : 'Create Asset'}

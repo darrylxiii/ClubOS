@@ -1,0 +1,223 @@
+{
+  "title": "Stellenangebote",
+  "subtitle": "Stellenanzeigen und Bewerbungen verwalten",
+  "create": {
+    "title": "Stelle erstellen",
+    "fromTemplate": "Aus Vorlage erstellen",
+    "fromScratch": "Neu erstellen",
+    "duplicate": "Stelle duplizieren"
+  },
+  "edit": {
+    "title": "Stelle bearbeiten",
+    "save": "Änderungen speichern",
+    "publish": "Stelle veröffentlichen",
+    "unpublish": "Veröffentlichung zurücknehmen"
+  },
+  "apply": {
+    "title": "Jetzt bewerben",
+    "button": "Auf diese Stelle bewerben",
+    "submitted": "Bewerbung eingereicht",
+    "alreadyApplied": "Bereits beworben",
+    "requiresLogin": "Zum Bewerben anmelden"
+  },
+  "details": {
+    "title": "Stellendetails",
+    "description": "Beschreibung",
+    "requirements": "Anforderungen",
+    "responsibilities": "Aufgaben",
+    "benefits": "Vorteile",
+    "salary": "Gehaltsspanne",
+    "location": "Standort",
+    "department": "Abteilung",
+    "reportingTo": "Berichtet an",
+    "startDate": "Startdatum",
+    "deadline": "Bewerbungsfrist"
+  },
+  "status": {
+    "draft": "Entwurf",
+    "published": "Veröffentlicht",
+    "closed": "Geschlossen",
+    "paused": "Pausiert",
+    "archived": "Archiviert",
+    "filled": "Stelle besetzt"
+  },
+  "types": {
+    "fullTime": "Vollzeit",
+    "partTime": "Teilzeit",
+    "contract": "Befristet",
+    "freelance": "Freiberuflich",
+    "internship": "Praktikum",
+    "temporary": "Zeitarbeit"
+  },
+  "workMode": {
+    "remote": "Remote",
+    "hybrid": "Hybrid",
+    "onsite": "Vor Ort",
+    "flexible": "Flexibel"
+  },
+  "experience": {
+    "entry": "Berufseinsteiger",
+    "junior": "Junior (1-2 Jahre)",
+    "mid": "Mid-Level (3-5 Jahre)",
+    "senior": "Senior (5-8 Jahre)",
+    "lead": "Lead (8+ Jahre)",
+    "executive": "Führungskraft"
+  },
+  "pipeline": {
+    "title": "Pipeline",
+    "applied": "Beworben",
+    "screening": "Vorauswahl",
+    "interview": "Vorstellungsgespraech",
+    "assessment": "Assessment",
+    "offer": "Angebot",
+    "hired": "Eingestellt",
+    "rejected": "Abgelehnt",
+    "candidatesInStage": "Kandidaten in dieser Phase"
+  },
+  "filters": {
+    "title": "Filter",
+    "all": "Alle Stellen",
+    "location": "Standort",
+    "department": "Abteilung",
+    "type": "Beschäftigungsart",
+    "experience": "Erfahrungsstufe",
+    "salary": "Gehaltsspanne",
+    "posted": "Veröffentlichungsdatum",
+    "remote": "Nur Remote",
+    "clearAll": "Alle Filter zurücksetzen"
+  },
+  "search": {
+    "placeholder": "Stellen nach Titel, Unternehmen oder Kompetenzen suchen...",
+    "noResults": "Keine Stellen gefunden",
+    "results": "Stellen gefunden",
+    "savedSearches": "Gespeicherte Suchen"
+  },
+  "actions": {
+    "view": "Stelle anzeigen",
+    "edit": "Stelle bearbeiten",
+    "delete": "Stelle löschen",
+    "duplicate": "Stelle duplizieren",
+    "share": "Stelle teilen",
+    "bookmark": "Stelle speichern",
+    "removeBookmark": "Aus Gespeicherten entfernen",
+    "publish": "Veröffentlichen",
+    "unpublish": "Veröffentlichung zurücknehmen",
+    "close": "Stelle schließen",
+    "reopen": "Stelle wiedereröffnen"
+  },
+  "applicants": {
+    "title": "Bewerber",
+    "new": "Neue Bewerber",
+    "total": "Bewerber gesamt",
+    "qualified": "Qualifiziert",
+    "shortlisted": "Vorausgewählt",
+    "viewAll": "Alle Bewerber anzeigen"
+  },
+  "posting": {
+    "title": "Stellenanzeige",
+    "preview": "Anzeigenvorschau",
+    "visibility": "Sichtbarkeit",
+    "public": "Öffentlich",
+    "private": "Privat",
+    "internal": "Nur intern",
+    "expiry": "Ablaufdatum der Anzeige",
+    "boost": "Diese Stelle hervorheben"
+  },
+  "analytics": {
+    "title": "Stellenanalysen",
+    "views": "Stellenaufrufe",
+    "applications": "Bewerbungen",
+    "conversionRate": "Konversionsrate",
+    "avgTimeToApply": "Ø Zeit bis zur Bewerbung",
+    "topSources": "Top-Quellen"
+  },
+  "recommendations": {
+    "title": "Für Sie empfohlen",
+    "basedOn": "Basierend auf Ihrem Profil",
+    "similar": "Ähnliche Stellen",
+    "trending": "Beliebte Stellen"
+  },
+  "alerts": {
+    "title": "Stellenbenachrichtigungen",
+    "create": "Benachrichtigung erstellen",
+    "manage": "Benachrichtigungen verwalten",
+    "frequency": "Benachrichtigungshäufigkeit",
+    "daily": "Täglich",
+    "weekly": "Wöchentlich",
+    "instant": "Sofort"
+  },
+  "company": {
+    "about": "Über das Unternehmen",
+    "culture": "Unternehmenskultur",
+    "size": "Unternehmensgröße",
+    "industry": "Branche",
+    "website": "Webseite",
+    "otherJobs": "Weitere Stellen bei diesem Unternehmen"
+  },
+  "application": {
+    "resume": "Lebenslauf",
+    "coverLetter": "Anschreiben",
+    "questions": "Bewerbungsfragen",
+    "attachments": "Anhänge",
+    "submit": "Bewerbung absenden",
+    "withdraw": "Bewerbung zurückziehen"
+  },
+  "empty": {
+    "noJobs": "Keine Stellen verfügbar",
+    "noSavedJobs": "Keine gespeicherten Stellen",
+    "noApplications": "Noch keine Bewerbungen",
+    "createFirst": "Veröffentlichen Sie Ihre erste Stelle"
+  },
+  "notifications": {
+    "published": "Stelle erfolgreich veröffentlicht",
+    "updated": "Stelle erfolgreich aktualisiert",
+    "closed": "Stelle geschlossen",
+    "applicationReceived": "Neue Bewerbung eingegangen"
+  },
+  "companyJobsDashboard": {
+    "desc": "your jobs and customize hiring pipeline verwalten",
+    "desc2": "Diese Phasen werden als Vorlage fuer alle neuen Stellen verwendet",
+    "desc3": "Neue Bewerbung",
+    "desc4": "Benachrichtigung erhalten, wenn sich ein Kandidat bewirbt",
+    "desc5": "Phasenaenderungen",
+    "desc6": "Benachrichtigung erhalten, wenn Kandidaten zwischen Phasen wechseln",
+    "desc7": "Ablehnungen",
+    "desc8": "Benachrichtigung erhalten, wenn Kandidaten abgelehnt werden",
+    "desc9": "Konfigurieren Sie, wie Kandidaten fuer diese Stelle bewertet werden"
+  },
+  "jobDetail": {
+    "text1": "Stelle nicht gefunden",
+    "text2": "Zurueck zu Stellen",
+    "text3": "Uebersicht",
+    "text4": "Details",
+    "text5": "Treffer",
+    "text6": "Unternehmen",
+    "text7": "Aktivitaet",
+    "text8": "Anschreiben generieren",
+    "text9": "an AI-powered cover letter for this role erstellen",
+    "text10": "Anschreiben-Generator",
+    "text11": "Hauptaufgaben",
+    "text12": "Hauptbereiche, in denen Sie arbeiten werden",
+    "text13": "Wichtigste Vorteile",
+    "text14": "Was wir bieten",
+    "text15": "Stellen-Analysen",
+    "text16": "Leistungskennzahlen und Einblicke",
+    "text17": "Gesamtbewerbungen",
+    "text18": "Gesamtaufrufe",
+    "text19": "Konversionsrate",
+    "text20": "Tage aktiv"
+  },
+  "jobs": {
+    "title": "Noch keine saved jobs",
+    "desc": "Ausgewaehlte Stellen fuer The Quantum Club Mitglieder",
+    "desc2": "Durchsuchen Sie Moeglichkeiten und speichern Sie Stellen, die Sie interessieren"
+  },
+  "sharedPipelineView": {
+    "desc": "Diese Pipeline ist geschuetzt. Geben Sie das Passwort ein, um sie anzuzeigen.",
+    "text2": "Link nicht verfuegbar",
+    "text3": "Passwort erforderlich",
+    "text4": "password eingeben",
+    "text5": "Noch keine Kandidaten in dieser Pipeline.",
+    "text6": "The Quantum Club"
+  }
+}

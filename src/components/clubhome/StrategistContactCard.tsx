@@ -15,6 +15,7 @@ import {
   Mail
 } from "lucide-react";
 import { motion } from "framer-motion";
+import { useTranslation } from 'react-i18next';
 
 interface Strategist {
   id: string;
@@ -25,6 +26,7 @@ interface Strategist {
 }
 
 export function StrategistContactCard() {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const navigate = useNavigate();
   const [strategist, setStrategist] = useState<Strategist | null>(null);
@@ -123,12 +125,8 @@ export function StrategistContactCard() {
               <Sparkles className="w-8 h-8 text-muted-foreground" />
             </div>
             <div className="space-y-1">
-              <p className="text-sm text-muted-foreground">
-                A dedicated strategist will be assigned to you soon
-              </p>
-              <p className="text-xs text-muted-foreground">
-                They'll help guide your career journey
-              </p>
+              <p className="text-sm text-muted-foreground">{t('strategistContactCard.aDedicatedStrategistWillBeAssignedToYouS')}</p>
+              <p className="text-xs text-muted-foreground">{t('strategistContactCard.theyllHelpGuideYourCareerJourney')}</p>
             </div>
           </div>
         </CardContent>

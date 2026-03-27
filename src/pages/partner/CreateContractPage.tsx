@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -40,6 +41,7 @@ interface Milestone {
 }
 
 export default function CreateContractPage() {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(0);
@@ -135,11 +137,11 @@ export default function CreateContractPage() {
       return contract;
     },
     onSuccess: (contract) => {
-      toast.success('Contract created successfully');
+      toast.success(t("contract_created_successfully", "Contract created successfully"));
       navigate(`/contracts/${contract.id}`);
     },
     onError: (error) => {
-      toast.error('Failed to create contract: ' + error.message);
+      toast.error(t("failed_to_create_contract", "Failed to create contract:") + error.message);
     }
   });
 
@@ -188,7 +190,7 @@ export default function CreateContractPage() {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Create Contract</h1>
+            <h1 className="text-2xl font-bold text-foreground">{t("create_contract", "Create Contract")}</h1>
             <p className="text-muted-foreground">
               Set up a new freelance contract
             </p>
@@ -220,7 +222,7 @@ export default function CreateContractPage() {
             {currentStep === 0 && (
               <div className="space-y-6">
                 <div>
-                  <h2 className="text-xl font-semibold mb-2">Select Contract Type</h2>
+                  <h2 className="text-xl font-semibold mb-2">{t("select_contract_type", "Select Contract Type")}</h2>
                   <p className="text-muted-foreground">
                     Choose how you want to structure payments for this contract
                   </p>
@@ -238,7 +240,7 @@ export default function CreateContractPage() {
                     }`}
                   >
                     <RadioGroupItem value="milestone" id="milestone" className="sr-only" />
-                    <div className="font-medium mb-1">Milestone-Based</div>
+                    <div className="font-medium mb-1">{t("milestonebased", "Milestone-Based")}</div>
                     <div className="text-sm text-muted-foreground">
                       Pay upon completion of specific deliverables
                     </div>
@@ -251,7 +253,7 @@ export default function CreateContractPage() {
                     }`}
                   >
                     <RadioGroupItem value="fixed" id="fixed" className="sr-only" />
-                    <div className="font-medium mb-1">Fixed Price</div>
+                    <div className="font-medium mb-1">{t("fixed_price", "Fixed Price")}</div>
                     <div className="text-sm text-muted-foreground">
                       Single payment for the entire project
                     </div>
@@ -264,7 +266,7 @@ export default function CreateContractPage() {
                     }`}
                   >
                     <RadioGroupItem value="hourly" id="hourly" className="sr-only" />
-                    <div className="font-medium mb-1">Hourly Rate</div>
+                    <div className="font-medium mb-1">{t("hourly_rate", "Hourly Rate")}</div>
                     <div className="text-sm text-muted-foreground">
                       Pay based on hours worked
                     </div>
@@ -277,7 +279,7 @@ export default function CreateContractPage() {
             {currentStep === 1 && (
               <div className="space-y-6">
                 <div>
-                  <h2 className="text-xl font-semibold mb-2">Select Freelancer</h2>
+                  <h2 className="text-xl font-semibold mb-2">{t("select_freelancer", "Select Freelancer")}</h2>
                   <p className="text-muted-foreground">
                     Choose the freelancer for this contract
                   </p>
@@ -325,7 +327,7 @@ export default function CreateContractPage() {
             {currentStep === 2 && (
               <div className="space-y-6">
                 <div>
-                  <h2 className="text-xl font-semibold mb-2">Scope & Deliverables</h2>
+                  <h2 className="text-xl font-semibold mb-2">{t("scope_deliverables", "Scope & Deliverables")}</h2>
                   <p className="text-muted-foreground">
                     Define the project scope and expected deliverables
                   </p>
@@ -333,22 +335,22 @@ export default function CreateContractPage() {
 
                 <div className="space-y-4">
                   <div>
-                    <Label htmlFor="title">Project Title</Label>
+                    <Label htmlFor="title">{t("project_title", "Project Title")}</Label>
                     <Input
                       id="title"
                       value={projectTitle}
                       onChange={(e) => setProjectTitle(e.target.value)}
-                      placeholder="e.g., Website Redesign"
+                      placeholder={t("eg_website_redesign", "e.g., Website Redesign")}
                     />
                   </div>
 
                   <div>
-                    <Label htmlFor="description">Project Description</Label>
+                    <Label htmlFor="description">{t("project_description", "Project Description")}</Label>
                     <Textarea
                       id="description"
                       value={projectDescription}
                       onChange={(e) => setProjectDescription(e.target.value)}
-                      placeholder="Describe the project scope, requirements, and expected outcomes..."
+                      placeholder={t("describe_the_project_scope", "Describe the project scope, requirements, and expected outcomes...")}
                       rows={6}
                     />
                   </div>
@@ -360,7 +362,7 @@ export default function CreateContractPage() {
             {currentStep === 3 && (
               <div className="space-y-6">
                 <div>
-                  <h2 className="text-xl font-semibold mb-2">Budget & Timeline</h2>
+                  <h2 className="text-xl font-semibold mb-2">{t("budget_timeline", "Budget & Timeline")}</h2>
                   <p className="text-muted-foreground">
                     Set the budget and project timeline
                   </p>
@@ -368,7 +370,7 @@ export default function CreateContractPage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <Label htmlFor="budget">Total Budget (EUR)</Label>
+                    <Label htmlFor="budget">{t("total_budget_eur", "Total Budget (EUR)")}</Label>
                     <Input
                       id="budget"
                       type="number"
@@ -379,7 +381,7 @@ export default function CreateContractPage() {
                   </div>
 
                   <div>
-                    <Label htmlFor="startDate">Start Date</Label>
+                    <Label htmlFor="startDate">{t("start_date", "Start Date")}</Label>
                     <Input
                       id="startDate"
                       type="date"
@@ -389,7 +391,7 @@ export default function CreateContractPage() {
                   </div>
 
                   <div>
-                    <Label htmlFor="endDate">End Date</Label>
+                    <Label htmlFor="endDate">{t("end_date", "End Date")}</Label>
                     <Input
                       id="endDate"
                       type="date"
@@ -402,7 +404,7 @@ export default function CreateContractPage() {
                 {contractType === 'milestone' && (
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
-                      <Label>Milestones</Label>
+                      <Label>{t("milestones", "Milestones")}</Label>
                       <Button 
                         type="button" 
                         variant="outline" 
@@ -419,15 +421,15 @@ export default function CreateContractPage() {
                         <div className="flex items-start gap-4">
                           <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                              <Label>Title</Label>
+                              <Label>{t("title", "Title")}</Label>
                               <Input
                                 value={milestone.title}
                                 onChange={(e) => updateMilestone(index, 'title', e.target.value)}
-                                placeholder="Milestone title"
+                                placeholder={t("milestone_title", "Milestone title")}
                               />
                             </div>
                             <div>
-                              <Label>Amount (EUR)</Label>
+                              <Label>{t("amount_eur", "Amount (EUR)")}</Label>
                               <Input
                                 type="number"
                                 value={milestone.amount || ''}
@@ -436,15 +438,15 @@ export default function CreateContractPage() {
                               />
                             </div>
                             <div>
-                              <Label>Description</Label>
+                              <Label>{t("description", "Description")}</Label>
                               <Input
                                 value={milestone.description}
                                 onChange={(e) => updateMilestone(index, 'description', e.target.value)}
-                                placeholder="What will be delivered"
+                                placeholder={t("what_will_be_delivered", "What will be delivered")}
                               />
                             </div>
                             <div>
-                              <Label>Due Date</Label>
+                              <Label>{t("due_date", "Due Date")}</Label>
                               <Input
                                 type="date"
                                 value={milestone.dueDate}
@@ -477,7 +479,7 @@ export default function CreateContractPage() {
             {currentStep === 4 && (
               <div className="space-y-6">
                 <div>
-                  <h2 className="text-xl font-semibold mb-2">Review Contract</h2>
+                  <h2 className="text-xl font-semibold mb-2">{t("review_contract", "Review Contract")}</h2>
                   <p className="text-muted-foreground">
                     Review the contract details before creating
                   </p>
@@ -485,12 +487,12 @@ export default function CreateContractPage() {
 
                 <div className="space-y-4">
                   <div className="p-4 bg-muted/30 rounded-lg">
-                    <div className="text-sm text-muted-foreground">Contract Type</div>
+                    <div className="text-sm text-muted-foreground">{t("contract_type", "Contract Type")}</div>
                     <div className="font-medium capitalize">{contractType}</div>
                   </div>
 
                   <div className="p-4 bg-muted/30 rounded-lg">
-                    <div className="text-sm text-muted-foreground">Project</div>
+                    <div className="text-sm text-muted-foreground">{t("project", "Project")}</div>
                     <div className="font-medium">{projectTitle}</div>
                     {projectDescription && (
                       <div className="text-sm text-muted-foreground mt-1">
@@ -502,11 +504,11 @@ export default function CreateContractPage() {
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="p-4 bg-muted/30 rounded-lg">
-                      <div className="text-sm text-muted-foreground">Total Budget</div>
+                      <div className="text-sm text-muted-foreground">{t("total_budget", "Total Budget")}</div>
                       <div className="font-medium">{formatCurrency(parseFloat(totalBudget) || 0)}</div>
                     </div>
                     <div className="p-4 bg-muted/30 rounded-lg">
-                      <div className="text-sm text-muted-foreground">Timeline</div>
+                      <div className="text-sm text-muted-foreground">{t("timeline", "Timeline")}</div>
                       <div className="font-medium">
                         {startDate && endDate 
                           ? `${startDate} to ${endDate}`
@@ -518,7 +520,7 @@ export default function CreateContractPage() {
 
                   {contractType === 'milestone' && milestones.length > 0 && (
                     <div className="p-4 bg-muted/30 rounded-lg">
-                      <div className="text-sm text-muted-foreground mb-2">Milestones</div>
+                      <div className="text-sm text-muted-foreground mb-2">{t("milestones", "Milestones")}</div>
                       <div className="space-y-2">
                         {milestones.filter(m => m.title).map((m, i) => (
                           <div key={i} className="flex justify-between">

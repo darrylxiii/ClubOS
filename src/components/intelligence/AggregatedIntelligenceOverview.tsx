@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -18,12 +19,13 @@ export function AggregatedIntelligenceOverview({
   onRefresh,
   isRefreshing 
 }: AggregatedIntelligenceOverviewProps) {
+  const { t } = useTranslation('common');
   if (isLoading) {
     return (
       <Card className="border-primary/20 bg-gradient-to-br from-card to-primary/5">
         <CardContent className="pt-6 flex flex-col items-center justify-center py-12">
           <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
-          <p className="text-sm text-muted-foreground">Generating cross-pipeline intelligence...</p>
+          <p className="text-sm text-muted-foreground">{t("generating_crosspipeline_intelligence", "Generating cross-pipeline intelligence...")}</p>
         </CardContent>
       </Card>
     );
@@ -98,17 +100,17 @@ export function AggregatedIntelligenceOverview({
                 <span className="text-xl text-muted-foreground">/100</span>
                 {getTrendIcon(insights.overallHealth.trend)}
               </div>
-              <p className="text-sm text-muted-foreground">Overall Hiring Health</p>
+              <p className="text-sm text-muted-foreground">{t("overall_hiring_health", "Overall Hiring Health")}</p>
             </div>
             <div className="text-right space-y-1">
               <div className="flex items-center gap-4">
                 <div>
                   <p className="text-2xl font-bold">{insights.portfolioForecast.predictedHires30Days}</p>
-                  <p className="text-xs text-muted-foreground">30-day forecast</p>
+                  <p className="text-xs text-muted-foreground">{t("30day_forecast", "30-day forecast")}</p>
                 </div>
                 <div>
                   <p className="text-2xl font-bold">{insights.portfolioForecast.predictedHires90Days}</p>
-                  <p className="text-xs text-muted-foreground">90-day forecast</p>
+                  <p className="text-xs text-muted-foreground">{t("90day_forecast", "90-day forecast")}</p>
                 </div>
               </div>
               <p className="text-xs text-muted-foreground">
@@ -162,14 +164,14 @@ export function AggregatedIntelligenceOverview({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Bottleneck Pattern */}
             <div className="p-3 rounded-lg bg-amber-500/5 border border-amber-500/20">
-              <p className="text-xs font-medium text-amber-600 mb-1">Bottleneck Pattern</p>
+              <p className="text-xs font-medium text-amber-600 mb-1">{t("bottleneck_pattern", "Bottleneck Pattern")}</p>
               <p className="text-sm">{insights.crossPipelineInsights.bottleneckPattern}</p>
             </div>
 
             {/* Top Performer */}
             {insights.crossPipelineInsights.topPerformer && (
               <div className="p-3 rounded-lg bg-green-500/5 border border-green-500/20">
-                <p className="text-xs font-medium text-green-600 mb-1">Top Performer</p>
+                <p className="text-xs font-medium text-green-600 mb-1">{t("top_performer", "Top Performer")}</p>
                 <p className="text-sm">{insights.crossPipelineInsights.topPerformer}</p>
               </div>
             )}
@@ -178,7 +180,7 @@ export function AggregatedIntelligenceOverview({
           {/* Patterns */}
           {insights.crossPipelineInsights.patterns.length > 0 && (
             <div className="space-y-2">
-              <p className="text-xs font-medium text-muted-foreground">Detected Patterns</p>
+              <p className="text-xs font-medium text-muted-foreground">{t("detected_patterns", "Detected Patterns")}</p>
               <div className="flex flex-wrap gap-2">
                 {insights.crossPipelineInsights.patterns.map((pattern, idx) => (
                   <Badge key={idx} variant="secondary" className="text-xs">
@@ -192,7 +194,7 @@ export function AggregatedIntelligenceOverview({
           {/* Concerns */}
           {insights.crossPipelineInsights.concernAreas.length > 0 && (
             <div className="space-y-2">
-              <p className="text-xs font-medium text-muted-foreground">Areas of Concern</p>
+              <p className="text-xs font-medium text-muted-foreground">{t("areas_of_concern", "Areas of Concern")}</p>
               {insights.crossPipelineInsights.concernAreas.map((concern, idx) => (
                 <div key={idx} className="flex items-start gap-2 text-sm">
                   <AlertTriangle className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
@@ -235,32 +237,32 @@ export function AggregatedIntelligenceOverview({
       {/* Portfolio Metrics */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Portfolio Metrics</CardTitle>
+          <CardTitle className="text-base">{t("portfolio_metrics", "Portfolio Metrics")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="text-center p-3 rounded-lg bg-muted/30">
               <p className="text-2xl font-bold">{insights.metrics.totalActiveJobs}</p>
-              <p className="text-xs text-muted-foreground">Active Jobs</p>
+              <p className="text-xs text-muted-foreground">{t("active_jobs", "Active Jobs")}</p>
             </div>
             <div className="text-center p-3 rounded-lg bg-muted/30">
               <p className="text-2xl font-bold">{insights.metrics.totalApplications}</p>
-              <p className="text-xs text-muted-foreground">Total Candidates</p>
+              <p className="text-xs text-muted-foreground">{t("total_candidates", "Total Candidates")}</p>
             </div>
             <div className="text-center p-3 rounded-lg bg-muted/30">
               <p className="text-2xl font-bold">{insights.metrics.totalInterviews}</p>
-              <p className="text-xs text-muted-foreground">Scheduled Interviews</p>
+              <p className="text-xs text-muted-foreground">{t("scheduled_interviews", "Scheduled Interviews")}</p>
             </div>
             <div className="text-center p-3 rounded-lg bg-muted/30">
               <p className="text-2xl font-bold">{insights.metrics.avgMatchScore}%</p>
-              <p className="text-xs text-muted-foreground">Avg Match Score</p>
+              <p className="text-xs text-muted-foreground">{t("avg_match_score", "Avg Match Score")}</p>
             </div>
           </div>
 
           {/* Stage Distribution */}
           {insights.metrics.stageDistribution && Object.keys(insights.metrics.stageDistribution).length > 0 && (
             <div className="mt-4">
-              <p className="text-xs font-medium text-muted-foreground mb-2">Stage Distribution</p>
+              <p className="text-xs font-medium text-muted-foreground mb-2">{t("stage_distribution", "Stage Distribution")}</p>
               <div className="flex flex-wrap gap-2">
                 {Object.entries(insights.metrics.stageDistribution).map(([stage, count]) => (
                   <Badge key={stage} variant="outline">

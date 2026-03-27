@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { motion } from "framer-motion";
 import { useCRMAnalytics } from "@/hooks/useCRMAnalytics";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,13 +15,14 @@ const RANK_ICONS = [Trophy, Medal, Award];
 const RANK_COLORS = ['text-yellow-400', 'text-gray-400', 'text-amber-600'];
 
 export function CRMTeamLeaderboard({ dateRange = 'month' }: CRMTeamLeaderboardProps) {
+  const { t } = useTranslation('common');
   const { data, loading } = useCRMAnalytics({ dateRange });
 
   if (loading) {
     return (
       <Card className="bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border-border/50">
         <CardHeader>
-          <CardTitle className="text-lg font-semibold">Team Leaderboard</CardTitle>
+          <CardTitle className="text-lg font-semibold">{t("team_leaderboard", "Team Leaderboard")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useActiveCall } from '@/contexts/ActiveCallContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -13,6 +14,7 @@ interface UserVoiceDockProps {
 }
 
 export const UserVoiceDock = ({ onNavigateToCall }: UserVoiceDockProps) => {
+    const { t } = useTranslation('meetings');
     const { user } = useAuth();
     const { activeChannelId, leaveCall, voice } = useActiveCall();
     const [showSettings, setShowSettings] = useState(false);
@@ -27,7 +29,7 @@ export const UserVoiceDock = ({ onNavigateToCall }: UserVoiceDockProps) => {
                 {/* Connection Status Bar */}
                 {connectionQuality === 'poor' && (
                     <div className="text-[10px] text-yellow-500 text-center mb-1 font-medium animate-pulse">
-                        Poor Connection
+                        {t('livehub.poorConnection')}
                     </div>
                 )}
 
@@ -44,7 +46,7 @@ export const UserVoiceDock = ({ onNavigateToCall }: UserVoiceDockProps) => {
                             </span>
                             <span className="text-[10px] text-green-500 truncate leading-tight flex items-center gap-1">
                                 <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                                Voice Connected
+                                {t('livehub.voiceConnected')}
                             </span>
                         </div>
                     </div>
@@ -64,7 +66,7 @@ export const UserVoiceDock = ({ onNavigateToCall }: UserVoiceDockProps) => {
                                     </Button>
                                 </TooltipTrigger>
                                 <TooltipContent>
-                                    <p>{isMuted ? 'Unmute' : 'Mute'}</p>
+                                    <p>{isMuted ? t('livehub.unmute') : t('livehub.mute')}</p>
                                 </TooltipContent>
                             </Tooltip>
 
@@ -80,7 +82,7 @@ export const UserVoiceDock = ({ onNavigateToCall }: UserVoiceDockProps) => {
                                     </Button>
                                 </TooltipTrigger>
                                 <TooltipContent>
-                                    <p>{isDeafened ? 'Undeafen' : 'Deafen'}</p>
+                                    <p>{isDeafened ? t('livehub.undeafen') : t('livehub.deafen')}</p>
                                 </TooltipContent>
                             </Tooltip>
 
@@ -96,7 +98,7 @@ export const UserVoiceDock = ({ onNavigateToCall }: UserVoiceDockProps) => {
                                     </Button>
                                 </TooltipTrigger>
                                 <TooltipContent>
-                                    <p>Voice Settings</p>
+                                    <p>{t('livehub.voiceSettings')}</p>
                                 </TooltipContent>
                             </Tooltip>
 
@@ -112,7 +114,7 @@ export const UserVoiceDock = ({ onNavigateToCall }: UserVoiceDockProps) => {
                                     </Button>
                                 </TooltipTrigger>
                                 <TooltipContent>
-                                    <p>Disconnect</p>
+                                    <p>{t('livehub.disconnect')}</p>
                                 </TooltipContent>
                             </Tooltip>
                         </TooltipProvider>

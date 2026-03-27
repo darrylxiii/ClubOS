@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -39,6 +40,7 @@ interface SpotifyPlaylistDialogProps {
 }
 
 export function SpotifyPlaylistDialog({ open, onOpenChange, onSuccess }: SpotifyPlaylistDialogProps) {
+  const { t } = useTranslation('common');
   const [url, setUrl] = useState("");
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -57,7 +59,7 @@ export function SpotifyPlaylistDialog({ open, onOpenChange, onSuccess }: Spotify
       } else {
         setSpotifyInfo(null);
         if (url.includes('spotify') && !info) {
-          toast.error('Invalid Spotify playlist URL');
+          toast.error(t("invalid_spotify_playlist_url", "Invalid Spotify playlist URL"));
         }
       }
     }
@@ -71,17 +73,17 @@ export function SpotifyPlaylistDialog({ open, onOpenChange, onSuccess }: Spotify
 
   const handleSave = async () => {
     if (!spotifyInfo) {
-      toast.error('Please enter a valid Spotify playlist URL');
+      toast.error(t("please_enter_a_valid", "Please enter a valid Spotify playlist URL"));
       return;
     }
 
     if (!name.trim()) {
-      toast.error('Please enter a playlist name');
+      toast.error(t("please_enter_a_playlist", "Please enter a playlist name"));
       return;
     }
 
     if (selectedMoodTags.length === 0) {
-      toast.error('Please select at least one mood tag');
+      toast.error(t("please_select_at_least", "Please select at least one mood tag"));
       return;
     }
 
@@ -108,12 +110,12 @@ export function SpotifyPlaylistDialog({ open, onOpenChange, onSuccess }: Spotify
 
       if (error) throw error;
 
-      toast.success('Spotify playlist added successfully');
+      toast.success(t("spotify_playlist_added_successfully", "Spotify playlist added successfully"));
       resetForm();
       onSuccess();
     } catch (error) {
       console.error('Error saving playlist:', error);
-      toast.error('Failed to save playlist');
+      toast.error(t("failed_to_save_playlist", "Failed to save playlist"));
     } finally {
       setLoading(false);
     }
@@ -143,7 +145,7 @@ export function SpotifyPlaylistDialog({ open, onOpenChange, onSuccess }: Spotify
         <div className="space-y-6 py-4">
           {/* Spotify URL */}
           <div className="space-y-2">
-            <Label>Spotify Playlist URL</Label>
+            <Label>{t("spotify_playlist_url", "Spotify Playlist URL")}</Label>
             <Input
               placeholder="https://open.spotify.com/playlist/..."
               value={url}
@@ -157,7 +159,7 @@ export function SpotifyPlaylistDialog({ open, onOpenChange, onSuccess }: Spotify
           {/* Preview */}
           {spotifyInfo && (
             <div className="space-y-2">
-              <Label>Preview</Label>
+              <Label>{t("preview", "Preview")}</Label>
               <SpotifyEmbed
                 type="playlist"
                 spotifyId={spotifyInfo.id}
@@ -168,9 +170,9 @@ export function SpotifyPlaylistDialog({ open, onOpenChange, onSuccess }: Spotify
 
           {/* Name */}
           <div className="space-y-2">
-            <Label>Playlist Name *</Label>
+            <Label>{t("playlist_name", "Playlist Name *")}</Label>
             <Input
-              placeholder="e.g., Deep Focus Beats"
+              placeholder={t("eg_deep_focus_beats", "e.g., Deep Focus Beats")}
               value={name}
               onChange={(e) => setName(e.target.value)}
             />
@@ -178,9 +180,9 @@ export function SpotifyPlaylistDialog({ open, onOpenChange, onSuccess }: Spotify
 
           {/* Description */}
           <div className="space-y-2">
-            <Label>Description</Label>
+            <Label>{t("description", "Description")}</Label>
             <Textarea
-              placeholder="Describe the vibe and mood..."
+              placeholder={t("describe_the_vibe_and", "Describe the vibe and mood...")}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={3}
@@ -189,7 +191,7 @@ export function SpotifyPlaylistDialog({ open, onOpenChange, onSuccess }: Spotify
 
           {/* Mood Tags */}
           <div className="space-y-3">
-            <Label>Mood Tags * (Select at least one)</Label>
+            <Label>{t("mood_tags_select_at", "Mood Tags * (Select at least one)")}</Label>
             <div className="space-y-3">
               {MOOD_TAGS.map((category) => (
                 <div key={category.category} className="space-y-2">
@@ -218,10 +220,10 @@ export function SpotifyPlaylistDialog({ open, onOpenChange, onSuccess }: Spotify
 
           {/* Genre */}
           <div className="space-y-2">
-            <Label>Genre</Label>
+            <Label>{t("genre", "Genre")}</Label>
             <Select value={genre} onValueChange={setGenre}>
               <SelectTrigger>
-                <SelectValue placeholder="Select genre" />
+                <SelectValue placeholder={t("select_genre", "Select genre")} />
               </SelectTrigger>
               <SelectContent>
                 {GENRES.map((g) => (
@@ -235,10 +237,10 @@ export function SpotifyPlaylistDialog({ open, onOpenChange, onSuccess }: Spotify
 
           {/* Energy Level */}
           <div className="space-y-2">
-            <Label>Energy Level</Label>
+            <Label>{t("energy_level", "Energy Level")}</Label>
             <Select value={energyLevel} onValueChange={setEnergyLevel}>
               <SelectTrigger>
-                <SelectValue placeholder="Select energy level" />
+                <SelectValue placeholder={t("select_energy_level", "Select energy level")} />
               </SelectTrigger>
               <SelectContent>
                 {ENERGY_LEVELS.map((level) => (
@@ -259,7 +261,7 @@ export function SpotifyPlaylistDialog({ open, onOpenChange, onSuccess }: Spotify
               onChange={(e) => setIsFeatured(e.target.checked)}
               className="rounded"
             />
-            <Label htmlFor="featured">Mark as Featured</Label>
+            <Label htmlFor="featured">{t("mark_as_featured", "Mark as Featured")}</Label>
           </div>
 
           {/* Actions */}

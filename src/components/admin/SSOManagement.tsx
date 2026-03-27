@@ -24,6 +24,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import { useTranslation } from 'react-i18next';
 
 interface SSOConnection {
   id: string;
@@ -37,6 +38,7 @@ interface SSOConnection {
 }
 
 export const SSOManagement = () => {
+  const { t } = useTranslation('admin');
   const [connections, setConnections] = useState<SSOConnection[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -64,7 +66,7 @@ export const SSOManagement = () => {
       if (error) throw error;
       setConnections(data || []);
     } catch (error: unknown) {
-      notify.error('Failed to Load SSO Connections', { description: error instanceof Error ? error.message : 'An unexpected error occurred' });
+      notify.error('Failed to Load SSO Connections', { description: error instanceof Error ? error.message : t('ssomanagementtsx.ssomanagement.anUnexpectedErrorOccurred', 'An unexpected error occurred') });
     } finally {
       setLoading(false);
     }
@@ -94,7 +96,7 @@ export const SSOManagement = () => {
 
       if (error) throw error;
 
-      notify.success('SSO Connection Created', { description: 'The SSO connection has been configured successfully' });
+      notify.success('SSO Connection Created', { description: t('ssomanagementtsx.ssomanagement.theSsoConnectionHasBeenConfigured', 'The SSO connection has been configured successfully') });
 
       setDialogOpen(false);
       setFormData({
@@ -107,7 +109,7 @@ export const SSOManagement = () => {
       });
       loadConnections();
     } catch (error: unknown) {
-      notify.error('Failed to Create Connection', { description: error instanceof Error ? error.message : 'An unexpected error occurred' });
+      notify.error('Failed to Create Connection', { description: error instanceof Error ? error.message : t('ssomanagementtsx.ssomanagement.anUnexpectedErrorOccurred', 'An unexpected error occurred') });
     }
   };
 
@@ -120,13 +122,13 @@ export const SSOManagement = () => {
 
       if (error) throw error;
 
-      notify.success(isActive ? 'SSO Disabled' : 'SSO Enabled', { 
+      notify.success(isActive ? t('ssomanagementtsx.ssomanagement.ssoDisabled', 'SSO Disabled') : t('ssomanagementtsx.ssomanagement.ssoEnabled', 'SSO Enabled'), { 
         description: `The SSO connection has been ${isActive ? 'disabled' : 'enabled'}` 
       });
 
       loadConnections();
     } catch (error: unknown) {
-      notify.error('Failed to Update Connection', { description: error instanceof Error ? error.message : 'An unexpected error occurred' });
+      notify.error('Failed to Update Connection', { description: error instanceof Error ? error.message : t('ssomanagementtsx.ssomanagement.anUnexpectedErrorOccurred', 'An unexpected error occurred') });
     }
   };
 
@@ -141,11 +143,11 @@ export const SSOManagement = () => {
 
       if (error) throw error;
 
-      notify.success('SSO Connection Deleted', { description: 'The SSO connection has been removed' });
+      notify.success('SSO Connection Deleted', { description: t('ssomanagementtsx.ssomanagement.theSsoConnectionHasBeenRemoved', 'The SSO connection has been removed') });
 
       loadConnections();
     } catch (error: unknown) {
-      notify.error('Failed to Delete Connection', { description: error instanceof Error ? error.message : 'An unexpected error occurred' });
+      notify.error('Failed to Delete Connection', { description: error instanceof Error ? error.message : t('ssomanagementtsx.ssomanagement.anUnexpectedErrorOccurred', 'An unexpected error occurred') });
     }
   };
 
@@ -158,9 +160,7 @@ export const SSOManagement = () => {
               <KeyRound className="w-5 h-5" />
               Single Sign-On (SSO)
             </CardTitle>
-            <CardDescription>
-              Configure SAML and OAuth identity providers for enterprise authentication
-            </CardDescription>
+            <CardDescription>{t('ssomanagementtsx.ssomanagement.configureSamlAndOauthIdentityProviders', 'Configure SAML and OAuth identity providers for enterprise authentication')}</CardDescription>
           </div>
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
@@ -171,14 +171,12 @@ export const SSOManagement = () => {
             </DialogTrigger>
             <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>Configure SSO Connection</DialogTitle>
-                <DialogDescription>
-                  Set up a new identity provider for single sign-on authentication
-                </DialogDescription>
+                <DialogTitle>{t('sSOManagement.configureSsoConnection')}</DialogTitle>
+                <DialogDescription>{t('ssomanagementtsx.ssomanagement.setUpANewIdentityProvider', 'Set up a new identity provider for single sign-on authentication')}</DialogDescription>
               </DialogHeader>
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
-                  <Label>Identity Provider Type</Label>
+                  <Label>{t('sSOManagement.identityProviderType')}</Label>
                   <Select
                     value={formData.idp_type}
                     onValueChange={(value) => setFormData({ ...formData, idp_type: value })}
@@ -187,14 +185,14 @@ export const SSOManagement = () => {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="saml">SAML 2.0</SelectItem>
-                      <SelectItem value="oidc">OpenID Connect</SelectItem>
+                      <SelectItem value="saml">{t('ssomanagementtsx.ssomanagement.saml20', 'SAML 2.0')}</SelectItem>
+                      <SelectItem value="oidc">{t('ssomanagementtsx.ssomanagement.openidConnect', 'OpenID Connect')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Provider Name</Label>
+                  <Label>{t('sSOManagement.providerName')}</Label>
                   <Input
                     placeholder="e.g., Okta, Azure AD, Google Workspace"
                     value={formData.idp_name}
@@ -203,7 +201,7 @@ export const SSOManagement = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Entity ID / Client ID</Label>
+                  <Label>{t('sSOManagement.entityIdClientId')}</Label>
                   <Input
                     placeholder="https://your-domain.okta.com"
                     value={formData.entity_id}
@@ -212,7 +210,7 @@ export const SSOManagement = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>SSO URL / Authorization Endpoint</Label>
+                  <Label>{t('sSOManagement.ssoUrlAuthorizationEndpoint')}</Label>
                   <Input
                     placeholder="https://your-domain.okta.com/app/app-id/sso/saml"
                     value={formData.sso_url}
@@ -223,9 +221,9 @@ export const SSOManagement = () => {
                 {formData.idp_type === 'saml' && (
                   <>
                     <div className="space-y-2">
-                      <Label>X.509 Certificate (Optional)</Label>
+                      <Label>{t('ssomanagementtsx.ssomanagement.x509CertificateOptional', 'X.509 Certificate (Optional)')}</Label>
                       <Textarea
-                        placeholder="-----BEGIN CERTIFICATE-----&#10;...&#10;-----END CERTIFICATE-----"
+                        placeholder="-----BEGIN CERTIFICATE-----&#10;...&#10;-----END" CERTIFICATE-----
                         value={formData.certificate}
                         onChange={(e) => setFormData({ ...formData, certificate: e.target.value })}
                         rows={4}
@@ -233,9 +231,9 @@ export const SSOManagement = () => {
                     </div>
 
                     <div className="space-y-2">
-                      <Label>SAML Metadata XML (Optional)</Label>
+                      <Label>{t('sSOManagement.samlMetadataXmlOptional')}</Label>
                       <Textarea
-                        placeholder="Paste SAML metadata XML here..."
+                        placeholder={t('sSOManagement.pasteSamlMetadataXmlHere')}
                         value={formData.metadata_xml}
                         onChange={(e) => setFormData({ ...formData, metadata_xml: e.target.value })}
                         rows={4}
@@ -246,9 +244,9 @@ export const SSOManagement = () => {
               </div>
               <DialogFooter>
                 <Button variant="outline" onClick={() => setDialogOpen(false)}>
-                  Cancel
+                  {t('ssomanagementtsx.ssomanagement.cancel', 'Cancel')}
                 </Button>
-                <Button onClick={handleCreateConnection}>Create Connection</Button>
+                <Button onClick={handleCreateConnection}>{t('sSOManagement.createConnection')}</Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
@@ -272,7 +270,7 @@ export const SSOManagement = () => {
                   <div className="flex items-center gap-2">
                     <h4 className="font-medium">{connection.idp_name}</h4>
                     <Badge variant={connection.is_active ? 'default' : 'secondary'}>
-                      {connection.is_active ? 'Active' : 'Inactive'}
+                      {connection.is_active ? t('ssomanagementtsx.ssomanagement.active', 'Active') : t('ssomanagementtsx.ssomanagement.inactive', 'Inactive')}
                     </Badge>
                     <Badge variant="outline" className="text-xs">
                       {connection.idp_type.toUpperCase()}
@@ -286,7 +284,7 @@ export const SSOManagement = () => {
                     size="sm"
                     onClick={() => handleToggleConnection(connection.id, connection.is_active)}
                   >
-                    {connection.is_active ? 'Disable' : 'Enable'}
+                    {connection.is_active ? t('ssomanagementtsx.ssomanagement.disable', 'Disable') : t('ssomanagementtsx.ssomanagement.enable', 'Enable')}
                   </Button>
                   <Button
                     variant="outline"

@@ -1,65 +1,21 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.58.0';
 import { checkUserRateLimit, createRateLimitResponse } from '../_shared/rate-limiter.ts';
 import { verifyRecaptcha, createRecaptchaErrorResponse } from '../_shared/recaptcha-verifier.ts';
 import { logAIUsage, extractClientInfo } from '../_shared/ai-logger.ts';
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { createAuthenticatedHandler } from '../_shared/handler.ts';
 
 interface Message {
   role: 'user' | 'assistant' | 'system';
   content: string;
 }
 
-Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
+Deno.serve(createAuthenticatedHandler(async (req, ctx) => {
+    const { user, corsHeaders } = ctx;
 
-  const startTime = Date.now();
-  const clientInfo = extractClientInfo(req);
-  let userId: string | undefined;
+    const startTime = Date.now();
+    const clientInfo = extractClientInfo(req);
+    const userId = user.id;
 
-  try {
-    // Authentication check
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      await logAIUsage({
-        functionName: 'module-ai-assistant',
-        ...clientInfo,
-        success: false,
-        errorMessage: 'No authorization header'
-      });
-      return new Response(
-        JSON.stringify({ error: 'Authentication required' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    const supabaseAuth = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      { global: { headers: { Authorization: authHeader } } }
-    );
-
-    const { data: { user }, error: authError } = await supabaseAuth.auth.getUser();
-    
-    if (authError || !user) {
-      await logAIUsage({
-        functionName: 'module-ai-assistant',
-        ...clientInfo,
-        success: false,
-        errorMessage: 'Authentication failed'
-      });
-      return new Response(
-        JSON.stringify({ error: 'Invalid authentication' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    userId = user.id;
+    try {
     console.log('Module AI assistant: Authenticated user:', userId);
 
     // Rate limiting check: 20 requests per hour
@@ -106,9 +62,9 @@ Deno.serve(async (req) => {
       }
     }
 
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY not configured');
+    const GOOGLE_API_KEY = Deno.env.get('GOOGLE_API_KEY');
+    if (!GOOGLE_API_KEY) {
+      throw new Error('GOOGLE_API_KEY not configured');
     }
 
     // Build context-aware system prompt
@@ -131,14 +87,14 @@ Your role:
 
 Keep responses focused, practical, and encouraging. Use markdown formatting for clarity.`;
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    const response = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Authorization': `Bearer ${GOOGLE_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash-lite',
+        model: 'gemini-2.5-flash-lite',
         messages: [
           { role: 'system', content: systemPrompt },
           ...messages
@@ -149,7 +105,7 @@ Keep responses focused, practical, and encouraging. Use markdown formatting for 
 
     if (!response.ok) {
       const errorMessage = response.status === 429 ? 'AI rate limit exceeded' :
-                          response.status === 402 ? 'AI credits exhausted' :
+                          response.status === 402 ? 'AI quota exceeded' :
                           'AI service error';
       await logAIUsage({
         userId,
@@ -168,7 +124,7 @@ Keep responses focused, practical, and encouraging. Use markdown formatting for 
       }
       if (response.status === 402) {
         return new Response(
-          JSON.stringify({ error: 'AI credits exhausted. Please contact support.' }),
+          JSON.stringify({ error: 'AI quota exceeded. Please contact support.' }),
           { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
@@ -207,4 +163,4 @@ Keep responses focused, practical, and encouraging. Use markdown formatting for 
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
-});
+}));

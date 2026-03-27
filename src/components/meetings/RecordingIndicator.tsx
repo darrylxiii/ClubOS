@@ -1,7 +1,9 @@
 import { Circle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { motion } from '@/lib/motion';
 
 export function RecordingIndicator() {
+  const { t } = useTranslation("meetings");
   return (
     <motion.div
       initial={{ opacity: 0, y: -20 }}
@@ -27,7 +29,7 @@ export function RecordingIndicator() {
           <Circle className="h-3 w-3 fill-white text-white" />
         </motion.div>
         <span className="text-white font-semibold text-sm">
-          Club AI is Recording
+          {t('recording.isRecording')}
         </span>
       </div>
     </motion.div>

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from 'react-i18next';
 import {
   Dialog,
   DialogContent,
@@ -30,6 +31,7 @@ const PRIORITIES = [
 ] as const;
 
 export const QuickTaskDialog = ({ open, onClose, onExpand, jobId, companyId }: QuickTaskDialogProps) => {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const { currentBoard } = useTaskBoard();
   const [title, setTitle] = useState("");
@@ -66,13 +68,13 @@ export const QuickTaskDialog = ({ open, onClose, onExpand, jobId, companyId }: Q
         });
       }
 
-      toast.success("Task created");
+      toast.success(t('clubPilot.taskCreated'));
       setTitle("");
       setPriority("medium");
       onClose();
     } catch (err) {
       console.error("Quick task create error:", err);
-      toast.error("Failed to create task");
+      toast.error(t('clubPilot.failedToCreateTask'));
     } finally {
       setIsSubmitting(false);
     }
@@ -93,8 +95,8 @@ export const QuickTaskDialog = ({ open, onClose, onExpand, jobId, companyId }: Q
         <DialogHeader>
           <div className="flex items-center justify-between">
             <div>
-              <DialogTitle>Quick Task</DialogTitle>
-              <DialogDescription>Create a task instantly.</DialogDescription>
+              <DialogTitle>{t('clubPilot.quickTask')}</DialogTitle>
+              <DialogDescription>{t('clubPilot.createATaskInstantly')}</DialogDescription>
             </div>
             {onExpand && (
               <Button
@@ -103,7 +105,7 @@ export const QuickTaskDialog = ({ open, onClose, onExpand, jobId, companyId }: Q
                 size="icon"
                 className="h-8 w-8 min-h-0 min-w-0 shrink-0"
                 onClick={handleExpand}
-                title="Open full task editor"
+                title={t('common:quickTaskDialog.openFullTaskEditor', 'Open full task editor')}
               >
                 <Maximize2 className="h-4 w-4" />
               </Button>
@@ -112,7 +114,7 @@ export const QuickTaskDialog = ({ open, onClose, onExpand, jobId, companyId }: Q
         </DialogHeader>
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
           <Input
-            placeholder="What needs to be done?"
+            placeholder={t('clubPilot.whatNeedsToBeDone')}
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             autoFocus
@@ -141,9 +143,7 @@ export const QuickTaskDialog = ({ open, onClose, onExpand, jobId, companyId }: Q
             size="sm"
             loading={isSubmitting}
             disabled={!title.trim()}
-          >
-            Create Task
-          </Button>
+          >{t('clubPilot.createTask')}</Button>
         </form>
       </DialogContent>
     </Dialog>

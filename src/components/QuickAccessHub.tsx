@@ -11,8 +11,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigationHistory } from "@/contexts/NavigationHistoryContext";
 import { useLocation } from "react-router-dom";
+import { useTranslation } from 'react-i18next';
 
 export const QuickAccessHub = () => {
+  const { t } = useTranslation('common');
   const [open, setOpen] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [rating, setRating] = useState<number | null>(null);

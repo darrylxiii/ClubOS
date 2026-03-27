@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from 'react-i18next';
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -36,6 +37,7 @@ const priorityColors = {
 };
 
 export default function SupportTicketList() {
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
   const { user } = useAuth();
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -74,12 +76,12 @@ export default function SupportTicketList() {
       
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold mb-2">Support Tickets</h1>
-          <p className="text-muted-foreground">Track and manage your support requests</p>
+          <h1 className="text-3xl font-bold mb-2">{t('support.tickets')}</h1>
+          <p className="text-muted-foreground">{t('support.trackRequests')}</p>
         </div>
         <Button onClick={() => navigate('/support/tickets/new')}>
           <Plus className="h-4 w-4 mr-2" />
-          New Ticket
+          {t('support.newTicket')}
         </Button>
       </div>
 
@@ -88,7 +90,7 @@ export default function SupportTicketList() {
           <div className="relative flex-1">
             <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search tickets..."
+              placeholder={t('support.searchTickets')}
               className="pl-9"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -100,12 +102,12 @@ export default function SupportTicketList() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Statuses</SelectItem>
-              <SelectItem value="open">Open</SelectItem>
-              <SelectItem value="in_progress">In Progress</SelectItem>
-              <SelectItem value="waiting_customer">Waiting for You</SelectItem>
-              <SelectItem value="resolved">Resolved</SelectItem>
-              <SelectItem value="closed">Closed</SelectItem>
+              <SelectItem value="all">{"All Statuses"}</SelectItem>
+              <SelectItem value="open">{"Open"}</SelectItem>
+              <SelectItem value="in_progress">{"In Progress"}</SelectItem>
+              <SelectItem value="waiting_customer">{"Waiting for You"}</SelectItem>
+              <SelectItem value="resolved">{"Resolved"}</SelectItem>
+              <SelectItem value="closed">{"Closed"}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -144,7 +146,7 @@ export default function SupportTicketList() {
                 <div className="text-right text-sm text-muted-foreground">
                   <p>{formatDistanceToNow(new Date(ticket.created_at), { addSuffix: true })}</p>
                   {ticket.sla_breached && (
-                    <Badge variant="destructive" className="mt-2">SLA Breached</Badge>
+                    <Badge variant="destructive" className="mt-2">{"SLA Breached"}</Badge>
                   )}
                 </div>
               </div>

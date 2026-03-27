@@ -1,32 +1,13 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { moneybirdRequest } from '../_shared/moneybird-client.ts';
+import { createHandler } from '../_shared/handler.ts';
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
-};
+Deno.serve(createHandler(async (req, ctx) => {
+    const { supabase, corsHeaders } = ctx;
 
-const MONEYBIRD_API_BASE = 'https://moneybird.com/api/v2';
+    const startTime = Date.now();
+    const administrationId = Deno.env.get('MONEYBIRD_ADMINISTRATION_ID')!;
 
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  const startTime = Date.now();
-  const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-  const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-  const accessToken = Deno.env.get('MONEYBIRD_ACCESS_TOKEN')!;
-  const administrationId = Deno.env.get('MONEYBIRD_ADMINISTRATION_ID')!;
-  const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
-  try {
-    if (!accessToken || !administrationId) {
-      return new Response(
-        JSON.stringify({ error: 'Moneybird not configured' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
+    try {
 
     const body = await req.json().catch(() => ({}));
     const { partnerInvoiceId, syncAll = false } = body;
@@ -66,15 +47,15 @@ serve(async (req) => {
         results.checked++;
 
         // Fetch invoice status from Moneybird
-        const invoiceResponse = await fetch(
-          `${MONEYBIRD_API_BASE}/${administrationId}/sales_invoices/${sync.moneybird_invoice_id}.json`,
-          {
-            headers: { 'Authorization': `Bearer ${accessToken}` },
-          }
-        );
-
-        if (!invoiceResponse.ok) {
-          if (invoiceResponse.status === 404) {
+        let moneybirdInvoice: Record<string, unknown>;
+        try {
+          moneybirdInvoice = await moneybirdRequest<Record<string, unknown>>(
+            `sales_invoices/${sync.moneybird_invoice_id}.json`,
+            { operation: 'sync-invoice-status' },
+          );
+        } catch (err: unknown) {
+          const errMsg = err instanceof Error ? err.message : String(err);
+          if (errMsg.includes('404')) {
             // Invoice deleted in Moneybird
             await supabase
               .from('moneybird_invoice_sync')
@@ -86,10 +67,8 @@ serve(async (req) => {
               .eq('id', sync.id);
             continue;
           }
-          throw new Error(`Fetch failed: ${invoiceResponse.status}`);
+          throw err;
         }
-
-        const moneybirdInvoice = await invoiceResponse.json();
         const newStatus = moneybirdInvoice.state;
         const previousStatus = sync.moneybird_status;
 
@@ -200,4 +179,4 @@ serve(async (req) => {
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
-});
+}));

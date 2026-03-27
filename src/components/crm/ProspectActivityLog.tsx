@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { motion } from '@/lib/motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -20,6 +21,7 @@ interface ProspectActivityLogProps {
 }
 
 export function ProspectActivityLog({ prospectId, prospectName }: ProspectActivityLogProps) {
+  const { t } = useTranslation('common');
   const [typeFilter, setTypeFilter] = useState<ActivityEntryType | 'all'>('all');
   
   const { activities, loading, refetch } = useProspectActivityLog({
@@ -94,15 +96,15 @@ export function ProspectActivityLog({ prospectId, prospectName }: ProspectActivi
             <Select value={typeFilter} onValueChange={(v) => setTypeFilter(v as ActivityEntryType | 'all')}>
               <SelectTrigger className="w-40">
                 <Filter className="h-4 w-4 mr-2" />
-                <SelectValue placeholder="Filter" />
+                <SelectValue placeholder={t("filter", "Filter")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Activities</SelectItem>
-                <SelectItem value="email_sent">Emails Sent</SelectItem>
-                <SelectItem value="call_made">Calls Made</SelectItem>
-                <SelectItem value="meeting_scheduled">Meetings</SelectItem>
-                <SelectItem value="note_added">Notes</SelectItem>
-                <SelectItem value="task_completed">Completed Tasks</SelectItem>
+                <SelectItem value="all">{t("all_activities", "All Activities")}</SelectItem>
+                <SelectItem value="email_sent">{t("emails_sent", "Emails Sent")}</SelectItem>
+                <SelectItem value="call_made">{t("calls_made", "Calls Made")}</SelectItem>
+                <SelectItem value="meeting_scheduled">{t("meetings", "Meetings")}</SelectItem>
+                <SelectItem value="note_added">{t("notes", "Notes")}</SelectItem>
+                <SelectItem value="task_completed">{t("completed_tasks", "Completed Tasks")}</SelectItem>
               </SelectContent>
             </Select>
             <Button variant="outline" size="sm" onClick={exportActivities} disabled={activities.length === 0}>
@@ -126,8 +128,8 @@ export function ProspectActivityLog({ prospectId, prospectName }: ProspectActivi
           ) : activities.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
               <Activity className="h-12 w-12 mx-auto mb-4 opacity-30" />
-              <p>No activities recorded yet</p>
-              <p className="text-sm mt-1">Activities will appear here as you interact with this prospect</p>
+              <p>{t("no_activities_recorded_yet", "No activities recorded yet")}</p>
+              <p className="text-sm mt-1">{t("activities_will_appear_here", "Activities will appear here as you interact with this prospect")}</p>
             </div>
           ) : (
             <div className="relative">

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -12,6 +13,7 @@ import { useRole } from "@/contexts/RoleContext";
 import type { PrefillData } from "@/components/admin/partner-provisioning/useProvisionForm";
 
 export function InviteDashboardLayout() {
+  const { t } = useTranslation('common');
   const [activeTab, setActiveTab] = useState("send");
   const { currentRole } = useRole();
   const isElevated = currentRole === 'admin' || currentRole === 'strategist';
@@ -27,7 +29,7 @@ export function InviteDashboardLayout() {
     <div className="container mx-auto px-4 py-6 max-w-7xl">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Invite Dashboard</h1>
+        <h1 className="text-3xl font-bold mb-2">{t("invite_dashboard", "Invite Dashboard")}</h1>
         <p className="text-muted-foreground">
           Send invitations, track responses, and grow your network
         </p>
@@ -64,25 +66,25 @@ export function InviteDashboardLayout() {
           <TabsList className={`grid w-full mb-6 ${isElevated ? 'grid-cols-4' : 'grid-cols-3'}`}>
             <TabsTrigger value="send" className="gap-2">
               <Mail className="h-4 w-4" />
-              <span className="hidden sm:inline">Send Invites</span>
-              <span className="sm:hidden">Send</span>
+              <span className="hidden sm:inline">{t("send_invites", "Send Invites")}</span>
+              <span className="sm:hidden">{t("send", "Send")}</span>
             </TabsTrigger>
             <TabsTrigger value="history" className="gap-2">
               <History className="h-4 w-4" />
-              <span className="hidden sm:inline">Invitation History</span>
-              <span className="sm:hidden">History</span>
+              <span className="hidden sm:inline">{t("invitation_history", "Invitation History")}</span>
+              <span className="sm:hidden">{t("history", "History")}</span>
             </TabsTrigger>
             {isElevated && (
               <TabsTrigger value="provisioned" className="gap-2">
                 <Users className="h-4 w-4" />
-                <span className="hidden sm:inline">Provisioned</span>
-                <span className="sm:hidden">Prov.</span>
+                <span className="hidden sm:inline">{t("provisioned", "Provisioned")}</span>
+                <span className="sm:hidden">{t("prov", "Prov.")}</span>
               </TabsTrigger>
             )}
             <TabsTrigger value="analytics" className="gap-2">
               <BarChart3 className="h-4 w-4" />
-              <span className="hidden sm:inline">Analytics</span>
-              <span className="sm:hidden">Stats</span>
+              <span className="hidden sm:inline">{t("analytics", "Analytics")}</span>
+              <span className="sm:hidden">{t("stats", "Stats")}</span>
             </TabsTrigger>
           </TabsList>
 

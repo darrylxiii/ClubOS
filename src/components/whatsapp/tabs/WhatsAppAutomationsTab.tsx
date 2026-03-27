@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,6 +11,7 @@ import { AutomationRulesBuilder } from '@/components/whatsapp/AutomationRulesBui
 import { notify } from '@/lib/notify';
 
 export function WhatsAppAutomationsTab() {
+  const { t } = useTranslation('common');
   const [showBuilder, setShowBuilder] = useState(false);
   const queryClient = useQueryClient();
 
@@ -68,8 +70,8 @@ export function WhatsAppAutomationsTab() {
     <div className="p-6 space-y-6 w-full">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold">Automation Rules</h2>
-          <p className="text-sm text-muted-foreground">Automate responses and actions based on triggers</p>
+          <h2 className="text-xl font-bold">{t("automation_rules", "Automation Rules")}</h2>
+          <p className="text-sm text-muted-foreground">{t("automate_responses_and_actions", "Automate responses and actions based on triggers")}</p>
         </div>
         <Button onClick={() => setShowBuilder(true)}>
           <Plus className="w-4 h-4 mr-2" />
@@ -87,7 +89,7 @@ export function WhatsAppAutomationsTab() {
               </div>
               <div>
                 <p className="text-2xl font-bold">{rules?.length || 0}</p>
-                <p className="text-xs text-muted-foreground">Total Rules</p>
+                <p className="text-xs text-muted-foreground">{t("total_rules", "Total Rules")}</p>
               </div>
             </div>
           </CardContent>
@@ -100,7 +102,7 @@ export function WhatsAppAutomationsTab() {
               </div>
               <div>
                 <p className="text-2xl font-bold">{activeRules}</p>
-                <p className="text-xs text-muted-foreground">Active</p>
+                <p className="text-xs text-muted-foreground">{t("active", "Active")}</p>
               </div>
             </div>
           </CardContent>
@@ -113,7 +115,7 @@ export function WhatsAppAutomationsTab() {
               </div>
               <div>
                 <p className="text-2xl font-bold">{totalExecutions}</p>
-                <p className="text-xs text-muted-foreground">Executions</p>
+                <p className="text-xs text-muted-foreground">{t("executions", "Executions")}</p>
               </div>
             </div>
           </CardContent>
@@ -128,7 +130,7 @@ export function WhatsAppAutomationsTab() {
                 <p className="text-2xl font-bold">
                   {rules?.filter(r => r.trigger_type === 'time_based').length || 0}
                 </p>
-                <p className="text-xs text-muted-foreground">Scheduled</p>
+                <p className="text-xs text-muted-foreground">{t("scheduled", "Scheduled")}</p>
               </div>
             </div>
           </CardContent>
@@ -138,8 +140,8 @@ export function WhatsAppAutomationsTab() {
       {/* Rules List */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">All Automation Rules</CardTitle>
-          <CardDescription>Manage your automated WhatsApp workflows</CardDescription>
+          <CardTitle className="text-base">{t("all_automation_rules", "All Automation Rules")}</CardTitle>
+          <CardDescription>{t("manage_your_automated_whatsapp", "Manage your automated WhatsApp workflows")}</CardDescription>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -192,7 +194,7 @@ export function WhatsAppAutomationsTab() {
           ) : (
             <div className="text-center py-12">
               <Bot className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-              <h3 className="font-medium mb-2">No automation rules yet</h3>
+              <h3 className="font-medium mb-2">{t("no_automation_rules_yet", "No automation rules yet")}</h3>
               <p className="text-sm text-muted-foreground mb-4">
                 Create rules to automatically respond to messages or trigger actions
               </p>
@@ -211,11 +213,11 @@ export function WhatsAppAutomationsTab() {
           <div className="flex items-start gap-3">
             <Settings className="w-5 h-5 text-muted-foreground shrink-0 mt-0.5" />
             <div className="text-sm">
-              <p className="font-medium mb-1">Automation Tips</p>
+              <p className="font-medium mb-1">{t("automation_tips", "Automation Tips")}</p>
               <ul className="text-muted-foreground space-y-1">
-                <li>• Use keyword triggers for FAQ responses</li>
-                <li>• Set up time-based rules for follow-up reminders</li>
-                <li>• Combine with templates for consistent messaging</li>
+                <li>{t("use_keyword_triggers_for", "• Use keyword triggers for FAQ responses")}</li>
+                <li>{t("set_up_timebased_rules", "• Set up time-based rules for follow-up reminders")}</li>
+                <li>{t("combine_with_templates_for", "• Combine with templates for consistent messaging")}</li>
               </ul>
             </div>
           </div>

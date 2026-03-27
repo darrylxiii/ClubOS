@@ -3,7 +3,8 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
 import { getAppUrl } from "../_shared/app-config.ts";
 import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
 import { Heading, Paragraph, Spacer, Card, Button, AlertBox, InfoRow } from "../_shared/email-templates/components.ts";
-import { EMAIL_SENDERS, getEmailHeaders, htmlToPlainText } from "../_shared/email-config.ts";
+import { EMAIL_SENDERS } from "../_shared/email-config.ts";
+import { sendEmail } from '../_shared/resend-client.ts';
 
 import { corsHeaders } from "../_shared/cors.ts";
 
@@ -15,8 +16,6 @@ serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const resendApiKey = Deno.env.get('RESEND_API_KEY');
-
     const supabase = createClient(supabaseUrl, supabaseServiceKey, {
       auth: { autoRefreshToken: false, persistSession: false }
     });
@@ -75,7 +74,7 @@ serve(async (req) => {
 
     // Send email notification to admins via Resend
     let emailsSent = 0;
-    if (resendApiKey && adminEmails.length > 0) {
+    if (adminEmails.length > 0) {
       const appUrl = getAppUrl();
       const reviewUrl = `${appUrl}/admin/members`;
 
@@ -119,29 +118,17 @@ serve(async (req) => {
         showFooter: false,
       });
 
-      const emailResponse = await fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${resendApiKey}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
+      try {
+        const resendData = await sendEmail({
           from: EMAIL_SENDERS.notifications,
           to: adminEmails,
           subject: `New ${type || 'partner'} request: ${name}`,
           html: emailHtml,
-          text: htmlToPlainText(emailHtml),
-          headers: getEmailHeaders(),
-        })
-      });
-
-      if (emailResponse.ok) {
-        const resendData = await emailResponse.json();
+        });
         console.log('Admin notification email sent, Resend ID:', resendData.id);
         emailsSent = adminEmails.length;
-      } else {
-        const errorBody = await emailResponse.text();
-        console.error('Resend error:', emailResponse.status, errorBody);
+      } catch (emailErr) {
+        console.error('Email send error:', emailErr);
       }
     }
 

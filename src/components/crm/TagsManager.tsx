@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { motion, AnimatePresence } from '@/lib/motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -41,6 +42,7 @@ export function TagsManager({
   onDeleteTag,
   mode = 'manage',
 }: TagsManagerProps) {
+  const { t } = useTranslation('common');
   const [showCreate, setShowCreate] = useState(false);
   const [newTagName, setNewTagName] = useState('');
   const [selectedColor, setSelectedColor] = useState(TAG_COLORS[4].value);
@@ -85,7 +87,7 @@ export function TagsManager({
               className="space-y-3 pb-3 border-b border-border/30"
             >
               <Input
-                placeholder="Tag name..."
+                placeholder={t("tag_name", "Tag name...")}
                 value={newTagName}
                 onChange={(e) => setNewTagName(e.target.value)}
                 className="bg-muted/20"
@@ -120,7 +122,7 @@ export function TagsManager({
         {/* Tags list */}
         <div className="flex flex-wrap gap-2">
           {tags.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No tags created yet</p>
+            <p className="text-sm text-muted-foreground">{t("no_tags_created_yet", "No tags created yet")}</p>
           ) : (
             tags.map((tag) => {
               const isSelected = selectedTags.includes(tag.id);

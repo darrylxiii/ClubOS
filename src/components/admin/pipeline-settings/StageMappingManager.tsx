@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { usePipelineStageMappings, PipelineStageMapping } from "@/hooks/usePipelineStageMappings";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,6 +23,7 @@ const MATCH_TYPES: { value: MatchType; label: string; description: string }[] = 
 ];
 
 export function StageMappingManager() {
+  const { t } = useTranslation('common');
   const { 
     mappings, 
     dealStages, 
@@ -102,7 +104,7 @@ export function StageMappingManager() {
   };
 
   const getDealStageBadge = (stage?: { name: string; color: string }) => {
-    if (!stage) return <Badge variant="outline">Not Mapped</Badge>;
+    if (!stage) return <Badge variant="outline">{t("not_mapped", "Not Mapped")}</Badge>;
     return (
       <Badge 
         style={{ backgroundColor: stage.color, color: '#fff' }}
@@ -153,12 +155,12 @@ export function StageMappingManager() {
         <CardContent>
           <div className="flex gap-4 items-end">
             <div className="flex-1">
-              <Label htmlFor="test-pattern">Job Stage Name</Label>
+              <Label htmlFor="test-pattern">{t("job_stage_name", "Job Stage Name")}</Label>
               <Input
                 id="test-pattern"
                 value={testPattern}
                 onChange={(e) => setTestPattern(e.target.value)}
-                placeholder="e.g., Technical Interview, Screening, Final Round..."
+                placeholder={t("eg_technical_interview_screening", "e.g., Technical Interview, Screening, Final Round...")}
                 className="mt-1.5"
               />
             </div>
@@ -181,7 +183,7 @@ export function StageMappingManager() {
       <Card className="bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border-border/50">
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
-            <CardTitle>Stage Mappings</CardTitle>
+            <CardTitle>{t("stage_mappings", "Stage Mappings")}</CardTitle>
             <CardDescription>
               Configure how job pipeline stages map to deal pipeline stages
             </CardDescription>
@@ -221,16 +223,16 @@ export function StageMappingManager() {
                 </DialogHeader>
                 <div className="space-y-4 py-4">
                   <div className="space-y-2">
-                    <Label htmlFor="pattern">Job Stage Pattern</Label>
+                    <Label htmlFor="pattern">{t("job_stage_pattern", "Job Stage Pattern")}</Label>
                     <Input
                       id="pattern"
                       value={formData.job_stage_pattern}
                       onChange={(e) => setFormData(prev => ({ ...prev, job_stage_pattern: e.target.value }))}
-                      placeholder="e.g., Interview, Screening, Offer..."
+                      placeholder={t("eg_interview_screening_offer", "e.g., Interview, Screening, Offer...")}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="match-type">Match Type</Label>
+                    <Label htmlFor="match-type">{t("match_type", "Match Type")}</Label>
                     <Select
                       value={formData.match_type}
                       onValueChange={(value: MatchType) => 
@@ -255,13 +257,13 @@ export function StageMappingManager() {
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="deal-stage">Deal Stage</Label>
+                    <Label htmlFor="deal-stage">{t("deal_stage", "Deal Stage")}</Label>
                     <Select
                       value={formData.deal_stage_id}
                       onValueChange={(value) => setFormData(prev => ({ ...prev, deal_stage_id: value }))}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Select deal stage" />
+                        <SelectValue placeholder={t("select_deal_stage", "Select deal stage")} />
                       </SelectTrigger>
                       <SelectContent>
                         {dealStages?.map(stage => (
@@ -279,25 +281,25 @@ export function StageMappingManager() {
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="priority">Priority</Label>
+                    <Label htmlFor="priority">{t("priority", "Priority")}</Label>
                     <Input
                       id="priority"
                       type="number"
                       value={formData.priority}
                       onChange={(e) => setFormData(prev => ({ ...prev, priority: parseInt(e.target.value) || 0 }))}
-                      placeholder="Higher priority wins on conflicts"
+                      placeholder={t("higher_priority_wins_on", "Higher priority wins on conflicts")}
                     />
                     <p className="text-xs text-muted-foreground">
                       Higher priority mappings take precedence when multiple patterns match
                     </p>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="description">Description (Optional)</Label>
+                    <Label htmlFor="description">{t("description_optional", "Description (Optional)")}</Label>
                     <Textarea
                       id="description"
                       value={formData.description}
                       onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                      placeholder="Explain when this mapping applies..."
+                      placeholder={t("explain_when_this_mapping", "Explain when this mapping applies...")}
                       rows={2}
                     />
                   </div>
@@ -324,12 +326,12 @@ export function StageMappingManager() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Job Stage Pattern</TableHead>
-                <TableHead>Match Type</TableHead>
-                <TableHead>Deal Stage</TableHead>
-                <TableHead className="text-center">Priority</TableHead>
-                <TableHead>Description</TableHead>
-                <TableHead className="w-[100px]">Actions</TableHead>
+                <TableHead>{t("job_stage_pattern", "Job Stage Pattern")}</TableHead>
+                <TableHead>{t("match_type", "Match Type")}</TableHead>
+                <TableHead>{t("deal_stage", "Deal Stage")}</TableHead>
+                <TableHead className="text-center">{t("priority", "Priority")}</TableHead>
+                <TableHead>{t("description", "Description")}</TableHead>
+                <TableHead className="w-[100px]">{t("actions", "Actions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

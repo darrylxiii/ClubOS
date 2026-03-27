@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -8,6 +9,7 @@ import { useAudioManager } from "@/hooks/useAudioManager";
 import { useRef } from "react";
 
 export function TrackList() {
+  const { t } = useTranslation('common');
   const queryClient = useQueryClient();
   const { play: managedPlay } = useAudioManager('preview');
   const previewAudioRef = useRef<HTMLAudioElement | null>(null);
@@ -36,7 +38,7 @@ export function TrackList() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tracks'] });
-      toast.success('Track deleted');
+      toast.success(t("track_deleted", "Track deleted"));
     },
     onError: (error: Error) => {
       toast.error(error.message || 'Failed to delete track');
@@ -68,7 +70,7 @@ export function TrackList() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['dj-queue'] });
-      toast.success('Track added to DJ queue');
+      toast.success(t("track_added_to_dj", "Track added to DJ queue"));
     },
     onError: (error: Error) => {
       toast.error(error.message || 'Failed to add track to queue');
@@ -98,7 +100,7 @@ export function TrackList() {
     return (
       <div className="text-center py-12 rounded-3xl bg-black/20 backdrop-blur-xl border border-white/10">
         <Music className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-        <p className="text-muted-foreground">No tracks uploaded yet. Upload your first track!</p>
+        <p className="text-muted-foreground">{t("no_tracks_uploaded_yet", "No tracks uploaded yet. Upload your first track!")}</p>
       </div>
     );
   }
@@ -107,7 +109,7 @@ export function TrackList() {
     <div className="space-y-4">
       <div className="flex items-center gap-2 mb-6">
         <Music className="h-5 w-5 text-primary" />
-        <h2 className="text-2xl font-bold">Uploaded Tracks</h2>
+        <h2 className="text-2xl font-bold">{t("uploaded_tracks", "Uploaded Tracks")}</h2>
         <Badge variant="secondary" className="ml-2">{tracks.length}</Badge>
       </div>
 
@@ -169,7 +171,7 @@ export function TrackList() {
                   size="icon"
                   onClick={() => addToQueueMutation.mutate(track.id)}
                   disabled={addToQueueMutation.isPending}
-                  title="Add to DJ Queue"
+                  title={t("add_to_dj_queue", "Add to DJ Queue")}
                 >
                   <ListPlus className="h-4 w-4" />
                 </Button>
@@ -184,10 +186,10 @@ export function TrackList() {
                     previewAudioRef.current = audio;
                     managedPlay(audio).catch(err => {
                       console.error('Preview play error:', err);
-                      toast.error('Failed to preview track');
+                      toast.error(t("failed_to_preview_track", "Failed to preview track"));
                     });
                   }}
-                  title="Preview"
+                  title={t("preview", "Preview")}
                 >
                   <Play className="h-4 w-4" />
                 </Button>
@@ -196,7 +198,7 @@ export function TrackList() {
                   size="icon"
                   onClick={() => deleteMutation.mutate(track.id)}
                   disabled={deleteMutation.isPending}
-                  title="Delete"
+                  title={t("delete", "Delete")}
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>

@@ -1,4 +1,5 @@
 import { ReactNode, useState, useEffect } from "react";
+import { useTranslation } from 'react-i18next';
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -18,6 +19,7 @@ interface LegalPageLayoutProps {
 }
 
 export function LegalPageLayout({ title, lastUpdated, sections, children }: LegalPageLayoutProps) {
+  const { t } = useTranslation('common');
   const [activeSection, setActiveSection] = useState<string>("");
   const [tocOpen, setTocOpen] = useState(false);
 
@@ -86,9 +88,7 @@ export function LegalPageLayout({ title, lastUpdated, sections, children }: Lega
           {/* Table of Contents - Desktop */}
           <aside className="hidden lg:block w-64 flex-shrink-0 sticky top-24 h-fit">
             <Card className="p-4">
-              <h3 className="font-semibold mb-4 text-sm uppercase tracking-wider text-muted-foreground">
-                Contents
-              </h3>
+              <h3 className="font-semibold mb-4 text-sm uppercase tracking-wider text-muted-foreground">{t('legal.contents')}</h3>
               <ScrollArea className="h-[calc(100vh-200px)]">
                 <nav className="space-y-1">
                   {sections.map((section) => (
@@ -121,9 +121,7 @@ export function LegalPageLayout({ title, lastUpdated, sections, children }: Lega
             <div className="fixed inset-0 z-40 bg-background/95 backdrop-blur-sm lg:hidden">
               <div className="h-full overflow-auto p-4 pt-20">
                 <Card className="p-4">
-                  <h3 className="font-semibold mb-4 text-sm uppercase tracking-wider text-muted-foreground">
-                    Contents
-                  </h3>
+                  <h3 className="font-semibold mb-4 text-sm uppercase tracking-wider text-muted-foreground">{t('legal.contents')}</h3>
                   <nav className="space-y-1">
                     {sections.map((section) => (
                       <button

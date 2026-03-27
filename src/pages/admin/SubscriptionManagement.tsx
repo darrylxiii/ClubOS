@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { lazy, Suspense, useState, useEffect, useRef } from 'react';
 
 import { RoleGate } from '@/components/RoleGate';
@@ -20,6 +21,7 @@ import { Link } from 'react-router-dom';
 const SubscriptionsTab = lazy(() => import('@/components/financial/SubscriptionsTab').then(m => ({ default: m.SubscriptionsTab })));
 
 export default function SubscriptionManagement() {
+  const { t } = useTranslation('common');
   const { data: intelligence, isLoading: intelLoading } = useCostIntelligence();
   const metrics = useSubscriptionMetrics();
   const generateExpenses = useGenerateExpensesFromSubscriptions();
@@ -46,7 +48,7 @@ export default function SubscriptionManagement() {
                   <ArrowLeft className="h-5 w-5" />
                 </Link>
                 <CreditCard className="h-8 w-8 text-primary" />
-                <h1 className="text-3xl font-bold tracking-tight">SUBSCRIPTION MANAGEMENT</h1>
+                <h1 className="text-3xl font-bold tracking-tight">{t("subscription_management", "SUBSCRIPTION MANAGEMENT")}</h1>
               </div>
               <p className="text-muted-foreground">
                 Enterprise cost control, ROI tracking, and budget management for all recurring expenses

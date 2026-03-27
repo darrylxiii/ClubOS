@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { Card } from '@/components/ui/card';
 import { TrendingUp, Users, Clock, Target, Loader2 } from 'lucide-react';
@@ -17,6 +18,7 @@ interface InviteAnalytics {
 }
 
 export function InviteAnalyticsTab() {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const { recharts, isLoading: rechartsLoading } = useRecharts();
 
@@ -31,7 +33,7 @@ export function InviteAnalyticsTab() {
         .eq('created_by', user.id);
 
       if (error) {
-        toast.error('Failed to load analytics');
+        toast.error(t("failed_to_load_analytics", "Failed to load analytics"));
         throw error;
       }
 
@@ -71,7 +73,7 @@ export function InviteAnalyticsTab() {
     return (
       <div className="text-center py-12">
         <Loader2 className="h-6 w-6 animate-spin mx-auto text-muted-foreground" />
-        <p className="text-muted-foreground mt-2">Loading analytics…</p>
+        <p className="text-muted-foreground mt-2">{t("loading_analytics", "Loading analytics…")}</p>
       </div>
     );
   }
@@ -79,7 +81,7 @@ export function InviteAnalyticsTab() {
   if (!analytics) {
     return (
       <div className="text-center py-12">
-        <p className="text-muted-foreground">No invitation data available</p>
+        <p className="text-muted-foreground">{t("no_invitation_data_available", "No invitation data available")}</p>
       </div>
     );
   }
@@ -91,7 +93,7 @@ export function InviteAnalyticsTab() {
         <Card className="p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-muted-foreground">Total Invites</p>
+              <p className="text-sm text-muted-foreground">{t("total_invites", "Total Invites")}</p>
               <p className="text-2xl font-bold">{analytics.total}</p>
             </div>
             <Users className="h-8 w-8 text-primary opacity-50" />
@@ -101,7 +103,7 @@ export function InviteAnalyticsTab() {
         <Card className="p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-muted-foreground">Conversion Rate</p>
+              <p className="text-sm text-muted-foreground">{t("conversion_rate", "Conversion Rate")}</p>
               <p className="text-2xl font-bold">{analytics.conversionRate}%</p>
             </div>
             <TrendingUp className="h-8 w-8 text-success opacity-50" />
@@ -111,7 +113,7 @@ export function InviteAnalyticsTab() {
         <Card className="p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-muted-foreground">Pending</p>
+              <p className="text-sm text-muted-foreground">{t("pending", "Pending")}</p>
               <p className="text-2xl font-bold">{analytics.pending}</p>
             </div>
             <Clock className="h-8 w-8 text-warning opacity-50" />
@@ -121,7 +123,7 @@ export function InviteAnalyticsTab() {
         <Card className="p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-muted-foreground">Avg. Days to Accept</p>
+              <p className="text-sm text-muted-foreground">{t("avg_days_to_accept", "Avg. Days to Accept")}</p>
               <p className="text-2xl font-bold">{analytics.avgDaysToUse}</p>
             </div>
             <Target className="h-8 w-8 text-muted opacity-50" />
@@ -132,7 +134,7 @@ export function InviteAnalyticsTab() {
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card className="p-6">
-          <h3 className="font-semibold mb-4">Invitation Status</h3>
+          <h3 className="font-semibold mb-4">{t("invitation_status", "Invitation Status")}</h3>
           {rechartsLoading || !recharts ? (
             <div className="flex items-center justify-center h-[250px]">
               <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -164,10 +166,10 @@ export function InviteAnalyticsTab() {
         </Card>
 
         <Card className="p-6">
-          <h3 className="font-semibold mb-4">Summary Metrics</h3>
+          <h3 className="font-semibold mb-4">{t("summary_metrics", "Summary Metrics")}</h3>
           <div className="space-y-3">
             <div className="flex justify-between items-center">
-              <span className="text-sm text-muted-foreground">Used</span>
+              <span className="text-sm text-muted-foreground">{t("used", "Used")}</span>
               <span className="font-semibold">{analytics.used}</span>
             </div>
             <div className="w-full bg-secondary rounded-full h-2">
@@ -178,7 +180,7 @@ export function InviteAnalyticsTab() {
             </div>
 
             <div className="flex justify-between items-center pt-4">
-              <span className="text-sm text-muted-foreground">Pending</span>
+              <span className="text-sm text-muted-foreground">{t("pending", "Pending")}</span>
               <span className="font-semibold">{analytics.pending}</span>
             </div>
             <div className="w-full bg-secondary rounded-full h-2">
@@ -189,7 +191,7 @@ export function InviteAnalyticsTab() {
             </div>
 
             <div className="flex justify-between items-center pt-4">
-              <span className="text-sm text-muted-foreground">Revoked</span>
+              <span className="text-sm text-muted-foreground">{t("revoked", "Revoked")}</span>
               <span className="font-semibold">{analytics.revoked}</span>
             </div>
             <div className="w-full bg-secondary rounded-full h-2">
@@ -204,24 +206,24 @@ export function InviteAnalyticsTab() {
 
       {/* Insights */}
       <Card className="p-6 bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
-        <h3 className="font-semibold mb-2">Key Insights</h3>
+        <h3 className="font-semibold mb-2">{t("key_insights", "Key Insights")}</h3>
         <ul className="space-y-2 text-sm text-muted-foreground">
           {Number(analytics.conversionRate) >= 70 ? (
-            <li>✓ Strong conversion rate. Keep leveraging team invites.</li>
+            <li>{t("strong_conversion_rate_keep", "✓ Strong conversion rate. Keep leveraging team invites.")}</li>
           ) : Number(analytics.conversionRate) >= 50 ? (
-            <li>→ Moderate conversion. Consider follow-up on pending invites.</li>
+            <li>{t("moderate_conversion_consider_followup", "→ Moderate conversion. Consider follow-up on pending invites.")}</li>
           ) : (
-            <li>⚠ Low conversion. Review invite messaging or timing.</li>
+            <li>{t("low_conversion_review_invite", "⚠ Low conversion. Review invite messaging or timing.")}</li>
           )}
           {analytics.avgDaysToUse < 3 ? (
-            <li>✓ Fast adoption. Invitees are engaging quickly.</li>
+            <li>{t("fast_adoption_invitees_are", "✓ Fast adoption. Invitees are engaging quickly.")}</li>
           ) : (
             <li>→ Typical adoption timeframe of {analytics.avgDaysToUse} days.</li>
           )}
           {analytics.pending > 0 ? (
             <li>→ {analytics.pending} pending invites waiting for acceptance.</li>
           ) : (
-            <li>✓ All active invites have been resolved.</li>
+            <li>{t("all_active_invites_have", "✓ All active invites have been resolved.")}</li>
           )}
         </ul>
       </Card>

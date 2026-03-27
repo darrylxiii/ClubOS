@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { DynamicChart } from '@/components/charts/DynamicChart';
 import { useCostIntelligence } from '@/hooks/useSubscriptionBudgets';
@@ -7,6 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { formatCurrency } from '@/lib/revenueCalculations';
 
 export function BurnRateChart() {
+  const { t } = useTranslation('common');
   const { data, isLoading: intelLoading } = useCostIntelligence();
   const now = new Date();
   const currentYear = now.getFullYear();
@@ -61,12 +63,12 @@ export function BurnRateChart() {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
-          <span>Monthly Burn Rate</span>
+          <span>{t("monthly_burn_rate", "Monthly Burn Rate")}</span>
           <span className="text-sm font-normal text-muted-foreground">
             Current: {formatCurrency(monthlyBurn)}/mo
           </span>
         </CardTitle>
-        <CardDescription>Actual spend vs projected trend (6-month forecast)</CardDescription>
+        <CardDescription>{t("actual_spend_vs_projected", "Actual spend vs projected trend (6-month forecast)")}</CardDescription>
       </CardHeader>
       <CardContent>
         <DynamicChart

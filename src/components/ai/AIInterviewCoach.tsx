@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,6 +14,7 @@ interface AIInterviewCoachProps {
 }
 
 export function AIInterviewCoach({ applicationId, companyName, roleName }: AIInterviewCoachProps) {
+  const { t } = useTranslation('common');
   const [isRecording, setIsRecording] = useState(false);
   const [currentQuestion, setCurrentQuestion] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
@@ -37,13 +39,13 @@ export function AIInterviewCoach({ applicationId, companyName, roleName }: AIInt
       if (error) throw error;
 
       setCurrentQuestion("Tell me about a time when you had to overcome a significant challenge.");
-      toast.success("Practice session started!");
+      toast.success(t("practice_session_started", "Practice session started!"));
     } catch (error: unknown) {
       console.error('Error starting practice:', error);
       if (error instanceof DOMException && error.name === 'AbortError') {
-        toast.error("Request timed out after 30s");
+        toast.error(t("request_timed_out_after", "Request timed out after 30s"));
       } else {
-        toast.error("Failed to start practice");
+        toast.error(t("failed_to_start_practice", "Failed to start practice"));
       }
     }
   };
@@ -52,9 +54,9 @@ export function AIInterviewCoach({ applicationId, companyName, roleName }: AIInt
     setIsRecording(!isRecording);
     
     if (!isRecording) {
-      toast.info("Recording started - speak your answer");
+      toast.info(t("recording_started_speak_your", "Recording started - speak your answer"));
     } else {
-      toast.info("Recording stopped - analyzing answer...");
+      toast.info(t("recording_stopped_analyzing_answer", "Recording stopped - analyzing answer..."));
       setTimeout(() => {
         setFeedback("Great answer! You followed the STAR method well. Consider adding more specific metrics.");
         setScore(85);
@@ -82,7 +84,7 @@ export function AIInterviewCoach({ applicationId, companyName, roleName }: AIInt
         ) : (
           <div className="space-y-4">
             <div className="p-4 rounded-lg bg-muted">
-              <Badge variant="secondary" className="mb-2">Question 1/5</Badge>
+              <Badge variant="secondary" className="mb-2">{t("question_15", "Question 1/5")}</Badge>
               <p className="font-medium">{currentQuestion}</p>
             </div>
 
@@ -109,7 +111,7 @@ export function AIInterviewCoach({ applicationId, companyName, roleName }: AIInt
               <Card className="bg-primary/5 border-primary/20">
                 <CardContent className="pt-4">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="font-medium">AI Feedback</span>
+                    <span className="font-medium">{t("ai_feedback", "AI Feedback")}</span>
                     <Badge variant="default">{score}/100</Badge>
                   </div>
                   <p className="text-sm text-muted-foreground">{feedback}</p>

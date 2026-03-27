@@ -60,7 +60,7 @@ export class AuthHelper {
    */
   async isAuthenticated(): Promise<boolean> {
     return this.page.evaluate(() => {
-      const storage = localStorage.getItem('sb-dpjucecmoyfzrduhlctt-auth-token');
+      const storage = localStorage.getItem('sb-chgrkvftjfibufoopmav-auth-token');
       return storage !== null;
     });
   }
@@ -70,7 +70,7 @@ export class AuthHelper {
    */
   async getCurrentRole(): Promise<string | null> {
     return this.page.evaluate(() => {
-      const storage = localStorage.getItem('sb-dpjucecmoyfzrduhlctt-auth-token');
+      const storage = localStorage.getItem('sb-chgrkvftjfibufoopmav-auth-token');
       if (!storage) return null;
       try {
         const data = JSON.parse(storage);

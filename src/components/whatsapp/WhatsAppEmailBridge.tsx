@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -31,6 +32,7 @@ export function WhatsAppEmailBridge({
   messages,
   onSendEmail,
 }: WhatsAppEmailBridgeProps) {
+  const { t } = useTranslation('common');
   const { loading, result, generateEmailDraft, clearResult } = useWhatsAppEmailBridge();
   const [subject, setSubject] = useState('');
   const [body, setBody] = useState('');
@@ -91,12 +93,12 @@ export function WhatsAppEmailBridge({
         {loading ? (
           <div className="flex flex-col items-center justify-center py-12 gap-4">
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
-            <p className="text-sm text-muted-foreground">Generating AI email draft...</p>
+            <p className="text-sm text-muted-foreground">{t("generating_ai_email_draft", "Generating AI email draft...")}</p>
           </div>
         ) : !result?.candidateEmail ? (
           <div className="py-8 text-center">
             <Mail className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-            <p className="font-medium">No email address found</p>
+            <p className="font-medium">{t("no_email_address_found", "No email address found")}</p>
             <p className="text-sm text-muted-foreground mt-1">
               This candidate doesn't have an email address on file.
             </p>
@@ -135,7 +137,7 @@ export function WhatsAppEmailBridge({
             {/* Email Form */}
             <div className="space-y-4 flex-1">
               <div className="flex items-center gap-2">
-                <Label className="w-12 text-right text-muted-foreground">To:</Label>
+                <Label className="w-12 text-right text-muted-foreground">{t("to", "To:")}</Label>
                 <div className="flex-1 flex items-center gap-2">
                   <Input value={result.candidateEmail} disabled className="bg-muted/50" />
                   <Badge variant="secondary">{result.candidateName}</Badge>
@@ -143,12 +145,12 @@ export function WhatsAppEmailBridge({
               </div>
 
               <div className="flex items-center gap-2">
-                <Label className="w-12 text-right text-muted-foreground">Subject:</Label>
+                <Label className="w-12 text-right text-muted-foreground">{t("subject", "Subject:")}</Label>
                 <div className="flex-1 relative">
                   <Input
                     value={subject}
                     onChange={(e) => setSubject(e.target.value)}
-                    placeholder="Email subject..."
+                    placeholder={t("email_subject", "Email subject...")}
                   />
                   <Badge className="absolute right-2 top-1/2 -translate-y-1/2 text-xs gap-1" variant="outline">
                     <Sparkles className="w-3 h-3" />
@@ -159,7 +161,7 @@ export function WhatsAppEmailBridge({
 
               <div className="flex-1">
                 <div className="flex items-center justify-between mb-2">
-                  <Label className="text-muted-foreground">Message</Label>
+                  <Label className="text-muted-foreground">{t("message", "Message")}</Label>
                   <Badge className="text-xs gap-1" variant="outline">
                     <Sparkles className="w-3 h-3" />
                     AI Generated Draft
@@ -168,7 +170,7 @@ export function WhatsAppEmailBridge({
                 <Textarea
                   value={body}
                   onChange={(e) => setBody(e.target.value)}
-                  placeholder="Compose your email..."
+                  placeholder={t("compose_your_email", "Compose your email...")}
                   className="min-h-[200px] resize-none"
                 />
               </div>

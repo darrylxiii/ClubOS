@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -13,6 +14,7 @@ interface CandidateIntelligenceDossierProps {
 }
 
 export function CandidateIntelligenceDossier({ candidateId, jobId }: CandidateIntelligenceDossierProps) {
+  const { t } = useTranslation('common');
   const [loading, setLoading] = useState(false);
   const [dossier, setDossier] = useState<any>(null);
 
@@ -25,10 +27,10 @@ export function CandidateIntelligenceDossier({ candidateId, jobId }: CandidateIn
 
       if (error) throw error;
       setDossier(data.dossier);
-      toast.success("Intelligence dossier generated");
+      toast.success(t("intelligence_dossier_generated", "Intelligence dossier generated"));
     } catch (error: unknown) {
       console.error('Error loading dossier:', error);
-      toast.error("Failed to generate dossier");
+      toast.error(t("failed_to_generate_dossier", "Failed to generate dossier"));
     } finally {
       setLoading(false);
     }
@@ -41,7 +43,7 @@ export function CandidateIntelligenceDossier({ candidateId, jobId }: CandidateIn
       <Card className="border-primary/20 bg-gradient-to-br from-card to-primary/5">
         <CardContent className="pt-6 flex flex-col items-center justify-center py-12">
           <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
-          <p className="text-sm text-muted-foreground">Generating AI intelligence dossier...</p>
+          <p className="text-sm text-muted-foreground">{t("generating_ai_intelligence_dossier", "Generating AI intelligence dossier...")}</p>
         </CardContent>
       </Card>
     );
@@ -94,28 +96,28 @@ export function CandidateIntelligenceDossier({ candidateId, jobId }: CandidateIn
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-xs text-muted-foreground">Overall Fit</span>
+                <span className="text-xs text-muted-foreground">{t("overall_fit", "Overall Fit")}</span>
                 <span className="text-sm font-semibold">{dossier.overallFitScore}%</span>
               </div>
               <Progress value={dossier.overallFitScore} className="h-2" />
             </div>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-xs text-muted-foreground">Technical</span>
+                <span className="text-xs text-muted-foreground">{t("technical", "Technical")}</span>
                 <span className="text-sm font-semibold">{dossier.technicalScore}%</span>
               </div>
               <Progress value={dossier.technicalScore} className="h-2" />
             </div>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-xs text-muted-foreground">Culture Fit</span>
+                <span className="text-xs text-muted-foreground">{t("culture_fit", "Culture Fit")}</span>
                 <span className="text-sm font-semibold">{dossier.cultureFitScore}%</span>
               </div>
               <Progress value={dossier.cultureFitScore} className="h-2" />
             </div>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-xs text-muted-foreground">Communication</span>
+                <span className="text-xs text-muted-foreground">{t("communication", "Communication")}</span>
                 <span className="text-sm font-semibold">{dossier.communicationScore}%</span>
               </div>
               <Progress value={dossier.communicationScore} className="h-2" />
@@ -125,7 +127,7 @@ export function CandidateIntelligenceDossier({ candidateId, jobId }: CandidateIn
           {/* Recommendation */}
           <div className="p-4 rounded-lg bg-background border border-border">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-semibold">AI Recommendation</span>
+              <span className="text-sm font-semibold">{t("ai_recommendation", "AI Recommendation")}</span>
               <Badge className={getRecommendationColor(dossier.recommendation || '')}>
                 {(dossier.recommendation || 'pending').replace('_', ' ').toUpperCase()}
               </Badge>
@@ -179,11 +181,11 @@ export function CandidateIntelligenceDossier({ candidateId, jobId }: CandidateIn
       {/* Sentiment Analysis */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Sentiment Analysis</CardTitle>
+          <CardTitle className="text-base">{t("sentiment_analysis", "Sentiment Analysis")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">Overall Sentiment</span>
+            <span className="text-sm text-muted-foreground">{t("overall_sentiment", "Overall Sentiment")}</span>
             <div className="flex items-center gap-2">
               <Badge variant="outline" className={getSentimentColor(dossier.sentimentAnalysis?.overall || 'neutral')}>
                 {(dossier.sentimentAnalysis?.overall || 'neutral').toUpperCase()}
@@ -194,7 +196,7 @@ export function CandidateIntelligenceDossier({ candidateId, jobId }: CandidateIn
             </div>
           </div>
           <div className="space-y-1">
-            <span className="text-xs text-muted-foreground">Key Indicators:</span>
+            <span className="text-xs text-muted-foreground">{t("key_indicators", "Key Indicators:")}</span>
             <div className="flex flex-wrap gap-2">
               {(dossier.sentimentAnalysis?.keyIndicators || []).map((indicator: string, idx: number) => (
                 <Badge key={idx} variant="secondary" className="text-xs">
@@ -237,12 +239,12 @@ export function CandidateIntelligenceDossier({ candidateId, jobId }: CandidateIn
       {/* Predictions */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Predictive Insights</CardTitle>
+          <CardTitle className="text-base">{t("predictive_insights", "Predictive Insights")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <span className="text-xs text-muted-foreground">Offer Acceptance</span>
+              <span className="text-xs text-muted-foreground">{t("offer_acceptance", "Offer Acceptance")}</span>
               <div className="flex items-center gap-2 mt-1">
               <Progress value={(dossier.predictedOfferAcceptance || 0) * 100} className="flex-1 h-2" />
                 <span className="text-sm font-semibold">
@@ -251,19 +253,19 @@ export function CandidateIntelligenceDossier({ candidateId, jobId }: CandidateIn
               </div>
             </div>
             <div>
-              <span className="text-xs text-muted-foreground">Retention Risk</span>
+              <span className="text-xs text-muted-foreground">{t("retention_risk", "Retention Risk")}</span>
               <Badge variant="outline" className="mt-1">
                 {(dossier.retentionRisk || 'unknown').toUpperCase()}
               </Badge>
             </div>
             <div>
-              <span className="text-xs text-muted-foreground">Time to Productivity</span>
+              <span className="text-xs text-muted-foreground">{t("time_to_productivity", "Time to Productivity")}</span>
               <Badge variant="outline" className="mt-1">
                 {(dossier.timeToProductivity || 'unknown').toUpperCase()}
               </Badge>
             </div>
             <div>
-              <span className="text-xs text-muted-foreground">Interview Consensus</span>
+              <span className="text-xs text-muted-foreground">{t("interview_consensus", "Interview Consensus")}</span>
               <Badge variant={dossier.interviewConsensus?.aligned ? 'default' : 'secondary'} className="mt-1">
                 {dossier.interviewConsensus?.aligned ? 'ALIGNED' : 'MIXED'}
               </Badge>
@@ -278,7 +280,7 @@ export function CandidateIntelligenceDossier({ candidateId, jobId }: CandidateIn
           <div className="flex items-start gap-3">
             <Brain className="h-5 w-5 text-primary mt-0.5" />
             <div>
-              <h4 className="font-semibold text-sm mb-1">Next Best Action</h4>
+              <h4 className="font-semibold text-sm mb-1">{t("next_best_action", "Next Best Action")}</h4>
               <p className="text-sm text-muted-foreground">{dossier.nextBestAction}</p>
             </div>
           </div>

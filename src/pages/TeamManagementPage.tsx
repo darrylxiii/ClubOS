@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -16,6 +17,7 @@ import { Users, Plus, Settings, Mail, Percent, Crown, Shield, User } from "lucid
 import { toast } from "sonner";
 
 export default function TeamManagementPage() {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [createTeamDialogOpen, setCreateTeamDialogOpen] = useState(false);
@@ -107,8 +109,8 @@ export default function TeamManagementPage() {
     <div className="container max-w-6xl py-8 space-y-8">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Team Management</h1>
-          <p className="text-muted-foreground">Manage your agency and team members</p>
+          <h1 className="text-3xl font-bold">{t('teamManagementPage.text1')}</h1>
+          <p className="text-muted-foreground">{t('teamManagementPage.text2')}</p>
         </div>
         <Dialog open={createTeamDialogOpen} onOpenChange={setCreateTeamDialogOpen}>
           <DialogTrigger asChild>
@@ -119,8 +121,8 @@ export default function TeamManagementPage() {
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Create a Team</DialogTitle>
-              <DialogDescription>Set up an agency or collaborative team</DialogDescription>
+              <DialogTitle>{t('teamManagementPage.text3')}</DialogTitle>
+              <DialogDescription>{t('teamManagementPage.text4')}</DialogDescription>
             </DialogHeader>
             <form
               onSubmit={(e) => {
@@ -134,12 +136,12 @@ export default function TeamManagementPage() {
             >
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
-                  <Label>Team Name</Label>
-                  <Input name="name" placeholder="Acme Digital Agency" required />
+                  <Label>{t('teamManagementPage.text5')}</Label>
+                  <Input name="name" placeholder={t('teamManagementPage.text6')} required />
                 </div>
                 <div className="space-y-2">
-                  <Label>Description</Label>
-                  <Textarea name="description" placeholder="What does your team specialize in?" />
+                  <Label>{t('teamManagementPage.text7')}</Label>
+                  <Textarea name="description" placeholder={t('teamManagementPage.text8')} />
                 </div>
               </div>
               <DialogFooter>
@@ -190,7 +192,7 @@ export default function TeamManagementPage() {
                   )}
 
                   <div className="space-y-2">
-                    <p className="text-sm font-medium">Team Members</p>
+                    <p className="text-sm font-medium">{t('teamManagementPage.text9')}</p>
                     <div className="space-y-2">
                       {team.members?.map((membership: any) => (
                         <div key={membership.id} className="flex items-center justify-between py-2 px-3 rounded-lg bg-muted/50">
@@ -231,8 +233,8 @@ export default function TeamManagementPage() {
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
               <Users className="h-12 w-12 text-muted-foreground mb-4" />
-              <p className="text-lg font-medium">No teams yet</p>
-              <p className="text-muted-foreground mb-4">Create a team to collaborate with other freelancers</p>
+              <p className="text-lg font-medium">{t('teamManagementPage.text10')}</p>
+              <p className="text-muted-foreground mb-4">{t('teamManagementPage.text11')}</p>
               <Button onClick={() => setCreateTeamDialogOpen(true)}>
                 <Plus className="h-4 w-4 mr-2" />
                 Create Your First Team
@@ -269,7 +271,7 @@ export default function TeamManagementPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Revenue Share</span>
+                    <span className="text-muted-foreground">{t('teamManagementPage.text12')}</span>
                     <span className="font-medium">{membership.revenue_share_percentage}%</span>
                   </div>
                 </CardContent>
@@ -283,34 +285,34 @@ export default function TeamManagementPage() {
       <Dialog open={inviteMemberDialogOpen} onOpenChange={setInviteMemberDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Invite Team Member</DialogTitle>
-            <DialogDescription>Send an invitation to join your team</DialogDescription>
+            <DialogTitle>{t('teamManagementPage.text13')}</DialogTitle>
+            <DialogDescription>{t('teamManagementPage.text14')}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label>Email Address</Label>
-              <Input type="email" placeholder="colleague@example.com" />
+              <Label>{t('teamManagementPage.text15')}</Label>
+              <Input type="email" placeholder={"colleague@example.com"} />
             </div>
             <div className="space-y-2">
-              <Label>Role</Label>
+              <Label>{t('teamManagementPage.text16')}</Label>
               <Select defaultValue="member">
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="admin">Admin</SelectItem>
-                  <SelectItem value="member">Member</SelectItem>
+                  <SelectItem value="admin">{t('teamManagementPage.text17')}</SelectItem>
+                  <SelectItem value="member">{t('teamManagementPage.text18')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Revenue Share (%)</Label>
+              <Label>{"Revenue Share (%)"}</Label>
               <Input type="number" min="0" max="100" defaultValue="80" />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setInviteMemberDialogOpen(false)}>Cancel</Button>
-            <Button>Send Invitation</Button>
+            <Button variant="outline" onClick={() => setInviteMemberDialogOpen(false)}>{t('teamManagementPage.text19')}</Button>
+            <Button>{t('teamManagementPage.text20')}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 import { MoneybirdSettingsCard } from '@/components/admin/MoneybirdSettingsCard';
 import { MoneybirdSyncStatus } from '@/components/admin/MoneybirdSyncStatus';
@@ -6,6 +7,7 @@ import { MoneybirdSyncLogs } from '@/components/admin/MoneybirdSyncLogs';
 import { toast } from 'sonner';
 
 export default function MoneybirdSettings() {
+  const { t } = useTranslation('admin');
   const [searchParams, setSearchParams] = useSearchParams();
 
   useEffect(() => {
@@ -13,7 +15,7 @@ export default function MoneybirdSettings() {
     const error = searchParams.get('error');
 
     if (success === 'connected') {
-      toast.success('Moneybird connected successfully', {
+      toast.success("Moneybird connected successfully", {
         description: 'You can now sync contacts and create invoices.',
       });
       setSearchParams({});
@@ -26,7 +28,7 @@ export default function MoneybirdSettings() {
         fetch_administrations_failed: 'Failed to fetch Moneybird administrations.',
         storage_failed: 'Failed to store connection settings.',
       };
-      toast.error('Connection failed', {
+      toast.error("Connection failed", {
         description: errorMessages[error] || error,
       });
       setSearchParams({});

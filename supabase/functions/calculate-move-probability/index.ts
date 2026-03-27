@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -101,7 +101,7 @@ serve(async (req) => {
   }
 });
 
-async function calculateForCandidate(supabase: any, candidateId: string): Promise<MoveProbabilityResult> {
+async function calculateForCandidate(supabase: SupabaseClient, candidateId: string): Promise<MoveProbabilityResult> {
   // Fetch ALL available candidate data in one query
   const { data: candidate, error: candidateError } = await supabase
     .from('candidate_profiles')
@@ -279,7 +279,7 @@ async function calculateForCandidate(supabase: any, candidateId: string): Promis
 // These are the strongest indicators — the candidate told us.
 // ═══════════════════════════════════════════════════════════════
 
-function calcLinkedInOpenToWork(linkedinData: any, activelyLooking: boolean | null): Factor {
+function calcLinkedInOpenToWork(linkedinData: Record<string, unknown> | null, activelyLooking: boolean | null): Factor {
   const weight = 0.15;
 
   // Check LinkedIn profile data for "Open to Work" signals
@@ -397,7 +397,7 @@ function calcNoticePeriod(noticePeriod: string | null): Factor {
 // What the candidate is *doing* that hints at readiness.
 // ═══════════════════════════════════════════════════════════════
 
-function calcLinkedInActivity(linkedinData: any, enrichmentData: any): Factor {
+function calcLinkedInActivity(linkedinData: Record<string, unknown> | null, enrichmentData: Record<string, unknown> | null): Factor {
   const weight = 0.07;
 
   // Check for profile update recency
@@ -468,7 +468,7 @@ function calcLinkedInActivity(linkedinData: any, enrichmentData: any): Factor {
   return { value: 45, weight, reason: 'No notable LinkedIn activity changes', category: 'behavioral', signal_strength: 'none' };
 }
 
-function calcResponseRate(relationship: any): Factor {
+function calcResponseRate(relationship: Record<string, unknown> | null): Factor {
   const weight = 0.06;
 
   if (!relationship || relationship.response_rate == null) {
@@ -483,7 +483,7 @@ function calcResponseRate(relationship: any): Factor {
   return { value: 18, weight, reason: `Very low response rate: ${rate}%`, category: 'behavioral', signal_strength: 'weak' };
 }
 
-function calcEngagementRecency(relationship: any): Factor {
+function calcEngagementRecency(relationship: Record<string, unknown> | null): Factor {
   const weight = 0.06;
 
   if (!relationship?.last_meaningful_contact) {
@@ -500,7 +500,7 @@ function calcEngagementRecency(relationship: any): Factor {
   return { value: 18, weight, reason: 'Dormant: no engagement in 3+ months', category: 'behavioral', signal_strength: 'weak' };
 }
 
-function calcGithubActivity(githubData: any): Factor {
+function calcGithubActivity(githubData: Record<string, unknown> | null): Factor {
   const weight = 0.03;
 
   if (!githubData) {
@@ -527,7 +527,7 @@ function calcGithubActivity(githubData: any): Factor {
   return { value: 45, weight, reason: 'Minimal GitHub activity', category: 'behavioral', signal_strength: 'weak' };
 }
 
-function calcPublicPresence(publicMentions: any): Factor {
+function calcPublicPresence(publicMentions: Record<string, unknown> | null): Factor {
   const weight = 0.03;
 
   if (!publicMentions) {
@@ -595,7 +595,7 @@ function calcCareerVelocity(velocityScore: number | null): Factor {
   return { value: 32, weight, reason: 'Slower progression — may prefer stability', category: 'career_pattern', signal_strength: 'weak' };
 }
 
-function calcJobHoppingPattern(workHistory: any): Factor {
+function calcJobHoppingPattern(workHistory: Record<string, unknown>[] | null): Factor {
   const weight = 0.06;
 
   if (!workHistory || !Array.isArray(workHistory) || workHistory.length < 2) {
@@ -639,7 +639,7 @@ function calcJobHoppingPattern(workHistory: any): Factor {
 // External factors that push or pull.
 // ═══════════════════════════════════════════════════════════════
 
-async function calcIndustryDemand(supabase: any, industries: string[] | null): Promise<Factor> {
+async function calcIndustryDemand(supabase: SupabaseClient, industries: string[] | null): Promise<Factor> {
   const weight = 0.05;
 
   if (!industries || industries.length === 0) {
@@ -657,7 +657,7 @@ async function calcIndustryDemand(supabase: any, industries: string[] | null): P
       .limit(20);
 
     if (taxData?.length > 0) {
-      hotIndustries = taxData.map((t: any) => t.name.toLowerCase());
+      hotIndustries = taxData.map((t: Record<string, unknown>) => (t.name as string).toLowerCase());
     }
   } catch { /* use defaults */ }
 
@@ -672,7 +672,7 @@ async function calcIndustryDemand(supabase: any, industries: string[] | null): P
   return { value: 55, weight, reason: 'Standard industry demand', category: 'market', signal_strength: 'weak' };
 }
 
-function calcCompensationGap(compCurrent: any, compTarget: any): Factor {
+function calcCompensationGap(compCurrent: unknown, compTarget: unknown): Factor {
   const weight = 0.05;
 
   if (!compCurrent && !compTarget) {
@@ -701,7 +701,7 @@ function calcCompensationGap(compCurrent: any, compTarget: any): Factor {
   return { value: 50, weight, reason: 'Partial compensation data', category: 'market', signal_strength: 'none' };
 }
 
-function parseCompensation(comp: any): number | null {
+function parseCompensation(comp: unknown): number | null {
   if (!comp) return null;
   if (typeof comp === 'number') return comp;
   if (typeof comp === 'string') {
@@ -709,8 +709,9 @@ function parseCompensation(comp: any): number | null {
     return isNaN(num) ? null : num;
   }
   // Handle JSON objects like { amount: 80000, currency: 'EUR' }
-  if (typeof comp === 'object') {
-    return comp.amount || comp.base || comp.total || comp.salary || null;
+  if (typeof comp === 'object' && comp !== null) {
+    const obj = comp as Record<string, unknown>;
+    return (obj.amount || obj.base || obj.total || obj.salary || null) as number | null;
   }
   return null;
 }
@@ -754,7 +755,7 @@ function calcSeniorityMobility(seniority: string | null, yearsExp: number | null
 // How warm is our connection — affects our ability to convert.
 // ═══════════════════════════════════════════════════════════════
 
-function calcRelationshipStrength(relationship: any): Factor {
+function calcRelationshipStrength(relationship: Record<string, unknown> | null): Factor {
   const weight = 0.05;
 
   if (!relationship) {

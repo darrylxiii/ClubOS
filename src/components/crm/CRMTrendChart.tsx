@@ -5,12 +5,14 @@ import { TrendingUp } from 'lucide-react';
 import { useCRMAnalytics } from '@/hooks/useCRMAnalytics';
 import { useRecharts } from '@/hooks/useRecharts';
 import { format, parseISO } from 'date-fns';
+import { useTranslation } from 'react-i18next';
 
 interface CRMTrendChartProps {
   dateRange?: 'week' | 'month' | '3months' | '6months' | 'year';
 }
 
 export function CRMTrendChart({ dateRange = 'month' }: CRMTrendChartProps) {
+  const { t } = useTranslation('common');
   const { recharts, isLoading: chartsLoading } = useRecharts();
   const { data, loading } = useCRMAnalytics({ dateRange });
 

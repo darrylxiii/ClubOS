@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
@@ -23,6 +24,7 @@ export function NotificationsTab({
   onSettingsChange,
   onSave,
 }: NotificationsTabProps) {
+  const { t } = useTranslation('common');
   const notificationItems = [
     { 
       key: 'emailNotifications', 
@@ -61,8 +63,8 @@ export function NotificationsTab({
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Email Notifications</CardTitle>
-          <CardDescription>Manage how you receive updates</CardDescription>
+          <CardTitle>{t("email_notifications", "Email Notifications")}</CardTitle>
+          <CardDescription>{t("manage_how_you_receive", "Manage how you receive updates")}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {notificationItems.map((item) => (
@@ -83,8 +85,8 @@ export function NotificationsTab({
 
       <Card>
         <CardHeader>
-          <CardTitle>Visibility Settings</CardTitle>
-          <CardDescription>Control who can see your profile</CardDescription>
+          <CardTitle>{t("visibility_settings", "Visibility Settings")}</CardTitle>
+          <CardDescription>{t("control_who_can_see", "Control who can see your profile")}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {visibilityItems.map((item) => (

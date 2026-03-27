@@ -18,6 +18,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { UserStatus, useUserPresenceExtended } from '@/hooks/useUserPresenceExtended';
 import { Circle, Moon, MinusCircle, EyeOff, Clock } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 const statusConfig = {
   online: {
@@ -53,6 +54,7 @@ const statusConfig = {
 };
 
 export const UserStatusSelector = () => {
+  const { t } = useTranslation('meetings');
   const { presence, updateStatus, updateCustomStatus } = useUserPresenceExtended();
   const [customStatus, setCustomStatus] = useState(presence?.custom_status || '');
   const [customEmoji, setCustomEmoji] = useState(presence?.custom_status_emoji || '');
@@ -95,11 +97,11 @@ export const UserStatusSelector = () => {
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Set your status</DialogTitle>
+          <DialogTitle>{t('status.setYourStatus', 'Set your status')}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label>Status</Label>
+            <Label>{t('status.status', 'Status')}</Label>
             <Select value={currentStatus} onValueChange={handleStatusChange}>
               <SelectTrigger>
                 <SelectValue />
@@ -124,17 +126,17 @@ export const UserStatusSelector = () => {
           </div>
 
           <div className="space-y-2">
-            <Label>Custom Status</Label>
+            <Label>{t('status.customStatus', 'Custom Status')}</Label>
             <div className="flex gap-2">
               <Input
-                placeholder="Emoji"
+                placeholder={t('status.emoji', 'Emoji')}
                 value={customEmoji}
                 onChange={(e) => setCustomEmoji(e.target.value)}
                 className="w-20"
                 maxLength={2}
               />
               <Input
-                placeholder="What's your status?"
+                placeholder={t('status.whatsYourStatus', "What's your status?")}
                 value={customStatus}
                 onChange={(e) => setCustomStatus(e.target.value)}
                 className="flex-1"
@@ -144,7 +146,7 @@ export const UserStatusSelector = () => {
           </div>
 
           <div className="space-y-2">
-            <Label>Clear after</Label>
+            <Label>{t('status.clearAfter', 'Clear after')}</Label>
             <Select value={expiresIn} onValueChange={setExpiresIn}>
               <SelectTrigger>
                 <SelectValue />
@@ -153,24 +155,24 @@ export const UserStatusSelector = () => {
                 <SelectItem value="never">
                   <div className="flex items-center gap-2">
                     <Clock className="w-4 h-4" />
-                    Never
+                    {t('status.never', 'Never')}
                   </div>
                 </SelectItem>
-                <SelectItem value="1">1 hour</SelectItem>
-                <SelectItem value="4">4 hours</SelectItem>
-                <SelectItem value="8">8 hours</SelectItem>
-                <SelectItem value="24">24 hours</SelectItem>
+                <SelectItem value="1">{t('status.1hour', '1 hour')}</SelectItem>
+                <SelectItem value="4">{t('status.4hours', '4 hours')}</SelectItem>
+                <SelectItem value="8">{t('status.8hours', '8 hours')}</SelectItem>
+                <SelectItem value="24">{t('status.24hours', '24 hours')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <div className="flex gap-2">
             <Button onClick={handleSaveCustomStatus} className="flex-1">
-              Save Status
+              {t('status.saveStatus', 'Save Status')}
             </Button>
             {presence?.custom_status && (
               <Button onClick={handleClearCustomStatus} variant="outline">
-                Clear
+                {t('status.clear', 'Clear')}
               </Button>
             )}
           </div>

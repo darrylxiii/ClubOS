@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -16,15 +17,15 @@ const CATEGORIES = [
 ];
 
 const ENGAGEMENT_TYPES = [
-  { value: "one-time", label: "One-time Project" },
-  { value: "recurring", label: "Recurring Work" },
-  { value: "retainer", label: "Retainer" }
+  { value: "one-time", label: t('settings.freelanceprojectssettings.onetimeProject', 'One-time Project') },
+  { value: "recurring", label: t('settings.freelanceprojectssettings.recurringWork', 'Recurring Work') },
+  { value: "retainer", label: t('settings.freelanceprojectssettings.retainer', 'Retainer') }
 ];
 
 const PROJECT_DURATIONS = [
-  { value: "short", label: "Short (<1 month)" },
-  { value: "medium", label: "Medium (1-3 months)" },
-  { value: "long", label: "Long (3+ months)" }
+  { value: "short", label: t('settings.freelanceprojectssettings.short1Month', 'Short (<1 month)') },
+  { value: "medium", label: t('settings.freelanceprojectssettings.medium13Months', 'Medium (1-3 months)') },
+  { value: "long", label: t('settings.freelanceprojectssettings.long3Months', 'Long (3+ months)') }
 ];
 
 interface FreelanceProjectsSettingsProps {
@@ -34,6 +35,7 @@ interface FreelanceProjectsSettingsProps {
 }
 
 export function FreelanceProjectsSettings({ userId, profile, onSave }: FreelanceProjectsSettingsProps) {
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
   const [openToFreelance, setOpenToFreelance] = useState(false);
   const [availabilityStatus, setAvailabilityStatus] = useState<'available' | 'busy' | 'not_accepting'>('not_accepting');
@@ -145,11 +147,11 @@ export function FreelanceProjectsSettings({ userId, profile, onSave }: Freelance
         }
       }
 
-      toast.success('Freelance settings saved successfully');
+      toast.success(t("freelance_settings_saved_successfully", "Freelance settings saved successfully"));
       await onSave();
     } catch (error) {
       console.error('Error saving freelance settings:', error);
-      toast.error('Failed to save freelance settings');
+      toast.error(t("failed_to_save_freelance", "Failed to save freelance settings"));
     } finally {
       setSaving(false);
     }
@@ -164,17 +166,13 @@ export function FreelanceProjectsSettings({ userId, profile, onSave }: Freelance
             <Rocket className="h-5 w-5" />
             Freelance Availability
           </CardTitle>
-          <CardDescription>
-            Enable freelance mode to start receiving AI-matched project opportunities
-          </CardDescription>
+          <CardDescription>{t('settings.freelanceprojectssettings.enableFreelanceModeToStartReceiving', 'Enable freelance mode to start receiving AI-matched project opportunities')}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label htmlFor="open-to-freelance">Open to Freelance Projects</Label>
-              <p className="text-sm text-muted-foreground">
-                Show your profile to clients looking for freelancers
-              </p>
+              <Label htmlFor="open-to-freelance">{t("open_to_freelance_projects", "Open to Freelance Projects")}</Label>
+              <p className="text-sm text-muted-foreground">{t('settings.freelanceprojectssettings.showYourProfileToClientsLooking', 'Show your profile to clients looking for freelancers')}</p>
             </div>
             <Switch
               id="open-to-freelance"
@@ -185,28 +183,28 @@ export function FreelanceProjectsSettings({ userId, profile, onSave }: Freelance
 
           {openToFreelance && (
             <div className="space-y-3 pt-4 border-t">
-              <Label>Current Status</Label>
+              <Label>{t("current_status", "Current Status")}</Label>
               <div className="flex gap-2">
                 <Button
                   variant={availabilityStatus === 'available' ? 'default' : 'outline'}
                   onClick={() => setAvailabilityStatus('available')}
                   size="sm"
                 >
-                  Available
+                  {t('settings.freelanceprojectssettings.available', 'Available')}
                 </Button>
                 <Button
                   variant={availabilityStatus === 'busy' ? 'default' : 'outline'}
                   onClick={() => setAvailabilityStatus('busy')}
                   size="sm"
                 >
-                  Busy
+                  {t('settings.freelanceprojectssettings.busy', 'Busy')}
                 </Button>
                 <Button
                   variant={availabilityStatus === 'not_accepting' ? 'default' : 'outline'}
                   onClick={() => setAvailabilityStatus('not_accepting')}
                   size="sm"
                 >
-                  Not Accepting
+                  {t('settings.freelanceprojectssettings.notAccepting', 'Not Accepting')}
                 </Button>
               </div>
             </div>
@@ -219,15 +217,13 @@ export function FreelanceProjectsSettings({ userId, profile, onSave }: Freelance
           {/* Rates Summary */}
           <Card>
             <CardHeader>
-              <CardTitle>Rates & Availability</CardTitle>
-              <CardDescription>
-                Your rates are managed in the Compensation tab
-              </CardDescription>
+              <CardTitle>{t("rates_availability", "Rates & Availability")}</CardTitle>
+              <CardDescription>{t('settings.freelanceprojectssettings.yourRatesAreManagedInThe', 'Your rates are managed in the Compensation tab')}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
-                  <p className="text-sm font-medium">Hourly Rate</p>
+                  <p className="text-sm font-medium">{t("hourly_rate", "Hourly Rate")}</p>
                   <p className="text-2xl font-bold">
                     €{profile?.freelance_hourly_rate_min || 0} - €{profile?.freelance_hourly_rate_max || 0}
                   </p>
@@ -241,7 +237,7 @@ export function FreelanceProjectsSettings({ userId, profile, onSave }: Freelance
                   size="sm"
                   className="gap-2"
                 >
-                  Update Rates <ExternalLink className="h-3 w-3" />
+                  {t('settings.freelanceprojectssettings.updateRates', 'Update Rates')} <ExternalLink className="h-3 w-3" />
                 </Button>
               </div>
             </CardContent>
@@ -254,9 +250,7 @@ export function FreelanceProjectsSettings({ userId, profile, onSave }: Freelance
                 <Briefcase className="h-5 w-5" />
                 Freelance Categories
               </CardTitle>
-              <CardDescription>
-                Select the types of projects you're interested in
-              </CardDescription>
+              <CardDescription>{t('settings.freelanceprojectssettings.selectTheTypesOfProjectsYoure', 'Select the types of projects you\'re interested in')}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="flex flex-wrap gap-2">
@@ -281,13 +275,11 @@ export function FreelanceProjectsSettings({ userId, profile, onSave }: Freelance
                 <Star className="h-5 w-5" />
                 Portfolio & Experience
               </CardTitle>
-              <CardDescription>
-                Showcase your work and experience to potential clients
-              </CardDescription>
+              <CardDescription>{t('settings.freelanceprojectssettings.showcaseYourWorkAndExperienceTo', 'Showcase your work and experience to potential clients')}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="portfolio-url">Portfolio URL</Label>
+                <Label htmlFor="portfolio-url">{t("portfolio_url", "Portfolio URL")}</Label>
                 <Input
                   id="portfolio-url"
                   placeholder="https://github.com/yourusername or https://yourportfolio.com"
@@ -297,7 +289,7 @@ export function FreelanceProjectsSettings({ userId, profile, onSave }: Freelance
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="years-experience">Years of Freelancing Experience</Label>
+                <Label htmlFor="years-experience">{t("years_of_freelancing_experience", "Years of Freelancing Experience")}</Label>
                 <Input
                   id="years-experience"
                   type="number"
@@ -318,13 +310,11 @@ export function FreelanceProjectsSettings({ userId, profile, onSave }: Freelance
                 <Clock className="h-5 w-5" />
                 Project Preferences
               </CardTitle>
-              <CardDescription>
-                Help us match you with the right projects
-              </CardDescription>
+              <CardDescription>{t('settings.freelanceprojectssettings.helpUsMatchYouWithThe', 'Help us match you with the right projects')}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-3">
-                <Label>Preferred Engagement Types</Label>
+                <Label>{t("preferred_engagement_types", "Preferred Engagement Types")}</Label>
                 <div className="flex flex-wrap gap-2">
                   {ENGAGEMENT_TYPES.map((type) => (
                     <Badge
@@ -340,7 +330,7 @@ export function FreelanceProjectsSettings({ userId, profile, onSave }: Freelance
               </div>
 
               <div className="space-y-3">
-                <Label>Preferred Project Duration</Label>
+                <Label>{t("preferred_project_duration", "Preferred Project Duration")}</Label>
                 <div className="flex flex-wrap gap-2">
                   {PROJECT_DURATIONS.map((duration) => (
                     <Badge
@@ -364,14 +354,14 @@ export function FreelanceProjectsSettings({ userId, profile, onSave }: Freelance
               onClick={() => navigate('/projects')}
               size="lg"
             >
-              View Projects
+              {t('settings.freelanceprojectssettings.viewProjects', 'View Projects')}
             </Button>
             <Button
               onClick={handleSave}
               disabled={saving}
               size="lg"
             >
-              {saving ? "Saving..." : "Save Changes"}
+              {saving ? t('settings.freelanceprojectssettings.saving', 'Saving...') : t('settings.freelanceprojectssettings.saveChanges', 'Save Changes')}
             </Button>
           </div>
         </>

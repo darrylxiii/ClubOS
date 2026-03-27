@@ -25,6 +25,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useTranslation } from 'react-i18next';
 
 const CATEGORY_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   applications: Mail,
@@ -60,6 +61,7 @@ export function NotificationTypeCard({
   };
 
   const getRecipientsSummary = () => {
+  const { t } = useTranslation('admin');
     if (notificationType.role_assignments.length === 0 && notificationType.assignment_count === 0) {
       return 'No recipients configured';
     }

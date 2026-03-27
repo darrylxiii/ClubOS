@@ -20,6 +20,7 @@ import {
 import { format } from 'date-fns';
 import { AssessmentDetailModal } from './AssessmentDetailModal';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 interface AssessmentResult {
   id: string;
@@ -56,6 +57,7 @@ const ASSESSMENT_COLORS = {
 };
 
 export const AssessmentHistory = memo(({ userId, viewMode }: AssessmentHistoryProps) => {
+  const { t } = useTranslation('candidates');
   const { user } = useAuth();
   const navigate = useNavigate();
   const [results, setResults] = useState<AssessmentResult[]>([]);

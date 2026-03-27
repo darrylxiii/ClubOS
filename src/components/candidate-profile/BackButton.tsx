@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from 'react-i18next';
 
 interface Props {
   fromJob?: string;
@@ -10,6 +11,7 @@ interface Props {
 }
 
 export const BackButton = ({ fromJob, fromCompany, fromAdmin, fromSearch }: Props) => {
+  const { t } = useTranslation('candidates');
   const navigate = useNavigate();
   
   const getBackDestination = () => {

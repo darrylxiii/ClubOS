@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { TrendingUp, TrendingDown, Minus, Target } from "lucide-react";
 import { motion } from "framer-motion";
+import { useTranslation } from 'react-i18next';
 
 interface FunnelStage {
   name: string;
@@ -11,7 +12,8 @@ interface FunnelStage {
   rate: number;
 }
 
-export function InterviewSuccessWidget({ companyId }: { companyId: string }) {
+export function InterviewSuccessWidget({
+  const { t } = useTranslation('partner'); companyId }: { companyId: string }) {
   const { data: funnelData, isLoading } = useQuery({
     queryKey: ['interview-funnel', companyId],
     queryFn: async () => {
@@ -161,9 +163,7 @@ export function InterviewSuccessWidget({ companyId }: { companyId: string }) {
 
         {funnelData?.total === 0 && (
           <div className="text-center py-4">
-            <p className="text-sm text-muted-foreground">
-              No applications yet. Post a job to start hiring.
-            </p>
+            <p className="text-sm text-muted-foreground">{t('interviewSuccessWidget.noApplicationsYetPostAJobToStartHiring')}</p>
           </div>
         )}
       </CardContent>

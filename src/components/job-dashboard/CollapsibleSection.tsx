@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ChevronDown, ChevronUp, LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslation } from 'react-i18next';
 
 interface CollapsibleSectionProps {
   title: string;
@@ -21,6 +22,7 @@ export const CollapsibleSection = memo(({
   badge,
   className
 }: CollapsibleSectionProps) => {
+  const { t } = useTranslation('jobs');
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
 
   return (

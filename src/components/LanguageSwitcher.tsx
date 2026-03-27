@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { Globe, Loader2, Check } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,7 +28,6 @@ export const LanguageSwitcher = () => {
   const { i18n } = useTranslation();
   const [isChanging, setIsChanging] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
-  const currentLang = languages.find(lang => lang.code === i18n.language) || languages[0];
 
   // Load user's preferred language on mount
   useEffect(() => {
@@ -93,7 +93,7 @@ export const LanguageSwitcher = () => {
     } catch (error) {
       console.error('[LanguageSwitcher] Error changing language:', error);
       toast.dismiss(loadingToast);
-      toast.error('Failed to change language. Please try again.');
+      toast.error("Failed to change language. Please try again.");
     } finally {
       setIsChanging(false);
     }
@@ -105,14 +105,34 @@ export const LanguageSwitcher = () => {
         <Button 
           variant="ghost" 
           size="icon" 
-          className="relative z-[60]" 
+          className="relative overflow-hidden group z-[60] rounded-full w-9 h-9 hover:bg-white/10 dark:hover:bg-white/5 transition-all outline-none" 
           disabled={isChanging}
         >
-          {isChanging ? (
-            <Loader2 className="h-5 w-5 animate-spin" />
-          ) : (
-            <Globe className="h-5 w-5" />
-          )}
+          <AnimatePresence mode="wait">
+            {isChanging ? (
+              <motion.div
+                key="loading"
+                initial={{ opacity: 0, scale: 0.5 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.5 }}
+                className="relative z-10"
+              >
+                <Loader2 className="h-4 w-4 animate-spin text-primary" />
+              </motion.div>
+            ) : (
+              <motion.div
+                key="globe"
+                initial={{ opacity: 0, rotate: -90 }}
+                animate={{ opacity: 1, rotate: isOpen ? 180 : 0 }}
+                whileHover={{ rotate: 90, scale: 1.1 }}
+                transition={{ duration: 0.4, type: "spring", stiffness: 200, damping: 20 }}
+                className="relative z-10"
+              >
+                <Globe className="h-4 w-4 text-primary" />
+              </motion.div>
+            )}
+          </AnimatePresence>
+          <div className="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-md pointer-events-none" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-48 z-[100]">

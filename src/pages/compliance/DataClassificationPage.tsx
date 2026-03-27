@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from 'react-i18next';
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/lib/notify";
 import { Database, Shield, Lock, Eye, AlertTriangle } from "lucide-react";
 export default function DataClassificationPage() {
+  const { t } = useTranslation('compliance');
   const [rules, setRules] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -70,14 +72,14 @@ export default function DataClassificationPage() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Data Classification</h1>
+            <h1 className="text-3xl font-bold text-foreground">{t('dataClassification.title')}</h1>
             <p className="text-muted-foreground mt-1">
-              Field-level sensitivity tagging and data governance rules
+              {t('dataClassification.description')}
             </p>
           </div>
           <Button>
             <Database className="h-4 w-4 mr-2" />
-            Add Classification Rule
+            {t('dataClassification.addRule')}
           </Button>
         </div>
 
@@ -112,13 +114,13 @@ export default function DataClassificationPage() {
           {loading ? (
             <Card>
               <CardContent className="py-12 text-center text-muted-foreground">
-                Loading classification rules...
+                {t('dataClassification.loading')}
               </CardContent>
             </Card>
           ) : Object.keys(groupedRules).length === 0 ? (
             <Card>
               <CardContent className="py-12 text-center text-muted-foreground">
-                No classification rules defined. Start by adding rules for sensitive data fields.
+                {t('dataClassification.noRules')}
               </CardContent>
             </Card>
           ) : (

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -32,6 +33,7 @@ const statusConfig: Record<string, { color: string; icon: React.ElementType }> =
 };
 
 export function CommissionsTracker({ commissions, isLoading }: CommissionsTrackerProps) {
+  const { t } = useTranslation('common');
   const [activeTab, setActiveTab] = useState("all");
 
   const filteredCommissions = activeTab === "all" 
@@ -71,7 +73,7 @@ export function CommissionsTracker({ commissions, isLoading }: CommissionsTracke
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Commissions</CardTitle>
+          <CardTitle>{t("commissions", "Commissions")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="h-64 bg-muted/50 animate-pulse rounded-lg" />
@@ -126,7 +128,7 @@ export function CommissionsTracker({ commissions, isLoading }: CommissionsTracke
               {filteredCommissions.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-32 text-muted-foreground">
                   <DollarSign className="h-8 w-8 mb-2 opacity-50" />
-                  <p>No commissions found</p>
+                  <p>{t("no_commissions_found", "No commissions found")}</p>
                 </div>
               ) : (
                 <div className="space-y-3">

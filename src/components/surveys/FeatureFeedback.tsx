@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 /**
  * Feature Feedback Survey Component
  * Collects feedback on specific features (e.g., QUIN AI)
@@ -39,6 +40,7 @@ export function FeatureFeedback({
   featureIcon,
   context,
 }: FeatureFeedbackProps) {
+  const { t } = useTranslation('common');
   const [satisfaction, setSatisfaction] = useState<string | null>(null);
   const [improvement, setImprovement] = useState('');
   const [step, setStep] = useState<'rating' | 'details' | 'thanks'>('rating');
@@ -171,7 +173,7 @@ export function FeatureFeedback({
                     <Textarea
                       value={improvement}
                       onChange={(e) => setImprovement(e.target.value)}
-                      placeholder="Tell us what would make it better..."
+                      placeholder={t("tell_us_what_would", "Tell us what would make it better...")}
                       className="min-h-[80px] mb-4"
                     />
                     <div className="flex gap-2">

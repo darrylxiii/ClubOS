@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { candidateProfileTokens } from "@/config/candidate-profile-tokens";
+import { useTranslation } from 'react-i18next';
 
 interface Props {
   candidate: any;
@@ -16,6 +17,7 @@ interface Props {
 }
 
 export const PortfolioGrid = ({ candidate, portfolioItems = [], canEdit, onAddLink }: Props) => {
+  const { t } = useTranslation('candidates');
   // Remove LinkedIn from links (it's now in hero section as primary/secondary action)
   const links = [
     { icon: Github, label: 'GitHub', url: candidate.github_url, color: 'text-foreground' },

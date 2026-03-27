@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { motion } from '@/lib/motion';
 import { TrendingUp, Sparkles, RefreshCw, Settings, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -9,6 +10,7 @@ interface EmptyStateProps {
 }
 
 export function EmptyState({ onSyncRevenue, isSyncing }: EmptyStateProps) {
+  const { t } = useTranslation('common');
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -38,7 +40,7 @@ export function EmptyState({ onSyncRevenue, isSyncing }: EmptyStateProps) {
 
         {/* Content */}
         <div className="space-y-2">
-          <h2 className="text-heading-lg font-bold">Welcome to Revenue Ladder</h2>
+          <h2 className="text-heading-lg font-bold">{t("welcome_to_revenue_ladder", "Welcome to Revenue Ladder")}</h2>
           <p className="text-body-md text-muted-foreground">
             Track milestones, propose rewards, and celebrate your team's wins together.
             Sync your revenue data to get started.

@@ -4,6 +4,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { TrendingUp, TrendingDown, Award, Trophy } from "lucide-react";
 import { motion } from "framer-motion";
+import { useTranslation } from 'react-i18next';
 
 interface Benchmark {
   id: string;
@@ -15,6 +16,7 @@ interface Benchmark {
 }
 
 export function BenchmarkComparison({ companyId }: { companyId: string }) {
+  const { t } = useTranslation('partner');
   const { data: benchmarks, isLoading, refetch } = useQuery({
     queryKey: ['benchmarks', companyId],
     queryFn: async () => {
@@ -159,9 +161,7 @@ export function BenchmarkComparison({ companyId }: { companyId: string }) {
             Industry Benchmarks
           </div>
           {benchmarks && benchmarks.length > 0 && (
-            <Badge variant="outline" className="text-xs">
-              Updated today
-            </Badge>
+            <Badge variant="outline" className="text-xs">{t('benchmarkComparison.badge.updatedToday')}</Badge>
           )}
         </CardTitle>
       </CardHeader>
@@ -169,9 +169,7 @@ export function BenchmarkComparison({ companyId }: { companyId: string }) {
         {!benchmarks || benchmarks.length === 0 ? (
           <div className="text-center py-6 space-y-2">
             <Award className="h-8 w-8 mx-auto text-muted-foreground/40" />
-            <p className="text-sm text-muted-foreground">
-              Complete more hiring cycles to unlock benchmark comparisons
-            </p>
+            <p className="text-sm text-muted-foreground">{t('benchmarkComparison.completeMoreHiringCyclesToUnlockBenchmar')}</p>
           </div>
         ) : (
           benchmarks.map((benchmark, index) => renderBenchmark(benchmark, index))

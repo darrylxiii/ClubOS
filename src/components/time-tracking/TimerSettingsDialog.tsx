@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import {
   Dialog,
   DialogContent,
@@ -29,6 +30,7 @@ export function TimerSettingsDialog({
   open,
   onOpenChange,
 }: TimerSettingsDialogProps) {
+  const { t } = useTranslation('common');
   const { timerSettings, projects, updateTimerSettings } = useTimeTracking();
   
   const [idleThreshold, setIdleThreshold] = useState(5);
@@ -81,13 +83,13 @@ export function TimerSettingsDialog({
               onValueChange={(val) => setIdleThreshold(parseInt(val))}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Select threshold" />
+                <SelectValue placeholder={t("select_threshold", "Select threshold")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="5">5 minutes</SelectItem>
-                <SelectItem value="10">10 minutes</SelectItem>
-                <SelectItem value="15">15 minutes</SelectItem>
-                <SelectItem value="30">30 minutes</SelectItem>
+                <SelectItem value="5">{t("5_minutes", "5 minutes")}</SelectItem>
+                <SelectItem value="10">{t("10_minutes", "10 minutes")}</SelectItem>
+                <SelectItem value="15">{t("15_minutes", "15 minutes")}</SelectItem>
+                <SelectItem value="30">{t("30_minutes", "30 minutes")}</SelectItem>
               </SelectContent>
             </Select>
             <p className="text-xs text-muted-foreground">
@@ -114,16 +116,16 @@ export function TimerSettingsDialog({
 
           {/* Default project */}
           <div className="space-y-2">
-            <Label>Default Project</Label>
+            <Label>{t("default_project", "Default Project")}</Label>
             <Select
               value={defaultProjectId || "none"}
               onValueChange={(val) => setDefaultProjectId(val === "none" ? null : val)}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Select default project" />
+                <SelectValue placeholder={t("select_default_project", "Select default project")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="none">No default</SelectItem>
+                <SelectItem value="none">{t("no_default", "No default")}</SelectItem>
                 {projects.map((project) => (
                   <SelectItem key={project.id} value={project.id}>
                     <div className="flex items-center gap-2">

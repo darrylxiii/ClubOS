@@ -11,6 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useTranslation } from 'react-i18next';
 
 interface JobDashboardHeaderProps {
   job: any;
@@ -35,6 +36,7 @@ export const JobDashboardHeader = memo(({
   onArchive,
   onDelete,
 }: JobDashboardHeaderProps) => {
+  const { t } = useTranslation('jobs');
   const navigate = useNavigate();
 
   const statusColor = job.status === 'published'

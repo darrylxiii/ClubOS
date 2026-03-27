@@ -1,4 +1,5 @@
 import { memo, useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -23,6 +24,7 @@ interface ModuleQuizProps {
 }
 
 export const ModuleQuiz = memo<ModuleQuizProps>(({ quizId, onComplete }) => {
+  const { t } = useTranslation('common');
   const [quiz, setQuiz] = useState<any>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -100,7 +102,7 @@ export const ModuleQuiz = memo<ModuleQuizProps>(({ quizId, onComplete }) => {
       onComplete(passed, percentage);
     } catch (error) {
       console.error('Error submitting quiz:', error);
-      notify.error('Failed to submit quiz');
+      notify.error(t('academy.failedToSubmitQuiz'));
     }
   };
 
@@ -126,19 +128,19 @@ export const ModuleQuiz = memo<ModuleQuizProps>(({ quizId, onComplete }) => {
 
         <div>
           <h3 className="text-2xl font-bold mb-2">
-            {results.passed ? 'Congratulations!' : 'Keep Practicing'}
+            {results.passed ? t('academy.congratulations') : t('academy.keepPracticing')}
           </h3>
           <p className="text-muted-foreground">
-            You scored {results.totalScore}/{results.totalPoints} ({Math.round(results.percentage)}%)
+            {t('academy.youScored', { score: results.totalScore, total: results.totalPoints, percentage: Math.round(results.percentage) })}
           </p>
           <p className="text-sm text-muted-foreground mt-2">
-            Pass threshold: {quiz?.passing_score || 70}%
+            {t('academy.passThreshold', { threshold: quiz?.passing_score || 70 })}
           </p>
         </div>
 
         {!results.passed && (
           <Button onClick={() => navigate(0)} variant="outline">
-            Try Again
+            {t('academy.tryAgain')}
           </Button>
         )}
       </Card>
@@ -152,9 +154,9 @@ export const ModuleQuiz = memo<ModuleQuizProps>(({ quizId, onComplete }) => {
     <Card className="p-6 space-y-6">
       <div>
         <div className="flex items-center justify-between mb-2">
-          <h3 className="font-semibold">Quiz: {quiz?.title}</h3>
+          <h3 className="font-semibold">{t('academy.quizTitle', { title: quiz?.title })}</h3>
           <span className="text-sm text-muted-foreground">
-            Question {currentQuestion + 1} of {questions.length}
+            {t('academy.questionOf', { current: currentQuestion + 1, total: questions.length })}
           </span>
         </div>
         <div className="w-full bg-muted rounded-full h-2">
@@ -191,7 +193,7 @@ export const ModuleQuiz = memo<ModuleQuizProps>(({ quizId, onComplete }) => {
           onClick={() => setCurrentQuestion(Math.max(0, currentQuestion - 1))}
           disabled={currentQuestion === 0}
         >
-          Previous
+          {t('academy.previous')}
         </Button>
 
         {currentQuestion < questions.length - 1 ? (
@@ -199,15 +201,13 @@ export const ModuleQuiz = memo<ModuleQuizProps>(({ quizId, onComplete }) => {
             onClick={() => setCurrentQuestion(currentQuestion + 1)}
             disabled={!answers[question.id]}
           >
-            Next
+            {t('academy.next')}
           </Button>
         ) : (
           <Button
             onClick={handleSubmit}
             disabled={Object.keys(answers).length !== questions.length}
-          >
-            Submit Quiz
-          </Button>
+          >{t('academy.submitQuiz')}</Button>
         )}
       </div>
     </Card>

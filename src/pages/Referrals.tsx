@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from 'react-i18next';
 import { motion } from "framer-motion";
 import { Building2, Briefcase, Users, History, Plus, TrendingUp, Trophy, Zap, Activity, Share2, BarChart3, Link2, Mail } from "lucide-react";
 import { lazy, Suspense } from "react";
@@ -35,6 +36,7 @@ import { useRole } from "@/contexts/RoleContext";
 import { useAuth } from "@/contexts/AuthContext";
 
 export default function Referrals() {
+  const { t } = useTranslation('common');
   const [claimDialogOpen, setClaimDialogOpen] = useState(false);
   const [shareSheetOpen, setShareSheetOpen] = useState(false);
   
@@ -78,9 +80,7 @@ export default function Referrals() {
               <TrendingUp className="h-8 w-8 text-primary" />
               Your Earnings & Referrals
             </h1>
-            <p className="text-muted-foreground mt-1">
-              Track your referrals, monitor pipelines, and view your earnings
-            </p>
+            <p className="text-muted-foreground mt-1">{t('referrals.desc')}</p>
           </div>
           
           <div className="flex flex-wrap gap-2">
@@ -116,39 +116,39 @@ export default function Referrals() {
             <TabsList className="inline-flex w-max">
               <TabsTrigger value="pipeline" className="gap-2">
                 <Briefcase className="h-4 w-4" />
-                <span className="hidden sm:inline">Pipeline</span>
+                <span className="hidden sm:inline">{t('referrals.text2')}</span>
               </TabsTrigger>
               <TabsTrigger value="leaderboard" className="gap-2">
                 <Trophy className="h-4 w-4" />
-                <span className="hidden sm:inline">Leaderboard</span>
+                <span className="hidden sm:inline">{t('referrals.text3')}</span>
               </TabsTrigger>
               <TabsTrigger value="activity" className="gap-2">
                 <Activity className="h-4 w-4" />
-                <span className="hidden sm:inline">Activity</span>
+                <span className="hidden sm:inline">{t('referrals.text4')}</span>
               </TabsTrigger>
               <TabsTrigger value="companies" className="gap-2">
                 <Building2 className="h-4 w-4" />
-                <span className="hidden sm:inline">Companies</span>
+                <span className="hidden sm:inline">{t('referrals.text5')}</span>
               </TabsTrigger>
               <TabsTrigger value="members" className="gap-2">
                 <Users className="h-4 w-4" />
-                <span className="hidden sm:inline">Members</span>
+                <span className="hidden sm:inline">{t('referrals.text6')}</span>
               </TabsTrigger>
               <TabsTrigger value="history" className="gap-2">
                 <History className="h-4 w-4" />
-                <span className="hidden sm:inline">History</span>
+                <span className="hidden sm:inline">{t('referrals.text7')}</span>
               </TabsTrigger>
               <TabsTrigger value="analytics" className="gap-2">
                 <BarChart3 className="h-4 w-4" />
-                <span className="hidden sm:inline">Analytics</span>
+                <span className="hidden sm:inline">{t('referrals.text8')}</span>
               </TabsTrigger>
               <TabsTrigger value="share" className="gap-2">
                 <Link2 className="h-4 w-4" />
-                <span className="hidden sm:inline">Share Links</span>
+                <span className="hidden sm:inline">{t('referrals.text9')}</span>
               </TabsTrigger>
               <TabsTrigger value="invites" className="gap-2">
                 <Mail className="h-4 w-4" />
-                <span className="hidden sm:inline">Invites</span>
+                <span className="hidden sm:inline">{t('referrals.text10')}</span>
               </TabsTrigger>
             </TabsList>
             <ScrollBar orientation="horizontal" />
@@ -170,7 +170,7 @@ export default function Referrals() {
             {policiesLoading ? (
               <div className="h-48 bg-muted/50 rounded-xl animate-pulse" />
             ) : companyPolicies.length === 0 ? (
-              <EmptyState icon={Building2} title="No company referrals" description="Claim a company to track all its jobs." onAction={handleClaimClick} showAction={isAdmin || isPartner} />
+              <EmptyState icon={Building2} title={t('referrals.text11')} description={t('referrals.text12')} onAction={handleClaimClick} showAction={isAdmin || isPartner} />
             ) : (
               companyPolicies.map(policy => <CompanyReferralCard key={policy.id} policy={policy} earnings={earnings?.filter(e => e.company_id === policy.company_id) || []} />)
             )}
@@ -178,7 +178,7 @@ export default function Referrals() {
 
           <TabsContent value="members" className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {policiesLoading ? <div className="h-32 bg-muted/50 rounded-xl animate-pulse" /> : memberPolicies.length === 0 ? (
-              <EmptyState icon={Users} title="No member referrals" description="Refer professionals to earn rewards." onAction={handleClaimClick} showAction={true} />
+              <EmptyState icon={Users} title={t('referrals.text13')} description={t('referrals.text14')} onAction={handleClaimClick} showAction={true} />
             ) : memberPolicies.map(policy => <MemberReferralCard key={policy.id} policy={policy} earnings={earnings?.filter(e => e.policy_id === policy.id) || []} />)}
           </TabsContent>
 
@@ -213,7 +213,7 @@ function EmptyState({ icon: Icon, title, description, onAction, showAction }: { 
       <div className="p-4 rounded-full bg-muted/50 mb-4"><Icon className="h-8 w-8 text-muted-foreground" /></div>
       <h3 className="text-lg font-semibold mb-2">{title}</h3>
       <p className="text-muted-foreground max-w-md mb-4">{description}</p>
-      {showAction && <Button onClick={onAction} className="gap-2"><Plus className="h-4 w-4" />Add</Button>}
+      {showAction && <Button onClick={onAction} className="gap-2"><Plus className="h-4 w-4" />{t('referrals.text15')}</Button>}
     </div>
   );
 }

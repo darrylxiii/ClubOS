@@ -1,9 +1,11 @@
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from 'react-i18next';
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { RainbowButton } from "@/components/ui/rainbow-button";
 import { CheckCircle2, Shield } from "lucide-react";
 
 export default function ResetPasswordSuccess() {
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
 
   return (
@@ -14,10 +16,8 @@ export default function ResetPasswordSuccess() {
             <CheckCircle2 className="w-8 h-8 text-success" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Password Changed</h1>
-            <p className="text-muted-foreground mt-2 text-sm">
-              Your password has been updated successfully
-            </p>
+            <h1 className="text-2xl font-bold text-foreground">{t('resetPasswordSuccess.text3')}</h1>
+            <p className="text-muted-foreground mt-2 text-sm">{t('resetPasswordSuccess.desc')}</p>
           </div>
         </CardHeader>
 
@@ -25,8 +25,8 @@ export default function ResetPasswordSuccess() {
           <div className="flex items-start gap-3 text-sm text-muted-foreground bg-muted/30 border border-border/30 rounded-lg p-4">
             <Shield className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
             <div className="space-y-1">
-              <p className="text-foreground font-medium">All sessions have been signed out</p>
-              <p>For security, all active sessions were invalidated. Please sign in with your new password.</p>
+              <p className="text-foreground font-medium">{t('resetPasswordSuccess.text4')}</p>
+              <p>{t('resetPasswordSuccess.desc2')}</p>
             </div>
           </div>
 

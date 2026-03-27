@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useEffect, useCallback, useRef, useState, lazy, Suspense } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 
@@ -23,6 +24,7 @@ import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 export default function WorkspacePage() {
+  const { t } = useTranslation('common');
   const { pageId } = useParams<{ pageId: string }>();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
@@ -124,7 +126,7 @@ export default function WorkspacePage() {
             {!isMobile && showSidebar && <SidebarContent />}
             <div className="flex-1 flex flex-col items-center justify-center gap-4 p-4">
               <FileX className="h-16 w-16 text-muted-foreground" />
-              <h2 className="text-xl font-semibold">Page not found</h2>
+              <h2 className="text-xl font-semibold">{t("page_not_found", "Page not found")}</h2>
               <p className="text-muted-foreground text-center">
                 This page may have been deleted or you don't have access to it.
               </p>
@@ -199,7 +201,7 @@ export default function WorkspacePage() {
                   className="text-muted-foreground"
                 >
                   <Search className="h-4 w-4" />
-                  <span className="hidden sm:inline ml-2">Search</span>
+                  <span className="hidden sm:inline ml-2">{t("search", "Search")}</span>
                   <kbd className="hidden sm:inline ml-2 px-1.5 py-0.5 text-xs bg-muted rounded">⌘P</kbd>
                 </Button>
                 

@@ -222,8 +222,8 @@ class ErrorFingerprintingService {
             })
             .eq('id', existing.id);
         }
-      } catch {
-        // Silent fail - don't interrupt main flow
+      } catch (error) {
+        console.error('[ErrorFingerprinting] Failed to persist error fingerprint:', error);
       }
     }
   }

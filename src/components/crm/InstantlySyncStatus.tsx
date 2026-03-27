@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -35,8 +36,7 @@ interface InstantlySyncStatusProps {
   syncing?: boolean;
 }
 
-function SyncTypeCard({ 
-  label, 
+function SyncTypeCard({  label, 
   icon: Icon, 
   sync, 
   onSync, 
@@ -48,6 +48,7 @@ function SyncTypeCard({
   onSync?: () => Promise<void>;
   syncing?: boolean;
 }) {
+const { t } = useTranslation('common');
   const hasErrors = sync && (sync.failed_records || 0) > 0;
   const errors = getSyncErrors(sync);
   
@@ -84,7 +85,7 @@ function SyncTypeCard({
               )}
             </div>
           ) : (
-            <p className="text-xs text-muted-foreground">Never synced</p>
+            <p className="text-xs text-muted-foreground">{t("never_synced", "Never synced")}</p>
           )}
           {hasErrors && errors[0] && (
             <p className="text-xs text-yellow-600 mt-1 truncate max-w-[200px]">
@@ -110,7 +111,7 @@ function SyncTypeCard({
               )}
             </Button>
           </TooltipTrigger>
-          <TooltipContent>Sync now</TooltipContent>
+          <TooltipContent>{t("sync_now", "Sync now")}</TooltipContent>
         </Tooltip>
       )}
     </div>
@@ -132,7 +133,7 @@ export function InstantlySyncStatus({
         <CardContent className="py-6">
           <div className="flex items-center justify-center gap-2 text-muted-foreground">
             <Loader2 className="w-4 h-4 animate-spin" />
-            <span className="text-sm">Loading sync status...</span>
+            <span className="text-sm">{t("loading_sync_status", "Loading sync status...")}</span>
           </div>
         </CardContent>
       </Card>
@@ -170,7 +171,7 @@ export function InstantlySyncStatus({
                   <RefreshCw className="w-3.5 h-3.5" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>Refresh status</TooltipContent>
+              <TooltipContent>{t("refresh_status", "Refresh status")}</TooltipContent>
             </Tooltip>
           </div>
         </div>
@@ -180,36 +181,36 @@ export function InstantlySyncStatus({
         <div className="grid grid-cols-3 gap-3 p-3 bg-muted/20 rounded-lg">
           <div className="text-center">
             <p className="text-lg font-semibold">{stats.totalSyncsToday}</p>
-            <p className="text-xs text-muted-foreground">Syncs today</p>
+            <p className="text-xs text-muted-foreground">{t("syncs_today", "Syncs today")}</p>
           </div>
           <div className="text-center">
             <p className="text-lg font-semibold">{stats.successRate.toFixed(0)}%</p>
-            <p className="text-xs text-muted-foreground">Success rate</p>
+            <p className="text-xs text-muted-foreground">{t("success_rate", "Success rate")}</p>
           </div>
           <div className="text-center">
             <p className="text-lg font-semibold">{stats.avgSyncDuration}s</p>
-            <p className="text-xs text-muted-foreground">Avg duration</p>
+            <p className="text-xs text-muted-foreground">{t("avg_duration", "Avg duration")}</p>
           </div>
         </div>
 
         {/* Sync Type Cards */}
         <div className="space-y-2">
           <SyncTypeCard 
-            label="Campaigns" 
+            label={t("campaigns", "Campaigns")} 
             icon={Mail} 
             sync={syncsByType.campaigns}
             onSync={onSyncCampaigns}
             syncing={syncing}
           />
           <SyncTypeCard 
-            label="Leads" 
+            label={t("leads", "Leads")} 
             icon={Users} 
             sync={syncsByType.leads}
             onSync={onSyncLeads}
             syncing={syncing}
           />
           <SyncTypeCard 
-            label="Account Health" 
+            label={t("account_health", "Account Health")} 
             icon={Activity} 
             sync={syncsByType.accountHealth}
             onSync={onSyncHealth}
@@ -221,7 +222,7 @@ export function InstantlySyncStatus({
         <Collapsible open={showHistory} onOpenChange={setShowHistory}>
           <CollapsibleTrigger asChild>
             <Button variant="ghost" className="w-full justify-between h-8 text-xs">
-              <span>Recent Sync History</span>
+              <span>{t("recent_sync_history", "Recent Sync History")}</span>
               {showHistory ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
             </Button>
           </CollapsibleTrigger>

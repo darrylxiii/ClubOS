@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 /**
  * Recording Consent Modal
  * Displays before recording starts to get explicit consent from participants
@@ -40,6 +41,7 @@ export function RecordingConsentModal({
   meetingTitle,
   isHost = false
 }: RecordingConsentModalProps) {
+  const { t } = useTranslation('common');
   const [options, setOptions] = useState({
     allowVideoRecording: true,
     allowAudioRecording: true,
@@ -72,9 +74,9 @@ export function RecordingConsentModal({
           </DialogTitle>
           <DialogDescription className="text-center">
             {isHost ? (
-              <>This meeting will be recorded for quality and training purposes.</>
+              <>{t("this_meeting_will_be", "This meeting will be recorded for quality and training purposes.")}</>
             ) : (
-              <>The host has enabled recording for this meeting.</>
+              <>{t("the_host_has_enabled", "The host has enabled recording for this meeting.")}</>
             )}
             {meetingTitle && (
               <span className="block mt-1 font-medium text-foreground">

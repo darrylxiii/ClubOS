@@ -4,7 +4,8 @@ import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
 import { 
   Heading, Paragraph, Spacer, Card, Button, StatusBadge 
 } from "../_shared/email-templates/components.ts";
-import { EMAIL_SENDERS, EMAIL_COLORS, getEmailAppUrl, getEmailHeaders, htmlToPlainText } from "../_shared/email-config.ts";
+import { EMAIL_SENDERS, EMAIL_COLORS, getEmailAppUrl } from "../_shared/email-config.ts";
+import { sendEmail } from '../_shared/resend-client.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -25,8 +26,6 @@ serve(async (req) => {
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const resendApiKey = Deno.env.get('RESEND_API_KEY');
-    
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // Fetch recording with analysis
@@ -194,58 +193,30 @@ serve(async (req) => {
       showFooter: true,
     });
 
-    // If Resend API key is configured, send email
-    if (resendApiKey) {
-      const emailResponse = await fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${resendApiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          from: EMAIL_SENDERS.clubAI,
-          to: hostProfile.email,
-          subject: `Meeting Summary: ${recording.title || 'Your Recording'}`,
-          html: htmlContent,
-          text: htmlToPlainText(htmlContent),
-          headers: getEmailHeaders(),
-        }),
-      });
+    // Send email via shared Resend client
+    await sendEmail({
+      from: EMAIL_SENDERS.clubAI,
+      to: hostProfile.email,
+      subject: `Meeting Summary: ${recording.title || 'Your Recording'}`,
+      html: htmlContent,
+    });
 
-      if (!emailResponse.ok) {
-        const errorText = await emailResponse.text();
-        console.error('Resend error:', errorText);
-        throw new Error(`Failed to send email: ${errorText}`);
-      }
+    console.log('Summary email sent to:', hostProfile.email);
 
-      console.log('✅ Summary email sent to:', hostProfile.email);
+    // Log the notification
+    await supabase.from('notifications').insert({
+      user_id: recording.host_id,
+      type: 'meeting_summary',
+      title: 'Meeting Summary Ready',
+      message: `AI analysis complete for: ${recording.title || 'your recording'}`,
+      data: { recording_id: recordingId },
+      is_read: false
+    });
 
-      // Log the notification
-      await supabase.from('notifications').insert({
-        user_id: recording.host_id,
-        type: 'meeting_summary',
-        title: 'Meeting Summary Ready',
-        message: `AI analysis complete for: ${recording.title || 'your recording'}`,
-        data: { recording_id: recordingId },
-        is_read: false
-      });
-
-      return new Response(
-        JSON.stringify({ success: true, message: 'Email sent' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    } else {
-      // Log for development
-      console.log('📧 Email would be sent (RESEND_API_KEY not configured):', {
-        to: hostProfile.email,
-        subject: `Meeting Summary: ${recording.title}`,
-      });
-
-      return new Response(
-        JSON.stringify({ success: true, message: 'Email prepared (not sent - no API key)' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
+    return new Response(
+      JSON.stringify({ success: true, message: 'Email sent' }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
 
   } catch (error) {
     console.error('❌ Error sending summary email:', error);

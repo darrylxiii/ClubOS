@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { motion, AnimatePresence } from '@/lib/motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -24,6 +25,7 @@ interface EmailThreadHistoryProps {
 }
 
 export function EmailThreadHistory({ emails, prospectName }: EmailThreadHistoryProps) {
+  const { t } = useTranslation('common');
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set([emails[0]?.id]));
 
   const toggleExpand = (id: string) => {
@@ -58,7 +60,7 @@ export function EmailThreadHistory({ emails, prospectName }: EmailThreadHistoryP
         <CardContent>
           <div className="text-center py-8 text-muted-foreground">
             <MessageSquare className="w-12 h-12 mx-auto mb-3 opacity-30" />
-            <p>No email conversations yet</p>
+            <p>{t("no_email_conversations_yet", "No email conversations yet")}</p>
           </div>
         </CardContent>
       </Card>
@@ -113,7 +115,7 @@ export function EmailThreadHistory({ emails, prospectName }: EmailThreadHistoryP
                     </span>
                     {email.sentiment && getSentimentIcon(email.sentiment)}
                     {email.opened && (
-                      <Badge variant="outline" className="text-[10px]">Opened</Badge>
+                      <Badge variant="outline" className="text-[10px]">{t("opened", "Opened")}</Badge>
                     )}
                   </div>
                   <p className="text-sm text-muted-foreground truncate">{email.subject}</p>

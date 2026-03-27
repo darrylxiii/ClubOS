@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -37,6 +38,7 @@ export const UnifiedTaskCalendar = ({
   objectiveId,
   onRefresh,
 }: UnifiedTaskCalendarProps) => {
+  const { t } = useTranslation('common');
   const [tasks, setTasks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [mode, setMode] = useState<CalendarMode>("week");
@@ -70,7 +72,7 @@ export const UnifiedTaskCalendar = ({
       setTasks(data || []);
     } catch (error) {
       console.error("Error loading tasks:", error);
-      toast.error("Failed to load calendar tasks");
+      toast.error(t('tasks.failedToLoadCalendarTasks', 'Failed to load calendar tasks'));
     } finally {
       setLoading(false);
     }
@@ -147,9 +149,9 @@ export const UnifiedTaskCalendar = ({
         )
       );
 
-      toast.success("Task rescheduled", {
+      toast.success(t('tasks.taskRescheduled', 'Task rescheduled'), {
         action: {
-          label: "Undo",
+          label: t('tasks.undo', 'Undo'),
           onClick: () => loadTasks(),
         },
         duration: 5000,
@@ -157,7 +159,7 @@ export const UnifiedTaskCalendar = ({
       onRefresh();
     } catch (error) {
       console.error("Error rescheduling:", error);
-      toast.error("Failed to reschedule task");
+      toast.error(t('tasks.failedToRescheduleTask', 'Failed to reschedule task'));
     }
   };
 
@@ -214,7 +216,7 @@ export const UnifiedTaskCalendar = ({
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={goToToday}>
-            Today
+            {t('tasks.today', 'Today')}
           </Button>
           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={navigateBack}>
             <ChevronLeft className="h-4 w-4" />
@@ -237,7 +239,7 @@ export const UnifiedTaskCalendar = ({
             onClick={() => setMode("week")}
           >
             <CalendarRange className="h-3.5 w-3.5" />
-            Week
+            {t('tasks.week', 'Week')}
           </Button>
           <Button
             variant="ghost"
@@ -246,7 +248,7 @@ export const UnifiedTaskCalendar = ({
             onClick={() => setMode("month")}
           >
             <CalendarDays className="h-3.5 w-3.5" />
-            Month
+            {t('tasks.month', 'Month')}
           </Button>
         </div>
       </div>
@@ -306,7 +308,7 @@ export const UnifiedTaskCalendar = ({
               <div className={cn("p-1 space-y-1", isWeek && "p-2 space-y-2")}>
                 {dayTasks.length === 0 && isWeek && (
                   <p className="text-xs text-muted-foreground text-center py-4 opacity-50">
-                    No tasks
+                    {t('tasks.noTasks', 'No tasks')}
                   </p>
                 )}
                 {dayTasks.slice(0, isWeek ? 20 : 3).map((task) => (

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -49,6 +50,7 @@ interface Review {
 }
 
 export function ReviewSystem({ contractId, projectId, freelancerId, clientId }: ReviewSystemProps) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [showReviewDialog, setShowReviewDialog] = useState(false);
@@ -155,10 +157,10 @@ export function ReviewSystem({ contractId, projectId, freelancerId, clientId }: 
         is_public: true,
         project_highlights: [],
       });
-      toast.success("Review submitted successfully!");
+      toast.success(t("review_submitted_successfully", "Review submitted successfully!"));
     },
     onError: (error) => {
-      toast.error("Failed to submit review: " + error.message);
+      toast.error(t("failed_to_submit_review", "Failed to submit review:") + error.message);
     },
   });
 
@@ -209,7 +211,7 @@ export function ReviewSystem({ contractId, projectId, freelancerId, clientId }: 
             </DialogTrigger>
             <DialogContent className="max-w-lg">
               <DialogHeader>
-                <DialogTitle>Leave a Review</DialogTitle>
+                <DialogTitle>{t("leave_a_review", "Leave a Review")}</DialogTitle>
                 <DialogDescription>
                   Share your experience working on this project
                 </DialogDescription>
@@ -218,7 +220,7 @@ export function ReviewSystem({ contractId, projectId, freelancerId, clientId }: 
               <div className="space-y-6 py-4">
                 {/* Overall Rating */}
                 <div>
-                  <Label className="mb-2 block">Overall Rating</Label>
+                  <Label className="mb-2 block">{t("overall_rating", "Overall Rating")}</Label>
                   {renderStars(reviewData.overall_rating, (value) =>
                     setReviewData({ ...reviewData, overall_rating: value })
                   )}
@@ -227,25 +229,25 @@ export function ReviewSystem({ contractId, projectId, freelancerId, clientId }: 
                 {/* Category Ratings */}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label className="text-sm">Communication</Label>
+                    <Label className="text-sm">{t("communication", "Communication")}</Label>
                     {renderStars(reviewData.communication_rating, (value) =>
                       setReviewData({ ...reviewData, communication_rating: value })
                     )}
                   </div>
                   <div>
-                    <Label className="text-sm">Professionalism</Label>
+                    <Label className="text-sm">{t("professionalism", "Professionalism")}</Label>
                     {renderStars(reviewData.professionalism_rating, (value) =>
                       setReviewData({ ...reviewData, professionalism_rating: value })
                     )}
                   </div>
                   <div>
-                    <Label className="text-sm">Quality of Work</Label>
+                    <Label className="text-sm">{t("quality_of_work", "Quality of Work")}</Label>
                     {renderStars(reviewData.quality_rating, (value) =>
                       setReviewData({ ...reviewData, quality_rating: value })
                     )}
                   </div>
                   <div>
-                    <Label className="text-sm">Timeliness</Label>
+                    <Label className="text-sm">{t("timeliness", "Timeliness")}</Label>
                     {renderStars(reviewData.timeliness_rating, (value) =>
                       setReviewData({ ...reviewData, timeliness_rating: value })
                     )}
@@ -254,9 +256,9 @@ export function ReviewSystem({ contractId, projectId, freelancerId, clientId }: 
 
                 {/* Review Text */}
                 <div>
-                  <Label>Your Review</Label>
+                  <Label>{t("your_review", "Your Review")}</Label>
                   <Textarea
-                    placeholder="Share details about your experience..."
+                    placeholder={t("share_details_about_your", "Share details about your experience...")}
                     rows={4}
                     value={reviewData.review_text}
                     onChange={(e) =>
@@ -268,7 +270,7 @@ export function ReviewSystem({ contractId, projectId, freelancerId, clientId }: 
                 {/* Would Work Again */}
                 <div className="flex items-center justify-between">
                   <div>
-                    <Label>Would you work with them again?</Label>
+                    <Label>{t("would_you_work_with", "Would you work with them again?")}</Label>
                     <p className="text-sm text-muted-foreground">
                       This helps others understand your experience
                     </p>
@@ -284,7 +286,7 @@ export function ReviewSystem({ contractId, projectId, freelancerId, clientId }: 
                 {/* Public Toggle */}
                 <div className="flex items-center justify-between">
                   <div>
-                    <Label>Make review public</Label>
+                    <Label>{t("make_review_public", "Make review public")}</Label>
                     <p className="text-sm text-muted-foreground">
                       Public reviews are visible to everyone
                     </p>
@@ -341,7 +343,7 @@ export function ReviewSystem({ contractId, projectId, freelancerId, clientId }: 
         <Card>
           <CardContent className="py-8 text-center">
             <Star className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <h4 className="font-semibold mb-2">No Reviews Yet</h4>
+            <h4 className="font-semibold mb-2">{t("no_reviews_yet", "No Reviews Yet")}</h4>
             <p className="text-muted-foreground">
               Reviews will appear here once the project is completed
             </p>
@@ -395,7 +397,7 @@ function ReviewCard({ review, currentUserId }: { review: Review; currentUserId?:
                   </Badge>
                 )}
                 {isOwnReview && (
-                  <Badge variant="outline">Your review</Badge>
+                  <Badge variant="outline">{t("your_review", "Your review")}</Badge>
                 )}
               </div>
             </div>
@@ -406,19 +408,19 @@ function ReviewCard({ review, currentUserId }: { review: Review; currentUserId?:
             {/* Category Ratings */}
             <div className="grid grid-cols-4 gap-4 text-sm">
               <div>
-                <p className="text-muted-foreground">Communication</p>
+                <p className="text-muted-foreground">{t("communication", "Communication")}</p>
                 <p className="font-medium">{review.communication_rating}/5</p>
               </div>
               <div>
-                <p className="text-muted-foreground">Professionalism</p>
+                <p className="text-muted-foreground">{t("professionalism", "Professionalism")}</p>
                 <p className="font-medium">{review.professionalism_rating}/5</p>
               </div>
               <div>
-                <p className="text-muted-foreground">Quality</p>
+                <p className="text-muted-foreground">{t("quality", "Quality")}</p>
                 <p className="font-medium">{review.quality_rating}/5</p>
               </div>
               <div>
-                <p className="text-muted-foreground">Timeliness</p>
+                <p className="text-muted-foreground">{t("timeliness", "Timeliness")}</p>
                 <p className="font-medium">{review.timeliness_rating}/5</p>
               </div>
             </div>

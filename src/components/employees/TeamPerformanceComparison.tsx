@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -21,11 +22,11 @@ interface TeamPerformanceComparisonProps {
   isLoading?: boolean;
 }
 
-export function TeamPerformanceComparison({ 
-  directReports, 
+export function TeamPerformanceComparison({  directReports, 
   performanceData,
   isLoading 
 }: TeamPerformanceComparisonProps) {
+const { t } = useTranslation('common');
   const { recharts, isLoading: rechartsLoading } = useRecharts();
   const sortedByRevenue = [...performanceData].sort((a, b) => b.revenue - a.revenue);
   const topPerformers = sortedByRevenue.slice(0, 3);
@@ -40,7 +41,7 @@ export function TeamPerformanceComparison({
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Team Performance</CardTitle>
+          <CardTitle>{t("team_performance", "Team Performance")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="h-64 bg-muted/50 animate-pulse rounded-lg" />
@@ -156,7 +157,7 @@ export function TeamPerformanceComparison({
 
         {/* Leaderboard */}
         <div className="space-y-2">
-          <h4 className="text-sm font-medium text-muted-foreground">Full Leaderboard</h4>
+          <h4 className="text-sm font-medium text-muted-foreground">{t("full_leaderboard", "Full Leaderboard")}</h4>
           <div className="space-y-2">
             {sortedByRevenue.map((performer, index) => (
               <motion.div

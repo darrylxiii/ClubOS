@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { motion, AnimatePresence } from '@/lib/motion';
 import { 
@@ -74,6 +75,7 @@ const impactTypes = [
 ];
 
 export function ProposalForm({ milestoneId, milestoneName, open, onOpenChange }: ProposalFormProps) {
+  const { t } = useTranslation('common');
   const [step, setStep] = useState(1);
   const [category, setCategory] = useState('');
   const [title, setTitle] = useState('');
@@ -158,7 +160,7 @@ export function ProposalForm({ milestoneId, milestoneName, open, onOpenChange }:
               className="space-y-4"
             >
               <div className="space-y-2">
-                <Label className="text-heading-xs">Choose Reward Category</Label>
+                <Label className="text-heading-xs">{t("choose_reward_category", "Choose Reward Category")}</Label>
                 <p className="text-body-sm text-muted-foreground">
                   Select the type of reward you're proposing
                 </p>
@@ -212,28 +214,28 @@ export function ProposalForm({ milestoneId, milestoneName, open, onOpenChange }:
             >
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="title">Reward Title</Label>
+                  <Label htmlFor="title">{t("reward_title", "Reward Title")}</Label>
                   <Input
                     id="title"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    placeholder="e.g., Team Offsite in Barcelona"
+                    placeholder={t("eg_team_offsite_in", "e.g., Team Offsite in Barcelona")}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="description">Description</Label>
+                  <Label htmlFor="description">{t("description", "Description")}</Label>
                   <Textarea
                     id="description"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Describe the reward in detail..."
+                    placeholder={t("describe_the_reward_in", "Describe the reward in detail...")}
                     rows={3}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="cost">Estimated Cost (€)</Label>
+                  <Label htmlFor="cost">{t("estimated_cost", "Estimated Cost (€)")}</Label>
                   <Input
                     id="cost"
                     type="number"
@@ -261,7 +263,7 @@ export function ProposalForm({ milestoneId, milestoneName, open, onOpenChange }:
               className="space-y-6"
             >
               <div className="space-y-2">
-                <Label>How does this improve...</Label>
+                <Label>{t("how_does_this_improve", "How does this improve...")}</Label>
                 <p className="text-body-sm text-muted-foreground">
                   Select at least one impact type
                 </p>
@@ -304,30 +306,30 @@ export function ProposalForm({ milestoneId, milestoneName, open, onOpenChange }:
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="rationale">Rationale</Label>
+                <Label htmlFor="rationale">{t("rationale", "Rationale")}</Label>
                 <Textarea
                   id="rationale"
                   value={rationale}
                   onChange={(e) => setRationale(e.target.value)}
-                  placeholder="Explain why this reward will help the team and company..."
+                  placeholder={t("explain_why_this_reward", "Explain why this reward will help the team and company...")}
                   rows={4}
                 />
               </div>
 
               {/* Summary */}
               <Card variant="static" className="p-4 space-y-3 bg-muted/30">
-                <p className="text-label-sm font-medium text-muted-foreground">Summary</p>
+                <p className="text-label-sm font-medium text-muted-foreground">{t("summary", "Summary")}</p>
                 <div className="space-y-2 text-body-sm">
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Category</span>
+                    <span className="text-muted-foreground">{t("category", "Category")}</span>
                     <span className="font-medium capitalize">{category}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Reward</span>
+                    <span className="text-muted-foreground">{t("reward", "Reward")}</span>
                     <span className="font-medium">{title}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Cost</span>
+                    <span className="text-muted-foreground">{t("cost", "Cost")}</span>
                     <span className="font-medium">€{estimatedCost.toLocaleString()}</span>
                   </div>
                 </div>

@@ -1,4 +1,5 @@
 import { Badge } from "@/components/ui/badge";
+import { useTranslation } from 'react-i18next';
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -22,6 +23,7 @@ interface Invoice {
 }
 
 export default function BillingDashboard() {
+  const { t } = useTranslation('partner');
   const { companyId } = useRole();
 
   const { data: invoices, isLoading } = useQuery<Invoice[]>({
@@ -74,8 +76,8 @@ export default function BillingDashboard() {
       />
 
       <PartnerGlassCard
-        title="Recent Invoices"
-        description="View and download your invoices"
+        title={t('billingDashboard.recentInvoices')}
+        description={t('billingDashboard.viewDownload')}
         icon={<FileText className="w-5 h-5 text-muted-foreground" />}
       >
         {isLoading ? (
@@ -115,7 +117,7 @@ export default function BillingDashboard() {
                       <Button size="sm" variant="outline" asChild className="border-border/30">
                         <a href={invoice.pdf_url} target="_blank" rel="noopener noreferrer">
                           <Download className="w-4 h-4 mr-2" />
-                          Download
+                          {t('billingDashboard.download')}
                         </a>
                       </Button>
                     )}
@@ -127,7 +129,7 @@ export default function BillingDashboard() {
         ) : (
           <div className="text-center py-12 text-muted-foreground">
             <FileText className="w-12 h-12 mx-auto mb-4 opacity-30" />
-            <p>No invoices found</p>
+            <p>{t('billingDashboard.noInvoices')}</p>
           </div>
         )}
       </PartnerGlassCard>

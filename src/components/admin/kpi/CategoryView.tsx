@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -124,6 +125,7 @@ export function CategoryView({
   kpis,
   onBack,
 }: CategoryViewProps) {
+  const { t } = useTranslation('common');
   const [selectedKPI, setSelectedKPI] = useState<UnifiedKPI | null>(null);
   const [alertKPI, setAlertKPI] = useState<UnifiedKPI | null>(null);
   const [alertThresholds, setAlertThresholds] = useState<Record<string, AlertThreshold>>({});
@@ -142,12 +144,12 @@ export function CategoryView({
 
   const handleExportCSV = () => {
     exportToCSV(kpis, `${domain}-${category}-kpis`);
-    toast.success('KPIs exported to CSV');
+    toast.success(t("kpis_exported_to_csv", "KPIs exported to CSV"));
   };
 
   const handleExportPDF = () => {
     exportToPDF(kpis, `${domain}-${category}-kpis`);
-    toast.success('Opening print preview...');
+    toast.success(t("opening_print_preview", "Opening print preview..."));
   };
 
   const handleSaveAlert = (threshold: AlertThreshold) => {
@@ -160,7 +162,7 @@ export function CategoryView({
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={onBack} aria-label="Go back to categories">
+          <Button variant="ghost" size="icon" onClick={onBack} aria-label={t("go_back_to_categories", "Go back to categories")}>
             <ArrowLeft className="h-4 w-4" aria-hidden="true" />
           </Button>
           <div>
@@ -233,8 +235,8 @@ export function CategoryView({
       {actions && actions.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Optimization Actions</CardTitle>
-            <CardDescription>Recommended actions based on threshold breaches</CardDescription>
+            <CardTitle className="text-lg">{t("optimization_actions", "Optimization Actions")}</CardTitle>
+            <CardDescription>{t("recommended_actions_based_on", "Recommended actions based on threshold breaches")}</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

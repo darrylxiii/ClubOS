@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Briefcase, MapPin, MessageCircle, CheckCircle2, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from 'react-i18next';
 
 interface UserProfilePreviewProps {
   userId: string;
@@ -13,6 +14,7 @@ interface UserProfilePreviewProps {
 }
 
 export function UserProfilePreview({ userId, onMessageClick }: UserProfilePreviewProps) {
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
   const [profile, setProfile] = useState<any>(null);
   const [achievements, setAchievements] = useState<number>(0);

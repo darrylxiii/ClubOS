@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { format } from 'date-fns';
+import { useTranslation } from 'react-i18next';
 
 interface GreenhouseJob {
   id: number;
@@ -55,6 +56,7 @@ interface ImportLog {
 }
 
 export default function GreenhouseSyncPanel() {
+  const { t } = useTranslation('admin');
   const [jobs, setJobs] = useState<GreenhouseJob[]>([]);
   const [selectedJobs, setSelectedJobs] = useState<Set<number>>(new Set());
   const [includeRejected, setIncludeRejected] = useState(false);
@@ -83,7 +85,7 @@ export default function GreenhouseSyncPanel() {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
-        toast.error('Please sign in first.');
+        toast.error(t('greenhouseSyncPanel.pleaseSignInFirst'));
         return;
       }
 
@@ -107,7 +109,7 @@ export default function GreenhouseSyncPanel() {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
-        toast.error('Please sign in first.');
+        toast.error(t('greenhouseSyncPanel.pleaseSignInFirst'));
         return;
       }
 
@@ -124,7 +126,7 @@ export default function GreenhouseSyncPanel() {
       if (error) throw error;
       setResult(data as SyncResult);
       if (!dryRun) fetchLogs();
-      toast.success(dryRun ? 'Dry run complete.' : 'Import complete.');
+      toast.success(dryRun ? t('greenhousesyncpaneltsx.greenhousesyncpanel.dryRunComplete', 'Dry run complete.') : t('greenhousesyncpaneltsx.greenhousesyncpanel.importComplete', 'Import complete.'));
     } catch (err: any) {
       toast.error(`Sync failed: ${err.message}`);
     } finally {
@@ -160,14 +162,12 @@ export default function GreenhouseSyncPanel() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-semibold tracking-tight">Greenhouse Pipeline Sync</h2>
-          <p className="text-sm text-muted-foreground">
-            Import candidates from Greenhouse job pipelines into TQC.
-          </p>
+          <h2 className="text-xl font-semibold tracking-tight">{t('greenhouseSyncPanel.greenhousePipelineSync')}</h2>
+          <p className="text-sm text-muted-foreground">{t('greenhousesyncpaneltsx.greenhousesyncpanel.importCandidatesFromGreenhouseJobPipelines', 'Import candidates from Greenhouse job pipelines into TQC.')}</p>
         </div>
         <Button variant="outline" size="sm" onClick={fetchJobs} disabled={fetchingJobs}>
           <RefreshCw className={`mr-2 h-4 w-4 ${fetchingJobs ? 'animate-spin' : ''}`} />
-          {fetchingJobs ? 'Loading...' : 'Load Greenhouse Jobs'}
+          {fetchingJobs ? t('greenhousesyncpaneltsx.greenhousesyncpanel.loading', 'Loading...') : t('greenhousesyncpaneltsx.greenhousesyncpanel.loadGreenhouseJobs', 'Load Greenhouse Jobs')}
         </Button>
       </div>
 
@@ -175,32 +175,24 @@ export default function GreenhouseSyncPanel() {
         {/* Job Selector */}
         <Card className="lg:col-span-2">
           <CardHeader className="pb-3">
-            <CardTitle className="text-base">Select Jobs</CardTitle>
-            <CardDescription>
-              Choose which Greenhouse jobs to import candidates from. Leave empty to import all.
-            </CardDescription>
+            <CardTitle className="text-base">{t('greenhouseSyncPanel.selectJobs')}</CardTitle>
+            <CardDescription>{t('greenhousesyncpaneltsx.greenhousesyncpanel.chooseWhichGreenhouseJobsToImport', 'Choose which Greenhouse jobs to import candidates from. Leave empty to import all.')}</CardDescription>
           </CardHeader>
           <CardContent>
             {jobs.length === 0 ? (
-              <p className="text-sm text-muted-foreground py-8 text-center">
-                Click "Load Greenhouse Jobs" to fetch available pipelines.
-              </p>
+              <p className="text-sm text-muted-foreground py-8 text-center">{t('greenhousesyncpaneltsx.greenhousesyncpanel.clickLoadGreenhouseJobsToFetch', 'Click "Load Greenhouse Jobs" to fetch available pipelines.')}</p>
             ) : (
               <>
                 <div className="flex items-center gap-2 mb-3">
                   <Search className="h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder="Filter jobs..."
+                    placeholder={t('greenhouseSyncPanel.filterJobs')}
                     value={searchFilter}
                     onChange={(e) => setSearchFilter(e.target.value)}
                     className="h-8"
                   />
-                  <Button variant="ghost" size="sm" onClick={selectAll}>
-                    All
-                  </Button>
-                  <Button variant="ghost" size="sm" onClick={deselectAll}>
-                    None
-                  </Button>
+                  <Button variant="ghost" size="sm" onClick={selectAll}>{t('greenhousesyncpaneltsx.greenhousesyncpanel.all', 'All')}</Button>
+                  <Button variant="ghost" size="sm" onClick={deselectAll}>{t('greenhousesyncpaneltsx.greenhousesyncpanel.none', 'None')}</Button>
                 </div>
                 <ScrollArea className="h-[300px] pr-2">
                   <div className="space-y-1">
@@ -238,15 +230,15 @@ export default function GreenhouseSyncPanel() {
         <div className="space-y-4">
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-base">Import Options</CardTitle>
+              <CardTitle className="text-base">{t('greenhouseSyncPanel.importOptions')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
-                <label className="text-sm">Include rejected</label>
+                <label className="text-sm">{t('greenhouseSyncPanel.includeRejected')}</label>
                 <Switch checked={includeRejected} onCheckedChange={setIncludeRejected} />
               </div>
               <div className="flex items-center justify-between">
-                <label className="text-sm">Dry run (preview)</label>
+                <label className="text-sm">{t('greenhouseSyncPanel.dryRunPreview')}</label>
                 <Switch checked={dryRun} onCheckedChange={setDryRun} />
               </div>
               {dryRun && (
@@ -257,7 +249,7 @@ export default function GreenhouseSyncPanel() {
               <Separator />
               <Button className="w-full" onClick={runSync} disabled={loading}>
                 <Download className={`mr-2 h-4 w-4 ${loading ? 'animate-bounce' : ''}`} />
-                {loading ? 'Syncing...' : dryRun ? 'Preview Import' : 'Run Import'}
+                {loading ? 'Syncing...' : dryRun ? t('greenhousesyncpaneltsx.greenhousesyncpanel.previewImport', 'Preview Import') : t('greenhousesyncpaneltsx.greenhousesyncpanel.runImport', 'Run Import')}
               </Button>
             </CardContent>
           </Card>
@@ -267,8 +259,8 @@ export default function GreenhouseSyncPanel() {
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-base flex items-center gap-2">
-                  {result.dryRun ? 'Preview' : 'Import'} Results
-                  {result.dryRun && <Badge variant="outline">dry run</Badge>}
+                  {result.dryRun ? t('greenhousesyncpaneltsx.greenhousesyncpanel.preview', 'Preview') : t('greenhousesyncpaneltsx.greenhousesyncpanel.import', 'Import')} Results
+                  {result.dryRun && <Badge variant="outline">{"dry run"}</Badge>}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-2 text-sm">
@@ -308,12 +300,12 @@ export default function GreenhouseSyncPanel() {
       {/* Import History */}
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-base">Import History</CardTitle>
-          <CardDescription>Recent Greenhouse sync operations.</CardDescription>
+          <CardTitle className="text-base">{t('greenhouseSyncPanel.importHistory')}</CardTitle>
+          <CardDescription>{t('greenhouseSyncPanel.recentGreenhouseSyncOperations')}</CardDescription>
         </CardHeader>
         <CardContent>
           {logs.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-4">No imports yet.</p>
+            <p className="text-sm text-muted-foreground text-center py-4">{t('greenhouseSyncPanel.noImportsYet')}</p>
           ) : (
             <div className="space-y-2">
               {logs.map((log) => (

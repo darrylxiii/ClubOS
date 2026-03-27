@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -22,6 +23,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { motion } from '@/lib/motion';
 
 export function MyKPIsDashboard() {
+  const { t } = useTranslation('common');
   const { myOwnerships, loadingOwnerships } = useKPIOwnership();
   const { myActions } = useKPIActions();
   const { allKPIs: kpis, isLoading: loadingKPIs } = useUnifiedKPIs();
@@ -78,7 +80,7 @@ export function MyKPIsDashboard() {
             <div className="rounded-full bg-muted p-4 mb-4">
               <Target className="h-8 w-8 text-muted-foreground" />
             </div>
-            <h3 className="font-semibold mb-2">No KPIs Assigned</h3>
+            <h3 className="font-semibold mb-2">{t("no_kpis_assigned", "No KPIs Assigned")}</h3>
             <p className="text-sm text-muted-foreground max-w-sm">
               You don't have any KPIs assigned to you yet. Contact an admin to get KPIs assigned to your role.
             </p>
@@ -96,7 +98,7 @@ export function MyKPIsDashboard() {
           <CardContent className="pt-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-muted-foreground">My KPIs</p>
+                <p className="text-xs text-muted-foreground">{t("my_kpis", "My KPIs")}</p>
                 <p className="text-2xl font-bold">{stats.total}</p>
               </div>
               <Target className="h-6 w-6 text-muted-foreground/30" />
@@ -107,7 +109,7 @@ export function MyKPIsDashboard() {
           <CardContent className="pt-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-muted-foreground">On Target</p>
+                <p className="text-xs text-muted-foreground">{t("on_target", "On Target")}</p>
                 <p className="text-2xl font-bold text-emerald-600">{stats.success}</p>
               </div>
               <CheckCircle2 className="h-6 w-6 text-emerald-500/30" />
@@ -118,7 +120,7 @@ export function MyKPIsDashboard() {
           <CardContent className="pt-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-muted-foreground">Warning</p>
+                <p className="text-xs text-muted-foreground">{t("warning", "Warning")}</p>
                 <p className="text-2xl font-bold text-amber-600">{stats.warning}</p>
               </div>
               <AlertTriangle className="h-6 w-6 text-amber-500/30" />
@@ -129,7 +131,7 @@ export function MyKPIsDashboard() {
           <CardContent className="pt-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-muted-foreground">Critical</p>
+                <p className="text-xs text-muted-foreground">{t("critical", "Critical")}</p>
                 <p className="text-2xl font-bold text-rose-600">{stats.critical}</p>
               </div>
               <AlertTriangle className="h-6 w-6 text-rose-500/30" />
@@ -140,7 +142,7 @@ export function MyKPIsDashboard() {
           <CardContent className="pt-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-muted-foreground">Actions</p>
+                <p className="text-xs text-muted-foreground">{t("actions", "Actions")}</p>
                 <p className="text-2xl font-bold text-blue-600">{stats.pendingActions}</p>
               </div>
               <Clock className="h-6 w-6 text-blue-500/30" />
@@ -155,8 +157,8 @@ export function MyKPIsDashboard() {
         <div className="col-span-2">
           <Card className="bg-card/50">
             <CardHeader>
-              <CardTitle className="text-lg">My KPIs</CardTitle>
-              <CardDescription>KPIs you're responsible for</CardDescription>
+              <CardTitle className="text-lg">{t("my_kpis", "My KPIs")}</CardTitle>
+              <CardDescription>{t("kpis_youre_responsible_for", "KPIs you're responsible for")}</CardDescription>
             </CardHeader>
             <CardContent>
               <ScrollArea className="h-[400px] pr-4">
@@ -200,7 +202,7 @@ export function MyKPIsDashboard() {
                         {kpi.targetValue && (
                           <div className="space-y-1">
                             <div className="flex justify-between text-xs text-muted-foreground">
-                              <span>Progress</span>
+                              <span>{t("progress", "Progress")}</span>
                               <span>{progress.toFixed(0)}%</span>
                             </div>
                             <Progress 

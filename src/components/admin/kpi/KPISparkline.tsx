@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { cn } from '@/lib/utils';
 import type { UnifiedKPI } from '@/hooks/useUnifiedKPIs';
 import { useKPIHistory } from '@/hooks/useKPIHistory';
+import { useTranslation } from 'react-i18next';
 
 interface KPISparklineProps {
   kpi: UnifiedKPI;
@@ -11,6 +12,7 @@ interface KPISparklineProps {
 }
 
 export function KPISparkline({ kpi, height = 32, className, useHistory = true }: KPISparklineProps) {
+  const { t } = useTranslation('admin');
   // Guard against undefined/null kpi
   const safeKpiName = kpi?.name || '';
   const safeKpiDomain = kpi?.domain || 'operations';

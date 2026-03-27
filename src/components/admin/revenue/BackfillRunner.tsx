@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -37,6 +38,7 @@ interface BackfillJob {
 }
 
 export function BackfillRunner() {
+  const { t } = useTranslation('common');
   const [dryRun, setDryRun] = useState(true);
   const [jobs, setJobs] = useState<BackfillJob[]>([
     {
@@ -107,13 +109,13 @@ export function BackfillRunner() {
   const getStatusBadge = (job: BackfillJob) => {
     switch (job.status) {
       case 'running':
-        return <Badge variant="secondary"><Loader2 className="h-3 w-3 mr-1 animate-spin" />Running</Badge>;
+        return <Badge variant="secondary"><Loader2 className="h-3 w-3 mr-1 animate-spin" />{t("running", "Running")}</Badge>;
       case 'completed':
-        return <Badge variant="default" className="bg-green-500"><CheckCircle2 className="h-3 w-3 mr-1" />Completed</Badge>;
+        return <Badge variant="default" className="bg-green-500"><CheckCircle2 className="h-3 w-3 mr-1" />{t("completed", "Completed")}</Badge>;
       case 'error':
-        return <Badge variant="destructive"><AlertCircle className="h-3 w-3 mr-1" />Error</Badge>;
+        return <Badge variant="destructive"><AlertCircle className="h-3 w-3 mr-1" />{t("error", "Error")}</Badge>;
       default:
-        return <Badge variant="outline">Idle</Badge>;
+        return <Badge variant="outline">{t("idle", "Idle")}</Badge>;
     }
   };
 
@@ -163,7 +165,7 @@ export function BackfillRunner() {
         {completedJobs > 0 && (
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
-              <span>Overall Progress</span>
+              <span>{t("overall_progress", "Overall Progress")}</span>
               <span>{completedJobs} / {jobs.length} completed</span>
             </div>
             <Progress value={progress} />
@@ -208,15 +210,15 @@ export function BackfillRunner() {
                     {job.result.success ? (
                       <div className="flex gap-6 text-sm">
                         <div>
-                          <span className="text-muted-foreground">Created:</span>{' '}
+                          <span className="text-muted-foreground">{t("created", "Created:")}</span>{' '}
                           <span className="font-medium text-green-500">{job.result.created || 0}</span>
                         </div>
                         <div>
-                          <span className="text-muted-foreground">Skipped:</span>{' '}
+                          <span className="text-muted-foreground">{t("skipped", "Skipped:")}</span>{' '}
                           <span className="font-medium">{job.result.skipped || 0}</span>
                         </div>
                         <div>
-                          <span className="text-muted-foreground">Errors:</span>{' '}
+                          <span className="text-muted-foreground">{t("errors", "Errors:")}</span>{' '}
                           <span className="font-medium text-destructive">{job.result.errors || 0}</span>
                         </div>
                       </div>
@@ -236,7 +238,7 @@ export function BackfillRunner() {
             <div className="flex items-start gap-3">
               <AlertCircle className="h-5 w-5 text-yellow-500 flex-shrink-0 mt-0.5" />
               <div>
-                <h4 className="font-medium text-yellow-500">Live Mode Active</h4>
+                <h4 className="font-medium text-yellow-500">{t("live_mode_active", "Live Mode Active")}</h4>
                 <p className="text-sm text-muted-foreground">
                   Running backfills in live mode will create actual records in the database.
                   Consider running in dry-run mode first to preview changes.

@@ -2,6 +2,7 @@ import { CheckCircle2, XCircle, AlertCircle, Zap, Clock, TrendingUp } from "luci
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { useTranslation } from 'react-i18next';
 
 interface MatchScoreBreakdownProps {
   overallScore: number;
@@ -32,6 +33,7 @@ export const MatchScoreBreakdown = ({
   quickWins,
   longerTermActions,
 }: MatchScoreBreakdownProps) => {
+  const { t } = useTranslation('common');
   const requiredMetCount = requiredCriteriaMet.filter(c => c.met).length;
   const preferredMetCount = preferredCriteriaMet.filter(c => c.met).length;
   const requiredPercentage = requiredCriteriaTotal > 0 ? Math.round((requiredMetCount / requiredCriteriaTotal) * 100) : 0;

@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { LucideIcon } from "lucide-react";
@@ -87,6 +88,7 @@ export const RadialMenu = ({
   outerGap = 8,
   outerRingWidth = 12,
 }: RadialMenuProps) => {
+  const { t } = useTranslation('common');
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [pointerReady, setPointerReady] = useState(false);
   const itemRefs = useRef<(HTMLButtonElement | null)[]>([]);
@@ -188,7 +190,7 @@ export const RadialMenu = ({
         transition={menuTransition}
         onKeyDown={handleKeyDown}
         role="menu"
-        aria-label="Quick actions"
+        aria-label={t("actions.quickActions", "Quick actions")}
         tabIndex={-1}
       >
         <svg

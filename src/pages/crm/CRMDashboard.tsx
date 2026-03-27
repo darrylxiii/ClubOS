@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { RoleGate } from '@/components/RoleGate';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -38,6 +39,7 @@ const STAGE_COLORS: Record<string, string> = {
 };
 
 export default function CRMDashboard() {
+  const { t } = useTranslation('common');
   const { prospects, loading: prospectsLoading } = useCRMProspects({ limit: 500 });
   const { campaigns, loading: campaignsLoading } = useCRMCampaigns({ limit: 100 });
   const { replies, loading: repliesLoading } = useCRMEmailReplies({ isActioned: false, limit: 100 });
@@ -244,7 +246,7 @@ export default function CRMDashboard() {
                             <p className="font-medium">{p.full_name}</p>
                             <p className="text-xs text-muted-foreground">{p.company_name}</p>
                           </div>
-                          <Badge variant="destructive" className="text-xs">Hot</Badge>
+                          <Badge variant="destructive" className="text-xs">{t("hot", "Hot")}</Badge>
                         </Link>
                       ))}
                   </CardContent>
@@ -262,7 +264,7 @@ export default function CRMDashboard() {
               {/* Pipeline Mini-bars */}
               <Card className="bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border-border/30">
                 <CardHeader className="pb-2 pt-3 px-4">
-                  <CardTitle className="text-sm">Pipeline</CardTitle>
+                  <CardTitle className="text-sm">{t("pipeline", "Pipeline")}</CardTitle>
                 </CardHeader>
                 <CardContent className="px-4 pb-3 space-y-2">
                   {loading ? (

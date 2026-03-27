@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -14,6 +15,7 @@ import {
 } from "lucide-react";
 
 export function TeamLeaderboard() {
+  const { t } = useTranslation('common');
   const [period, setPeriod] = useState<Period>('monthly');
   const { data: leaderboard, isLoading } = useTeamLeaderboard(period);
 
@@ -68,7 +70,7 @@ export function TeamLeaderboard() {
         ) : !leaderboard?.length ? (
           <div className="text-center py-8 text-muted-foreground">
             <Users className="h-12 w-12 mx-auto mb-2 opacity-50" />
-            <p>No data for this period</p>
+            <p>{t("no_data_for_this", "No data for this period")}</p>
           </div>
         ) : (
           <div className="space-y-2">

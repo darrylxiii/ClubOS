@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -26,6 +27,7 @@ const REACTIONS = [
 ];
 
 export function RepostedPostCard({ originalPost }: RepostedPostCardProps) {
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
   const [showSummary, setShowSummary] = useState(false);
   const [liveLikesCount, setLiveLikesCount] = useState(originalPost.post_likes?.length || 0);
@@ -196,7 +198,7 @@ export function RepostedPostCard({ originalPost }: RepostedPostCardProps) {
             {firstMedia.type === 'image' ? (
               <LazyMedia
                 src={firstMedia.url}
-                alt="Post media"
+                alt={t("post_media", "Post media")}
                 type="image"
                 className="w-full h-48 object-cover"
               />

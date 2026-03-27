@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { useTaskCompletion } from "@/hooks/useTaskCompletion";
 import { TaskCompletionFeedbackModal } from "@/components/unified-tasks/TaskCompletionFeedbackModal";
+import { useTranslation } from 'react-i18next';
 
 interface Task {
   id: string;
@@ -18,6 +19,7 @@ interface Task {
 }
 
 export const ClubPilotTasksWidget = () => {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
@@ -88,14 +90,14 @@ export const ClubPilotTasksWidget = () => {
           <CardTitle className="flex items-center gap-2 text-lg">
             <Sparkles className="h-5 w-5 text-primary" />
             Club Pilot Tasks
-            <Badge variant="secondary" className="ml-auto text-xs">AI Suggested</Badge>
+            <Badge variant="secondary" className="ml-auto text-xs">{t('clubPilotTasksWidget.badge.aiSuggested')}</Badge>
           </CardTitle>
         </CardHeader>
         <CardContent>
           {tasks.length === 0 ? (
             <div className="text-center py-6 text-muted-foreground">
               <CheckCircle className="h-10 w-10 mx-auto mb-2 text-green-500/50" />
-              <p className="text-sm">All caught up. No pending tasks.</p>
+              <p className="text-sm">{t('clubPilotTasksWidget.allCaughtUpNoPendingTasks')}</p>
             </div>
           ) : (
             <div className="space-y-2 mb-4">

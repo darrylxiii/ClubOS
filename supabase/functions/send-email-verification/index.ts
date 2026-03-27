@@ -6,19 +6,13 @@ import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
 import { CodeBox, Heading, Paragraph, Spacer, Card } from "../_shared/email-templates/components.ts";
 import { logSecurityEvent } from "../_shared/security-logger.ts";
 import { EMAIL_SENDERS } from "../_shared/email-config.ts";
+import { sendEmail } from '../_shared/resend-client.ts';
 import { hashOTP } from "../_shared/otp-hash.ts";
 import { checkIPRateLimit } from "../_shared/ip-rate-limiter.ts";
+import { getCorsHeaders } from '../_shared/cors.ts';
 
-const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-api-key, x-supabase-api-version, x-application-name, traceparent, tracestate",
-  "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
-  "Access-Control-Max-Age": "86400",
-};
 
 // Cryptographically secure OTP generation
 const generateCode = () => {
@@ -34,6 +28,7 @@ const requestSchema = z.object({
 });
 
 const handler = async (req: Request): Promise<Response> => {
+  const corsHeaders = getCorsHeaders(req);
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -201,27 +196,13 @@ const handler = async (req: Request): Promise<Response> => {
       showFooter: true,
     });
 
-    const emailResponse = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${RESEND_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        from: EMAIL_SENDERS.verification,
-        to: [email],
-        subject: "Verify Your Email - The Quantum Club",
-        html,
-      }),
+    const resendResult = await sendEmail({
+      from: EMAIL_SENDERS.verification,
+      to: [email],
+      subject: "Verify Your Email - The Quantum Club",
+      html,
     });
-
-    if (!emailResponse.ok) {
-      const errorText = await emailResponse.text();
-      throw new Error(`Resend API error: ${errorText}`);
-    }
-
     // Store Resend message ID for delivery tracking
-    const resendResult = await emailResponse.json();
     if (resendResult?.id) {
       await supabase
         .from('email_verifications')

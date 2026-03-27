@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -28,6 +29,7 @@ interface TeamMember {
 }
 
 export function TeamOverviewWidget({ companyId }: TeamOverviewWidgetProps) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [members, setMembers] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(true);
@@ -87,9 +89,9 @@ export function TeamOverviewWidget({ companyId }: TeamOverviewWidgetProps) {
   };
 
   const handleInvite = async () => {
-    if (!inviteEmail) { toast.error("Please enter an email address"); return; }
+    if (!inviteEmail) { toast.error(t("please_enter_an_email", "Please enter an email address")); return; }
     if (domains.length > 0 && !validateEmailDomain(inviteEmail)) {
-      toast.error("Please use an email from an authorized domain");
+      toast.error(t("please_use_an_email", "Please use an email from an authorized domain"));
       return;
     }
 
@@ -135,7 +137,7 @@ export function TeamOverviewWidget({ companyId }: TeamOverviewWidgetProps) {
       setShowInviteDialog(false);
     } catch (error) {
       console.error("Error sending invite:", error);
-      toast.error("Failed to send invitation");
+      toast.error(t("failed_to_send_invitation", "Failed to send invitation"));
     } finally {
       setIsInviting(false);
     }
@@ -181,7 +183,7 @@ export function TeamOverviewWidget({ companyId }: TeamOverviewWidgetProps) {
             </div>
             <Button size="sm" onClick={() => setShowInviteDialog(true)} className="gap-1.5">
               <UserPlus className="h-4 w-4" />
-              <span className="hidden sm:inline">Invite</span>
+              <span className="hidden sm:inline">{t("invite", "Invite")}</span>
             </Button>
           </div>
         </CardHeader>
@@ -220,8 +222,8 @@ export function TeamOverviewWidget({ companyId }: TeamOverviewWidgetProps) {
           ) : (
             <div className="text-center py-4">
               <Users className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
-              <p className="text-sm text-muted-foreground">No team members yet</p>
-              <p className="text-xs text-muted-foreground">Invite colleagues to collaborate</p>
+              <p className="text-sm text-muted-foreground">{t("no_team_members_yet", "No team members yet")}</p>
+              <p className="text-xs text-muted-foreground">{t("invite_colleagues_to_collaborate", "Invite colleagues to collaborate")}</p>
             </div>
           )}
         </CardContent>
@@ -245,7 +247,7 @@ export function TeamOverviewWidget({ companyId }: TeamOverviewWidgetProps) {
             {domains.length > 0 && (
               <div className="flex items-center gap-2 flex-wrap p-2 bg-muted/30 rounded-lg">
                 <Globe className="w-4 h-4 text-muted-foreground" />
-                <span className="text-xs text-muted-foreground">Allowed:</span>
+                <span className="text-xs text-muted-foreground">{t("allowed", "Allowed:")}</span>
                 {domains.map(domain => (
                   <Badge key={domain} variant="secondary" className="font-mono text-xs">
                     @{domain}
@@ -255,7 +257,7 @@ export function TeamOverviewWidget({ companyId }: TeamOverviewWidgetProps) {
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="home-invite-email">Email Address</Label>
+              <Label htmlFor="home-invite-email">{t("email_address", "Email Address")}</Label>
               <Input
                 id="home-invite-email"
                 type="email"
@@ -279,15 +281,15 @@ export function TeamOverviewWidget({ companyId }: TeamOverviewWidgetProps) {
             </div>
 
             <div className="space-y-2">
-              <Label>Role</Label>
+              <Label>{t("role", "Role")}</Label>
               <Select value={inviteRole} onValueChange={(v: CompanyRole) => setInviteRole(v)}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="admin">Admin</SelectItem>
-                  <SelectItem value="recruiter">Recruiter</SelectItem>
-                  <SelectItem value="member">Member</SelectItem>
+                  <SelectItem value="admin">{t("admin", "Admin")}</SelectItem>
+                  <SelectItem value="recruiter">{t("recruiter", "Recruiter")}</SelectItem>
+                  <SelectItem value="member">{t("member", "Member")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -295,7 +297,7 @@ export function TeamOverviewWidget({ companyId }: TeamOverviewWidgetProps) {
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowInviteDialog(false)}>
-              Cancel
+              {t('common:cancel')}
             </Button>
             <Button onClick={handleInvite} disabled={isInviting || !inviteEmail || !!domainError}>
               {isInviting ? (

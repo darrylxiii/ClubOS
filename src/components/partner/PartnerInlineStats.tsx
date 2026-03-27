@@ -3,6 +3,7 @@ import { Separator } from '@/components/ui/separator';
 import { AnimatedNumber } from '@/components/ui/animated-number';
 import { cn } from '@/lib/utils';
 import { LucideIcon } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export interface PartnerStatItem {
   value: number;
@@ -18,6 +19,7 @@ interface PartnerInlineStatsProps {
 }
 
 export const PartnerInlineStats = memo(({ stats, className }: PartnerInlineStatsProps) => {
+  const { t } = useTranslation('partner');
   return (
     <div className={cn(
       'flex items-center gap-4 py-3 px-4 rounded-lg bg-card/30 backdrop-blur border border-border/20 overflow-x-auto',

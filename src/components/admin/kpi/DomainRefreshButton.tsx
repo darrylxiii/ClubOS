@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { RefreshCw } from 'lucide-react';
@@ -29,6 +30,7 @@ export function DomainRefreshButton({
   size = 'sm',
   showLabel = true,
 }: DomainRefreshButtonProps) {
+  const { t } = useTranslation('common');
   return (
     <Button
       variant="ghost"
@@ -42,7 +44,7 @@ export function DomainRefreshButton({
       title={`Refresh ${domainLabels[domain]} KPIs`}
     >
       <RefreshCw className={cn("h-3 w-3", isRefreshing && "animate-spin", showLabel && "mr-1")} />
-      {showLabel && <span>Refresh</span>}
+      {showLabel && <span>{t("refresh", "Refresh")}</span>}
     </Button>
   );
 }

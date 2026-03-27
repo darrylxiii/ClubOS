@@ -1,25 +1,11 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createHandler } from '../_shared/handler.ts';
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
-
-Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
-  }
-
-  try {
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
+Deno.serve(createHandler(async (_req, ctx) => {
     // Find candidates eligible for re-engagement:
     // 1. auto_reengagement_enabled = true
     // 2. Have company history with could_revisit = true and revisit_after <= now
     // 3. OR candidates who were "silver medalists" (reached final stages but weren't hired)
-    const { data: revisitCandidates, error: revisitError } = await supabase
+    const { data: revisitCandidates, error: revisitError } = await ctx.supabase
       .from("candidate_company_history")
       .select(`
         id,
@@ -31,7 +17,7 @@ Deno.serve(async (req) => {
         revisit_after,
         notes,
         candidate_profiles!inner(
-          id, full_name, email, current_title, 
+          id, full_name, email, current_title,
           auto_reengagement_enabled, assigned_strategist_id,
           talent_tier, data_completeness_score
         )
@@ -53,7 +39,7 @@ Deno.serve(async (req) => {
       if (!candidate) continue;
 
       // Find active jobs at the same company or similar roles
-      const { data: matchingJobs } = await supabase
+      const { data: matchingJobs } = await ctx.supabase
         .from("jobs")
         .select("id, title, companies(name)")
         .eq("status", "published")
@@ -69,7 +55,7 @@ Deno.serve(async (req) => {
         const companyName = (job.companies as any)?.name || "Unknown";
 
         // Check if a similar task already exists (avoid duplicates)
-        const { data: existingTask } = await supabase
+        const { data: existingTask } = await ctx.supabase
           .from("pilot_tasks")
           .select("id")
           .eq("user_id", strategistId)
@@ -79,7 +65,7 @@ Deno.serve(async (req) => {
 
         if (existingTask) continue;
 
-        const { error: taskError } = await supabase
+        const { error: taskError } = await ctx.supabase
           .from("pilot_tasks")
           .insert({
             user_id: strategistId,
@@ -107,7 +93,7 @@ Deno.serve(async (req) => {
 
     // Also check for inactive high-value candidates who haven't been contacted recently
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
-    const { data: dormantStars } = await supabase
+    const { data: dormantStars } = await ctx.supabase
       .from("candidate_profiles")
       .select("id, full_name, current_title, assigned_strategist_id, talent_tier, last_activity_at")
       .in("talent_tier", ["star", "strong"])
@@ -118,7 +104,7 @@ Deno.serve(async (req) => {
 
     for (const candidate of dormantStars || []) {
       // Check if task already exists
-      const { data: existingTask } = await supabase
+      const { data: existingTask } = await ctx.supabase
         .from("pilot_tasks")
         .select("id")
         .eq("user_id", candidate.assigned_strategist_id!)
@@ -129,7 +115,7 @@ Deno.serve(async (req) => {
 
       if (existingTask) continue;
 
-      const { error: taskError } = await supabase
+      const { error: taskError } = await ctx.supabase
         .from("pilot_tasks")
         .insert({
           user_id: candidate.assigned_strategist_id!,
@@ -161,13 +147,6 @@ Deno.serve(async (req) => {
           tasks: tasksCreated,
         },
       }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      { headers: { ...ctx.corsHeaders, "Content-Type": "application/json" } }
     );
-  } catch (error) {
-    console.error("Re-engagement check error:", error);
-    return new Response(
-      JSON.stringify({ success: false, error: error.message }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
-  }
-});
+}));

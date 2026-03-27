@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -13,6 +14,7 @@ interface CompanyProfilePreviewProps {
 }
 
 export function CompanyProfilePreview({ companyId }: CompanyProfilePreviewProps) {
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
   const [company, setCompany] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -43,7 +45,7 @@ export function CompanyProfilePreview({ companyId }: CompanyProfilePreviewProps)
       navigate(`/companies/${company.slug}`);
     } else {
       console.error('Company slug is missing:', company);
-      toast.error('Unable to navigate to company page');
+      toast.error(t("unable_to_navigate_to", "Unable to navigate to company page"));
     }
   };
 

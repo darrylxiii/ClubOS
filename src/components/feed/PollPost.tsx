@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -23,6 +24,7 @@ interface PollPostProps {
 }
 
 export function PollPost({ pollId, question, options, totalVotes, onVote }: PollPostProps) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [voted, setVoted] = useState(false);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
@@ -162,7 +164,7 @@ export function CreatePoll({ onPollCreated }: { onPollCreated: (pollData: any) =
   return (
     <div className="space-y-3 p-4 border rounded-lg">
       <Input
-        placeholder="Ask a question..."
+        placeholder={t("ask_a_question", "Ask a question...")}
         value={question}
         onChange={(e) => setQuestion(e.target.value)}
       />

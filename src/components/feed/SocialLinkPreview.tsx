@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { ExternalLink, Twitter, Linkedin, Instagram } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { SocialPlatform } from '@/lib/socialEmbedUtils';
+import { useTranslation } from 'react-i18next';
 
 interface SocialLinkPreviewProps {
   platform: SocialPlatform;
@@ -11,6 +12,7 @@ interface SocialLinkPreviewProps {
 }
 
 export function SocialLinkPreview({ platform, url, className }: SocialLinkPreviewProps) {
+  const { t } = useTranslation('common');
   const getPlatformDetails = () => {
     switch (platform) {
       case 'twitter':
@@ -58,8 +60,8 @@ export function SocialLinkPreview({ platform, url, className }: SocialLinkPrevie
             <Icon className={cn('w-5 h-5', color)} />
           </div>
           <div>
-            <p className="font-semibold text-sm">{name} Post</p>
-            <p className="text-xs text-muted-foreground">View on {name}</p>
+            <p className="font-semibold text-sm">{t('feed.socialPost', '{{name}} Post', { name })}</p>
+            <p className="text-xs text-muted-foreground">{t('feed.viewOn', 'View on {{name}}', { name })}</p>
           </div>
         </div>
         
@@ -70,7 +72,7 @@ export function SocialLinkPreview({ platform, url, className }: SocialLinkPrevie
           className="w-full"
         >
           <a href={url} target="_blank" rel="noopener noreferrer">
-            View Original Post
+            {t('feed.viewOriginalPost', 'View Original Post')}
             <ExternalLink className="w-3 h-3 ml-2" />
           </a>
         </Button>

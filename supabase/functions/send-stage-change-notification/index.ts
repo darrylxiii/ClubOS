@@ -3,12 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
 import { Heading, Paragraph, Card, Button, InfoRow, StatusBadge, Spacer, Divider } from "../_shared/email-templates/components.ts";
 import { EMAIL_SENDERS, getEmailHeaders, htmlToPlainText, getEmailAppUrl } from "../_shared/email-config.ts";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
-};
+import { getCorsHeaders } from '../_shared/cors.ts';
 
 const statusMessages: Record<string, string> = {
   screening: "Your application is being reviewed by our team.",
@@ -47,6 +42,7 @@ const statusLabels: Record<string, string> = {
 };
 
 serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }

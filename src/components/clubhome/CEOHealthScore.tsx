@@ -1,5 +1,6 @@
 import { useAdminKPIScorecard } from "@/hooks/useAdminKPIScorecard";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 
 function calcHealthScore(data: ReturnType<typeof useAdminKPIScorecard>["data"]): number {
   if (!data) return 0;
@@ -26,6 +27,7 @@ function calcHealthScore(data: ReturnType<typeof useAdminKPIScorecard>["data"]):
 }
 
 export function CEOHealthScore() {
+  const { t } = useTranslation('common');
   const { data, isLoading } = useAdminKPIScorecard("30d");
   const score = calcHealthScore(data);
 
@@ -45,7 +47,7 @@ export function CEOHealthScore() {
   }
 
   return (
-    <div className="relative flex items-center justify-center" title={`Business Health: ${score}/100`}>
+    <div className="relative flex items-center justify-center" title={`${t('dashboard.businessHealth', 'Business Health')}: ${score}/100`}>
       <svg width={size} height={size} className="-rotate-90">
         <circle
           cx={size / 2}

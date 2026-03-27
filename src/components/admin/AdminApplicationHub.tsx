@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -41,6 +42,7 @@ interface Application {
 }
 
 export function AdminApplicationHub() {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [applications, setApplications] = useState<Application[]>([]);
   const [filteredApplications, setFilteredApplications] = useState<Application[]>([]);
@@ -114,7 +116,7 @@ export function AdminApplicationHub() {
       setStats({ total, pending, approved, rejected, lastSubmission });
     } catch (error) {
       console.error('Failed to load applications:', error);
-      toast.error('Failed to load applications');
+      toast.error(t("failed_to_load_applications", "Failed to load applications"));
     } finally {
       setLoading(false);
     }
@@ -180,7 +182,7 @@ export function AdminApplicationHub() {
       setDetailDrawerOpen(false);
     } catch (error: unknown) {
       console.error('Approval failed:', error);
-      toast.error('Failed to approve application', {
+      toast.error(t("failed_to_approve_application", "Failed to approve application"), {
         description: error instanceof Error ? error.message : undefined
       });
     }
@@ -216,7 +218,7 @@ export function AdminApplicationHub() {
       setDetailDrawerOpen(false);
     } catch (error: unknown) {
       console.error('Rejection failed:', error);
-      toast.error('Failed to reject application', {
+      toast.error(t("failed_to_reject_application", "Failed to reject application"), {
         description: error instanceof Error ? error.message : undefined
       });
     }
@@ -279,7 +281,7 @@ export function AdminApplicationHub() {
     a.click();
     window.URL.revokeObjectURL(url);
 
-    toast.success('CSV exported successfully');
+    toast.success(t("csv_exported_successfully", "CSV exported successfully"));
   };
 
   if (loading) {

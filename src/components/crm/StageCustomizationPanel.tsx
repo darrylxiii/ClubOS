@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -60,8 +61,7 @@ const COLOR_OPTIONS = [
   { name: 'emerald', class: 'bg-emerald-500' },
 ];
 
-function SortableStageItem({ 
-  stage, 
+function SortableStageItem({  stage, 
   getColorClass, 
   onEdit, 
   onDelete 
@@ -71,6 +71,7 @@ function SortableStageItem({
   onEdit: (stage: CRMStage) => void;
   onDelete: (stageId: string) => void;
 }) {
+const { t } = useTranslation('common');
   const {
     attributes,
     listeners,
@@ -194,10 +195,10 @@ export function StageCustomizationPanel() {
         if (error) throw error;
       }
 
-      toast.success('Pipeline stages saved successfully');
+      toast.success(t("pipeline_stages_saved_successfully", "Pipeline stages saved successfully"));
     } catch (error) {
       console.error('Error saving stages:', error);
-      toast.error('Failed to save stages');
+      toast.error(t("failed_to_save_stages", "Failed to save stages"));
     } finally {
       setSaving(false);
     }
@@ -205,7 +206,7 @@ export function StageCustomizationPanel() {
 
   const handleAddStage = () => {
     if (!newStageName.trim()) {
-      toast.error('Please enter a stage name');
+      toast.error(t("please_enter_a_stage", "Please enter a stage name"));
       return;
     }
 
@@ -223,7 +224,7 @@ export function StageCustomizationPanel() {
     setNewStageName('');
     setNewStageColor('blue');
     setNewStageProbability(50);
-    toast.success('Stage added');
+    toast.success(t("stage_added", "Stage added"));
   };
 
   const handleUpdateStage = (updatedStage: CRMStage) => {
@@ -233,7 +234,7 @@ export function StageCustomizationPanel() {
 
   const handleDeleteStage = (stageId: string) => {
     setStages(stages.filter(s => s.id !== stageId));
-    toast.success('Stage removed');
+    toast.success(t("stage_removed", "Stage removed"));
   };
 
   const getColorClass = (colorName: string) => {
@@ -273,22 +274,22 @@ export function StageCustomizationPanel() {
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Add New Stage</DialogTitle>
+                  <DialogTitle>{t("add_new_stage", "Add New Stage")}</DialogTitle>
                   <DialogDescription>
                     Create a new stage for your CRM pipeline
                   </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4 py-4">
                   <div className="space-y-2">
-                    <Label>Stage Name</Label>
+                    <Label>{t("stage_name", "Stage Name")}</Label>
                     <Input
                       value={newStageName}
                       onChange={(e) => setNewStageName(e.target.value)}
-                      placeholder="e.g., Discovery Call"
+                      placeholder={t("eg_discovery_call", "e.g., Discovery Call")}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Color</Label>
+                    <Label>{t("color", "Color")}</Label>
                     <div className="flex gap-2 flex-wrap">
                       {COLOR_OPTIONS.map(color => (
                         <button
@@ -317,7 +318,7 @@ export function StageCustomizationPanel() {
                   <Button variant="outline" onClick={() => setShowAddDialog(false)}>
                     Cancel
                   </Button>
-                  <Button onClick={handleAddStage}>Add Stage</Button>
+                  <Button onClick={handleAddStage}>{t("add_stage", "Add Stage")}</Button>
                 </DialogFooter>
               </DialogContent>
             </Dialog>
@@ -357,19 +358,19 @@ export function StageCustomizationPanel() {
         <Dialog open={!!editingStage} onOpenChange={() => setEditingStage(null)}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Edit Stage</DialogTitle>
+              <DialogTitle>{t("edit_stage", "Edit Stage")}</DialogTitle>
             </DialogHeader>
             {editingStage && (
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
-                  <Label>Stage Name</Label>
+                  <Label>{t("stage_name", "Stage Name")}</Label>
                   <Input
                     value={editingStage.name}
                     onChange={(e) => setEditingStage({ ...editingStage, name: e.target.value })}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Color</Label>
+                  <Label>{t("color", "Color")}</Label>
                   <div className="flex gap-2 flex-wrap">
                     {COLOR_OPTIONS.map(color => (
                       <button

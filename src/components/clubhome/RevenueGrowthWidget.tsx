@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { format } from "date-fns";
 import type { DateRange as DayPickerRange } from "react-day-picker";
+import { useTranslation } from 'react-i18next';
 
 const PERIODS: { value: PeriodType; label: string }[] = [
   { value: 'thisMonth', label: 'This Month' },
@@ -160,9 +161,9 @@ const RevenueFullContent = ({
 
     {/* Metrics strip */}
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-      <MetricCard label="Avg / Placement" value={formatCurrency(data?.avgRevenuePerPlacement || 0)} delta={data?.avgRevenueDelta} />
-      <MetricCard label="Per Working Day" value={formatCurrency(data?.revenuePerWorkingDay || 0)} delta={data?.revenuePerDayDelta} />
-      <MetricCard label="Best Month" value={formatCurrency(data?.bestMonthRevenue || 0)} icon={Zap} />
+      <MetricCard label="Avg /" Placement value={formatCurrency(data?.avgRevenuePerPlacement || 0)} delta={data?.avgRevenueDelta} />
+      <MetricCard label="Per" Working Day value={formatCurrency(data?.revenuePerWorkingDay || 0)} delta={data?.revenuePerDayDelta} />
+      <MetricCard label="Best" Month value={formatCurrency(data?.bestMonthRevenue || 0)} icon={Zap} />
       <MetricCard label="Placements" value={String(data?.totalHires || 0)} delta={data?.hiresDelta} icon={Target} />
     </div>
 
@@ -216,13 +217,13 @@ const RevenueFullContent = ({
     <div className="p-3 rounded-xl bg-premium/5 border border-premium/20 space-y-3">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-[11px] text-muted-foreground">Weighted Pipeline</p>
+          <p className="text-[11px] text-muted-foreground">{t('revenueGrowthWidget.weightedPipeline')}</p>
           <p className="text-lg font-bold text-premium">
             <AnimatedValue value={formatCurrency(data?.totalPipelineValue || 0)} />
           </p>
         </div>
         <div className="text-right">
-          <p className="text-[11px] text-muted-foreground">Expected Closings</p>
+          <p className="text-[11px] text-muted-foreground">{t('revenueGrowthWidget.expectedClosings')}</p>
           <p className="text-lg font-bold">{data?.expectedClosings || 0}</p>
         </div>
       </div>
@@ -258,7 +259,7 @@ const RevenueFullContent = ({
     {period === 'thisMonth' && data && (
       <div className="flex items-center justify-between p-2.5 rounded-lg bg-muted/30 border border-border/50">
         <div>
-          <p className="text-[11px] text-muted-foreground">Projected Month-End</p>
+          <p className="text-[11px] text-muted-foreground">{t('revenueGrowthWidget.projectedMonthend')}</p>
           <p className="font-semibold text-sm">
             <AnimatedValue value={formatCurrency(data.projectedMonthEnd)} />
           </p>
@@ -273,6 +274,7 @@ const RevenueFullContent = ({
 
 /* ── Main widget: collapsed card + expanded dialog ── */
 export const RevenueGrowthWidget = () => {
+  const { t } = useTranslation('common');
   const [period, setPeriod] = useState<PeriodType>('thisMonth');
   const [customRange, setCustomRange] = useState<{ start: Date; end: Date } | undefined>();
   const [datePickerRange, setDatePickerRange] = useState<DayPickerRange | undefined>();
@@ -387,7 +389,7 @@ export const RevenueGrowthWidget = () => {
           {/* Pipeline one-liner */}
           <div className="flex items-center justify-between p-2 rounded-lg bg-premium/10 border border-premium/20">
             <div className="flex items-center gap-2">
-              <p className="text-xs text-muted-foreground">Pipeline</p>
+              <p className="text-xs text-muted-foreground">{t('revenueGrowthWidget.pipeline')}</p>
               <p className="text-sm font-semibold text-premium">{formatCurrency(data?.totalPipelineValue || 0)}</p>
             </div>
             <span className="text-[11px] text-muted-foreground">{data?.expectedClosings || 0} expected</span>

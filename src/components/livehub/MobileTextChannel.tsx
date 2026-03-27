@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Send, ChevronLeft, MoreVertical, Pin, Reply } from 'lucide-react';
@@ -30,6 +31,7 @@ interface Message {
 }
 
 const MobileTextChannel = ({ channelId, onBack }: MobileTextChannelProps) => {
+  const { t } = useTranslation('meetings');
   const { user } = useAuth();
   const { impact } = useHaptics();
   const [messages, setMessages] = useState<Message[]>([]);
@@ -145,7 +147,7 @@ const MobileTextChannel = ({ channelId, onBack }: MobileTextChannelProps) => {
       }]);
 
     if (error) {
-      toast.error('Failed to send message');
+      toast.error(t('livehub.failedToSendMessage'));
       return;
     }
 
@@ -186,7 +188,7 @@ const MobileTextChannel = ({ channelId, onBack }: MobileTextChannelProps) => {
               <div className="flex-1 min-w-0">
                 <div className="flex items-baseline gap-2 mb-1">
                   <span className="font-semibold text-sm truncate">
-                    {message.user?.full_name || 'Unknown User'}
+                    {message.user?.full_name || t('livehub.unknownUser')}
                   </span>
                   <span className="text-xs text-muted-foreground shrink-0">
                     {format(new Date(message.created_at), 'HH:mm')}
@@ -207,7 +209,7 @@ const MobileTextChannel = ({ channelId, onBack }: MobileTextChannelProps) => {
                     onClick={() => setReplyToMessage(message)}
                   >
                     <Reply className="w-3 h-3 mr-1" />
-                    Reply
+                    {t('livehub.reply')}
                   </Button>
                 </div>
               </div>
@@ -224,7 +226,7 @@ const MobileTextChannel = ({ channelId, onBack }: MobileTextChannelProps) => {
             <div className="flex items-center gap-2 min-w-0 flex-1">
               <Reply className="w-4 h-4 text-muted-foreground shrink-0" />
               <span className="text-sm text-muted-foreground truncate">
-                Replying to {replyToMessage.user?.full_name}
+                {t('livehub.replyingTo', { name: replyToMessage.user?.full_name })}
               </span>
             </div>
             <Button
@@ -233,7 +235,7 @@ const MobileTextChannel = ({ channelId, onBack }: MobileTextChannelProps) => {
               onClick={() => setReplyToMessage(null)}
               className="h-7 px-2"
             >
-              Cancel
+              {t('livehub.cancel')}
             </Button>
           </div>
         </div>
@@ -247,7 +249,7 @@ const MobileTextChannel = ({ channelId, onBack }: MobileTextChannelProps) => {
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Message..."
+            placeholder={t('livehub.messagePlaceholder')}
             className="flex-1 min-h-[44px] max-h-32 px-4 py-3 bg-background border border-border rounded-full resize-none text-sm focus:outline-none focus:ring-2 focus:ring-primary"
             rows={1}
             style={{

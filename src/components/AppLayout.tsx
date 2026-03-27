@@ -1,5 +1,6 @@
 import { ReactNode, useState, useMemo, lazy, Suspense, useCallback } from "react";
 import { useLocation } from "react-router-dom";
+import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { RadialMenuProvider } from "@/components/ui/radial-menu-provider";
 import { useLastPipeline } from "@/hooks/useLastPipeline";
@@ -111,11 +112,11 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
 
       {/* Global Header - Fixed Top - Responsive Layout */}
       <header
-        className="fixed top-0 left-0 right-0 h-14 sm:h-16 bg-card/30 backdrop-blur-[var(--blur-glass)] border-b border-border/20 z-header flex items-center justify-between px-2 sm:px-4 shadow-[var(--shadow-glass-md)] md:left-20"
-        style={{ paddingTop: "env(safe-area-inset-top)" }}
+        className="fixed top-0 left-0 right-0 z-header flex items-center justify-between px-4 sm:px-6 md:left-32 pointer-events-none pt-4 sm:pt-6"
+        style={{ paddingTop: "calc(1rem + env(safe-area-inset-top))" }}
       >
         {/* Left: Menu Trigger (Mobile Only) */}
-        <div className="flex items-center gap-2 md:hidden min-w-[44px]">
+        <div className="flex items-center gap-2 md:hidden min-w-[44px] pointer-events-auto">
           <div className="min-h-[44px] min-w-[44px] flex items-center justify-center">
             <BurgerMenu
               isOpen={sidebarOpen}
@@ -125,34 +126,71 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
         </div>
 
         {/* Center: Logo (Mobile Only) */}
-        <div className="absolute left-1/2 -translate-x-1/2 flex items-center md:hidden">
+        <div className="absolute left-1/2 -translate-x-1/2 flex items-center md:hidden pointer-events-auto">
           <img
             src={quantumClubLogoLightShort}
-            alt="The Quantum Club"
+            alt={t("the_quantum_club", "The Quantum Club")}
             className="h-10 w-auto dark:block hidden"
           />
           <img
             src={quantumClubLogoDarkShort}
-            alt="The Quantum Club"
+            alt={t("the_quantum_club", "The Quantum Club")}
             className="h-10 w-auto dark:hidden block"
           />
         </div>
 
         {/* Right: Desktop buttons (hidden on mobile) + Notification Bell */}
-        <div className="flex items-center gap-1 sm:gap-2 min-w-[44px] justify-end ml-auto">
+        <div className="flex items-center gap-2 sm:gap-4 min-w-[44px] justify-end ml-auto pointer-events-auto pr-2">
           <PagePresenceAvatars />
-          <div className="hidden md:flex items-center gap-1 sm:gap-2">
-            <RoleGate allowedRoles={['admin']}>
-              <VoiceCommandButton />
-            </RoleGate>
-            <LanguageSwitcher />
-            <ThemeToggle />
-            <GlobalRoleSwitcher />
-            <MotionToggle />
-            <SoundToggle />
-            <MusicPlayer />
-          </div>
-          <NotificationBell />
+          
+          {/* Main settings dock - Premium Glassmorphism */}
+          <motion.div 
+            initial={{ y: -20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ type: "spring", stiffness: 400, damping: 25, delay: 0.1 }}
+            className="hidden md:flex items-center p-1 rounded-full bg-background/40 backdrop-blur-xl border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.12)] relative group"
+          >
+            {/* Ambient hover glow */}
+            <div className="absolute inset-0 rounded-full bg-gradient-to-r from-primary/20 via-transparent to-primary/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl pointer-events-none" />
+            
+            <div className="flex items-center gap-0.5 px-1 py-0.5">
+              <RoleGate allowedRoles={['admin']}>
+                <VoiceCommandButton />
+              </RoleGate>
+              <LanguageSwitcher />
+              <ThemeToggle />
+            </div>
+
+            <div className="w-[1px] h-5 bg-border/50 mx-1" />
+
+            <div className="flex items-center px-1">
+              <GlobalRoleSwitcher />
+            </div>
+
+            <div className="w-[1px] h-5 bg-border/50 mx-1" />
+
+            <div className="flex items-center gap-0.5 px-1 py-0.5">
+              <MotionToggle />
+              <SoundToggle />
+            </div>
+          </motion.div>
+
+          {/* Media & Notifications dock */}
+          <motion.div 
+            initial={{ y: -20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ type: "spring", stiffness: 400, damping: 25, delay: 0.2 }}
+            className="flex items-center p-1 rounded-full bg-background/40 backdrop-blur-xl border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.12)] relative group"
+          >
+             {/* Ambient hover glow */}
+             <div className="absolute inset-0 rounded-full bg-gradient-to-r from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl pointer-events-none" />
+             
+             <div className="flex items-center gap-0.5 px-1 py-0.5">
+               <MusicPlayer />
+               <div className="w-[1px] h-5 bg-border/50 mx-1" />
+               <NotificationBell />
+             </div>
+          </motion.div>
         </div>
       </header>
 
@@ -194,7 +232,7 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
           id="main-content"
           tabIndex={-1}
           className={cn(
-            "flex-1 min-w-0 md:ml-20 relative z-10",
+            "flex-1 min-w-0 md:ml-28 relative z-10",
             (location.pathname === '/messages' || location.pathname.startsWith('/admin/whatsapp') || location.pathname === '/crm/inbox')
               ? 'overflow-hidden'
               : 'overflow-y-auto'

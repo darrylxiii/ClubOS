@@ -1,10 +1,4 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.58.0";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-application-name, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
-};
+import { createAuthenticatedHandler } from '../_shared/handler.ts';
 
 const PROFICIENCY_MAP: Record<string, number> = {
   beginner: 1,
@@ -13,48 +7,19 @@ const PROFICIENCY_MAP: Record<string, number> = {
   expert: 4,
 };
 
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+Deno.serve(createAuthenticatedHandler(async (req, ctx) => {
+  const googleApiKey = Deno.env.get('GOOGLE_API_KEY');
+  if (!googleApiKey) {
+    throw new Error('GOOGLE_API_KEY is not configured');
   }
 
-  try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
-
-    if (!lovableApiKey) {
-      throw new Error('LOVABLE_API_KEY is not configured');
-    }
-
-    // Validate JWT in code
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader?.startsWith('Bearer ')) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    const token = authHeader.replace('Bearer ', '');
-    const userClient = createClient(supabaseUrl, Deno.env.get('SUPABASE_ANON_KEY')!, {
-      global: { headers: { Authorization: `Bearer ${token}` } },
-    });
-    const { data: { user }, error: authError } = await userClient.auth.getUser(token);
-    if (authError || !user) {
-      return new Response(JSON.stringify({ error: 'Invalid token' }), {
-        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    // Service role client for data operations
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
-    const { candidate_id, job_id } = await req.json();
+  const supabase = ctx.supabase;
+  const { candidate_id, job_id } = await req.json();
 
     if (!candidate_id) {
       return new Response(
         JSON.stringify({ error: 'candidate_id is required' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 400, headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -76,7 +41,7 @@ serve(async (req) => {
     if (!cvDoc || !cvDoc.file_url) {
       return new Response(
         JSON.stringify({ error: 'No CV/resume found for this candidate. Please upload a CV first.' }),
-        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 404, headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -110,7 +75,7 @@ serve(async (req) => {
       console.error('Download error:', downloadError);
       return new Response(
         JSON.stringify({ error: 'Failed to download CV file from storage' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 500, headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -139,13 +104,13 @@ serve(async (req) => {
 
       if (job) {
         if (Array.isArray(job.requirements)) {
-          jobRequirements = job.requirements.map((r: any) =>
-            typeof r === 'string' ? r : r?.name || r?.skill || r?.label || ''
+          jobRequirements = job.requirements.map((r: unknown) =>
+            typeof r === 'string' ? r : (r as Record<string, unknown>)?.name || (r as Record<string, unknown>)?.skill || (r as Record<string, unknown>)?.label || ''
           ).filter(Boolean);
         }
         if (Array.isArray(job.nice_to_have)) {
-          jobNiceToHave = job.nice_to_have.map((r: any) =>
-            typeof r === 'string' ? r : r?.name || ''
+          jobNiceToHave = job.nice_to_have.map((r: unknown) =>
+            typeof r === 'string' ? r : ((r as Record<string, unknown>)?.name as string) || ''
           ).filter(Boolean);
         }
 
@@ -183,8 +148,8 @@ Rules:
 - Maximum 40 skills
 - For job matching: only mark a requirement as "matched" if the resume provides clear evidence`;
 
-    // 5. Call Lovable AI with the PDF
-    const tools: any[] = [{
+    // 5. Call Google Gemini with the PDF
+    const tools: Array<Record<string, unknown>> = [{
       type: 'function',
       function: {
         name: 'extract_skills_from_resume',
@@ -228,7 +193,7 @@ Rules:
       },
     }];
 
-    const messages: any[] = [
+    const messages: Array<Record<string, unknown>> = [
       { role: 'system', content: systemPrompt },
       {
         role: 'user',
@@ -242,14 +207,14 @@ Rules:
       },
     ];
 
-    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    const aiResponse = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${lovableApiKey}`,
+        'Authorization': `Bearer ${googleApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash-lite',
+        model: 'gemini-2.5-flash-lite',
         messages,
         tools,
         tool_choice: { type: 'function', function: { name: 'extract_skills_from_resume' } },
@@ -262,12 +227,12 @@ Rules:
       console.error(`AI gateway error ${status}:`, body);
       if (status === 429) {
         return new Response(JSON.stringify({ error: 'Rate limit exceeded. Please try again in a moment.' }), {
-          status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 429, headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' },
         });
       }
       if (status === 402) {
-        return new Response(JSON.stringify({ error: 'AI credits exhausted. Please add funds.' }), {
-          status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        return new Response(JSON.stringify({ error: 'AI quota exceeded. Please add funds.' }), {
+          status: 402, headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' },
         });
       }
       throw new Error(`AI extraction failed (${status})`);
@@ -276,8 +241,8 @@ Rules:
     const aiData = await aiResponse.json();
 
     // Parse tool call response
-    let extractedSkills: any[] = [];
-    let jobMatchResults: any[] = [];
+    let extractedSkills: Array<{ name: string; proficiency: string; category: string; evidence?: string }> = [];
+    let jobMatchResults: Array<{ requirement: string; matched: boolean; evidence?: string; requirement_type: string }> = [];
 
     const toolCall = aiData.choices?.[0]?.message?.tool_calls?.[0];
     if (toolCall?.function?.arguments) {
@@ -289,12 +254,12 @@ Rules:
     if (extractedSkills.length === 0) {
       return new Response(
         JSON.stringify({ success: true, skills_extracted: 0, message: 'No skills could be extracted from the resume' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     // 6. Store skills
-    const skillNames = extractedSkills.map((s: any) => s.name);
+    const skillNames = extractedSkills.map((s) => s.name);
 
     // Update candidate_profiles.skills
     await supabase
@@ -303,7 +268,7 @@ Rules:
       .eq('id', candidate_id);
 
     // Upsert into profile_skills with integer proficiency
-    const skillRows = extractedSkills.map((s: any) => ({
+    const skillRows = extractedSkills.map((s) => ({
       user_id: candidate_id,
       skill_name: s.name,
       proficiency_level: PROFICIENCY_MAP[s.proficiency] || 2,
@@ -327,14 +292,7 @@ Rules:
         job_match: jobMatchResults,
         results: [{ candidate_id, skills_extracted: extractedSkills.length, total_skills: skillNames.length }],
       }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } }
     );
 
-  } catch (error) {
-    console.error('Error in extract-skills-from-experience:', error);
-    return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-  }
-});
+}));

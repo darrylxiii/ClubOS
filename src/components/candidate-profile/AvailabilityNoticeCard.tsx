@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, Clock, Globe, Shield } from "lucide-react";
@@ -18,6 +19,7 @@ const AVAILABILITY_CONFIG: Record<string, { label: string; className: string }> 
 };
 
 export function AvailabilityNoticeCard({ candidate }: AvailabilityNoticeCardProps) {
+  const { t } = useTranslation('common');
   const noticePeriod = candidate.notice_period;
   const availabilityStatus = candidate.availability_status || candidate.availability;
   const earliestStart = candidate.earliest_start_date;
@@ -47,7 +49,7 @@ export function AvailabilityNoticeCard({ candidate }: AvailabilityNoticeCardProp
         {/* Availability status */}
         {availConfig && (
           <div className="flex items-center justify-between">
-            <span className="text-xs text-muted-foreground">Status</span>
+            <span className="text-xs text-muted-foreground">{t("status", "Status")}</span>
             <Badge variant="outline" className={`text-xs ${availConfig.className}`}>
               {availConfig.label}
             </Badge>
@@ -59,7 +61,7 @@ export function AvailabilityNoticeCard({ candidate }: AvailabilityNoticeCardProp
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5">
               <Clock className="w-3 h-3 text-muted-foreground" />
-              <span className="text-xs text-muted-foreground">Notice period</span>
+              <span className="text-xs text-muted-foreground">{t("notice_period", "Notice period")}</span>
             </div>
             <span className="text-sm font-medium">
               {typeof noticePeriod === 'number' ? `${noticePeriod} days` : noticePeriod}
@@ -72,7 +74,7 @@ export function AvailabilityNoticeCard({ candidate }: AvailabilityNoticeCardProp
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5">
               <Calendar className="w-3 h-3 text-muted-foreground" />
-              <span className="text-xs text-muted-foreground">Earliest start</span>
+              <span className="text-xs text-muted-foreground">{t("earliest_start", "Earliest start")}</span>
             </div>
             <div className="text-right">
               <span className="text-sm font-medium">{format(parseISO(earliestStart), 'MMM d, yyyy')}</span>
@@ -80,7 +82,7 @@ export function AvailabilityNoticeCard({ candidate }: AvailabilityNoticeCardProp
                 <p className="text-[10px] text-muted-foreground">{daysUntilStart} days from now</p>
               )}
               {daysUntilStart != null && daysUntilStart <= 0 && (
-                <p className="text-[10px] text-green-500">Available now</p>
+                <p className="text-[10px] text-green-500">{t("available_now", "Available now")}</p>
               )}
             </div>
           </div>
@@ -91,7 +93,7 @@ export function AvailabilityNoticeCard({ candidate }: AvailabilityNoticeCardProp
           <div className="flex items-center justify-between pt-2 border-t border-border/50">
             <div className="flex items-center gap-1.5">
               <Globe className="w-3 h-3 text-muted-foreground" />
-              <span className="text-xs text-muted-foreground">Work authorization</span>
+              <span className="text-xs text-muted-foreground">{t("work_authorization", "Work authorization")}</span>
             </div>
             <div className="flex items-center gap-1">
               <Shield className="w-3 h-3 text-green-500" />

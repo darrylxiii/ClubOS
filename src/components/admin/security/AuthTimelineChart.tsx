@@ -5,8 +5,10 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useRecharts } from '@/hooks/useRecharts';
 import { format, subHours, startOfHour } from 'date-fns';
 import { Clock } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export function AuthTimelineChart() {
+  const { t } = useTranslation('admin');
   const { recharts, isLoading: chartsLoading } = useRecharts();
   const { data, isLoading } = useQuery({
     queryKey: ['security-auth-timeline'],

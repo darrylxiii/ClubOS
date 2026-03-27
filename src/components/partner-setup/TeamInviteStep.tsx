@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { motion } from '@/lib/motion';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -45,6 +46,7 @@ function generateInviteCode(): string {
 }
 
 export function TeamInviteStep({ onComplete, onBack }: TeamInviteStepProps) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [invites, setInvites] = useState<PendingInvite[]>([]);
   const [currentEmail, setCurrentEmail] = useState('');
@@ -86,12 +88,12 @@ export function TeamInviteStep({ onComplete, onBack }: TeamInviteStepProps) {
     if (!trimmed) return;
 
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
-      toast.error('Please enter a valid email address.');
+      toast.error(t('partnerSetup.pleaseEnterAValidEmailAddress'));
       return;
     }
 
     if (invites.some((i) => i.email === trimmed)) {
-      toast.error('Email already added.');
+      toast.error(t('partnerSetup.emailAlreadyAdded'));
       return;
     }
 
@@ -115,7 +117,7 @@ export function TeamInviteStep({ onComplete, onBack }: TeamInviteStepProps) {
     }
 
     if (!company) {
-      toast.error('Company information not found. You can invite colleagues from settings later.');
+      toast.error(t('partnerSetup.companyInformationNotFoundYouCanInviteCo'));
       onComplete();
       return;
     }
@@ -191,7 +193,7 @@ export function TeamInviteStep({ onComplete, onBack }: TeamInviteStepProps) {
       onComplete();
     } catch (err) {
       logger.error('Failed to send team invites', err instanceof Error ? err : new Error(String(err)), { componentName: 'TeamInviteStep' });
-      toast.error('Failed to send invitations. You can do this later from settings.');
+      toast.error(t('partnerSetup.failedToSendInvitationsYouCanDoThisLater'));
     } finally {
       setIsSending(false);
     }
@@ -221,7 +223,7 @@ export function TeamInviteStep({ onComplete, onBack }: TeamInviteStepProps) {
 
       {/* Add invite form */}
       <div className="space-y-3">
-        <Label htmlFor="team-email">Email Address</Label>
+        <Label htmlFor="team-email">{"Email Address"}</Label>
         <div className="flex gap-2">
           <Input
             id="team-email"
@@ -234,7 +236,7 @@ export function TeamInviteStep({ onComplete, onBack }: TeamInviteStepProps) {
                 addInvite();
               }
             }}
-            placeholder="colleague@company.com"
+            placeholder={"colleague@company.com"}
             className="h-11 rounded-xl flex-1"
             disabled={companyLoading}
           />
@@ -243,9 +245,9 @@ export function TeamInviteStep({ onComplete, onBack }: TeamInviteStepProps) {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="admin">Admin</SelectItem>
-              <SelectItem value="recruiter">Recruiter</SelectItem>
-              <SelectItem value="member">Member</SelectItem>
+              <SelectItem value="admin">{"Admin"}</SelectItem>
+              <SelectItem value="recruiter">{"Recruiter"}</SelectItem>
+              <SelectItem value="member">{"Member"}</SelectItem>
             </SelectContent>
           </Select>
           <Button
@@ -300,9 +302,7 @@ export function TeamInviteStep({ onComplete, onBack }: TeamInviteStepProps) {
           onClick={onComplete}
           disabled={isSending}
           className="flex-1 h-12 rounded-xl"
-        >
-          Skip for now
-        </Button>
+        >{t('partnerSetup.skipForNow')}</Button>
         <RainbowButton
           onClick={handleSendInvites}
           disabled={isSending || companyLoading}

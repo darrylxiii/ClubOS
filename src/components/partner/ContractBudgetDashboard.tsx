@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
@@ -17,6 +18,7 @@ interface ContractBudgetDashboardProps {
 }
 
 export function ContractBudgetDashboard({ contracts, invoices }: ContractBudgetDashboardProps) {
+  const { t } = useTranslation('common');
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('nl-NL', {
       style: 'currency',
@@ -67,7 +69,7 @@ export function ContractBudgetDashboard({ contracts, invoices }: ContractBudgetD
               <div className="p-2 bg-primary/10 rounded-lg">
                 <DollarSign className="h-5 w-5 text-primary" />
               </div>
-              <span className="text-sm font-medium text-muted-foreground">Total Budget</span>
+              <span className="text-sm font-medium text-muted-foreground">{t("total_budget", "Total Budget")}</span>
             </div>
             <div className="text-3xl font-bold text-foreground">
               {formatCurrency(stats.totalBudget)}
@@ -84,7 +86,7 @@ export function ContractBudgetDashboard({ contracts, invoices }: ContractBudgetD
               <div className="p-2 bg-green-500/10 rounded-lg">
                 <CheckCircle className="h-5 w-5 text-green-500" />
               </div>
-              <span className="text-sm font-medium text-muted-foreground">Paid Out</span>
+              <span className="text-sm font-medium text-muted-foreground">{t("paid_out", "Paid Out")}</span>
             </div>
             <div className="text-3xl font-bold text-green-600">
               {formatCurrency(stats.paidAmount)}
@@ -101,14 +103,12 @@ export function ContractBudgetDashboard({ contracts, invoices }: ContractBudgetD
               <div className="p-2 bg-yellow-500/10 rounded-lg">
                 <Clock className="h-5 w-5 text-yellow-500" />
               </div>
-              <span className="text-sm font-medium text-muted-foreground">Pending Release</span>
+              <span className="text-sm font-medium text-muted-foreground">{t("pending_release", "Pending Release")}</span>
             </div>
             <div className="text-3xl font-bold text-yellow-600">
               {formatCurrency(stats.pendingAmount)}
             </div>
-            <div className="mt-2 text-sm text-muted-foreground">
-              Awaiting your approval
-            </div>
+            <div className="mt-2 text-sm text-muted-foreground">{t('contractBudgetDashboard.awaitingYourApproval')}</div>
           </CardContent>
         </Card>
 
@@ -118,14 +118,12 @@ export function ContractBudgetDashboard({ contracts, invoices }: ContractBudgetD
               <div className="p-2 bg-blue-500/10 rounded-lg">
                 <TrendingUp className="h-5 w-5 text-blue-500" />
               </div>
-              <span className="text-sm font-medium text-muted-foreground">In Progress</span>
+              <span className="text-sm font-medium text-muted-foreground">{t("in_progress", "In Progress")}</span>
             </div>
             <div className="text-3xl font-bold text-blue-600">
               {formatCurrency(stats.inProgressAmount)}
             </div>
-            <div className="mt-2 text-sm text-muted-foreground">
-              Active milestone work
-            </div>
+            <div className="mt-2 text-sm text-muted-foreground">{t('contractBudgetDashboard.activeMilestoneWork')}</div>
           </CardContent>
         </Card>
       </div>
@@ -142,7 +140,7 @@ export function ContractBudgetDashboard({ contracts, invoices }: ContractBudgetD
           <div className="space-y-6">
             <div>
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-muted-foreground">Overall Spend</span>
+                <span className="text-sm text-muted-foreground">{t("overall_spend", "Overall Spend")}</span>
                 <span className="text-sm font-medium">{spendProgress.toFixed(1)}%</span>
               </div>
               <Progress value={spendProgress} className="h-3" />
@@ -153,19 +151,19 @@ export function ContractBudgetDashboard({ contracts, invoices }: ContractBudgetD
                 <div className="text-2xl font-bold text-green-600">
                   {formatCurrency(stats.paidAmount)}
                 </div>
-                <div className="text-sm text-muted-foreground">Paid</div>
+                <div className="text-sm text-muted-foreground">{t("paid", "Paid")}</div>
               </div>
               <div className="text-center p-4 bg-yellow-500/5 rounded-lg border border-yellow-500/20">
                 <div className="text-2xl font-bold text-yellow-600">
                   {formatCurrency(stats.pendingAmount + stats.inProgressAmount)}
                 </div>
-                <div className="text-sm text-muted-foreground">Committed</div>
+                <div className="text-sm text-muted-foreground">{t("committed", "Committed")}</div>
               </div>
               <div className="text-center p-4 bg-muted/50 rounded-lg border border-border/50">
                 <div className="text-2xl font-bold text-muted-foreground">
                   {formatCurrency(stats.totalBudget - stats.paidAmount - stats.pendingAmount - stats.inProgressAmount)}
                 </div>
-                <div className="text-sm text-muted-foreground">Remaining</div>
+                <div className="text-sm text-muted-foreground">{t("remaining", "Remaining")}</div>
               </div>
             </div>
           </div>
@@ -175,7 +173,7 @@ export function ContractBudgetDashboard({ contracts, invoices }: ContractBudgetD
       {/* Contract Breakdown */}
       <Card>
         <CardHeader>
-          <CardTitle>Contract Breakdown</CardTitle>
+          <CardTitle>{t("contract_breakdown", "Contract Breakdown")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">

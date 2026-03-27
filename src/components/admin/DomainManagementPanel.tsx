@@ -9,6 +9,7 @@ import { Switch } from '@/components/ui/switch';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Trash2, Plus, Shield, Globe, CheckCircle, Loader2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface DomainManagementPanelProps {
   companyId: string;
@@ -26,6 +27,7 @@ interface DomainSetting {
 }
 
 export const DomainManagementPanel = ({ companyId, canManage }: DomainManagementPanelProps) => {
+  const { t } = useTranslation('admin');
   const [domains, setDomains] = useState<DomainSetting[]>([]);
   const [loading, setLoading] = useState(true);
   const [newDomain, setNewDomain] = useState('');
@@ -46,7 +48,7 @@ export const DomainManagementPanel = ({ companyId, canManage }: DomainManagement
       setDomains(data || []);
     } catch (error) {
       console.error('Error fetching domains:', error);
-      toast.error('Failed to load domain settings');
+      toast.error(t('domainmanagementpaneltsx.domainmanagementpanel.failedToLoadDomainSettings', 'Failed to load domain settings'));
     } finally {
       setLoading(false);
     }
@@ -54,7 +56,7 @@ export const DomainManagementPanel = ({ companyId, canManage }: DomainManagement
 
   const handleAddDomain = async () => {
     if (!newDomain.trim()) {
-      toast.error('Domain name is required');
+      toast.error(t('domainmanagementpaneltsx.domainmanagementpanel.domainNameIsRequired', 'Domain name is required'));
       return;
     }
 
@@ -74,12 +76,12 @@ export const DomainManagementPanel = ({ companyId, canManage }: DomainManagement
 
       if (error) throw error;
       
-      toast.success('Domain added successfully');
+      toast.success(t('domainmanagementpaneltsx.domainmanagementpanel.domainAddedSuccessfully', 'Domain added successfully'));
       setNewDomain('');
       fetchDomains();
     } catch (error) {
       console.error('Error adding domain:', error);
-      toast.error('Failed to add domain');
+      toast.error(t('domainmanagementpaneltsx.domainmanagementpanel.failedToAddDomain', 'Failed to add domain'));
     } finally {
       setAddingDomain(false);
     }
@@ -96,11 +98,11 @@ export const DomainManagementPanel = ({ companyId, canManage }: DomainManagement
 
       if (error) throw error;
       
-      toast.success('Domain removed');
+      toast.success(t('domainmanagementpaneltsx.domainmanagementpanel.domainRemoved', 'Domain removed'));
       fetchDomains();
     } catch (error) {
       console.error('Error deleting domain:', error);
-      toast.error('Failed to remove domain');
+      toast.error(t('domainmanagementpaneltsx.domainmanagementpanel.failedToRemoveDomain', 'Failed to remove domain'));
     }
   };
 
@@ -116,7 +118,7 @@ export const DomainManagementPanel = ({ companyId, canManage }: DomainManagement
       fetchDomains();
     } catch (error) {
       console.error('Error updating domain setting:', error);
-      toast.error('Failed to update setting');
+      toast.error(t('domainmanagementpaneltsx.domainmanagementpanel.failedToUpdateSetting', 'Failed to update setting'));
     }
   };
 
@@ -129,10 +131,8 @@ export const DomainManagementPanel = ({ companyId, canManage }: DomainManagement
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-semibold mb-2">Organization Domains</h3>
-        <p className="text-sm text-muted-foreground">
-          Configure domain-based SSO and auto-provisioning for your organization
-        </p>
+        <h3 className="text-lg font-semibold mb-2">{t('domainmanagementpaneltsx.domainmanagementpanel.organizationDomains', 'Organization Domains')}</h3>
+        <p className="text-sm text-muted-foreground">{t('domainmanagementpaneltsx.domainmanagementpanel.configureDomainbasedSsoAndAutoprovisioningFor', 'Configure domain-based SSO and auto-provisioning for your organization')}</p>
       </div>
 
       {canManage && (
@@ -145,7 +145,7 @@ export const DomainManagementPanel = ({ companyId, canManage }: DomainManagement
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="new-domain">Domain Name</Label>
+              <Label htmlFor="new-domain">{t('domainmanagementpaneltsx.domainmanagementpanel.domainName', 'Domain Name')}</Label>
               <div className="flex gap-2">
                 <Input
                   id="new-domain"
@@ -171,10 +171,8 @@ export const DomainManagementPanel = ({ companyId, canManage }: DomainManagement
         <Card className="border-2 border-dashed">
           <CardContent className="flex flex-col items-center justify-center py-12">
             <Globe className="w-12 h-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-bold mb-2">No domains configured</h3>
-            <p className="text-sm text-muted-foreground">
-              Add a domain to enable SSO and auto-provisioning
-            </p>
+            <h3 className="text-lg font-bold mb-2">{t('domainmanagementpaneltsx.domainmanagementpanel.noDomainsConfigured', 'No domains configured')}</h3>
+            <p className="text-sm text-muted-foreground">{t('domainmanagementpaneltsx.domainmanagementpanel.addADomainToEnableSso', 'Add a domain to enable SSO and auto-provisioning')}</p>
           </CardContent>
         </Card>
       ) : (
@@ -218,15 +216,13 @@ export const DomainManagementPanel = ({ companyId, canManage }: DomainManagement
                 <CardContent className="space-y-6 pt-0">
                   <Tabs defaultValue="general" className="w-full">
                     <TabsList className="grid w-full grid-cols-2">
-                      <TabsTrigger value="general">General</TabsTrigger>
-                      <TabsTrigger value="provisioning">Provisioning</TabsTrigger>
+                      <TabsTrigger value="general">{t('domainmanagementpaneltsx.domainmanagementpanel.general', 'General')}</TabsTrigger>
+                      <TabsTrigger value="provisioning">{t('domainmanagementpaneltsx.domainmanagementpanel.provisioning', 'Provisioning')}</TabsTrigger>
                     </TabsList>
 
                     <TabsContent value="general" className="space-y-4 mt-4">
                       <div className="flex items-center justify-between">
-                        <Label htmlFor={`enabled-${domain.id}`} className="text-base">
-                          Enable Domain
-                        </Label>
+                        <Label htmlFor={`enabled-${domain.id}`} className="text-base">{t('domainmanagementpaneltsx.domainmanagementpanel.enableDomain', 'Enable Domain')}</Label>
                         <Switch
                           id={`enabled-${domain.id}`}
                           checked={domain.is_enabled}
@@ -237,9 +233,7 @@ export const DomainManagementPanel = ({ companyId, canManage }: DomainManagement
                       </div>
 
                       <div className="flex items-center justify-between">
-                        <Label htmlFor={`google-oauth-${domain.id}`} className="text-base">
-                          Allow Google OAuth
-                        </Label>
+                        <Label htmlFor={`google-oauth-${domain.id}`} className="text-base">{t('domainmanagementpaneltsx.domainmanagementpanel.allowGoogleOauth', 'Allow Google OAuth')}</Label>
                         <Switch
                           id={`google-oauth-${domain.id}`}
                           checked={domain.allow_google_oauth}
@@ -252,9 +246,7 @@ export const DomainManagementPanel = ({ companyId, canManage }: DomainManagement
 
                     <TabsContent value="provisioning" className="space-y-4 mt-4">
                       <div className="flex items-center justify-between">
-                        <Label htmlFor={`auto-provision-${domain.id}`} className="text-base">
-                          Auto-Provision Users
-                        </Label>
+                        <Label htmlFor={`auto-provision-${domain.id}`} className="text-base">{t('domainmanagementpaneltsx.domainmanagementpanel.autoprovisionUsers', 'Auto-Provision Users')}</Label>
                         <Switch
                           id={`auto-provision-${domain.id}`}
                           checked={domain.auto_provision_users}
@@ -266,7 +258,7 @@ export const DomainManagementPanel = ({ companyId, canManage }: DomainManagement
 
                       {domain.auto_provision_users && (
                         <div className="space-y-2">
-                          <Label>Default Role for Auto-Provisioned Users</Label>
+                          <Label>{t('domainmanagementpaneltsx.domainmanagementpanel.defaultRoleForAutoprovisionedUsers', 'Default Role for Auto-Provisioned Users')}</Label>
                           <select
                             value={domain.default_role}
                             onChange={(e) =>
@@ -274,17 +266,15 @@ export const DomainManagementPanel = ({ companyId, canManage }: DomainManagement
                             }
                             className="w-full px-3 py-2 border rounded-lg bg-background"
                           >
-                            <option value="viewer">Viewer</option>
-                            <option value="recruiter">Recruiter</option>
-                            <option value="admin">Admin</option>
+                            <option value="viewer">{t('domainmanagementpaneltsx.domainmanagementpanel.viewer', 'Viewer')}</option>
+                            <option value="recruiter">{t('domainmanagementpaneltsx.domainmanagementpanel.recruiter', 'Recruiter')}</option>
+                            <option value="admin">{t('domainmanagementpaneltsx.domainmanagementpanel.admin', 'Admin')}</option>
                           </select>
                         </div>
                       )}
 
                       <div className="flex items-center justify-between">
-                        <Label htmlFor={`approval-${domain.id}`} className="text-base">
-                          Require Admin Approval
-                        </Label>
+                        <Label htmlFor={`approval-${domain.id}`} className="text-base">{t('domainmanagementpaneltsx.domainmanagementpanel.requireAdminApproval', 'Require Admin Approval')}</Label>
                         <Switch
                           id={`approval-${domain.id}`}
                           checked={domain.require_admin_approval}

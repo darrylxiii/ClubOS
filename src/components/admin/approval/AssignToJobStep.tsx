@@ -6,6 +6,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent } from "@/components/ui/card";
 import { Briefcase, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useTranslation } from 'react-i18next';
 
 interface Company {
   id: string;
@@ -27,6 +28,7 @@ interface AssignToJobStepProps {
 }
 
 export const AssignToJobStep = ({ onAssign, onBack }: AssignToJobStepProps) => {
+  const { t } = useTranslation('admin');
   const [companies, setCompanies] = useState<Company[]>([]);
   const [jobs, setJobs] = useState<Job[]>([]);
   const [stages, setStages] = useState<{ name: string; order: number }[]>([]);
@@ -138,13 +140,13 @@ export const AssignToJobStep = ({ onAssign, onBack }: AssignToJobStepProps) => {
     <div className="space-y-6">
       <div className="flex items-center gap-2 mb-6">
         <Briefcase className="w-5 h-5 text-primary" />
-        <h3 className="text-lg font-semibold">Assign to Company & Role</h3>
+        <h3 className="text-lg font-semibold">{t('approval.assignToJobStep.assignToCompanyRole')}</h3>
       </div>
 
       <Card>
         <CardContent className="p-6 space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="company">Company</Label>
+            <Label htmlFor="company">{t('approval.assignToJobStep.company')}</Label>
             <select
               id="company"
               value={selectedCompanyId}
@@ -163,7 +165,7 @@ export const AssignToJobStep = ({ onAssign, onBack }: AssignToJobStepProps) => {
 
           {selectedCompanyId && (
             <div className="space-y-2">
-              <Label htmlFor="job">Role (Optional)</Label>
+              <Label htmlFor="job">{t('approval.assignToJobStep.roleOptional')}</Label>
             <select
               id="job"
               value={selectedJobId}
@@ -196,7 +198,7 @@ export const AssignToJobStep = ({ onAssign, onBack }: AssignToJobStepProps) => {
 
           {selectedJobId && stages.length > 0 && (
             <div className="space-y-2">
-              <Label htmlFor="stage">Starting Pipeline Stage</Label>
+              <Label htmlFor="stage">{t('approval.assignToJobStep.startingPipelineStage')}</Label>
               <select
                 id="stage"
                 value={selectedStageIndex.toString()}

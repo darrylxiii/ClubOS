@@ -1,4 +1,5 @@
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import { ExternalLink, MapPin, Navigation, Maximize2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -62,6 +63,8 @@ export function LocationMapCard({
   const interactiveMapUrl = getInteractiveMapUrl(latitude, longitude, zoom);
   const directionsUrl = getDirectionsUrl(latitude, longitude, label);
 
+  const { t } = useTranslation('common');
+
   const MapContent = () => (
     <div className={cn("relative rounded-lg overflow-hidden bg-muted", config.containerClass, className)}>
       <img
@@ -94,7 +97,7 @@ export function LocationMapCard({
               onClick={() => window.open(directionsUrl, "_blank")}
             >
               <Navigation className="h-3 w-3" />
-              Directions
+              {t("location.directions", "Directions")}
             </Button>
           )}
         </div>
@@ -116,7 +119,7 @@ export function LocationMapCard({
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <MapPin className="h-4 w-4" />
-                {label || address || "Location"}
+                {label || address || t("location.location", "Location")}
               </DialogTitle>
             </DialogHeader>
             <div className="flex-1 relative rounded-lg overflow-hidden">
@@ -134,7 +137,7 @@ export function LocationMapCard({
                   onClick={() => window.open(directionsUrl, "_blank")}
                 >
                   <Navigation className="h-3 w-3" />
-                  Get Directions
+                  {t("location.getDirections", "Get Directions")}
                 </Button>
                 <Button
                   variant="secondary"
@@ -143,7 +146,7 @@ export function LocationMapCard({
                   onClick={() => window.open(`https://www.openstreetmap.org/?mlat=${latitude}&mlon=${longitude}&zoom=${zoom}`, "_blank")}
                 >
                   <ExternalLink className="h-3 w-3" />
-                  Open in OSM
+                  {t("location.openInOSM", "Open in OSM")}
                 </Button>
               </div>
             </div>

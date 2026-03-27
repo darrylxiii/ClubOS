@@ -1,18 +1,12 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createHandler } from '../_shared/handler.ts';
 import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
-import { 
-  Button, Card, Heading, Paragraph, Spacer, InfoRow, 
-  VideoCallCard, StatusBadge, CalendarButtons, AlertBox, SchemaEvent 
+import {
+  Button, Card, Heading, Paragraph, Spacer, InfoRow,
+  VideoCallCard, StatusBadge, CalendarButtons, AlertBox, SchemaEvent
 } from "../_shared/email-templates/components.ts";
-import { EMAIL_SENDERS, EMAIL_COLORS, SUPPORT_EMAIL, getEmailAppUrl, getEmailHeaders, htmlToPlainText } from "../_shared/email-config.ts";
+import { EMAIL_SENDERS, EMAIL_COLORS, SUPPORT_EMAIL, getEmailAppUrl } from "../_shared/email-config.ts";
+import { sendEmail } from '../_shared/resend-client.ts';
 import { checkUserRateLimit, createRateLimitResponse } from "../_shared/rate-limiter.ts";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
-};
 
 interface GuestWithPermissions {
   email: string;
@@ -23,31 +17,25 @@ interface GuestWithPermissions {
   can_add_attendees?: boolean;
 }
 
-serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  try {
+Deno.serve(createHandler(async (req, ctx) => {
     // Rate limiting: 5 requests per minute per IP
-    const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || 
-                     req.headers.get("x-real-ip") || 
+    const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+                     req.headers.get("x-real-ip") ||
                      "unknown";
-    
+
     const rateLimitResult = await checkUserRateLimit(clientIp, "send-booking-confirmation", 5, 60000);
     if (!rateLimitResult.allowed) {
       console.log(`[Booking Confirmation] Rate limit exceeded for IP: ${clientIp}`);
-      return createRateLimitResponse(rateLimitResult.retryAfter || 60, corsHeaders);
+      return createRateLimitResponse(rateLimitResult.retryAfter || 60, ctx.ctx.corsHeaders);
     }
 
     const { booking, bookingLink } = await req.json();
-    
-    // Initialize Supabase client to fetch owner profile and insert guest records
+
     const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
     const appUrl = getEmailAppUrl();
-    
-    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    const supabase = ctx.supabase;
     
     console.log("[BookingConfirmation] Looking up owner profile for user_id:", bookingLink.user_id);
     
@@ -239,32 +227,20 @@ serve(async (req) => {
     });
 
     // Send email to GUEST (primary booker)
-    const resendApiKey = Deno.env.get("RESEND_API_KEY");
-    const guestEmailResponse = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${resendApiKey}`,
-      },
-      body: JSON.stringify({
-        from: EMAIL_SENDERS.bookings,
-        to: [booking.guest_email],
-        subject: `Confirmed: ${bookingLink.title} — ${formattedDate}`,
-        html: emailHtml,
-        text: htmlToPlainText(emailHtml),
-        headers: getEmailHeaders(),
-        attachments: [
-          {
-            filename: "meeting.ics",
-            content: btoa(icsContent),
-            content_type: "text/calendar; method=REQUEST",
-          },
-        ],
-      }),
+    const guestEmailResult = await sendEmail({
+      from: EMAIL_SENDERS.bookings,
+      to: [booking.guest_email],
+      subject: `Confirmed: ${bookingLink.title} — ${formattedDate}`,
+      html: emailHtml,
+      attachments: [
+        {
+          filename: "meeting.ics",
+          content: btoa(icsContent),
+          content_type: "text/calendar; method=REQUEST",
+        },
+      ],
     });
-
-    const guestEmailResult = await guestEmailResponse.json();
-    console.log("Guest confirmation email sent:", guestEmailResult);
+    console.log("Guest confirmation email sent:", guestEmailResult.id);
 
     // Send emails to ADDITIONAL GUESTS with personalized invitations
     if (booking.guests && Array.isArray(booking.guests) && booking.guests.length > 0) {
@@ -429,27 +405,18 @@ serve(async (req) => {
           schemaMarkup: schemaMarkup,
         });
         
-        await fetch("https://api.resend.com/emails", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${resendApiKey}`,
-          },
-        body: JSON.stringify({
-            from: EMAIL_SENDERS.bookings,
-            to: [guest.email],
-            subject: `${booking.guest_name} invited you: ${bookingLink.title} — ${formattedDate}`,
-            html: guestInviteHtml,
-            text: htmlToPlainText(guestInviteHtml),
-            headers: getEmailHeaders(),
-            attachments: [
-              {
-                filename: "meeting.ics",
-                content: btoa(icsContent),
-                content_type: "text/calendar; method=REQUEST",
-              },
-            ],
-          }),
+        await sendEmail({
+          from: EMAIL_SENDERS.bookings,
+          to: [guest.email],
+          subject: `${booking.guest_name} invited you: ${bookingLink.title} — ${formattedDate}`,
+          html: guestInviteHtml,
+          attachments: [
+            {
+              filename: "meeting.ics",
+              content: btoa(icsContent),
+              content_type: "text/calendar; method=REQUEST",
+            },
+          ],
         });
         console.log(`[BookingConfirmation] Personalized invite sent to ${guest.email} with token: ${guestAccessToken ? 'yes' : 'no'}`);
       }
@@ -541,27 +508,18 @@ serve(async (req) => {
         schemaMarkup: schemaMarkup,
       });
 
-      await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${resendApiKey}`,
-        },
-      body: JSON.stringify({
-          from: EMAIL_SENDERS.bookings,
-          to: [ownerProfile.email],
-          subject: `New Booking: ${booking.guest_name} — ${bookingLink.title}`,
-          html: ownerEmailHtml,
-          text: htmlToPlainText(ownerEmailHtml),
-          headers: getEmailHeaders(),
-          attachments: [
-            {
-              filename: "meeting.ics",
-              content: btoa(icsContent),
-              content_type: "text/calendar; method=REQUEST",
-            },
-          ],
-        }),
+      await sendEmail({
+        from: EMAIL_SENDERS.bookings,
+        to: [ownerProfile.email],
+        subject: `New Booking: ${booking.guest_name} — ${bookingLink.title}`,
+        html: ownerEmailHtml,
+        attachments: [
+          {
+            filename: "meeting.ics",
+            content: btoa(icsContent),
+            content_type: "text/calendar; method=REQUEST",
+          },
+        ],
       });
 
       console.log("Owner confirmation email sent");
@@ -571,17 +529,7 @@ serve(async (req) => {
       JSON.stringify({ success: true, message: "Confirmation emails sent" }),
       {
         status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...ctx.corsHeaders, "Content-Type": "application/json" },
       }
     );
-  } catch (error: any) {
-    console.error("Error sending booking confirmation:", error);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
-  }
-});
+}));

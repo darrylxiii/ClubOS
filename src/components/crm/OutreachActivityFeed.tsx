@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -28,6 +29,7 @@ interface ActivityItem {
 }
 
 export function OutreachActivityFeed() {
+  const { t } = useTranslation('common');
   const [activities, setActivities] = useState<ActivityItem[]>([]);
 
   // Fetch recent replies
@@ -178,13 +180,13 @@ export function OutreachActivityFeed() {
   const getClassificationBadge = (classification: string) => {
     switch (classification) {
       case 'interested':
-        return <Badge className="bg-green-500/10 text-green-500">Interested</Badge>;
+        return <Badge className="bg-green-500/10 text-green-500">{t("interested", "Interested")}</Badge>;
       case 'not_interested':
-        return <Badge className="bg-red-500/10 text-red-500">Not Interested</Badge>;
+        return <Badge className="bg-red-500/10 text-red-500">{t("not_interested", "Not Interested")}</Badge>;
       case 'question':
-        return <Badge className="bg-blue-500/10 text-blue-500">Question</Badge>;
+        return <Badge className="bg-blue-500/10 text-blue-500">{t("question", "Question")}</Badge>;
       case 'objection':
-        return <Badge className="bg-orange-500/10 text-orange-500">Objection</Badge>;
+        return <Badge className="bg-orange-500/10 text-orange-500">{t("objection", "Objection")}</Badge>;
       case 'out_of_office':
         return <Badge className="bg-gray-500/10 text-gray-500">OOO</Badge>;
       default:
@@ -245,7 +247,7 @@ export function OutreachActivityFeed() {
             {activities.length === 0 && (
               <div className="text-center py-8">
                 <Mail className="w-10 h-10 mx-auto text-muted-foreground/50 mb-2" />
-                <p className="text-sm text-muted-foreground">No recent activity</p>
+                <p className="text-sm text-muted-foreground">{t("no_recent_activity", "No recent activity")}</p>
               </div>
             )}
           </div>

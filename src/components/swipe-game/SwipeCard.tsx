@@ -1,4 +1,5 @@
 import { memo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { SwipeScenario } from '@/types/assessment';
@@ -12,6 +13,7 @@ interface SwipeCardProps {
 }
 
 export const SwipeCard = memo(({ scenario, onSwipe, index, totalCards }: SwipeCardProps) => {
+  const { t } = useTranslation('common');
   const x = useMotionValue(0);
   const y = useMotionValue(0);
   const [exitDirection, setExitDirection] = useState<string | null>(null);
@@ -94,28 +96,28 @@ export const SwipeCard = memo(({ scenario, onSwipe, index, totalCards }: SwipeCa
             className="absolute inset-0 flex items-center justify-center bg-green-500/20 backdrop-blur-sm rounded-2xl"
             style={{ opacity: useTransform(y, [-200, 0], [1, 0]) }}
           >
-            <span className="text-6xl font-bold text-green-400">LOVE IT!</span>
+            <span className="text-6xl font-bold text-green-400">{t('swipeGame.lOVEIT')}</span>
           </motion.div>
 
           <motion.div
             className="absolute inset-0 flex items-center justify-center bg-blue-500/20 backdrop-blur-sm rounded-2xl"
             style={{ opacity: useTransform(x, [0, 200], [0, 1]) }}
           >
-            <span className="text-6xl font-bold text-blue-400">LIKE IT</span>
+            <span className="text-6xl font-bold text-blue-400">{t('swipeGame.lIKEIT')}</span>
           </motion.div>
 
           <motion.div
             className="absolute inset-0 flex items-center justify-center bg-orange-500/20 backdrop-blur-sm rounded-2xl"
             style={{ opacity: useTransform(x, [-200, 0], [1, 0]) }}
           >
-            <span className="text-6xl font-bold text-orange-400">NOT FOR ME</span>
+            <span className="text-6xl font-bold text-orange-400">{t('swipeGame.nOTFORME')}</span>
           </motion.div>
 
           <motion.div
             className="absolute inset-0 flex items-center justify-center bg-red-500/20 backdrop-blur-sm rounded-2xl"
             style={{ opacity: useTransform(y, [0, 200], [0, 1]) }}
           >
-            <span className="text-6xl font-bold text-red-400">AVOID</span>
+            <span className="text-6xl font-bold text-red-400">{t('swipeGame.aVOID')}</span>
           </motion.div>
         </CardContent>
       </Card>

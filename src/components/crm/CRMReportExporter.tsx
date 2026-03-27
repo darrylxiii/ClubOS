@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,6 +18,7 @@ interface CRMReportExporterProps {
 }
 
 export function CRMReportExporter({ dateRange }: CRMReportExporterProps) {
+  const { t } = useTranslation('common');
   const [exporting, setExporting] = useState<string | null>(null);
 
   const exportToCSV = async () => {
@@ -56,10 +58,10 @@ export function CRMReportExporter({ dateRange }: CRMReportExporterProps) {
       a.click();
       URL.revokeObjectURL(url);
 
-      toast.success('CSV exported successfully');
+      toast.success(t("csv_exported_successfully", "CSV exported successfully"));
     } catch (error) {
       console.error('Export error:', error);
-      toast.error('Failed to export CSV');
+      toast.error(t("failed_to_export_csv", "Failed to export CSV"));
     } finally {
       setExporting(null);
     }
@@ -104,10 +106,10 @@ ${['new', 'contacted', 'qualified', 'proposal', 'negotiation', 'closed_won', 'cl
       a.click();
       URL.revokeObjectURL(url);
 
-      toast.success('Report exported successfully');
+      toast.success(t("report_exported_successfully", "Report exported successfully"));
     } catch (error) {
       console.error('Export error:', error);
-      toast.error('Failed to export report');
+      toast.error(t("failed_to_export_report", "Failed to export report"));
     } finally {
       setExporting(null);
     }
@@ -118,9 +120,9 @@ ${['new', 'contacted', 'qualified', 'proposal', 'negotiation', 'closed_won', 'cl
     try {
       // Placeholder for email functionality
       await new Promise(resolve => setTimeout(resolve, 1000));
-      toast.success('Report scheduled for email delivery');
+      toast.success(t("report_scheduled_for_email", "Report scheduled for email delivery"));
     } catch (error) {
-      toast.error('Failed to schedule email');
+      toast.error(t("failed_to_schedule_email", "Failed to schedule email"));
     } finally {
       setExporting(null);
     }

@@ -1,13 +1,10 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.0';
+import { verifyTwilioWebhook } from '../_shared/webhook-verifier.ts';
+import { getCorsHeaders } from '../_shared/cors.ts';
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
 
 /**
  * Twilio Status Callback Webhook
@@ -15,6 +12,8 @@ const corsHeaders = {
  * Twilio sends: MessageSid, MessageStatus, ErrorCode (if failed)
  */
 const handler = async (req: Request): Promise<Response> => {
+  const corsHeaders = getCorsHeaders(req);
+
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -22,9 +21,27 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     // Twilio sends form-urlencoded data
     const formData = await req.formData();
-    const messageSid = formData.get('MessageSid') as string;
-    const messageStatus = formData.get('MessageStatus') as string;
-    const errorCode = formData.get('ErrorCode') as string | null;
+
+    // Verify Twilio signature
+    const params: Record<string, string> = {};
+    formData.forEach((value, key) => { params[key] = value.toString(); });
+
+    const twilioAuthToken = Deno.env.get('TWILIO_AUTH_TOKEN');
+    const twilioSignature = req.headers.get('X-Twilio-Signature');
+    if (twilioAuthToken && twilioSignature) {
+      const requestUrl = new URL(req.url).toString();
+      const isValid = await verifyTwilioWebhook(requestUrl, params, twilioSignature, twilioAuthToken);
+      if (!isValid) {
+        console.error('[Twilio Callback] Signature verification failed');
+        return new Response('Invalid signature', { status: 403 });
+      }
+    } else if (Deno.env.get('DENO_ENV') !== 'development') {
+      console.warn('[Twilio Callback] Signature verification skipped — missing TWILIO_AUTH_TOKEN or X-Twilio-Signature');
+    }
+
+    const messageSid = params['MessageSid'] || formData.get('MessageSid') as string;
+    const messageStatus = params['MessageStatus'] || formData.get('MessageStatus') as string;
+    const errorCode = params['ErrorCode'] || formData.get('ErrorCode') as string | null;
 
     if (!messageSid || !messageStatus) {
       return new Response('Missing required fields', { status: 400 });

@@ -8,8 +8,10 @@ import { toast } from "sonner";
 import { Send, Loader2, Calendar, Copy, Check } from "lucide-react";
 import { CandidateSelectorTable } from "./CandidateSelectorTable";
 import { Textarea } from "@/components/ui/textarea";
+import { useTranslation } from 'react-i18next';
 
 export const BulkSchedulingTab = () => {
+  const { t } = useTranslation('admin');
   const [selectedCandidates, setSelectedCandidates] = useState<string[]>([]);
   const [bookingLinkId, setBookingLinkId] = useState<string>("");
   const [customMessage, setCustomMessage] = useState("");
@@ -40,7 +42,7 @@ export const BulkSchedulingTab = () => {
       navigator.clipboard.writeText(bookingUrl);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-      toast.success("Booking link copied!");
+      toast.success(t('bulk-ops.bulkSchedulingTab.bookingLinkCopied'));
     }
   };
 
@@ -141,7 +143,7 @@ export const BulkSchedulingTab = () => {
     <div className="space-y-6">
       {/* Candidate Selection */}
       <div>
-        <Label className="mb-2 block">Select Recipients</Label>
+        <Label className="mb-2 block">{t('bulk-ops.bulkSchedulingTab.selectRecipients')}</Label>
         <CandidateSelectorTable
           selectedCandidates={selectedCandidates}
           onSelectionChange={setSelectedCandidates}
@@ -151,10 +153,10 @@ export const BulkSchedulingTab = () => {
       {/* Scheduling Configuration */}
       <div className="space-y-4 border-t pt-6">
         <div>
-          <Label htmlFor="bookingLink">Booking Link</Label>
+          <Label htmlFor="bookingLink">{t('bulk-ops.bulkSchedulingTab.bookingLink')}</Label>
           <Select value={bookingLinkId} onValueChange={setBookingLinkId}>
             <SelectTrigger className="mt-1.5">
-              <SelectValue placeholder="Select a booking link" />
+              <SelectValue placeholder={t('bulk-ops.bulkSchedulingTab.selectABookingLink')} />
             </SelectTrigger>
             <SelectContent>
               {bookingLinks?.map((link) => (
@@ -181,7 +183,7 @@ export const BulkSchedulingTab = () => {
         )}
 
         <div>
-          <Label htmlFor="message">Custom Message (Optional)</Label>
+          <Label htmlFor="message">{t('bulk-ops.bulkSchedulingTab.customMessageOptional')}</Label>
           <Textarea
             id="message"
             value={customMessage}

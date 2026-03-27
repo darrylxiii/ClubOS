@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { TaskBoardMember, BoardMemberRole } from '@/types/taskBoard';
@@ -20,6 +21,7 @@ interface BoardMembersViewProps {
 }
 
 export function BoardMembersView({ boardId, canManage }: BoardMembersViewProps) {
+  const { t } = useTranslation('common');
   const [members, setMembers] = useState<TaskBoardMember[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -53,7 +55,7 @@ export function BoardMembersView({ boardId, canManage }: BoardMembersViewProps) 
       setMembers(membersWithProfiles as TaskBoardMember[]);
     } catch (error) {
       console.error('Failed to load members:', error);
-      toast.error('Failed to load members');
+      toast.error(t("failed_to_load_members", "Failed to load members"));
     } finally {
       setLoading(false);
     }
@@ -72,11 +74,11 @@ export function BoardMembersView({ boardId, canManage }: BoardMembersViewProps) 
 
       if (error) throw error;
       
-      toast.success('Role updated');
+      toast.success(t("role_updated", "Role updated"));
       loadMembers();
     } catch (error) {
       console.error('Failed to update role:', error);
-      toast.error('Failed to update role');
+      toast.error(t("failed_to_update_role", "Failed to update role"));
     }
   };
 
@@ -91,16 +93,16 @@ export function BoardMembersView({ boardId, canManage }: BoardMembersViewProps) 
 
       if (error) throw error;
 
-      toast.success('Member removed');
+      toast.success(t("member_removed", "Member removed"));
       loadMembers();
     } catch (error) {
       console.error('Failed to remove member:', error);
-      toast.error('Failed to remove member');
+      toast.error(t("failed_to_remove_member", "Failed to remove member"));
     }
   };
 
   if (loading) {
-    return <div className="text-sm text-muted-foreground">Loading members...</div>;
+    return <div className="text-sm text-muted-foreground">{t("loading_members", "Loading members...")}</div>;
   }
 
   if (members.length === 0) {
@@ -142,9 +144,9 @@ export function BoardMembersView({ boardId, canManage }: BoardMembersViewProps) 
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="admin">Admin</SelectItem>
-                    <SelectItem value="editor">Editor</SelectItem>
-                    <SelectItem value="viewer">Viewer</SelectItem>
+                    <SelectItem value="admin">{t("admin", "Admin")}</SelectItem>
+                    <SelectItem value="editor">{t("editor", "Editor")}</SelectItem>
+                    <SelectItem value="viewer">{t("viewer", "Viewer")}</SelectItem>
                   </SelectContent>
                 </Select>
                 <Button

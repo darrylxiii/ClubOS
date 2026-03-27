@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { FileText, Video, BookOpen, CheckCircle2, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from 'react-i18next';
 
 interface StagePreparationProps {
   stage: "applied" | "screening" | "interview" | "offer";
@@ -102,6 +103,7 @@ const preparationContent = {
 };
 
 export const StagePreparation = ({ stage }: StagePreparationProps) => {
+  const { t } = useTranslation('common');
   const content = preparationContent[stage];
   const navigate = useNavigate();
 

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { motion } from '@/lib/motion';
 import { 
@@ -35,6 +36,7 @@ export function InstantlyCampaignCard({
   onSync,
   syncing 
 }: InstantlyCampaignCardProps) {
+  const { t } = useTranslation('common');
   const [expanded, setExpanded] = useState(false);
 
   const openRate = campaign.total_sent > 0 
@@ -146,34 +148,34 @@ export function InstantlyCampaignCard({
           <div className="text-center p-2 rounded-lg bg-muted/20">
             <div className="flex items-center justify-center gap-1 text-muted-foreground mb-1">
               <Mail className="h-3 w-3" />
-              <span className="text-xs">Sent</span>
+              <span className="text-xs">{t("sent", "Sent")}</span>
             </div>
             <div className="font-semibold">{campaign.total_sent.toLocaleString()}</div>
           </div>
           <div className="text-center p-2 rounded-lg bg-green-500/10">
             <div className="flex items-center justify-center gap-1 text-green-500 mb-1">
               <Eye className="h-3 w-3" />
-              <span className="text-xs">Opens</span>
+              <span className="text-xs">{t("opens", "Opens")}</span>
             </div>
             <div className="font-semibold">{openRate.toFixed(1)}%</div>
           </div>
           <div className="text-center p-2 rounded-lg bg-emerald-500/10">
             <div className="flex items-center justify-center gap-1 text-emerald-500 mb-1">
               <MessageSquare className="h-3 w-3" />
-              <span className="text-xs">Replies</span>
+              <span className="text-xs">{t("replies", "Replies")}</span>
             </div>
             <div className="font-semibold">{replyRate.toFixed(1)}%</div>
           </div>
           <div className="text-center p-2 rounded-lg bg-primary/10">
             <div className="flex items-center justify-center gap-1 text-primary mb-1">
               <Star className="h-3 w-3" />
-              <span className="text-xs">Interested</span>
+              <span className="text-xs">{t("interested", "Interested")}</span>
             </div>
             <div className="font-semibold">{campaign.total_opportunities}</div>
           </div>
           <div className="text-center p-2 rounded-lg bg-red-500/10">
             <div className="flex items-center justify-center gap-1 text-red-500 mb-1">
-              <span className="text-xs">Bounces</span>
+              <span className="text-xs">{t("bounces", "Bounces")}</span>
             </div>
             <div className="font-semibold">{bounceRate.toFixed(1)}%</div>
           </div>
@@ -183,21 +185,21 @@ export function InstantlyCampaignCard({
         <div className="space-y-2 mb-4">
           <div>
             <div className="flex justify-between text-xs mb-1">
-              <span className="text-muted-foreground">Open Rate</span>
+              <span className="text-muted-foreground">{t("open_rate", "Open Rate")}</span>
               <span>{openRate.toFixed(1)}%</span>
             </div>
             <Progress value={openRate} className="h-1.5" />
           </div>
           <div>
             <div className="flex justify-between text-xs mb-1">
-              <span className="text-muted-foreground">Reply Rate</span>
+              <span className="text-muted-foreground">{t("reply_rate", "Reply Rate")}</span>
               <span>{replyRate.toFixed(1)}%</span>
             </div>
             <Progress value={replyRate} className="h-1.5 [&>div]:bg-emerald-500" />
           </div>
           <div>
             <div className="flex justify-between text-xs mb-1">
-              <span className="text-muted-foreground">Interest Rate</span>
+              <span className="text-muted-foreground">{t("interest_rate", "Interest Rate")}</span>
               <span>{interestRate.toFixed(1)}%</span>
             </div>
             <Progress value={interestRate} className="h-1.5 [&>div]:bg-primary" />
@@ -214,49 +216,49 @@ export function InstantlyCampaignCard({
           >
             <div className="grid grid-cols-2 gap-4 mb-4">
               <div>
-                <h4 className="text-sm font-medium mb-2">Detailed Stats</h4>
+                <h4 className="text-sm font-medium mb-2">{t("detailed_stats", "Detailed Stats")}</h4>
                 <div className="space-y-1 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Contacted</span>
+                    <span className="text-muted-foreground">{t("contacted", "Contacted")}</span>
                     <span>{campaign.contacted_count.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Opened</span>
+                    <span className="text-muted-foreground">{t("opened", "Opened")}</span>
                     <span>{campaign.total_opened.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Clicked</span>
+                    <span className="text-muted-foreground">{t("clicked", "Clicked")}</span>
                     <span>{campaign.total_clicked.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Replied</span>
+                    <span className="text-muted-foreground">{t("replied", "Replied")}</span>
                     <span>{campaign.total_replied.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Interested</span>
+                    <span className="text-muted-foreground">{t("interested", "Interested")}</span>
                     <span className="text-primary font-medium">{campaign.total_opportunities}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Bounced</span>
+                    <span className="text-muted-foreground">{t("bounced", "Bounced")}</span>
                     <span>{campaign.total_bounced.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Unsubscribed</span>
+                    <span className="text-muted-foreground">{t("unsubscribed", "Unsubscribed")}</span>
                     <span>{campaign.total_unsubscribed.toLocaleString()}</span>
                   </div>
                 </div>
               </div>
               <div>
-                <h4 className="text-sm font-medium mb-2">Sync Info</h4>
+                <h4 className="text-sm font-medium mb-2">{t("sync_info", "Sync Info")}</h4>
                 <div className="space-y-1 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Status</span>
+                    <span className="text-muted-foreground">{t("status", "Status")}</span>
                     <Badge variant="outline" className="text-xs">
                       {campaign.sync_status || 'pending'}
                     </Badge>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Last Sync</span>
+                    <span className="text-muted-foreground">{t("last_sync", "Last Sync")}</span>
                     <span>
                       {campaign.last_synced_at 
                         ? formatDistanceToNow(new Date(campaign.last_synced_at), { addSuffix: true })
@@ -264,11 +266,11 @@ export function InstantlyCampaignCard({
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">New Contacted</span>
+                    <span className="text-muted-foreground">{t("new_contacted", "New Contacted")}</span>
                     <span>{campaign.new_leads_contacted.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Completed</span>
+                    <span className="text-muted-foreground">{t("completed", "Completed")}</span>
                     <span>{campaign.completed_count.toLocaleString()}</span>
                   </div>
                 </div>

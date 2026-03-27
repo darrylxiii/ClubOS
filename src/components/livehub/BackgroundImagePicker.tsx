@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -21,6 +22,7 @@ interface BackgroundImagePickerProps {
 }
 
 export const BackgroundImagePicker = ({ selectedImageUrl, onSelect }: BackgroundImagePickerProps) => {
+    const { t } = useTranslation('meetings');
     const { user } = useAuth();
     const [backgrounds, setBackgrounds] = useState<VirtualBackground[]>([]);
     const [uploading, setUploading] = useState(false);
@@ -41,7 +43,7 @@ export const BackgroundImagePicker = ({ selectedImageUrl, onSelect }: Background
 
         if (error) {
             console.error('Error loading backgrounds:', error);
-            toast.error('Failed to load backgrounds');
+            toast.error(t('livehub.failedToLoadBackgrounds'));
         } else {
             setBackgrounds((data || []) as VirtualBackground[]);
         }
@@ -53,13 +55,13 @@ export const BackgroundImagePicker = ({ selectedImageUrl, onSelect }: Background
 
         // Validate file type
         if (!file.type.startsWith('image/')) {
-            toast.error('Please upload an image file');
+            toast.error(t('livehub.pleaseUploadImage'));
             return;
         }
 
         // Validate file size (max 5MB)
         if (file.size > 5 * 1024 * 1024) {
-            toast.error('Image must be less than 5MB');
+            toast.error(t('livehub.imageSizeLimit'));
             return;
         }
 
@@ -99,7 +101,7 @@ export const BackgroundImagePicker = ({ selectedImageUrl, onSelect }: Background
 
             if (dbError) throw dbError;
 
-            toast.success('Background uploaded successfully');
+            toast.success(t('livehub.backgroundUploaded'));
             await loadBackgrounds();
         } catch (error: unknown) {
             console.error('Error uploading background:', error);
@@ -136,11 +138,11 @@ export const BackgroundImagePicker = ({ selectedImageUrl, onSelect }: Background
 
             if (dbError) throw dbError;
 
-            toast.success('Background deleted');
+            toast.success(t('livehub.backgroundDeleted'));
             await loadBackgrounds();
         } catch (error: unknown) {
             console.error('Error deleting background:', error);
-            toast.error('Failed to delete background');
+            toast.error(t('livehub.failedToDeleteBackground'));
         }
     };
 
@@ -162,7 +164,7 @@ export const BackgroundImagePicker = ({ selectedImageUrl, onSelect }: Background
     return (
         <div className="space-y-4">
             <div className="flex items-center justify-between">
-                <Label>Custom Backgrounds</Label>
+                <Label>{t('livehub.customBackgrounds')}</Label>
                 <Button
                     variant="outline"
                     size="sm"
@@ -172,12 +174,12 @@ export const BackgroundImagePicker = ({ selectedImageUrl, onSelect }: Background
                     {uploading ? (
                         <>
                             <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                            Uploading...
+                            {t('livehub.uploading')}
                         </>
                     ) : (
                         <>
                             <Upload className="w-4 h-4 mr-2" />
-                            Upload Image
+                            {t('livehub.uploadImage')}
                         </>
                     )}
                 </Button>
@@ -193,8 +195,8 @@ export const BackgroundImagePicker = ({ selectedImageUrl, onSelect }: Background
             {backgrounds.length === 0 ? (
                 <div className="text-center p-8 border-2 border-dashed border-border rounded-lg">
                     <ImageIcon className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-                    <p className="text-sm text-muted-foreground mb-2">No custom backgrounds yet</p>
-                    <p className="text-xs text-muted-foreground">Upload an image to get started</p>
+                    <p className="text-sm text-muted-foreground mb-2">{t('livehub.noCustomBackgrounds')}</p>
+                    <p className="text-xs text-muted-foreground">{t('livehub.uploadToGetStarted')}</p>
                 </div>
             ) : (
                 <ScrollArea className="h-64 border border-border rounded-lg p-2">
@@ -238,7 +240,7 @@ export const BackgroundImagePicker = ({ selectedImageUrl, onSelect }: Background
             )}
 
             <p className="text-xs text-muted-foreground">
-                Tip: Use high-quality images (1920x1080) for best results. Max 5MB.
+                {t('livehub.backgroundTip')}
             </p>
         </div>
     );

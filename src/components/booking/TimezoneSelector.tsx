@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Globe } from "lucide-react";
@@ -8,6 +9,7 @@ interface TimezoneSelectorProps {
 }
 
 export function TimezoneSelector({ value, onChange }: TimezoneSelectorProps) {
+  const { t } = useTranslation('common');
   const [commonTimezones] = useState([
     { value: "Europe/Amsterdam", label: "Amsterdam (CET)" },
     { value: "Europe/London", label: "London (GMT)" },
@@ -34,7 +36,7 @@ export function TimezoneSelector({ value, onChange }: TimezoneSelectorProps) {
   return (
     <div className="flex items-center gap-2 py-2 px-3 bg-muted/50 rounded-lg">
       <Globe className="h-4 w-4 text-muted-foreground" />
-      <span className="text-sm text-muted-foreground">Timezone:</span>
+      <span className="text-sm text-muted-foreground">{t("timezone", "Timezone:")}</span>
       <Select value={value} onValueChange={onChange}>
         <SelectTrigger className="w-auto border-none bg-transparent h-auto p-0 text-sm font-medium">
           <SelectValue />

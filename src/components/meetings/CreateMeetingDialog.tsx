@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -20,6 +21,7 @@ interface CreateMeetingDialogProps {
 }
 
 export function CreateMeetingDialog({ trigger, onMeetingCreated }: CreateMeetingDialogProps) {
+  const { t } = useTranslation('common');
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -37,7 +39,7 @@ export function CreateMeetingDialog({ trigger, onMeetingCreated }: CreateMeeting
 
   const handleCreate = async () => {
     if (!title || !date) {
-      toast.error('Please fill in all required fields');
+      toast.error(t("please_fill_in_all", "Please fill in all required fields"));
       return;
     }
 
@@ -77,7 +79,7 @@ export function CreateMeetingDialog({ trigger, onMeetingCreated }: CreateMeeting
 
       if (error) throw error;
 
-      toast.success('Meeting created successfully');
+      toast.success(t("meeting_created_successfully", "Meeting created successfully"));
       onMeetingCreated?.(meeting);
       setOpen(false);
       
@@ -113,40 +115,40 @@ export function CreateMeetingDialog({ trigger, onMeetingCreated }: CreateMeeting
       </DialogTrigger>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Schedule New Meeting</DialogTitle>
+          <DialogTitle>{t("schedule_new_meeting", "Schedule New Meeting")}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6 py-4">
           {/* Basic Info */}
           <div className="space-y-4">
             <div>
-              <Label htmlFor="title">Meeting Title *</Label>
+              <Label htmlFor="title">{t("meeting_title", "Meeting Title *")}</Label>
               <Input
                 id="title"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="e.g., Weekly Team Sync"
+                placeholder={t("eg_weekly_team_sync", "e.g., Weekly Team Sync")}
               />
             </div>
 
             <div>
-              <Label htmlFor="description">Description</Label>
+              <Label htmlFor="description">{t("description", "Description")}</Label>
               <Textarea
                 id="description"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="What's this meeting about?"
+                placeholder={t("whats_this_meeting_about", "What's this meeting about?")}
                 rows={3}
               />
             </div>
 
             <div>
-              <Label htmlFor="agenda">Agenda</Label>
+              <Label htmlFor="agenda">{t("agenda", "Agenda")}</Label>
               <Textarea
                 id="agenda"
                 value={agenda}
                 onChange={(e) => setAgenda(e.target.value)}
-                placeholder="Meeting agenda and topics"
+                placeholder={t("meeting_agenda_and_topics", "Meeting agenda and topics")}
                 rows={2}
               />
             </div>
@@ -155,7 +157,7 @@ export function CreateMeetingDialog({ trigger, onMeetingCreated }: CreateMeeting
           {/* Date & Time */}
           <div className="grid grid-cols-3 gap-4">
             <div className="col-span-2">
-              <Label>Date *</Label>
+              <Label>{t("date", "Date *")}</Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
@@ -181,7 +183,7 @@ export function CreateMeetingDialog({ trigger, onMeetingCreated }: CreateMeeting
             </div>
 
             <div>
-              <Label htmlFor="time">Time</Label>
+              <Label htmlFor="time">{t("time", "Time")}</Label>
               <Input
                 id="time"
                 type="time"
@@ -193,31 +195,31 @@ export function CreateMeetingDialog({ trigger, onMeetingCreated }: CreateMeeting
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="duration">Duration (minutes)</Label>
+              <Label htmlFor="duration">{t("duration_minutes", "Duration (minutes)")}</Label>
               <Select value={duration.toString()} onValueChange={(v) => setDuration(parseInt(v))}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="15">15 minutes</SelectItem>
-                  <SelectItem value="30">30 minutes</SelectItem>
-                  <SelectItem value="45">45 minutes</SelectItem>
-                  <SelectItem value="60">1 hour</SelectItem>
-                  <SelectItem value="90">1.5 hours</SelectItem>
-                  <SelectItem value="120">2 hours</SelectItem>
+                  <SelectItem value="15">{t("15_minutes", "15 minutes")}</SelectItem>
+                  <SelectItem value="30">{t("30_minutes", "30 minutes")}</SelectItem>
+                  <SelectItem value="45">{t("45_minutes", "45 minutes")}</SelectItem>
+                  <SelectItem value="60">{t("1_hour", "1 hour")}</SelectItem>
+                  <SelectItem value="90">{t("15_hours", "1.5 hours")}</SelectItem>
+                  <SelectItem value="120">{t("2_hours", "2 hours")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div>
-              <Label htmlFor="max-participants">Max Participants</Label>
+              <Label htmlFor="max-participants">{t("max_participants", "Max Participants")}</Label>
               <Input
                 id="max-participants"
                 type="number"
                 min="2"
                 value={maxParticipants || ''}
                 onChange={(e) => setMaxParticipants(e.target.value ? parseInt(e.target.value) : undefined)}
-                placeholder="Unlimited"
+                placeholder={t("unlimited", "Unlimited")}
               />
             </div>
           </div>
@@ -231,7 +233,7 @@ export function CreateMeetingDialog({ trigger, onMeetingCreated }: CreateMeeting
             
             <div className="flex items-center justify-between">
               <div className="space-y-1">
-                <Label>Club AI Notetaker</Label>
+                <Label>{t("club_ai_notetaker", "Club AI Notetaker")}</Label>
                 <p className="text-xs text-muted-foreground">
                   AI bot will join, record, transcribe, and generate meeting insights
                 </p>
@@ -251,7 +253,7 @@ export function CreateMeetingDialog({ trigger, onMeetingCreated }: CreateMeeting
             </h4>
 
             <div>
-              <Label>Access Type</Label>
+              <Label>{t("access_type", "Access Type")}</Label>
               <Select value={accessType} onValueChange={(v: any) => setAccessType(v)}>
                 <SelectTrigger>
                   <SelectValue />
@@ -281,20 +283,20 @@ export function CreateMeetingDialog({ trigger, onMeetingCreated }: CreateMeeting
 
             {accessType === 'password' && (
               <div>
-                <Label htmlFor="password">Meeting Password</Label>
+                <Label htmlFor="password">{t("meeting_password", "Meeting Password")}</Label>
                 <Input
                   id="password"
                   type="text"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter password"
+                  placeholder={t("enter_password", "Enter password")}
                 />
               </div>
             )}
 
             <div className="flex items-center justify-between">
               <div className="space-y-1">
-                <Label>Allow Non-Members</Label>
+                <Label>{t("allow_nonmembers", "Allow Non-Members")}</Label>
                 <p className="text-xs text-muted-foreground">
                   Let guests join without a Quantum Club account
                 </p>
@@ -307,7 +309,7 @@ export function CreateMeetingDialog({ trigger, onMeetingCreated }: CreateMeeting
 
             <div className="flex items-center justify-between">
               <div className="space-y-1">
-                <Label>Require Approval</Label>
+                <Label>{t("require_approval", "Require Approval")}</Label>
                 <p className="text-xs text-muted-foreground">
                   Participants must request to join
                 </p>

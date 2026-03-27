@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
@@ -33,6 +34,7 @@ interface Meeting {
 }
 
 export function NeedsAttentionWidget() {
+  const { t } = useTranslation('common');
   const [followUps, setFollowUps] = useState<FollowUp[]>([]);
   const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [loading, setLoading] = useState(true);
@@ -123,7 +125,7 @@ export function NeedsAttentionWidget() {
     <Card className="p-2 sm:p-3 border-border bg-gradient-to-br from-accent/30 to-background overflow-hidden max-w-full">
       <div className="flex items-center gap-1.5 sm:gap-2 mb-2 sm:mb-3">
         <AlertCircle className="h-3 w-3 sm:h-4 sm:w-4 text-amber-500 flex-shrink-0" />
-        <h3 className="text-xs sm:text-sm font-semibold truncate">Needs Attention</h3>
+        <h3 className="text-xs sm:text-sm font-semibold truncate">{t("needs_attention", "Needs Attention")}</h3>
         <Badge variant="secondary" className="text-[10px] sm:text-xs flex-shrink-0">
           {followUps.length + meetings.length}
         </Badge>

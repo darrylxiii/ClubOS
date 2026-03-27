@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { RoleGate } from '@/components/RoleGate';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -40,6 +41,7 @@ import {
 import { toast } from 'sonner';
 
 export default function CampaignDashboard() {
+  const { t } = useTranslation('common');
   const [searchQuery, setSearchQuery] = useState('');
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -82,16 +84,14 @@ export default function CampaignDashboard() {
           className="flex flex-col md:flex-row md:items-center md:justify-between gap-4"
         >
           <div>
-            <h1 className="text-2xl font-bold">Campaigns</h1>
-            <p className="text-sm text-muted-foreground">
-              Manage your cold outreach campaigns
-            </p>
+            <h1 className="text-2xl font-bold">{t('campaignDashboard.text2')}</h1>
+            <p className="text-sm text-muted-foreground">{t('campaignDashboard.desc')}</p>
           </div>
           <div className="flex items-center gap-2">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
-                placeholder="Search campaigns..."
+                placeholder={t('campaignDashboard.text3')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-9 w-48 bg-muted/20 border-border/30"
@@ -150,7 +150,7 @@ export default function CampaignDashboard() {
           <Card className="bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border-border/30">
             <CardHeader>
               <CardTitle className="text-lg flex items-center justify-between">
-                <span>All Campaigns</span>
+                <span>{t('campaignDashboard.text4')}</span>
                 <Badge variant="outline">{filteredCampaigns.length} campaigns</Badge>
               </CardTitle>
             </CardHeader>
@@ -174,7 +174,7 @@ export default function CampaignDashboard() {
               ) : (
                 <div className="text-center py-12 text-muted-foreground">
                   <Mail className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                  <p>No campaigns found</p>
+                  <p>{t('campaignDashboard.text5')}</p>
                   <Button className="mt-4" onClick={() => setImportDialogOpen(true)}>
                     <Upload className="w-4 h-4 mr-2" />
                     Import from Instantly
@@ -272,14 +272,14 @@ function CampaignCard({ campaign, onStatusChange }: CampaignCardProps) {
               <Eye className="w-4 h-4 text-blue-500" />
               {openRate}%
             </div>
-            <p className="text-xs text-muted-foreground">Open Rate</p>
+            <p className="text-xs text-muted-foreground">{t('campaignDashboard.text6')}</p>
           </div>
           <div className="text-center">
             <div className="flex items-center gap-1 text-lg font-bold">
               <MessageSquare className="w-4 h-4 text-green-500" />
               {replyRate}%
             </div>
-            <p className="text-xs text-muted-foreground">Reply Rate</p>
+            <p className="text-xs text-muted-foreground">{t('campaignDashboard.text7')}</p>
           </div>
           {campaign.total_bounced > 0 && (
             <div className="text-center">
@@ -287,7 +287,7 @@ function CampaignCard({ campaign, onStatusChange }: CampaignCardProps) {
                 <AlertCircle className="w-4 h-4" />
                 {campaign.total_bounced}
               </div>
-              <p className="text-xs text-muted-foreground">Bounces</p>
+              <p className="text-xs text-muted-foreground">{t('campaignDashboard.text8')}</p>
             </div>
           )}
         </div>
@@ -331,7 +331,7 @@ function CampaignCard({ campaign, onStatusChange }: CampaignCardProps) {
       {/* Progress Bar */}
       <div className="mt-4">
         <div className="flex items-center justify-between text-xs mb-1">
-          <span className="text-muted-foreground">Campaign Progress</span>
+          <span className="text-muted-foreground">{t('campaignDashboard.text9')}</span>
           <span className="font-medium">
             {campaign.total_sent} / {campaign.total_prospects} sent
           </span>

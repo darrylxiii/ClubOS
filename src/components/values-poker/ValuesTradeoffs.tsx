@@ -1,4 +1,5 @@
 import { memo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -12,6 +13,7 @@ interface ValuesTradeoffsProps {
 }
 
 export const ValuesTradeoffs = memo(({ scenarios, session, onComplete }: ValuesTradeoffsProps) => {
+  const { t } = useTranslation('common');
   const [currentIndex, setCurrentIndex] = useState(0);
   const [startTime, setStartTime] = useState(Date.now());
 
@@ -61,7 +63,7 @@ export const ValuesTradeoffs = memo(({ scenarios, session, onComplete }: ValuesT
                 <span className="flex-shrink-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold">
                   A
                 </span>
-                <span className="font-semibold text-left">Option A</span>
+                <span className="font-semibold text-left">{t('valuesPoker.optionA')}</span>
               </div>
               <p className="text-sm text-muted-foreground text-left w-full break-words whitespace-normal">
                 {currentScenario.optionA.text}
@@ -78,7 +80,7 @@ export const ValuesTradeoffs = memo(({ scenarios, session, onComplete }: ValuesT
                 <span className="flex-shrink-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold">
                   B
                 </span>
-                <span className="font-semibold text-left">Option B</span>
+                <span className="font-semibold text-left">{t('valuesPoker.optionB')}</span>
               </div>
               <p className="text-sm text-muted-foreground text-left w-full break-words whitespace-normal">
                 {currentScenario.optionB.text}

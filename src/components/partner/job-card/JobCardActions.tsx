@@ -1,12 +1,14 @@
 import { memo } from "react";
 import { Button } from "@/components/ui/button";
 import { LayoutDashboard } from "lucide-react";
+import { useTranslation } from 'react-i18next';
 
 interface JobCardActionsProps {
   onOpenDashboard: () => void;
 }
 
 export const JobCardActions = memo(({ onOpenDashboard }: JobCardActionsProps) => {
+  const { t } = useTranslation('partner');
   return (
     <Button
       variant="glass"

@@ -1,0 +1,223 @@
+{
+  "title": "Vacatures",
+  "subtitle": "Beheer vacatures en sollicitaties",
+  "create": {
+    "title": "Vacature aanmaken",
+    "fromTemplate": "Aanmaken uit sjabloon",
+    "fromScratch": "Vanaf nul aanmaken",
+    "duplicate": "Vacature dupliceren"
+  },
+  "edit": {
+    "title": "Vacature bewerken",
+    "save": "Wijzigingen opslaan",
+    "publish": "Vacature publiceren",
+    "unpublish": "Vacature depubliceren"
+  },
+  "apply": {
+    "title": "Nu solliciteren",
+    "button": "Solliciteer op deze functie",
+    "submitted": "Sollicitatie ingediend",
+    "alreadyApplied": "Reeds gesolliciteerd",
+    "requiresLogin": "Log in om te solliciteren"
+  },
+  "details": {
+    "title": "Vacaturedetails",
+    "description": "Omschrijving",
+    "requirements": "Vereisten",
+    "responsibilities": "Verantwoordelijkheden",
+    "benefits": "Arbeidsvoorwaarden",
+    "salary": "Salarisbereik",
+    "location": "Locatie",
+    "department": "Afdeling",
+    "reportingTo": "Rapporteert aan",
+    "startDate": "Startdatum",
+    "deadline": "Sollicitatiedeadline"
+  },
+  "status": {
+    "draft": "Concept",
+    "published": "Gepubliceerd",
+    "closed": "Gesloten",
+    "paused": "Gepauzeerd",
+    "archived": "Gearchiveerd",
+    "filled": "Positie vervuld"
+  },
+  "types": {
+    "fullTime": "Fulltime",
+    "partTime": "Parttime",
+    "contract": "Contract",
+    "freelance": "Freelance",
+    "internship": "Stage",
+    "temporary": "Tijdelijk"
+  },
+  "workMode": {
+    "remote": "Remote",
+    "hybrid": "Hybride",
+    "onsite": "Op locatie",
+    "flexible": "Flexibel"
+  },
+  "experience": {
+    "entry": "Startersniveau",
+    "junior": "Junior (1-2 jaar)",
+    "mid": "Medior (3-5 jaar)",
+    "senior": "Senior (5-8 jaar)",
+    "lead": "Lead (8+ jaar)",
+    "executive": "Directie"
+  },
+  "pipeline": {
+    "title": "Pijplijn",
+    "applied": "Gesolliciteerd",
+    "screening": "Screening",
+    "interview": "Interview",
+    "assessment": "Assessment",
+    "offer": "Aanbieding",
+    "hired": "Aangenomen",
+    "rejected": "Afgewezen",
+    "candidatesInStage": "Kandidaten in deze fase"
+  },
+  "filters": {
+    "title": "Filters",
+    "all": "Alle vacatures",
+    "location": "Locatie",
+    "department": "Afdeling",
+    "type": "Type dienstverband",
+    "experience": "Ervaringsniveau",
+    "salary": "Salarisbereik",
+    "posted": "Geplaatst op",
+    "remote": "Alleen remote",
+    "clearAll": "Alle filters wissen"
+  },
+  "search": {
+    "placeholder": "Zoek vacatures op titel, bedrijf of vaardigheden...",
+    "noResults": "Geen vacatures gevonden",
+    "results": "vacatures gevonden",
+    "savedSearches": "Opgeslagen zoekopdrachten"
+  },
+  "actions": {
+    "view": "Vacature bekijken",
+    "edit": "Vacature bewerken",
+    "delete": "Vacature verwijderen",
+    "duplicate": "Vacature dupliceren",
+    "share": "Vacature delen",
+    "bookmark": "Vacature opslaan",
+    "removeBookmark": "Uit opgeslagen verwijderen",
+    "publish": "Publiceren",
+    "unpublish": "Depubliceren",
+    "close": "Positie sluiten",
+    "reopen": "Positie heropenen"
+  },
+  "applicants": {
+    "title": "Sollicitanten",
+    "new": "Nieuwe sollicitanten",
+    "total": "Totaal sollicitanten",
+    "qualified": "Gekwalificeerd",
+    "shortlisted": "Op shortlist",
+    "viewAll": "Alle sollicitanten bekijken"
+  },
+  "posting": {
+    "title": "Vacatureplaatsing",
+    "preview": "Plaatsing bekijken",
+    "visibility": "Zichtbaarheid",
+    "public": "Openbaar",
+    "private": "Privé",
+    "internal": "Alleen intern",
+    "expiry": "Verloopdatum plaatsing",
+    "boost": "Deze vacature promoten"
+  },
+  "analytics": {
+    "title": "Vacatureanalyse",
+    "views": "Vacatureweergaven",
+    "applications": "Sollicitaties",
+    "conversionRate": "Conversieratio",
+    "avgTimeToApply": "Gem. tijd tot sollicitatie",
+    "topSources": "Belangrijkste bronnen"
+  },
+  "recommendations": {
+    "title": "Aanbevolen voor u",
+    "basedOn": "Op basis van uw profiel",
+    "similar": "Vergelijkbare vacatures",
+    "trending": "Populaire vacatures"
+  },
+  "alerts": {
+    "title": "Vacature-alerts",
+    "create": "Alert aanmaken",
+    "manage": "Alerts beheren",
+    "frequency": "Alertfrequentie",
+    "daily": "Dagelijks",
+    "weekly": "Wekelijks",
+    "instant": "Direct"
+  },
+  "company": {
+    "about": "Over het bedrijf",
+    "culture": "Bedrijfscultuur",
+    "size": "Bedrijfsgrootte",
+    "industry": "Sector",
+    "website": "Website",
+    "otherJobs": "Andere vacatures bij dit bedrijf"
+  },
+  "application": {
+    "resume": "CV",
+    "coverLetter": "Motivatiebrief",
+    "questions": "Sollicitatievragen",
+    "attachments": "Bijlagen",
+    "submit": "Sollicitatie indienen",
+    "withdraw": "Sollicitatie intrekken"
+  },
+  "empty": {
+    "noJobs": "Geen vacatures beschikbaar",
+    "noSavedJobs": "Geen opgeslagen vacatures",
+    "noApplications": "Nog geen sollicitaties",
+    "createFirst": "Plaats uw eerste vacature"
+  },
+  "notifications": {
+    "published": "Vacature succesvol gepubliceerd",
+    "updated": "Vacature succesvol bijgewerkt",
+    "closed": "Vacature gesloten",
+    "applicationReceived": "Nieuwe sollicitatie ontvangen"
+  },
+  "companyJobsDashboard": {
+    "desc": "Uw vacatures beheren en de wervingspipeline aanpassen",
+    "desc2": "Deze fasen worden als sjabloon gebruikt voor alle nieuwe vacatures",
+    "desc3": "Nieuwe sollicitatie",
+    "desc4": "Ontvang een melding wanneer een kandidaat solliciteert",
+    "desc5": "Fasewijzigingen",
+    "desc6": "Ontvang een melding wanneer kandidaten tussen fasen bewegen",
+    "desc7": "Afwijzingen",
+    "desc8": "Ontvang een melding wanneer kandidaten worden afgewezen",
+    "desc9": "Configureer hoe kandidaten voor deze functie worden beoordeeld"
+  },
+  "jobDetail": {
+    "text1": "Vacature niet gevonden",
+    "text2": "Terug naar vacatures",
+    "text3": "Overzicht",
+    "text4": "Details",
+    "text5": "Matches",
+    "text6": "Bedrijf",
+    "text7": "Activiteit",
+    "text8": "Sollicitatiebrief genereren",
+    "text9": "Maak een AI-gegenereerde sollicitatiebrief voor deze functie",
+    "text10": "Sollicitatiebrief schrijver",
+    "text11": "Belangrijkste verantwoordelijkheden",
+    "text12": "Belangrijkste werkgebieden",
+    "text13": "Topvoordelen",
+    "text14": "Wat wij bieden",
+    "text15": "Vacatureanalyse",
+    "text16": "Prestatiestatistieken en inzichten",
+    "text17": "Totaal sollicitaties",
+    "text18": "Totaal views",
+    "text19": "Conversiepercentage",
+    "text20": "Dagen actief"
+  },
+  "jobs": {
+    "title": "Nog geen saved jobs",
+    "desc": "Geselecteerde rollen voor leden van The Quantum Club",
+    "desc2": "Blader door kansen en sla rollen op die u interesseren"
+  },
+  "sharedPipelineView": {
+    "desc": "Deze pipeline is beveiligd. Voer het wachtwoord in om deze te bekijken.",
+    "text2": "Link niet beschikbaar",
+    "text3": "Wachtwoord vereist",
+    "text4": "Wachtwoord invoeren",
+    "text5": "Nog geen kandidaten in deze pipeline.",
+    "text6": "The Quantum Club"
+  }
+}

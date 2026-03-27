@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -38,6 +39,7 @@ interface ActionOutcome {
 }
 
 export function LearningInsightsPanel() {
+  const { t } = useTranslation('common');
   // Fetch behavior rules
   const { data: rules, isLoading: rulesLoading } = useQuery({
     queryKey: ['behavior-rules'],
@@ -105,45 +107,45 @@ export function LearningInsightsPanel() {
       <div className="grid gap-4 md:grid-cols-4">
         <Card variant="static">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Success Rate</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("success_rate", "Success Rate")}</CardTitle>
             <TrendingUp className="h-4 w-4 text-emerald-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{successRate}%</div>
-            <p className="text-xs text-muted-foreground">Last 7 days</p>
+            <p className="text-xs text-muted-foreground">{t("last_7_days", "Last 7 days")}</p>
           </CardContent>
         </Card>
 
         <Card variant="static">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Rules</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("active_rules", "Active Rules")}</CardTitle>
             <Brain className="h-4 w-4 text-purple-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.activeRules}</div>
-            <p className="text-xs text-muted-foreground">Learned behaviors</p>
+            <p className="text-xs text-muted-foreground">{t("learned_behaviors", "Learned behaviors")}</p>
           </CardContent>
         </Card>
 
         <Card variant="static">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Positive Outcomes</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("positive_outcomes", "Positive Outcomes")}</CardTitle>
             <CheckCircle2 className="h-4 w-4 text-emerald-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.positiveOutcomes}</div>
-            <p className="text-xs text-muted-foreground">This week</p>
+            <p className="text-xs text-muted-foreground">{t("this_week", "This week")}</p>
           </CardContent>
         </Card>
 
         <Card variant="static">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Avg Confidence</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("avg_confidence", "Avg Confidence")}</CardTitle>
             <Target className="h-4 w-4 text-blue-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.avgConfidence}%</div>
-            <p className="text-xs text-muted-foreground">Rule confidence</p>
+            <p className="text-xs text-muted-foreground">{t("rule_confidence", "Rule confidence")}</p>
           </CardContent>
         </Card>
       </div>
@@ -231,7 +233,7 @@ function RuleCard({ rule }: { rule: BehaviorRule }) {
       {totalOutcomes > 0 && (
         <div className="space-y-1">
           <div className="flex justify-between text-xs text-muted-foreground">
-            <span>Success rate</span>
+            <span>{t("success_rate", "Success rate")}</span>
             <span>{successRate.toFixed(0)}%</span>
           </div>
           <Progress value={successRate} className="h-1.5" />

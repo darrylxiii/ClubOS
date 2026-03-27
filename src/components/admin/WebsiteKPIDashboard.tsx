@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -123,6 +124,7 @@ const KPIGrid = ({
 };
 
 export function WebsiteKPIDashboard() {
+  const { t } = useTranslation('common');
   const { data: kpis, isLoading, refetch } = useLatestWebKPIs();
   const calculateKPIs = useCalculateWebKPIs();
 
@@ -130,9 +132,9 @@ export function WebsiteKPIDashboard() {
     try {
       await calculateKPIs.mutateAsync();
       await refetch();
-      toast.success('KPIs refreshed successfully');
+      toast.success(t("kpis_refreshed_successfully", "KPIs refreshed successfully"));
     } catch (error) {
-      toast.error('Failed to refresh KPIs');
+      toast.error(t("failed_to_refresh_kpis", "Failed to refresh KPIs"));
     }
   };
 
@@ -157,8 +159,8 @@ export function WebsiteKPIDashboard() {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Website KPI Dashboard</h1>
-          <p className="text-muted-foreground">Strategic performance metrics for web & marketing</p>
+          <h1 className="text-3xl font-bold tracking-tight">{t("website_kpi_dashboard", "Website KPI Dashboard")}</h1>
+          <p className="text-muted-foreground">{t("strategic_performance_metrics_for", "Strategic performance metrics for web & marketing")}</p>
         </div>
         <Button onClick={handleRefresh} disabled={calculateKPIs.isPending}>
           <RefreshCw className={`mr-2 h-4 w-4 ${calculateKPIs.isPending ? 'animate-spin' : ''}`} />
@@ -192,35 +194,35 @@ export function WebsiteKPIDashboard() {
         <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6">
           <TabsTrigger value="north_star" className="gap-2">
             <Brain className="h-4 w-4" />
-            <span className="hidden sm:inline">North Star</span>
+            <span className="hidden sm:inline">{t("north_star", "North Star")}</span>
           </TabsTrigger>
           <TabsTrigger value="funnel" className="gap-2">
             <TrendingUp className="h-4 w-4" />
-            <span className="hidden sm:inline">Performance</span>
+            <span className="hidden sm:inline">{t("performance", "Performance")}</span>
           </TabsTrigger>
           <TabsTrigger value="attribution" className="gap-2">
             <Share2 className="h-4 w-4" />
-            <span className="hidden sm:inline">Attribution</span>
+            <span className="hidden sm:inline">{t("attribution", "Attribution")}</span>
           </TabsTrigger>
           <TabsTrigger value="ai_insights" className="gap-2">
             <Sparkles className="h-4 w-4" />
-            <span className="hidden sm:inline">AI Insights</span>
+            <span className="hidden sm:inline">{t("ai_insights", "AI Insights")}</span>
           </TabsTrigger>
           <TabsTrigger value="retention" className="gap-2">
             <RotateCcw className="h-4 w-4" />
-            <span className="hidden sm:inline">Retention</span>
+            <span className="hidden sm:inline">{t("retention", "Retention")}</span>
           </TabsTrigger>
           <TabsTrigger value="google_signals" className="gap-2">
             <Target className="h-4 w-4" />
-            <span className="hidden sm:inline">Google</span>
+            <span className="hidden sm:inline">{t("google", "Google")}</span>
           </TabsTrigger>
         </TabsList>
 
         {/* North Star Metrics */}
         <TabsContent value="north_star" className="space-y-6">
           <div>
-            <h2 className="text-xl font-semibold mb-4">🧠 Strategic North Star Metrics</h2>
-            <p className="text-muted-foreground mb-6">Core acquisition metrics that drive business growth</p>
+            <h2 className="text-xl font-semibold mb-4">{t("strategic_north_star_metrics", "🧠 Strategic North Star Metrics")}</h2>
+            <p className="text-muted-foreground mb-6">{t("core_acquisition_metrics_that", "Core acquisition metrics that drive business growth")}</p>
           </div>
           <KPIGrid 
             kpis={getKPIsByCategory('north_star')}
@@ -233,13 +235,13 @@ export function WebsiteKPIDashboard() {
           />
           <Card>
             <CardHeader>
-              <CardTitle>Actionable Insights</CardTitle>
+              <CardTitle>{t("actionable_insights", "Actionable Insights")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2 text-sm">
-              <p>• <strong>CPL &gt; €175:</strong> Optimize campaigns per audience or keyword</p>
-              <p>• <strong>CPSQL high:</strong> Disable low SQL-output campaigns immediately</p>
-              <p>• <strong>Landing Page CR &lt; 3%:</strong> A/B test pages with &gt;70% bounce</p>
-              <p>• <strong>Search-to-Lead &gt; 48h:</strong> Implement retargeting or shortened path</p>
+              <p>• <strong>{t("cpl_gt_175", "CPL &gt; €175:")}</strong>{t("optimize_campaigns_per_audience", "Optimize campaigns per audience or keyword")}</p>
+              <p>• <strong>{t("cpsql_high", "CPSQL high:")}</strong>{t("disable_low_sqloutput_campaigns", "Disable low SQL-output campaigns immediately")}</p>
+              <p>• <strong>{t("landing_page_cr_lt", "Landing Page CR &lt; 3%:")}</strong>{t("ab_test_pages_with", "A/B test pages with &gt;70% bounce")}</p>
+              <p>• <strong>{t("searchtolead_gt_48h", "Search-to-Lead &gt; 48h:")}</strong>{t("implement_retargeting_or_shortened", "Implement retargeting or shortened path")}</p>
             </CardContent>
           </Card>
         </TabsContent>
@@ -247,8 +249,8 @@ export function WebsiteKPIDashboard() {
         {/* Performance & Funnel */}
         <TabsContent value="funnel" className="space-y-6">
           <div>
-            <h2 className="text-xl font-semibold mb-4">🚀 Performance & Funnel Metrics</h2>
-            <p className="text-muted-foreground mb-6">Session data, engagement, and Core Web Vitals</p>
+            <h2 className="text-xl font-semibold mb-4">{t("performance_funnel_metrics", "🚀 Performance & Funnel Metrics")}</h2>
+            <p className="text-muted-foreground mb-6">{t("session_data_engagement_and", "Session data, engagement, and Core Web Vitals")}</p>
           </div>
           <KPIGrid 
             kpis={getKPIsByCategory('funnel')}
@@ -265,13 +267,13 @@ export function WebsiteKPIDashboard() {
           />
           <Card>
             <CardHeader>
-              <CardTitle>Optimization Actions</CardTitle>
+              <CardTitle>{t("optimization_actions", "Optimization Actions")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2 text-sm">
-              <p>• <strong>CTR &lt; 1.5%:</strong> Update meta titles and descriptions</p>
-              <p>• <strong>Bounce &gt; 50%:</strong> Analyze heatmaps for problem pages</p>
-              <p>• <strong>LCP &gt; 2.5s:</strong> Compress media, lazy-load JS</p>
-              <p>• <strong>Low non-brand impressions:</strong> Expand AI content & SEO</p>
+              <p>• <strong>{t("ctr_lt_15", "CTR &lt; 1.5%:")}</strong>{t("update_meta_titles_and", "Update meta titles and descriptions")}</p>
+              <p>• <strong>{t("bounce_gt_50", "Bounce &gt; 50%:")}</strong>{t("analyze_heatmaps_for_problem", "Analyze heatmaps for problem pages")}</p>
+              <p>• <strong>{t("lcp_gt_25s", "LCP &gt; 2.5s:")}</strong>{t("compress_media_lazyload_js", "Compress media, lazy-load JS")}</p>
+              <p>• <strong>{t("low_nonbrand_impressions", "Low non-brand impressions:")}</strong>{t("expand_ai_content_seo", "Expand AI content & SEO")}</p>
             </CardContent>
           </Card>
         </TabsContent>
@@ -279,8 +281,8 @@ export function WebsiteKPIDashboard() {
         {/* Attribution */}
         <TabsContent value="attribution" className="space-y-6">
           <div>
-            <h2 className="text-xl font-semibold mb-4">📲 Channel & Campaign Attribution</h2>
-            <p className="text-muted-foreground mb-6">Understand which channels drive conversions</p>
+            <h2 className="text-xl font-semibold mb-4">{t("channel_campaign_attribution", "📲 Channel & Campaign Attribution")}</h2>
+            <p className="text-muted-foreground mb-6">{t("understand_which_channels_drive", "Understand which channels drive conversions")}</p>
           </div>
           <KPIGrid 
             kpis={getKPIsByCategory('attribution')}
@@ -293,12 +295,12 @@ export function WebsiteKPIDashboard() {
           />
           <Card>
             <CardHeader>
-              <CardTitle>Attribution Insights</CardTitle>
+              <CardTitle>{t("attribution_insights", "Attribution Insights")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2 text-sm">
-              <p>• Use attribution mix for <strong>budget allocation decisions</strong></p>
-              <p>• <strong>Session→SQL lag &gt; 72h:</strong> Implement remarketing or chatbot outreach</p>
-              <p>• High referral %: Double down on partnership programs</p>
+              <p>• Use attribution mix for <strong>{t("budget_allocation_decisions", "budget allocation decisions")}</strong></p>
+              <p>• <strong>{t("sessionsql_lag_gt_72h", "Session→SQL lag &gt; 72h:")}</strong>{t("implement_remarketing_or_chatbot", "Implement remarketing or chatbot outreach")}</p>
+              <p>{t("high_referral_double_down", "• High referral %: Double down on partnership programs")}</p>
             </CardContent>
           </Card>
         </TabsContent>
@@ -306,8 +308,8 @@ export function WebsiteKPIDashboard() {
         {/* AI Insights */}
         <TabsContent value="ai_insights" className="space-y-6">
           <div>
-            <h2 className="text-xl font-semibold mb-4">🧪 AI-Driven UX & Content Insights</h2>
-            <p className="text-muted-foreground mb-6">GPT-4o powered content analysis</p>
+            <h2 className="text-xl font-semibold mb-4">{t("aidriven_ux_content_insights", "🧪 AI-Driven UX & Content Insights")}</h2>
+            <p className="text-muted-foreground mb-6">{t("gpt4o_powered_content_analysis", "GPT-4o powered content analysis")}</p>
           </div>
           <KPIGrid 
             kpis={getKPIsByCategory('ai_insights')}
@@ -319,12 +321,12 @@ export function WebsiteKPIDashboard() {
           />
           <Card>
             <CardHeader>
-              <CardTitle>Content Optimization</CardTitle>
+              <CardTitle>{t("content_optimization", "Content Optimization")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2 text-sm">
-              <p>• <strong>Clarity &lt; 6:</strong> Simplify paragraphs flagged as complex</p>
-              <p>• <strong>High negative sentiment:</strong> A/B test alternative headlines</p>
-              <p>• <strong>Heat Trigger &lt; 0.3:</strong> Switch images or CTAs to boost engagement</p>
+              <p>• <strong>{t("clarity_lt_6", "Clarity &lt; 6:")}</strong>{t("simplify_paragraphs_flagged_as", "Simplify paragraphs flagged as complex")}</p>
+              <p>• <strong>{t("high_negative_sentiment", "High negative sentiment:")}</strong>{t("ab_test_alternative_headlines", "A/B test alternative headlines")}</p>
+              <p>• <strong>{t("heat_trigger_lt_03", "Heat Trigger &lt; 0.3:")}</strong>{t("switch_images_or_ctas", "Switch images or CTAs to boost engagement")}</p>
             </CardContent>
           </Card>
         </TabsContent>
@@ -332,8 +334,8 @@ export function WebsiteKPIDashboard() {
         {/* Retention */}
         <TabsContent value="retention" className="space-y-6">
           <div>
-            <h2 className="text-xl font-semibold mb-4">🔁 Retention & Re-Engagement</h2>
-            <p className="text-muted-foreground mb-6">Keep visitors coming back</p>
+            <h2 className="text-xl font-semibold mb-4">{t("retention_reengagement", "🔁 Retention & Re-Engagement")}</h2>
+            <p className="text-muted-foreground mb-6">{t("keep_visitors_coming_back", "Keep visitors coming back")}</p>
           </div>
           <KPIGrid 
             kpis={getKPIsByCategory('retention')}
@@ -344,13 +346,13 @@ export function WebsiteKPIDashboard() {
           />
           <Card>
             <CardHeader>
-              <CardTitle>Retention Strategies</CardTitle>
+              <CardTitle>{t("retention_strategies", "Retention Strategies")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2 text-sm">
-              <p>• <strong>Returning visitors &lt; 20%:</strong> Deploy email/LinkedIn retargeting</p>
-              <p>• <strong>Low retarget CR:</strong> Optimize audiences and hook copy</p>
-              <p>• Grow first-party audience via gated incentives or lead magnets</p>
-              <p>• Users scrolling but not clicking? Add sticky CTA or floating footer</p>
+              <p>• <strong>{t("returning_visitors_lt_20", "Returning visitors &lt; 20%:")}</strong>{t("deploy_emaillinkedin_retargeting", "Deploy email/LinkedIn retargeting")}</p>
+              <p>• <strong>{t("low_retarget_cr", "Low retarget CR:")}</strong>{t("optimize_audiences_and_hook", "Optimize audiences and hook copy")}</p>
+              <p>{t("grow_firstparty_audience_via", "• Grow first-party audience via gated incentives or lead magnets")}</p>
+              <p>{t("users_scrolling_but_not", "• Users scrolling but not clicking? Add sticky CTA or floating footer")}</p>
             </CardContent>
           </Card>
         </TabsContent>
@@ -358,8 +360,8 @@ export function WebsiteKPIDashboard() {
         {/* Google Signals */}
         <TabsContent value="google_signals" className="space-y-6">
           <div>
-            <h2 className="text-xl font-semibold mb-4">🎯 Google-Specific Strategic Signals</h2>
-            <p className="text-muted-foreground mb-6">Google Growth Partner level metrics</p>
+            <h2 className="text-xl font-semibold mb-4">{t("googlespecific_strategic_signals", "🎯 Google-Specific Strategic Signals")}</h2>
+            <p className="text-muted-foreground mb-6">{t("google_growth_partner_level", "Google Growth Partner level metrics")}</p>
           </div>
           <KPIGrid 
             kpis={getKPIsByCategory('google_signals')}
@@ -373,19 +375,19 @@ export function WebsiteKPIDashboard() {
           />
           <Card>
             <CardHeader>
-              <CardTitle>Google Performance Targets</CardTitle>
+              <CardTitle>{t("google_performance_targets", "Google Performance Targets")}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2 text-sm">
-                  <p>• <strong>Branded CTR target:</strong> &gt;2.5% (signals trust)</p>
-                  <p>• <strong>Non-Branded CTR target:</strong> &gt;1.5% (signals relevance)</p>
-                  <p>• <strong>GCLID Capture:</strong> ≥95% of paid sessions</p>
+                  <p>• <strong>{t("branded_ctr_target", "Branded CTR target:")}</strong>{t("gt25_signals_trust", "&gt;2.5% (signals trust)")}</p>
+                  <p>• <strong>{t("nonbranded_ctr_target", "Non-Branded CTR target:")}</strong>{t("gt15_signals_relevance", "&gt;1.5% (signals relevance)")}</p>
+                  <p>• <strong>{t("gclid_capture", "GCLID Capture:")}</strong>{t("95_of_paid_sessions", "≥95% of paid sessions")}</p>
                 </div>
                 <div className="space-y-2 text-sm">
-                  <p>• <strong>Offline Conversion API:</strong> ≤48h return</p>
-                  <p>• <strong>CWV Pass:</strong> 100% pages passing</p>
-                  <p>• <strong>SQLs from Search:</strong> +15/mo milestone</p>
+                  <p>• <strong>{t("offline_conversion_api", "Offline Conversion API:")}</strong>{t("48h_return", "≤48h return")}</p>
+                  <p>• <strong>{t("cwv_pass", "CWV Pass:")}</strong>{t("100_pages_passing", "100% pages passing")}</p>
+                  <p>• <strong>{t("sqls_from_search", "SQLs from Search:")}</strong>{t("15mo_milestone", "+15/mo milestone")}</p>
                 </div>
               </div>
             </CardContent>

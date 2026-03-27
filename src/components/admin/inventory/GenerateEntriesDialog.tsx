@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -32,6 +33,7 @@ const formatCurrency = (v: number) => new Intl.NumberFormat('nl-NL', { style: 'c
 const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
 export function GenerateEntriesDialog({ open, onOpenChange, year, month, onGenerated }: GenerateEntriesDialogProps) {
+  const { t } = useTranslation('common');
   const [loading, setLoading] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [preview, setPreview] = useState<PreviewEntry[]>([]);
@@ -86,7 +88,7 @@ export function GenerateEntriesDialog({ open, onOpenChange, year, month, onGener
       setPreview(previewEntries);
     } catch (err) {
       console.error('Failed to load preview:', err);
-      toast.error('Failed to load preview');
+      toast.error(t("failed_to_load_preview", "Failed to load preview"));
     } finally {
       setLoading(false);
     }
@@ -117,7 +119,7 @@ export function GenerateEntriesDialog({ open, onOpenChange, year, month, onGener
         }));
 
       if (entriesToCreate.length === 0) {
-        toast.info('No new entries to create');
+        toast.info(t("no_new_entries_to", "No new entries to create"));
         onOpenChange(false);
         return;
       }
@@ -152,7 +154,7 @@ export function GenerateEntriesDialog({ open, onOpenChange, year, month, onGener
       onOpenChange(false);
     } catch (err) {
       console.error('Failed to generate entries:', err);
-      toast.error('Failed to generate entries');
+      toast.error(t("failed_to_generate_entries", "Failed to generate entries"));
     } finally {
       setGenerating(false);
     }
@@ -166,7 +168,7 @@ export function GenerateEntriesDialog({ open, onOpenChange, year, month, onGener
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Generate Depreciation Entries</DialogTitle>
+          <DialogTitle>{t("generate_depreciation_entries", "Generate Depreciation Entries")}</DialogTitle>
           <DialogDescription>
             Preview and adjust depreciation entries for {months[month - 1]} {year}
           </DialogDescription>
@@ -181,15 +183,15 @@ export function GenerateEntriesDialog({ open, onOpenChange, year, month, onGener
             {/* Summary */}
             <div className="grid grid-cols-3 gap-4 mb-4">
               <div className="rounded-lg border p-3">
-                <div className="text-sm text-muted-foreground">New Entries</div>
+                <div className="text-sm text-muted-foreground">{t("new_entries", "New Entries")}</div>
                 <div className="text-2xl font-bold">{newEntries.length}</div>
               </div>
               <div className="rounded-lg border p-3">
-                <div className="text-sm text-muted-foreground">Already Exists</div>
+                <div className="text-sm text-muted-foreground">{t("already_exists", "Already Exists")}</div>
                 <div className="text-2xl font-bold text-muted-foreground">{existingEntries.length}</div>
               </div>
               <div className="rounded-lg border p-3">
-                <div className="text-sm text-muted-foreground">Total Depreciation</div>
+                <div className="text-sm text-muted-foreground">{t("total_depreciation", "Total Depreciation")}</div>
                 <div className="text-2xl font-bold">{formatCurrency(totalDepreciation)}</div>
               </div>
             </div>
@@ -206,12 +208,12 @@ export function GenerateEntriesDialog({ open, onOpenChange, year, month, onGener
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Asset</TableHead>
-                    <TableHead>Category</TableHead>
-                    <TableHead className="text-right">Calculated</TableHead>
-                    <TableHead className="text-right w-[140px]">Adjusted Amount</TableHead>
-                    <TableHead className="text-right">Book Value After</TableHead>
-                    <TableHead>Status</TableHead>
+                    <TableHead>{t("asset", "Asset")}</TableHead>
+                    <TableHead>{t("category", "Category")}</TableHead>
+                    <TableHead className="text-right">{t("calculated", "Calculated")}</TableHead>
+                    <TableHead className="text-right w-[140px]">{t("adjusted_amount", "Adjusted Amount")}</TableHead>
+                    <TableHead className="text-right">{t("book_value_after", "Book Value After")}</TableHead>
+                    <TableHead>{t("status", "Status")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -247,7 +249,7 @@ export function GenerateEntriesDialog({ open, onOpenChange, year, month, onGener
                             <CheckCircle2 className="h-3 w-3" /> Exists
                           </span>
                         ) : (
-                          <span className="text-xs text-primary">New</span>
+                          <span className="text-xs text-primary">{t("new", "New")}</span>
                         )}
                       </TableCell>
                     </TableRow>
@@ -259,7 +261,7 @@ export function GenerateEntriesDialog({ open, onOpenChange, year, month, onGener
         )}
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>{t("cancel", "Cancel")}</Button>
           <Button onClick={handleGenerate} disabled={generating || newEntries.length === 0}>
             {generating && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
             Generate {newEntries.length} Entries

@@ -1,6 +1,29 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
+interface CompanyWithRelations {
+  id: string;
+  name: string;
+  logo_url: string | null;
+  jobs: { id: string; status: string; created_at: string }[];
+  company_intelligence_scores: {
+    hiring_health_score: number | null;
+    engagement_score: number | null;
+    communication_score: number | null;
+  }[];
+}
+
+interface PlacementRow {
+  job_id: string;
+  status: string;
+  created_at: string;
+}
+
+interface ActivityRow {
+  company_id: string | null;
+  created_at: string | null;
+}
+
 export interface ClientHealthData {
   company_id: string;
   company_name: string;
@@ -57,17 +80,17 @@ export function useClientHealthScores() {
         .order('created_at', { ascending: false });
 
       // Calculate health scores for each company
-      const healthData: ClientHealthData[] = (companies || []).map((company: any) => {
+      const healthData: ClientHealthData[] = ((companies || []) as CompanyWithRelations[]).map((company) => {
         const companyJobs = company.jobs || [];
-        const companyJobIds = companyJobs.map((j: any) => j.id);
-        const companyPlacements = (placements || []).filter(
-          (p: any) => companyJobIds.includes(p.job_id)
+        const companyJobIds = companyJobs.map((j) => j.id);
+        const companyPlacements = ((placements || []) as PlacementRow[]).filter(
+          (p) => companyJobIds.includes(p.job_id)
         );
-        const companyActivities = (activities || []).filter(
-          (a: any) => a.company_id === company.id
+        const companyActivities = ((activities || []) as ActivityRow[]).filter(
+          (a) => a.company_id === company.id
         );
-        
-        const activeJobs = companyJobs.filter((j: any) => ['open', 'published'].includes(j.status)).length;
+
+        const activeJobs = companyJobs.filter((j) => ['open', 'published'].includes(j.status)).length;
         const pipelineValue = 0; // Simplified - would need deals query
         
         const intelligence = company.company_intelligence_scores?.[0];

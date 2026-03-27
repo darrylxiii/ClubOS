@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
@@ -23,6 +24,7 @@ interface AchievementNode {
 }
 
 export const AchievementTree = () => {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [tree, setTree] = useState<AchievementNode[]>([]);
   const [loading, setLoading] = useState(true);
@@ -194,7 +196,7 @@ export const AchievementTree = () => {
     return (
       <Card className="p-8 text-center">
         <Sparkles className="h-8 w-8 mx-auto mb-4 animate-spin text-primary" />
-        <p className="text-muted-foreground">Loading achievement paths...</p>
+        <p className="text-muted-foreground">{t('achievements.loadingPaths')}</p>
       </Card>
     );
   }
@@ -202,9 +204,9 @@ export const AchievementTree = () => {
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <h3 className="text-lg font-semibold">Achievement Paths</h3>
+        <h3 className="text-lg font-semibold">{t('achievements.achievementPaths')}</h3>
         <p className="text-sm text-muted-foreground">
-          Unlock achievements in sequence to progress through skill trees
+          {t('achievements.unlockInSequence')}
         </p>
       </div>
 
@@ -216,7 +218,7 @@ export const AchievementTree = () => {
             <Card className="p-12 text-center">
               <Lock className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
               <p className="text-muted-foreground">
-                No achievement paths configured yet
+                {t('achievements.noPathsConfigured')}
               </p>
             </Card>
           )}

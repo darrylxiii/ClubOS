@@ -1,4 +1,5 @@
 import { useState, useCallback, ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { motion, useMotionValue, useTransform } from '@/lib/motion';
 import type { PanInfo } from '@/lib/motion';
 import { Loader2 } from 'lucide-react';
@@ -20,6 +21,7 @@ export function PullToRefresh({
   threshold = 80,
   className,
 }: PullToRefreshProps) {
+  const { t } = useTranslation('common');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isPulling, setIsPulling] = useState(false);
   const { impact } = useHaptics();

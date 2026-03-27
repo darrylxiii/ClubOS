@@ -1,9 +1,11 @@
+import { useTranslation } from 'react-i18next';
 import { useMaintenanceMode } from '@/hooks/useMaintenanceMode';
 import { AlertTriangle, Clock } from 'lucide-react';
 import { format } from 'date-fns';
 import { motion, AnimatePresence } from '@/lib/motion';
 
 export function MaintenanceModeBanner() {
+  const { t } = useTranslation('common');
   const { config, isMaintenanceMode } = useMaintenanceMode();
 
   if (!isMaintenanceMode) return null;
@@ -19,7 +21,7 @@ export function MaintenanceModeBanner() {
         <div className="container mx-auto flex items-center justify-center gap-4">
           <div className="flex items-center gap-2">
             <AlertTriangle className="h-5 w-5" />
-            <span className="font-medium">Maintenance Mode Active</span>
+            <span className="font-medium">{t("maintenance_mode_active", "Maintenance Mode Active")}</span>
           </div>
 
           {config.message && (

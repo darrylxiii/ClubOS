@@ -12,8 +12,10 @@ import { SecurityControlsPanel } from './SecurityControlsPanel';
 import { ThreatHistory } from './ThreatHistory';
 import { useThreatRealtimeSubscription, useRunThreatScan, useThreatSummary } from '@/hooks/useThreatDetection';
 import { format } from 'date-fns';
+import { useTranslation } from 'react-i18next';
 
 export function AntiHackingDashboard() {
+  const { t } = useTranslation('admin');
   useThreatRealtimeSubscription();
   const runScan = useRunThreatScan();
   const { data: summary } = useThreatSummary();

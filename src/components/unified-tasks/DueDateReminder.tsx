@@ -3,12 +3,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { isToday, isTomorrow, format } from "date-fns";
+import { useTranslation } from "react-i18next";
 
 /**
  * Invisible component that checks for due-today / overdue tasks on mount
  * and shows a toast notification. Runs once per session.
  */
 export function DueDateReminder() {
+  const { t } = useTranslation("common");
   const { user } = useAuth();
   const hasRun = useRef(false);
 
@@ -40,7 +42,7 @@ export function DueDateReminder() {
         );
 
         if (overdue.length > 0) {
-          toast.warning(`${overdue.length} overdue task${overdue.length > 1 ? "s" : ""}`, {
+          toast.warning(t('tasks.reminders.overdueTasks', { count: overdue.length }), {
             description: overdue
               .slice(0, 3)
               .map((t) => t.title)

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useMemo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useFinancialAuditLog } from '@/hooks/useFinancialAuditLog';
@@ -28,6 +29,7 @@ import { Currency, CURRENCY_SYMBOLS, convertCurrency } from '@/lib/currencyConve
 const SALARY_CURRENCIES: Currency[] = ['EUR', 'USD', 'GBP', 'AED'];
 
 export function AddPlacementFeeDialog() {
+  const { t } = useTranslation('common');
   const queryClient = useQueryClient();
   const { logAction } = useFinancialAuditLog();
   const [open, setOpen] = useState(false);
@@ -79,7 +81,7 @@ export function AddPlacementFeeDialog() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.job_id || !formData.candidate_salary) {
-      toast.error('Please fill in all required fields');
+      toast.error(t("please_fill_in_all", "Please fill in all required fields"));
       return;
     }
 
@@ -123,7 +125,7 @@ export function AddPlacementFeeDialog() {
         },
       });
 
-      toast.success('Placement fee created successfully');
+      toast.success(t("placement_fee_created_successfully", "Placement fee created successfully"));
       queryClient.invalidateQueries({ queryKey: ['placement-fees'] });
       queryClient.invalidateQueries({ queryKey: ['placement-fee-health'] });
       queryClient.invalidateQueries({ queryKey: ['jobs-without-fees'] });
@@ -138,7 +140,7 @@ export function AddPlacementFeeDialog() {
       });
     } catch (error) {
       console.error('Error creating fee:', error);
-      toast.error('Failed to create placement fee');
+      toast.error(t("failed_to_create_placement", "Failed to create placement fee"));
     } finally {
       setIsSubmitting(false);
     }
@@ -154,20 +156,20 @@ export function AddPlacementFeeDialog() {
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add Placement Fee</DialogTitle>
+          <DialogTitle>{t("add_placement_fee", "Add Placement Fee")}</DialogTitle>
           <DialogDescription>
             Manually create a placement fee record for a closed role.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="job">Role</Label>
+            <Label htmlFor="job">{t("role", "Role")}</Label>
             <Select
               value={formData.job_id}
               onValueChange={(value) => setFormData(prev => ({ ...prev, job_id: value }))}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Select a closed role" />
+                <SelectValue placeholder={t("select_a_closed_role", "Select a closed role")} />
               </SelectTrigger>
               <SelectContent>
                 {availableJobs?.map((job: any) => (
@@ -181,7 +183,7 @@ export function AddPlacementFeeDialog() {
 
           <div className="grid grid-cols-3 gap-3">
             <div className="space-y-2 col-span-1">
-              <Label>Currency</Label>
+              <Label>{t("currency", "Currency")}</Label>
               <Select
                 value={formData.currency_code}
                 onValueChange={(v) => setFormData(prev => ({ ...prev, currency_code: v as Currency }))}
@@ -203,13 +205,13 @@ export function AddPlacementFeeDialog() {
               <Input
                 id="salary"
                 type="number"
-                placeholder="e.g. 75000"
+                placeholder={t("eg_75000", "e.g. 75000")}
                 value={formData.candidate_salary}
                 onChange={(e) => setFormData(prev => ({ ...prev, candidate_salary: e.target.value }))}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="fee_percentage">Fee %</Label>
+              <Label htmlFor="fee_percentage">{t("fee", "Fee %")}</Label>
               <Input
                 id="fee_percentage"
                 type="number"
@@ -221,7 +223,7 @@ export function AddPlacementFeeDialog() {
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="hired_date">Hired Date</Label>
+              <Label htmlFor="hired_date">{t("hired_date", "Hired Date")}</Label>
               <Input
                 id="hired_date"
                 type="date"
@@ -230,7 +232,7 @@ export function AddPlacementFeeDialog() {
               />
             </div>
             <div className="space-y-2">
-              <Label>Office</Label>
+              <Label>{t("office", "Office")}</Label>
               <Select
                 value={formData.legal_entity}
                 onValueChange={(v) => setFormData(prev => ({ ...prev, legal_entity: v }))}
@@ -239,8 +241,8 @@ export function AddPlacementFeeDialog() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="tqc_nl">🇳🇱 Amsterdam</SelectItem>
-                  <SelectItem value="tqc_dubai">🇦🇪 Dubai</SelectItem>
+                  <SelectItem value="tqc_nl">{t("amsterdam", "🇳🇱 Amsterdam")}</SelectItem>
+                  <SelectItem value="tqc_dubai">{t("dubai", "🇦🇪 Dubai")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -249,14 +251,14 @@ export function AddPlacementFeeDialog() {
           {salary > 0 && feePercentage > 0 && (
             <div className="p-3 bg-muted rounded-lg space-y-1">
               <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">Calculated Fee</span>
+                <span className="text-sm text-muted-foreground">{t("calculated_fee", "Calculated Fee")}</span>
                 <span className="font-semibold">
                   {currencySymbol}{feeAmount.toLocaleString('nl-NL')}
                 </span>
               </div>
               {formData.currency_code !== 'EUR' && (
                 <div className="flex justify-between">
-                  <span className="text-xs text-muted-foreground">EUR equivalent</span>
+                  <span className="text-xs text-muted-foreground">{t("eur_equivalent", "EUR equivalent")}</span>
                   <span className="text-xs text-muted-foreground">
                     ~€{feeAmountEur.toLocaleString('nl-NL')}
                   </span>

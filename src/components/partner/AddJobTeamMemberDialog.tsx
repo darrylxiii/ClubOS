@@ -26,6 +26,7 @@ import { Shield, Search } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 
 interface AddJobTeamMemberDialogProps {
   jobId: string;
@@ -40,6 +41,7 @@ export const AddJobTeamMemberDialog = ({
   onOpenChange,
   onAdded,
 }: AddJobTeamMemberDialogProps) => {
+  const { t } = useTranslation('partner');
   const { user } = useAuth();
   const [mode, setMode] = useState<'company' | 'external'>('company');
   const [companyMembers, setCompanyMembers] = useState<any[]>([]);
@@ -113,7 +115,7 @@ export const AddJobTeamMemberDialog = ({
       setCompanyMembers(membersWithProfiles);
     } catch (error) {
       console.error('Error fetching company members:', error);
-      toast.error('Failed to load team members');
+      toast.error(t('addJobTeamMemberDialog.toast.failedToLoadTeamMembers'));
     }
   };
 
@@ -159,7 +161,7 @@ export const AddJobTeamMemberDialog = ({
       setTqcTeamMembers(available);
     } catch (error) {
       console.error('Error fetching TQC team members:', error);
-      toast.error('Failed to load TQC team members');
+      toast.error(t('addJobTeamMemberDialog.toast.failedToLoadTqcTeamMembers'));
     }
   };
 
@@ -220,17 +222,17 @@ export const AddJobTeamMemberDialog = ({
 
   const handleSubmit = async () => {
     if (mode === 'company' && !selectedMemberId) {
-      toast.error('Please select a team member');
+      toast.error(t('addJobTeamMemberDialog.toast.pleaseSelectATeamMember'));
       return;
     }
 
     if (mode === 'external') {
       if (!selectedExternalUserId) {
-        toast.error('Please select a user');
+        toast.error(t('addJobTeamMemberDialog.toast.pleaseSelectAUser'));
         return;
       }
       if (!assignmentReason.trim()) {
-        toast.error('Please provide a reason for this assignment');
+        toast.error(t('addJobTeamMemberDialog.toast.pleaseProvideAReasonForThisAssignment'));
         return;
       }
     }
@@ -258,7 +260,7 @@ export const AddJobTeamMemberDialog = ({
 
       if (error) throw error;
 
-      toast.success('Team member added successfully');
+      toast.success(t('addJobTeamMemberDialog.toast.teamMemberAddedSuccessfully'));
       onAdded();
       onOpenChange(false);
       
@@ -271,7 +273,7 @@ export const AddJobTeamMemberDialog = ({
       setMode('company');
     } catch (error: unknown) {
       console.error('Error adding team member:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to add team member');
+      toast.error(error instanceof Error ? error.message : t('partner.addjobteammemberdialog.failedToAddTeamMember', 'Failed to add team member'));
     } finally {
       setSubmitting(false);
     }
@@ -287,10 +289,8 @@ export const AddJobTeamMemberDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Add Team Member</DialogTitle>
-          <DialogDescription>
-            Assign a team member or external user to this job with specific role and permissions.
-          </DialogDescription>
+          <DialogTitle>{t('addJobTeamMemberDialog.dialogTitle')}</DialogTitle>
+          <DialogDescription>{t('addJobTeamMemberDialog.dialogDescription')}</DialogDescription>
         </DialogHeader>
 
         <Tabs value={mode} onValueChange={(v) => setMode(v as 'company' | 'external')} className="w-full">
@@ -299,17 +299,17 @@ export const AddJobTeamMemberDialog = ({
               Company Team ({companyMembers.length})
             </TabsTrigger>
             <TabsTrigger value="external">
-              External Users
-              <Badge variant="outline" className="ml-2">TQC + Others</Badge>
+              {t('partner.addjobteammemberdialog.externalUsers', 'External Users')}
+              <Badge variant="outline" className="ml-2">{t('partner.addjobteammemberdialog.tqcOthers', 'TQC + Others')}</Badge>
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="company" className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label>Team Member</Label>
+              <Label>{t('addJobTeamMemberDialog.label.teamMember')}</Label>
               <Select value={selectedMemberId} onValueChange={setSelectedMemberId}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select a team member" />
+                  <SelectValue placeholder={t('addJobTeamMemberDialog.placeholder.selectATeamMember')} />
                 </SelectTrigger>
                 <SelectContent>
                   {companyMembers.map((member) => (
@@ -327,25 +327,25 @@ export const AddJobTeamMemberDialog = ({
             </div>
 
           <div className="space-y-2">
-            <Label>Role</Label>
+            <Label>{t('addJobTeamMemberDialog.label.role')}</Label>
             <Select value={jobRole} onValueChange={handleRoleChange}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="hiring_manager">Hiring Manager</SelectItem>
-                <SelectItem value="founder_reviewer">Founder/Executive Reviewer</SelectItem>
-                <SelectItem value="technical_interviewer">Technical Interviewer</SelectItem>
-                <SelectItem value="behavioral_interviewer">Behavioral Interviewer</SelectItem>
-                <SelectItem value="panel_member">Panel Member</SelectItem>
-                <SelectItem value="coordinator">Interview Coordinator</SelectItem>
-                <SelectItem value="observer">Observer</SelectItem>
+                <SelectItem value="hiring_manager">{t('addJobTeamMemberDialog.option.hiringManager')}</SelectItem>
+                <SelectItem value="founder_reviewer">{t('addJobTeamMemberDialog.option.founderexecutiveReviewer')}</SelectItem>
+                <SelectItem value="technical_interviewer">{t('addJobTeamMemberDialog.option.technicalInterviewer')}</SelectItem>
+                <SelectItem value="behavioral_interviewer">{t('addJobTeamMemberDialog.option.behavioralInterviewer')}</SelectItem>
+                <SelectItem value="panel_member">{t('addJobTeamMemberDialog.option.panelMember')}</SelectItem>
+                <SelectItem value="coordinator">{t('addJobTeamMemberDialog.option.interviewCoordinator')}</SelectItem>
+                <SelectItem value="observer">{t('addJobTeamMemberDialog.option.observer')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <div className="space-y-3">
-            <Label>Permissions</Label>
+            <Label>{t('addJobTeamMemberDialog.label.permissions')}</Label>
             <div className="space-y-2">
               <div className="flex items-center space-x-2">
                 <Checkbox
@@ -355,9 +355,7 @@ export const AddJobTeamMemberDialog = ({
                     setPermissions({ ...permissions, can_view_candidates: !!checked })
                   }
                 />
-                <label htmlFor="view" className="text-sm cursor-pointer">
-                  View candidates
-                </label>
+                <label htmlFor="view" className="text-sm cursor-pointer">{t('partner.addjobteammemberdialog.viewCandidates', 'View candidates')}</label>
               </div>
               <div className="flex items-center space-x-2">
                 <Checkbox
@@ -367,9 +365,7 @@ export const AddJobTeamMemberDialog = ({
                     setPermissions({ ...permissions, can_schedule_interviews: !!checked })
                   }
                 />
-                <label htmlFor="schedule" className="text-sm cursor-pointer">
-                  Schedule interviews
-                </label>
+                <label htmlFor="schedule" className="text-sm cursor-pointer">{t('partner.addjobteammemberdialog.scheduleInterviews', 'Schedule interviews')}</label>
               </div>
               <div className="flex items-center space-x-2">
                 <Checkbox
@@ -379,9 +375,7 @@ export const AddJobTeamMemberDialog = ({
                     setPermissions({ ...permissions, can_advance_candidates: !!checked })
                   }
                 />
-                <label htmlFor="advance" className="text-sm cursor-pointer">
-                  Advance candidates
-                </label>
+                <label htmlFor="advance" className="text-sm cursor-pointer">{t('partner.addjobteammemberdialog.advanceCandidates', 'Advance candidates')}</label>
               </div>
               <div className="flex items-center space-x-2">
                 <Checkbox
@@ -391,9 +385,7 @@ export const AddJobTeamMemberDialog = ({
                     setPermissions({ ...permissions, can_decline_candidates: !!checked })
                   }
                 />
-                <label htmlFor="decline" className="text-sm cursor-pointer">
-                  Decline candidates
-                </label>
+                <label htmlFor="decline" className="text-sm cursor-pointer">{t('partner.addjobteammemberdialog.declineCandidates', 'Decline candidates')}</label>
               </div>
               <div className="flex items-center space-x-2">
                 <Checkbox
@@ -403,9 +395,7 @@ export const AddJobTeamMemberDialog = ({
                     setPermissions({ ...permissions, can_make_offers: !!checked })
                   }
                 />
-                <label htmlFor="offers" className="text-sm cursor-pointer">
-                  Make offers
-                </label>
+                <label htmlFor="offers" className="text-sm cursor-pointer">{t('partner.addjobteammemberdialog.makeOffers', 'Make offers')}</label>
               </div>
             </div>
           </div>
@@ -416,9 +406,7 @@ export const AddJobTeamMemberDialog = ({
                 checked={isPrimaryContact}
                 onCheckedChange={(checked) => setIsPrimaryContact(!!checked)}
               />
-              <label htmlFor="primary" className="text-sm cursor-pointer">
-                Set as primary contact
-              </label>
+              <label htmlFor="primary" className="text-sm cursor-pointer">{t('partner.addjobteammemberdialog.setAsPrimaryContact', 'Set as primary contact')}</label>
             </div>
           </TabsContent>
 
@@ -427,7 +415,7 @@ export const AddJobTeamMemberDialog = ({
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search TQC team by name or email..."
+                  placeholder={t('addJobTeamMemberDialog.placeholder.searchTqcTeamByNameOrEmail')}
                   className="pl-9"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -435,7 +423,7 @@ export const AddJobTeamMemberDialog = ({
               </div>
 
               <div className="space-y-2">
-                <Label>Select TQC Team Member</Label>
+                <Label>{t('addJobTeamMemberDialog.label.selectTqcTeamMember')}</Label>
                 <RadioGroup value={selectedExternalUserId} onValueChange={setSelectedExternalUserId}>
                   <div className="max-h-48 overflow-y-auto space-y-2">
                     {filteredTqcMembers.map((member) => (
@@ -456,28 +444,26 @@ export const AddJobTeamMemberDialog = ({
                         </label>
                         <div className="flex gap-1">
                           {member.roles?.includes('admin') && (
-                            <Badge variant="outline" className="text-xs">Admin</Badge>
+                            <Badge variant="outline" className="text-xs">{t('addJobTeamMemberDialog.badge.admin')}</Badge>
                           )}
                           {member.roles?.includes('strategist') && (
-                            <Badge variant="secondary" className="text-xs">Strategist</Badge>
+                            <Badge variant="secondary" className="text-xs">{t('addJobTeamMemberDialog.badge.strategist')}</Badge>
                           )}
                         </div>
                       </div>
                     ))}
                     {filteredTqcMembers.length === 0 && (
-                      <p className="text-center py-4 text-muted-foreground text-sm">
-                        No matching team members found
-                      </p>
+                      <p className="text-center py-4 text-muted-foreground text-sm">{t('addJobTeamMemberDialog.noMatchingTeamMembersFound')}</p>
                     )}
                   </div>
                 </RadioGroup>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="reason">Assignment Reason</Label>
+                <Label htmlFor="reason">{t('addJobTeamMemberDialog.label.assignmentReason')}</Label>
                 <Textarea
                   id="reason"
-                  placeholder="Why is this person being assigned to this job?"
+                  placeholder={t('addJobTeamMemberDialog.placeholder.whyIsThisPersonBeingAssignedToThisJob')}
                   value={assignmentReason}
                   onChange={(e) => setAssignmentReason(e.target.value)}
                   rows={2}
@@ -485,27 +471,25 @@ export const AddJobTeamMemberDialog = ({
               </div>
 
               <div className="space-y-2">
-                <Label>Role</Label>
+                <Label>{t('addJobTeamMemberDialog.label.role')}</Label>
                 <Select value={jobRole} onValueChange={handleRoleChange}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="hiring_manager">Hiring Manager</SelectItem>
-                    <SelectItem value="technical_interviewer">Technical Interviewer</SelectItem>
-                    <SelectItem value="behavioral_interviewer">Behavioral Interviewer</SelectItem>
-                    <SelectItem value="panel_member">Panel Member</SelectItem>
-                    <SelectItem value="coordinator">Interview Coordinator</SelectItem>
-                    <SelectItem value="observer">Observer</SelectItem>
+                    <SelectItem value="hiring_manager">{t('addJobTeamMemberDialog.option.hiringManager')}</SelectItem>
+                    <SelectItem value="technical_interviewer">{t('addJobTeamMemberDialog.option.technicalInterviewer')}</SelectItem>
+                    <SelectItem value="behavioral_interviewer">{t('addJobTeamMemberDialog.option.behavioralInterviewer')}</SelectItem>
+                    <SelectItem value="panel_member">{t('addJobTeamMemberDialog.option.panelMember')}</SelectItem>
+                    <SelectItem value="coordinator">{t('addJobTeamMemberDialog.option.interviewCoordinator')}</SelectItem>
+                    <SelectItem value="observer">{t('addJobTeamMemberDialog.option.observer')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50">
                 <Shield className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm text-muted-foreground">
-                  External users receive limited, time-boxed access with audit logging
-                </span>
+                <span className="text-sm text-muted-foreground">{t('addJobTeamMemberDialog.externalUsersReceiveLimitedTimeboxedAcce')}</span>
               </div>
             </div>
           </TabsContent>
@@ -513,10 +497,10 @@ export const AddJobTeamMemberDialog = ({
 
         <div className="flex justify-end gap-2 pt-4 border-t">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+            {t('common:cancel')}
           </Button>
           <Button onClick={handleSubmit} disabled={submitting}>
-            {submitting ? 'Adding...' : 'Add Member'}
+            {submitting ? t('partner.addjobteammemberdialog.adding', 'Adding...') : t('partner.addjobteammemberdialog.addMember', 'Add Member')}
           </Button>
         </div>
       </DialogContent>

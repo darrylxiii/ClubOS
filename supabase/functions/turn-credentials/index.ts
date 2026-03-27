@@ -3,6 +3,7 @@
  * Fetches time-limited TURN credentials from Twilio for enterprise video calls
  */
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { resilientFetch } from '../_shared/resilient-fetch.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -56,11 +57,11 @@ serve(async (req) => {
       });
     }
 
-    // Request TURN credentials from Twilio
+    // Request TURN credentials from Twilio (with timeout + 1 retry)
     const credentials = btoa(`${accountSid}:${authToken}`);
     const ttl = 3600; // 1 hour validity
 
-    const response = await fetch(
+    const { response } = await resilientFetch(
       `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Tokens.json`,
       {
         method: 'POST',
@@ -69,7 +70,13 @@ serve(async (req) => {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
         body: `Ttl=${ttl}`,
-      }
+      },
+      {
+        timeoutMs: 10_000,
+        maxRetries: 1,
+        service: 'twilio',
+        operation: 'turn-tokens',
+      },
     );
 
     if (!response.ok) {

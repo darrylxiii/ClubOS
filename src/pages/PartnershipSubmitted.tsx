@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -26,6 +27,7 @@ interface LocationState {
 const AVERAGE_PLACEMENT_FEE = 15000;
 
 export default function PartnershipSubmitted() {
+  const { t } = useTranslation('common');
   const { companyName } = useParams<{ companyName?: string }>();
   const location = useLocation();
   const navigate = useNavigate();
@@ -80,12 +82,12 @@ export default function PartnershipSubmitted() {
         <div className="w-full px-4 sm:px-6 lg:px-8 py-1 relative flex justify-center items-center">
           <img 
             src={quantumLogoDark} 
-            alt="Quantum Club" 
+            alt={t("quantum_club", "Quantum Club")} 
             className="h-20 w-auto dark:hidden"
           />
           <img 
             src={quantumLogoLight} 
-            alt="Quantum Club" 
+            alt={t("quantum_club", "Quantum Club")} 
             className="h-20 w-auto hidden dark:block"
           />
         </div>
@@ -110,15 +112,15 @@ export default function PartnershipSubmitted() {
               <div className="bg-muted/50 rounded-lg p-4 space-y-2">
                 <div className="flex items-center gap-2 text-sm">
                   <UserCheck className="w-4 h-4 text-primary" />
-                  <span>A strategist will review your brief within 24 hours</span>
+                  <span>{t("a_strategist_will_review", "A strategist will review your brief within 24 hours")}</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <Shield className="w-4 h-4 text-primary" />
-                  <span>No fees until you hire</span>
+                  <span>{t("no_fees_until_you", "No fees until you hire")}</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <Clock className="w-4 h-4 text-primary" />
-                  <span>Shortlist delivered within two weeks</span>
+                  <span>{t("shortlist_delivered_within_two", "Shortlist delivered within two weeks")}</span>
                 </div>
               </div>
             </div>

@@ -1,11 +1,5 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { createHandler } from '../_shared/handler.ts';
 
 interface EmailReplyInput {
   reply_id?: string;
@@ -52,15 +46,9 @@ interface AnalysisResult {
   };
 }
 
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+Deno.serve(createHandler(async (req, ctx) => {
+    const corsHeaders = ctx.corsHeaders;
+    const supabase = ctx.supabase;
 
     const input: EmailReplyInput = await req.json();
     
@@ -75,7 +63,7 @@ serve(async (req) => {
     const subject = input.subject || '';
 
     // Call AI to analyze the email reply
-    const apiKey = Deno.env.get('LOVABLE_API_KEY');
+    const apiKey = Deno.env.get('GOOGLE_API_KEY');
     if (!apiKey) {
       return new Response(
         JSON.stringify({ error: 'AI API key not configured' }),
@@ -183,14 +171,14 @@ Intent Score guidelines:
 
 Respond ONLY with valid JSON, no additional text.`;
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    const response = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash-lite',
+        model: 'gemini-2.5-flash-lite',
         messages: [
           { role: 'system', content: 'You are an expert email analyst. Respond only with valid JSON.' },
           { role: 'user', content: prompt }
@@ -350,11 +338,4 @@ Respond ONLY with valid JSON, no additional text.`;
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
-  } catch (error) {
-    console.error('Error in analyze-email-reply:', error);
-    return new Response(
-      JSON.stringify({ error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown error' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-  }
-});
+}));

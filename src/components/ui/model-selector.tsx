@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import * as SelectPrimitive from "@radix-ui/react-select";
 import { Check, ChevronDown, Sparkles, Brain, Gem, Zap } from "lucide-react";
 import { motion } from "framer-motion";
@@ -8,7 +9,8 @@ const cn = (...classes: (string | undefined | null | false)[]) => classes.filter
 interface Model {
   id: string;
   name: string;
-  description: string;
+  descriptionKey: string;
+  descriptionFallback: string;
   icon: React.ReactNode;
 }
 
@@ -16,25 +18,29 @@ const models: Model[] = [
   {
     id: "club-ai-0.1",
     name: "Club AI 0.1",
-    description: "Quantum Club's proprietary model",
+    descriptionKey: "models.clubAiDesc",
+    descriptionFallback: "Quantum Club's proprietary model",
     icon: <Sparkles className="w-4 h-4" />,
   },
   {
     id: "google/gemini-2.5-pro",
     name: "Gemini 2.5 Pro",
-    description: "Google's most capable model",
+    descriptionKey: "models.geminiProDesc",
+    descriptionFallback: "Google's most capable model",
     icon: <Gem className="w-4 h-4" />,
   },
   {
     id: "google/gemini-2.5-flash",
     name: "Gemini 2.5 Flash",
-    description: "Fast and efficient",
+    descriptionKey: "models.geminiFlashDesc",
+    descriptionFallback: "Fast and efficient",
     icon: <Zap className="w-4 h-4" />,
   },
   {
     id: "openai/gpt-5",
     name: "GPT-5",
-    description: "OpenAI's flagship model",
+    descriptionKey: "models.gpt5Desc",
+    descriptionFallback: "OpenAI's flagship model",
     icon: <Brain className="w-4 h-4" />,
   },
 ];
@@ -50,6 +56,7 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
   onValueChange,
   className,
 }) => {
+  const { t } = useTranslation('common');
   const selectedModel = models.find((m) => m.id === value) || models[0];
 
   return (
@@ -104,7 +111,7 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
                 <div className="flex-1">
                   <SelectPrimitive.ItemText>
                     <div className="font-medium text-gray-100">{model.name}</div>
-                    <div className="text-xs text-gray-400 mt-0.5">{model.description}</div>
+                    <div className="text-xs text-gray-400 mt-0.5">{t(model.descriptionKey, model.descriptionFallback)}</div>
                   </SelectPrimitive.ItemText>
                 </div>
                 <SelectPrimitive.ItemIndicator className="flex-shrink-0">

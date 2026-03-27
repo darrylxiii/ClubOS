@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -11,6 +12,7 @@ import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
 export function ExportReportsTab() {
+  const { t } = useTranslation('common');
   const [startDate, setStartDate] = useState<Date>(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000));
   const [endDate, setEndDate] = useState<Date>(new Date());
 
@@ -25,7 +27,7 @@ export function ExportReportsTab() {
       if (error) throw error;
       
       if (!data || data.length === 0) {
-        toast.info('No data available for the selected date range');
+        toast.info(t("no_data_available_for", "No data available for the selected date range"));
         return;
       }
       
@@ -138,12 +140,12 @@ export function ExportReportsTab() {
       {/* Date Range Selector */}
       <Card className="bg-card/30 backdrop-blur-[var(--blur-glass)] border-border/20">
         <CardHeader>
-          <CardTitle>Export Configuration</CardTitle>
+          <CardTitle>{t("export_configuration", "Export Configuration")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex items-center gap-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium">Start Date</label>
+              <label className="text-sm font-medium">{t("start_date", "Start Date")}</label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
@@ -169,7 +171,7 @@ export function ExportReportsTab() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">End Date</label>
+              <label className="text-sm font-medium">{t("end_date", "End Date")}</label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
@@ -228,22 +230,22 @@ export function ExportReportsTab() {
       {/* Quick Stats */}
       <Card className="bg-card/30 backdrop-blur-[var(--blur-glass)] border-border/20">
         <CardHeader>
-          <CardTitle>Export Information</CardTitle>
+          <CardTitle>{t("export_information", "Export Information")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Date Range:</span>
+              <span className="text-muted-foreground">{t("date_range", "Date Range:")}</span>
               <span className="font-medium">
                 {format(startDate, 'MMM dd, yyyy')} - {format(endDate, 'MMM dd, yyyy')}
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Export Format:</span>
-              <span className="font-medium">CSV (UTF-8)</span>
+              <span className="text-muted-foreground">{t("export_format", "Export Format:")}</span>
+              <span className="font-medium">{t("csv_utf8", "CSV (UTF-8)")}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Available Tables:</span>
+              <span className="text-muted-foreground">{t("available_tables", "Available Tables:")}</span>
               <span className="font-medium">{exportOptions.length} datasets</span>
             </div>
           </div>

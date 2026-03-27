@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from 'react-i18next';
 import { Carousel, Card, CardType } from "@/components/ui/apple-cards-carousel";
 
 export default function AppleCardsCarouselDemo() {
@@ -8,15 +9,14 @@ export default function AppleCardsCarouselDemo() {
 
   return (
     <div className="w-full h-full py-20">
-      <h2 className="max-w-7xl pl-4 mx-auto text-xl md:text-5xl font-bold text-foreground font-sans">
-        Explore Our Academy Courses
-      </h2>
+      <h2 className="max-w-7xl pl-4 mx-auto text-xl md:text-5xl font-bold text-foreground font-sans">{t('academy.exploreOurAcademyCourses')}</h2>
       <Carousel items={cards} />
     </div>
   );
 }
 
 const DummyContent = () => {
+  const { t } = useTranslation('common');
   return (
     <>
       {[...new Array(3).fill(1)].map((_, index) => {
@@ -26,15 +26,13 @@ const DummyContent = () => {
             className="bg-muted p-8 md:p-14 rounded-3xl mb-4"
           >
             <p className="text-muted-foreground text-base md:text-2xl font-sans max-w-3xl mx-auto">
-              <span className="font-bold text-foreground">
-                Master the skills that matter.
-              </span>{" "}
+              <span className="font-bold text-foreground">{t('academy.masterTheSkillsThatMatter')}</span>{" "}
               Join thousands of professionals advancing their careers through
               our comprehensive learning paths and expert-led courses.
             </p>
             <img
               src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=2071&auto=format&fit=crop"
-              alt="Course preview"
+              alt={"Course preview"}
               className="md:w-1/2 md:h-1/2 h-full w-full mx-auto object-contain rounded-xl mt-8"
             />
           </div>

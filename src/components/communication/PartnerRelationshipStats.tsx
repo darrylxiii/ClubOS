@@ -2,6 +2,7 @@ import { motion } from '@/lib/motion';
 import { Users, TrendingUp, AlertTriangle, Clock, MessageSquare, Target } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 
 interface Stats {
   totalCandidates: number;
@@ -17,37 +18,38 @@ interface PartnerRelationshipStatsProps {
 }
 
 export function PartnerRelationshipStats({ stats, loading }: PartnerRelationshipStatsProps) {
+  const { t } = useTranslation('common');
   const statCards = [
     {
-      label: 'Total Candidates',
+      label: t('communication.stats.totalCandidates', 'Total Candidates'),
       value: stats.totalCandidates,
       icon: Users,
       color: 'text-blue-500',
       bg: 'bg-blue-500/10'
     },
     {
-      label: 'Healthy Relationships',
+      label: t('communication.stats.healthyRelationships', 'Healthy Relationships'),
       value: stats.healthyRelationships,
       icon: TrendingUp,
       color: 'text-green-500',
       bg: 'bg-green-500/10'
     },
     {
-      label: 'At Risk',
+      label: t('communication.stats.atRisk', 'At Risk'),
       value: stats.atRiskRelationships,
       icon: AlertTriangle,
       color: 'text-red-500',
       bg: 'bg-red-500/10'
     },
     {
-      label: 'Avg Response Rate',
+      label: t('communication.stats.avgResponseRate', 'Avg Response Rate'),
       value: `${stats.avgResponseRate}%`,
       icon: MessageSquare,
       color: 'text-purple-500',
       bg: 'bg-purple-500/10'
     },
     {
-      label: 'Avg Engagement',
+      label: t('communication.stats.avgEngagement', 'Avg Engagement'),
       value: `${stats.avgEngagement}/10`,
       icon: Target,
       color: 'text-amber-500',

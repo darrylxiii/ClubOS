@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -13,6 +14,7 @@ interface FeaturedCourse {
 }
 
 export const HeroBanner = () => {
+  const { t } = useTranslation('common');
   const [featuredCourse, setFeaturedCourse] = useState<FeaturedCourse | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -76,7 +78,7 @@ export const HeroBanner = () => {
           {/* Badge */}
           <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 px-4 py-2 rounded-full">
             <Star className="h-4 w-4 text-primary fill-primary" />
-            <span className="text-sm font-semibold text-primary">Featured Course of the Week</span>
+            <span className="text-sm font-semibold text-primary">{t('academy.featuredCourseOfTheWeek')}</span>
           </div>
 
           {/* Title */}
@@ -94,14 +96,12 @@ export const HeroBanner = () => {
             {featuredCourse.enrolled_count && featuredCourse.enrolled_count > 0 && (
               <div className="text-sm">
                 <span className="font-semibold text-foreground">{featuredCourse.enrolled_count}</span>
-                <span className="text-muted-foreground"> learners enrolled</span>
+                <span className="text-muted-foreground">learners enrolled</span>
               </div>
             )}
 
             <Link to={`/academy/course/${featuredCourse.id}`}>
-              <Button size="lg" className="hover:scale-105 transition-transform">
-                Start Learning
-              </Button>
+              <Button size="lg" className="hover:scale-105 transition-transform">{t('academy.startLearning')}</Button>
             </Link>
           </div>
         </div>

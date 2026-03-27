@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -36,6 +37,7 @@ const CATEGORY_CONFIG: Record<string, { icon: typeof Layout; label: string; colo
 };
 
 export function TemplateGallery({ onSelectTemplate, onPreview }: TemplateGalleryProps) {
+  const { t } = useTranslation('common');
   const { templates, isLoading, categories, incrementUsage } = useTemplates();
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -80,7 +82,7 @@ export function TemplateGallery({ onSelectTemplate, onPreview }: TemplateGallery
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search templates..."
+            placeholder={t("search_templates", "Search templates...")}
             className="pl-10"
           />
         </div>
@@ -109,7 +111,7 @@ export function TemplateGallery({ onSelectTemplate, onPreview }: TemplateGallery
           {filteredTemplates.length === 0 ? (
             <Card className="p-12 text-center">
               <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No templates found</h3>
+              <h3 className="text-lg font-semibold mb-2">{t("no_templates_found", "No templates found")}</h3>
               <p className="text-muted-foreground">
                 {search ? 'Try a different search term' : 'No templates in this category yet'}
               </p>
@@ -173,7 +175,7 @@ export function TemplateGallery({ onSelectTemplate, onPreview }: TemplateGallery
                           {template.usage_count || 0} uses
                         </span>
                         {template.visibility === 'system' && (
-                          <Badge variant="outline" className="text-xs">System</Badge>
+                          <Badge variant="outline" className="text-xs">{t("system", "System")}</Badge>
                         )}
                       </div>
 
@@ -224,7 +226,7 @@ export function TemplateGallery({ onSelectTemplate, onPreview }: TemplateGallery
               
               {/* Content Preview */}
               <Card className="p-4 bg-muted/20">
-                <h4 className="text-sm font-medium mb-2">Content Preview</h4>
+                <h4 className="text-sm font-medium mb-2">{t("content_preview", "Content Preview")}</h4>
                 <div className="space-y-2 text-sm">
                   {previewTemplate.content?.slice(0, 5).map((block: any, i: number) => (
                     <div key={i} className="flex items-start gap-2">

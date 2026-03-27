@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,6 +17,7 @@ import {
 } from "lucide-react";
 
 export default function ContractListPage() {
+  const { t } = useTranslation('contracts');
   const { user } = useAuth();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
@@ -82,16 +84,14 @@ export default function ContractListPage() {
               <FileText className="h-8 w-8" />
               My Contracts
             </h1>
-            <p className="text-muted-foreground mt-2">
-              Manage your freelance project contracts and payments
-            </p>
+            <p className="text-muted-foreground mt-2">{t('contractListPage.desc')}</p>
           </div>
 
           <div className="flex items-center gap-3">
             <Tabs value={userView} onValueChange={(v) => setUserView(v as any)}>
               <TabsList>
-                <TabsTrigger value="freelancer">As Freelancer</TabsTrigger>
-                <TabsTrigger value="client">As Client</TabsTrigger>
+                <TabsTrigger value="freelancer">{t('contractListPage.text2')}</TabsTrigger>
+                <TabsTrigger value="client">{t('contractListPage.text3')}</TabsTrigger>
               </TabsList>
             </Tabs>
           </div>
@@ -101,19 +101,19 @@ export default function ContractListPage() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
           <div className="p-4 bg-card border border-border/50 rounded-lg">
             <div className="text-2xl font-bold text-foreground">{contracts.length}</div>
-            <div className="text-sm text-muted-foreground">Total Contracts</div>
+            <div className="text-sm text-muted-foreground">{t('contractListPage.text4')}</div>
           </div>
           <div className="p-4 bg-card border border-border/50 rounded-lg">
             <div className="text-2xl font-bold text-green-600">{activeContracts.length}</div>
-            <div className="text-sm text-muted-foreground">Active</div>
+            <div className="text-sm text-muted-foreground">{t('contractListPage.text5')}</div>
           </div>
           <div className="p-4 bg-card border border-border/50 rounded-lg">
             <div className="text-2xl font-bold text-yellow-600">{pendingContracts.length}</div>
-            <div className="text-sm text-muted-foreground">Pending Signature</div>
+            <div className="text-sm text-muted-foreground">{t('contractListPage.text6')}</div>
           </div>
           <div className="p-4 bg-card border border-border/50 rounded-lg">
             <div className="text-2xl font-bold text-blue-600">{completedContracts.length}</div>
-            <div className="text-sm text-muted-foreground">Completed</div>
+            <div className="text-sm text-muted-foreground">{t('contractListPage.text7')}</div>
           </div>
         </div>
 
@@ -122,7 +122,7 @@ export default function ContractListPage() {
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search contracts..."
+              placeholder={t('contractListPage.text8')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10"
@@ -131,10 +131,10 @@ export default function ContractListPage() {
 
           <Tabs value={statusFilter} onValueChange={setStatusFilter}>
             <TabsList>
-              <TabsTrigger value="all">All</TabsTrigger>
-              <TabsTrigger value="pending_signature">Pending</TabsTrigger>
-              <TabsTrigger value="active">Active</TabsTrigger>
-              <TabsTrigger value="completed">Completed</TabsTrigger>
+              <TabsTrigger value="all">{t('contractListPage.text9')}</TabsTrigger>
+              <TabsTrigger value="pending_signature">{t('contractListPage.text10')}</TabsTrigger>
+              <TabsTrigger value="active">{t('contractListPage.text11')}</TabsTrigger>
+              <TabsTrigger value="completed">{t('contractListPage.text12')}</TabsTrigger>
             </TabsList>
           </Tabs>
         </div>

@@ -102,7 +102,8 @@ class TrackingService {
       const { data } = await supabase.auth.getUser();
       this.cachedUserId = data?.user?.id || null;
       return this.cachedUserId;
-    } catch {
+    } catch (error) {
+      console.error('[TrackingService] Failed to get user ID:', error);
       return null;
     }
   }

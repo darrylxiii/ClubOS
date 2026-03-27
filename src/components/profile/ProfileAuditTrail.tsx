@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -33,6 +34,7 @@ interface ProfileAuditTrailProps {
 }
 
 export function ProfileAuditTrail({ edits, onRestore }: ProfileAuditTrailProps) {
+  const { t } = useTranslation('common');
   const [isOpen, setIsOpen] = useState(false);
 
   if (edits.length === 0) return null;
@@ -44,7 +46,7 @@ export function ProfileAuditTrail({ edits, onRestore }: ProfileAuditTrailProps) 
           <div className="p-4 cursor-pointer hover:bg-accent/10 transition-colors flex items-center justify-between">
             <div className="flex items-center gap-2">
               <History className="w-5 h-5 text-accent" />
-              <h3 className="font-bold">Edit History</h3>
+              <h3 className="font-bold">{t("edit_history", "Edit History")}</h3>
               <Badge variant="secondary">{edits.length} changes</Badge>
             </div>
             {isOpen ? (
@@ -84,15 +86,15 @@ export function ProfileAuditTrail({ edits, onRestore }: ProfileAuditTrailProps) 
 
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   <div className="space-y-1">
-                    <p className="text-muted-foreground">Previous:</p>
+                    <p className="text-muted-foreground">{t("previous", "Previous:")}</p>
                     <p className="p-2 bg-destructive/10 rounded border border-destructive/20 line-through">
-                      {edit.oldValue || <em>Empty</em>}
+                      {edit.oldValue || <em>{t("empty", "Empty")}</em>}
                     </p>
                   </div>
                   <div className="space-y-1">
-                    <p className="text-muted-foreground">Current:</p>
+                    <p className="text-muted-foreground">{t("current", "Current:")}</p>
                     <p className="p-2 bg-accent/10 rounded border border-accent/20">
-                      {edit.newValue || <em>Empty</em>}
+                      {edit.newValue || <em>{t("empty", "Empty")}</em>}
                     </p>
                   </div>
                 </div>

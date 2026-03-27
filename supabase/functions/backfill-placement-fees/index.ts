@@ -1,17 +1,9 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createHandler } from '../_shared/handler.ts';
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+Deno.serve(createHandler(async (req, ctx) => {
+    const corsHeaders = ctx.corsHeaders;
+    const supabase = ctx.supabase;
 
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  try {
     // Parse request body for dryRun flag
     let dryRun = false;
     try {
@@ -20,10 +12,6 @@ serve(async (req) => {
     } catch {
       // No body or invalid JSON - proceed with default (not dry run)
     }
-
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     console.log(`Starting placement fees backfill... (dryRun: ${dryRun})`);
 
@@ -86,12 +74,12 @@ serve(async (req) => {
       }
 
       const companyData = Array.isArray(jobData.companies) ? jobData.companies[0] : jobData.companies;
-      
+
       // Calculate fee based on company defaults or fallback
       const baseSalary = jobData.salary_max || jobData.salary_min || 75000;
       const feePercentage = companyData?.default_fee_percentage || 20;
       const fixedFee = companyData?.default_fee_fixed;
-      
+
       const feeAmount = fixedFee || (baseSalary * (feePercentage / 100));
 
       // Use correct column names matching the schema
@@ -137,7 +125,7 @@ serve(async (req) => {
 
     // Try to match placement fees with Moneybird invoices (skip in dry run)
     let invoiceMatches = 0;
-    
+
     if (!dryRun) {
       const { data: unmatchedFees } = await supabase
         .from('placement_fees')
@@ -164,12 +152,12 @@ serve(async (req) => {
         if (matchingInvoice) {
           const { error: updateError } = await supabase
             .from('placement_fees')
-            .update({ 
+            .update({
               invoice_id: matchingInvoice.id,
               notes: `Matched to invoice ${matchingInvoice.moneybird_id} (amount match)`
             })
             .eq('id', fee.id);
-          
+
           if (!updateError) {
             invoiceMatches++;
           }
@@ -201,13 +189,4 @@ serve(async (req) => {
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
-
-  } catch (error) {
-    console.error('Backfill error:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    return new Response(
-      JSON.stringify({ success: false, error: errorMessage }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-  }
-});
+}));

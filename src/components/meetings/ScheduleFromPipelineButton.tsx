@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Calendar, Video } from 'lucide-react';
 import { CreateMeetingDialog } from './CreateMeetingDialog';
+import { useTranslation } from 'react-i18next';
 
 interface ScheduleFromPipelineButtonProps {
   candidateId: string;
@@ -26,6 +27,7 @@ export const ScheduleFromPipelineButton = ({
   className,
   onScheduled
 }: ScheduleFromPipelineButtonProps) => {
+  const { t } = useTranslation("meetings");
   return (
     <CreateMeetingDialog
       trigger={
@@ -35,7 +37,7 @@ export const ScheduleFromPipelineButton = ({
           className={className}
         >
           <Calendar className="w-4 h-4 mr-2" />
-          Schedule Interview
+          {t('schedule.scheduleInterview')}
         </Button>
       }
       onMeetingCreated={(meeting) => {
@@ -71,7 +73,7 @@ export const QuickVideoCallButton = ({
       size="icon"
       onClick={handleQuickCall}
       disabled={loading}
-      title={`Start call with ${candidateName}`}
+      title={t('schedule.startCallWith', { name: candidateName })}
     >
       <Video className="w-4 h-4" />
     </Button>

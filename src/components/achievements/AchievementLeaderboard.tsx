@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -25,6 +26,7 @@ interface LeaderboardEntry {
 }
 
 export const AchievementLeaderboard = () => {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [allTimeLeaders, setAllTimeLeaders] = useState<LeaderboardEntry[]>([]);
   const [weeklyLeaders, setWeeklyLeaders] = useState<LeaderboardEntry[]>([]);
@@ -183,7 +185,7 @@ export const AchievementLeaderboard = () => {
                       {leader.full_name}
                       {isCurrentUser && (
                         <Badge variant="secondary" className="ml-2 text-xs">
-                          You
+                          {t('achievements.you')}
                         </Badge>
                       )}
                     </h4>
@@ -191,7 +193,7 @@ export const AchievementLeaderboard = () => {
                   <div className="flex items-center gap-3 text-sm text-muted-foreground">
                     <span className="flex items-center gap-1">
                       <Trophy className="h-3 w-3" />
-                      {leader.total_achievements} achievements
+                      {leader.total_achievements} {t('achievements.achievements')}
                     </span>
                     {leader.rarest_achievement && (
                       <Badge variant="outline" className="text-xs capitalize">
@@ -214,10 +216,10 @@ export const AchievementLeaderboard = () => {
                   </div>
                   <p className="text-xs text-muted-foreground">
                     {metric === 'total_xp'
-                      ? 'Total XP'
+                      ? t('achievements.totalXP')
                       : metric === 'weekly_achievements'
-                      ? 'This Week'
-                      : 'This Month'}
+                      ? t('achievements.thisWeek')
+                      : t('achievements.thisMonth')}
                   </p>
                 </div>
               </div>
@@ -229,7 +231,7 @@ export const AchievementLeaderboard = () => {
           <Card className="p-12 text-center">
             <Trophy className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
             <p className="text-muted-foreground">
-              No leaderboard data available yet
+              {t('achievements.noLeaderboardData')}
             </p>
           </Card>
         )}
@@ -241,7 +243,7 @@ export const AchievementLeaderboard = () => {
     return (
       <Card className="p-12 text-center">
         <Sparkles className="h-8 w-8 mx-auto mb-4 animate-spin text-primary" />
-        <p className="text-muted-foreground">Loading leaderboard...</p>
+        <p className="text-muted-foreground">{t('achievements.loadingLeaderboard')}</p>
       </Card>
     );
   }
@@ -258,9 +260,9 @@ export const AchievementLeaderboard = () => {
                 <AvatarFallback>{userPosition.full_name.charAt(0)}</AvatarFallback>
               </Avatar>
               <div>
-                <h3 className="text-xl font-bold">Your Ranking</h3>
+                <h3 className="text-xl font-bold">{t('achievements.yourRanking')}</h3>
                 <p className="text-sm text-muted-foreground">
-                  #{userPosition.rank_position} globally
+                  #{userPosition.rank_position} {t('achievements.globally')}
                 </p>
               </div>
             </div>
@@ -268,7 +270,7 @@ export const AchievementLeaderboard = () => {
               <div className="text-3xl font-bold text-primary">
                 {userPosition.total_xp.toLocaleString()}
               </div>
-              <p className="text-sm text-muted-foreground">Total XP</p>
+              <p className="text-sm text-muted-foreground">{t('achievements.totalXP')}</p>
             </div>
           </div>
         </Card>
@@ -280,15 +282,15 @@ export const AchievementLeaderboard = () => {
           <TabsList className="grid w-full grid-cols-3 mb-6">
             <TabsTrigger value="all-time" className="gap-2">
               <Trophy className="h-4 w-4" />
-              All-Time
+              {t('achievements.allTime')}
             </TabsTrigger>
             <TabsTrigger value="weekly" className="gap-2">
               <TrendingUp className="h-4 w-4" />
-              Weekly
+              {t('achievements.weekly')}
             </TabsTrigger>
             <TabsTrigger value="monthly" className="gap-2">
               <Calendar className="h-4 w-4" />
-              Monthly
+              {t('achievements.monthly')}
             </TabsTrigger>
           </TabsList>
 

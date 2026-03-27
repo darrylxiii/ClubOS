@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
@@ -81,6 +82,7 @@ const ActivityItem = ({ event, isNew }: { event: ActivityEvent; isNew?: boolean 
 };
 
 export function ReferralActivityFeed() {
+  const { t } = useTranslation('common');
   const { data: initialEvents, isLoading } = useReferralActivityFeed();
   const [events, setEvents] = useState<ActivityEvent[]>([]);
   const [newEventIds, setNewEventIds] = useState<Set<string>>(new Set());
@@ -160,7 +162,7 @@ export function ReferralActivityFeed() {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
             </span>
-            <span className="text-xs text-muted-foreground">Live</span>
+            <span className="text-xs text-muted-foreground">{t("live", "Live")}</span>
           </div>
         </CardTitle>
       </CardHeader>
@@ -170,8 +172,8 @@ export function ReferralActivityFeed() {
           {events.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               <Bell className="h-8 w-8 mx-auto mb-2 opacity-30" />
-              <p className="text-sm">No recent activity</p>
-              <p className="text-xs">Activity will appear here in real-time</p>
+              <p className="text-sm">{t("no_recent_activity", "No recent activity")}</p>
+              <p className="text-xs">{t("activity_will_appear_here", "Activity will appear here in real-time")}</p>
             </div>
           ) : (
             <div className="space-y-2">

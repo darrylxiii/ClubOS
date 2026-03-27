@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -16,6 +17,7 @@ interface BookingWaitlistProps {
 }
 
 export function BookingWaitlist({ bookingLink, preferredDate }: BookingWaitlistProps) {
+  const { t } = useTranslation('common');
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [formData, setFormData] = useState({
@@ -28,7 +30,7 @@ export function BookingWaitlist({ bookingLink, preferredDate }: BookingWaitlistP
     e.preventDefault();
 
     if (!formData.name || !formData.email) {
-      toast.error("Please provide your name and email");
+      toast.error(t("please_provide_your_name", "Please provide your name and email"));
       return;
     }
 
@@ -46,7 +48,7 @@ export function BookingWaitlist({ bookingLink, preferredDate }: BookingWaitlistP
 
       if (error) throw error;
 
-      toast.success("You've been added to the waitlist!");
+      toast.success(t("youve_been_added_to", "You've been added to the waitlist!"));
       setSubmitted(true);
     } catch (error: unknown) {
       console.error("Error joining waitlist:", error);
@@ -63,7 +65,7 @@ export function BookingWaitlist({ bookingLink, preferredDate }: BookingWaitlistP
           <Clock className="h-8 w-8 text-primary" />
         </div>
         <div>
-          <h3 className="text-lg font-semibold mb-2">You're on the Waitlist!</h3>
+          <h3 className="text-lg font-semibold mb-2">{t("youre_on_the_waitlist", "You're on the Waitlist!")}</h3>
           <p className="text-muted-foreground">
             We'll notify you via email as soon as a spot becomes available for {bookingLink.title}.
           </p>
@@ -75,7 +77,7 @@ export function BookingWaitlist({ bookingLink, preferredDate }: BookingWaitlistP
   return (
     <div className="space-y-6">
       <div className="text-center pb-4 border-b">
-        <h3 className="text-lg font-semibold mb-2">Join the Waitlist</h3>
+        <h3 className="text-lg font-semibold mb-2">{t("join_the_waitlist", "Join the Waitlist")}</h3>
         <p className="text-sm text-muted-foreground">
           No times available right now? Join the waitlist and we'll notify you when spots open up.
         </p>
@@ -95,7 +97,7 @@ export function BookingWaitlist({ bookingLink, preferredDate }: BookingWaitlistP
             id="waitlist-name"
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            placeholder="Your full name"
+            placeholder={t("your_full_name", "Your full name")}
             required
           />
         </div>
@@ -109,13 +111,13 @@ export function BookingWaitlist({ bookingLink, preferredDate }: BookingWaitlistP
             type="email"
             value={formData.email}
             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-            placeholder="you@example.com"
+            placeholder={t("youexamplecom", "you@example.com")}
             required
           />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="waitlist-phone">Phone (optional)</Label>
+          <Label htmlFor="waitlist-phone">{t("phone_optional", "Phone (optional)")}</Label>
           <Input
             id="waitlist-phone"
             type="tel"

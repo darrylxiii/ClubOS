@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Loader2, RefreshCw, Users, FileText, CheckCircle2, AlertCircle, Clock } from 'lucide-react';
@@ -10,6 +11,7 @@ import {
 } from '@/hooks/useMoneybird';
 
 export function MoneybirdSyncStatus() {
+  const { t } = useTranslation('common');
   const { data: connection } = useMoneybirdConnection();
   const { data: contactSyncs, isLoading: contactsLoading } = useMoneybirdContactSyncs();
   const { data: invoiceSyncs, isLoading: invoicesLoading } = useMoneybirdInvoiceSyncs();
@@ -40,8 +42,8 @@ export function MoneybirdSyncStatus() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Sync Status</CardTitle>
-        <CardDescription>Overview of synced contacts and invoices</CardDescription>
+        <CardTitle>{t("sync_status", "Sync Status")}</CardTitle>
+        <CardDescription>{t("overview_of_synced_contacts", "Overview of synced contacts and invoices")}</CardDescription>
       </CardHeader>
       <CardContent>
         {isLoading ? (
@@ -55,7 +57,7 @@ export function MoneybirdSyncStatus() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Users className="h-5 w-5 text-muted-foreground" />
-                  <h4 className="font-medium">Contacts</h4>
+                  <h4 className="font-medium">{t("contacts", "Contacts")}</h4>
                 </div>
                 <Button
                   size="sm"
@@ -68,7 +70,7 @@ export function MoneybirdSyncStatus() {
                   ) : (
                     <RefreshCw className="h-4 w-4" />
                   )}
-                  <span className="ml-2">Sync</span>
+                  <span className="ml-2">{t("sync", "Sync")}</span>
                 </Button>
               </div>
               
@@ -78,21 +80,21 @@ export function MoneybirdSyncStatus() {
                     <CheckCircle2 className="h-4 w-4" />
                     <span className="font-bold">{contactStats.synced}</span>
                   </div>
-                  <p className="text-xs text-muted-foreground">Synced</p>
+                  <p className="text-xs text-muted-foreground">{t("synced", "Synced")}</p>
                 </div>
                 <div className="p-2 rounded bg-muted/50">
                   <div className="flex items-center justify-center gap-1 text-yellow-600 dark:text-yellow-400">
                     <Clock className="h-4 w-4" />
                     <span className="font-bold">{contactStats.pending}</span>
                   </div>
-                  <p className="text-xs text-muted-foreground">Pending</p>
+                  <p className="text-xs text-muted-foreground">{t("pending", "Pending")}</p>
                 </div>
                 <div className="p-2 rounded bg-muted/50">
                   <div className="flex items-center justify-center gap-1 text-red-600 dark:text-red-400">
                     <AlertCircle className="h-4 w-4" />
                     <span className="font-bold">{contactStats.error}</span>
                   </div>
-                  <p className="text-xs text-muted-foreground">Errors</p>
+                  <p className="text-xs text-muted-foreground">{t("errors", "Errors")}</p>
                 </div>
               </div>
             </div>
@@ -102,7 +104,7 @@ export function MoneybirdSyncStatus() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <FileText className="h-5 w-5 text-muted-foreground" />
-                  <h4 className="font-medium">Invoices</h4>
+                  <h4 className="font-medium">{t("invoices", "Invoices")}</h4>
                 </div>
                 <Button
                   size="sm"
@@ -115,7 +117,7 @@ export function MoneybirdSyncStatus() {
                   ) : (
                     <RefreshCw className="h-4 w-4" />
                   )}
-                  <span className="ml-2">Refresh</span>
+                  <span className="ml-2">{t("refresh", "Refresh")}</span>
                 </Button>
               </div>
               
@@ -125,28 +127,28 @@ export function MoneybirdSyncStatus() {
                     <FileText className="h-4 w-4" />
                     <span className="font-bold">{invoiceStats.total}</span>
                   </div>
-                  <p className="text-xs text-muted-foreground">Total</p>
+                  <p className="text-xs text-muted-foreground">{t("total", "Total")}</p>
                 </div>
                 <div className="p-2 rounded bg-muted/50">
                   <div className="flex items-center justify-center gap-1 text-green-600 dark:text-green-400">
                     <CheckCircle2 className="h-4 w-4" />
                     <span className="font-bold">{invoiceStats.paid}</span>
                   </div>
-                  <p className="text-xs text-muted-foreground">Paid</p>
+                  <p className="text-xs text-muted-foreground">{t("paid", "Paid")}</p>
                 </div>
                 <div className="p-2 rounded bg-muted/50">
                   <div className="flex items-center justify-center gap-1 text-yellow-600 dark:text-yellow-400">
                     <Clock className="h-4 w-4" />
                     <span className="font-bold">{invoiceStats.pending}</span>
                   </div>
-                  <p className="text-xs text-muted-foreground">Pending</p>
+                  <p className="text-xs text-muted-foreground">{t("pending", "Pending")}</p>
                 </div>
                 <div className="p-2 rounded bg-muted/50">
                   <div className="flex items-center justify-center gap-1 text-red-600 dark:text-red-400">
                     <AlertCircle className="h-4 w-4" />
                     <span className="font-bold">{invoiceStats.error}</span>
                   </div>
-                  <p className="text-xs text-muted-foreground">Errors</p>
+                  <p className="text-xs text-muted-foreground">{t("errors", "Errors")}</p>
                 </div>
               </div>
             </div>

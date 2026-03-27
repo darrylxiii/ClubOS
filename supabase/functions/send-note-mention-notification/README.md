@@ -33,7 +33,7 @@ This edge function handles @mention notifications when team members are mentione
 ### 2. Add API Key Secret
 
 ```bash
-# Using Lovable Secrets Manager
+# Using Supabase Secrets
 1. Go to Project Settings → Secrets
 2. Add new secret: RESEND_API_KEY or SENDGRID_API_KEY
 3. Enter your API key

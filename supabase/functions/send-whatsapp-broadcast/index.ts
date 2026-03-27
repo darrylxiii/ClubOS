@@ -6,7 +6,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const WHATSAPP_API_URL = 'https://graph.facebook.com/v18.0';
+const WHATSAPP_API_URL = 'https://graph.facebook.com/v21.0';
 
 interface BroadcastRequest {
   campaignId: string;

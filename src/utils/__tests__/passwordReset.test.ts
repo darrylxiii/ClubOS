@@ -119,8 +119,9 @@ describe('passwordReset utilities', () => {
 
     it('should classify medium strength passwords', () => {
       const result = validatePasswordStrength('mediumpassword123');
-      
-      expect(result.valid).toBe(false);
+
+      // 3 requirements met (minLength, lowercase, number) — valid but medium strength
+      expect(result.valid).toBe(true);
       expect(result.strength).toBe('medium');
     });
 

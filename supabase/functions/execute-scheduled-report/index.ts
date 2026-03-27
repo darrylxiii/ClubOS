@@ -1,26 +1,30 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.58.0";
+import { createHandler } from '../_shared/handler.ts';
+import { SupabaseClient } from "npm:@supabase/supabase-js@2";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+interface ReportConfig {
+  id: string;
+  name: string;
+  description?: string;
+  report_type: string;
+  format: string[];
+  recipients: string[];
+  filters?: Record<string, unknown>;
+  is_active: boolean;
+  last_sent_at?: string;
+}
 
-Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
+interface ReportData {
+  summary?: Record<string, unknown>;
+  [key: string]: unknown;
+}
 
-  try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
-    const { reportId } = await req.json();
+Deno.serve(createHandler(async (req, ctx) => {
+  const { reportId } = await req.json();
 
     console.log(`Executing scheduled report: ${reportId}`);
 
     // Fetch report configuration
-    const { data: report, error: reportError } = await supabase
+    const { data: report, error: reportError } = await ctx.supabase
       .from('scheduled_reports')
       .select('*')
       .eq('id', reportId)
@@ -34,31 +38,31 @@ Deno.serve(async (req) => {
       console.log('Report is inactive, skipping execution');
       return new Response(
         JSON.stringify({ message: 'Report is inactive' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     // Generate report data based on type
-    const reportData = await generateReportData(supabase, report);
+    const reportData = await generateReportData(ctx.supabase, report);
 
     // Generate export files
-    const fileUrls: any = {};
+    const fileUrls: Record<string, string> = {};
 
     if (report.format.includes('csv')) {
       const csvContent = generateCSV(reportData);
-      fileUrls.csv = await uploadReportFile(supabase, reportId, 'csv', csvContent);
+      fileUrls.csv = await uploadReportFile(ctx.supabase, reportId, 'csv', csvContent);
     }
 
     if (report.format.includes('pdf')) {
       const pdfContent = await generatePDF(reportData, report);
-      fileUrls.pdf = await uploadReportFile(supabase, reportId, 'pdf', pdfContent);
+      fileUrls.pdf = await uploadReportFile(ctx.supabase, reportId, 'pdf', pdfContent);
     }
 
     // Send emails to recipients
     let recipientsSent = 0;
     for (const email of report.recipients) {
       try {
-        await sendReportEmail(supabase, email, report, fileUrls);
+        await sendReportEmail(ctx.supabase, email, report, fileUrls);
         recipientsSent++;
       } catch (error) {
         console.error(`Failed to send to ${email}:`, error);
@@ -66,7 +70,7 @@ Deno.serve(async (req) => {
     }
 
     // Log execution
-    await supabase.from('report_executions').insert({
+    await ctx.supabase.from('report_executions').insert({
       report_id: reportId,
       status: recipientsSent > 0 ? 'success' : 'failed',
       recipients_sent: recipientsSent,
@@ -74,7 +78,7 @@ Deno.serve(async (req) => {
     });
 
     // Update last_sent_at
-    await supabase
+    await ctx.supabase
       .from('scheduled_reports')
       .update({ last_sent_at: new Date().toISOString() })
       .eq('id', reportId);
@@ -88,25 +92,17 @@ Deno.serve(async (req) => {
         recipientsSent,
         fileUrls,
       }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } }
     );
 
-  } catch (error) {
-    console.error('Error in execute-scheduled-report:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    return new Response(
-      JSON.stringify({ error: errorMessage }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-  }
-});
+}));
 
-async function generateReportData(supabase: any, report: any) {
+async function generateReportData(supabase: SupabaseClient, report: ReportConfig) {
   const filters = report.filters || {};
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-  let data: any = {};
+  let data: ReportData = {};
 
   switch (report.report_type) {
     case 'user_activity':
@@ -126,7 +122,7 @@ async function generateReportData(supabase: any, report: any) {
   return data;
 }
 
-async function fetchUserActivityData(supabase: any, filters: any, since: Date) {
+async function fetchUserActivityData(supabase: SupabaseClient, filters: Record<string, unknown>, since: Date) {
   const [sessions, pages, frustration, engagement] = await Promise.all([
     supabase
       .from('user_session_events')
@@ -163,7 +159,7 @@ async function fetchUserActivityData(supabase: any, filters: any, since: Date) {
   };
 }
 
-async function fetchCandidateMetrics(supabase: any, filters: any, since: Date) {
+async function fetchCandidateMetrics(supabase: SupabaseClient, filters: Record<string, unknown>, since: Date) {
   const { data: applications } = await supabase
     .from('applications')
     .select('*')
@@ -172,14 +168,14 @@ async function fetchCandidateMetrics(supabase: any, filters: any, since: Date) {
   return {
     summary: {
       totalApplications: applications?.length || 0,
-      submitted: applications?.filter((a: any) => a.status === 'submitted').length || 0,
-      inProgress: applications?.filter((a: any) => a.status === 'in_progress').length || 0,
+      submitted: applications?.filter((a: Record<string, unknown>) => a.status === 'submitted').length || 0,
+      inProgress: applications?.filter((a: Record<string, unknown>) => a.status === 'in_progress').length || 0,
     },
     applications: applications || [],
   };
 }
 
-async function fetchPartnerHealth(supabase: any, filters: any, since: Date) {
+async function fetchPartnerHealth(supabase: SupabaseClient, filters: Record<string, unknown>, since: Date) {
   const { data: partners } = await supabase
     .from('profiles')
     .select('*, user_roles!inner(*)')
@@ -188,13 +184,13 @@ async function fetchPartnerHealth(supabase: any, filters: any, since: Date) {
   return {
     summary: {
       totalPartners: partners?.length || 0,
-      activePartners: partners?.filter((p: any) => p.last_login_at > since.toISOString()).length || 0,
+      activePartners: partners?.filter((p: Record<string, unknown>) => (p.last_login_at as string) > since.toISOString()).length || 0,
     },
     partners: partners || [],
   };
 }
 
-async function fetchFullAnalytics(supabase: any, filters: any, since: Date) {
+async function fetchFullAnalytics(supabase: SupabaseClient, filters: Record<string, unknown>, since: Date) {
   const [userActivity, candidates, partners] = await Promise.all([
     fetchUserActivityData(supabase, filters, since),
     fetchCandidateMetrics(supabase, filters, since),
@@ -208,7 +204,7 @@ async function fetchFullAnalytics(supabase: any, filters: any, since: Date) {
   };
 }
 
-function generateCSV(data: any): string {
+function generateCSV(data: ReportData): string {
   let csv = 'Metric,Value\n';
   
   if (data.summary) {
@@ -220,7 +216,7 @@ function generateCSV(data: any): string {
   return csv;
 }
 
-async function generatePDF(data: any, report: any): Promise<string> {
+async function generatePDF(data: ReportData, report: ReportConfig): Promise<string> {
   // Simple HTML-based PDF content (would use proper PDF generation in production)
   const html = `
     <html>
@@ -238,7 +234,7 @@ async function generatePDF(data: any, report: any): Promise<string> {
 }
 
 async function uploadReportFile(
-  supabase: any,
+  supabase: SupabaseClient,
   reportId: string,
   format: string,
   content: string
@@ -264,17 +260,17 @@ async function uploadReportFile(
 }
 
 async function sendReportEmail(
-  supabase: any,
+  _supabase: SupabaseClient,
   email: string,
-  report: any,
-  fileUrls: any
+  _report: ReportConfig,
+  _fileUrls: Record<string, string>
 ) {
   console.log(`Sending report to ${email}`);
   // Email sending would be implemented here using a service like SendGrid
   // For now, just log
 }
 
-function calculateAverage(data: any[], field: string): number {
+function calculateAverage(data: Record<string, unknown>[], field: string): number {
   if (data.length === 0) return 0;
   const sum = data.reduce((acc, item) => acc + (item[field] || 0), 0);
   return Math.round((sum / data.length) * 100) / 100;

@@ -24,6 +24,7 @@ import {
   Target
 } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
+import { useTranslation } from 'react-i18next';
 
 interface CandidateInteractionLogProps {
   candidateId: string;
@@ -88,6 +89,7 @@ export const CandidateInteractionLog = ({
   applicationId,
   activeTab,
 }: CandidateInteractionLogProps) => {
+  const { t } = useTranslation('partner');
   const [interactions, setInteractions] = useState<Interaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [addingNote, setAddingNote] = useState(false);
@@ -144,7 +146,7 @@ export const CandidateInteractionLog = ({
 
   const handleAddNote = async () => {
     if (!candidateId || !newNote.content.trim()) {
-      toast.error("Please enter note content");
+      toast.error(t('candidateInteractionLog.toast.pleaseEnterNoteContent'));
       return;
     }
 
@@ -167,12 +169,12 @@ export const CandidateInteractionLog = ({
 
       if (error) throw error;
 
-      toast.success("Note added successfully");
+      toast.success(t('candidateInteractionLog.toast.noteAddedSuccessfully'));
       setNewNote({ type: "note", title: "", content: "" });
       loadInteractions();
     } catch (error) {
       console.error("Error adding note:", error);
-      toast.error("Failed to add note");
+      toast.error(t('candidateInteractionLog.toast.failedToAddNote'));
     } finally {
       setAddingNote(false);
     }
@@ -191,8 +193,8 @@ export const CandidateInteractionLog = ({
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Interaction Timeline</CardTitle>
-          <CardDescription>Loading candidate interactions...</CardDescription>
+          <CardTitle>{t('candidateInteractionLog.title')}</CardTitle>
+          <CardDescription>{t('candidateInteractionLog.description')}</CardDescription>
         </CardHeader>
       </Card>
     );
@@ -202,8 +204,8 @@ export const CandidateInteractionLog = ({
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Interaction Timeline</CardTitle>
-          <CardDescription>No candidate profile found for this email</CardDescription>
+          <CardTitle>{t('candidateInteractionLog.title')}</CardTitle>
+          <CardDescription>{t('candidateInteractionLog.description')}</CardDescription>
         </CardHeader>
       </Card>
     );
@@ -218,9 +220,7 @@ export const CandidateInteractionLog = ({
               <Sparkles className="w-5 h-5 text-accent" />
               Interaction Timeline
             </CardTitle>
-            <CardDescription>
-              Complete audit trail of all candidate interactions
-            </CardDescription>
+            <CardDescription>{t('candidateInteractionLog.description')}</CardDescription>
           </div>
           <Badge variant="outline" className="gap-1">
             <Clock className="w-3 h-3" />
@@ -234,7 +234,7 @@ export const CandidateInteractionLog = ({
         <div className="p-4 border rounded-lg bg-muted/30 space-y-3">
           <div className="flex items-center gap-2">
             <Plus className="w-4 h-4 text-accent" />
-            <Label className="font-semibold">Log New Interaction</Label>
+            <Label className="font-semibold">{t('candidateInteractionLog.label.logNewInteraction')}</Label>
           </div>
 
           <Select
@@ -245,16 +245,16 @@ export const CandidateInteractionLog = ({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="note">Note</SelectItem>
-              <SelectItem value="call">Phone Call</SelectItem>
-              <SelectItem value="email">Email</SelectItem>
-              <SelectItem value="message">Message</SelectItem>
-              <SelectItem value="meeting">Meeting</SelectItem>
+              <SelectItem value="note">{t('candidateInteractionLog.option.note')}</SelectItem>
+              <SelectItem value="call">{t('candidateInteractionLog.option.phoneCall')}</SelectItem>
+              <SelectItem value="email">{t('candidateInteractionLog.option.email')}</SelectItem>
+              <SelectItem value="message">{t('candidateInteractionLog.option.message')}</SelectItem>
+              <SelectItem value="meeting">{t('candidateInteractionLog.option.meeting')}</SelectItem>
             </SelectContent>
           </Select>
 
           <Textarea
-            placeholder="Enter interaction details..."
+            placeholder={t('candidateInteractionLog.placeholder.enterInteractionDetails')}
             value={newNote.content}
             onChange={(e) => setNewNote({ ...newNote, content: e.target.value })}
             rows={3}
@@ -277,7 +277,7 @@ export const CandidateInteractionLog = ({
           {interactions.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
               <Eye className="w-12 h-12 mx-auto mb-3 opacity-20" />
-              <p>No interactions logged yet</p>
+              <p>{t('candidateInteractionLog.noInteractionsLoggedYet')}</p>
             </div>
           ) : (
             <div className="space-y-4">

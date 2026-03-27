@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { useTranslation } from 'react-i18next';
 import { useSystemHealth } from "@/hooks/useSystemHealth";
 import { Activity, CheckCircle2, AlertCircle, RefreshCw } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -9,6 +10,7 @@ import { FunctionHealthTable } from "@/components/admin/system/FunctionHealthTab
 import { ErrorLogViewer } from "@/components/admin/system/ErrorLogViewer";
 
 export default function SystemHealth() {
+  const { t } = useTranslation('admin');
   const { health, functions, isLoading, refetch } = useSystemHealth();
 
   const getStatusColor = (status: string) => {
@@ -34,8 +36,8 @@ export default function SystemHealth() {
       <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold tracking-tight">System Health</h1>
-              <p className="text-muted-foreground">Real-time platform monitoring and diagnostics</p>
+              <h1 className="text-3xl font-bold tracking-tight">{t('systemHealth.text1')}</h1>
+              <p className="text-muted-foreground">{t('systemHealth.text2')}</p>
             </div>
             <Skeleton className="h-10 w-24" />
           </div>
@@ -54,8 +56,8 @@ export default function SystemHealth() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">System Health</h1>
-            <p className="text-muted-foreground">Real-time platform monitoring and diagnostics</p>
+            <h1 className="text-3xl font-bold tracking-tight">{t('systemHealth.text3')}</h1>
+            <p className="text-muted-foreground">{t('systemHealth.text4')}</p>
           </div>
           <Button onClick={() => refetch()} variant="outline" size="sm">
             <RefreshCw className="w-4 h-4 mr-2" />
@@ -83,9 +85,9 @@ export default function SystemHealth() {
         {/* Tabbed Interface */}
         <Tabs defaultValue="overview" className="w-full">
           <TabsList>
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="functions">Functions</TabsTrigger>
-            <TabsTrigger value="errors">Error Logs</TabsTrigger>
+            <TabsTrigger value="overview">{t('systemHealth.text5')}</TabsTrigger>
+            <TabsTrigger value="functions">{t('systemHealth.text6')}</TabsTrigger>
+            <TabsTrigger value="errors">{t('systemHealth.text7')}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-4 mt-6">

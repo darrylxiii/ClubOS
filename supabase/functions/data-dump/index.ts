@@ -1,9 +1,8 @@
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 
 import { authenticateUser, requireRole } from '../_shared/auth-helpers.ts';
 import { createErrorResponse } from '../_shared/error-responses.ts';
-import { getCorsHeaders, handleCorsPreFlight } from '../_shared/cors-config.ts';
+import { createHandler } from '../_shared/handler.ts';
 
 type TableRef = { schema_name: string; table_name: string };
 
@@ -103,7 +102,7 @@ async function sign(
 
 function buildPreamble(tables: TableRef[], exportId: string, createdAt: string) {
   const lines: string[] = [];
-  lines.push('-- The Quantum Club — admin export');
+  lines.push('-- The Quantum Club \u2014 admin export');
   lines.push(`-- export_id: ${exportId}`);
   lines.push(`-- created_at: ${createdAt}`);
   lines.push('');
@@ -224,286 +223,258 @@ async function fetchPageWithRetries(args: {
   return { error: 'statement timeout (after retries)' };
 }
 
-serve(async (req) => {
-  const corsHeaders = getCorsHeaders(req, true);
+Deno.serve(createHandler(async (req, ctx) => {
+  const auth = await authenticateUser(req.headers.get('authorization'));
+  requireRole(auth, ['admin']);
 
-  if (req.method === 'OPTIONS') {
-    return handleCorsPreFlight(req);
-  }
-
-  try {
-    const auth = await authenticateUser(req.headers.get('authorization'));
-    requireRole(auth, ['admin']);
-
-    if (req.method !== 'POST') {
-      return createErrorResponse({
-        message: 'Method not allowed',
-        status: 405,
-        corsHeaders,
-      });
-    }
-
-    const bodyText = await req.text();
-    const body = bodyText ? JSON.parse(bodyText) : {};
-    const resumeCursor: ResumeCursor | null = body?.resumeCursor ?? null;
-    const exportId: string = body?.exportId ?? crypto.randomUUID();
-
-    const createdAt: string = body?.createdAt ?? new Date().toISOString();
-    const bucket = 'admin-exports';
-    const prefix = `sql/${exportId}`;
-
-    const expiresInSeconds = 60 * 60; // 1 hour
-    const pageSize = 1000;
-    const fallbackPageSize = 200;
-    const watchdogMs = 55_000;
-
-    const supabaseAdmin = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
-    );
-
-    const { data: tables, error: tableError } = await supabaseAdmin.rpc('tqc__list_user_tables');
-    if (tableError) throw new Error(tableError.message);
-
-    const tableList = (tables || []) as TableRef[];
-    const warnings: string[] = [];
-    const files: ExportFile[] = [];
-
-    const startTime = Date.now();
-
-    // Upload preamble only on first call.
-    if (!resumeCursor) {
-      const preamblePath = `${prefix}/data-preamble.sql`;
-      await uploadText(supabaseAdmin, bucket, preamblePath, buildPreamble(tableList, exportId, createdAt));
-      files.push({
-        path: preamblePath,
-        signedUrl: await sign(supabaseAdmin, bucket, preamblePath, expiresInSeconds),
-        kind: 'preamble',
-      });
-    }
-
-    let tableIndex = resumeCursor?.tableIndex ?? 0;
-
-    for (; tableIndex < tableList.length; tableIndex += 1) {
-      const t = tableList[tableIndex];
-      const schema = t.schema_name;
-      const table = t.table_name;
-
-      let columns: string[] = [];
-      let ordering: OrderingKeyResp = { key_column: null, strategy: 'none' };
-      try {
-        columns = await getTableColumns(supabaseAdmin, schema, table);
-      } catch (e) {
-        const msg = e instanceof Error ? e.message : 'Unknown error';
-        warnings.push(`Skipped ${schema}.${table}: failed to read columns (${msg})`);
-        continue;
-      }
-
-      if (columns.length === 0) {
-        const emptyPath = `${prefix}/${schema}.${table}/part-${pad4(0)}.sql`;
-        await uploadText(supabaseAdmin, bucket, emptyPath, `-- ${schema}.${table}: (no columns/rows)\n`);
-        files.push({
-          path: emptyPath,
-          signedUrl: await sign(supabaseAdmin, bucket, emptyPath, expiresInSeconds),
-          kind: 'table-part',
-          table: { schema, name: table },
-          partIndex: 0,
-        });
-        continue;
-      }
-
-      try {
-        ordering = await getOrderingKey(supabaseAdmin, schema, table);
-      } catch (e) {
-        const msg = e instanceof Error ? e.message : 'Unknown error';
-        warnings.push(`Ordering metadata failed for ${schema}.${table}: ${msg}. Falling back to OFFSET.`);
-        ordering = { key_column: null, strategy: 'none' };
-      }
-
-      const canKeyset = !!ordering.key_column && columns.includes(ordering.key_column);
-
-      // Resume state per table
-      let partIndex = 0;
-      let lastKey: string | number | null = null;
-      let offset = 0;
-      let mode: 'keyset' | 'offset' = canKeyset ? 'keyset' : 'offset';
-      let orderBy = canKeyset ? ordering.key_column! : (columns.includes('id') ? 'id' : columns[0]);
-
-      if (resumeCursor && resumeCursor.tableIndex === tableIndex) {
-        if (resumeCursor.mode === 'keyset') {
-          mode = 'keyset';
-          orderBy = resumeCursor.keyColumn;
-          lastKey = resumeCursor.lastKey;
-          partIndex = resumeCursor.partIndex;
-        } else {
-          mode = 'offset';
-          orderBy = resumeCursor.orderBy;
-          offset = resumeCursor.offset;
-          partIndex = resumeCursor.partIndex;
-        }
-      }
-
-      if (mode === 'offset' && !orderBy) {
-        warnings.push(`Skipped ${schema}.${table}: could not determine ordering column`);
-        continue;
-      }
-
-      if (mode === 'offset') {
-        warnings.push(
-          `Exporting ${schema}.${table} using OFFSET pagination (may be slow for large tables).`,
-        );
-      } else {
-        console.log(
-          `[data-dump] ${exportId} ${schema}.${table} keyset orderBy=${orderBy} strategy=${ordering.strategy}`,
-        );
-      }
-
-      const perTablePageSize = mode === 'offset' ? fallbackPageSize : pageSize;
-
-      for (;;) {
-        if (Date.now() - startTime > watchdogMs) {
-          return new Response(
-            JSON.stringify({
-              exportId,
-              createdAt,
-              expiresInSeconds,
-              files,
-              warnings,
-              resumeCursor:
-                mode === 'keyset'
-                  ? {
-                      tableIndex,
-                      mode: 'keyset',
-                      keyColumn: orderBy,
-                      lastKey,
-                      partIndex,
-                    }
-                  : {
-                      tableIndex,
-                      mode: 'offset',
-                      orderBy,
-                      offset,
-                      partIndex,
-                    },
-              done: false,
-            } satisfies ExportResponse),
-            {
-              status: 200,
-              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-            },
-          );
-        }
-
-        const attempt = await fetchPageWithRetries({
-          supabaseAdmin,
-          schema,
-          table,
-          orderBy,
-          mode,
-          lastKey,
-          offset,
-          pageSizes: [perTablePageSize, 300, 100],
-        });
-
-        if ('error' in attempt) {
-          const where = mode === 'offset' ? `offset ${offset}` : `lastKey ${String(lastKey)}`;
-          warnings.push(`Skipped ${schema}.${table} @ ${where}: ${attempt.error}`);
-          break;
-        }
-
-        const pageRows = attempt.rows;
-        const usedPageSize = attempt.usedPageSize;
-        if (pageRows.length === 0) {
-          // If offset was 0, ensure we still write a small file marking empty table.
-          if (mode === 'offset' ? offset === 0 : partIndex === 0) {
-            const emptyPath = `${prefix}/${schema}.${table}/part-${pad4(0)}.sql`;
-            await uploadText(supabaseAdmin, bucket, emptyPath, `-- ${schema}.${table}: (no rows)\n`);
-            files.push({
-              path: emptyPath,
-              signedUrl: await sign(supabaseAdmin, bucket, emptyPath, expiresInSeconds),
-              kind: 'table-part',
-              table: { schema, name: table },
-              partIndex: 0,
-            });
-          }
-          break;
-        }
-
-        const partPath = `${prefix}/${schema}.${table}/part-${pad4(partIndex)}.sql`;
-        const sql = buildInsertStatements(schema, table, pageRows, columns);
-        await uploadText(supabaseAdmin, bucket, partPath, sql);
-        files.push({
-          path: partPath,
-          signedUrl: await sign(supabaseAdmin, bucket, partPath, expiresInSeconds),
-          kind: 'table-part',
-          table: { schema, name: table },
-          partIndex,
-        });
-
-        // Advance cursor
-        if (mode === 'offset') {
-          offset += pageRows.length;
-        } else {
-          const lk = pageRows[pageRows.length - 1]?.[orderBy];
-          if (lk === null || lk === undefined) {
-            warnings.push(
-              `Keyset cursor for ${schema}.${table} has null/undefined key '${orderBy}'. Falling back to OFFSET next run.`,
-            );
-            // Fall back to offset from scratch is expensive; instead stop here so UI can retry.
-            break;
-          }
-          lastKey = lk as any;
-        }
-
-        partIndex += 1;
-        if (pageRows.length < usedPageSize) {
-          break;
-        }
-      }
-
-      // Next table resets happen naturally by reinitializing loop vars.
-    }
-
-    // Upload epilogue only on completion.
-    const epiloguePath = `${prefix}/data-epilogue.sql`;
-    await uploadText(supabaseAdmin, bucket, epiloguePath, buildEpilogue(tableList));
-    files.push({
-      path: epiloguePath,
-      signedUrl: await sign(supabaseAdmin, bucket, epiloguePath, expiresInSeconds),
-      kind: 'epilogue',
-    });
-
-    return new Response(
-      JSON.stringify({
-        exportId,
-        createdAt,
-        expiresInSeconds,
-        files,
-        warnings,
-        resumeCursor: null,
-        done: true,
-      } satisfies ExportResponse),
-      {
-        status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      },
-    );
-  } catch (err) {
-    const message = err instanceof Error ? err.message : 'Unknown error';
-    const m = message.toLowerCase();
-    const status =
-      m.includes('missing authorization') ||
-      m.includes('invalid or expired token') ||
-      m.includes('unauthorized')
-        ? 401
-        : m.includes('required roles') || m.includes('forbidden')
-          ? 403
-          : 500;
-
+  if (req.method !== 'POST') {
     return createErrorResponse({
-      message,
-      status,
-      corsHeaders,
+      message: 'Method not allowed',
+      status: 405,
+      corsHeaders: ctx.corsHeaders,
     });
   }
-});
+
+  const bodyText = await req.text();
+  const body = bodyText ? JSON.parse(bodyText) : {};
+  const resumeCursor: ResumeCursor | null = body?.resumeCursor ?? null;
+  const exportId: string = body?.exportId ?? crypto.randomUUID();
+
+  const createdAt: string = body?.createdAt ?? new Date().toISOString();
+  const bucket = 'admin-exports';
+  const prefix = `sql/${exportId}`;
+
+  const expiresInSeconds = 60 * 60; // 1 hour
+  const pageSize = 1000;
+  const fallbackPageSize = 200;
+  const watchdogMs = 55_000;
+
+  const supabaseAdmin = ctx.supabase;
+
+  const { data: tables, error: tableError } = await supabaseAdmin.rpc('tqc__list_user_tables');
+  if (tableError) throw new Error(tableError.message);
+
+  const tableList = (tables || []) as TableRef[];
+  const warnings: string[] = [];
+  const files: ExportFile[] = [];
+
+  const startTime = Date.now();
+
+  // Upload preamble only on first call.
+  if (!resumeCursor) {
+    const preamblePath = `${prefix}/data-preamble.sql`;
+    await uploadText(supabaseAdmin, bucket, preamblePath, buildPreamble(tableList, exportId, createdAt));
+    files.push({
+      path: preamblePath,
+      signedUrl: await sign(supabaseAdmin, bucket, preamblePath, expiresInSeconds),
+      kind: 'preamble',
+    });
+  }
+
+  let tableIndex = resumeCursor?.tableIndex ?? 0;
+
+  for (; tableIndex < tableList.length; tableIndex += 1) {
+    const t = tableList[tableIndex];
+    const schema = t.schema_name;
+    const table = t.table_name;
+
+    let columns: string[] = [];
+    let ordering: OrderingKeyResp = { key_column: null, strategy: 'none' };
+    try {
+      columns = await getTableColumns(supabaseAdmin, schema, table);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'Unknown error';
+      warnings.push(`Skipped ${schema}.${table}: failed to read columns (${msg})`);
+      continue;
+    }
+
+    if (columns.length === 0) {
+      const emptyPath = `${prefix}/${schema}.${table}/part-${pad4(0)}.sql`;
+      await uploadText(supabaseAdmin, bucket, emptyPath, `-- ${schema}.${table}: (no columns/rows)\n`);
+      files.push({
+        path: emptyPath,
+        signedUrl: await sign(supabaseAdmin, bucket, emptyPath, expiresInSeconds),
+        kind: 'table-part',
+        table: { schema, name: table },
+        partIndex: 0,
+      });
+      continue;
+    }
+
+    try {
+      ordering = await getOrderingKey(supabaseAdmin, schema, table);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'Unknown error';
+      warnings.push(`Ordering metadata failed for ${schema}.${table}: ${msg}. Falling back to OFFSET.`);
+      ordering = { key_column: null, strategy: 'none' };
+    }
+
+    const canKeyset = !!ordering.key_column && columns.includes(ordering.key_column);
+
+    // Resume state per table
+    let partIndex = 0;
+    let lastKey: string | number | null = null;
+    let offset = 0;
+    let mode: 'keyset' | 'offset' = canKeyset ? 'keyset' : 'offset';
+    let orderBy = canKeyset ? ordering.key_column! : (columns.includes('id') ? 'id' : columns[0]);
+
+    if (resumeCursor && resumeCursor.tableIndex === tableIndex) {
+      if (resumeCursor.mode === 'keyset') {
+        mode = 'keyset';
+        orderBy = resumeCursor.keyColumn;
+        lastKey = resumeCursor.lastKey;
+        partIndex = resumeCursor.partIndex;
+      } else {
+        mode = 'offset';
+        orderBy = resumeCursor.orderBy;
+        offset = resumeCursor.offset;
+        partIndex = resumeCursor.partIndex;
+      }
+    }
+
+    if (mode === 'offset' && !orderBy) {
+      warnings.push(`Skipped ${schema}.${table}: could not determine ordering column`);
+      continue;
+    }
+
+    if (mode === 'offset') {
+      warnings.push(
+        `Exporting ${schema}.${table} using OFFSET pagination (may be slow for large tables).`,
+      );
+    } else {
+      console.log(
+        `[data-dump] ${exportId} ${schema}.${table} keyset orderBy=${orderBy} strategy=${ordering.strategy}`,
+      );
+    }
+
+    const perTablePageSize = mode === 'offset' ? fallbackPageSize : pageSize;
+
+    for (;;) {
+      if (Date.now() - startTime > watchdogMs) {
+        return new Response(
+          JSON.stringify({
+            exportId,
+            createdAt,
+            expiresInSeconds,
+            files,
+            warnings,
+            resumeCursor:
+              mode === 'keyset'
+                ? {
+                    tableIndex,
+                    mode: 'keyset',
+                    keyColumn: orderBy,
+                    lastKey,
+                    partIndex,
+                  }
+                : {
+                    tableIndex,
+                    mode: 'offset',
+                    orderBy,
+                    offset,
+                    partIndex,
+                  },
+            done: false,
+          } satisfies ExportResponse),
+          {
+            status: 200,
+            headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' },
+          },
+        );
+      }
+
+      const attempt = await fetchPageWithRetries({
+        supabaseAdmin,
+        schema,
+        table,
+        orderBy,
+        mode,
+        lastKey,
+        offset,
+        pageSizes: [perTablePageSize, 300, 100],
+      });
+
+      if ('error' in attempt) {
+        const where = mode === 'offset' ? `offset ${offset}` : `lastKey ${String(lastKey)}`;
+        warnings.push(`Skipped ${schema}.${table} @ ${where}: ${attempt.error}`);
+        break;
+      }
+
+      const pageRows = attempt.rows;
+      const usedPageSize = attempt.usedPageSize;
+      if (pageRows.length === 0) {
+        // If offset was 0, ensure we still write a small file marking empty table.
+        if (mode === 'offset' ? offset === 0 : partIndex === 0) {
+          const emptyPath = `${prefix}/${schema}.${table}/part-${pad4(0)}.sql`;
+          await uploadText(supabaseAdmin, bucket, emptyPath, `-- ${schema}.${table}: (no rows)\n`);
+          files.push({
+            path: emptyPath,
+            signedUrl: await sign(supabaseAdmin, bucket, emptyPath, expiresInSeconds),
+            kind: 'table-part',
+            table: { schema, name: table },
+            partIndex: 0,
+          });
+        }
+        break;
+      }
+
+      const partPath = `${prefix}/${schema}.${table}/part-${pad4(partIndex)}.sql`;
+      const sql = buildInsertStatements(schema, table, pageRows, columns);
+      await uploadText(supabaseAdmin, bucket, partPath, sql);
+      files.push({
+        path: partPath,
+        signedUrl: await sign(supabaseAdmin, bucket, partPath, expiresInSeconds),
+        kind: 'table-part',
+        table: { schema, name: table },
+        partIndex,
+      });
+
+      // Advance cursor
+      if (mode === 'offset') {
+        offset += pageRows.length;
+      } else {
+        const lk = pageRows[pageRows.length - 1]?.[orderBy];
+        if (lk === null || lk === undefined) {
+          warnings.push(
+            `Keyset cursor for ${schema}.${table} has null/undefined key '${orderBy}'. Falling back to OFFSET next run.`,
+          );
+          // Fall back to offset from scratch is expensive; instead stop here so UI can retry.
+          break;
+        }
+        lastKey = lk as any;
+      }
+
+      partIndex += 1;
+      if (pageRows.length < usedPageSize) {
+        break;
+      }
+    }
+
+    // Next table resets happen naturally by reinitializing loop vars.
+  }
+
+  // Upload epilogue only on completion.
+  const epiloguePath = `${prefix}/data-epilogue.sql`;
+  await uploadText(supabaseAdmin, bucket, epiloguePath, buildEpilogue(tableList));
+  files.push({
+    path: epiloguePath,
+    signedUrl: await sign(supabaseAdmin, bucket, epiloguePath, expiresInSeconds),
+    kind: 'epilogue',
+  });
+
+  return new Response(
+    JSON.stringify({
+      exportId,
+      createdAt,
+      expiresInSeconds,
+      files,
+      warnings,
+      resumeCursor: null,
+      done: true,
+    } satisfies ExportResponse),
+    {
+      status: 200,
+      headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' },
+    },
+  );
+}));

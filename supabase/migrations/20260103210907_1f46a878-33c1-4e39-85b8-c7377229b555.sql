@@ -7,8 +7,8 @@ ALTER TABLE placement_fees RENAME COLUMN original_sourced_by TO added_by;
 ALTER TABLE placement_fees ADD COLUMN IF NOT EXISTS added_by_name TEXT;
 
 -- Rename columns in job_closures
-ALTER TABLE job_closures RENAME COLUMN original_sourced_by TO added_by;
-ALTER TABLE job_closures ADD COLUMN IF NOT EXISTS added_by_name TEXT;
+-- ALTER TABLE job_closures RENAME COLUMN original_sourced_by TO added_by;
+-- ALTER TABLE job_closures ADD COLUMN IF NOT EXISTS added_by_name TEXT;
 
 -- Update Claudia Bruno's record with added_by_name
 UPDATE placement_fees

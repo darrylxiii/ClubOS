@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { motion, AnimatePresence } from '@/lib/motion';
 import {
@@ -75,6 +76,7 @@ export function MilestoneDetailModal({
   onClose,
   isAdmin = false,
 }: MilestoneDetailModalProps) {
+  const { t } = useTranslation('common');
   const [showProposalForm, setShowProposalForm] = useState(false);
   const [showDecisionPanel, setShowDecisionPanel] = useState(false);
   const [selectedProposal, setSelectedProposal] = useState<any>(null);
@@ -167,7 +169,7 @@ export function MilestoneDetailModal({
               {/* Progress Card */}
               <Card variant="static" className="p-5 space-y-4 bg-muted/10 border-border/30">
                 <div className="flex items-center justify-between">
-                  <span className="text-label-md font-medium">Progress</span>
+                  <span className="text-label-md font-medium">{t("progress", "Progress")}</span>
                   <span className={cn("text-heading-sm font-bold", config.color)}>
                     {Math.round(progressPercent)}%
                   </span>
@@ -182,7 +184,7 @@ export function MilestoneDetailModal({
 
                 <div className="flex items-center justify-between text-label-sm">
                   <div>
-                    <span className="text-muted-foreground">Achieved: </span>
+                    <span className="text-muted-foreground">{t("achieved", "Achieved:")}</span>
                     <span className="font-medium text-success">
                       {formatCurrency(milestone.achieved_revenue || 0)}
                     </span>
@@ -205,7 +207,7 @@ export function MilestoneDetailModal({
                       <div className="flex items-center gap-2">
                         <Calendar className="h-4 w-4 text-success" />
                         <div>
-                          <p className="text-label-xs text-muted-foreground">Unlocked</p>
+                          <p className="text-label-xs text-muted-foreground">{t("unlocked", "Unlocked")}</p>
                           <p className="text-label-sm font-medium">
                             {formatDate(milestone.unlocked_at)}
                           </p>
@@ -216,7 +218,7 @@ export function MilestoneDetailModal({
                       <div className="flex items-center gap-2">
                         <Trophy className="h-4 w-4 text-premium" />
                         <div>
-                          <p className="text-label-xs text-muted-foreground">Rewarded</p>
+                          <p className="text-label-xs text-muted-foreground">{t("rewarded", "Rewarded")}</p>
                           <p className="text-label-sm font-medium">
                             {formatDate(milestone.rewarded_at)}
                           </p>
@@ -230,7 +232,7 @@ export function MilestoneDetailModal({
               {/* Description */}
               {milestone.description && (
                 <div className="space-y-2">
-                  <h3 className="text-label-md font-semibold">Description</h3>
+                  <h3 className="text-label-md font-semibold">{t("description", "Description")}</h3>
                   <p className="text-body-sm text-muted-foreground">
                     {milestone.description}
                   </p>

@@ -19,6 +19,7 @@ import { Separator } from '@/components/ui/separator';
 import { Settings, Loader2 } from 'lucide-react';
 import { useBlogEngineSettings, type BlogEngineSettings } from '@/hooks/useBlogEngineSettings';
 import type { ContentFormat } from '@/hooks/useBlogGeneration';
+import { useTranslation } from 'react-i18next';
 
 const FORMATS: { value: ContentFormat; label: string }[] = [
   { value: 'career-playbook', label: 'Career Playbook' },
@@ -38,6 +39,7 @@ const CATEGORIES = [
 ];
 
 const BlogEngineControlModal: React.FC = () => {
+  const { t } = useTranslation('admin');
   const { settings, isLoading, isEngineActive, updateSettings, isSaving } = useBlogEngineSettings();
   const [open, setOpen] = useState(false);
 

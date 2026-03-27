@@ -2,8 +2,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Shield, Activity, AlertTriangle, CheckCircle } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useTranslation } from 'react-i18next';
 
 export const ComplianceMetrics = () => {
+  const { t } = useTranslation('admin');
   const { data: auditStats } = useQuery({
     queryKey: ['audit-stats'],
     queryFn: async () => {

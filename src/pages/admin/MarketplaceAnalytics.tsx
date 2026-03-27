@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from 'react-i18next';
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -8,6 +9,7 @@ import { useRecharts } from "@/hooks/useRecharts";
 import { format, subDays, startOfMonth, endOfMonth } from "date-fns";
 
 const MarketplaceAnalytics = () => {
+  const { t } = useTranslation('admin');
   const { recharts, isLoading: rechartsLoading } = useRecharts();
 
   // Fetch all marketplace data
@@ -124,8 +126,8 @@ const MarketplaceAnalytics = () => {
     <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
       <div className="flex justify-between items-start">
         <div>
-          <h1 className="text-2xl font-bold">Marketplace Analytics</h1>
-          <p className="text-muted-foreground">Platform performance and GMV metrics</p>
+          <h1 className="text-2xl font-bold">{t('marketplaceAnalytics.title')}</h1>
+          <p className="text-muted-foreground">{t('marketplaceAnalytics.desc')}</p>
         </div>
         <Badge variant="outline" className="text-xs">
           Updated {format(new Date(), 'HH:mm')}
@@ -313,7 +315,7 @@ const MarketplaceAnalytics = () => {
           <CardContent className="pt-4">
             <div className="text-center">
               <p className="text-2xl font-bold">{completedProjects}</p>
-              <p className="text-xs text-muted-foreground">Completed Projects</p>
+              <p className="text-xs text-muted-foreground">{t('marketplaceAnalytics.desc2')}</p>
             </div>
           </CardContent>
         </Card>
@@ -321,7 +323,7 @@ const MarketplaceAnalytics = () => {
           <CardContent className="pt-4">
             <div className="text-center">
               <p className="text-2xl font-bold">€{(completedGMV / Math.max(completedContracts.length, 1)).toLocaleString()}</p>
-              <p className="text-xs text-muted-foreground">Avg. Contract Value</p>
+              <p className="text-xs text-muted-foreground">{t('marketplaceAnalytics.desc3')}</p>
             </div>
           </CardContent>
         </Card>
@@ -329,7 +331,7 @@ const MarketplaceAnalytics = () => {
           <CardContent className="pt-4">
             <div className="text-center">
               <p className="text-2xl font-bold">{connectsTransactions?.filter(t => t.transaction_type === 'purchase').length || 0}</p>
-              <p className="text-xs text-muted-foreground">Connects Purchased</p>
+              <p className="text-xs text-muted-foreground">{t('marketplaceAnalytics.desc4')}</p>
             </div>
           </CardContent>
         </Card>
@@ -337,7 +339,7 @@ const MarketplaceAnalytics = () => {
           <CardContent className="pt-4">
             <div className="text-center">
               <p className="text-2xl font-bold">€{connectsRevenue.toLocaleString()}</p>
-              <p className="text-xs text-muted-foreground">Connects Revenue</p>
+              <p className="text-xs text-muted-foreground">{t('marketplaceAnalytics.desc5')}</p>
             </div>
           </CardContent>
         </Card>

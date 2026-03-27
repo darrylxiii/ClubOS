@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Bell, Gift, Briefcase, TrendingUp, CheckCircle2, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -14,6 +15,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 
 export function NotificationBell() {
+  const { t } = useTranslation('common');
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
@@ -49,7 +51,7 @@ export function NotificationBell() {
       </PopoverTrigger>
       <PopoverContent className="w-96 p-0" align="end">
         <div className="flex items-center justify-between p-4">
-          <h3 className="font-semibold">Notifications</h3>
+          <h3 className="font-semibold">{t("notifications", "Notifications")}</h3>
           {unreadCount > 0 && (
             <Button
               variant="ghost"
@@ -66,7 +68,7 @@ export function NotificationBell() {
           {notifications.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center px-4">
               <Bell className="h-12 w-12 text-muted-foreground mb-3" />
-              <p className="text-sm text-muted-foreground">No notifications</p>
+              <p className="text-sm text-muted-foreground">{t("no_notifications", "No notifications")}</p>
             </div>
           ) : (
             <div className="divide-y">

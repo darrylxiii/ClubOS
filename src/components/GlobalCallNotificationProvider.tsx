@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useGlobalCallSignaling } from '@/hooks/useGlobalCallSignaling';
 import { IncomingCallCard } from '@/components/messages/IncomingCallCard';
 import { notify } from '@/lib/notify';
+import { useTranslation } from 'react-i18next';
 
 /**
  * Global provider that renders incoming call notifications anywhere in the app.
@@ -10,6 +11,7 @@ import { notify } from '@/lib/notify';
  * across all user's conversations.
  */
 export function GlobalCallNotificationProvider() {
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
   const { incomingInvitations, acceptCall, declineCall } = useGlobalCallSignaling();
   const [handledInvitations, setHandledInvitations] = useState<Set<string>>(new Set());

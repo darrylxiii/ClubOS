@@ -3,8 +3,10 @@ import { MetricCardSkeleton } from "../shared/MetricCardSkeleton";
 import { AnimatedCard, CardVisual, CardBody, CardTitle, CardDescription } from "@/components/ui/animated-card";
 import { Visual3 } from "@/components/ui/visual-3";
 import { TrendingUp } from "lucide-react";
+import { useTranslation } from 'react-i18next';
 
 export const ApprovalRateCard = () => {
+  const { t } = useTranslation('admin');
   const { metrics, isLoading } = useApplicationMetrics();
 
   if (isLoading || !metrics) {
@@ -22,7 +24,7 @@ export const ApprovalRateCard = () => {
       <CardBody>
         <div className="flex items-start justify-between">
           <div className="space-y-1">
-            <CardDescription>Approval Rate (90d)</CardDescription>
+            <CardDescription>{t('applications.approvalRateCard.approvalRate90d')}</CardDescription>
             <CardTitle>{metrics.approval_rate}%</CardTitle>
           </div>
           <div className="flex items-center gap-1 text-green-500 text-sm font-medium">

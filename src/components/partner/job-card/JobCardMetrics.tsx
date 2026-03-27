@@ -4,6 +4,7 @@ import { getDaysOpenColor, getConversionColor } from "@/lib/jobUtils";
 import { cn } from "@/lib/utils";
 import { JobSparkline } from "./JobSparkline";
 import { JobNextAction } from "./JobNextAction";
+import { useTranslation } from 'react-i18next';
 
 interface JobCardMetricsProps {
   jobId: string;
@@ -60,6 +61,7 @@ export const JobCardMetrics = memo(({
   lastActivityDays,
   interviewsThisWeek = 0,
 }: JobCardMetricsProps) => {
+  const { t } = useTranslation('partner');
   const showProgress = targetHireCount && targetHireCount > 0;
   const progressPercent = showProgress ? Math.min(100, (hiredCount / targetHireCount) * 100) : 0;
 
@@ -102,7 +104,7 @@ export const JobCardMetrics = memo(({
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
                 <Target className="w-4 h-4 text-muted-foreground" />
-                <span className="text-xs text-muted-foreground">Hiring Progress</span>
+                <span className="text-xs text-muted-foreground">{t('jobCardMetrics.hiringProgress')}</span>
               </div>
               <span className="text-sm font-medium text-foreground">
                 {hiredCount}/{targetHireCount}
@@ -123,7 +125,7 @@ export const JobCardMetrics = memo(({
             <div className="p-3 rounded-lg bg-card/20 backdrop-blur-sm border border-border/20 hover:border-border/40 transition-all">
               <div className="flex items-center gap-2 mb-1">
                 <TrendingUp className="w-4 h-4 text-muted-foreground" />
-                <span className="text-xs text-muted-foreground">Conversion</span>
+                <span className="text-xs text-muted-foreground">{t('jobCardMetrics.conversion')}</span>
               </div>
               <p className={cn("text-2xl font-bold", conversionRate !== null ? getConversionColor(conversionRate) : "text-foreground")}>
                 {conversionRate !== null ? `${conversionRate}%` : '—'}
@@ -135,7 +137,7 @@ export const JobCardMetrics = memo(({
             <div className="p-3 rounded-lg bg-card/20 backdrop-blur-sm border border-border/20 hover:border-border/40 transition-all">
               <div className="flex items-center gap-2 mb-1">
                 <Calendar className="w-4 h-4 text-muted-foreground" />
-                <span className="text-xs text-muted-foreground">Interviews</span>
+                <span className="text-xs text-muted-foreground">{t('jobCardMetrics.interviews')}</span>
               </div>
               <p className="text-2xl font-bold text-foreground">
                 {interviewsThisWeek}

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { memo, useMemo } from "react";
 import { useRole } from "@/contexts/RoleContext";
 import { Card } from "@/components/ui/card";
@@ -27,6 +28,7 @@ const FEE_TYPE_CONFIG: Record<FeeType, { icon: typeof Percent; label: string; cl
 };
 
 function DealCardComponent({ deal, onDragStart, onClick, onPublish }: DealCardProps) {
+  const { t } = useTranslation('common');
   const { currentRole } = useRole();
   // Memoize computed values to prevent recalculation on every render
   const {
@@ -144,7 +146,7 @@ function DealCardComponent({ deal, onDragStart, onClick, onPublish }: DealCardPr
                 <AlertCircle className="h-3.5 w-3.5 text-destructive" />
               </TooltipTrigger>
               <TooltipContent>
-                <p>Missing fee percentage configuration</p>
+                <p>{t("missing_fee_percentage_configuration", "Missing fee percentage configuration")}</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
@@ -157,7 +159,7 @@ function DealCardComponent({ deal, onDragStart, onClick, onPublish }: DealCardPr
           <div className="flex items-center justify-between text-xs mb-1.5">
             <div className="flex items-center gap-1.5 text-muted-foreground">
               <Layers className="w-3 h-3 text-blue-500" />
-              <span>Multi-Hire</span>
+              <span>{t("multihire", "Multi-Hire")}</span>
             </div>
             <span className="font-medium text-foreground">{hiredCount}/{targetHireCount}</span>
           </div>

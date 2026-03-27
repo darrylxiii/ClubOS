@@ -1,9 +1,11 @@
+import { useTranslation } from 'react-i18next';
 import { Badge } from "@/components/ui/badge";
 import { TrendingUp, Users, Building2, Briefcase, FileText } from "lucide-react";
 import { usePlatformGrowth } from "@/hooks/usePlatformGrowth";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export function PlatformGrowthCard() {
+  const { t } = useTranslation('common');
   const { data: metrics, isLoading } = usePlatformGrowth();
 
   if (isLoading) {
@@ -14,7 +16,7 @@ export function PlatformGrowthCard() {
             <TrendingUp className="h-5 w-5" />
             Platform Growth
           </h3>
-          <p className="text-sm text-muted-foreground mt-1">30-day performance trends</p>
+          <p className="text-sm text-muted-foreground mt-1">{t("30day_performance_trends", "30-day performance trends")}</p>
         </div>
         <div className="space-y-6">
             {[1, 2, 3, 4].map((i) => (
@@ -37,7 +39,7 @@ export function PlatformGrowthCard() {
           <TrendingUp className="h-5 w-5" />
           Platform Growth
         </h3>
-        <p className="text-sm text-muted-foreground mt-1">30-day performance trends</p>
+        <p className="text-sm text-muted-foreground mt-1">{t("30day_performance_trends", "30-day performance trends")}</p>
       </div>
         <div className="space-y-6">
           
@@ -46,7 +48,7 @@ export function PlatformGrowthCard() {
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
                 <Users className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm font-medium">User Growth</span>
+                <span className="text-sm font-medium">{t("user_growth", "User Growth")}</span>
               </div>
               <Badge variant={metrics.userGrowth30d > 0 ? "default" : "secondary"}>
                 {metrics.userGrowth30d > 0 ? '+' : ''}{metrics.userGrowth30d}%
@@ -65,7 +67,7 @@ export function PlatformGrowthCard() {
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
                 <Building2 className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm font-medium">Company Growth</span>
+                <span className="text-sm font-medium">{t("company_growth", "Company Growth")}</span>
               </div>
               <Badge variant={metrics.companyGrowth30d > 0 ? "default" : "secondary"}>
                 {metrics.companyGrowth30d > 0 ? '+' : ''}{metrics.companyGrowth30d}%
@@ -84,7 +86,7 @@ export function PlatformGrowthCard() {
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
                 <Briefcase className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm font-medium">Active Jobs</span>
+                <span className="text-sm font-medium">{t("active_jobs", "Active Jobs")}</span>
               </div>
               <Badge variant={metrics.activeJobs > 0 ? "default" : "destructive"}>
                 {metrics.activeJobs} open
@@ -103,7 +105,7 @@ export function PlatformGrowthCard() {
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
                 <FileText className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm font-medium">Application Volume</span>
+                <span className="text-sm font-medium">{t("application_volume", "Application Volume")}</span>
               </div>
               <Badge variant="secondary">
                 {metrics.newApps30d} in 30 days
@@ -119,11 +121,11 @@ export function PlatformGrowthCard() {
 
           {/* Active Users */}
           <div className="pt-4 border-t">
-            <span className="text-sm font-medium mb-3 block">Active Users</span>
+            <span className="text-sm font-medium mb-3 block">{t("active_users", "Active Users")}</span>
             <div className="grid grid-cols-3 gap-2">
               <div className="text-center p-2 rounded-lg bg-green-500/10">
                 <p className="text-lg font-bold text-green-500">{metrics.onlineUsers}</p>
-                <p className="text-xs text-muted-foreground">Online</p>
+                <p className="text-xs text-muted-foreground">{t("online", "Online")}</p>
               </div>
               <div className="text-center p-2 rounded-lg bg-blue-500/10">
                 <p className="text-lg font-bold text-blue-500">{metrics.active24h}</p>

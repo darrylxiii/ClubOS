@@ -1,9 +1,4 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { createHandler } from '../_shared/handler.ts';
 
 interface LeadFeatures {
   emailEngagement: number;
@@ -14,22 +9,13 @@ interface LeadFeatures {
   behaviorPattern: number;
 }
 
-Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
+Deno.serve(createHandler(async (req, ctx) => {
     const { prospect_id, calculate_all } = await req.json();
 
     const prospects = calculate_all
-      ? (await supabase.from('crm_prospects').select('*').in('stage', ['replied', 'qualified', 'meeting_booked', 'proposal_sent', 'negotiation'])).data || []
+      ? (await ctx.supabase.from('crm_prospects').select('*').in('stage', ['replied', 'qualified', 'meeting_booked', 'proposal_sent', 'negotiation'])).data || []
       : prospect_id
-        ? [(await supabase.from('crm_prospects').select('*').eq('id', prospect_id).single()).data]
+        ? [(await ctx.supabase.from('crm_prospects').select('*').eq('id', prospect_id).single()).data]
         : [];
 
     const results = [];
@@ -38,19 +24,19 @@ Deno.serve(async (req) => {
       if (!prospect) continue;
 
       // Gather engagement data
-      const { data: replies } = await supabase
+      const { data: replies } = await ctx.supabase
         .from('crm_email_replies')
         .select('*')
         .eq('prospect_id', prospect.id)
         .order('created_at', { ascending: false });
 
-      const { data: activities } = await supabase
+      const { data: activities } = await ctx.supabase
         .from('crm_prospect_activities')
         .select('*')
         .eq('prospect_id', prospect.id)
         .order('created_at', { ascending: false });
 
-      const { data: intelligence } = await supabase
+      const { data: intelligence } = await ctx.supabase
         .from('crm_reply_intelligence')
         .select('*')
         .eq('prospect_id', prospect.id)
@@ -59,19 +45,19 @@ Deno.serve(async (req) => {
 
       // Calculate features
       const features = calculateFeatures(prospect, replies || [], activities || [], intelligence?.[0]);
-      
+
       // ML-style weighted scoring
       const conversionProbability = calculateConversionProbability(features);
       const confidenceInterval = calculateConfidence(replies?.length || 0, activities?.length || 0);
-      
+
       // Determine recommended action
       const recommendedAction = determineAction(conversionProbability, prospect.stage, features);
-      
+
       // Calculate optimal contact time based on patterns
       const optimalContactTime = calculateOptimalContactTime(replies || []);
 
       // Upsert prediction
-      const { data: prediction, error } = await supabase
+      const { data: prediction, error } = await ctx.supabase
         .from('crm_lead_predictions')
         .upsert({
           prospect_id: prospect.id,
@@ -103,51 +89,43 @@ Deno.serve(async (req) => {
       }
     }
 
-    return new Response(JSON.stringify({ 
-      success: true, 
+    return new Response(JSON.stringify({
+      success: true,
       predictions: results,
       count: results.length
     }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' },
     });
-  } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    console.error('Lead scoring error:', error);
-    return new Response(JSON.stringify({ error: errorMessage }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-  }
-});
+}));
 
 function calculateFeatures(
-  prospect: any,
-  replies: any[],
-  activities: any[],
-  intelligence: any
+  prospect: Record<string, unknown>,
+  replies: Record<string, unknown>[],
+  activities: Record<string, unknown>[],
+  intelligence: Record<string, unknown> | undefined
 ): LeadFeatures {
   // Email engagement (0-100)
   const emailEngagement = Math.min(100, (replies.length * 15) + (activities.length * 5));
-  
+
   // Response speed (0-100) - faster is better
   const avgResponseHours = calculateAvgResponseTime(replies);
   const responseSpeed = avgResponseHours > 0 ? Math.max(0, 100 - (avgResponseHours * 2)) : 50;
-  
+
   // Sentiment score from intelligence (0-100)
-  const sentimentScore = intelligence?.intent_score || 50;
-  
+  const sentimentScore = (intelligence?.intent_score as number) || 50;
+
   // Intent score based on stage and signals
   const stageScores: Record<string, number> = {
     'new': 10, 'contacted': 20, 'replied': 40, 'qualified': 60,
     'meeting_booked': 75, 'proposal_sent': 85, 'negotiation': 90,
   };
-  const intentScore = stageScores[prospect.stage] || 30;
-  
+  const intentScore = stageScores[prospect.stage as string] || 30;
+
   // Company fit (simplified - would use more data in production)
-  const companyFit = prospect.company_name ? 70 : 40;
-  
+  const companyFit = (prospect.company_name as string) ? 70 : 40;
+
   // Behavior pattern
-  const recentActivity = activities.filter(a => daysSince(a.created_at) < 7).length;
+  const recentActivity = activities.filter(a => daysSince(a.created_at as string) < 7).length;
   const behaviorPattern = Math.min(100, recentActivity * 20);
 
   return {
@@ -170,7 +148,7 @@ function calculateConversionProbability(features: LeadFeatures): number {
     behaviorPattern: 0.10,
   };
 
-  const score = 
+  const score =
     features.emailEngagement * weights.emailEngagement +
     features.responseSpeed * weights.responseSpeed +
     features.sentimentScore * weights.sentimentScore +
@@ -198,33 +176,33 @@ function determineAction(probability: number, stage: string, features: LeadFeatu
   return 'Continue automated sequence';
 }
 
-function calculateOptimalContactTime(replies: any[]): string | null {
+function calculateOptimalContactTime(replies: Record<string, unknown>[]): string | null {
   if (replies.length === 0) return null;
-  
+
   // Analyze when they typically reply
-  const replyHours = replies.map(r => new Date(r.created_at).getUTCHours());
+  const replyHours = replies.map(r => new Date(r.created_at as string).getUTCHours());
   const avgHour = replyHours.reduce((a, b) => a + b, 0) / replyHours.length;
-  
+
   const nextContact = new Date();
   nextContact.setUTCHours(Math.round(avgHour), 0, 0, 0);
-  
+
   // If that time has passed today, schedule for tomorrow
   if (nextContact < new Date()) {
     nextContact.setDate(nextContact.getDate() + 1);
   }
-  
+
   return nextContact.toISOString();
 }
 
-function calculateAvgResponseTime(replies: any[]): number {
+function calculateAvgResponseTime(replies: Record<string, unknown>[]): number {
   if (replies.length < 2) return 24; // Default to 24 hours
-  
+
   let totalHours = 0;
   for (let i = 1; i < replies.length; i++) {
-    const diff = new Date(replies[i - 1].created_at).getTime() - new Date(replies[i].created_at).getTime();
+    const diff = new Date(replies[i - 1].created_at as string).getTime() - new Date(replies[i].created_at as string).getTime();
     totalHours += diff / (1000 * 60 * 60);
   }
-  
+
   return totalHours / (replies.length - 1);
 }
 

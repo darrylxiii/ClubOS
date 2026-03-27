@@ -4,6 +4,7 @@ import { CompanyAnalyticsChart } from "@/components/partner/CompanyAnalyticsChar
 import { BenchmarkComparison } from "@/components/partner/BenchmarkComparison";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEffect, useState } from "react";
+import { useTranslation } from 'react-i18next';
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -14,6 +15,7 @@ import { PageLoader } from "@/components/PageLoader";
 import { InlineLoader } from "@/components/ui/unified-loader";
 
 export default function PartnerAnalyticsDashboard() {
+  const { t } = useTranslation('partner');
   const { user } = useAuth();
   const [companyId, setCompanyId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -40,7 +42,7 @@ export default function PartnerAnalyticsDashboard() {
       await (supabase as any).rpc('generate_daily_analytics_snapshot', {
         p_company_id: companyId
       });
-      toast.success('Analytics refreshed');
+      toast.success("Analytics refreshed");
     } catch (error) {
       console.error('Error refreshing analytics:', error);
     }
@@ -51,7 +53,7 @@ export default function PartnerAnalyticsDashboard() {
   if (!companyId) {
     return (
       <div className="py-8">
-        <p className="text-muted-foreground">No company associated with your account</p>
+        <p className="text-muted-foreground">{t('partnerAnalyticsDashboard.text1')}</p>
       </div>
     );
   }
@@ -78,10 +80,10 @@ export default function PartnerAnalyticsDashboard() {
 
       <Tabs defaultValue="overview" className="space-y-6">
         <TabsList className="bg-card/30 backdrop-blur-sm border border-border/20">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="pipeline">Pipeline</TabsTrigger>
-          <TabsTrigger value="trends">Trends</TabsTrigger>
-          <TabsTrigger value="benchmarks">Benchmarks</TabsTrigger>
+          <TabsTrigger value="overview">{t('partnerAnalyticsDashboard.text2')}</TabsTrigger>
+          <TabsTrigger value="pipeline">{t('partnerAnalyticsDashboard.text3')}</TabsTrigger>
+          <TabsTrigger value="trends">{t('partnerAnalyticsDashboard.text4')}</TabsTrigger>
+          <TabsTrigger value="benchmarks">{t('partnerAnalyticsDashboard.text5')}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">

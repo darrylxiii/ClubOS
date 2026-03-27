@@ -3,17 +3,11 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getInitials } from "@/lib/format";
 import type { CandidateData } from "@/pages/InterviewComparison";
+import { useTranslation } from 'react-i18next';
 
 interface ComparisonTableProps {
   candidates: CandidateData[];
 }
-
-const DIMENSIONS = [
-  { key: "overallScore", label: "Overall Score" },
-  { key: "technical", label: "Technical" },
-  { key: "communication", label: "Communication" },
-  { key: "cultureFit", label: "Culture Fit" },
-] as const;
 
 function getScoreVariant(score: number): string {
   if (score >= 85) return "text-green-600 dark:text-green-400";
@@ -39,6 +33,15 @@ function getRecommendationBadge(rec?: string) {
 }
 
 export function ComparisonTable({ candidates }: ComparisonTableProps) {
+  const { t } = useTranslation('candidates');
+
+  const DIMENSIONS = [
+    { key: "overallScore", label: t('comparison.overallScore', 'Overall Score') },
+    { key: "technical", label: t('comparison.technical', 'Technical') },
+    { key: "communication", label: t('comparison.communication', 'Communication') },
+    { key: "cultureFit", label: t('comparison.cultureFit', 'Culture Fit') },
+  ] as const;
+
   // Find highest score per dimension
   const highs: Record<string, number> = {};
   DIMENSIONS.forEach((dim) => {
@@ -51,13 +54,13 @@ export function ComparisonTable({ candidates }: ComparisonTableProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Scoring Matrix</CardTitle>
+        <CardTitle>{t('comparison.scoringMatrix', 'Scoring Matrix')}</CardTitle>
       </CardHeader>
       <CardContent className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b">
-              <th className="text-left py-3 pr-4 font-medium text-muted-foreground w-40">Dimension</th>
+              <th className="text-left py-3 pr-4 font-medium text-muted-foreground w-40">{t('comparison.dimension', 'Dimension')}</th>
               {candidates.map((c) => (
                 <th key={c.id} className="text-center py-3 px-4 min-w-[140px]">
                   <div className="flex flex-col items-center gap-1.5">
@@ -91,7 +94,7 @@ export function ComparisonTable({ candidates }: ComparisonTableProps) {
               </tr>
             ))}
             <tr className="border-b">
-              <td className="py-3 pr-4 font-medium">Recommendation</td>
+              <td className="py-3 pr-4 font-medium">{t('comparison.recommendation', 'Recommendation')}</td>
               {candidates.map((c) => (
                 <td key={c.id} className="text-center py-3 px-4">
                   {getRecommendationBadge(c.recommendation) || <span className="text-muted-foreground">—</span>}
@@ -99,7 +102,7 @@ export function ComparisonTable({ candidates }: ComparisonTableProps) {
               ))}
             </tr>
             <tr className="border-b">
-              <td className="py-3 pr-4 font-medium">Interviews</td>
+              <td className="py-3 pr-4 font-medium">{t('comparison.interviews', 'Interviews')}</td>
               {candidates.map((c) => (
                 <td key={c.id} className="text-center py-3 px-4 text-muted-foreground">
                   {c.interviewCount || 0}
@@ -107,7 +110,7 @@ export function ComparisonTable({ candidates }: ComparisonTableProps) {
               ))}
             </tr>
             <tr className="border-b">
-              <td className="py-3 pr-4 font-medium align-top">Strengths</td>
+              <td className="py-3 pr-4 font-medium align-top">{t('comparison.strengths', 'Strengths')}</td>
               {candidates.map((c) => (
                 <td key={c.id} className="py-3 px-4">
                   <div className="flex flex-wrap gap-1 justify-center">
@@ -121,7 +124,7 @@ export function ComparisonTable({ candidates }: ComparisonTableProps) {
               ))}
             </tr>
             <tr>
-              <td className="py-3 pr-4 font-medium align-top">Concerns</td>
+              <td className="py-3 pr-4 font-medium align-top">{t('comparison.concerns', 'Concerns')}</td>
               {candidates.map((c) => (
                 <td key={c.id} className="py-3 px-4">
                   <div className="flex flex-wrap gap-1 justify-center">

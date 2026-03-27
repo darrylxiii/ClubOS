@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { useTranslation } from 'react-i18next';
 
 const COLORS = ['hsl(var(--destructive))', 'hsl(var(--warning))', 'hsl(var(--primary))', 'hsl(var(--muted))'];
 
@@ -30,6 +31,7 @@ interface RateLimitAnalytics {
 }
 
 export const RateLimitDashboard = () => {
+  const { t } = useTranslation('admin');
   const [timeRange, setTimeRange] = useState<'1h' | '24h' | '7d'>('24h');
   const [selectedEndpoint, setSelectedEndpoint] = useState<string | null>(null);
   const [ipFilter, setIpFilter] = useState("");
@@ -148,8 +150,8 @@ export const RateLimitDashboard = () => {
       {/* Header with Status */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold">Rate Limiting Dashboard</h2>
-          <p className="text-muted-foreground">Monitor and manage API rate limits</p>
+          <h2 className="text-2xl font-bold">{t('security.rateLimitDashboard.rateLimitingDashboard')}</h2>
+          <p className="text-muted-foreground">{t('security.rateLimitDashboard.monitorAndManageApiRateLimits')}</p>
         </div>
         <div className="flex items-center gap-4">
           <Badge variant={isUnderAttack ? "destructive" : "secondary"} className="text-sm px-3 py-1">
@@ -174,22 +176,22 @@ export const RateLimitDashboard = () => {
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Rate Limit Configuration</DialogTitle>
+                <DialogTitle>{t('security.rateLimitDashboard.rateLimitConfiguration')}</DialogTitle>
               </DialogHeader>
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
-                  <Label>Default Rate Limit (requests/minute)</Label>
+                  <Label>{t('security.rateLimitDashboard.defaultRateLimitRequestsminute')}</Label>
                   <Input type="number" defaultValue={100} />
                 </div>
                 <div className="space-y-2">
-                  <Label>Burst Limit</Label>
+                  <Label>{t('security.rateLimitDashboard.burstLimit')}</Label>
                   <Input type="number" defaultValue={20} />
                 </div>
                 <div className="space-y-2">
-                  <Label>Block Duration (seconds)</Label>
+                  <Label>{t('security.rateLimitDashboard.blockDurationSeconds')}</Label>
                   <Input type="number" defaultValue={60} />
                 </div>
-                <Button className="w-full" onClick={() => toast.success("Settings saved")}>
+                <Button className="w-full" onClick={() => toast.success(t('security.rateLimitDashboard.settingsSaved'))}>
                   Save Configuration
                 </Button>
               </div>
@@ -201,9 +203,9 @@ export const RateLimitDashboard = () => {
       {/* Time Range Selector */}
       <Tabs value={timeRange} onValueChange={(v) => setTimeRange(v as any)}>
         <TabsList>
-          <TabsTrigger value="1h">Last Hour</TabsTrigger>
-          <TabsTrigger value="24h">Last 24 Hours</TabsTrigger>
-          <TabsTrigger value="7d">Last 7 Days</TabsTrigger>
+          <TabsTrigger value="1h">{t('security.rateLimitDashboard.lastHour')}</TabsTrigger>
+          <TabsTrigger value="24h">{t('security.rateLimitDashboard.last24Hours')}</TabsTrigger>
+          <TabsTrigger value="7d">{t('security.rateLimitDashboard.last7Days')}</TabsTrigger>
         </TabsList>
       </Tabs>
 
@@ -211,7 +213,7 @@ export const RateLimitDashboard = () => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Total Requests</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('security.rateLimitDashboard.totalRequests')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats?.totalRequests.toLocaleString()}</div>
@@ -223,7 +225,7 @@ export const RateLimitDashboard = () => {
 
         <Card className={isUnderAttack ? "border-destructive/50" : ""}>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Blocked Requests</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('security.rateLimitDashboard.blockedRequests')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-destructive">
@@ -237,7 +239,7 @@ export const RateLimitDashboard = () => {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Unique IPs</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('security.rateLimitDashboard.uniqueIps')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{Object.keys(ipAggregation).length}</div>
@@ -249,7 +251,7 @@ export const RateLimitDashboard = () => {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">AI Rate Limits</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('security.rateLimitDashboard.aiRateLimits')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{aiRateLimits?.length || 0}</div>
@@ -264,8 +266,8 @@ export const RateLimitDashboard = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm font-medium">Request Volume</CardTitle>
-            <CardDescription>Allowed vs Blocked over time</CardDescription>
+            <CardTitle className="text-sm font-medium">{t('security.rateLimitDashboard.requestVolume')}</CardTitle>
+            <CardDescription>{t('security.rateLimitDashboard.allowedVsBlockedOverTime')}</CardDescription>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={250}>
@@ -288,8 +290,8 @@ export const RateLimitDashboard = () => {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm font-medium">Top Limited Endpoints</CardTitle>
-            <CardDescription>Endpoints with most blocked requests</CardDescription>
+            <CardTitle className="text-sm font-medium">{t('security.rateLimitDashboard.topLimitedEndpoints')}</CardTitle>
+            <CardDescription>{t('security.rateLimitDashboard.endpointsWithMostBlockedRequests')}</CardDescription>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={250}>
@@ -316,11 +318,11 @@ export const RateLimitDashboard = () => {
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle className="text-sm font-medium">Top IPs by Blocks</CardTitle>
-                <CardDescription>IPs with most rate limit hits</CardDescription>
+                <CardTitle className="text-sm font-medium">{t('security.rateLimitDashboard.topIpsByBlocks')}</CardTitle>
+                <CardDescription>{t('security.rateLimitDashboard.ipsWithMostRateLimitHits')}</CardDescription>
               </div>
               <Input
-                placeholder="Filter IP..."
+                placeholder={t('security.rateLimitDashboard.filterIp')}
                 value={ipFilter}
                 onChange={(e) => setIpFilter(e.target.value)}
                 className="w-40"
@@ -332,9 +334,9 @@ export const RateLimitDashboard = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>IP Address</TableHead>
-                    <TableHead className="text-right">Blocks</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead>{t('security.rateLimitDashboard.ipAddress')}</TableHead>
+                    <TableHead className="text-right">{t('security.rateLimitDashboard.blocks')}</TableHead>
+                    <TableHead className="text-right">{t('common:fields.actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -371,18 +373,18 @@ export const RateLimitDashboard = () => {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm font-medium">Endpoint Details</CardTitle>
-            <CardDescription>Per-endpoint rate limit metrics</CardDescription>
+            <CardTitle className="text-sm font-medium">{t('security.rateLimitDashboard.endpointDetails')}</CardTitle>
+            <CardDescription>{t('security.rateLimitDashboard.perendpointRateLimitMetrics')}</CardDescription>
           </CardHeader>
           <CardContent>
             <ScrollArea className="h-[300px]">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Endpoint</TableHead>
-                    <TableHead className="text-right">Total</TableHead>
-                    <TableHead className="text-right">Blocked</TableHead>
-                    <TableHead className="text-right">Rate</TableHead>
+                    <TableHead>{t('security.rateLimitDashboard.endpoint')}</TableHead>
+                    <TableHead className="text-right">{t('security.rateLimitDashboard.total')}</TableHead>
+                    <TableHead className="text-right">{t('security.rateLimitDashboard.blocked')}</TableHead>
+                    <TableHead className="text-right">{t('security.rateLimitDashboard.rate')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>

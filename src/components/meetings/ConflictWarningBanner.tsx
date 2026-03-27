@@ -1,6 +1,7 @@
 import { AlertTriangle, AlertCircle, Calendar, X } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
+import { useTranslation } from 'react-i18next';
 import { ConflictResult } from '@/hooks/useCalendarConflictDetection';
 import { format } from 'date-fns';
 
@@ -15,6 +16,7 @@ export function ConflictWarningBanner({
   onDismiss,
   onViewConflicts,
 }: ConflictWarningBannerProps) {
+  const { t } = useTranslation("meetings");
   if (!conflicts.hasConflict) return null;
 
   const isError = conflicts.severity === 'error';
@@ -24,13 +26,13 @@ export function ConflictWarningBanner({
     <Alert variant={isError ? 'destructive' : 'default'} className="relative">
       <Icon className="h-4 w-4" />
       <AlertTitle className="flex items-center gap-2">
-        {isError ? 'Scheduling Conflict' : 'Potential Conflict'}
+        {isError ? t('conflict.schedulingConflict') : t('conflict.potentialConflict')}
       </AlertTitle>
       <AlertDescription className="mt-2">
         <p className="text-sm mb-2">
           {isError
-            ? 'This time overlaps with an existing Quantum Club meeting.'
-            : 'This time overlaps with events on your external calendar.'}
+            ? t('conflict.overlapInternal')
+            : t('conflict.overlapExternal')}
         </p>
         
         <div className="space-y-1 mb-3">
@@ -51,7 +53,7 @@ export function ConflictWarningBanner({
           ))}
           {conflicts.conflictingEvents.length > 3 && (
             <p className="text-xs text-muted-foreground">
-              +{conflicts.conflictingEvents.length - 3} more conflicts
+              {t('conflict.moreConflicts', { count: conflicts.conflictingEvents.length - 3 })}
             </p>
           )}
         </div>
@@ -59,12 +61,12 @@ export function ConflictWarningBanner({
         <div className="flex gap-2">
           {onViewConflicts && (
             <Button size="sm" variant="outline" onClick={onViewConflicts}>
-              View Details
+              {t('conflict.viewDetails')}
             </Button>
           )}
           {!isError && onDismiss && (
             <Button size="sm" variant="ghost" onClick={onDismiss}>
-              Proceed Anyway
+              {t('conflict.proceedAnyway')}
             </Button>
           )}
         </div>

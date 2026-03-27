@@ -4,8 +4,10 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { AlertCircle, CheckCircle2, Copy } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from 'react-i18next';
 
 export const AuthDiagnostics = () => {
+  const { t } = useTranslation('common');
   const [diagnostics, setDiagnostics] = useState<any>(null);
   const [loading, setLoading] = useState(false);
 
@@ -81,7 +83,7 @@ export const AuthDiagnostics = () => {
 
       setDiagnostics(results);
     } catch (error: unknown) {
-      toast.error(`Diagnostics failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      toast.error(`Diagnostics failed: ${error instanceof Error ? error.message : t('authdiagnostics.unknownError', 'Unknown error')}`);
     } finally {
       setLoading(false);
     }
@@ -90,7 +92,7 @@ export const AuthDiagnostics = () => {
   const copyToClipboard = () => {
     if (diagnostics) {
       navigator.clipboard.writeText(JSON.stringify(diagnostics, null, 2));
-      toast.success("Diagnostics copied to clipboard");
+      toast.success(t('authdiagnostics.diagnosticsCopiedToClipboard', 'Diagnostics copied to clipboard'));
     }
   };
 
@@ -101,19 +103,17 @@ export const AuthDiagnostics = () => {
           <AlertCircle className="w-5 h-5" />
           Auth Diagnostics
         </CardTitle>
-        <CardDescription>
-          Run diagnostics to troubleshoot authentication issues
-        </CardDescription>
+        <CardDescription>{t('authdiagnostics.runDiagnosticsToTroubleshootAuthenticationIssues', 'Run diagnostics to troubleshoot authentication issues')}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <Button onClick={runDiagnostics} disabled={loading} className="w-full">
-          {loading ? "Running..." : "Run Diagnostics"}
+          {loading ? t('authdiagnostics.running', 'Running...') : t('authdiagnostics.runDiagnostics', 'Run Diagnostics')}
         </Button>
 
         {diagnostics && (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h4 className="font-semibold">Results</h4>
+              <h4 className="font-semibold">{t('authdiagnostics.results', 'Results')}</h4>
               <Button
                 variant="outline"
                 size="sm"
@@ -126,24 +126,24 @@ export const AuthDiagnostics = () => {
 
             {/* Environment */}
             <div className="p-4 border rounded-lg bg-muted/50">
-              <h5 className="font-medium mb-2">Environment</h5>
+              <h5 className="font-medium mb-2">{t('authdiagnostics.environment', 'Environment')}</h5>
               <div className="space-y-1 text-sm">
-                <p><strong>Origin:</strong> {diagnostics.environment.origin}</p>
-                <p><strong>Protocol:</strong> {diagnostics.environment.protocol}</p>
+                <p><strong>{t('authdiagnostics.origin', 'Origin:')}</strong> {diagnostics.environment.origin}</p>
+                <p><strong>{t('authdiagnostics.protocol', 'Protocol:')}</strong> {diagnostics.environment.protocol}</p>
               </div>
             </div>
 
             {/* Supabase Config */}
             <div className="p-4 border rounded-lg bg-muted/50">
-              <h5 className="font-medium mb-2">Supabase Configuration</h5>
+              <h5 className="font-medium mb-2">{t('authdiagnostics.supabaseConfiguration', 'Supabase Configuration')}</h5>
               <div className="space-y-1 text-sm">
-                <p><strong>URL:</strong> {diagnostics.supabase.url}</p>
+                <p><strong>{t('authdiagnostics.url', 'URL:')}</strong> {diagnostics.supabase.url}</p>
                 <p className="flex items-center gap-2">
-                  <strong>Anon Key:</strong>
+                  <strong>{t('authdiagnostics.anonKey', 'Anon Key:')}</strong>
                   {diagnostics.supabase.hasAnonKey ? (
-                    <><CheckCircle2 className="w-4 h-4 text-green-500" /> Present</>
+                    <><CheckCircle2 className="w-4 h-4 text-green-500" />Present</>
                   ) : (
-                    <><AlertCircle className="w-4 h-4 text-red-500" /> Missing</>
+                    <><AlertCircle className="w-4 h-4 text-red-500" />Missing</>
                   )}
                 </p>
               </div>
@@ -151,25 +151,25 @@ export const AuthDiagnostics = () => {
 
             {/* Session */}
             <div className="p-4 border rounded-lg bg-muted/50">
-              <h5 className="font-medium mb-2">Current Session</h5>
+              <h5 className="font-medium mb-2">{t('authdiagnostics.currentSession', 'Current Session')}</h5>
               <div className="space-y-1 text-sm">
                 <p className="flex items-center gap-2">
-                  <strong>Session:</strong>
+                  <strong>{t('authdiagnostics.session', 'Session:')}</strong>
                   {diagnostics.session?.exists ? (
-                    <><CheckCircle2 className="w-4 h-4 text-green-500" /> Active</>
+                    <><CheckCircle2 className="w-4 h-4 text-green-500" />Active</>
                   ) : (
-                    <><AlertCircle className="w-4 h-4 text-yellow-500" /> None</>
+                    <><AlertCircle className="w-4 h-4 text-yellow-500" />None</>
                   )}
                 </p>
                 {diagnostics.session?.email && (
-                  <p><strong>Email:</strong> {diagnostics.session.email}</p>
+                  <p><strong>{t('authdiagnostics.email', 'Email:')}</strong> {diagnostics.session.email}</p>
                 )}
                 {diagnostics.session?.provider && (
-                  <p><strong>Provider:</strong> {diagnostics.session.provider}</p>
+                  <p><strong>{t('authdiagnostics.provider', 'Provider:')}</strong> {diagnostics.session.provider}</p>
                 )}
                 {diagnostics.session?.identities && (
                   <div>
-                    <strong>Identities:</strong>
+                    <strong>{t('authdiagnostics.identities', 'Identities:')}</strong>
                     <ul className="ml-4 mt-1">
                       {diagnostics.session.identities.map((id: any, idx: number) => (
                         <li key={idx}>• {id.provider}</li>
@@ -182,12 +182,12 @@ export const AuthDiagnostics = () => {
 
             {/* OAuth Test */}
             <div className="p-4 border rounded-lg bg-muted/50">
-              <h5 className="font-medium mb-2">Google OAuth Test</h5>
+              <h5 className="font-medium mb-2">{t('authdiagnostics.googleOauthTest', 'Google OAuth Test')}</h5>
               {diagnostics.oauth?.error ? (
                 <div className="flex items-start gap-2 text-sm text-red-600">
                   <AlertCircle className="w-4 h-4 mt-0.5" />
                   <div>
-                    <strong>Error:</strong>
+                    <strong>{t('authdiagnostics.error', 'Error:')}</strong>
                     <p className="mt-1">{diagnostics.oauth.error}</p>
                   </div>
                 </div>
@@ -195,7 +195,7 @@ export const AuthDiagnostics = () => {
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 text-sm text-green-600">
                     <CheckCircle2 className="w-4 h-4" />
-                    <span>OAuth URL generated successfully</span>
+                    <span>{t('authdiagnostics.oauthUrlGeneratedSuccessfully', 'OAuth URL generated successfully')}</span>
                   </div>
                   <div className="mt-2 p-2 bg-background rounded text-xs break-all">
                     {diagnostics.oauth.googleUrl}
@@ -207,7 +207,7 @@ export const AuthDiagnostics = () => {
             {/* Errors */}
             {diagnostics.error && (
               <div className="p-4 border border-red-200 rounded-lg bg-red-50">
-                <h5 className="font-medium mb-2 text-red-900">Error</h5>
+                <h5 className="font-medium mb-2 text-red-900">{t('authdiagnostics.error1', 'Error')}</h5>
                 <p className="text-sm text-red-700">{diagnostics.error}</p>
               </div>
             )}

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -19,6 +20,7 @@ import {
 } from "lucide-react";
 
 export function ActivityLoggerWidget() {
+  const { t } = useTranslation('common');
   const today = format(new Date(), 'yyyy-MM-dd');
   const [date, setDate] = useState(today);
   const [activity, setActivity] = useState({
@@ -36,9 +38,9 @@ export function ActivityLoggerWidget() {
   const handleSave = async () => {
     try {
       await logActivity.mutateAsync({ date, ...activity });
-      toast.success('Activity logged successfully');
+      toast.success(t("activity_logged_successfully", "Activity logged successfully"));
     } catch (error) {
-      toast.error('Failed to log activity');
+      toast.error(t("failed_to_log_activity", "Failed to log activity"));
     }
   };
 
@@ -59,7 +61,7 @@ export function ActivityLoggerWidget() {
     <Card className="bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border-border/50">
       <CardHeader className="pb-3">
         <CardTitle className="text-lg flex items-center justify-between">
-          <span>Log Daily Activity</span>
+          <span>{t("log_daily_activity", "Log Daily Activity")}</span>
           <Input
             type="date"
             value={date}
@@ -88,11 +90,11 @@ export function ActivityLoggerWidget() {
         </div>
 
         <div className="space-y-1">
-          <Label className="text-xs">Notes (optional)</Label>
+          <Label className="text-xs">{t("notes_optional", "Notes (optional)")}</Label>
           <Textarea
             value={activity.notes}
             onChange={(e) => updateField('notes', e.target.value)}
-            placeholder="Any additional notes about today's activities..."
+            placeholder={t("any_additional_notes_about", "Any additional notes about today's activities...")}
             rows={2}
           />
         </div>

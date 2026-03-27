@@ -14,10 +14,10 @@ export type BackendConfig = {
 
 // Last-resort fallback values for this project.
 // Keep these as a final safety net when import.meta.env is unavailable.
-const FALLBACK_PROJECT_ID = 'dpjucecmoyfzrduhlctt';
+const FALLBACK_PROJECT_ID = 'chgrkvftjfibufoopmav';
 const FALLBACK_BASE_URL = `https://${FALLBACK_PROJECT_ID}.supabase.co`;
 const FALLBACK_PUBLISHABLE_KEY =
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRwanVjZWNtb3lmenJkdWhsY3R0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk0Mjc2MTAsImV4cCI6MjA3NTAwMzYxMH0.hdX709NlaXPUE4ohWtd3LBuAOqPKCBhVep694LC6tRw';
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNoZ3JrdmZ0amZpYnVmb29wbWF2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0OTQ3NDYsImV4cCI6MjA5MDA3MDc0Nn0.gzU9FP-wAAmmQAUClSK53x6kwr_j_N2AkmBPMJ011qc';
 
 /**
  * Detects if the environment is missing proper Supabase config (placeholder/preview mode).
@@ -77,7 +77,7 @@ export function nativeFetch(url: string, options: RequestInit = {}): Promise<Res
 
 export function getBackendConfig(): BackendConfig {
   const envBaseUrl = (import.meta.env.VITE_SUPABASE_URL as string | undefined) || '';
-  const envKey = (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined) || '';
+  const envKey = (import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined) || '';
   const envProjectId = (import.meta.env.VITE_SUPABASE_PROJECT_ID as string | undefined) || '';
 
   const baseUrl = envBaseUrl || (envProjectId ? `https://${envProjectId}.supabase.co` : '');

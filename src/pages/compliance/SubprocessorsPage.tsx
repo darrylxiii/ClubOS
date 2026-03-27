@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from 'react-i18next';
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { notify } from "@/lib/notify";
 import { Shield, Search, Plus, MapPin, CheckCircle2 } from "lucide-react";
 export default function SubprocessorsPage() {
+  const { t } = useTranslation('compliance');
   const [subprocessors, setSubprocessors] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -51,14 +53,14 @@ export default function SubprocessorsPage() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Subprocessors</h1>
+            <h1 className="text-3xl font-bold text-foreground">{t('subprocessors.title')}</h1>
             <p className="text-muted-foreground mt-1">
-              Public vendor registry with certifications and data location transparency
+              {t('subprocessorsPage.description')}
             </p>
           </div>
           <Button>
             <Plus className="h-4 w-4 mr-2" />
-            Add Subprocessor
+            {t('subprocessorsPage.addSubprocessor')}
           </Button>
         </div>
 
@@ -68,7 +70,7 @@ export default function SubprocessorsPage() {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search subprocessors..."
+                placeholder={t('subprocessorsPage.searchPlaceholder')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -82,13 +84,13 @@ export default function SubprocessorsPage() {
           {loading ? (
             <Card>
               <CardContent className="py-12 text-center text-muted-foreground">
-                Loading subprocessors...
+                {t('subprocessorsPage.loading')}
               </CardContent>
             </Card>
           ) : filteredSubprocessors.length === 0 ? (
             <Card>
               <CardContent className="py-12 text-center text-muted-foreground">
-                No subprocessors found
+                {t('subprocessorsPage.noResults')}
               </CardContent>
             </Card>
           ) : (
@@ -118,13 +120,13 @@ export default function SubprocessorsPage() {
                     <div className="flex items-start gap-2">
                       <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
                       <div>
-                        <p className="text-muted-foreground">Data Location</p>
+                        <p className="text-muted-foreground">{t('subprocessorsPage.dataLocation')}</p>
                         <p className="font-medium text-foreground">{sp.data_location}</p>
                       </div>
                     </div>
                     {sp.certifications && sp.certifications.length > 0 && (
                       <div>
-                        <p className="text-muted-foreground mb-2">Certifications</p>
+                        <p className="text-muted-foreground mb-2">{t('subprocessorsPage.certifications')}</p>
                         <div className="flex flex-wrap gap-2">
                           {sp.certifications.map((cert: string, idx: number) => (
                             <Badge key={idx} variant="outline" className="flex items-center gap-1">

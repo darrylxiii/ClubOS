@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -32,6 +33,7 @@ interface IntegrityIssue {
 }
 
 export function DataIntegrityChecker() {
+  const { t } = useTranslation('common');
   const queryClient = useQueryClient();
   const [isFixing, setIsFixing] = useState(false);
 
@@ -132,11 +134,11 @@ export function DataIntegrityChecker() {
       }
     },
     onSuccess: () => {
-      toast.success('Fix applied successfully');
+      toast.success(t("fix_applied_successfully", "Fix applied successfully"));
       queryClient.invalidateQueries({ queryKey: ['data-integrity-issues'] });
     },
     onError: (error) => {
-      toast.error('Failed to apply fix: ' + (error as Error).message);
+      toast.error(t("failed_to_apply_fix", "Failed to apply fix:") + (error as Error).message);
     },
   });
 
@@ -153,10 +155,10 @@ export function DataIntegrityChecker() {
         body: { recalculateAll: true },
       });
       
-      toast.success('All fixes applied successfully');
+      toast.success(t("all_fixes_applied_successfully", "All fixes applied successfully"));
       refetch();
     } catch (error) {
-      toast.error('Failed to apply fixes: ' + (error as Error).message);
+      toast.error(t("failed_to_apply_fixes", "Failed to apply fixes:") + (error as Error).message);
     } finally {
       setIsFixing(false);
     }
@@ -244,7 +246,7 @@ export function DataIntegrityChecker() {
         {!hasIssues ? (
           <div className="flex flex-col items-center justify-center py-8 text-center">
             <CheckCircle2 className="h-12 w-12 text-green-500 mb-4" />
-            <h3 className="text-lg font-semibold">All Clear!</h3>
+            <h3 className="text-lg font-semibold">{t("all_clear", "All Clear!")}</h3>
             <p className="text-sm text-muted-foreground">
               No data integrity issues detected. Your financial data is consistent.
             </p>
@@ -265,11 +267,11 @@ export function DataIntegrityChecker() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-12">Type</TableHead>
-                  <TableHead>Issue</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead>Detected</TableHead>
-                  <TableHead className="w-24">Action</TableHead>
+                  <TableHead className="w-12">{t("type", "Type")}</TableHead>
+                  <TableHead>{t("issue", "Issue")}</TableHead>
+                  <TableHead>{t("description", "Description")}</TableHead>
+                  <TableHead>{t("detected", "Detected")}</TableHead>
+                  <TableHead className="w-24">{t("action", "Action")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

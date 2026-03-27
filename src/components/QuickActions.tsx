@@ -13,8 +13,10 @@ import {
   Target
 } from "lucide-react";
 import { useRole } from "@/contexts/RoleContext";
+import { useTranslation } from 'react-i18next';
 
 export const QuickActions = () => {
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
   const { currentRole: role } = useRole();
 

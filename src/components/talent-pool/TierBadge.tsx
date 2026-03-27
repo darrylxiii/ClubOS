@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { Flame, ThermometerSun, Target, Users, Moon, Ban } from 'lucide-react';
@@ -12,34 +13,28 @@ interface TierBadgeProps {
   className?: string;
 }
 
-const tierConfig: Record<TalentTier, { label: string; icon: React.ElementType; className: string }> = {
+const tierStyles: Record<TalentTier, { icon: React.ElementType; className: string }> = {
   hot: {
-    label: 'Hot',
     icon: Flame,
     className: 'bg-red-500/20 text-red-400 border-red-500/30 hover:bg-red-500/30',
   },
   warm: {
-    label: 'Warm',
     icon: ThermometerSun,
     className: 'bg-orange-500/20 text-orange-400 border-orange-500/30 hover:bg-orange-500/30',
   },
   strategic: {
-    label: 'Strategic',
     icon: Target,
     className: 'bg-purple-500/20 text-purple-400 border-purple-500/30 hover:bg-purple-500/30',
   },
   pool: {
-    label: 'Pool',
     icon: Users,
     className: 'bg-muted text-muted-foreground border-border hover:bg-muted/80',
   },
   dormant: {
-    label: 'Dormant',
     icon: Moon,
     className: 'bg-slate-500/20 text-slate-400 border-slate-500/30 hover:bg-slate-500/30',
   },
   excluded: {
-    label: 'Excluded',
     icon: Ban,
     className: 'bg-destructive/20 text-destructive border-destructive/30 hover:bg-destructive/30',
   },

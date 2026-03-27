@@ -9,8 +9,10 @@ import {
 import { Mic, MicOff } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslation } from 'react-i18next';
 
 export function VoiceCommandButton() {
+  const { t } = useTranslation('admin');
   const { isListening, transcript, isSupported, toggle } = useVoiceCommands();
 
   if (!isSupported) return null;
@@ -25,10 +27,10 @@ export function VoiceCommandButton() {
               size="icon"
               onClick={toggle}
               className={cn(
-                "h-9 w-9 relative",
+                "relative rounded-full w-9 h-9 hover:bg-white/10 dark:hover:bg-white/5 transition-all",
                 isListening && "text-primary"
               )}
-              aria-label={isListening ? "Stop voice commands" : "Start voice commands"}
+              aria-label={isListening ? t('voiceCommandButton.stopVoiceCommands') : t('voiceCommandButton.startVoiceCommands')}
             >
               {isListening ? (
                 <motion.div
@@ -53,8 +55,8 @@ export function VoiceCommandButton() {
           </TooltipTrigger>
           <TooltipContent side="bottom" className="text-xs">
             {isListening
-              ? 'Listening... Say "Go to [page]" or "Search for [term]"'
-              : "Voice commands (Admin)"}
+              ? t('voiceCommandButton.listeningPrompt')
+              : t('voiceCommandButton.voiceCommandsAdmin')}
           </TooltipContent>
         </Tooltip>
 

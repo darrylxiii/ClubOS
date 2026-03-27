@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,6 +16,7 @@ import { logger } from "@/lib/logger";
 type MfaStep = 'intro' | 'elevate' | 'verify' | 'complete';
 
 export default function MfaSetup() {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -52,7 +54,7 @@ export default function MfaSetup() {
 
           if (challengeError) {
             logger.error('[MfaSetup] Challenge error during elevation setup:', challengeError);
-            toast.error('Could not initiate verification. Please sign in again.');
+            toast.error(t('text.mfasetup.couldNotInitiateVerificationPleaseSign', 'Could not initiate verification. Please sign in again.'));
             navigate('/auth', { replace: true });
             return;
           }
@@ -103,7 +105,7 @@ export default function MfaSetup() {
       });
 
       if (error) {
-        toast.error('Invalid code. Please check your authenticator app.');
+        toast.error(t('text.mfasetup.invalidCodePleaseCheckYourAuthenticator', 'Invalid code. Please check your authenticator app.'));
         setElevateCode('');
         setIsElevating(false);
         // Re-create challenge for retry
@@ -115,12 +117,12 @@ export default function MfaSetup() {
       }
 
       // Session is now AAL2 — user already has MFA, redirect to home
-      toast.success('Identity verified.');
+      toast.success(t('text.mfasetup.identityVerified', 'Identity verified.'));
       await queryClient.invalidateQueries({ queryKey: ['auth-prefetch'] });
       navigate('/home', { replace: true });
     } catch (err) {
       logger.error('[MfaSetup] Elevation error:', err);
-      toast.error('Verification failed. Please try again.');
+      toast.error(t('text.mfasetup.verificationFailedPleaseTryAgain', 'Verification failed. Please try again.'));
     } finally {
       setIsElevating(false);
     }
@@ -138,7 +140,7 @@ export default function MfaSetup() {
     try {
       const { data: { user: currentUser } } = await supabase.auth.getUser();
       if (!currentUser) {
-        toast.error('Session expired. Please sign in again.');
+        toast.error(t('text.mfasetup.sessionExpiredPleaseSignInAgain', 'Session expired. Please sign in again.'));
         navigate('/auth', { replace: true });
         return;
       }
@@ -157,7 +159,7 @@ export default function MfaSetup() {
       // Check if user already has a verified factor (edge case: factor was set up elsewhere)
       const verified = factors?.totp?.filter(f => f.status === 'verified') || [];
       if (verified.length > 0) {
-        toast.success('MFA is already enabled on your account.');
+        toast.success(t('text.mfasetup.mfaIsAlreadyEnabledOnYour', 'MFA is already enabled on your account.'));
         await queryClient.invalidateQueries({ queryKey: ['auth-prefetch'] });
         navigate('/home', { replace: true });
         return;
@@ -173,13 +175,13 @@ export default function MfaSetup() {
         const errorMsg = error.message?.toLowerCase() || '';
         if (errorMsg.includes('aal2') || errorMsg.includes('insufficient_aal')) {
           // Already has MFA — just redirect home
-          toast.success('MFA is already enabled on your account.');
+          toast.success(t('text.mfasetup.mfaIsAlreadyEnabledOnYour', 'MFA is already enabled on your account.'));
           await queryClient.invalidateQueries({ queryKey: ['auth-prefetch'] });
           navigate('/home', { replace: true });
           return;
         }
 
-        toast.error('Failed to set up MFA. Please try again.');
+        toast.error(t('text.mfasetup.failedToSetUpMfaPlease', 'Failed to set up MFA. Please try again.'));
         logger.error('[MfaSetup] Enroll error:', error);
         setStep('intro');
         return;
@@ -191,7 +193,7 @@ export default function MfaSetup() {
       setStep('verify');
     } catch (err) {
       logger.error('[MfaSetup] Error:', err);
-      toast.error('Something went wrong. Please try again.');
+      toast.error(t('text.mfasetup.somethingWentWrongPleaseTryAgain', 'Something went wrong. Please try again.'));
       setStep('intro');
     } finally {
       setIsLoading(false);
@@ -205,7 +207,7 @@ export default function MfaSetup() {
     try {
       const challengeResult = await supabase.auth.mfa.challenge({ factorId });
       if (challengeResult.error) {
-        toast.error('Challenge failed. Please try again.');
+        toast.error(t('text.mfasetup.challengeFailedPleaseTryAgain', 'Challenge failed. Please try again.'));
         return;
       }
 
@@ -216,7 +218,7 @@ export default function MfaSetup() {
       });
 
       if (verifyResult.error) {
-        toast.error('Invalid code. Please check your authenticator app and try again.');
+        toast.error(t('text.mfasetup.invalidCodePleaseCheckYourAuthenticator1', 'Invalid code. Please check your authenticator app and try again.'));
         setVerifyCode('');
         return;
       }
@@ -224,10 +226,10 @@ export default function MfaSetup() {
       // Invalidate cache so ProtectedRoute sees the new verified factor
       await queryClient.invalidateQueries({ queryKey: ['auth-prefetch'] });
       setStep('complete');
-      toast.success('MFA enabled successfully');
+      toast.success(t('text.mfasetup.mfaEnabledSuccessfully', 'MFA enabled successfully'));
     } catch (err) {
       logger.error('[MfaSetup] Verify error:', err);
-      toast.error('Verification failed');
+      toast.error(t('text.mfasetup.verificationFailed', 'Verification failed'));
     } finally {
       setIsVerifying(false);
     }
@@ -252,14 +254,14 @@ export default function MfaSetup() {
 
   const copySecret = () => {
     navigator.clipboard.writeText(secret);
-    toast.success('Secret copied to clipboard');
+    toast.success(t('text.mfasetup.secretCopiedToClipboard', 'Secret copied to clipboard'));
   };
 
   const handleLostAccess = async () => {
     await supabase.auth.signOut();
-    toast.info('Please contact your administrator to reset your MFA.', {
+    toast.info("Please contact your administrator to reset your MFA.", {
       duration: 8000,
-      description: 'An admin can remove your existing authenticator so you can set up a new one.',
+      description: t('text.mfasetup.anAdminCanRemoveYourExisting', 'An admin can remove your existing authenticator so you can set up a new one.'),
     });
     navigate('/auth', { replace: true });
   };
@@ -276,10 +278,8 @@ export default function MfaSetup() {
                 <KeyRound className="w-8 h-8 text-primary" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-foreground">Verify Your Identity</h1>
-                <p className="text-muted-foreground mt-2 text-sm">
-                  Enter the 6-digit code from your authenticator app to continue.
-                </p>
+                <h1 className="text-2xl font-bold text-foreground">{t('mfaSetup.text4')}</h1>
+                <p className="text-muted-foreground mt-2 text-sm">{t('mfaSetup.desc')}</p>
               </div>
             </CardHeader>
             <CardContent className="pb-8 space-y-6">
@@ -294,7 +294,7 @@ export default function MfaSetup() {
               </div>
 
               <RainbowButton onClick={handleElevate} disabled={elevateCode.length !== 6 || isElevating} className="w-full">
-                {isElevating ? 'Verifying...' : 'Verify & Continue'}
+                {isElevating ? t('text.mfasetup.verifying', 'Verifying...') : t('text.mfasetup.verifyContinue', 'Verify & Continue')}
               </RainbowButton>
 
               <div className="text-center pt-2 border-t border-border/30">
@@ -317,7 +317,7 @@ export default function MfaSetup() {
                 <ShieldCheck className="w-8 h-8 text-primary" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-foreground">Set Up Two-Factor Authentication</h1>
+                <h1 className="text-2xl font-bold text-foreground">{t('mfaSetup.text5')}</h1>
                 <p className="text-muted-foreground mt-2 text-sm">
                   Your role requires two-factor authentication for added security.
                   You'll need an authenticator app like Google Authenticator or 1Password.
@@ -326,7 +326,7 @@ export default function MfaSetup() {
             </CardHeader>
             <CardContent className="pb-8 space-y-4">
               <RainbowButton onClick={handleEnroll} className="w-full" disabled={isLoading}>
-                {isLoading ? 'Setting up...' : 'Continue Setup'}
+                {isLoading ? t('text.mfasetup.settingUp', 'Setting up...') : t('text.mfasetup.continueSetup', 'Continue Setup')}
               </RainbowButton>
             </CardContent>
           </>
@@ -339,16 +339,14 @@ export default function MfaSetup() {
                 <Smartphone className="w-8 h-8 text-primary" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-foreground">Scan QR Code</h1>
-                <p className="text-muted-foreground mt-2 text-sm">
-                  Scan this QR code with your authenticator app, then enter the 6-digit code.
-                </p>
+                <h1 className="text-2xl font-bold text-foreground">{t('mfaSetup.text6')}</h1>
+                <p className="text-muted-foreground mt-2 text-sm">{t('mfaSetup.desc2')}</p>
               </div>
             </CardHeader>
             <CardContent className="pb-8 space-y-6">
               {qrCode && (
                 <div className="flex justify-center">
-                  <img src={qrCode} alt="MFA QR Code" className="w-48 h-48 rounded-lg border border-border" />
+                  <img src={qrCode} alt={t('mfaSetup.text7')} className="w-48 h-48 rounded-lg border border-border" />
                 </div>
               )}
 
@@ -372,7 +370,7 @@ export default function MfaSetup() {
               </div>
 
               <RainbowButton onClick={handleVerify} disabled={verifyCode.length !== 6 || isVerifying} className="w-full">
-                {isVerifying ? 'Verifying...' : 'Verify & Enable'}
+                {isVerifying ? t('text.mfasetup.verifying', 'Verifying...') : t('text.mfasetup.verifyEnable', 'Verify & Enable')}
               </RainbowButton>
             </CardContent>
           </>
@@ -385,10 +383,8 @@ export default function MfaSetup() {
                 <CheckCircle2 className="w-8 h-8 text-success" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-foreground">MFA Enabled</h1>
-                <p className="text-muted-foreground mt-2 text-sm">
-                  Two-factor authentication is now active on your account. Redirecting...
-                </p>
+                <h1 className="text-2xl font-bold text-foreground">{t('mfaSetup.text8')}</h1>
+                <p className="text-muted-foreground mt-2 text-sm">{t('mfaSetup.desc3')}</p>
               </div>
             </CardHeader>
             <CardContent className="pb-8">

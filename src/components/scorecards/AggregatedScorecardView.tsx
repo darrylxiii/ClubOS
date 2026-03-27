@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -32,6 +33,7 @@ const recommendationConfig: Record<string, { color: string; icon: React.ReactNod
 };
 
 export function AggregatedScorecardView({ applicationId }: AggregatedScorecardViewProps) {
+  const { t } = useTranslation('common');
   const { data: aggregated, isLoading } = useQuery({
     queryKey: ["aggregated-scorecards", applicationId],
     queryFn: async (): Promise<AggregatedScores | null> => {
@@ -96,7 +98,7 @@ export function AggregatedScorecardView({ applicationId }: AggregatedScorecardVi
     return (
       <Card>
         <CardContent className="pt-6">
-          <p className="text-sm text-muted-foreground text-center">Loading aggregated scores...</p>
+          <p className="text-sm text-muted-foreground text-center">{t("loading_aggregated_scores", "Loading aggregated scores...")}</p>
         </CardContent>
       </Card>
     );
@@ -133,15 +135,15 @@ export function AggregatedScorecardView({ applicationId }: AggregatedScorecardVi
       <CardContent className="space-y-4">
         {/* Score Bars */}
         <div className="grid grid-cols-2 gap-4">
-          <ScoreBar label="Overall" value={aggregated.avgOverall} max={5} />
-          <ScoreBar label="Technical" value={aggregated.avgTechnical} max={5} />
-          <ScoreBar label="Cultural Fit" value={aggregated.avgCultural} max={5} />
-          <ScoreBar label="Communication" value={aggregated.avgCommunication} max={5} />
+          <ScoreBar label={t("overall", "Overall")} value={aggregated.avgOverall} max={5} />
+          <ScoreBar label={t("technical", "Technical")} value={aggregated.avgTechnical} max={5} />
+          <ScoreBar label={t("cultural_fit", "Cultural Fit")} value={aggregated.avgCultural} max={5} />
+          <ScoreBar label={t("communication", "Communication")} value={aggregated.avgCommunication} max={5} />
         </div>
 
         {/* Recommendation Distribution */}
         <div>
-          <p className="text-sm font-medium mb-2">Recommendation Distribution</p>
+          <p className="text-sm font-medium mb-2">{t("recommendation_distribution", "Recommendation Distribution")}</p>
           <div className="flex gap-1 h-4 rounded-full overflow-hidden">
             {Object.entries(aggregated.recommendations).map(([rec, count]) => {
               const width = (count / aggregated.totalEvaluators) * 100;
@@ -157,8 +159,8 @@ export function AggregatedScorecardView({ applicationId }: AggregatedScorecardVi
             })}
           </div>
           <div className="flex justify-between mt-1 text-xs text-muted-foreground">
-            <span>Strong No</span>
-            <span>Strong Yes</span>
+            <span>{t("strong_no", "Strong No")}</span>
+            <span>{t("strong_yes", "Strong Yes")}</span>
           </div>
         </div>
 

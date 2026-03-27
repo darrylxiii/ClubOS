@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { useTaskBoard } from '@/contexts/TaskBoardContext';
 import { Button } from '@/components/ui/button';
@@ -8,6 +9,7 @@ import { CreateBoardDialog } from './CreateBoardDialog';
 import type { BoardVisibility } from '@/types/taskBoard';
 
 export function BoardNavigationBar() {
+  const { t } = useTranslation('common');
   const { boards, currentBoard, switchBoard, loading } = useTaskBoard();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [selectedType, setSelectedType] = useState<BoardVisibility | 'all'>('all');
@@ -115,7 +117,7 @@ export function BoardNavigationBar() {
             className="gap-2"
           >
             <Plus className="h-4 w-4" />
-            <span className="hidden sm:inline">New Board</span>
+            <span className="hidden sm:inline">{t("new_board", "New Board")}</span>
           </Button>
         </div>
 

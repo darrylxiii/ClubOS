@@ -1,4 +1,5 @@
 import { RoleGate } from '@/components/RoleGate';
+import { useTranslation } from 'react-i18next';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CRMAutomationBuilder } from '@/components/crm/CRMAutomationBuilder';
 import { CRMAutomationLogs } from '@/components/crm/CRMAutomationLogs';
@@ -6,6 +7,7 @@ import { motion } from '@/lib/motion';
 import { Zap, History } from 'lucide-react';
 
 export default function CRMAutomations() {
+  const { t } = useTranslation('common');
   return (
     <RoleGate allowedRoles={['admin', 'strategist']}>
       <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
@@ -17,9 +19,7 @@ export default function CRMAutomations() {
               <Zap className="h-8 w-8 text-primary" />
               CRM Automations
             </h1>
-            <p className="text-muted-foreground mt-2">
-              Build and manage automated workflows for your CRM
-            </p>
+            <p className="text-muted-foreground mt-2">{t('cRMAutomations.desc')}</p>
           </motion.div>
 
           <Tabs defaultValue="builder" className="space-y-6">

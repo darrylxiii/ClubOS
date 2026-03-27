@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { formatDistanceToNow } from 'date-fns';
 import { Flame, Snowflake, AlertCircle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface PredictiveSignal {
   id: string;
@@ -50,6 +51,7 @@ export default function PredictiveSignalsView() {
   }, []);
 
   const getSignalIcon = (type: string) => {
+  const { t } = useTranslation('admin');
     if (type?.includes('heat')) return <Flame className="h-4 w-4" style={{ color: 'rgb(234, 88, 12)' }} />;
     if (type?.includes('cool')) return <Snowflake className="h-4 w-4" style={{ color: 'rgb(59, 130, 246)' }} />;
     return <AlertCircle className="h-4 w-4" style={{ color: 'rgb(234, 179, 8)' }} />;
@@ -71,7 +73,7 @@ export default function PredictiveSignalsView() {
   };
 
   if (loading) {
-    return <div className="text-center py-8 text-muted-foreground">Loading...</div>;
+    return <div className="text-center py-8 text-muted-foreground">{t('common:status.loading')}</div>;
   }
 
   return (
@@ -79,12 +81,12 @@ export default function PredictiveSignalsView() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Signal Type</TableHead>
-            <TableHead>Entity Type</TableHead>
-            <TableHead>Strength</TableHead>
-            <TableHead>Created</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Action</TableHead>
+            <TableHead>{t('agentic.predictiveSignalsView.signalType')}</TableHead>
+            <TableHead>{t('agentic.predictiveSignalsView.entityType')}</TableHead>
+            <TableHead>{t('agentic.predictiveSignalsView.strength')}</TableHead>
+            <TableHead>{t('agentic.predictiveSignalsView.created')}</TableHead>
+            <TableHead>{t('common:fields.status')}</TableHead>
+            <TableHead>{t('agentic.predictiveSignalsView.action')}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>

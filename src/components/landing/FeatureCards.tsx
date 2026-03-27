@@ -1,4 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
+import { useTranslation } from 'react-i18next';
 import { 
   Briefcase, 
   Brain, 
@@ -54,11 +55,12 @@ const features = [
 ];
 
 export const FeatureCards = () => {
+  const { t } = useTranslation('common');
   return (
     <section className="px-6 py-20 md:py-32">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-16">
-          <p className="text-caps text-muted-foreground mb-4">PLATFORM FEATURES</p>
+          <p className="text-caps text-muted-foreground mb-4">{t('landing.pLATFORMFEATURES')}</p>
           <h2 className="text-4xl md:text-6xl lg:text-7xl font-black uppercase tracking-tight leading-tight">
             YOUR ELITE
             <br />

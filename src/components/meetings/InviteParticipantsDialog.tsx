@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import {
   Dialog,
@@ -34,6 +35,7 @@ export function InviteParticipantsDialog({
   meetingTitle,
   trigger,
 }: InviteParticipantsDialogProps) {
+  const { t } = useTranslation('common');
   const [open, setOpen] = useState(false);
   const [emailInput, setEmailInput] = useState('');
   const [emails, setEmails] = useState<EmailEntry[]>([]);
@@ -83,7 +85,7 @@ export function InviteParticipantsDialog({
 
   const handleSendInvitations = async () => {
     if (emails.length === 0) {
-      toast.error('Add at least one email address');
+      toast.error(t("add_at_least_one", "Add at least one email address"));
       return;
     }
 
@@ -134,7 +136,7 @@ export function InviteParticipantsDialog({
     } catch (error: unknown) {
       console.error('Failed to send invitations:', error);
       setEmails(prev => prev.map(e => ({ ...e, status: 'error', error: 'Failed to send' })));
-      toast.error('Failed to send invitations');
+      toast.error(t("failed_to_send_invitations", "Failed to send invitations"));
     } finally {
       setSending(false);
     }
@@ -176,11 +178,11 @@ export function InviteParticipantsDialog({
 
         <div className="space-y-4 py-4">
           <div className="space-y-2">
-            <Label htmlFor="emails">Email Addresses</Label>
+            <Label htmlFor="emails">{t("email_addresses", "Email Addresses")}</Label>
             <div className="flex gap-2">
               <Input
                 id="emails"
-                placeholder="Enter email and press Enter"
+                placeholder={t("enter_email_and_press", "Enter email and press Enter")}
                 value={emailInput}
                 onChange={(e) => setEmailInput(e.target.value)}
                 onKeyDown={handleKeyDown}
@@ -221,10 +223,10 @@ export function InviteParticipantsDialog({
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="message">Personal Message (optional)</Label>
+            <Label htmlFor="message">{t("personal_message_optional", "Personal Message (optional)")}</Label>
             <Textarea
               id="message"
-              placeholder="Add a personal note to your invitation..."
+              placeholder={t("add_a_personal_note", "Add a personal note to your invitation...")}
               value={customMessage}
               onChange={(e) => setCustomMessage(e.target.value)}
               disabled={sending}

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -60,6 +61,7 @@ export function WorkspaceCommandPalette({
   pageId,
   onInsertBlock,
 }: WorkspaceCommandPaletteProps) {
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
   const { pages, createPage, duplicatePage, deletePage, toggleFavorite, recent: recentPages } = useWorkspacePages();
   const [search, setSearch] = useState('');
@@ -209,12 +211,12 @@ export function WorkspaceCommandPalette({
   return (
     <CommandDialog open={open} onOpenChange={onOpenChange}>
       <CommandInput 
-        placeholder="Type a command or search..." 
+        placeholder={t("type_a_command_or", "Type a command or search...")} 
         value={search}
         onValueChange={setSearch}
       />
       <CommandList>
-        <CommandEmpty>No results found.</CommandEmpty>
+        <CommandEmpty>{t("no_results_found", "No results found.")}</CommandEmpty>
         
         {/* Recent/Search Pages */}
         {filteredPages.length > 0 && (

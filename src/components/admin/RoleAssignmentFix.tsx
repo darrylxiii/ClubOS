@@ -5,8 +5,10 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { CheckCircle2, AlertCircle, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from 'react-i18next';
 
 export const RoleAssignmentFix = () => {
+  const { t } = useTranslation('admin');
   const [checking, setChecking] = useState(false);
   const [issues, setIssues] = useState<string[]>([]);
   const [fixed, setFixed] = useState<string[]>([]);
@@ -95,7 +97,7 @@ export const RoleAssignmentFix = () => {
 
     } catch (error) {
       console.error('[RoleAssignmentFix] Error:', error);
-      toast.error("Failed to check role integrity");
+      toast.error(t('roleAssignmentFix.failedToCheckRoleIntegrity'));
     } finally {
       setChecking(false);
     }

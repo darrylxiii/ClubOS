@@ -1,6 +1,6 @@
 # The Quantum Club - Comprehensive Technical Audit Report
 **Date:** January 4, 2026  
-**Auditor:** Lovable AI  
+**Auditor:** Google Gemini  
 **Version:** 1.0
 
 ---

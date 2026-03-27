@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,6 +28,7 @@ interface ShortlistedCandidate {
 }
 
 export function CandidateShortlistWidget({ companyId }: { companyId: string }) {
+  const { t } = useTranslation('common');
   const queryClient = useQueryClient();
 
   const { data: shortlist, isLoading } = useQuery({
@@ -106,11 +108,9 @@ export function CandidateShortlistWidget({ companyId }: { companyId: string }) {
         {!shortlist || shortlist.length === 0 ? (
           <div className="text-center py-6 space-y-2">
             <Users className="h-8 w-8 mx-auto text-muted-foreground/40" />
-            <p className="text-sm text-muted-foreground">
-              Star candidates from applications to access them quickly
-            </p>
+            <p className="text-sm text-muted-foreground">{t('candidateShortlistWidget.starCandidatesFromApplicationsToAccessTh')}</p>
             <Button variant="outline" size="sm" asChild className="mt-2">
-              <Link to="/company-applications">Browse Applications</Link>
+              <Link to="/company-applications">{t("browse_applications", "Browse Applications")}</Link>
             </Button>
           </div>
         ) : (

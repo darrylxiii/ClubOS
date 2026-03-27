@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,6 +17,7 @@ interface InvestorReportExportProps {
 }
 
 export function InvestorReportExport({ metrics, historicalData }: InvestorReportExportProps) {
+  const { t } = useTranslation('common');
   const [isExporting, setIsExporting] = useState(false);
 
   // Values are stored in EUR (not cents)
@@ -30,7 +32,7 @@ export function InvestorReportExport({ metrics, historicalData }: InvestorReport
 
   const exportToCSV = () => {
     if (!historicalData || historicalData.length === 0) {
-      toast.error("No data available to export");
+      toast.error(t("no_data_available_to", "No data available to export"));
       return;
     }
 
@@ -77,9 +79,9 @@ export function InvestorReportExport({ metrics, historicalData }: InvestorReport
       link.download = `TQC_Revenue_Report_${format(new Date(), 'yyyy-MM-dd')}.csv`;
       link.click();
 
-      toast.success("CSV report exported successfully");
+      toast.success(t("csv_report_exported_successfully", "CSV report exported successfully"));
     } catch (error) {
-      toast.error("Failed to export CSV");
+      toast.error(t("failed_to_export_csv", "Failed to export CSV"));
     } finally {
       setIsExporting(false);
     }
@@ -87,7 +89,7 @@ export function InvestorReportExport({ metrics, historicalData }: InvestorReport
 
   const exportToJSON = () => {
     if (!metrics) {
-      toast.error("No data available to export");
+      toast.error(t("no_data_available_to", "No data available to export"));
       return;
     }
 
@@ -133,9 +135,9 @@ export function InvestorReportExport({ metrics, historicalData }: InvestorReport
       link.download = `TQC_Investor_Report_${format(new Date(), 'yyyy-MM-dd')}.json`;
       link.click();
 
-      toast.success("JSON report exported successfully");
+      toast.success(t("json_report_exported_successfully", "JSON report exported successfully"));
     } catch (error) {
-      toast.error("Failed to export JSON");
+      toast.error(t("failed_to_export_json", "Failed to export JSON"));
     } finally {
       setIsExporting(false);
     }
@@ -143,7 +145,7 @@ export function InvestorReportExport({ metrics, historicalData }: InvestorReport
 
   const generateExecutiveSummary = () => {
     if (!metrics) {
-      toast.error("No data available");
+      toast.error(t("no_data_available", "No data available"));
       return;
     }
 
@@ -213,9 +215,9 @@ For questions, contact: investors@thequantumclub.com
       link.download = `TQC_Executive_Summary_${format(new Date(), 'yyyy-MM-dd')}.txt`;
       link.click();
 
-      toast.success("Executive summary generated");
+      toast.success(t("executive_summary_generated", "Executive summary generated"));
     } catch (error) {
-      toast.error("Failed to generate summary");
+      toast.error(t("failed_to_generate_summary", "Failed to generate summary"));
     } finally {
       setIsExporting(false);
     }

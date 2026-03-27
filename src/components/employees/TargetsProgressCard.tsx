@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
@@ -14,6 +15,7 @@ interface TargetsProgressCardProps {
 }
 
 export function TargetsProgressCard({ targets, isLoading }: TargetsProgressCardProps) {
+  const { t } = useTranslation('common');
   const currentTargets = targets.filter(t => {
     const now = new Date();
     return new Date(t.period_start) <= now && new Date(t.period_end) >= now;
@@ -27,7 +29,7 @@ export function TargetsProgressCard({ targets, isLoading }: TargetsProgressCardP
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Targets</CardTitle>
+          <CardTitle>{t("targets", "Targets")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="h-48 bg-muted/50 animate-pulse rounded-lg" />
@@ -47,9 +49,9 @@ export function TargetsProgressCard({ targets, isLoading }: TargetsProgressCardP
       <CardContent>
         <Tabs defaultValue="quarterly" className="w-full">
           <TabsList className="grid grid-cols-3 w-full">
-            <TabsTrigger value="monthly">Monthly</TabsTrigger>
-            <TabsTrigger value="quarterly">Quarterly</TabsTrigger>
-            <TabsTrigger value="annual">Annual</TabsTrigger>
+            <TabsTrigger value="monthly">{t("monthly", "Monthly")}</TabsTrigger>
+            <TabsTrigger value="quarterly">{t("quarterly", "Quarterly")}</TabsTrigger>
+            <TabsTrigger value="annual">{t("annual", "Annual")}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="monthly" className="mt-4">

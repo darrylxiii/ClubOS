@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -91,6 +92,7 @@ export function MilestoneManagementModal({
   mode,
   milestone,
 }: MilestoneManagementModalProps) {
+  const { t } = useTranslation('common');
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const { data: ladders } = useRevenueLadders();
   const {
@@ -239,10 +241,10 @@ export function MilestoneManagementModal({
                       name="display_name"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Display Name *</FormLabel>
+                          <FormLabel>{t("display_name", "Display Name *")}</FormLabel>
                           <FormControl>
                             <Input
-                              placeholder="e.g., €50K Target"
+                              placeholder={t("eg_50k_target", "e.g., €50K Target")}
                               {...field}
                               className="bg-background/50"
                             />
@@ -257,10 +259,10 @@ export function MilestoneManagementModal({
                       name="description"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Description</FormLabel>
+                          <FormLabel>{t("description", "Description")}</FormLabel>
                           <FormControl>
                             <Textarea
-                              placeholder="What does achieving this milestone mean for the team?"
+                              placeholder={t("what_does_achieving_this", "What does achieving this milestone mean for the team?")}
                               className="bg-background/50 resize-none"
                               rows={3}
                               {...field}
@@ -286,7 +288,7 @@ export function MilestoneManagementModal({
                       name="threshold_amount"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Threshold Amount (€) *</FormLabel>
+                          <FormLabel>{t("threshold_amount", "Threshold Amount (€) *")}</FormLabel>
                           <FormControl>
                             <div className="relative">
                               <Euro className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -309,14 +311,14 @@ export function MilestoneManagementModal({
                       name="ladder_id"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Track *</FormLabel>
+                          <FormLabel>{t("track", "Track *")}</FormLabel>
                           <Select
                             onValueChange={field.onChange}
                             value={field.value}
                           >
                             <FormControl>
                               <SelectTrigger className="bg-background/50">
-                                <SelectValue placeholder="Select track" />
+                                <SelectValue placeholder={t("select_track", "Select track")} />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -352,7 +354,7 @@ export function MilestoneManagementModal({
                             name="fiscal_year"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>Fiscal Year</FormLabel>
+                                <FormLabel>{t("fiscal_year", "Fiscal Year")}</FormLabel>
                                 <FormControl>
                                   <div className="relative">
                                     <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -393,7 +395,7 @@ export function MilestoneManagementModal({
                       name="default_category"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Default Category</FormLabel>
+                          <FormLabel>{t("default_category", "Default Category")}</FormLabel>
                           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                             {(['enablement', 'experience', 'assets', 'cash'] as const).map(
                               (category) => (
@@ -433,7 +435,7 @@ export function MilestoneManagementModal({
                         name="suggested_reward_min"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Min Reward (€)</FormLabel>
+                            <FormLabel>{t("min_reward", "Min Reward (€)")}</FormLabel>
                             <FormControl>
                               <Input
                                 type="number"
@@ -455,7 +457,7 @@ export function MilestoneManagementModal({
                         name="suggested_reward_max"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Max Reward (€)</FormLabel>
+                            <FormLabel>{t("max_reward", "Max Reward (€)")}</FormLabel>
                             <FormControl>
                               <Input
                                 type="number"
@@ -487,7 +489,7 @@ export function MilestoneManagementModal({
                     name="display_order"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Display Order</FormLabel>
+                        <FormLabel>{t("display_order", "Display Order")}</FormLabel>
                         <FormControl>
                           <Input
                             type="number"
@@ -602,13 +604,13 @@ export function MilestoneManagementModal({
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Milestone</AlertDialogTitle>
+            <AlertDialogTitle>{t("delete_milestone", "Delete Milestone")}</AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to delete "{milestone?.display_name}"? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t("cancel", "Cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"

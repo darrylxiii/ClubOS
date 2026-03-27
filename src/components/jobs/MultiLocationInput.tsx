@@ -13,6 +13,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useTranslation } from 'react-i18next';
 
 export interface LocationInput {
   id?: string;
@@ -47,6 +48,7 @@ export const MultiLocationInput = memo(({
   disabled = false,
   hideRemoteToggle = false,
 }: MultiLocationInputProps) => {
+  const { t } = useTranslation('jobs');
   const [isAddingLocation, setIsAddingLocation] = useState(false);
 
   const handleAddLocation = useCallback((result: LocationResult | null) => {
@@ -122,10 +124,10 @@ export const MultiLocationInput = memo(({
             </div>
             <div>
               <Label htmlFor="remote-toggle" className="text-sm font-medium cursor-pointer">
-                Remote Position
+                {t('multiLocation.remotePosition', 'Remote Position')}
               </Label>
               <p className="text-xs text-muted-foreground">
-                Allow candidates to work from anywhere
+                {t('multiLocation.allowRemote', 'Allow candidates to work from anywhere')}
               </p>
             </div>
           </div>
@@ -142,7 +144,7 @@ export const MultiLocationInput = memo(({
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <Label className="text-sm font-medium">
-            Office Locations
+            {t('multiLocation.officeLocations', 'Office Locations')}
             {locations.length > 0 && (
               <span className="ml-2 text-muted-foreground font-normal">
                 ({locations.length}/{maxLocations})
@@ -178,7 +180,7 @@ export const MultiLocationInput = memo(({
                     </span>
                     {location.isPrimary && (
                       <Badge variant="outline" className="text-xs shrink-0">
-                        Primary
+                        {t('multiLocation.primary', 'Primary')}
                       </Badge>
                     )}
                   </div>
@@ -204,7 +206,7 @@ export const MultiLocationInput = memo(({
                           <span className="text-xs">★</span>
                         </Button>
                       </TooltipTrigger>
-                      <TooltipContent>Set as primary</TooltipContent>
+                      <TooltipContent>{t('multiLocation.setAsPrimary', 'Set as primary')}</TooltipContent>
                     </Tooltip>
                   )}
                   <Button
@@ -230,7 +232,7 @@ export const MultiLocationInput = memo(({
                 <EnhancedLocationAutocomplete
                   value={null}
                   onChange={handleAddLocation}
-                  placeholder="Search for a city..."
+                  placeholder={t('multiLocation.searchCity', 'Search for a city...')}
                   disabled={disabled}
                 />
                 <Button
@@ -240,7 +242,7 @@ export const MultiLocationInput = memo(({
                   onClick={() => setIsAddingLocation(false)}
                   className="text-muted-foreground"
                 >
-                  Cancel
+                  {t('common:cancel', 'Cancel')}
                 </Button>
               </div>
             ) : (
@@ -253,7 +255,7 @@ export const MultiLocationInput = memo(({
                 className="w-full border-dashed"
               >
                 <Plus className="h-4 w-4 mr-2" />
-                Add Location
+                {t('multiLocation.addLocation', 'Add Location')}
               </Button>
             )}
           </div>
@@ -263,8 +265,8 @@ export const MultiLocationInput = memo(({
         {locations.length === 0 && !isAddingLocation && (
           <p className="text-xs text-muted-foreground text-center py-2">
             {isRemote
-              ? "No office locations required for remote positions"
-              : "Add at least one office location"}
+              ? t('multiLocation.noOfficeRequired', 'No office locations required for remote positions')
+              : t('multiLocation.addAtLeastOne', 'Add at least one office location')}
           </p>
         )}
       </div>
@@ -273,7 +275,7 @@ export const MultiLocationInput = memo(({
       {(locations.length > 0 || isRemote) && (
         <div className="pt-2 border-t border-border/50">
           <Label className="text-xs text-muted-foreground mb-2 block">
-            Preview
+            {t('multiLocation.preview', 'Preview')}
           </Label>
           <div className="flex items-center gap-2 p-2 rounded-md bg-muted/30">
             <JobLocationDisplay

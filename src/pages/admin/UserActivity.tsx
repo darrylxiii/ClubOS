@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from 'react-i18next';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -22,6 +23,7 @@ import { StrategistIntelligenceTab } from "@/components/admin/activity/Strategis
 import { RecruiterIntelligenceTab } from "@/components/admin/activity/RecruiterIntelligenceTab";
 
 export default function UserActivity() {
+  const { t } = useTranslation('admin');
   const [activeTab, setActiveTab] = useState("allusers");
 
   const { data: overviewMetrics, refetch } = useQuery({
@@ -55,9 +57,7 @@ export default function UserActivity() {
             <Activity className="h-6 w-6 text-primary" />
             User Activity Analytics
           </h2>
-          <p className="text-muted-foreground mt-1">
-            Comprehensive tracking and analysis of user behavior
-          </p>
+          <p className="text-muted-foreground mt-1">{t('userActivity.desc')}</p>
         </div>
         <Button onClick={() => refetch()} variant="outline" size="sm">
           <RefreshCw className="h-4 w-4 mr-2" />
@@ -68,45 +68,45 @@ export default function UserActivity() {
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Users</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('userActivity.text2')}</CardTitle>
             <Users className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{overviewMetrics?.activeUsers || 0}</div>
-            <p className="text-xs text-muted-foreground">Currently browsing</p>
+            <p className="text-xs text-muted-foreground">{t('userActivity.text3')}</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Sessions (24h)</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('userActivity.text4')}</CardTitle>
             <BarChart3 className="h-4 w-4 text-blue-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{overviewMetrics?.sessions || 0}</div>
-            <p className="text-xs text-muted-foreground">Total sessions</p>
+            <p className="text-xs text-muted-foreground">{t('userActivity.text5')}</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Events (24h)</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('userActivity.text6')}</CardTitle>
             <TrendingUp className="h-4 w-4 text-purple-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{overviewMetrics?.events || 0}</div>
-            <p className="text-xs text-muted-foreground">User interactions</p>
+            <p className="text-xs text-muted-foreground">{t('userActivity.text7')}</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Frustrations (24h)</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('userActivity.text8')}</CardTitle>
             <AlertTriangle className="h-4 w-4 text-destructive" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{overviewMetrics?.frustrations || 0}</div>
-            <p className="text-xs text-muted-foreground">Issues detected</p>
+            <p className="text-xs text-muted-foreground">{t('userActivity.text9')}</p>
           </CardContent>
         </Card>
       </div>
@@ -197,7 +197,7 @@ export default function UserActivity() {
         <TabsContent value="journeys" className="space-y-4">
           <Card className="bg-card/30 backdrop-blur-[var(--blur-glass)] border-border/20">
             <CardHeader>
-              <CardTitle>User Journey Analysis</CardTitle>
+              <CardTitle>{t('userActivity.text10')}</CardTitle>
               <CardDescription>
                 Understand how users navigate through your application
               </CardDescription>

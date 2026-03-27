@@ -21,7 +21,7 @@ export function useWhiteboardPersistence({
     /**
      * Load whiteboard state from database
      */
-    const loadWhiteboardState = useCallback(async (): Promise<any | null> => {
+    const loadWhiteboardState = useCallback(async (): Promise<unknown | null> => {
         if (!enabled || !channelId) return null;
 
         try {
@@ -50,7 +50,7 @@ export function useWhiteboardPersistence({
     /**
      * Save whiteboard state to database
      */
-    const saveWhiteboardState = useCallback(async (stateData: any) => {
+    const saveWhiteboardState = useCallback(async (stateData: unknown) => {
         if (!enabled || !channelId || !user) return;
 
         // Check if state has changed
@@ -82,7 +82,7 @@ export function useWhiteboardPersistence({
     /**
      * Debounced auto-save function
      */
-    const scheduleAutoSave = useCallback((stateData: any) => {
+    const scheduleAutoSave = useCallback((stateData: unknown) => {
         if (!enabled) return;
 
         // Clear existing timeout
@@ -101,7 +101,7 @@ export function useWhiteboardPersistence({
      */
     const logOperation = useCallback(async (
         operationType: 'draw' | 'erase' | 'clear' | 'undo' | 'redo',
-        operationData: any
+        operationData: unknown
     ) => {
         if (!enabled || !channelId || !user) return;
 
@@ -123,7 +123,7 @@ export function useWhiteboardPersistence({
      * Subscribe to remote whiteboard changes
      */
     const subscribeToChanges = useCallback((
-        onRemoteUpdate: (stateData: any, userId: string) => void
+        onRemoteUpdate: (stateData: unknown, userId: string) => void
     ) => {
         if (!enabled || !channelId) return () => { };
 

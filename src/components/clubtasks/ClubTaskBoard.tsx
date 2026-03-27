@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -45,6 +46,7 @@ const STATUS_COLUMNS = [
 ];
 
 export const ClubTaskBoard = ({ objectiveId, objectiveName, onRefresh }: ClubTaskBoardProps) => {
+  const { t } = useTranslation('common');
   const [tasks, setTasks] = useState<ClubTask[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedTask, setSelectedTask] = useState<ClubTask | null>(null);
@@ -99,7 +101,7 @@ export const ClubTaskBoard = ({ objectiveId, objectiveName, onRefresh }: ClubTas
       setTasks(tasksWithAssignees as ClubTask[]);
     } catch (error) {
       logger.error('Error loading tasks', error as Error, { componentName: 'ClubTaskBoard', objectiveId });
-      toast.error("Failed to load tasks");
+      toast.error(t('clubTasks.failedToLoadTasks'));
     } finally {
       setLoading(false);
     }
@@ -122,11 +124,11 @@ export const ClubTaskBoard = ({ objectiveId, objectiveName, onRefresh }: ClubTas
         .eq("id", taskId);
 
       if (error) throw error;
-      toast.success("Task status updated");
+      toast.success(t('clubTasks.taskStatusUpdated'));
       loadTasks();
     } catch (error) {
       console.error("Error updating task:", error);
-      toast.error("Failed to update task");
+      toast.error(t('clubTasks.failedToUpdateTask'));
     }
   };
 
@@ -166,7 +168,7 @@ export const ClubTaskBoard = ({ objectiveId, objectiveName, onRefresh }: ClubTas
                         {task.status === "blocked" && (
                           <Badge variant="destructive" className="ml-2">
                             <Hand className="h-3 w-3 mr-1" />
-                            Blocked
+                            {t('clubTasks.blocked')}
                           </Badge>
                         )}
                       </div>
@@ -193,7 +195,7 @@ export const ClubTaskBoard = ({ objectiveId, objectiveName, onRefresh }: ClubTas
                       {/* Blockers */}
                       {task.blockers && task.blockers.length > 0 && (
                         <div className="text-xs text-destructive">
-                          🚫 Blocked by {task.blockers.length} task(s)
+                          {t('clubTasks.blockedByTasks', { count: task.blockers.length })}
                         </div>
                       )}
 
@@ -215,7 +217,7 @@ export const ClubTaskBoard = ({ objectiveId, objectiveName, onRefresh }: ClubTas
                 >
                   <Button variant="ghost" className="w-full justify-start gap-2 text-muted-foreground">
                     <Plus className="h-4 w-4" />
-                    Add task
+                    {t('clubTasks.addTask')}
                   </Button>
                 </CreateClubTaskDialog>
               </CardContent>

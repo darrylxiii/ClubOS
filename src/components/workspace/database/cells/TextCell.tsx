@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 
 interface TextCellProps {
@@ -9,6 +10,7 @@ interface TextCellProps {
 }
 
 export function TextCell({ value, onChange, placeholder, readOnly }: TextCellProps) {
+  const { t } = useTranslation('common');
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(value || '');
   const inputRef = useRef<HTMLInputElement>(null);
@@ -68,7 +70,7 @@ export function TextCell({ value, onChange, placeholder, readOnly }: TextCellPro
       )}
       onClick={() => setIsEditing(true)}
     >
-      {value || placeholder || 'Empty'}
+      {value || placeholder || t('workspace.empty', 'Empty')}
     </div>
   );
 }

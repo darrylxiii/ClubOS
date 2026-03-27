@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { motion } from '@/lib/motion';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -19,6 +20,7 @@ import { logger } from '@/lib/logger';
  * It shows their company info, assigned strategist, and next steps.
  */
 const PartnerWelcome = () => {
+  const { t } = useTranslation('partner');
   const navigate = useNavigate();
   const { user, loading } = useAuth();
   const [companyInfo, setCompanyInfo] = useState<{ name: string; role: string } | null>(null);
@@ -118,11 +120,11 @@ const PartnerWelcome = () => {
           }
         });
 
-      toast.success('Welcome to The Quantum Club!');
+      toast.success("Welcome to The Quantum Club!");
       navigate('/partner/hub');
     } catch (error) {
       logger.error('Error completing onboarding', error instanceof Error ? error : new Error(String(error)), { componentName: 'PartnerWelcome' });
-      toast.error('Failed to complete onboarding');
+      toast.error("Failed to complete onboarding");
     }
   };
 
@@ -172,7 +174,7 @@ const PartnerWelcome = () => {
                   <Building2 className="w-6 h-6 text-primary" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm text-muted-foreground">Your Organization</p>
+                  <p className="text-sm text-muted-foreground">{t('partnerWelcome.desc')}</p>
                   <p className="font-semibold text-lg">{companyInfo.name}</p>
                 </div>
                 <Badge variant="outline" className="capitalize">
@@ -201,7 +203,7 @@ const PartnerWelcome = () => {
                   )}
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm text-muted-foreground">Your Dedicated Strategist</p>
+                  <p className="text-sm text-muted-foreground">{t('partnerWelcome.desc2')}</p>
                   <p className="font-semibold text-lg">{strategist.name}</p>
                   <p className="text-sm text-muted-foreground">{strategist.email}</p>
                 </div>
@@ -215,33 +217,27 @@ const PartnerWelcome = () => {
               transition={{ delay: 0.4 }}
               className="pt-4"
             >
-              <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-4">
-                What's Next
-              </h3>
+              <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-4">{t('partnerWelcome.title')}</h3>
               <div className="space-y-3">
                 <div className="flex items-start gap-3">
                   <CheckCircle className="w-5 h-5 text-emerald-500 mt-0.5" />
                   <div>
-                    <p className="font-medium">Explore Open Roles</p>
-                    <p className="text-sm text-muted-foreground">
-                      Browse exclusive opportunities curated for your network
-                    </p>
+                    <p className="font-medium">{t('partnerWelcome.desc3')}</p>
+                    <p className="text-sm text-muted-foreground">{t('partnerWelcome.desc4')}</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
                   <CheckCircle className="w-5 h-5 text-emerald-500 mt-0.5" />
                   <div>
-                    <p className="font-medium">Submit Candidates</p>
-                    <p className="text-sm text-muted-foreground">
-                      Introduce top talent through our streamlined process
-                    </p>
+                    <p className="font-medium">{t('partnerWelcome.desc5')}</p>
+                    <p className="text-sm text-muted-foreground">{t('partnerWelcome.desc6')}</p>
                   </div>
                 </div>
                 {strategist && (
                   <div className="flex items-start gap-3">
                     <CalendarClock className="w-5 h-5 text-primary mt-0.5" />
                     <div>
-                      <p className="font-medium">Schedule Your Onboarding Call</p>
+                      <p className="font-medium">{t('partnerWelcome.desc7')}</p>
                       <p className="text-sm text-muted-foreground">
                         Meet with {strategist.name} for a personalized introduction
                       </p>

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -25,6 +26,7 @@ export function CompensationBreakdown({
   showTaxEstimate = true,
   currency = 'EUR'
 }: CompensationBreakdownProps) {
+  const { t } = useTranslation('common');
   const formatCurrency = (amount: number | null | undefined) => {
     if (!amount) return '€0';
     return new Intl.NumberFormat('nl-NL', {
@@ -66,7 +68,7 @@ export function CompensationBreakdown({
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-muted-foreground mb-1">Total Annual Compensation</p>
+              <p className="text-sm text-muted-foreground mb-1">{t("total_annual_compensation", "Total Annual Compensation")}</p>
               <p className="text-4xl font-bold text-primary">{formatCurrency(totalComp)}</p>
               {showTaxEstimate && (
                 <p className="text-sm text-muted-foreground mt-2">
@@ -98,7 +100,7 @@ export function CompensationBreakdown({
                 <Briefcase className="h-5 w-5 text-blue-500" />
               </div>
               <div className="flex-1">
-                <p className="text-xs text-muted-foreground">Base Salary</p>
+                <p className="text-xs text-muted-foreground">{t("base_salary", "Base Salary")}</p>
                 <p className="text-xl font-semibold">{formatCurrency(baseSalary)}</p>
                 <p className="text-xs text-muted-foreground">
                   {formatCurrency(baseSalary / 12)}/month
@@ -115,7 +117,7 @@ export function CompensationBreakdown({
                 <Gift className="h-5 w-5 text-green-500" />
               </div>
               <div className="flex-1">
-                <p className="text-xs text-muted-foreground">Annual Bonus</p>
+                <p className="text-xs text-muted-foreground">{t("annual_bonus", "Annual Bonus")}</p>
                 <p className="text-xl font-semibold">
                   {offer.bonus_percentage ? `${offer.bonus_percentage}%` : '—'}
                 </p>
@@ -134,7 +136,7 @@ export function CompensationBreakdown({
                 <Percent className="h-5 w-5 text-purple-500" />
               </div>
               <div className="flex-1">
-                <p className="text-xs text-muted-foreground">Equity</p>
+                <p className="text-xs text-muted-foreground">{t("equity", "Equity")}</p>
                 <p className="text-xl font-semibold">
                   {offer.equity_percentage ? `${offer.equity_percentage}%` : '—'}
                 </p>
@@ -221,11 +223,11 @@ export function CompensationBreakdown({
           <CardContent>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <p className="text-xs text-muted-foreground mb-1">Net Annual</p>
+                <p className="text-xs text-muted-foreground mb-1">{t("net_annual", "Net Annual")}</p>
                 <p className="text-lg font-semibold">{formatCurrency(netAnnual)}</p>
               </div>
               <div>
-                <p className="text-xs text-muted-foreground mb-1">Net Monthly</p>
+                <p className="text-xs text-muted-foreground mb-1">{t("net_monthly", "Net Monthly")}</p>
                 <p className="text-lg font-semibold">{formatCurrency(netMonthly)}</p>
               </div>
             </div>

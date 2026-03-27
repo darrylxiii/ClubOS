@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Settings, Trash2, LogOut, UserPlus, Users } from 'lucide-react';
@@ -31,6 +32,7 @@ interface WorkspaceSettingsProps {
 }
 
 export function WorkspaceSettings({ workspaceId }: WorkspaceSettingsProps) {
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
   const { data: workspace, isLoading } = useWorkspace(workspaceId);
   const { updateWorkspace, deleteWorkspace, leaveWorkspace } = useWorkspaces();
@@ -99,7 +101,7 @@ export function WorkspaceSettings({ workspaceId }: WorkspaceSettingsProps) {
   if (!workspace) {
     return (
       <div className="text-center py-12">
-        <p className="text-muted-foreground">Workspace not found</p>
+        <p className="text-muted-foreground">{t("workspace_not_found", "Workspace not found")}</p>
       </div>
     );
   }
@@ -111,7 +113,7 @@ export function WorkspaceSettings({ workspaceId }: WorkspaceSettingsProps) {
       <div className="flex items-center gap-3">
         <Settings className="h-6 w-6" />
         <div>
-          <h1 className="text-2xl font-bold">Workspace Settings</h1>
+          <h1 className="text-2xl font-bold">{t("workspace_settings", "Workspace Settings")}</h1>
           <p className="text-muted-foreground">{workspace.name}</p>
         </div>
       </div>
@@ -119,7 +121,7 @@ export function WorkspaceSettings({ workspaceId }: WorkspaceSettingsProps) {
       {/* General Settings */}
       <Card>
         <CardHeader>
-          <CardTitle>General</CardTitle>
+          <CardTitle>{t("general", "General")}</CardTitle>
           <CardDescription>
             {canEdit ? 'Update your workspace details' : 'Workspace details (managed by company admins)'}
           </CardDescription>
@@ -151,7 +153,7 @@ export function WorkspaceSettings({ workspaceId }: WorkspaceSettingsProps) {
 
             <div className="flex-1 space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Name</Label>
+                <Label htmlFor="name">{t("name", "Name")}</Label>
                 <Input
                   id="name"
                   value={name || workspace.name}
@@ -164,7 +166,7 @@ export function WorkspaceSettings({ workspaceId }: WorkspaceSettingsProps) {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
+                <Label htmlFor="description">{t("description", "Description")}</Label>
                 <Textarea
                   id="description"
                   value={description || workspace.description || ''}
@@ -174,7 +176,7 @@ export function WorkspaceSettings({ workspaceId }: WorkspaceSettingsProps) {
                   }}
                   disabled={!canEdit}
                   rows={2}
-                  placeholder="What's this workspace for?"
+                  placeholder={t("whats_this_workspace_for", "What's this workspace for?")}
                 />
               </div>
             </div>
@@ -198,7 +200,7 @@ export function WorkspaceSettings({ workspaceId }: WorkspaceSettingsProps) {
               <Users className="h-5 w-5" />
               Members ({members.length})
             </CardTitle>
-            <CardDescription>People with access to this workspace</CardDescription>
+            <CardDescription>{t("people_with_access_to", "People with access to this workspace")}</CardDescription>
           </div>
           {(isOwner || workspace.type === 'team') && (
             <Button onClick={() => setInviteDialogOpen(true)}>
@@ -216,7 +218,7 @@ export function WorkspaceSettings({ workspaceId }: WorkspaceSettingsProps) {
       {workspace.type !== 'personal' && (
         <Card className="border-destructive/50">
           <CardHeader>
-            <CardTitle className="text-destructive">Danger Zone</CardTitle>
+            <CardTitle className="text-destructive">{t("danger_zone", "Danger Zone")}</CardTitle>
             <CardDescription>
               Irreversible actions that affect the workspace
             </CardDescription>
@@ -225,7 +227,7 @@ export function WorkspaceSettings({ workspaceId }: WorkspaceSettingsProps) {
             {!isOwner && (
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="font-medium">Leave Workspace</p>
+                  <p className="font-medium">{t("leave_workspace", "Leave Workspace")}</p>
                   <p className="text-sm text-muted-foreground">
                     You will lose access to all pages in this workspace
                   </p>
@@ -239,13 +241,13 @@ export function WorkspaceSettings({ workspaceId }: WorkspaceSettingsProps) {
                   </AlertDialogTrigger>
                   <AlertDialogContent>
                     <AlertDialogHeader>
-                      <AlertDialogTitle>Leave Workspace</AlertDialogTitle>
+                      <AlertDialogTitle>{t("leave_workspace", "Leave Workspace")}</AlertDialogTitle>
                       <AlertDialogDescription>
                         Are you sure you want to leave "{workspace.name}"? You will lose access to all pages in this workspace.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogCancel>{t("cancel", "Cancel")}</AlertDialogCancel>
                       <AlertDialogAction onClick={handleLeave}>
                         Leave Workspace
                       </AlertDialogAction>
@@ -260,7 +262,7 @@ export function WorkspaceSettings({ workspaceId }: WorkspaceSettingsProps) {
                 <Separator />
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="font-medium">Delete Workspace</p>
+                    <p className="font-medium">{t("delete_workspace", "Delete Workspace")}</p>
                     <p className="text-sm text-muted-foreground">
                       Permanently delete this workspace and all its pages
                     </p>
@@ -274,13 +276,13 @@ export function WorkspaceSettings({ workspaceId }: WorkspaceSettingsProps) {
                     </AlertDialogTrigger>
                     <AlertDialogContent>
                       <AlertDialogHeader>
-                        <AlertDialogTitle>Delete Workspace</AlertDialogTitle>
+                        <AlertDialogTitle>{t("delete_workspace", "Delete Workspace")}</AlertDialogTitle>
                         <AlertDialogDescription>
                           This action cannot be undone. All pages and data in "{workspace.name}" will be permanently deleted.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogCancel>{t("cancel", "Cancel")}</AlertDialogCancel>
                         <AlertDialogAction
                           onClick={handleDelete}
                           className="bg-destructive text-destructive-foreground hover:bg-destructive/90"

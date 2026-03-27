@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { motion } from '@/lib/motion';
 import { Sparkles, Copy, Send, RefreshCw, CheckCircle } from 'lucide-react';
@@ -22,6 +23,7 @@ export function AIReplySuggestion({
   classification,
   onSend
 }: AIReplySuggestionProps) {
+  const { t } = useTranslation('common');
   const [suggestion, setSuggestion] = useState('');
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -44,7 +46,7 @@ export function AIReplySuggestion({
       setSuggestion(data.reply || '');
     } catch (error) {
       console.error('Error generating reply:', error);
-      toast.error('Failed to generate reply suggestion');
+      toast.error(t("failed_to_generate_reply", "Failed to generate reply suggestion"));
     } finally {
       setLoading(false);
     }
@@ -53,7 +55,7 @@ export function AIReplySuggestion({
   const handleCopy = async () => {
     await navigator.clipboard.writeText(suggestion);
     setCopied(true);
-    toast.success('Copied to clipboard');
+    toast.success(t("copied_to_clipboard", "Copied to clipboard"));
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -72,7 +74,7 @@ export function AIReplySuggestion({
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <Sparkles className="w-4 h-4 text-primary" />
-          <span className="text-sm font-medium text-foreground">AI Reply Suggestion</span>
+          <span className="text-sm font-medium text-foreground">{t("ai_reply_suggestion", "AI Reply Suggestion")}</span>
         </div>
         <Button
           variant="ghost"

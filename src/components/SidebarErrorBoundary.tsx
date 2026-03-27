@@ -1,5 +1,6 @@
 import React, { Component, ErrorInfo, ReactNode } from "react";
 import { AlertTriangle, RefreshCw, Menu } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { logger } from "@/lib/logger";
 
@@ -91,51 +92,63 @@ export class SidebarErrorBoundary extends Component<Props, State> {
         return this.props.fallback;
       }
 
-      // Default: Minimal collapsed sidebar with retry option
+      // Default: Minimal floating pill on left (Billion-Dollar Design)
       return (
         <aside
-          className="hidden md:flex flex-col fixed left-0 top-0 bottom-0 z-sidebar-desktop w-20
-            bg-card/30 backdrop-blur-[var(--blur-glass)] border-r border-border/20
-            shadow-[var(--shadow-glass-lg)] items-center py-4 gap-4"
+          className="hidden md:flex flex-col fixed left-4 top-1/2 -translate-y-1/2 z-sidebar-desktop w-[60px] min-h-[180px] rounded-[30px]
+            bg-black/60 backdrop-blur-[40px] border border-white/10
+            shadow-[0_16px_40px_rgba(0,0,0,0.3)] items-center py-5 gap-4 transition-all hover:w-[250px] group overflow-hidden"
         >
-          {/* Error indicator */}
-          <div className="h-16 flex items-center justify-center">
-            <AlertTriangle className="h-6 w-6 text-warning animate-pulse" />
+          {/* Error indicator & Trace on hover */}
+          <div className="flex flex-col items-center w-full relative">
+            <AlertTriangle className="h-6 w-6 text-warning animate-pulse flex-shrink-0" />
+            <div className="absolute left-[60px] opacity-0 group-hover:opacity-100 whitespace-nowrap bg-black/80 px-4 py-2 rounded-xl text-xs text-warning border border-warning/20 max-w-[200px] overflow-hidden text-ellipsis shadow-xl pointer-events-none transition-opacity delay-100">
+              {this.state.error?.message || "Unknown Runtime Error"}
+            </div>
           </div>
 
-          {/* Menu icon placeholder */}
-          <div className="flex-1 flex flex-col items-center gap-2">
+          <div className="flex-1 flex flex-col items-center gap-2 mt-2 w-full">
             <Button
               variant="ghost"
               size="icon"
-              className="h-10 w-10 text-muted-foreground"
+              className="h-10 w-10 text-muted-foreground/50 opacity-50"
               disabled
             >
               <Menu className="h-5 w-5" />
             </Button>
           </div>
 
-          {/* Retry button */}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={this.handleManualRetry}
-            className="h-10 w-10 text-primary hover:text-primary/80"
-            title="Retry loading sidebar"
-          >
-            <RefreshCw className="h-5 w-5" />
-          </Button>
-
-          {/* Auto-retry indicator */}
-          {this.state.retryCount < MAX_AUTO_RETRY && (
-            <p className="text-[10px] text-muted-foreground text-center px-2">
-              Retrying...
-            </p>
-          )}
+          <div className="mt-auto pointer-events-auto w-full flex justify-center">
+            {/* Retry button */}
+            <SidebarRetryButton onRetry={this.handleManualRetry} retryCount={this.state.retryCount} />
+          </div>
         </aside>
       );
     }
 
     return this.props.children;
   }
+}
+
+function SidebarRetryButton({ onRetry, retryCount }: { onRetry: () => void; retryCount: number }) {
+  const { t } = useTranslation('common');
+  return (
+    <>
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={onRetry}
+        className="h-10 w-10 text-primary hover:text-primary/80"
+        title={t("actions.retrySidebar", "Retry loading sidebar")}
+      >
+        <RefreshCw className="h-5 w-5" />
+      </Button>
+
+      {retryCount < MAX_AUTO_RETRY && (
+        <p className="text-[10px] text-muted-foreground text-center px-2">
+          {t("errors.retrying", "Retrying...")}
+        </p>
+      )}
+    </>
+  );
 }

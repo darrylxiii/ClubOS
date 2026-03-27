@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
@@ -13,6 +14,7 @@ interface CashFlowProjectionProps {
 }
 
 export function CashFlowProjection({ year, legalEntity }: CashFlowProjectionProps) {
+  const { t } = useTranslation('common');
   const [includePipeline, setIncludePipeline] = useState(true);
   const currentYear = year || new Date().getFullYear();
 
@@ -100,7 +102,7 @@ export function CashFlowProjection({ year, legalEntity }: CashFlowProjectionProp
               Avg DSO
             </div>
             <p className="text-xl font-bold">{avgDSO} days</p>
-            <p className="text-xs text-muted-foreground">Days to collect</p>
+            <p className="text-xs text-muted-foreground">{t("days_to_collect", "Days to collect")}</p>
           </div>
           <div className="bg-muted/50 rounded-lg p-3">
             <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
@@ -108,7 +110,7 @@ export function CashFlowProjection({ year, legalEntity }: CashFlowProjectionProp
               Pending Commissions
             </div>
             <p className="text-xl font-bold">{formatCurrency(pendingCommissions)}</p>
-            <p className="text-xs text-muted-foreground">To be paid</p>
+            <p className="text-xs text-muted-foreground">{t("to_be_paid", "To be paid")}</p>
           </div>
           <div className="bg-muted/50 rounded-lg p-3">
             <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
@@ -116,7 +118,7 @@ export function CashFlowProjection({ year, legalEntity }: CashFlowProjectionProp
               Pending Payouts
             </div>
             <p className="text-xl font-bold">{formatCurrency(pendingPayouts)}</p>
-            <p className="text-xs text-muted-foreground">Referral rewards</p>
+            <p className="text-xs text-muted-foreground">{t("referral_rewards", "Referral rewards")}</p>
           </div>
           {includePipeline && (
             <div className="bg-primary/10 rounded-lg p-3">
@@ -135,7 +137,7 @@ export function CashFlowProjection({ year, legalEntity }: CashFlowProjectionProp
                 SaaS Costs (MRC)
               </div>
               <p className="text-xl font-bold text-destructive">{formatCurrency(monthlySubscriptionCosts)}</p>
-              <p className="text-xs text-muted-foreground">Monthly recurring</p>
+              <p className="text-xs text-muted-foreground">{t("monthly_recurring", "Monthly recurring")}</p>
             </div>
           )}
         </div>
@@ -150,28 +152,28 @@ export function CashFlowProjection({ year, legalEntity }: CashFlowProjectionProp
               <h4 className="font-semibold text-center">{period.label}</h4>
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Invoice Collections</span>
+                  <span className="text-sm text-muted-foreground">{t("invoice_collections", "Invoice Collections")}</span>
                   <span className="font-medium text-success">
                     +{formatCurrency(period.expectedCollections)}
                   </span>
                 </div>
                 {includePipeline && period.pipelineRevenue > 0 && (
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">Pipeline Revenue</span>
+                    <span className="text-sm text-muted-foreground">{t("pipeline_revenue", "Pipeline Revenue")}</span>
                     <span className="font-medium text-primary">
                       +{formatCurrency(period.pipelineRevenue)}
                     </span>
                   </div>
                 )}
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Expected Payouts</span>
+                  <span className="text-sm text-muted-foreground">{t("expected_payouts", "Expected Payouts")}</span>
                   <span className="font-medium text-destructive">
                     -{formatCurrency(period.expectedPayouts)}
                   </span>
                 </div>
                 {period.subscriptionCosts > 0 && (
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">SaaS Subscriptions</span>
+                    <span className="text-sm text-muted-foreground">{t("saas_subscriptions", "SaaS Subscriptions")}</span>
                     <span className="font-medium text-destructive">
                       -{formatCurrency(period.subscriptionCosts)}
                     </span>
@@ -179,7 +181,7 @@ export function CashFlowProjection({ year, legalEntity }: CashFlowProjectionProp
                 )}
                 <div className="border-t pt-2">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium">Net Cash Flow</span>
+                    <span className="text-sm font-medium">{t("net_cash_flow", "Net Cash Flow")}</span>
                     <span className={`font-bold flex items-center gap-1 ${
                       period.netCashFlow >= 0 ? 'text-success' : 'text-destructive'
                     }`}>

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 /**
  * Progress Saver Component
  * Minimal save status indicator for the partner funnel.
@@ -16,12 +17,12 @@ interface ProgressSaverProps {
   email?: string;
 }
 
-export function ProgressSaver({
-  sessionId,
+export function ProgressSaver({  sessionId,
   currentStep,
   formData,
   email,
 }: ProgressSaverProps) {
+const { t } = useTranslation('common');
   const [status, setStatus] = useState<SaveStatus>("idle");
 
   // Visual save indicator
@@ -38,19 +39,19 @@ export function ProgressSaver({
       {status === "saving" && (
         <>
           <Loader2 className="h-3 w-3 animate-spin" />
-          <span>Saving...</span>
+          <span>{t("saving", "Saving...")}</span>
         </>
       )}
       {status === "saved" && (
         <>
           <Check className="h-3 w-3 text-primary" />
-          <span>Progress saved</span>
+          <span>{t("progress_saved", "Progress saved")}</span>
         </>
       )}
       {status === "error" && (
         <>
           <CloudOff className="h-3 w-3 text-destructive-foreground" />
-          <span>Save failed</span>
+          <span>{t("save_failed", "Save failed")}</span>
         </>
       )}
     </div>
@@ -66,12 +67,12 @@ export function CloudSyncIndicator({ isSynced }: { isSynced: boolean }) {
       {isSynced ? (
         <>
           <Cloud className="h-3 w-3 text-primary" />
-          <span className="hidden sm:inline">Synced</span>
+          <span className="hidden sm:inline">{t("synced", "Synced")}</span>
         </>
       ) : (
         <>
           <Loader2 className="h-3 w-3 animate-spin" />
-          <span className="hidden sm:inline">Syncing</span>
+          <span className="hidden sm:inline">{t("syncing", "Syncing")}</span>
         </>
       )}
     </div>

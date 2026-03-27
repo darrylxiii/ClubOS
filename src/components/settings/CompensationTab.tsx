@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
@@ -33,6 +34,7 @@ export function CompensationTab({
   onCurrencyChange,
   onSave,
 }: CompensationTabProps) {
+  const { t } = useTranslation('common');
   const formatSalary = (value: number) => {
     return `${CURRENCY_SYMBOLS[preferredCurrency]}${(value / 1000).toFixed(0)}k`;
   };
@@ -41,8 +43,8 @@ export function CompensationTab({
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Currency Preference</CardTitle>
-          <CardDescription>Select your preferred currency for salary display</CardDescription>
+          <CardTitle>{t("currency_preference", "Currency Preference")}</CardTitle>
+          <CardDescription>{t("select_your_preferred_currency", "Select your preferred currency for salary display")}</CardDescription>
         </CardHeader>
         <CardContent>
           <Select
@@ -53,10 +55,10 @@ export function CompensationTab({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="EUR">EUR (€)</SelectItem>
-              <SelectItem value="USD">USD ($)</SelectItem>
-              <SelectItem value="GBP">GBP (£)</SelectItem>
-              <SelectItem value="AED">AED (AED)</SelectItem>
+              <SelectItem value="EUR">{t("eur", "EUR (€)")}</SelectItem>
+              <SelectItem value="USD">{t("usd", "USD ($)")}</SelectItem>
+              <SelectItem value="GBP">{t("gbp", "GBP (£)")}</SelectItem>
+              <SelectItem value="AED">{t("aed_aed", "AED (AED)")}</SelectItem>
             </SelectContent>
           </Select>
         </CardContent>
@@ -64,7 +66,7 @@ export function CompensationTab({
 
       <Card>
         <CardHeader>
-          <CardTitle>Current Salary</CardTitle>
+          <CardTitle>{t("current_salary", "Current Salary")}</CardTitle>
           <CardDescription>
             {formatSalary(currentSalaryRange[0])} - {formatSalary(currentSalaryRange[1])} per year
           </CardDescription>
@@ -83,7 +85,7 @@ export function CompensationTab({
 
       <Card>
         <CardHeader>
-          <CardTitle>Desired Salary</CardTitle>
+          <CardTitle>{t("desired_salary", "Desired Salary")}</CardTitle>
           <CardDescription>
             {formatSalary(desiredSalaryRange[0])} - {formatSalary(desiredSalaryRange[1])} per year
           </CardDescription>

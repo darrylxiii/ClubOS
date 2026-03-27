@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -34,6 +35,7 @@ interface Company {
 }
 
 export function UserRoleManagement() {
+  const { t } = useTranslation('common');
   const [users, setUsers] = useState<UserWithRoles[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<UserWithRoles[]>([]);
   const [companies, setCompanies] = useState<Company[]>([]);
@@ -98,7 +100,7 @@ export function UserRoleManagement() {
       setUsers(usersWithRoles);
     } catch (error) {
       console.error('Error fetching users:', error);
-      toast.error("Failed to load users");
+      toast.error(t("failed_to_load_users", "Failed to load users"));
     } finally {
       setLoading(false);
     }
@@ -130,7 +132,7 @@ export function UserRoleManagement() {
       // Get current user for audit logging
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        toast.error("Authentication required");
+        toast.error(t("authentication_required", "Authentication required"));
         return;
       }
 
@@ -138,7 +140,7 @@ export function UserRoleManagement() {
 
       // Validate: user must have at least one role
       if (selectedRoles.length === 0) {
-        toast.error("User must have at least one role", {
+        toast.error(t("user_must_have_at", "User must have at least one role"), {
           description: "Please select at least one role before saving"
         });
         return;
@@ -146,7 +148,7 @@ export function UserRoleManagement() {
 
       // If partner role is selected, company must be selected
       if (selectedRoles.includes('partner') && !selectedCompany) {
-        toast.error("Company required for partner role", {
+        toast.error(t("company_required_for_partner", "Company required for partner role"), {
           description: "Please select a company when assigning the partner role"
         });
         return;
@@ -170,7 +172,7 @@ export function UserRoleManagement() {
 
       if (insertError) {
         console.error('Error inserting roles:', insertError);
-        toast.error("Failed to update roles", {
+        toast.error(t("failed_to_update_roles", "Failed to update roles"), {
           description: insertError.message
         });
         return;
@@ -198,7 +200,7 @@ export function UserRoleManagement() {
 
           if (memberError) {
             console.error('Error adding company member:', memberError);
-            toast.error("Role updated but failed to add to company");
+            toast.error(t("role_updated_but_failed", "Role updated but failed to add to company"));
           }
 
           // Update profile with company_id
@@ -222,7 +224,7 @@ export function UserRoleManagement() {
         }
       });
 
-      toast.success("User roles updated successfully", {
+      toast.success(t("user_roles_updated_successfully", "User roles updated successfully"), {
         description: `Updated roles for ${editingUser.email}`
       });
       
@@ -232,7 +234,7 @@ export function UserRoleManagement() {
       fetchUsers();
     } catch (error: unknown) {
       console.error('Error updating roles:', error);
-      toast.error("Failed to update user roles", {
+      toast.error(t("failed_to_update_user", "Failed to update user roles"), {
         description: error instanceof Error ? error.message : "An unexpected error occurred"
       });
     }
@@ -282,10 +284,10 @@ export function UserRoleManagement() {
 
       const inviteUrl = `${window.location.origin}/auth?invite=${data.code}`;
       await navigator.clipboard.writeText(inviteUrl);
-      toast.success("Invite link copied to clipboard!");
+      toast.success(t("invite_link_copied_to", "Invite link copied to clipboard!"));
     } catch (error) {
       console.error('Error generating invite:', error);
-      toast.error("Failed to generate invite link");
+      toast.error(t("failed_to_generate_invite", "Failed to generate invite link"));
     }
   };
 
@@ -307,11 +309,11 @@ export function UserRoleManagement() {
     a.href = url;
     a.download = `users-${new Date().toISOString().split('T')[0]}.csv`;
     a.click();
-    toast.success("User list exported");
+    toast.success(t("user_list_exported", "User list exported"));
   };
 
   if (loading) {
-    return <div>Loading users...</div>;
+    return <div>{t("loading_users", "Loading users...")}</div>;
   }
 
   return (
@@ -319,8 +321,8 @@ export function UserRoleManagement() {
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle>User & Role Management</CardTitle>
-            <CardDescription>Manage users, roles, and permissions</CardDescription>
+            <CardTitle>{t("user_role_management", "User & Role Management")}</CardTitle>
+            <CardDescription>{t("manage_users_roles_and", "Manage users, roles, and permissions")}</CardDescription>
           </div>
           <div className="flex gap-2">
             <Button variant="outline" onClick={generateInviteLink}>
@@ -340,7 +342,7 @@ export function UserRoleManagement() {
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
-              placeholder="Search by name or email..."
+              placeholder={t("search_by_name_or", "Search by name or email...")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10"
@@ -348,10 +350,10 @@ export function UserRoleManagement() {
           </div>
           <Select value={roleFilter} onValueChange={setRoleFilter}>
             <SelectTrigger className="w-48">
-              <SelectValue placeholder="Filter by role" />
+              <SelectValue placeholder={t("filter_by_role", "Filter by role")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Roles</SelectItem>
+              <SelectItem value="all">{t("all_roles", "All Roles")}</SelectItem>
               {AVAILABLE_ROLES.map(role => (
                 <SelectItem key={role.value} value={role.value}>
                   {role.label}
@@ -365,12 +367,12 @@ export function UserRoleManagement() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>User</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Roles</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Joined</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead>{t("user", "User")}</TableHead>
+              <TableHead>{t("email", "Email")}</TableHead>
+              <TableHead>{t("roles", "Roles")}</TableHead>
+              <TableHead>{t("status", "Status")}</TableHead>
+              <TableHead>{t("joined", "Joined")}</TableHead>
+              <TableHead className="text-right">{t("actions", "Actions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -390,7 +392,7 @@ export function UserRoleManagement() {
                   <TableCell>
                     <div className="flex gap-1 flex-wrap">
                       {!Array.isArray(user.roles) || user.roles.length === 0 ? (
-                        <Badge variant="outline">No roles</Badge>
+                        <Badge variant="outline">{t("no_roles", "No roles")}</Badge>
                       ) : (
                         user.roles.map((role, idx) => {
                           // 🔒 Defensive: Ensure role is string
@@ -407,9 +409,9 @@ export function UserRoleManagement() {
                   </TableCell>
                   <TableCell>
                     {user.email_verified ? (
-                      <Badge variant="default">Verified</Badge>
+                      <Badge variant="default">{t("verified", "Verified")}</Badge>
                     ) : (
-                      <Badge variant="outline">Unverified</Badge>
+                      <Badge variant="outline">{t("unverified", "Unverified")}</Badge>
                     )}
                   </TableCell>
                   <TableCell>
@@ -441,7 +443,7 @@ export function UserRoleManagement() {
         }}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Manage Roles</DialogTitle>
+              <DialogTitle>{t("manage_roles", "Manage Roles")}</DialogTitle>
               <DialogDescription>
                 Update roles for {editingUser?.full_name || editingUser?.email}
               </DialogDescription>
@@ -471,10 +473,10 @@ export function UserRoleManagement() {
               {/* Company selection for partner role */}
               {selectedRoles.includes('partner') && (
                 <div className="space-y-2 pt-4 border-t">
-                  <Label htmlFor="company">Company Assignment *</Label>
+                  <Label htmlFor="company">{t("company_assignment", "Company Assignment *")}</Label>
                   <Select value={selectedCompany} onValueChange={setSelectedCompany}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select company" />
+                      <SelectValue placeholder={t("select_company", "Select company")} />
                     </SelectTrigger>
                     <SelectContent>
                       {companies.map((company) => (
@@ -491,7 +493,7 @@ export function UserRoleManagement() {
               )}
             </div>
             <DialogFooter>
-              <Button onClick={handleUpdateRoles}>Update Roles</Button>
+              <Button onClick={handleUpdateRoles}>{t("update_roles", "Update Roles")}</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>

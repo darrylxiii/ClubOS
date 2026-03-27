@@ -8,11 +8,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/lib/notify';
 import { useMLMatching } from '@/hooks/useMLMatching';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
 import { useState } from 'react';
 import { useMLDashboardData, useMLDashboardJobs } from '@/hooks/useMLDashboardData';
 
 export default function EnhancedMLDashboard() {
+  const { t } = useTranslation('analytics');
   const [searchParams] = useSearchParams();
   const [selectedJobId, setSelectedJobId] = useState<string | null>(searchParams.get('jobId'));
   const { toast } = useToast();
@@ -40,17 +42,15 @@ export default function EnhancedMLDashboard() {
             <Brain className="h-8 w-8 text-primary" />
             ML & Intelligence Dashboard
           </h1>
-          <p className="text-muted-foreground mt-1">
-            Monitor ML performance and company intelligence across the platform
-          </p>
+          <p className="text-muted-foreground mt-1">{t('enhancedMLDashboard.desc')}</p>
         </div>
         <div className="flex items-center gap-4">
           <Select value={selectedJobId || 'all'} onValueChange={(val) => setSelectedJobId(val === 'all' ? null : val)}>
             <SelectTrigger className="w-[300px]">
-              <SelectValue placeholder="Filter by job" />
+              <SelectValue placeholder={t('enhancedMLDashboard.text7')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Jobs</SelectItem>
+              <SelectItem value="all">{t('enhancedMLDashboard.text8')}</SelectItem>
               {jobs.map(job => (
                 <SelectItem key={job.id} value={job.id}>
                   {job.title} - {job.companies?.name}
@@ -71,7 +71,7 @@ export default function EnhancedMLDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Active Model</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">{t('enhancedMLDashboard.text9')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
@@ -85,21 +85,19 @@ export default function EnhancedMLDashboard() {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Companies Tracked</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">{t('enhancedMLDashboard.text10')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
               {companyIntelligence.length}
             </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              With intelligence data
-            </p>
+            <p className="text-xs text-muted-foreground mt-1">{t('enhancedMLDashboard.desc2')}</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Interactions (30d)</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">{t('enhancedMLDashboard.text11')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
@@ -113,21 +111,19 @@ export default function EnhancedMLDashboard() {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Training Records</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">{t('enhancedMLDashboard.text12')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
               {activeModel?.training_data_count?.toLocaleString() || '0'}
             </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Data points
-            </p>
+            <p className="text-xs text-muted-foreground mt-1">{t('enhancedMLDashboard.desc3')}</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Model Accuracy</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">{t('enhancedMLDashboard.text13')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
@@ -136,9 +132,7 @@ export default function EnhancedMLDashboard() {
                 : 'N/A'
               }
             </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              AUC-ROC Score
-            </p>
+            <p className="text-xs text-muted-foreground mt-1">{t('enhancedMLDashboard.desc4')}</p>
           </CardContent>
         </Card>
       </div>
@@ -172,7 +166,7 @@ export default function EnhancedMLDashboard() {
         <TabsContent value="intelligence" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Company Intelligence Leaderboard</CardTitle>
+              <CardTitle>{t('enhancedMLDashboard.text14')}</CardTitle>
               <CardDescription>
                 Companies ranked by relationship health and engagement
               </CardDescription>
@@ -209,25 +203,23 @@ export default function EnhancedMLDashboard() {
                     <div className="flex items-center gap-6">
                       <div className="text-center">
                         <div className="text-sm font-bold">{item.health_score}/100</div>
-                        <div className="text-xs text-muted-foreground">Health</div>
+                        <div className="text-xs text-muted-foreground">{t('enhancedMLDashboard.text15')}</div>
                       </div>
                       <div className="text-center">
                         <div className="text-sm font-bold">{item.urgency_score.toFixed(1)}/10</div>
-                        <div className="text-xs text-muted-foreground">Urgency</div>
+                        <div className="text-xs text-muted-foreground">{t('enhancedMLDashboard.text16')}</div>
                       </div>
                       <div className="text-center">
                         <div className={`text-sm font-bold ${item.sentiment >= 0 ? 'text-green-500' : 'text-red-500'}`}>
                           {item.sentiment >= 0 ? '+' : ''}{item.sentiment.toFixed(2)}
                         </div>
-                        <div className="text-xs text-muted-foreground">Sentiment</div>
+                        <div className="text-xs text-muted-foreground">{t('enhancedMLDashboard.text17')}</div>
                       </div>
                     </div>
                   </div>
                 ))}
                 {companyIntelligence.length === 0 && (
-                  <p className="text-center text-muted-foreground py-12">
-                    No intelligence data yet. Generate reports for companies to see insights.
-                  </p>
+                  <p className="text-center text-muted-foreground py-12">{t('enhancedMLDashboard.desc5')}</p>
                 )}
               </div>
             </CardContent>
@@ -238,7 +230,7 @@ export default function EnhancedMLDashboard() {
         <TabsContent value="insights" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Recent Intelligence Signals</CardTitle>
+              <CardTitle>{t('enhancedMLDashboard.text18')}</CardTitle>
               <CardDescription>
                 Latest insights extracted from company interactions
               </CardDescription>
@@ -278,9 +270,7 @@ export default function EnhancedMLDashboard() {
                   </div>
                 ))}
                 {recentInsights.length === 0 && (
-                  <p className="text-center text-muted-foreground py-12">
-                    No recent insights. Log interactions to generate intelligence.
-                  </p>
+                  <p className="text-center text-muted-foreground py-12">{t('enhancedMLDashboard.desc6')}</p>
                 )}
               </div>
             </CardContent>
@@ -292,20 +282,20 @@ export default function EnhancedMLDashboard() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Card>
               <CardHeader>
-                <CardTitle>Interaction Coverage</CardTitle>
+                <CardTitle>{t('enhancedMLDashboard.text19')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   <div>
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm">Total Interactions (30d)</span>
+                      <span className="text-sm">{t('enhancedMLDashboard.text20')}</span>
                       <span className="font-bold">{interactionStats?.total || 0}</span>
                     </div>
                     <Progress value={Math.min(100, (interactionStats?.total || 0) / 10)} className="h-2" />
                   </div>
                   <div>
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm">Companies with Data</span>
+                      <span className="text-sm">{t('enhancedMLDashboard.text21')}</span>
                       <span className="font-bold">{interactionStats?.companiesWithData || 0}</span>
                     </div>
                     <Progress value={(interactionStats?.companiesWithData || 0) * 5} className="h-2" />
@@ -325,27 +315,27 @@ export default function EnhancedMLDashboard() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Intelligence Quality</CardTitle>
+                <CardTitle>{t('enhancedMLDashboard.text22')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   <div>
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm">AI Reports Generated</span>
+                      <span className="text-sm">{t('enhancedMLDashboard.text23')}</span>
                       <span className="font-bold">{companyIntelligence.length}</span>
                     </div>
                     <Progress value={(companyIntelligence.length / 20) * 100} className="h-2" />
                   </div>
                   <div>
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm">Insights Extracted</span>
+                      <span className="text-sm">{t('enhancedMLDashboard.text24')}</span>
                       <span className="font-bold">{recentInsights.length}</span>
                     </div>
                     <Progress value={(recentInsights.length / 50) * 100} className="h-2" />
                   </div>
                   <div>
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm">Average Health Score</span>
+                      <span className="text-sm">{t('enhancedMLDashboard.text25')}</span>
                       <span className="font-bold">
                         {companyIntelligence.length > 0 ?
                           (companyIntelligence.reduce((sum: number, c: any) => sum + c.health_score, 0) / companyIntelligence.length).toFixed(0) :
@@ -369,14 +359,14 @@ export default function EnhancedMLDashboard() {
         <TabsContent value="models" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Model Registry</CardTitle>
+              <CardTitle>{t('enhancedMLDashboard.text26')}</CardTitle>
               <CardDescription>
                 All trained models and their performance metrics
               </CardDescription>
             </CardHeader>
             <CardContent>
               {loading ? (
-                <div className="text-center py-8 text-muted-foreground">Loading models...</div>
+                <div className="text-center py-8 text-muted-foreground">{t('enhancedMLDashboard.text27')}</div>
               ) : models.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
                   No models trained yet. Using baseline rule-based matching.
@@ -393,7 +383,7 @@ export default function EnhancedMLDashboard() {
                           <div className="flex items-center gap-2">
                             <h3 className="font-semibold">Version {model.version}</h3>
                             {model.status === 'active' && (
-                              <Badge variant="default">Active</Badge>
+                              <Badge variant="default">{t('enhancedMLDashboard.text28')}</Badge>
                             )}
                             <Badge variant="outline">{model.model_type}</Badge>
                           </div>
@@ -410,7 +400,7 @@ export default function EnhancedMLDashboard() {
                         <div className="grid grid-cols-4 gap-4 pt-2 border-t">
                           {model.metrics.auc_roc && (
                             <div>
-                              <div className="text-xs text-muted-foreground">AUC-ROC</div>
+                              <div className="text-xs text-muted-foreground">{t('enhancedMLDashboard.text29')}</div>
                               <div className="text-sm font-semibold">
                                 {(model.metrics.auc_roc * 100).toFixed(1)}%
                               </div>
@@ -418,7 +408,7 @@ export default function EnhancedMLDashboard() {
                           )}
                           {model.metrics.precision_at_10 && (
                             <div>
-                              <div className="text-xs text-muted-foreground">Precision@10</div>
+                              <div className="text-xs text-muted-foreground">{"Precision@10"}</div>
                               <div className="text-sm font-semibold">
                                 {(model.metrics.precision_at_10 * 100).toFixed(1)}%
                               </div>
@@ -426,7 +416,7 @@ export default function EnhancedMLDashboard() {
                           )}
                           {model.metrics.interview_rate && (
                             <div>
-                              <div className="text-xs text-muted-foreground">Interview Rate</div>
+                              <div className="text-xs text-muted-foreground">{t('enhancedMLDashboard.text30')}</div>
                               <div className="text-sm font-semibold">
                                 {(model.metrics.interview_rate * 100).toFixed(1)}%
                               </div>
@@ -434,7 +424,7 @@ export default function EnhancedMLDashboard() {
                           )}
                           {model.metrics.hire_rate && (
                             <div>
-                              <div className="text-xs text-muted-foreground">Hire Rate</div>
+                              <div className="text-xs text-muted-foreground">{t('enhancedMLDashboard.text31')}</div>
                               <div className="text-sm font-semibold">
                                 {(model.metrics.hire_rate * 100).toFixed(1)}%
                               </div>
@@ -454,14 +444,14 @@ export default function EnhancedMLDashboard() {
         <TabsContent value="ab-tests" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>A/B Tests</CardTitle>
+              <CardTitle>{t('enhancedMLDashboard.text32')}</CardTitle>
               <CardDescription>
                 Experiments comparing different model versions
               </CardDescription>
             </CardHeader>
             <CardContent>
               {loading ? (
-                <div className="text-center py-8 text-muted-foreground">Loading tests...</div>
+                <div className="text-center py-8 text-muted-foreground">{t('enhancedMLDashboard.text33')}</div>
               ) : abTests.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
                   No A/B tests running yet.
@@ -496,7 +486,7 @@ export default function EnhancedMLDashboard() {
 
                       <div className="space-y-2">
                         <div className="flex items-center justify-between text-xs">
-                          <span>Traffic Split</span>
+                          <span>{t('enhancedMLDashboard.text34')}</span>
                           <span>{Math.round(test.traffic_split * 100)}% / {Math.round((1 - test.traffic_split) * 100)}%</span>
                         </div>
                         <Progress value={test.traffic_split * 100} className="h-2" />
@@ -504,11 +494,11 @@ export default function EnhancedMLDashboard() {
 
                       <div className="grid grid-cols-2 gap-4 pt-2 border-t text-sm">
                         <div>
-                          <div className="text-muted-foreground">Model A Samples</div>
+                          <div className="text-muted-foreground">{t('enhancedMLDashboard.text35')}</div>
                           <div className="font-semibold">{test.sample_size_a}</div>
                         </div>
                         <div>
-                          <div className="text-muted-foreground">Model B Samples</div>
+                          <div className="text-muted-foreground">{t('enhancedMLDashboard.text36')}</div>
                           <div className="font-semibold">{test.sample_size_b}</div>
                         </div>
                       </div>

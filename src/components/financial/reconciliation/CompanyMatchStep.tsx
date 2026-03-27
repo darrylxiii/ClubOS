@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -39,6 +40,7 @@ function calculateMatchScore(contactName: string, companyName: string): number {
 }
 
 export function CompanyMatchStep({ invoice, companies, selectedCompany, onSelect }: CompanyMatchStepProps) {
+  const { t } = useTranslation('common');
   const [search, setSearch] = useState("");
 
   const formatCurrency = (amount: number | null) => {
@@ -86,7 +88,7 @@ export function CompanyMatchStep({ invoice, companies, selectedCompany, onSelect
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="Search companies..."
+          placeholder={t('financial.searchCompanies')}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="pl-9"
@@ -97,7 +99,7 @@ export function CompanyMatchStep({ invoice, companies, selectedCompany, onSelect
       <Card className="bg-muted/50">
         <CardContent className="py-3">
           <p className="text-sm">
-            <span className="text-muted-foreground">Moneybird contact: </span>
+            <span className="text-muted-foreground">{t('financial.moneybirdContact')}:</span>
             <span className="font-medium">{invoice.contact_name || 'Unknown'}</span>
           </p>
         </CardContent>
@@ -108,7 +110,7 @@ export function CompanyMatchStep({ invoice, companies, selectedCompany, onSelect
         <div className="p-2 space-y-2">
           {filteredCompanies.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
-              No companies found
+              {t('financial.noCompaniesFound')}
             </div>
           ) : (
             filteredCompanies.map((company) => (
@@ -183,8 +185,8 @@ export function CompanyMatchStep({ invoice, companies, selectedCompany, onSelect
       {selectedCompany && (
         <Card className="bg-primary/5 border-primary/20">
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Selected Company</CardTitle>
-            <CardDescription>This invoice will be attributed to:</CardDescription>
+            <CardTitle className="text-base">{t('financial.selectedCompany')}</CardTitle>
+            <CardDescription>{t('financial.invoiceAttributedTo')}</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="flex items-center justify-between">

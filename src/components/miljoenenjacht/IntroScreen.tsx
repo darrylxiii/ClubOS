@@ -1,4 +1,5 @@
 import { memo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 
@@ -7,23 +8,20 @@ interface IntroScreenProps {
 }
 
 export const IntroScreen = memo(({ onStart }: IntroScreenProps) => {
+  const { t } = useTranslation('common');
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-background via-background/95 to-primary/5">
       <Card className="max-w-2xl w-full backdrop-blur-xl bg-card/80 border-border/50">
         <CardContent className="p-8 md:p-12 space-y-6">
           <div className="text-center space-y-4">
             <div className="text-6xl md:text-8xl mb-4 animate-pulse">🎁</div>
-            <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-              Miljoenenjacht
-            </h1>
-            <p className="text-xl text-muted-foreground">
-              Deal or No Deal: Discover Your Risk Profile
-            </p>
+            <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">{t('miljoenenjacht.miljoenenjacht')}</h1>
+            <p className="text-xl text-muted-foreground">{t('miljoenenjacht.dealOrNoDealDiscoverYourRiskProfile')}</p>
           </div>
 
           <div className="space-y-4 text-foreground/90">
             <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
-              <h3 className="font-semibold mb-2">How It Works</h3>
+              <h3 className="font-semibold mb-2">{t('miljoenenjacht.howItWorks')}</h3>
               <ul className="space-y-2 text-sm">
                 <li>• Choose your briefcase - it contains your hidden prize</li>
                 <li>• Open other cases to eliminate amounts from the board</li>
@@ -34,7 +32,7 @@ export const IntroScreen = memo(({ onStart }: IntroScreenProps) => {
             </div>
 
             <div className="p-4 rounded-lg bg-accent/10 border border-accent/20">
-              <h3 className="font-semibold mb-2">What We'll Discover</h3>
+              <h3 className="font-semibold mb-2">{t('miljoenenjacht.whatWellDiscover')}</h3>
               <p className="text-sm text-muted-foreground">
                 Through your decisions, we'll analyze your risk tolerance, decision-making style, 
                 emotional regulation under pressure, and match you with ideal career paths based 
@@ -60,9 +58,7 @@ export const IntroScreen = memo(({ onStart }: IntroScreenProps) => {
             onClick={onStart}
             size="lg"
             className="w-full text-lg h-14 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
-          >
-            Let's Play! 🚀
-          </Button>
+          >{t('miljoenenjacht.letsPlay ')}</Button>
         </CardContent>
       </Card>
     </div>

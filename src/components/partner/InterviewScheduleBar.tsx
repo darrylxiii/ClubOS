@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Calendar, Users } from 'lucide-react';
 import { ScheduleInterviewButton } from './ScheduleInterviewButton';
+import { useTranslation } from 'react-i18next';
 
 interface InterviewScheduleBarProps {
   applications: any[];
@@ -15,6 +16,7 @@ export const InterviewScheduleBar = ({
   stageIndex,
   stageName,
 }: InterviewScheduleBarProps) => {
+  const { t } = useTranslation('partner');
   if (applications.length === 0) return null;
 
   return (

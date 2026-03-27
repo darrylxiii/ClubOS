@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -18,6 +19,7 @@ export function FollowButton({
   size = 'default',
   showLabel = true 
 }: FollowButtonProps) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [isFollowing, setIsFollowing] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -46,12 +48,12 @@ export function FollowButton({
 
   const handleFollow = async () => {
     if (!user) {
-      toast({ title: 'Please sign in to follow users', variant: 'destructive' });
+      toast({ title: t('profile.followSignIn'), variant: 'destructive' });
       return;
     }
 
     if (user.id === userId) {
-      toast({ title: 'You cannot follow yourself', variant: 'destructive' });
+      toast({ title: t('profile.cannotFollowSelf'), variant: 'destructive' });
       return;
     }
 
@@ -67,7 +69,7 @@ export function FollowButton({
 
         if (error) throw error;
         setIsFollowing(false);
-        toast({ title: 'Unfollowed successfully' });
+        toast({ title: t('profile.unfollowedSuccess') });
       } else {
         // Follow
         const { error } = await supabase
@@ -79,13 +81,13 @@ export function FollowButton({
 
         if (error) throw error;
         setIsFollowing(true);
-        toast({ title: 'Following successfully' });
+        toast({ title: t('profile.followingSuccess') });
 
         // Create notification for the followed user
         await supabase.from('notifications').insert({
           user_id: userId,
-          title: 'New Follower',
-          message: 'Someone started following you',
+          title: t('profile.newFollower'),
+          message: t('profile.someoneFollowedYou'),
           type: 'follow',
           category: 'social',
           action_url: `/profile/${user.id}`,
@@ -93,10 +95,10 @@ export function FollowButton({
       }
     } catch (error) {
       console.error('Error toggling follow:', error);
-      toast({ 
-        title: 'Error', 
-        description: 'Failed to update follow status',
-        variant: 'destructive' 
+      toast({
+        title: t('common:status.error'),
+        description: t('profile.failedFollowStatus'),
+        variant: 'destructive'
       });
     } finally {
       setLoading(false);
@@ -117,12 +119,12 @@ export function FollowButton({
       {isFollowing ? (
         <>
           <UserMinus className="h-4 w-4" />
-          {showLabel && 'Unfollow'}
+          {showLabel && t('profile.unfollow')}
         </>
       ) : (
         <>
           <UserPlus className="h-4 w-4" />
-          {showLabel && 'Follow'}
+          {showLabel && t('profile.follow')}
         </>
       )}
     </Button>

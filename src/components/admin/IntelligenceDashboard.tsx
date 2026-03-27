@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
@@ -7,6 +8,7 @@ import { toast } from "sonner";
 import { useState } from "react";
 
 export function IntelligenceDashboard() {
+  const { t } = useTranslation('common');
   const [processing, setProcessing] = useState(false);
   const [calculating, setCalculating] = useState(false);
 
@@ -67,7 +69,7 @@ export function IntelligenceDashboard() {
       refetchQueue();
     } catch (error) {
       console.error('Process error:', error);
-      toast.error('Failed to process queue');
+      toast.error(t("failed_to_process_queue", "Failed to process queue"));
     } finally {
       setProcessing(false);
     }
@@ -85,7 +87,7 @@ export function IntelligenceDashboard() {
       toast.success(`Calculated intent for ${data.processed_companies} companies`);
     } catch (error) {
       console.error('Calculate error:', error);
-      toast.error('Failed to calculate hiring intent');
+      toast.error(t("failed_to_calculate_hiring", "Failed to calculate hiring intent"));
     } finally {
       setCalculating(false);
     }
@@ -94,8 +96,8 @@ export function IntelligenceDashboard() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold mb-2">Intelligence Pipeline</h2>
-        <p className="text-muted-foreground">Real-time processing and insights</p>
+        <h2 className="text-2xl font-bold mb-2">{t("intelligence_pipeline", "Intelligence Pipeline")}</h2>
+        <p className="text-muted-foreground">{t("realtime_processing_and_insights", "Real-time processing and insights")}</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -103,7 +105,7 @@ export function IntelligenceDashboard() {
           <div className="flex items-center gap-3">
             <Activity className="w-8 h-8 text-blue-500" />
             <div>
-              <p className="text-sm text-muted-foreground">Pending</p>
+              <p className="text-sm text-muted-foreground">{t("pending", "Pending")}</p>
               <p className="text-2xl font-bold">{queueStats?.pending || 0}</p>
             </div>
           </div>
@@ -113,7 +115,7 @@ export function IntelligenceDashboard() {
           <div className="flex items-center gap-3">
             <Zap className="w-8 h-8 text-yellow-500" />
             <div>
-              <p className="text-sm text-muted-foreground">Processing</p>
+              <p className="text-sm text-muted-foreground">{t("processing", "Processing")}</p>
               <p className="text-2xl font-bold">{queueStats?.processing || 0}</p>
             </div>
           </div>
@@ -123,7 +125,7 @@ export function IntelligenceDashboard() {
           <div className="flex items-center gap-3">
             <TrendingUp className="w-8 h-8 text-green-500" />
             <div>
-              <p className="text-sm text-muted-foreground">Completed</p>
+              <p className="text-sm text-muted-foreground">{t("completed", "Completed")}</p>
               <p className="text-2xl font-bold">{queueStats?.completed || 0}</p>
             </div>
           </div>
@@ -133,7 +135,7 @@ export function IntelligenceDashboard() {
           <div className="flex items-center gap-3">
             <Brain className="w-8 h-8 text-purple-500" />
             <div>
-              <p className="text-sm text-muted-foreground">Failed</p>
+              <p className="text-sm text-muted-foreground">{t("failed", "Failed")}</p>
               <p className="text-2xl font-bold">{queueStats?.failed || 0}</p>
             </div>
           </div>
@@ -142,7 +144,7 @@ export function IntelligenceDashboard() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-4">Processing Actions</h3>
+          <h3 className="text-lg font-semibold mb-4">{t("processing_actions", "Processing Actions")}</h3>
           <div className="space-y-3">
             <Button 
               onClick={processQueue} 
@@ -163,7 +165,7 @@ export function IntelligenceDashboard() {
         </Card>
 
         <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-4">Top Hiring Intent</h3>
+          <h3 className="text-lg font-semibold mb-4">{t("top_hiring_intent", "Top Hiring Intent")}</h3>
           <div className="space-y-2">
             {hiringIntents?.map((company) => (
               <div key={company.name} className="flex justify-between items-center">
@@ -178,7 +180,7 @@ export function IntelligenceDashboard() {
       </div>
 
       <Card className="p-6">
-        <h3 className="text-lg font-semibold mb-4">Processing Types</h3>
+        <h3 className="text-lg font-semibold mb-4">{t("processing_types", "Processing Types")}</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {queueStats?.byType && Object.entries(queueStats.byType).map(([type, count]) => (
             <div key={type} className="text-center">

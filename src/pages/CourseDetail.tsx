@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
@@ -71,6 +72,7 @@ interface CertificateData {
 }
 
 export default function CourseDetail() {
+  const { t } = useTranslation('common');
   const { slug } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -145,7 +147,7 @@ export default function CourseDetail() {
       <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
         <ErrorState
           variant="page"
-          title="Failed to load course"
+          title={t('courseDetail.text5')}
           message="We couldn't load this course. Please try again."
           onRetry={() => refetch()}
         />
@@ -203,9 +205,9 @@ export default function CourseDetail() {
   if (!course) {
     return (
       <div className="w-full px-4 sm:px-6 lg:px-8 py-6 text-center py-12">
-        <h2 className="text-2xl font-bold mb-4">Course not found</h2>
+        <h2 className="text-2xl font-bold mb-4">{t('courseDetail.text6')}</h2>
         <Link to="/academy">
-          <Button>Back to Academy</Button>
+          <Button>{t('courseDetail.text7')}</Button>
         </Link>
       </div>
     );
@@ -296,11 +298,11 @@ export default function CourseDetail() {
                     <AvatarFallback className="bg-accent/10 text-accent text-xs">C</AvatarFallback>
                   </Avatar>
                 </div>
-                <span>26 enrolled</span>
+                <span>{"26 enrolled"}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Star className="h-4 w-4 fill-primary text-primary" />
-                <span>4.5 (126 reviews)</span>
+                <span>{"4.5 (126 reviews)"}</span>
               </div>
             </div>
 
@@ -323,7 +325,7 @@ export default function CourseDetail() {
             <div className="aspect-video bg-muted flex items-center justify-center">
               <div className="text-center p-12">
                 <PlayCircle className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-                <p className="text-muted-foreground">Course preview coming soon</p>
+                <p className="text-muted-foreground">{t('courseDetail.text8')}</p>
               </div>
             </div>
           </Card>
@@ -331,22 +333,22 @@ export default function CourseDetail() {
           {/* Tabs */}
           <Tabs defaultValue="overview" className="w-full">
             <TabsList className="squircle">
-              <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="instructor">Instructor</TabsTrigger>
-              <TabsTrigger value="reviews">Reviews</TabsTrigger>
-              <TabsTrigger value="notes">Notes</TabsTrigger>
+              <TabsTrigger value="overview">{t('courseDetail.text9')}</TabsTrigger>
+              <TabsTrigger value="instructor">{t('courseDetail.text10')}</TabsTrigger>
+              <TabsTrigger value="reviews">{t('courseDetail.text11')}</TabsTrigger>
+              <TabsTrigger value="notes">{t('courseDetail.text12')}</TabsTrigger>
             </TabsList>
 
             <TabsContent value="overview" className="space-y-6 mt-6">
               <Card className="p-6">
-                <h3 className="text-xl font-bold mb-4">About This Course</h3>
+                <h3 className="text-xl font-bold mb-4">{t('courseDetail.text13')}</h3>
                 <p className="text-muted-foreground leading-relaxed">
                   {course.description}
                 </p>
               </Card>
 
               <Card className="p-6">
-                <h3 className="text-xl font-bold mb-4">What You'll Learn</h3>
+                <h3 className="text-xl font-bold mb-4">{t('courseDetail.text14')}</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {[
                     "Master the fundamentals",
@@ -384,9 +386,7 @@ export default function CourseDetail() {
                         Verified
                       </Badge>
                     </div>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Expert Instructor & Industry Professional
-                    </p>
+                    <p className="text-sm text-muted-foreground mb-4">{t('courseDetail.desc')}</p>
                     <p className="text-sm leading-relaxed text-muted-foreground">
                       A seasoned professional with extensive experience in the field. 
                       Passionate about teaching and helping others master modern skills and methodologies.
@@ -406,23 +406,19 @@ export default function CourseDetail() {
                   </Card>
                 )}
                 <Card className="p-6">
-                  <h3 className="text-xl font-bold mb-4">Student Reviews</h3>
-                  <p className="text-muted-foreground text-sm">
-                    No reviews yet. Be the first to review this course!
-                  </p>
+                  <h3 className="text-xl font-bold mb-4">{t('courseDetail.text15')}</h3>
+                  <p className="text-muted-foreground text-sm">{t('courseDetail.desc2')}</p>
                 </Card>
               </div>
             </TabsContent>
 
             <TabsContent value="notes" className="mt-6">
               <Card className="p-6">
-                <h3 className="text-xl font-bold mb-4">Course Notes</h3>
+                <h3 className="text-xl font-bold mb-4">{t('courseDetail.text16')}</h3>
                 {selectedModule ? (
                   <NoteEditor moduleId={selectedModule.id} />
                 ) : (
-                  <p className="text-muted-foreground text-sm">
-                    Select a module to take notes
-                  </p>
+                  <p className="text-muted-foreground text-sm">{t('courseDetail.desc3')}</p>
                 )}
               </Card>
             </TabsContent>
@@ -433,7 +429,7 @@ export default function CourseDetail() {
         <div className="lg:col-span-1 space-y-6">
           {/* Instructor Card */}
           <Card className="p-6">
-            <h3 className="font-bold mb-4">Instructor</h3>
+            <h3 className="font-bold mb-4">{t('courseDetail.text17')}</h3>
             <div className="flex items-center gap-3">
               <Avatar>
                 <AvatarImage src={course.profiles?.avatar_url} />
@@ -455,14 +451,12 @@ export default function CourseDetail() {
               </div>
             </div>
             <Separator className="my-4" />
-            <p className="text-sm text-muted-foreground">
-              Expert instructor with extensive industry experience.
-            </p>
+            <p className="text-sm text-muted-foreground">{t('courseDetail.desc4')}</p>
           </Card>
 
           <Card className="p-6">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="font-bold">Course Content</h3>
+              <h3 className="font-bold">{t('courseDetail.text18')}</h3>
               {isOwner && (
                 <Button onClick={() => setShowModuleDialog(true)} size="sm" variant="ghost">
                   <Plus className="h-4 w-4" />
@@ -486,7 +480,7 @@ export default function CourseDetail() {
                   <AccordionContent>
                     {modules.length === 0 ? (
                       <div className="text-center py-6">
-                        <p className="text-sm text-muted-foreground mb-3">No modules yet</p>
+                        <p className="text-sm text-muted-foreground mb-3">{t('courseDetail.text19')}</p>
                         {isOwner && (
                           <Button onClick={() => setShowModuleDialog(true)} size="sm">
                             <Plus className="mr-2 h-4 w-4" />

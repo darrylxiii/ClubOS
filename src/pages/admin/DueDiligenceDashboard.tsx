@@ -1,5 +1,6 @@
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useTranslation } from 'react-i18next';
 import { BarChart3, FolderOpen, Cpu, FileText, TrendingUp, Shield, Fuel, Sparkles, Activity } from 'lucide-react';
 import { MetricsOverviewDashboard } from '@/components/admin/due-diligence/MetricsOverviewDashboard';
 import { DataRoomManager } from '@/components/admin/due-diligence/DataRoomManager';
@@ -18,15 +19,14 @@ import { RevenueWaterfallChart } from '@/components/financial/RevenueWaterfallCh
 import { QuinFinancialCommentary } from '@/components/financial/QuinFinancialCommentary';
 
 export default function DueDiligenceDashboard() {
+  const { t } = useTranslation('admin');
   return (
     <>
       <div className="space-y-6 p-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold">Due Diligence Center</h1>
-            <p className="text-muted-foreground">
-              Investor-ready metrics, documentation, and data room
-            </p>
+            <h1 className="text-3xl font-bold">{t('dueDiligenceDashboard.text2')}</h1>
+            <p className="text-muted-foreground">{t('dueDiligenceDashboard.desc')}</p>
           </div>
           <div className="flex items-center gap-2">
             <InvestorPDFExport />

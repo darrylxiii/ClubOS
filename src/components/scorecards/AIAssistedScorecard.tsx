@@ -25,6 +25,7 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useMeetingContext } from '@/hooks/useMeetingContext';
+import { useTranslation } from 'react-i18next';
 
 interface AIAssistedScorecardProps {
   meetingId: string;
@@ -33,11 +34,11 @@ interface AIAssistedScorecardProps {
 
 const RATING_LABELS = ['Poor', 'Below Average', 'Average', 'Good', 'Excellent'];
 const RECOMMENDATION_OPTIONS = [
-  { value: 'strong_yes', label: 'Strong Yes', icon: ThumbsUp, color: 'text-green-500' },
-  { value: 'yes', label: 'Yes', icon: ThumbsUp, color: 'text-green-400' },
-  { value: 'maybe', label: 'Maybe', icon: Minus, color: 'text-amber-500' },
+  { value: 'strong_yes', label: t('scorecards.aiassistedscorecard.strongYes', 'Strong Yes'), icon: ThumbsUp, color: 'text-green-500' },
+  { value: 'yes', label: t('scorecards.aiassistedscorecard.yes', 'Yes'), icon: ThumbsUp, color: 'text-green-400' },
+  { value: 'maybe', label: t('scorecards.aiassistedscorecard.maybe', 'Maybe'), icon: Minus, color: 'text-amber-500' },
   { value: 'no', label: 'No', icon: ThumbsDown, color: 'text-red-400' },
-  { value: 'strong_no', label: 'Strong No', icon: ThumbsDown, color: 'text-red-500' }
+  { value: 'strong_no', label: t('scorecards.aiassistedscorecard.strongNo', 'Strong No'), icon: ThumbsDown, color: 'text-red-500' }
 ];
 
 interface KeyMoment {
@@ -48,6 +49,7 @@ interface KeyMoment {
 }
 
 export const AIAssistedScorecard = ({ meetingId, onSubmitted }: AIAssistedScorecardProps) => {
+  const { t } = useTranslation('common');
   const { meeting, loading: meetingLoading } = useMeetingContext(meetingId);
   const [loading, setLoading] = useState(false);
   const [showAISuggestions, setShowAISuggestions] = useState(true);
@@ -84,7 +86,7 @@ export const AIAssistedScorecard = ({ meetingId, onSubmitted }: AIAssistedScorec
 
   const handleSubmit = async () => {
     if (!recommendation) {
-      toast.error('Please select a recommendation');
+      toast.error(t('scorecards.aiassistedscorecard.pleaseSelectARecommendation', 'Please select a recommendation'));
       return;
     }
 
@@ -136,10 +138,10 @@ export const AIAssistedScorecard = ({ meetingId, onSubmitted }: AIAssistedScorec
         });
       }
 
-      toast.success('Scorecard submitted successfully');
+      toast.success(t('scorecards.aiassistedscorecard.scorecardSubmittedSuccessfully', 'Scorecard submitted successfully'));
       onSubmitted?.();
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : 'Failed to submit scorecard');
+      toast.error(err instanceof Error ? err.message : t('scorecards.aiassistedscorecard.failedToSubmitScorecard', 'Failed to submit scorecard'));
     } finally {
       setLoading(false);
     }
@@ -236,9 +238,7 @@ export const AIAssistedScorecard = ({ meetingId, onSubmitted }: AIAssistedScorec
                     <ChevronDown className="w-5 h-5" />
                   )}
                 </CardTitle>
-                <CardDescription>
-                  Pre-filled suggestions based on meeting analysis. Review and adjust as needed.
-                </CardDescription>
+                <CardDescription>{t('scorecards.aiassistedscorecard.prefilledSuggestionsBasedOnMeetingAnalysis', 'Pre-filled suggestions based on meeting analysis. Review and adjust as needed.')}</CardDescription>
               </CardHeader>
             </CollapsibleTrigger>
 
@@ -247,7 +247,7 @@ export const AIAssistedScorecard = ({ meetingId, onSubmitted }: AIAssistedScorec
                 {/* AI Summary */}
                 {meeting.ai_analysis?.summary && (
                   <div className="p-4 bg-background rounded-lg">
-                    <h4 className="text-sm font-medium mb-2">Summary</h4>
+                    <h4 className="text-sm font-medium mb-2">{t('scorecards.aiassistedscorecard.summary', 'Summary')}</h4>
                     <p className="text-sm text-muted-foreground">{meeting.ai_analysis.summary}</p>
                   </div>
                 )}
@@ -255,7 +255,7 @@ export const AIAssistedScorecard = ({ meetingId, onSubmitted }: AIAssistedScorec
                 {/* Key Moments */}
                 {keyMoments.length > 0 && (
                   <div>
-                    <h4 className="text-sm font-medium mb-3">Key Moments (click to add as evidence)</h4>
+                    <h4 className="text-sm font-medium mb-3">{t('scorecards.aiassistedscorecard.keyMomentsClickToAddAs', 'Key Moments (click to add as evidence)')}</h4>
                     <div className="space-y-2">
                       {keyMoments.map((moment, idx) => {
                         const isSelected = selectedEvidence.some(m => m.timestamp === moment.timestamp);
@@ -308,13 +308,13 @@ export const AIAssistedScorecard = ({ meetingId, onSubmitted }: AIAssistedScorec
       {/* Rating Form */}
       <Card>
         <CardHeader>
-          <CardTitle>Evaluation</CardTitle>
+          <CardTitle>{t('scorecards.aiassistedscorecard.evaluation', 'Evaluation')}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-8">
           {/* Overall Rating */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <Label className="text-base">Overall Rating</Label>
+              <Label className="text-base">{t('scorecards.aiassistedscorecard.overallRating', 'Overall Rating')}</Label>
               <span className="text-lg font-semibold">{RATING_LABELS[overallRating - 1]}</span>
             </div>
             <Slider
@@ -335,11 +335,11 @@ export const AIAssistedScorecard = ({ meetingId, onSubmitted }: AIAssistedScorec
           {/* Skill Ratings */}
           <div className="grid grid-cols-2 gap-6">
             {[
-              { label: 'Technical Skills', value: technicalScore, setter: setTechnicalScore },
-              { label: 'Communication', value: communicationScore, setter: setCommunicationScore },
-              { label: 'Culture Fit', value: cultureFitScore, setter: setCultureFitScore },
-              { label: 'Leadership', value: leadershipScore, setter: setLeadershipScore },
-              { label: 'Problem Solving', value: problemSolvingScore, setter: setProblemSolvingScore }
+              { label: t('scorecards.aiassistedscorecard.technicalSkills', 'Technical Skills'), value: technicalScore, setter: setTechnicalScore },
+              { label: t('scorecards.aiassistedscorecard.communication', 'Communication'), value: communicationScore, setter: setCommunicationScore },
+              { label: t('scorecards.aiassistedscorecard.cultureFit', 'Culture Fit'), value: cultureFitScore, setter: setCultureFitScore },
+              { label: t('scorecards.aiassistedscorecard.leadership', 'Leadership'), value: leadershipScore, setter: setLeadershipScore },
+              { label: t('scorecards.aiassistedscorecard.problemSolving', 'Problem Solving'), value: problemSolvingScore, setter: setProblemSolvingScore }
             ].map(({ label, value, setter }) => (
               <div key={label} className="space-y-2">
                 <div className="flex items-center justify-between">
@@ -359,7 +359,7 @@ export const AIAssistedScorecard = ({ meetingId, onSubmitted }: AIAssistedScorec
 
           {/* Recommendation */}
           <div className="space-y-4">
-            <Label className="text-base">Recommendation *</Label>
+            <Label className="text-base">{t('scorecards.aiassistedscorecard.recommendation', 'Recommendation *')}</Label>
             <RadioGroup
               value={recommendation}
               onValueChange={setRecommendation}
@@ -386,31 +386,31 @@ export const AIAssistedScorecard = ({ meetingId, onSubmitted }: AIAssistedScorec
           {/* Text Areas */}
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label>Strengths</Label>
+              <Label>{t('scorecards.aiassistedscorecard.strengths', 'Strengths')}</Label>
               <Textarea
                 value={strengths}
                 onChange={(e) => setStrengths(e.target.value)}
-                placeholder="What did the candidate do well?"
+                placeholder={t('scorecards.aiassistedscorecard.whatDidTheCandidateDoWell', 'What did the candidate do well?')}
                 rows={3}
               />
             </div>
 
             <div className="space-y-2">
-              <Label>Concerns</Label>
+              <Label>{t('scorecards.aiassistedscorecard.concerns', 'Concerns')}</Label>
               <Textarea
                 value={concerns}
                 onChange={(e) => setConcerns(e.target.value)}
-                placeholder="Any areas of concern or improvement?"
+                placeholder={t('scorecards.aiassistedscorecard.anyAreasOfConcernOrImprovement', 'Any areas of concern or improvement?')}
                 rows={3}
               />
             </div>
 
             <div className="space-y-2">
-              <Label>Additional Notes</Label>
+              <Label>{t('scorecards.aiassistedscorecard.additionalNotes', 'Additional Notes')}</Label>
               <Textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder="Any other observations or comments..."
+                placeholder={t('scorecards.aiassistedscorecard.anyOtherObservationsOrComments', 'Any other observations or comments...')}
                 rows={3}
               />
             </div>
@@ -435,9 +435,9 @@ export const AIAssistedScorecard = ({ meetingId, onSubmitted }: AIAssistedScorec
 
           {/* Submit */}
           <div className="flex justify-end gap-3 pt-4 border-t">
-            <Button variant="outline">Save Draft</Button>
+            <Button variant="outline">{t('scorecards.aiassistedscorecard.saveDraft', 'Save Draft')}</Button>
             <Button onClick={handleSubmit} disabled={loading}>
-              {loading ? 'Submitting...' : 'Submit Scorecard'}
+              {loading ? t('scorecards.aiassistedscorecard.submitting', 'Submitting...') : t('scorecards.aiassistedscorecard.submitScorecard', 'Submit Scorecard')}
             </Button>
           </div>
         </CardContent>

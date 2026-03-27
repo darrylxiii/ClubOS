@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from 'react-i18next';
 import type { User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -61,6 +62,7 @@ interface BookingStats {
 }
 
 export default function BookingManagement() {
+  const { t } = useTranslation('common');
   const [user, setUser] = useState<User | null>(null);
   const [bookingLinks, setBookingLinks] = useState<BookingLink[]>([]);
   const [calendars, setCalendars] = useState<CalendarConnection[]>([]);
@@ -112,7 +114,7 @@ export default function BookingManagement() {
       ]);
     } catch (error) {
       console.error('Error loading booking data:', error);
-      toast.error('Failed to load booking data');
+      toast.error(t('text.bookingmanagement.failedToLoadBookingData', 'Failed to load booking data'));
       setFetchError(true);
     } finally {
       setLoading(false);
@@ -127,7 +129,7 @@ export default function BookingManagement() {
       .order("created_at", { ascending: false });
 
     if (error) {
-      toast.error("Failed to load booking links");
+      toast.error(t('text.bookingmanagement.failedToLoadBookingLinks', 'Failed to load booking links'));
       return;
     }
     setBookingLinks(data || []);
@@ -141,7 +143,7 @@ export default function BookingManagement() {
       .eq("is_active", true);
 
     if (error) {
-      toast.error("Failed to load calendar connections");
+      toast.error(t('text.bookingmanagement.failedToLoadCalendarConnections', 'Failed to load calendar connections'));
       return;
     }
     setCalendars(data || []);
@@ -178,11 +180,11 @@ export default function BookingManagement() {
       .single();
 
     if (error) {
-      toast.error("Failed to create booking link");
+      toast.error(t('text.bookingmanagement.failedToCreateBookingLink', 'Failed to create booking link'));
       return;
     }
 
-    toast.success("Booking link created successfully");
+    toast.success(t('text.bookingmanagement.bookingLinkCreatedSuccessfully', 'Booking link created successfully'));
     setCreateDialogOpen(false);
     resetForm();
     loadBookingLinks();
@@ -197,11 +199,11 @@ export default function BookingManagement() {
       .eq("id", editingLink.id);
 
     if (error) {
-      toast.error("Failed to update booking link");
+      toast.error(t('text.bookingmanagement.failedToUpdateBookingLink', 'Failed to update booking link'));
       return;
     }
 
-    toast.success("Booking link updated");
+    toast.success(t('text.bookingmanagement.bookingLinkUpdated', 'Booking link updated'));
     setEditingLink(null);
     resetForm();
     loadBookingLinks();
@@ -222,11 +224,11 @@ export default function BookingManagement() {
 
     if (error) {
       logger.error('Delete booking link error:', error);
-      toast.error("Failed to delete booking link");
+      toast.error(t('text.bookingmanagement.failedToDeleteBookingLink', 'Failed to delete booking link'));
       return;
     }
 
-    toast.success("Booking link deleted");
+    toast.success(t('text.bookingmanagement.bookingLinkDeleted', 'Booking link deleted'));
     setDeleteDialogOpen(false);
     setLinkToDelete(null);
     loadBookingLinks();
@@ -239,7 +241,7 @@ export default function BookingManagement() {
       .eq("id", id);
 
     if (error) {
-      toast.error("Failed to update status");
+      toast.error(t('text.bookingmanagement.failedToUpdateStatus', 'Failed to update status'));
       return;
     }
 
@@ -250,7 +252,7 @@ export default function BookingManagement() {
   const copyLinkToClipboard = (slug: string) => {
     const url = `${window.location.origin}/book/${slug}`;
     navigator.clipboard.writeText(url);
-    toast.success("Link copied to clipboard");
+    toast.success(t('text.bookingmanagement.linkCopiedToClipboard', 'Link copied to clipboard'));
   };
 
   const openBookingLink = (slug: string) => {
@@ -293,7 +295,7 @@ export default function BookingManagement() {
       <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
         <ErrorState
           variant="page"
-          title="Failed to load bookings"
+          title={t('bookingManagement.text1')}
           message="We couldn't load your booking data. Please try again."
           onRetry={loadAllData}
         />
@@ -321,8 +323,8 @@ export default function BookingManagement() {
       
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Booking Management</h1>
-          <p className="text-muted-foreground">Manage your booking links, calendars, and analytics</p>
+          <h1 className="text-3xl font-bold">{t('bookingManagement.text2')}</h1>
+          <p className="text-muted-foreground">{t('bookingManagement.text3')}</p>
         </div>
         <Dialog open={createDialogOpen || !!editingLink} onOpenChange={(open) => {
           setCreateDialogOpen(open);
@@ -339,35 +341,33 @@ export default function BookingManagement() {
           </DialogTrigger>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>{editingLink ? 'Edit' : 'Create'} Booking Link</DialogTitle>
-              <DialogDescription>
-                Configure your booking settings and availability
-              </DialogDescription>
+              <DialogTitle>{editingLink ? t('text.bookingmanagement.edit', 'Edit') : t('text.bookingmanagement.create', 'Create')} Booking Link</DialogTitle>
+              <DialogDescription>{t('text.bookingmanagement.configureYourBookingSettingsAndAvailability', 'Configure your booking settings and availability')}</DialogDescription>
             </DialogHeader>
 
             <div className="space-y-4">
               <div>
-                <Label>Title</Label>
+                <Label>{t('bookingManagement.text4')}</Label>
                 <Input
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  placeholder="30 Minute Meeting"
+                  placeholder={"30 Minute Meeting"}
                 />
               </div>
 
               <div>
-                <Label>Description</Label>
+                <Label>{t('bookingManagement.text5')}</Label>
                 <Textarea
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="Brief description of the meeting"
+                  placeholder={t('bookingManagement.text6')}
                   rows={3}
                 />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <Label>Duration (minutes)</Label>
+                  <Label>{t('bookingManagement.text7')}</Label>
                   <Input
                     type="number"
                     value={formData.duration_minutes}
@@ -375,7 +375,7 @@ export default function BookingManagement() {
                   />
                 </div>
                 <div>
-                  <Label>Min Notice (hours)</Label>
+                  <Label>{t('bookingManagement.text8')}</Label>
                   <Input
                     type="number"
                     value={formData.min_notice_hours}
@@ -386,7 +386,7 @@ export default function BookingManagement() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <Label>Buffer Before (min)</Label>
+                  <Label>{t('bookingManagement.text9')}</Label>
                   <Input
                     type="number"
                     value={formData.buffer_before_minutes}
@@ -394,7 +394,7 @@ export default function BookingManagement() {
                   />
                 </div>
                 <div>
-                  <Label>Buffer After (min)</Label>
+                  <Label>{t('bookingManagement.text10')}</Label>
                   <Input
                     type="number"
                     value={formData.buffer_after_minutes}
@@ -404,7 +404,7 @@ export default function BookingManagement() {
               </div>
 
               <div>
-                <Label>Advance Booking (days)</Label>
+                <Label>{t('bookingManagement.text11')}</Label>
                 <Input
                   type="number"
                   value={formData.advance_booking_days}
@@ -413,13 +413,13 @@ export default function BookingManagement() {
               </div>
 
               <div>
-                <Label>Primary Calendar</Label>
+                <Label>{t('bookingManagement.text12')}</Label>
                 <Select
                   value={formData.primary_calendar_id}
                   onValueChange={(value) => setFormData({ ...formData, primary_calendar_id: value })}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select calendar" />
+                    <SelectValue placeholder={t('bookingManagement.text13')} />
                   </SelectTrigger>
                   <SelectContent>
                     {calendars.map((cal) => (
@@ -432,7 +432,7 @@ export default function BookingManagement() {
               </div>
 
               <div className="flex items-center justify-between">
-                <Label>Enable Club AI Assistant</Label>
+                <Label>{t('bookingManagement.text14')}</Label>
                 <Switch
                   checked={formData.enable_club_ai}
                   onCheckedChange={(checked) => setFormData({ ...formData, enable_club_ai: checked })}
@@ -440,7 +440,7 @@ export default function BookingManagement() {
               </div>
 
               <div>
-                <Label>Color</Label>
+                <Label>{t('bookingManagement.text15')}</Label>
                 <Input
                   type="color"
                   value={formData.color}
@@ -455,10 +455,10 @@ export default function BookingManagement() {
                 setEditingLink(null);
                 resetForm();
               }}>
-                Cancel
+                {t('text.bookingmanagement.cancel', 'Cancel')}
               </Button>
               <Button onClick={editingLink ? handleUpdateLink : handleCreateLink}>
-                {editingLink ? 'Update' : 'Create'} Link
+                {editingLink ? t('text.bookingmanagement.update', 'Update') : t('text.bookingmanagement.create', 'Create')} Link
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -468,17 +468,15 @@ export default function BookingManagement() {
       {calendars.length === 0 && (
         <Alert>
           <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            No calendar connected. Connect a calendar in Settings to enable automatic syncing.
-          </AlertDescription>
+          <AlertDescription>{t('text.bookingmanagement.noCalendarConnectedConnectACalendar', 'No calendar connected. Connect a calendar in Settings to enable automatic syncing.')}</AlertDescription>
         </Alert>
       )}
 
       <Tabs defaultValue="links" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="links">Booking Links</TabsTrigger>
-          <TabsTrigger value="calendars">Calendar Connections</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
+          <TabsTrigger value="links">{t('bookingManagement.text16')}</TabsTrigger>
+          <TabsTrigger value="calendars">{t('bookingManagement.text17')}</TabsTrigger>
+          <TabsTrigger value="analytics">{t('bookingManagement.text18')}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="links" className="space-y-4">
@@ -486,7 +484,7 @@ export default function BookingManagement() {
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <Calendar className="h-12 w-12 text-muted-foreground mb-4" />
-                <p className="text-muted-foreground">No booking links yet</p>
+                <p className="text-muted-foreground">{t('bookingManagement.text19')}</p>
                 <Button className="mt-4" onClick={() => setCreateDialogOpen(true)}>
                   Create Your First Link
                 </Button>
@@ -502,10 +500,10 @@ export default function BookingManagement() {
                         <div className="flex items-center gap-2">
                           <CardTitle>{link.title}</CardTitle>
                           <Badge variant={link.is_active ? "default" : "secondary"}>
-                            {link.is_active ? "Active" : "Inactive"}
+                            {link.is_active ? t('text.bookingmanagement.active', 'Active') : t('text.bookingmanagement.inactive', 'Inactive')}
                           </Badge>
                           {link.enable_club_ai && (
-                            <Badge variant="outline">Club AI</Badge>
+                            <Badge variant="outline">{t('bookingManagement.text20')}</Badge>
                           )}
                         </div>
                         <CardDescription>{link.description}</CardDescription>
@@ -545,15 +543,15 @@ export default function BookingManagement() {
                   <CardContent>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                       <div>
-                        <p className="text-muted-foreground">Duration</p>
+                        <p className="text-muted-foreground">{t('bookingManagement.text21')}</p>
                         <p className="font-medium">{link.duration_minutes} min</p>
                       </div>
                       <div>
-                        <p className="text-muted-foreground">Min Notice</p>
+                        <p className="text-muted-foreground">{t('bookingManagement.text22')}</p>
                         <p className="font-medium">{link.min_notice_hours}h</p>
                       </div>
                       <div>
-                        <p className="text-muted-foreground">Booking URL</p>
+                        <p className="text-muted-foreground">{t('bookingManagement.text23')}</p>
                         <p className="font-mono text-xs truncate">/book/{link.slug}</p>
                       </div>
                     </div>
@@ -563,7 +561,7 @@ export default function BookingManagement() {
                         onCheckedChange={() => toggleLinkStatus(link.id, link.is_active)}
                       />
                       <span className="ml-2 text-sm">
-                        {link.is_active ? "Accepting bookings" : "Paused"}
+                        {link.is_active ? t('text.bookingmanagement.acceptingBookings', 'Accepting bookings') : t('text.bookingmanagement.paused', 'Paused')}
                       </span>
                     </div>
                   </CardContent>
@@ -576,17 +574,15 @@ export default function BookingManagement() {
         <TabsContent value="calendars" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Calendar Connections</CardTitle>
-              <CardDescription>
-                Manage your connected calendars for automatic availability checking
-              </CardDescription>
+              <CardTitle>{t('bookingManagement.text24')}</CardTitle>
+              <CardDescription>{t('text.bookingmanagement.manageYourConnectedCalendarsForAutomatic', 'Manage your connected calendars for automatic availability checking')}</CardDescription>
             </CardHeader>
             <CardContent>
               {calendars.length === 0 ? (
                 <div className="text-center py-8">
-                  <p className="text-muted-foreground mb-4">No calendars connected</p>
+                  <p className="text-muted-foreground mb-4">{t('bookingManagement.text25')}</p>
                   <Button onClick={() => window.location.href = '/settings'}>
-                    Connect Calendar in Settings
+                    {t('text.bookingmanagement.connectCalendarInSettings', 'Connect Calendar in Settings')}
                   </Button>
                 </div>
               ) : (
@@ -601,7 +597,7 @@ export default function BookingManagement() {
                         </div>
                       </div>
                       <Badge variant={cal.is_active ? "default" : "secondary"}>
-                        {cal.is_active ? "Active" : "Inactive"}
+                        {cal.is_active ? t('text.bookingmanagement.active', 'Active') : t('text.bookingmanagement.inactive', 'Inactive')}
                       </Badge>
                     </div>
                   ))}
@@ -615,7 +611,7 @@ export default function BookingManagement() {
           <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Bookings</CardTitle>
+                <CardTitle className="text-sm font-medium">{t('bookingManagement.text26')}</CardTitle>
                 <BarChart3 className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
@@ -624,7 +620,7 @@ export default function BookingManagement() {
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Confirmed</CardTitle>
+                <CardTitle className="text-sm font-medium">{t('bookingManagement.text27')}</CardTitle>
                 <Clock className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
@@ -633,7 +629,7 @@ export default function BookingManagement() {
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Cancelled</CardTitle>
+                <CardTitle className="text-sm font-medium">{t('bookingManagement.text28')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{stats.cancelled}</div>
@@ -641,7 +637,7 @@ export default function BookingManagement() {
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">No Shows</CardTitle>
+                <CardTitle className="text-sm font-medium">{t('bookingManagement.text29')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{stats.no_shows}</div>
@@ -654,16 +650,14 @@ export default function BookingManagement() {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Booking Link</AlertDialogTitle>
+            <AlertDialogTitle>{t('bookingManagement.text30')}</AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to delete this booking link? This action cannot be undone and all associated bookings will be affected.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setLinkToDelete(null)}>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteLink} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              Delete
-            </AlertDialogAction>
+            <AlertDialogCancel onClick={() => setLinkToDelete(null)}>{t('bookingManagement.text31')}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteLink} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">{t('text.bookingmanagement.delete', 'Delete')}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

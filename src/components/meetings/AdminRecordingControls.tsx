@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -27,6 +28,7 @@ interface AdminRecordingControlsProps {
 }
 
 export function AdminRecordingControls({ recordings, onRecordingsDeleted }: AdminRecordingControlsProps) {
+  const { t } = useTranslation('common');
   const [selectedRecordings, setSelectedRecordings] = useState<string[]>([]);
   const [deleting, setDeleting] = useState(false);
   const [retentionDays, setRetentionDays] = useState(90);
@@ -78,7 +80,7 @@ export function AdminRecordingControls({ recordings, onRecordingsDeleted }: Admi
       onRecordingsDeleted();
     } catch (error) {
       console.error('Error deleting recordings:', error);
-      toast.error('Failed to delete recordings');
+      toast.error(t("failed_to_delete_recordings", "Failed to delete recordings"));
     } finally {
       setDeleting(false);
     }
@@ -99,10 +101,10 @@ export function AdminRecordingControls({ recordings, onRecordingsDeleted }: Admi
         }, { onConflict: 'key' });
 
       if (error) throw error;
-      toast.success('Retention settings saved');
+      toast.success(t("retention_settings_saved", "Retention settings saved"));
     } catch (error) {
       console.error('Error saving settings:', error);
-      toast.error('Failed to save settings');
+      toast.error(t("failed_to_save_settings", "Failed to save settings"));
     }
   };
 
@@ -127,17 +129,17 @@ export function AdminRecordingControls({ recordings, onRecordingsDeleted }: Admi
           <div className="grid grid-cols-3 gap-4 text-center">
             <div>
               <p className="text-2xl font-bold">{recordings.length}</p>
-              <p className="text-sm text-muted-foreground">Total Recordings</p>
+              <p className="text-sm text-muted-foreground">{t("total_recordings", "Total Recordings")}</p>
             </div>
             <div>
               <p className="text-2xl font-bold">{formatBytes(totalStorageUsed)}</p>
-              <p className="text-sm text-muted-foreground">Storage Used</p>
+              <p className="text-sm text-muted-foreground">{t("storage_used", "Storage Used")}</p>
             </div>
             <div>
               <p className="text-2xl font-bold">
                 {Math.round(recordings.reduce((acc, r) => acc + (r.duration_seconds || 0), 0) / 60)}
               </p>
-              <p className="text-sm text-muted-foreground">Total Minutes</p>
+              <p className="text-sm text-muted-foreground">{t("total_minutes", "Total Minutes")}</p>
             </div>
           </div>
         </CardContent>
@@ -157,7 +159,7 @@ export function AdminRecordingControls({ recordings, onRecordingsDeleted }: Admi
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label>Auto-delete old recordings</Label>
+              <Label>{t("autodelete_old_recordings", "Auto-delete old recordings")}</Label>
               <p className="text-xs text-muted-foreground">
                 Automatically remove recordings older than the retention period
               </p>
@@ -170,7 +172,7 @@ export function AdminRecordingControls({ recordings, onRecordingsDeleted }: Admi
 
           {autoDeleteEnabled && (
             <div className="space-y-2">
-              <Label htmlFor="retention-days">Retention Period (days)</Label>
+              <Label htmlFor="retention-days">{t("retention_period_days", "Retention Period (days)")}</Label>
               <Input
                 id="retention-days"
                 type="number"
@@ -231,14 +233,14 @@ export function AdminRecordingControls({ recordings, onRecordingsDeleted }: Admi
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
-                  <AlertDialogTitle>Permanently Delete Recordings?</AlertDialogTitle>
+                  <AlertDialogTitle>{t("permanently_delete_recordings", "Permanently Delete Recordings?")}</AlertDialogTitle>
                   <AlertDialogDescription>
                     This will permanently delete {selectedRecordings.length} recording(s) and their 
                     associated files. This action cannot be undone.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogCancel>{t("cancel", "Cancel")}</AlertDialogCancel>
                   <AlertDialogAction onClick={handleBulkDelete} className="bg-rose-600 text-white hover:bg-rose-700">
                     Delete Permanently
                   </AlertDialogAction>

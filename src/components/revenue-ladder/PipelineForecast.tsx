@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { motion } from '@/lib/motion';
 import { 
   TrendingUp, Calendar, Target, Gauge, 
@@ -23,6 +24,7 @@ const confidenceConfig = {
 };
 
 export function PipelineForecast({ className, year }: PipelineForecastProps) {
+  const { t } = useTranslation('common');
   const { data, isLoading } = usePipelineForecast(year);
 
   const formatCurrency = (amount: number) => {
@@ -167,7 +169,7 @@ export function PipelineForecast({ className, year }: PipelineForecastProps) {
 
                   <div className="space-y-1">
                     <div className="flex justify-between text-label-xs text-muted-foreground">
-                      <span>Pipeline Coverage</span>
+                      <span>{t("pipeline_coverage", "Pipeline Coverage")}</span>
                       <span>{milestone.pipelineCoverage.toFixed(0)}%</span>
                     </div>
                     <Progress 
@@ -193,7 +195,7 @@ export function PipelineForecast({ className, year }: PipelineForecastProps) {
       <Card variant="elevated" className="p-6">
         <div className="flex flex-wrap items-center justify-center gap-6 text-center">
           <div className="space-y-1">
-            <p className="text-label-sm text-muted-foreground">Avg Days Between Placements</p>
+            <p className="text-label-sm text-muted-foreground">{t("avg_days_between_placements", "Avg Days Between Placements")}</p>
             <p className="text-heading-sm font-bold">
               {data.velocityMetrics.avgDaysToClose > 0 
                 ? `${Math.round(data.velocityMetrics.avgDaysToClose)} days` 
@@ -202,12 +204,12 @@ export function PipelineForecast({ className, year }: PipelineForecastProps) {
           </div>
           <div className="h-8 w-px bg-border" />
           <div className="space-y-1">
-            <p className="text-label-sm text-muted-foreground">Avg Placement Fee</p>
+            <p className="text-label-sm text-muted-foreground">{t("avg_placement_fee", "Avg Placement Fee")}</p>
             <p className="text-heading-sm font-bold">{formatCurrency(data.velocityMetrics.avgPlacementFee)}</p>
           </div>
           <div className="h-8 w-px bg-border hidden md:block" />
           <div className="space-y-1">
-            <p className="text-label-sm text-muted-foreground">Avg Deal Value</p>
+            <p className="text-label-sm text-muted-foreground">{t("avg_deal_value", "Avg Deal Value")}</p>
             <p className="text-heading-sm font-bold">{formatCurrency(data.avgDealValue)}</p>
           </div>
         </div>

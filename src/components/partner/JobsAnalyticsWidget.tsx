@@ -2,6 +2,7 @@ import { memo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Briefcase, Clock, TrendingUp, Users } from "lucide-react";
 import { calculateFillRate, calculateAvgDaysOpen, getDaysOpenColor } from "@/lib/jobUtils";
+import { useTranslation } from 'react-i18next';
 
 interface JobsAnalyticsWidgetProps {
   jobs: any[];
@@ -9,6 +10,7 @@ interface JobsAnalyticsWidgetProps {
 }
 
 export const JobsAnalyticsWidget = memo(({ jobs, totalCandidates }: JobsAnalyticsWidgetProps) => {
+  const { t } = useTranslation('partner');
   const openJobs = jobs.filter(j => j.status === 'published').length;
   const avgDaysOpen = calculateAvgDaysOpen(jobs);
   const fillRate = calculateFillRate(jobs);
@@ -25,7 +27,7 @@ export const JobsAnalyticsWidget = memo(({ jobs, totalCandidates }: JobsAnalytic
             </div>
             <div>
               <p className="text-2xl font-black text-foreground">{openJobs}</p>
-              <p className="text-sm text-muted-foreground">Open Jobs</p>
+              <p className="text-sm text-muted-foreground">{t('jobsAnalyticsWidget.openJobs')}</p>
             </div>
           </div>
         </CardContent>
@@ -42,7 +44,7 @@ export const JobsAnalyticsWidget = memo(({ jobs, totalCandidates }: JobsAnalytic
               <p className={`text-2xl font-black ${getDaysOpenColor(avgDaysOpen)}`}>
                 {avgDaysOpen}d
               </p>
-              <p className="text-sm text-muted-foreground">Avg Days Open</p>
+              <p className="text-sm text-muted-foreground">{t('jobsAnalyticsWidget.avgDaysOpen')}</p>
             </div>
           </div>
         </CardContent>
@@ -57,7 +59,7 @@ export const JobsAnalyticsWidget = memo(({ jobs, totalCandidates }: JobsAnalytic
             </div>
             <div>
               <p className="text-2xl font-black text-foreground">{fillRate}%</p>
-              <p className="text-sm text-muted-foreground">Fill Rate</p>
+              <p className="text-sm text-muted-foreground">{t('jobsAnalyticsWidget.fillRate')}</p>
             </div>
           </div>
         </CardContent>
@@ -72,7 +74,7 @@ export const JobsAnalyticsWidget = memo(({ jobs, totalCandidates }: JobsAnalytic
             </div>
             <div>
               <p className="text-2xl font-black text-foreground">{candidatePipeline}</p>
-              <p className="text-sm text-muted-foreground">Active Pipeline</p>
+              <p className="text-sm text-muted-foreground">{t('jobsAnalyticsWidget.activePipeline')}</p>
             </div>
           </div>
         </CardContent>

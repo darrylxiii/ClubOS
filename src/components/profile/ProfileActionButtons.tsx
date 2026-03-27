@@ -1,5 +1,6 @@
+import { useTranslation } from 'react-i18next';
 import { Button } from "@/components/ui/button";
-import { 
+import {
   FileText, 
   Calendar, 
   UserPlus, 
@@ -52,6 +53,8 @@ export function ProfileActionButtons({
   onInviteToProject,
   onReport,
 }: ProfileActionButtonsProps) {
+  const { t } = useTranslation('common');
+
   if (isOwnProfile) return null;
 
   return (
@@ -64,7 +67,7 @@ export function ProfileActionButtons({
           className="gap-2 glass backdrop-blur-xl border-2 border-accent hover:shadow-glass-xl transition-all hover:scale-105"
         >
           <MessageCircle className="w-5 h-5" />
-          Send Message
+          {t('profile.sendMessage')}
         </Button>
 
         <DropdownMenu>
@@ -74,26 +77,26 @@ export function ProfileActionButtons({
               className="gap-2 glass backdrop-blur-xl border-2 border-accent hover:shadow-glass-xl transition-all hover:scale-105"
             >
               <Calendar className="w-5 h-5" />
-              Book a Meeting
+              {t('profile.bookMeeting')}
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-56 glass backdrop-blur-xl border-accent/30">
             <DropdownMenuItem onClick={() => onBookMeeting('video')} className="gap-2 cursor-pointer">
               <Video className="w-4 h-4" />
-              Schedule Video Call
+              {t('profile.scheduleVideoCall')}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => onBookMeeting('vr')} className="gap-2 cursor-pointer">
               <Sparkles className="w-4 h-4" />
-              Meet in Club Lounge (VR)
+              {t('profile.meetClubLounge')}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => onBookMeeting('advisory')} className="gap-2 cursor-pointer">
               <Users className="w-4 h-4" />
-              Request 1-on-1 Advisory
+              {t('profile.requestAdvisory')}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => onBookMeeting('suggest')} className="gap-2 cursor-pointer">
               <Sparkles className="w-4 h-4 text-accent" />
-              AI Suggest Best Time
+              {t('profile.aiSuggestBestTime')}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -107,7 +110,7 @@ export function ProfileActionButtons({
           className="gap-2 glass border-accent/30 hover:border-accent hover:shadow-glass transition-all"
         >
           <FileText className="w-4 h-4" />
-          Request Resume
+          {t('profile.requestResume')}
         </Button>
 
         <Button 
@@ -116,7 +119,7 @@ export function ProfileActionButtons({
           className="gap-2 glass border-accent/30 hover:border-accent hover:shadow-glass transition-all"
         >
           <UserPlus className="w-4 h-4" />
-          Connect
+          {t('profile.connect')}
         </Button>
 
         <Button 
@@ -125,16 +128,16 @@ export function ProfileActionButtons({
           className="gap-2 glass border-accent/30 hover:border-accent hover:shadow-glass transition-all"
         >
           <Bell className="w-4 h-4" />
-          Follow
+          {t('profile.follow')}
         </Button>
 
-        <Button 
+        <Button
           onClick={() => onMessage()}
           variant="outline"
           className="gap-2 glass border-accent/30 hover:border-accent hover:shadow-glass transition-all"
         >
           <Mic className="w-4 h-4" />
-          Voice Note
+          {t('profile.voiceNote')}
         </Button>
       </div>
 
@@ -146,7 +149,7 @@ export function ProfileActionButtons({
           className="gap-2 glass border-accent/30 hover:border-accent hover:shadow-glass transition-all"
         >
           <ThumbsUp className="w-4 h-4" />
-          Endorse
+          {t('profile.endorse')}
         </Button>
 
         <Button 
@@ -155,7 +158,7 @@ export function ProfileActionButtons({
           className="gap-2 glass border-accent/30 hover:border-accent hover:shadow-glass transition-all"
         >
           <Award className="w-4 h-4" />
-          Verify
+          {t('profile.verify')}
         </Button>
 
         <DropdownMenu>
@@ -165,17 +168,17 @@ export function ProfileActionButtons({
               className="gap-2 glass border-accent/30 hover:border-accent hover:shadow-glass transition-all"
             >
               <Download className="w-4 h-4" />
-              Export
+              {t('common:actions.export')}
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-56 glass backdrop-blur-xl border-accent/30">
             <DropdownMenuItem onClick={() => onExport('summary')} className="gap-2 cursor-pointer">
               <FileText className="w-4 h-4" />
-              AI Career Summary
+              {t('profile.aiCareerSummary')}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => onExport('vcard')} className="gap-2 cursor-pointer">
               <Download className="w-4 h-4" />
-              Quantum ID vCard
+              {t('profile.quantumIdVcard')}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -186,7 +189,7 @@ export function ProfileActionButtons({
           className="gap-2 glass border-accent/30 hover:border-accent hover:shadow-glass transition-all"
         >
           <Users className="w-4 h-4" />
-          Invite
+          {t('profile.invite')}
         </Button>
       </div>
 
@@ -199,7 +202,7 @@ export function ProfileActionButtons({
           className="gap-2 text-muted-foreground hover:text-destructive transition-colors"
         >
           <Shield className="w-4 h-4" />
-          Report/Block
+          {t('profile.reportBlock')}
         </Button>
       </div>
     </div>

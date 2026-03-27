@@ -15,6 +15,8 @@ CREATE INDEX IF NOT EXISTS "task_activity_log_task_id_idx" ON "public"."task_act
 ALTER TABLE "public"."task_activity_log" ENABLE ROW LEVEL SECURITY;
 
 -- Policies
+DROP POLICY IF EXISTS "Users can view activity for tasks they have access to" ON "public"."task_activity_log";
+DROP POLICY IF EXISTS "Users can create activity logs" ON "public"."task_activity_log";
 CREATE POLICY "Users can view activity for tasks they have access to" 
 ON "public"."task_activity_log" 
 FOR SELECT 

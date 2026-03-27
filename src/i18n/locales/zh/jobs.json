@@ -1,0 +1,223 @@
+{
+  "title": "职位",
+  "subtitle": "管理职位发布与申请",
+  "create": {
+    "title": "创建职位",
+    "fromTemplate": "从模板创建",
+    "fromScratch": "从头创建",
+    "duplicate": "复制职位"
+  },
+  "edit": {
+    "title": "编辑职位",
+    "save": "保存更改",
+    "publish": "发布职位",
+    "unpublish": "取消发布"
+  },
+  "apply": {
+    "title": "立即申请",
+    "button": "申请此职位",
+    "submitted": "申请已提交",
+    "alreadyApplied": "您已申请",
+    "requiresLogin": "登录后申请"
+  },
+  "details": {
+    "title": "职位详情",
+    "description": "职位描述",
+    "requirements": "任职要求",
+    "responsibilities": "岗位职责",
+    "benefits": "福利待遇",
+    "salary": "薪资范围",
+    "location": "工作地点",
+    "department": "所属部门",
+    "reportingTo": "汇报对象",
+    "startDate": "入职日期",
+    "deadline": "申请截止日期"
+  },
+  "status": {
+    "draft": "草稿",
+    "published": "已发布",
+    "closed": "已关闭",
+    "paused": "已暂停",
+    "archived": "已归档",
+    "filled": "已招满"
+  },
+  "types": {
+    "fullTime": "全职",
+    "partTime": "兼职",
+    "contract": "合同制",
+    "freelance": "自由职业",
+    "internship": "实习",
+    "temporary": "临时"
+  },
+  "workMode": {
+    "remote": "远程",
+    "hybrid": "混合办公",
+    "onsite": "现场办公",
+    "flexible": "灵活办公"
+  },
+  "experience": {
+    "entry": "初级",
+    "junior": "初级（1-2 年）",
+    "mid": "中级（3-5 年）",
+    "senior": "高级（5-8 年）",
+    "lead": "主管（8 年以上）",
+    "executive": "高管"
+  },
+  "pipeline": {
+    "title": "招聘管道",
+    "applied": "已申请",
+    "screening": "筛选中",
+    "interview": "面试",
+    "assessment": "评估",
+    "offer": "录用",
+    "hired": "已入职",
+    "rejected": "已拒绝",
+    "candidatesInStage": "此阶段的候选人"
+  },
+  "filters": {
+    "title": "筛选条件",
+    "all": "所有职位",
+    "location": "地点",
+    "department": "部门",
+    "type": "职位类型",
+    "experience": "经验水平",
+    "salary": "薪资范围",
+    "posted": "发布日期",
+    "remote": "仅远程",
+    "clearAll": "清除所有筛选"
+  },
+  "search": {
+    "placeholder": "按职位名称、公司或技能搜索...",
+    "noResults": "未找到职位",
+    "results": "个职位",
+    "savedSearches": "已保存的搜索"
+  },
+  "actions": {
+    "view": "查看职位",
+    "edit": "编辑职位",
+    "delete": "删除职位",
+    "duplicate": "复制职位",
+    "share": "分享职位",
+    "bookmark": "收藏职位",
+    "removeBookmark": "取消收藏",
+    "publish": "发布",
+    "unpublish": "取消发布",
+    "close": "关闭职位",
+    "reopen": "重新开放职位"
+  },
+  "applicants": {
+    "title": "申请人",
+    "new": "新申请人",
+    "total": "总申请人数",
+    "qualified": "符合条件",
+    "shortlisted": "候选名单",
+    "viewAll": "查看所有申请人"
+  },
+  "posting": {
+    "title": "职位发布",
+    "preview": "预览发布",
+    "visibility": "可见性",
+    "public": "公开",
+    "private": "私密",
+    "internal": "仅限内部",
+    "expiry": "发布到期时间",
+    "boost": "推广此职位"
+  },
+  "analytics": {
+    "title": "职位分析",
+    "views": "职位浏览量",
+    "applications": "申请数",
+    "conversionRate": "转化率",
+    "avgTimeToApply": "平均申请时间",
+    "topSources": "主要来源"
+  },
+  "recommendations": {
+    "title": "为您推荐",
+    "basedOn": "基于您的档案",
+    "similar": "相似职位",
+    "trending": "热门职位"
+  },
+  "alerts": {
+    "title": "职位提醒",
+    "create": "创建提醒",
+    "manage": "管理提醒",
+    "frequency": "提醒频率",
+    "daily": "每天",
+    "weekly": "每周",
+    "instant": "即时"
+  },
+  "company": {
+    "about": "关于公司",
+    "culture": "公司文化",
+    "size": "公司规模",
+    "industry": "行业",
+    "website": "网站",
+    "otherJobs": "该公司的其他职位"
+  },
+  "application": {
+    "resume": "简历",
+    "coverLetter": "求职信",
+    "questions": "申请问题",
+    "attachments": "附件",
+    "submit": "提交申请",
+    "withdraw": "撤回申请"
+  },
+  "empty": {
+    "noJobs": "暂无可用职位",
+    "noSavedJobs": "暂无收藏的职位",
+    "noApplications": "暂无申请",
+    "createFirst": "发布您的第一个职位"
+  },
+  "notifications": {
+    "published": "职位发布成功",
+    "updated": "职位更新成功",
+    "closed": "职位已关闭",
+    "applicationReceived": "收到新申请"
+  },
+  "companyJobsDashboard": {
+    "desc": "管理您的职位并自定义招聘流程",
+    "desc2": "这些阶段将作为所有新职位的模板",
+    "desc3": "新申请",
+    "desc4": "当有候选人申请时收到通知",
+    "desc5": "阶段变更",
+    "desc6": "当候选人在阶段之间移动时收到通知",
+    "desc7": "拒绝",
+    "desc8": "当候选人被拒绝时收到通知",
+    "desc9": "配置该职位的候选人评分方式"
+  },
+  "jobDetail": {
+    "text1": "未找到职位",
+    "text2": "返回职位列表",
+    "text3": "概览",
+    "text4": "详情",
+    "text5": "匹配",
+    "text6": "公司",
+    "text7": "动态",
+    "text8": "生成求职信",
+    "text9": "为此职位创建 AI 驱动的求职信",
+    "text10": "求职信生成器",
+    "text11": "主要职责",
+    "text12": "您将负责的主要工作领域",
+    "text13": "核心福利",
+    "text14": "我们提供的待遇",
+    "text15": "职位分析",
+    "text16": "绩效指标和洞察",
+    "text17": "总申请数",
+    "text18": "总浏览量",
+    "text19": "转化率",
+    "text20": "已发布天数"
+  },
+  "jobs": {
+    "title": "暂无收藏的职位",
+    "desc": "为 The Quantum Club 会员精选的职位",
+    "desc2": "浏览机会并收藏您感兴趣的职位"
+  },
+  "sharedPipelineView": {
+    "desc": "此招聘管道受密码保护，请输入密码查看。",
+    "text2": "链接不可用",
+    "text3": "需要密码",
+    "text4": "输入密码",
+    "text5": "此招聘管道中暂无候选人。",
+    "text6": "The Quantum Club"
+  }
+}

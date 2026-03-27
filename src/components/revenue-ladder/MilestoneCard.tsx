@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { motion } from '@/lib/motion';
 import { Lock, Unlock, Trophy, TrendingUp, Sparkles, Target, Clock, Pencil } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -59,6 +60,7 @@ const statusConfig = {
 };
 
 export function MilestoneCard({ milestone, onClick, onEdit, isNext, isAdmin }: MilestoneCardProps) {
+  const { t } = useTranslation('common');
   const status = milestone.status as keyof typeof statusConfig;
   const config = statusConfig[status] || statusConfig.locked;
   const StatusIcon = config.icon;
@@ -235,7 +237,7 @@ export function MilestoneCard({ milestone, onClick, onEdit, isNext, isAdmin }: M
           {/* Progress Section */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-label-sm text-muted-foreground">Progress</span>
+              <span className="text-label-sm text-muted-foreground">{t("progress", "Progress")}</span>
               <span className={cn("text-label-sm font-semibold", config.color)}>
                 {Math.round(progressPercent)}%
               </span>

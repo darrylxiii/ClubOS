@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -28,6 +29,7 @@ const ROLE_OPTIONS = [
 ];
 
 export function CRMTeamManagement() {
+  const { t } = useTranslation('common');
   const [members, setMembers] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -91,7 +93,7 @@ export function CRMTeamManagement() {
       }
     } catch (error) {
       console.error('Error loading team members:', error);
-      toast.error('Failed to load team members');
+      toast.error(t("failed_to_load_team", "Failed to load team members"));
     } finally {
       setLoading(false);
     }
@@ -113,7 +115,7 @@ export function CRMTeamManagement() {
 
   const handleAddMember = async () => {
     if (!selectedUserId) {
-      toast.error('Please select a user');
+      toast.error(t("please_select_a_user", "Please select a user"));
       return;
     }
 
@@ -126,7 +128,7 @@ export function CRMTeamManagement() {
         .single();
 
       if (existingRole) {
-        toast.error('User already has CRM access');
+        toast.error(t("user_already_has_crm", "User already has CRM access"));
         return;
       }
 
@@ -140,14 +142,14 @@ export function CRMTeamManagement() {
 
       if (error) throw error;
 
-      toast.success('Team member added');
+      toast.success(t("team_member_added", "Team member added"));
       setShowAddDialog(false);
       setSelectedUserId('');
       setSelectedRole('editor');
       loadTeamMembers();
     } catch (error) {
       console.error('Error adding member:', error);
-      toast.error('Failed to add team member');
+      toast.error(t("failed_to_add_team", "Failed to add team member"));
     }
   };
 
@@ -160,11 +162,11 @@ export function CRMTeamManagement() {
 
       if (error) throw error;
 
-      toast.success('Role updated');
+      toast.success(t("role_updated", "Role updated"));
       loadTeamMembers();
     } catch (error) {
       console.error('Error updating role:', error);
-      toast.error('Failed to update role');
+      toast.error(t("failed_to_update_role", "Failed to update role"));
     }
   };
 
@@ -179,11 +181,11 @@ export function CRMTeamManagement() {
 
       if (error) throw error;
 
-      toast.success('Team member removed');
+      toast.success(t("team_member_removed", "Team member removed"));
       loadTeamMembers();
     } catch (error) {
       console.error('Error removing member:', error);
-      toast.error('Failed to remove team member');
+      toast.error(t("failed_to_remove_team", "Failed to remove team member"));
     }
   };
 
@@ -240,17 +242,17 @@ export function CRMTeamManagement() {
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Add Team Member</DialogTitle>
+                <DialogTitle>{t("add_team_member", "Add Team Member")}</DialogTitle>
                 <DialogDescription>
                   Grant CRM access to a team member
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Select User</label>
+                  <label className="text-sm font-medium">{t("select_user", "Select User")}</label>
                   <Select value={selectedUserId} onValueChange={setSelectedUserId}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Choose a user" />
+                      <SelectValue placeholder={t("choose_a_user", "Choose a user")} />
                     </SelectTrigger>
                     <SelectContent>
                       {availableUsers.map(user => (
@@ -270,7 +272,7 @@ export function CRMTeamManagement() {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Role</label>
+                  <label className="text-sm font-medium">{t("role", "Role")}</label>
                   <Select value={selectedRole} onValueChange={setSelectedRole}>
                     <SelectTrigger>
                       <SelectValue />
@@ -292,7 +294,7 @@ export function CRMTeamManagement() {
                 <Button variant="outline" onClick={() => setShowAddDialog(false)}>
                   Cancel
                 </Button>
-                <Button onClick={handleAddMember}>Add Member</Button>
+                <Button onClick={handleAddMember}>{t("add_member", "Add Member")}</Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
@@ -305,7 +307,7 @@ export function CRMTeamManagement() {
           <Input
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search team members..."
+            placeholder={t("search_team_members", "Search team members...")}
             className="pl-9"
           />
         </div>

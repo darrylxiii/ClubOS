@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -24,6 +25,7 @@ interface CommunicationSettingsData {
 }
 
 export function CommunicationSettings() {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [saving, setSaving] = useState(false);
   const [devices, setDevices] = useState<{
@@ -90,10 +92,10 @@ export function CommunicationSettings() {
     try {
       // Store in localStorage as this column may not exist in DB
       localStorage.setItem(`communication_settings_${user.id}`, JSON.stringify(settings));
-      toast.success('Communication settings saved');
+      toast.success(t("communication_settings_saved", "Communication settings saved"));
     } catch (error) {
       console.error('Error saving settings:', error);
-      toast.error('Failed to save settings');
+      toast.error(t("failed_to_save_settings", "Failed to save settings"));
     } finally {
       setSaving(false);
     }
@@ -105,14 +107,14 @@ export function CommunicationSettings() {
         audio: { deviceId: settings.default_microphone }
       });
       
-      toast.success('Microphone is working! Speak to test.');
+      toast.success(t("microphone_is_working_speak", "Microphone is working! Speak to test."));
       
       // Stop after 3 seconds
       setTimeout(() => {
         stream.getTracks().forEach(track => track.stop());
       }, 3000);
     } catch (error) {
-      toast.error('Could not access microphone');
+      toast.error(t("could_not_access_microphone", "Could not access microphone"));
     }
   };
 
@@ -122,14 +124,14 @@ export function CommunicationSettings() {
         video: { deviceId: settings.default_camera }
       });
       
-      toast.success('Camera is working!');
+      toast.success(t("camera_is_working", "Camera is working!"));
       
       // Stop after 3 seconds
       setTimeout(() => {
         stream.getTracks().forEach(track => track.stop());
       }, 3000);
     } catch (error) {
-      toast.error('Could not access camera');
+      toast.error(t("could_not_access_camera", "Could not access camera"));
     }
   };
 
@@ -141,21 +143,21 @@ export function CommunicationSettings() {
             <Video className="w-5 h-5" />
             Video Settings
           </CardTitle>
-          <CardDescription>Configure your camera and video preferences</CardDescription>
+          <CardDescription>{t("configure_your_camera_and", "Configure your camera and video preferences")}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-2">
-            <Label>Default Camera</Label>
+            <Label>{t("default_camera", "Default Camera")}</Label>
             <div className="flex gap-2">
               <Select
                 value={settings.default_camera}
                 onValueChange={(value) => setSettings({ ...settings, default_camera: value })}
               >
                 <SelectTrigger className="flex-1">
-                  <SelectValue placeholder="Select camera" />
+                  <SelectValue placeholder={t("select_camera", "Select camera")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="default">System Default</SelectItem>
+                  <SelectItem value="default">{t("system_default", "System Default")}</SelectItem>
                   {devices.cameras.map((device) => (
                     <SelectItem key={device.deviceId} value={device.deviceId}>
                       {device.label || `Camera ${devices.cameras.indexOf(device) + 1}`}
@@ -163,12 +165,12 @@ export function CommunicationSettings() {
                   ))}
                 </SelectContent>
               </Select>
-              <Button variant="outline" onClick={testCamera}>Test</Button>
+              <Button variant="outline" onClick={testCamera}>{t("test", "Test")}</Button>
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label>Video Quality</Label>
+            <Label>{t("video_quality", "Video Quality")}</Label>
             <Select
               value={settings.video_quality}
               onValueChange={(value: 'auto' | '720p' | '1080p') => setSettings({ ...settings, video_quality: value })}
@@ -177,17 +179,17 @@ export function CommunicationSettings() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="auto">Auto (Recommended)</SelectItem>
-                <SelectItem value="720p">720p HD</SelectItem>
-                <SelectItem value="1080p">1080p Full HD</SelectItem>
+                <SelectItem value="auto">{t("auto_recommended", "Auto (Recommended)")}</SelectItem>
+                <SelectItem value="720p">{t("720p_hd", "720p HD")}</SelectItem>
+                <SelectItem value="1080p">{t("1080p_full_hd", "1080p Full HD")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label>Mirror Video</Label>
-              <p className="text-xs text-muted-foreground">Mirror your camera preview (doesn't affect what others see)</p>
+              <Label>{t("mirror_video", "Mirror Video")}</Label>
+              <p className="text-xs text-muted-foreground">{t("mirror_your_camera_preview", "Mirror your camera preview (doesn't affect what others see)")}</p>
             </div>
             <Switch
               checked={settings.mirror_video}
@@ -197,8 +199,8 @@ export function CommunicationSettings() {
 
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label>Background Blur</Label>
-              <p className="text-xs text-muted-foreground">Blur your background during video calls</p>
+              <Label>{t("background_blur", "Background Blur")}</Label>
+              <p className="text-xs text-muted-foreground">{t("blur_your_background_during", "Blur your background during video calls")}</p>
             </div>
             <Switch
               checked={settings.background_blur_enabled}
@@ -214,21 +216,21 @@ export function CommunicationSettings() {
             <Mic className="w-5 h-5" />
             Audio Settings
           </CardTitle>
-          <CardDescription>Configure your microphone and audio preferences</CardDescription>
+          <CardDescription>{t("configure_your_microphone_and", "Configure your microphone and audio preferences")}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-2">
-            <Label>Default Microphone</Label>
+            <Label>{t("default_microphone", "Default Microphone")}</Label>
             <div className="flex gap-2">
               <Select
                 value={settings.default_microphone}
                 onValueChange={(value) => setSettings({ ...settings, default_microphone: value })}
               >
                 <SelectTrigger className="flex-1">
-                  <SelectValue placeholder="Select microphone" />
+                  <SelectValue placeholder={t("select_microphone", "Select microphone")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="default">System Default</SelectItem>
+                  <SelectItem value="default">{t("system_default", "System Default")}</SelectItem>
                   {devices.microphones.map((device) => (
                     <SelectItem key={device.deviceId} value={device.deviceId}>
                       {device.label || `Microphone ${devices.microphones.indexOf(device) + 1}`}
@@ -236,21 +238,21 @@ export function CommunicationSettings() {
                   ))}
                 </SelectContent>
               </Select>
-              <Button variant="outline" onClick={testMicrophone}>Test</Button>
+              <Button variant="outline" onClick={testMicrophone}>{t("test", "Test")}</Button>
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label>Default Speaker</Label>
+            <Label>{t("default_speaker", "Default Speaker")}</Label>
             <Select
               value={settings.default_speaker}
               onValueChange={(value) => setSettings({ ...settings, default_speaker: value })}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Select speaker" />
+                <SelectValue placeholder={t("select_speaker", "Select speaker")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="default">System Default</SelectItem>
+                <SelectItem value="default">{t("system_default", "System Default")}</SelectItem>
                 {devices.speakers.map((device) => (
                   <SelectItem key={device.deviceId} value={device.deviceId}>
                     {device.label || `Speaker ${devices.speakers.indexOf(device) + 1}`}
@@ -262,8 +264,8 @@ export function CommunicationSettings() {
 
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label>Noise Suppression</Label>
-              <p className="text-xs text-muted-foreground">Reduce background noise in your audio</p>
+              <Label>{t("noise_suppression", "Noise Suppression")}</Label>
+              <p className="text-xs text-muted-foreground">{t("reduce_background_noise_in", "Reduce background noise in your audio")}</p>
             </div>
             <Switch
               checked={settings.noise_suppression_enabled}
@@ -273,8 +275,8 @@ export function CommunicationSettings() {
 
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label>Echo Cancellation</Label>
-              <p className="text-xs text-muted-foreground">Prevent audio feedback loops</p>
+              <Label>{t("echo_cancellation", "Echo Cancellation")}</Label>
+              <p className="text-xs text-muted-foreground">{t("prevent_audio_feedback_loops", "Prevent audio feedback loops")}</p>
             </div>
             <Switch
               checked={settings.echo_cancellation_enabled}
@@ -284,8 +286,8 @@ export function CommunicationSettings() {
 
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label>Auto Gain Control</Label>
-              <p className="text-xs text-muted-foreground">Automatically adjust microphone volume</p>
+              <Label>{t("auto_gain_control", "Auto Gain Control")}</Label>
+              <p className="text-xs text-muted-foreground">{t("automatically_adjust_microphone_volume", "Automatically adjust microphone volume")}</p>
             </div>
             <Switch
               checked={settings.auto_gain_control}
@@ -301,13 +303,13 @@ export function CommunicationSettings() {
             <Settings2 className="w-5 h-5" />
             Recording & Privacy
           </CardTitle>
-          <CardDescription>Control recording permissions and privacy</CardDescription>
+          <CardDescription>{t("control_recording_permissions_and", "Control recording permissions and privacy")}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label>Auto-consent to Recording</Label>
-              <p className="text-xs text-muted-foreground">Automatically consent when host starts recording</p>
+              <Label>{t("autoconsent_to_recording", "Auto-consent to Recording")}</Label>
+              <p className="text-xs text-muted-foreground">{t("automatically_consent_when_host", "Automatically consent when host starts recording")}</p>
             </div>
             <Switch
               checked={settings.recording_consent_default}
@@ -317,7 +319,7 @@ export function CommunicationSettings() {
 
           <div className="p-4 bg-muted/50 rounded-lg">
             <p className="text-sm text-muted-foreground">
-              <strong>Note:</strong> You will always be notified when a recording starts, 
+              <strong>{t("note", "Note:")}</strong> You will always be notified when a recording starts, 
               regardless of this setting. You can always opt out of being recorded.
             </p>
           </div>

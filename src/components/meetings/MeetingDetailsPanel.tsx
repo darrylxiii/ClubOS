@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Copy, Phone, Mail, MessageCircle, UserPlus, Search } from 'lucide-react';
@@ -28,6 +29,7 @@ export function MeetingDetailsPanel({
   meetingId,
   isHost = false,
 }: MeetingDetailsPanelProps) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -123,7 +125,7 @@ export function MeetingDetailsPanel({
       loadParticipants();
     } catch (error: unknown) {
       console.error('Error inviting member:', error);
-      toast.error('Failed to send invitation');
+      toast.error(t("failed_to_send_invitation", "Failed to send invitation"));
     } finally {
       setInviting(false);
     }
@@ -132,17 +134,17 @@ export function MeetingDetailsPanel({
   const copyMeetingInfo = () => {
     const info = `Meeting Link: ${meetingUrl}\nMeeting Code: ${meetingCode}`;
     navigator.clipboard.writeText(info);
-    toast.success('Meeting info copied to clipboard');
+    toast.success(t("meeting_info_copied_to", "Meeting info copied to clipboard"));
   };
 
   const copyCode = () => {
     navigator.clipboard.writeText(meetingCode);
-    toast.success('Code copied to clipboard');
+    toast.success(t("code_copied_to_clipboard", "Code copied to clipboard"));
   };
 
   const copyLink = () => {
     navigator.clipboard.writeText(meetingUrl);
-    toast.success('Link copied to clipboard');
+    toast.success(t("link_copied_to_clipboard", "Link copied to clipboard"));
   };
 
   const shareViaEmail = () => {
@@ -160,13 +162,13 @@ export function MeetingDetailsPanel({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="right" className="w-[400px] z-[10200] overflow-y-auto">
         <SheetHeader>
-          <SheetTitle>Meeting Details</SheetTitle>
+          <SheetTitle>{t("meeting_details", "Meeting Details")}</SheetTitle>
         </SheetHeader>
 
         <div className="space-y-6 py-6">
           {/* Magic Code Display */}
           <div className="text-center p-6 bg-gradient-to-br from-primary/10 to-primary/5 rounded-lg border border-primary/20">
-            <p className="text-xs text-muted-foreground mb-2 uppercase tracking-wide">Share this code</p>
+            <p className="text-xs text-muted-foreground mb-2 uppercase tracking-wide">{t("share_this_code", "Share this code")}</p>
             <h2 className="text-3xl font-bold font-mono tracking-wider mb-3 text-primary">
               {meetingCode.toUpperCase()}
             </h2>
@@ -178,19 +180,19 @@ export function MeetingDetailsPanel({
 
           {/* Quick Share Actions */}
           <div className="space-y-2">
-            <h3 className="font-semibold text-sm text-muted-foreground mb-3">Quick Share</h3>
+            <h3 className="font-semibold text-sm text-muted-foreground mb-3">{t("quick_share", "Quick Share")}</h3>
             <div className="grid grid-cols-3 gap-2">
               <Button variant="outline" size="sm" onClick={copyLink} className="flex-col h-auto py-3">
                 <Copy className="h-4 w-4 mb-1" />
-                <span className="text-xs">Copy Link</span>
+                <span className="text-xs">{t("copy_link", "Copy Link")}</span>
               </Button>
               <Button variant="outline" size="sm" onClick={shareViaEmail} className="flex-col h-auto py-3">
                 <Mail className="h-4 w-4 mb-1" />
-                <span className="text-xs">Email</span>
+                <span className="text-xs">{t("email", "Email")}</span>
               </Button>
               <Button variant="outline" size="sm" onClick={shareViaWhatsApp} className="flex-col h-auto py-3">
                 <MessageCircle className="h-4 w-4 mb-1" />
-                <span className="text-xs">WhatsApp</span>
+                <span className="text-xs">{t("whatsapp", "WhatsApp")}</span>
               </Button>
             </div>
           </div>
@@ -198,7 +200,7 @@ export function MeetingDetailsPanel({
           {/* Add People Section - Only for host */}
           {isHost && meetingId && (
             <div className="space-y-3">
-              <h3 className="font-semibold text-sm text-muted-foreground">Add People</h3>
+              <h3 className="font-semibold text-sm text-muted-foreground">{t("add_people", "Add People")}</h3>
               
               <Popover open={searchOpen} onOpenChange={setSearchOpen}>
                 <PopoverTrigger asChild>
@@ -210,7 +212,7 @@ export function MeetingDetailsPanel({
                 <PopoverContent className="w-[320px] p-0" align="start">
                   <Command>
                     <CommandInput
-                      placeholder="Search by name or email..."
+                      placeholder={t("search_by_name_or", "Search by name or email...")}
                       value={searchQuery}
                       onValueChange={(value) => {
                         setSearchQuery(value);
@@ -239,7 +241,7 @@ export function MeetingDetailsPanel({
                               <p className="text-xs text-muted-foreground truncate">{profile.email}</p>
                             </div>
                             {participants.some(p => p.user_id === profile.id) && (
-                              <Badge variant="secondary" className="ml-2">In meeting</Badge>
+                              <Badge variant="secondary" className="ml-2">{t("in_meeting", "In meeting")}</Badge>
                             )}
                           </CommandItem>
                         ))}
@@ -266,7 +268,7 @@ export function MeetingDetailsPanel({
                           {participant.profiles?.full_name || participant.guest_name}
                         </span>
                         {participant.role === 'host' && (
-                          <Badge variant="secondary" className="text-xs">Host</Badge>
+                          <Badge variant="secondary" className="text-xs">{t("host", "Host")}</Badge>
                         )}
                       </div>
                     ))}
@@ -278,7 +280,7 @@ export function MeetingDetailsPanel({
 
           {/* Meeting URL */}
           <div className="space-y-2">
-            <h3 className="font-semibold text-sm text-muted-foreground">Meeting Link</h3>
+            <h3 className="font-semibold text-sm text-muted-foreground">{t("meeting_link", "Meeting Link")}</h3>
             <div className="p-3 bg-muted rounded-lg">
               <p className="text-xs break-all text-muted-foreground">{meetingUrl}</p>
             </div>

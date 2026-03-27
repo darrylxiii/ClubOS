@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -23,6 +24,7 @@ interface Props {
 }
 
 export function EditCandidateDialog({ open, onOpenChange, candidate, onSave }: Props) {
+  const { t } = useTranslation('common');
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({
     full_name: '',
@@ -149,12 +151,12 @@ export function EditCandidateDialog({ open, onOpenChange, candidate, onSave }: P
         visible_to_candidate: false,
       });
 
-      toast.success("Candidate profile updated successfully");
+      toast.success(t("candidate_profile_updated_successfully", "Candidate profile updated successfully"));
       onSave();
       onOpenChange(false);
     } catch (error) {
       console.error('Error updating candidate:', error);
-      toast.error("Failed to update candidate profile");
+      toast.error(t("failed_to_update_candidate", "Failed to update candidate profile"));
     } finally {
       setSaving(false);
     }
@@ -164,20 +166,18 @@ export function EditCandidateDialog({ open, onOpenChange, candidate, onSave }: P
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Edit Candidate Profile</DialogTitle>
-          <DialogDescription>
-            Update candidate information. All changes will be logged.
-          </DialogDescription>
+          <DialogTitle>{t("edit_candidate_profile", "Edit Candidate Profile")}</DialogTitle>
+          <DialogDescription>{t('editCandidateDialog.dialogDescription')}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6 py-4">
           {/* Basic Information */}
           <div className="space-y-4">
-            <h3 className="font-semibold text-lg">Basic Information</h3>
+            <h3 className="font-semibold text-lg">{t("basic_information", "Basic Information")}</h3>
             
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="full_name">Full Name *</Label>
+                <Label htmlFor="full_name">{t("full_name", "Full Name *")}</Label>
                 <Input
                   id="full_name"
                   value={formData.full_name}
@@ -187,7 +187,7 @@ export function EditCandidateDialog({ open, onOpenChange, candidate, onSave }: P
               </div>
 
               <div>
-                <Label htmlFor="email">Email *</Label>
+                <Label htmlFor="email">{t("email", "Email *")}</Label>
                 <Input
                   id="email"
                   type="email"
@@ -198,7 +198,7 @@ export function EditCandidateDialog({ open, onOpenChange, candidate, onSave }: P
               </div>
 
               <div>
-                <Label htmlFor="phone">Phone</Label>
+                <Label htmlFor="phone">{t("phone", "Phone")}</Label>
                 <Input
                   id="phone"
                   value={formData.phone}
@@ -207,7 +207,7 @@ export function EditCandidateDialog({ open, onOpenChange, candidate, onSave }: P
               </div>
 
               <div>
-                <Label htmlFor="years_of_experience">Years of Experience</Label>
+                <Label htmlFor="years_of_experience">{t("years_of_experience", "Years of Experience")}</Label>
                 <Input
                   id="years_of_experience"
                   type="number"
@@ -220,11 +220,11 @@ export function EditCandidateDialog({ open, onOpenChange, candidate, onSave }: P
 
           {/* Current Position */}
           <div className="space-y-4">
-            <h3 className="font-semibold text-lg">Current Position</h3>
+            <h3 className="font-semibold text-lg">{t("current_position", "Current Position")}</h3>
             
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="current_title">Current Title</Label>
+                <Label htmlFor="current_title">{t("current_title", "Current Title")}</Label>
                 <Input
                   id="current_title"
                   value={formData.current_title}
@@ -233,7 +233,7 @@ export function EditCandidateDialog({ open, onOpenChange, candidate, onSave }: P
               </div>
 
               <div>
-                <Label htmlFor="current_company">Current Company</Label>
+                <Label htmlFor="current_company">{t("current_company", "Current Company")}</Label>
                 <Input
                   id="current_company"
                   value={formData.current_company}
@@ -245,11 +245,11 @@ export function EditCandidateDialog({ open, onOpenChange, candidate, onSave }: P
 
           {/* Links */}
           <div className="space-y-4">
-            <h3 className="font-semibold text-lg">Links</h3>
+            <h3 className="font-semibold text-lg">{t("links", "Links")}</h3>
             
             <div className="space-y-3">
               <div>
-                <Label htmlFor="linkedin_url">LinkedIn URL</Label>
+                <Label htmlFor="linkedin_url">{t("linkedin_url", "LinkedIn URL")}</Label>
                 <Input
                   id="linkedin_url"
                   type="url"
@@ -260,7 +260,7 @@ export function EditCandidateDialog({ open, onOpenChange, candidate, onSave }: P
               </div>
 
               <div>
-                <Label htmlFor="github_url">GitHub URL</Label>
+                <Label htmlFor="github_url">{t("github_url", "GitHub URL")}</Label>
                 <Input
                   id="github_url"
                   type="url"
@@ -271,7 +271,7 @@ export function EditCandidateDialog({ open, onOpenChange, candidate, onSave }: P
               </div>
 
               <div>
-                <Label htmlFor="portfolio_url">Portfolio URL</Label>
+                <Label htmlFor="portfolio_url">{t("portfolio_url", "Portfolio URL")}</Label>
                 <Input
                   id="portfolio_url"
                   type="url"
@@ -285,11 +285,11 @@ export function EditCandidateDialog({ open, onOpenChange, candidate, onSave }: P
 
           {/* Compensation */}
           <div className="space-y-4">
-            <h3 className="font-semibold text-lg">Compensation Expectations</h3>
+            <h3 className="font-semibold text-lg">{t("compensation_expectations", "Compensation Expectations")}</h3>
             
             <div className="grid grid-cols-3 gap-4">
               <div>
-                <Label htmlFor="desired_salary_min">Min Salary</Label>
+                <Label htmlFor="desired_salary_min">{t("min_salary", "Min Salary")}</Label>
                 <Input
                   id="desired_salary_min"
                   type="number"
@@ -299,7 +299,7 @@ export function EditCandidateDialog({ open, onOpenChange, candidate, onSave }: P
               </div>
 
               <div>
-                <Label htmlFor="desired_salary_max">Max Salary</Label>
+                <Label htmlFor="desired_salary_max">{t("max_salary", "Max Salary")}</Label>
                 <Input
                   id="desired_salary_max"
                   type="number"
@@ -309,7 +309,7 @@ export function EditCandidateDialog({ open, onOpenChange, candidate, onSave }: P
               </div>
 
               <div>
-                <Label htmlFor="preferred_currency">Currency</Label>
+                <Label htmlFor="preferred_currency">{t("currency", "Currency")}</Label>
                 <Input
                   id="preferred_currency"
                   value={formData.preferred_currency}
@@ -321,24 +321,24 @@ export function EditCandidateDialog({ open, onOpenChange, candidate, onSave }: P
 
           {/* Preferences */}
           <div className="space-y-4">
-            <h3 className="font-semibold text-lg">Preferences</h3>
+            <h3 className="font-semibold text-lg">{t("preferences", "Preferences")}</h3>
             
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="notice_period">Notice Period</Label>
+                <Label htmlFor="notice_period">{t("notice_period", "Notice Period")}</Label>
                 <Input
                   id="notice_period"
-                  placeholder="e.g., 1 month, 2 weeks"
+                  placeholder={t("eg_1_month_2", "e.g., 1 month, 2 weeks")}
                   value={formData.notice_period}
                   onChange={(e) => setFormData({ ...formData, notice_period: e.target.value })}
                 />
               </div>
 
               <div>
-                <Label htmlFor="remote_preference">Remote Preference</Label>
+                <Label htmlFor="remote_preference">{t("remote_preference", "Remote Preference")}</Label>
                 <Input
                   id="remote_preference"
-                  placeholder="e.g., Hybrid, Remote, On-site"
+                  placeholder={t("eg_hybrid_remote_onsite", "e.g., Hybrid, Remote, On-site")}
                   value={formData.remote_preference}
                   onChange={(e) => setFormData({ ...formData, remote_preference: e.target.value })}
                 />
@@ -346,10 +346,10 @@ export function EditCandidateDialog({ open, onOpenChange, candidate, onSave }: P
             </div>
 
             <div>
-              <Label htmlFor="desired_locations">Desired Locations (comma-separated)</Label>
+              <Label htmlFor="desired_locations">{t("desired_locations_commaseparated", "Desired Locations (comma-separated)")}</Label>
               <Input
                 id="desired_locations"
-                placeholder="e.g., Amsterdam, Berlin, London"
+                placeholder={t("eg_amsterdam_berlin_london", "e.g., Amsterdam, Berlin, London")}
                 value={formData.desired_locations}
                 onChange={(e) => setFormData({ ...formData, desired_locations: e.target.value })}
               />
@@ -358,13 +358,13 @@ export function EditCandidateDialog({ open, onOpenChange, candidate, onSave }: P
 
           {/* Skills & Languages */}
           <div className="space-y-4">
-            <h3 className="font-semibold text-lg">Skills & Languages</h3>
+            <h3 className="font-semibold text-lg">{t("skills_languages", "Skills & Languages")}</h3>
             
             <div>
-              <Label htmlFor="skills">Skills (comma-separated)</Label>
+              <Label htmlFor="skills">{t("skills_commaseparated", "Skills (comma-separated)")}</Label>
               <Textarea
                 id="skills"
-                placeholder="e.g., React, TypeScript, Node.js, Python"
+                placeholder={t("eg_react_typescript_nodejs", "e.g., React, TypeScript, Node.js, Python")}
                 value={formData.skills}
                 onChange={(e) => setFormData({ ...formData, skills: e.target.value })}
                 rows={2}
@@ -372,10 +372,10 @@ export function EditCandidateDialog({ open, onOpenChange, candidate, onSave }: P
             </div>
 
             <div>
-              <Label htmlFor="languages">Languages (comma-separated)</Label>
+              <Label htmlFor="languages">{t("languages_commaseparated", "Languages (comma-separated)")}</Label>
               <Input
                 id="languages"
-                placeholder="e.g., English, Dutch, German"
+                placeholder={t("eg_english_dutch_german", "e.g., English, Dutch, German")}
                 value={formData.languages}
                 onChange={(e) => setFormData({ ...formData, languages: e.target.value })}
               />
@@ -384,13 +384,13 @@ export function EditCandidateDialog({ open, onOpenChange, candidate, onSave }: P
 
           {/* AI Summary */}
           <div className="space-y-4">
-            <h3 className="font-semibold text-lg">AI Summary</h3>
+            <h3 className="font-semibold text-lg">{t("ai_summary", "AI Summary")}</h3>
             
             <div>
-              <Label htmlFor="ai_summary">AI-Generated Summary</Label>
+              <Label htmlFor="ai_summary">{t("aigenerated_summary", "AI-Generated Summary")}</Label>
               <Textarea
                 id="ai_summary"
-                placeholder="Brief summary of candidate's profile..."
+                placeholder={t("brief_summary_of_candidates", "Brief summary of candidate's profile...")}
                 value={formData.ai_summary}
                 onChange={(e) => setFormData({ ...formData, ai_summary: e.target.value })}
                 rows={4}
@@ -401,7 +401,7 @@ export function EditCandidateDialog({ open, onOpenChange, candidate, onSave }: P
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>
-            Cancel
+            {t('common:cancel')}
           </Button>
           <Button onClick={handleSave} disabled={saving || !formData.full_name || !formData.email}>
             {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

@@ -70,9 +70,9 @@ serve(async (req) => {
       .limit(20);
 
     // Generate AI insights
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY not configured");
+    const GOOGLE_API_KEY = Deno.env.get("GOOGLE_API_KEY");
+    if (!GOOGLE_API_KEY) {
+      throw new Error("GOOGLE_API_KEY not configured");
     }
 
     const analyticsContext = {
@@ -104,14 +104,14 @@ Return JSON array with insights in this format:
   ]
 }`;
 
-    const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const aiResponse = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${LOVABLE_API_KEY}`,
+        "Authorization": `Bearer ${GOOGLE_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash-lite",
+        model: "gemini-2.5-flash-lite",
         messages: [
           { role: "system", content: "You are an expert social media analytics advisor. Provide clear, actionable insights." },
           { role: "user", content: prompt }
@@ -151,7 +151,7 @@ Return JSON array with insights in this format:
         throw new Error("Rate limit exceeded. Please try again later.");
       }
       if (aiResponse.status === 402) {
-        throw new Error("AI credits exhausted. Please add credits to continue.");
+        throw new Error("AI quota exceeded. Please check your Google API billing.");
       }
       throw new Error("AI generation failed");
     }

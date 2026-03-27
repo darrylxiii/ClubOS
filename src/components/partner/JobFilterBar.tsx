@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Filter, Clock, Activity, TrendingUp, X } from "lucide-react";
 
 export type JobFilterType = 'all' | 'expiring-soon' | 'recent-activity' | 'high-engagement';
+import { useTranslation } from 'react-i18next';
 
 interface JobFilterBarProps {
   currentFilter: JobFilterType;
@@ -21,6 +22,7 @@ export const JobFilterBar = memo(({
   onFilterChange,
   jobCounts 
 }: JobFilterBarProps) => {
+  const { t } = useTranslation('partner');
   const filters = [
     { id: 'all' as JobFilterType, label: 'All Jobs', icon: Filter, count: jobCounts.all },
     { id: 'expiring-soon' as JobFilterType, label: 'Expiring Soon', icon: Clock, count: jobCounts.expiringSoon },
@@ -64,7 +66,7 @@ export const JobFilterBar = memo(({
           onClick={() => onFilterChange('all')}
         >
           <X className="w-4 h-4" />
-          Clear
+          {t('common:clear')}
         </Button>
       )}
     </div>

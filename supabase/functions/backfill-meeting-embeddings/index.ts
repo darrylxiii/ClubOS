@@ -1,39 +1,30 @@
 /**
  * Backfill Meeting Embeddings Edge Function
- * 
+ *
  * Processes existing analyzed recordings that don't have embeddings yet.
  * Runs in batches to avoid timeouts.
- * 
+ *
  * Usage: POST /backfill-meeting-embeddings
  * Body: { batchSize?: number, offset?: number }
  */
 
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.58.0';
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { createHandler } from '../_shared/handler.ts';
 
 const DEFAULT_BATCH_SIZE = 10;
 const DELAY_BETWEEN_RECORDINGS_MS = 2000;
 
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
-  }
+Deno.serve(createHandler(async (req, ctx) => {
+    const corsHeaders = ctx.corsHeaders;
+    const supabase = ctx.supabase;
 
-  const startTime = Date.now();
+    const startTime = Date.now();
 
-  try {
     const { batchSize = DEFAULT_BATCH_SIZE, offset = 0 } = await req.json();
-    
+
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    console.log(`[Backfill] 🚀 Starting backfill - batch: ${batchSize}, offset: ${offset}`);
+    console.log(`[Backfill] Starting backfill - batch: ${batchSize}, offset: ${offset}`);
 
     // Fetch recordings that need embeddings
     const { data: recordings, error: fetchError } = await supabase
@@ -49,10 +40,10 @@ serve(async (req) => {
     }
 
     if (!recordings || recordings.length === 0) {
-      console.log('[Backfill] ✅ No more recordings to process');
+      console.log('[Backfill] No more recordings to process');
       return new Response(
-        JSON.stringify({ 
-          success: true, 
+        JSON.stringify({
+          success: true,
           message: 'No more recordings to process',
           processed: 0,
           hasMore: false,
@@ -61,7 +52,7 @@ serve(async (req) => {
       );
     }
 
-    console.log(`[Backfill] 📊 Found ${recordings.length} recordings to process`);
+    console.log(`[Backfill] Found ${recordings.length} recordings to process`);
 
     const results: { id: string; success: boolean; error?: string }[] = [];
 
@@ -69,14 +60,14 @@ serve(async (req) => {
     for (const recording of recordings) {
       try {
         console.log(`[Backfill] Processing: ${recording.id}`);
-        
+
         const response = await fetch(`${supabaseUrl}/functions/v1/embed-meeting-intelligence`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${supabaseServiceKey}`,
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ 
+          body: JSON.stringify({
             recordingId: recording.id,
             batchMode: true,
           }),
@@ -110,10 +101,10 @@ serve(async (req) => {
     const hasMore = (count || 0) > batchSize;
     const duration = Date.now() - startTime;
 
-    console.log(`[Backfill] ✅ Completed in ${duration}ms - ${results.filter(r => r.success).length}/${results.length} successful`);
+    console.log(`[Backfill] Completed in ${duration}ms - ${results.filter(r => r.success).length}/${results.length} successful`);
 
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         success: true,
         processed: results.length,
         successful: results.filter(r => r.success).length,
@@ -128,14 +119,4 @@ serve(async (req) => {
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
-
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    console.error('[Backfill] ❌ Error:', errorMessage);
-    
-    return new Response(
-      JSON.stringify({ error: errorMessage }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-  }
-});
+}));

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -43,6 +44,7 @@ export function SelfBookingWidget({
   companyName,
   onBookingComplete,
 }: SelfBookingWidgetProps) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [step, setStep] = useState<BookingStep>("select-link");
@@ -83,7 +85,7 @@ export function SelfBookingWidget({
 
   const handleConfirmBooking = async () => {
     if (!selectedLink || !selectedSlot || !user || !profile) {
-      toast.error("Missing required information");
+      toast.error(t("missing_required_information", "Missing required information"));
       return;
     }
 
@@ -146,7 +148,7 @@ export function SelfBookingWidget({
       setBookingId(booking.id);
       setStep("success");
       onBookingComplete?.(booking.id);
-      toast.success("Interview scheduled successfully!");
+      toast.success(t("interview_scheduled_successfully", "Interview scheduled successfully!"));
     } catch (error: unknown) {
       console.error("Booking error:", error);
       const message = error instanceof Error ? error.message : "Failed to book interview";
@@ -179,7 +181,7 @@ export function SelfBookingWidget({
         <CardContent className="py-12">
           <div className="flex flex-col items-center justify-center">
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-            <p className="text-sm text-muted-foreground mt-2">Loading available times...</p>
+            <p className="text-sm text-muted-foreground mt-2">{t("loading_available_times", "Loading available times...")}</p>
           </div>
         </CardContent>
       </Card>
@@ -192,7 +194,7 @@ export function SelfBookingWidget({
         <CardContent className="py-12">
           <div className="flex flex-col items-center justify-center text-center">
             <Calendar className="h-12 w-12 text-muted-foreground/50 mb-4" />
-            <h3 className="font-semibold mb-2">No Interview Slots Available</h3>
+            <h3 className="font-semibold mb-2">{t("no_interview_slots_available", "No Interview Slots Available")}</h3>
             <p className="text-sm text-muted-foreground max-w-sm">
               Your strategist will reach out soon to schedule your interview
             </p>
@@ -294,29 +296,29 @@ export function SelfBookingWidget({
         {step === "confirm" && selectedLink && selectedSlot && (
           <div className="space-y-6">
             <div className="p-6 bg-muted/30 rounded-lg space-y-4">
-              <h4 className="font-semibold text-center">Review Your Booking</h4>
+              <h4 className="font-semibold text-center">{t("review_your_booking", "Review Your Booking")}</h4>
               
               <div className="space-y-3">
                 <div className="flex items-center justify-between py-2 border-b border-border/50">
-                  <span className="text-muted-foreground">Interview Type</span>
+                  <span className="text-muted-foreground">{t("interview_type", "Interview Type")}</span>
                   <span className="font-medium">{selectedLink.title}</span>
                 </div>
                 <div className="flex items-center justify-between py-2 border-b border-border/50">
-                  <span className="text-muted-foreground">Date</span>
+                  <span className="text-muted-foreground">{t("date", "Date")}</span>
                   <span className="font-medium">
                     {format(selectedSlot.date, "EEEE, MMMM d, yyyy")}
                   </span>
                 </div>
                 <div className="flex items-center justify-between py-2 border-b border-border/50">
-                  <span className="text-muted-foreground">Time</span>
+                  <span className="text-muted-foreground">{t("time", "Time")}</span>
                   <span className="font-medium">{selectedSlot.time}</span>
                 </div>
                 <div className="flex items-center justify-between py-2 border-b border-border/50">
-                  <span className="text-muted-foreground">Duration</span>
+                  <span className="text-muted-foreground">{t("duration", "Duration")}</span>
                   <span className="font-medium">{selectedLink.duration_minutes} minutes</span>
                 </div>
                 <div className="flex items-center justify-between py-2">
-                  <span className="text-muted-foreground">With</span>
+                  <span className="text-muted-foreground">{t("with", "With")}</span>
                   <div className="flex items-center gap-2">
                     <Avatar className="h-6 w-6">
                       <AvatarImage src={selectedLink.host_avatar} />
@@ -366,7 +368,7 @@ export function SelfBookingWidget({
             </div>
             
             <div className="space-y-2">
-              <h3 className="text-xl font-bold">You're All Set!</h3>
+              <h3 className="text-xl font-bold">{t("youre_all_set", "You're All Set!")}</h3>
               <p className="text-muted-foreground">
                 Your interview has been scheduled for
               </p>
@@ -376,8 +378,8 @@ export function SelfBookingWidget({
             </div>
 
             <div className="p-4 bg-muted/30 rounded-lg text-sm text-muted-foreground">
-              <p>A calendar invite will be sent to your email.</p>
-              <p className="mt-1">You can also view this in your Applications.</p>
+              <p>{t("a_calendar_invite_will", "A calendar invite will be sent to your email.")}</p>
+              <p className="mt-1">{t("you_can_also_view", "You can also view this in your Applications.")}</p>
             </div>
 
             <Button variant="outline" onClick={resetWidget}>

@@ -1,16 +1,8 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createHandler } from '../_shared/handler.ts';
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+Deno.serve(createHandler(async (req, ctx) => {
+    const { corsHeaders } = ctx;
 
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  try {
     const { action, connectionId, accessToken, timeMin, timeMax, event } = await req.json();
 
     console.log('Microsoft Calendar request:', { action, connectionId, timeMin, timeMax });
@@ -18,12 +10,7 @@ serve(async (req) => {
     // If connectionId is provided, fetch from database
     let msAccessToken = accessToken;
     if (connectionId) {
-      const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-      const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-      const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2.38.4');
-      const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
-      const { data: connection, error: connectionError } = await supabase
+      const { data: connection, error: connectionError } = await ctx.supabase
         .from('calendar_connections')
         .select('*')
         .eq('id', connectionId)
@@ -256,12 +243,4 @@ serve(async (req) => {
       JSON.stringify({ events }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
-  } catch (error) {
-    console.error('Error in microsoft-calendar-events:', error);
-    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
-    return new Response(
-      JSON.stringify({ error: errorMessage }),
-      { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-  }
-});
+}));

@@ -1,9 +1,11 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useTranslation } from 'react-i18next';
 import { StageMappingManager } from "@/components/admin/pipeline-settings/StageMappingManager";
 import { DealStageEditor } from "@/components/admin/pipeline-settings/DealStageEditor";
 import { GitBranch, Layers } from "lucide-react";
 
 export default function DealPipelineSettings() {
+  const { t } = useTranslation('admin');
   return (
     <div className="space-y-6">
       <Tabs defaultValue="mappings" className="space-y-6">

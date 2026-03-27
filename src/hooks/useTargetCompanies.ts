@@ -20,7 +20,7 @@ export interface TargetCompany {
   updated_at: string;
   company_insider: string | null;
   enrichment_source: string | null;
-  job_specifications: any;
+  job_specifications: Record<string, unknown> | null;
   company_name?: string;
   company_logo?: string;
   creator_name?: string;
@@ -29,9 +29,9 @@ export interface TargetCompany {
   vote_count?: number;
   comment_count?: number;
   contact_count?: number;
-  jobs?: any[];
-  votes?: any[];
-  comments?: any[];
+  jobs?: Array<{ id: string; title: string; status: string }>;
+  votes?: Array<{ user_id: string }>;
+  comments?: Array<{ id: string; content: string; created_at: string; user_id: string }>;
 }
 
 export const useTargetCompanies = (companyId?: string | null) => {
@@ -82,7 +82,7 @@ export const useTargetCompanies = (companyId?: string | null) => {
         })
       );
 
-      setCompanies(enrichedData as any);
+      setCompanies(enrichedData as TargetCompany[]);
     } catch (error: unknown) {
       console.error('Error loading target companies:', error);
       toast.error('Failed to load target companies');

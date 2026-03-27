@@ -18,6 +18,7 @@ import { ApprovalConfirmationStep } from "./ApprovalConfirmationStep";
 import { CompanySelectionStep } from "./CompanySelectionStep";
 import { memberApprovalService } from "@/services/memberApprovalService";
 import { toast } from "sonner";
+import { useTranslation } from 'react-i18next';
 
 interface MemberApprovalWorkflowDialogProps {
   open: boolean;
@@ -34,6 +35,7 @@ export const MemberApprovalWorkflowDialog = ({
   adminId,
   onSuccess,
 }: MemberApprovalWorkflowDialogProps) => {
+  const { t } = useTranslation('admin');
   const isPartner = request.request_type === 'partner';
   
   const [currentStep, setCurrentStep] = useState<ApprovalStep>(isPartner ? 'company' : 'detect');
@@ -119,7 +121,7 @@ export const MemberApprovalWorkflowDialog = ({
     }
 
     if (!adminId) {
-      toast.error('Admin ID is missing. Please refresh and try again.');
+      toast.error(t('approval.memberApprovalWorkflowDialog.adminIdIsMissingPleaseRefresh'));
       return;
     }
 
@@ -169,7 +171,7 @@ export const MemberApprovalWorkflowDialog = ({
         }
       }
     } catch (error: unknown) {
-      toast.error('Failed to approve member', {
+      toast.error("Failed to approve member", {
         description: error instanceof Error ? error.message : undefined,
       });
     } finally {

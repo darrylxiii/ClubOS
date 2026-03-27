@@ -8,6 +8,7 @@ import { History, CheckCircle, XCircle, Clock, RotateCw, Loader2 } from "lucide-
 import { formatDistanceToNow, format } from "date-fns";
 import { toast } from "sonner";
 import { getInitials } from "@/lib/strings";
+import { useTranslation } from 'react-i18next';
 
 interface CreatorProfile {
   full_name: string;
@@ -32,6 +33,7 @@ interface EmailDumpHistoryProps {
 }
 
 export function EmailDumpHistory({ jobId }: EmailDumpHistoryProps) {
+  const { t } = useTranslation('jobs');
   const [dumps, setDumps] = useState<EmailDump[]>([]);
   const [loading, setLoading] = useState(true);
   const [reprocessingId, setReprocessingId] = useState<string | null>(null);

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -20,6 +21,7 @@ interface SuspiciousPattern {
 }
 
 export function SuspiciousActivityTable() {
+  const { t } = useTranslation('common');
   const { data: patterns, isLoading } = useQuery({
     queryKey: ['security-suspicious-patterns'],
     queryFn: async () => {
@@ -144,7 +146,7 @@ export function SuspiciousActivityTable() {
         {!patterns || patterns.length === 0 ? (
           <div className="text-center py-8">
             <Shield className="h-12 w-12 text-primary mx-auto mb-2" />
-            <p className="text-muted-foreground">No suspicious activity detected</p>
+            <p className="text-muted-foreground">{t("no_suspicious_activity_detected", "No suspicious activity detected")}</p>
           </div>
         ) : (
           <div className="space-y-3">

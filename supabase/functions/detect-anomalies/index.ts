@@ -1,98 +1,76 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.58.0";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { createHandler } from '../_shared/handler.ts';
+import { SupabaseClient } from "npm:@supabase/supabase-js@2";
 
 interface AnomalyDetectionResult {
   type: string;
   severity: 'low' | 'medium' | 'high' | 'critical';
   affectedUsers: number;
   description: string;
-  data: any;
+  data: Record<string, unknown>;
 }
 
-Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+Deno.serve(createHandler(async (req, ctx) => {
+  console.log('Starting anomaly detection scan...');
+
+  const anomalies: AnomalyDetectionResult[] = [];
+
+  // Detection 1: Frustration Signal Spike
+  const frustrationAnomaly = await detectFrustrationSpike(ctx.supabase);
+  if (frustrationAnomaly) anomalies.push(frustrationAnomaly);
+
+  // Detection 2: Login Drop
+  const loginAnomaly = await detectLoginDrop(ctx.supabase);
+  if (loginAnomaly) anomalies.push(loginAnomaly);
+
+  // Detection 3: Application Abandonment
+  const abandonmentAnomaly = await detectApplicationAbandonment(ctx.supabase);
+  if (abandonmentAnomaly) anomalies.push(abandonmentAnomaly);
+
+  // Detection 4: Performance Issues
+  const performanceAnomaly = await detectPerformanceIssues(ctx.supabase);
+  if (performanceAnomaly) anomalies.push(performanceAnomaly);
+
+  console.log(`Detected ${anomalies.length} anomalies`);
+
+  // Store anomalies in database
+  for (const anomaly of anomalies) {
+    const { error } = await ctx.supabase.from('detected_anomalies').insert({
+      anomaly_type: anomaly.type,
+      severity: anomaly.severity,
+      affected_users: anomaly.affectedUsers,
+      detection_data: {
+        description: anomaly.description,
+        ...anomaly.data,
+      },
+      alert_sent: false,
+    });
+
+    if (error) {
+      console.error('Error storing anomaly:', error);
+    }
   }
 
-  try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+  // Send alerts for high/critical anomalies
+  const criticalAnomalies = anomalies.filter(a =>
+    a.severity === 'high' || a.severity === 'critical'
+  );
 
-    console.log('Starting anomaly detection scan...');
-
-    const anomalies: AnomalyDetectionResult[] = [];
-
-    // Detection 1: Frustration Signal Spike
-    const frustrationAnomaly = await detectFrustrationSpike(supabase);
-    if (frustrationAnomaly) anomalies.push(frustrationAnomaly);
-
-    // Detection 2: Login Drop
-    const loginAnomaly = await detectLoginDrop(supabase);
-    if (loginAnomaly) anomalies.push(loginAnomaly);
-
-    // Detection 3: Application Abandonment
-    const abandonmentAnomaly = await detectApplicationAbandonment(supabase);
-    if (abandonmentAnomaly) anomalies.push(abandonmentAnomaly);
-
-    // Detection 4: Performance Issues
-    const performanceAnomaly = await detectPerformanceIssues(supabase);
-    if (performanceAnomaly) anomalies.push(performanceAnomaly);
-
-    console.log(`Detected ${anomalies.length} anomalies`);
-
-    // Store anomalies in database
-    for (const anomaly of anomalies) {
-      const { error } = await supabase.from('detected_anomalies').insert({
-        anomaly_type: anomaly.type,
-        severity: anomaly.severity,
-        affected_users: anomaly.affectedUsers,
-        detection_data: {
-          description: anomaly.description,
-          ...anomaly.data,
-        },
-        alert_sent: false,
-      });
-
-      if (error) {
-        console.error('Error storing anomaly:', error);
-      }
-    }
-
-    // Send alerts for high/critical anomalies
-    const criticalAnomalies = anomalies.filter(a => 
-      a.severity === 'high' || a.severity === 'critical'
-    );
-
-    if (criticalAnomalies.length > 0) {
-      await sendAnomalyAlerts(supabase, criticalAnomalies);
-    }
-
-    return new Response(
-      JSON.stringify({
-        success: true,
-        anomaliesDetected: anomalies.length,
-        criticalAnomalies: criticalAnomalies.length,
-        anomalies: anomalies,
-      }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-
-  } catch (error) {
-    console.error('Error in detect-anomalies:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    return new Response(
-      JSON.stringify({ error: errorMessage }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+  if (criticalAnomalies.length > 0) {
+    await sendAnomalyAlerts(ctx.supabase, criticalAnomalies);
   }
-});
 
-async function detectFrustrationSpike(supabase: any): Promise<AnomalyDetectionResult | null> {
+  return new Response(
+    JSON.stringify({
+      success: true,
+      anomaliesDetected: anomalies.length,
+      criticalAnomalies: criticalAnomalies.length,
+      anomalies: anomalies,
+    }),
+    { headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } }
+  );
+}));
+
+async function detectFrustrationSpike(supabase: SupabaseClient): Promise<AnomalyDetectionResult | null> {
   const now = new Date();
   const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
   const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
@@ -117,7 +95,7 @@ async function detectFrustrationSpike(supabase: any): Promise<AnomalyDetectionRe
   const zScore = (recentRate - baselineRate) / Math.sqrt(baselineRate);
 
   if (zScore > 2.5) {
-    const uniqueUsers = new Set(recentSignals.map((s: any) => s.user_id)).size;
+    const uniqueUsers = new Set(recentSignals.map((s: Record<string, unknown>) => s.user_id)).size;
     return {
       type: 'frustration_spike',
       severity: zScore > 4 ? 'critical' : 'high',
@@ -135,7 +113,7 @@ async function detectFrustrationSpike(supabase: any): Promise<AnomalyDetectionRe
   return null;
 }
 
-async function detectLoginDrop(supabase: any): Promise<AnomalyDetectionResult | null> {
+async function detectLoginDrop(supabase: SupabaseClient): Promise<AnomalyDetectionResult | null> {
   const now = new Date();
   const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
   const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
@@ -178,7 +156,7 @@ async function detectLoginDrop(supabase: any): Promise<AnomalyDetectionResult | 
   return null;
 }
 
-async function detectApplicationAbandonment(supabase: any): Promise<AnomalyDetectionResult | null> {
+async function detectApplicationAbandonment(supabase: SupabaseClient): Promise<AnomalyDetectionResult | null> {
   const now = new Date();
   const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
 
@@ -191,12 +169,12 @@ async function detectApplicationAbandonment(supabase: any): Promise<AnomalyDetec
 
   if (!events) return null;
 
-  const starts = events.filter((e: any) => e.event_type === 'application_started').length;
-  const completions = events.filter((e: any) => e.event_type === 'application_submitted').length;
+  const starts = events.filter((e: Record<string, unknown>) => e.event_type === 'application_started').length;
+  const completions = events.filter((e: Record<string, unknown>) => e.event_type === 'application_submitted').length;
 
   if (starts > 10) {
     const completionRate = (completions / starts) * 100;
-    
+
     if (completionRate < 30) {
       return {
         type: 'application_abandonment',
@@ -215,7 +193,7 @@ async function detectApplicationAbandonment(supabase: any): Promise<AnomalyDetec
   return null;
 }
 
-async function detectPerformanceIssues(supabase: any): Promise<AnomalyDetectionResult | null> {
+async function detectPerformanceIssues(supabase: SupabaseClient): Promise<AnomalyDetectionResult | null> {
   const now = new Date();
   const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
 
@@ -228,11 +206,11 @@ async function detectPerformanceIssues(supabase: any): Promise<AnomalyDetectionR
 
   if (!pageAnalytics || pageAnalytics.length < 10) return null;
 
-  const loadTimes = pageAnalytics.map((p: any) => p.load_time_ms);
+  const loadTimes = pageAnalytics.map((p: Record<string, unknown>) => p.load_time_ms as number);
   const avgLoadTime = loadTimes.reduce((a: number, b: number) => a + b, 0) / loadTimes.length;
 
   if (avgLoadTime > 3000) {
-    const slowPages = pageAnalytics.filter((p: any) => p.load_time_ms > 5000).length;
+    const slowPages = pageAnalytics.filter((p: Record<string, unknown>) => (p.load_time_ms as number) > 5000).length;
     return {
       type: 'performance_issue',
       severity: avgLoadTime > 5000 ? 'high' : 'medium',
@@ -249,9 +227,9 @@ async function detectPerformanceIssues(supabase: any): Promise<AnomalyDetectionR
   return null;
 }
 
-function getTopSignalTypes(signals: any[]): Record<string, number> {
+function getTopSignalTypes(signals: Record<string, unknown>[]): Record<string, number> {
   const counts: Record<string, number> = {};
-  signals.forEach((s: any) => {
+  signals.forEach((s: Record<string, unknown>) => {
     const type = s.signal_type || 'unknown';
     counts[type] = (counts[type] || 0) + 1;
   });
@@ -261,9 +239,9 @@ function getTopSignalTypes(signals: any[]): Record<string, number> {
     .reduce((obj, [key, val]) => ({ ...obj, [key]: val }), {});
 }
 
-async function sendAnomalyAlerts(supabase: any, anomalies: AnomalyDetectionResult[]) {
+async function sendAnomalyAlerts(supabase: SupabaseClient, anomalies: AnomalyDetectionResult[]) {
   console.log(`Sending alerts for ${anomalies.length} critical anomalies`);
-  
+
   // Get admin alert preferences
   const { data: admins } = await supabase
     .from('admin_alert_preferences')

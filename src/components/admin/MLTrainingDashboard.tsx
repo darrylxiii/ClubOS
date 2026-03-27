@@ -4,8 +4,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { notify } from '@/lib/notify';
 import { Loader2, Brain, TrendingUp } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export function MLTrainingDashboard() {
+  const { t } = useTranslation('admin');
   const [generatingEmbeddings, setGeneratingEmbeddings] = useState(false);
   const [preparing, setPreparing] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -25,7 +27,7 @@ export function MLTrainingDashboard() {
       );
       if (jobError) throw jobError;
 
-      notify.success("Embeddings Generated", {
+      notify.success(t('mlTrainingDashboard.embeddingsGenerated'), {
         description: `${candidateData.processed} candidates, ${jobData.processed} jobs`
       });
     } catch (error: unknown) {
@@ -44,7 +46,7 @@ export function MLTrainingDashboard() {
 
       if (error) throw error;
 
-      notify.success("Training Data Prepared", {
+      notify.success(t('mlTrainingDashboard.trainingDataPrepared'), {
         description: `Generated ${data.count} training samples with ${data.semantic_scores} semantic scores`,
       });
     } catch (error: unknown) {
@@ -68,11 +70,11 @@ export function MLTrainingDashboard() {
 
       if (error) throw error;
 
-      notify.success("Model Training Complete", {
+      notify.success(t('mlTrainingDashboard.modelTrainingComplete'), {
         description: `Model v${data.model_version} trained with AUC: ${data.metrics.auc_roc.toFixed(3)}`,
       });
     } catch (error: unknown) {
-      notify.error("Training Failed", { description: error instanceof Error ? error.message : 'An unexpected error occurred' });
+      notify.error(t('mlTrainingDashboard.trainingFailed'), { description: error instanceof Error ? error.message : t('common:errors.unexpected') });
     } finally {
       setLoading(false);
     }
@@ -84,21 +86,21 @@ export function MLTrainingDashboard() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Brain className="h-5 w-5" />
-            ML Training Pipeline
+            {t('mlTrainingDashboard.title')}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <Button onClick={generateEmbeddings} disabled={generatingEmbeddings} className="w-full">
             {generatingEmbeddings && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            1. Generate Embeddings
+            {t('mlTrainingDashboard.generateEmbeddings')}
           </Button>
           <Button onClick={prepareTrainingData} disabled={preparing} variant="outline" className="w-full">
             {preparing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            2. Prepare Training Data
+            {t('mlTrainingDashboard.prepareTrainingData')}
           </Button>
           <Button onClick={trainModel} disabled={loading} variant="outline" className="w-full">
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            3. Train Model
+            {t('mlTrainingDashboard.trainModel')}
           </Button>
         </CardContent>
       </Card>

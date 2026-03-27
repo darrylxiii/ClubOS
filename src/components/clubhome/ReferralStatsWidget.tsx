@@ -6,6 +6,7 @@ import { useReferralStats } from "@/hooks/useReferralSystem";
 import { Skeleton } from "@/components/ui/skeleton";
 import { T } from "@/components/T";
 import { motion } from "framer-motion";
+import { useTranslation } from 'react-i18next';
 
 const formatCurrency = (value: number) => {
   return new Intl.NumberFormat('en-EU', {
@@ -17,6 +18,7 @@ const formatCurrency = (value: number) => {
 };
 
 export const ReferralStatsWidget = () => {
+  const { t } = useTranslation('common');
   const { data: stats, isLoading } = useReferralStats();
 
   if (isLoading) {
@@ -62,7 +64,7 @@ export const ReferralStatsWidget = () => {
                   <Users className="h-3 w-3" />
                 </div>
                 <p className="text-lg font-bold">{stats?.activePipelines || 0}</p>
-                <p className="text-xs text-muted-foreground">Active</p>
+                <p className="text-xs text-muted-foreground">{t('referralStatsWidget.active')}</p>
               </motion.div>
               <motion.div 
                 className="text-center p-3 rounded-lg bg-muted/30"
@@ -74,7 +76,7 @@ export const ReferralStatsWidget = () => {
                   <TrendingUp className="h-3 w-3" />
                 </div>
                 <p className="text-lg font-bold text-green-500">{formatCurrency(stats?.projectedEarnings || 0)}</p>
-                <p className="text-xs text-muted-foreground">Projected</p>
+                <p className="text-xs text-muted-foreground">{t('referralStatsWidget.projected')}</p>
               </motion.div>
               <motion.div 
                 className="text-center p-3 rounded-lg bg-muted/30"
@@ -86,7 +88,7 @@ export const ReferralStatsWidget = () => {
                   <DollarSign className="h-3 w-3" />
                 </div>
                 <p className="text-lg font-bold text-primary">{formatCurrency(stats?.yourEarnings || 0)}</p>
-                <p className="text-xs text-muted-foreground">Earned</p>
+                <p className="text-xs text-muted-foreground">{t('referralStatsWidget.earned')}</p>
               </motion.div>
             </div>
 

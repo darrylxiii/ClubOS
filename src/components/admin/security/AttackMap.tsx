@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -26,6 +27,7 @@ const severityBadgeVariants = {
 };
 
 export function AttackMap() {
+  const { t } = useTranslation('common');
   const { data: attackPoints, isLoading: isLoadingAttacks } = useAttackGeoData();
   const { data: countryStats, isLoading: isLoadingStats } = useCountryAttackStats();
 
@@ -110,16 +112,16 @@ export function AttackMap() {
             {/* Stats Overlay */}
             <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
               <div className="bg-background/80 backdrop-blur-sm rounded-lg px-3 py-2 border border-border/50">
-                <div className="text-xs text-muted-foreground">Total Attacks</div>
+                <div className="text-xs text-muted-foreground">{t("total_attacks", "Total Attacks")}</div>
                 <div className="text-xl font-bold text-foreground">{totalAttacks.toLocaleString()}</div>
               </div>
               <div className="bg-background/80 backdrop-blur-sm rounded-lg px-3 py-2 border border-border/50">
-                <div className="text-xs text-muted-foreground">Unique IPs</div>
+                <div className="text-xs text-muted-foreground">{t("unique_ips", "Unique IPs")}</div>
                 <div className="text-xl font-bold text-foreground">{uniqueIPs}</div>
               </div>
               {criticalCount > 0 && (
                 <div className="bg-destructive/20 backdrop-blur-sm rounded-lg px-3 py-2 border border-destructive/30">
-                  <div className="text-xs text-destructive">Critical Threats</div>
+                  <div className="text-xs text-destructive">{t("critical_threats", "Critical Threats")}</div>
                   <div className="text-xl font-bold text-destructive">{criticalCount}</div>
                 </div>
               )}
@@ -127,7 +129,7 @@ export function AttackMap() {
 
             {/* Legend */}
             <div className="absolute bottom-4 left-4 z-10 bg-background/80 backdrop-blur-sm rounded-lg px-3 py-2 border border-border/50">
-              <div className="text-xs text-muted-foreground mb-2">Severity</div>
+              <div className="text-xs text-muted-foreground mb-2">{t("severity", "Severity")}</div>
               <div className="flex flex-wrap gap-2">
                 {Object.entries(SEVERITY_COLORS).map(([level, color]) => (
                   <div key={level} className="flex items-center gap-1">
@@ -146,8 +148,8 @@ export function AttackMap() {
               <div className="flex items-center gap-2">
                 <Shield className="h-4 w-4 text-green-500" />
                 <div>
-                  <div className="text-xs text-green-400">TQC Server</div>
-                  <div className="text-xs text-green-300">Amsterdam, NL</div>
+                  <div className="text-xs text-green-400">{t("tqc_server", "TQC Server")}</div>
+                  <div className="text-xs text-green-300">{t("amsterdam_nl", "Amsterdam, NL")}</div>
                 </div>
               </div>
             </div>
@@ -165,8 +167,8 @@ export function AttackMap() {
               <div className="w-full aspect-[2/1] flex items-center justify-center bg-muted/20">
                 <div className="text-center text-muted-foreground">
                   <Shield className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                  <p>No attack data available</p>
-                  <p className="text-sm">All systems secure</p>
+                  <p>{t("no_attack_data_available", "No attack data available")}</p>
+                  <p className="text-sm">{t("all_systems_secure", "All systems secure")}</p>
                 </div>
               </div>
             )}
@@ -209,7 +211,7 @@ export function AttackMap() {
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-muted-foreground">No attack origins detected</p>
+              <p className="text-sm text-muted-foreground">{t("no_attack_origins_detected", "No attack origins detected")}</p>
             )}
           </CardContent>
         </Card>
@@ -247,7 +249,7 @@ export function AttackMap() {
                       {(point.is_vpn || point.is_proxy || point.is_tor) && (
                         <div className="flex gap-1 mt-1">
                           {point.is_vpn && <Badge variant="secondary" className="text-[10px] py-0"><Shield className="h-2 w-2 mr-0.5" />VPN</Badge>}
-                          {point.is_proxy && <Badge variant="secondary" className="text-[10px] py-0">Proxy</Badge>}
+                          {point.is_proxy && <Badge variant="secondary" className="text-[10px] py-0">{t("proxy", "Proxy")}</Badge>}
                           {point.is_tor && <Badge variant="secondary" className="text-[10px] py-0 text-orange-500"><Wifi className="h-2 w-2 mr-0.5" />TOR</Badge>}
                         </div>
                       )}
@@ -256,7 +258,7 @@ export function AttackMap() {
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-muted-foreground">No recent attacks</p>
+              <p className="text-sm text-muted-foreground">{t("no_recent_attacks", "No recent attacks")}</p>
             )}
           </CardContent>
         </Card>

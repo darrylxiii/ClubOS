@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { candidateAuditService } from "@/services/candidateAuditService";
@@ -17,6 +18,7 @@ import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
 
 export function ArchivedCandidatesView() {
+  const { t } = useTranslation('common');
   const [archived, setArchived] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [restoring, setRestoring] = useState<string | null>(null);
@@ -42,7 +44,7 @@ export function ArchivedCandidatesView() {
       setArchived(data || []);
     } catch (error: unknown) {
       console.error('Error loading archived candidates:', error);
-      toast.error('Failed to load archived candidates');
+      toast.error(t("failed_to_load_archived", "Failed to load archived candidates"));
     } finally {
       setLoading(false);
     }
@@ -91,7 +93,7 @@ export function ArchivedCandidatesView() {
       loadArchived();
     } catch (error: unknown) {
       console.error('Error restoring candidate:', error);
-      toast.error('Failed to restore candidate: ' + (error instanceof Error ? error.message : 'Unknown error'));
+      toast.error(t("failed_to_restore_candidate", "Failed to restore candidate:") + (error instanceof Error ? error.message : 'Unknown error'));
     } finally {
       setRestoring(null);
     }
@@ -110,7 +112,7 @@ export function ArchivedCandidatesView() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Archived Candidates</CardTitle>
+        <CardTitle>{t("archived_candidates", "Archived Candidates")}</CardTitle>
         <CardDescription>
           {archived.length} candidate{archived.length !== 1 ? 's' : ''} archived. These profiles are hidden but can be restored.
         </CardDescription>
@@ -118,20 +120,20 @@ export function ArchivedCandidatesView() {
       <CardContent>
         {archived.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-muted-foreground">No archived candidates</p>
+            <p className="text-muted-foreground">{t("no_archived_candidates", "No archived candidates")}</p>
           </div>
         ) : (
           <div className="rounded-md border">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Archived By</TableHead>
-                  <TableHead>Archived At</TableHead>
-                  <TableHead>Applications</TableHead>
-                  <TableHead>Reason</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead>{t("name", "Name")}</TableHead>
+                  <TableHead>{t("email", "Email")}</TableHead>
+                  <TableHead>{t("archived_by", "Archived By")}</TableHead>
+                  <TableHead>{t("archived_at", "Archived At")}</TableHead>
+                  <TableHead>{t("applications", "Applications")}</TableHead>
+                  <TableHead>{t("reason", "Reason")}</TableHead>
+                  <TableHead className="text-right">{t("actions", "Actions")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

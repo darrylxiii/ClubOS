@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -73,6 +74,7 @@ export const PreferencesTab = ({
   handleStealthLevelChange,
   handleColdOutreachChange,
 }: PreferencesTabProps) => {
+  const { t } = useTranslation('settings');
   return (
     <div className="space-y-6">
       {/* Preferred Work Locations */}
@@ -80,10 +82,10 @@ export const PreferencesTab = ({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <MapPin className="w-5 h-5 text-accent" />
-            Preferred Work Locations
+            {t('preferences.preferredWorkLocations')}
           </CardTitle>
           <CardDescription>
-            Specify where you'd like to work - add multiple cities or toggle remote
+            {t('preferences.preferredWorkLocationsDesc')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -93,10 +95,10 @@ export const PreferencesTab = ({
               <Globe className="w-5 h-5 text-accent" />
               <div>
                 <Label htmlFor="remoteWork" className="text-base font-semibold cursor-pointer">
-                  Open to Remote Work
+                  {t('preferences.openToRemoteWork')}
                 </Label>
                 <p className="text-sm text-muted-foreground">
-                  Work from anywhere in the world
+                  {t('preferences.remoteWorkDesc')}
                 </p>
               </div>
             </div>
@@ -109,11 +111,11 @@ export const PreferencesTab = ({
 
           {/* City Selection */}
           <div className="space-y-3">
-            <Label>Add Preferred Cities</Label>
+            <Label>{t('preferences.addPreferredCities')}</Label>
             <div className="flex gap-2">
               <Select value={selectedCity} onValueChange={setSelectedCity}>
                 <SelectTrigger className="bg-background/50">
-                  <SelectValue placeholder="Select a city" />
+                  <SelectValue placeholder={t('preferences.selectCity')} />
                 </SelectTrigger>
                 <SelectContent className="max-h-[300px]">
                   {cities
@@ -131,7 +133,7 @@ export const PreferencesTab = ({
                 disabled={!selectedCity}
                 className="bg-accent text-background hover:bg-accent/90"
               >
-                Add
+                {t('common:actions.add')}
               </Button>
             </div>
           </div>
@@ -139,7 +141,7 @@ export const PreferencesTab = ({
           {/* Selected Locations */}
           {preferredWorkLocations.length > 0 ? (
             <div className="space-y-2">
-              <p className="text-sm font-medium">Selected Locations:</p>
+              <p className="text-sm font-medium">{t('preferences.selectedLocations')}</p>
               <div className="flex flex-wrap gap-2">
                 {preferredWorkLocations.map((location) => (
                   <div
@@ -163,7 +165,7 @@ export const PreferencesTab = ({
             <div className="text-center py-8 border-2 border-dashed border-border rounded-lg">
               <MapPin className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
               <p className="text-sm text-muted-foreground">
-                No preferred locations added yet. {remoteWorkPreference ? 'Remote work is enabled.' : 'Add cities or enable remote work.'}
+                {t('preferences.noLocationsYet')} {remoteWorkPreference ? t('preferences.remoteEnabled') : t('preferences.addCitiesOrRemote')}
               </p>
             </div>
           )}

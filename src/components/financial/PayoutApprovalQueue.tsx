@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useMemo } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -17,6 +18,7 @@ interface PayoutApprovalQueueProps {
 }
 
 export function PayoutApprovalQueue({ payouts }: PayoutApprovalQueueProps) {
+  const { t } = useTranslation('common');
   const [search, setSearch] = useState("");
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [markPaidDialogOpen, setMarkPaidDialogOpen] = useState(false);
@@ -64,7 +66,7 @@ export function PayoutApprovalQueue({ payouts }: PayoutApprovalQueueProps) {
 
   const exportBatchCSV = () => {
     if (selectedBatchPayouts.length === 0) {
-      toast.error("Select at least one payout to export");
+      toast.error(t("select_at_least_one", "Select at least one payout to export"));
       return;
     }
 
@@ -148,7 +150,7 @@ export function PayoutApprovalQueue({ payouts }: PayoutApprovalQueueProps) {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search by referrer..."
+            placeholder={t("search_by_referrer", "Search by referrer...")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-9"
@@ -166,11 +168,11 @@ export function PayoutApprovalQueue({ payouts }: PayoutApprovalQueueProps) {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Created</TableHead>
-                  <TableHead>Referrer</TableHead>
-                  <TableHead>Amount</TableHead>
-                  <TableHead>Payment Method</TableHead>
-                  <TableHead>Actions</TableHead>
+                  <TableHead>{t("created", "Created")}</TableHead>
+                  <TableHead>{t("referrer", "Referrer")}</TableHead>
+                  <TableHead>{t("amount", "Amount")}</TableHead>
+                  <TableHead>{t("payment_method", "Payment Method")}</TableHead>
+                  <TableHead>{t("actions", "Actions")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -254,11 +256,11 @@ export function PayoutApprovalQueue({ payouts }: PayoutApprovalQueueProps) {
                       onCheckedChange={toggleSelectAll}
                     />
                   </TableHead>
-                  <TableHead>Approved</TableHead>
-                  <TableHead>Referrer</TableHead>
-                  <TableHead>Amount</TableHead>
-                  <TableHead>Payment Method</TableHead>
-                  <TableHead>Actions</TableHead>
+                  <TableHead>{t("approved", "Approved")}</TableHead>
+                  <TableHead>{t("referrer", "Referrer")}</TableHead>
+                  <TableHead>{t("amount", "Amount")}</TableHead>
+                  <TableHead>{t("payment_method", "Payment Method")}</TableHead>
+                  <TableHead>{t("actions", "Actions")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -312,16 +314,16 @@ export function PayoutApprovalQueue({ payouts }: PayoutApprovalQueueProps) {
 
       {otherPayouts.length > 0 && (
         <div>
-          <h3 className="text-sm font-medium mb-2">Payment History</h3>
+          <h3 className="text-sm font-medium mb-2">{t("payment_history", "Payment History")}</h3>
           <div className="border rounded-lg">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Created</TableHead>
-                  <TableHead>Referrer</TableHead>
-                  <TableHead>Amount</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Paid Date</TableHead>
+                  <TableHead>{t("created", "Created")}</TableHead>
+                  <TableHead>{t("referrer", "Referrer")}</TableHead>
+                  <TableHead>{t("amount", "Amount")}</TableHead>
+                  <TableHead>{t("status", "Status")}</TableHead>
+                  <TableHead>{t("paid_date", "Paid Date")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -362,11 +364,11 @@ export function PayoutApprovalQueue({ payouts }: PayoutApprovalQueueProps) {
       <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Reject Payout</DialogTitle>
+            <DialogTitle>{t("reject_payout", "Reject Payout")}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <Textarea
-              placeholder="Reason for rejection (optional)"
+              placeholder={t("reason_for_rejection_optional", "Reason for rejection (optional)")}
               value={rejectionReason}
               onChange={(e) => setRejectionReason(e.target.value)}
               rows={3}
@@ -392,11 +394,11 @@ export function PayoutApprovalQueue({ payouts }: PayoutApprovalQueueProps) {
       <Dialog open={markPaidDialogOpen} onOpenChange={setMarkPaidDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Mark as Paid</DialogTitle>
+            <DialogTitle>{t("mark_as_paid", "Mark as Paid")}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <Input
-              placeholder="Payment reference (e.g., bank transfer ID)"
+              placeholder={t("payment_reference_eg_bank", "Payment reference (e.g., bank transfer ID)")}
               value={paymentReference}
               onChange={(e) => setPaymentReference(e.target.value)}
             />

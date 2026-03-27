@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useCallback, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -27,6 +28,7 @@ interface TeamMember {
 }
 
 export function AddCompanyDialog({ onSuccess }: AddCompanyDialogProps) {
+  const { t } = useTranslation('common');
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
@@ -60,10 +62,10 @@ export function AddCompanyDialog({ onSuccess }: AddCompanyDialogProps) {
   const [searchingCompanies, setSearchingCompanies] = useState(false);
 
   const steps = [
-    { id: 0, title: "Company Details", icon: Building2 },
-    { id: 1, title: "Branding & Media", icon: ImageIcon },
-    { id: 2, title: "Team & Socials", icon: Users },
-    { id: 3, title: "Review & Create", icon: CheckCircle2 }
+    { id: 0, title: t('common:addCompanyDialog.companyDetails', 'Company Details'), icon: Building2 },
+    { id: 1, title: t('common:addCompanyDialog.brandingAndMedia', 'Branding & Media'), icon: ImageIcon },
+    { id: 2, title: t('common:addCompanyDialog.teamAndSocials', 'Team & Socials'), icon: Users },
+    { id: 3, title: t('common:addCompanyDialog.reviewAndCreate', 'Review & Create'), icon: CheckCircle2 }
   ];
 
   const progress = ((currentStep + 1) / steps.length) * 100;
@@ -120,7 +122,7 @@ export function AddCompanyDialog({ onSuccess }: AddCompanyDialogProps) {
     
     setCompanySearchQuery("");
     setCompanySearchResults([]);
-    toast.success("Company data loaded!");
+    toast.success(t("company_data_loaded", "Company data loaded!"));
   };
 
   // Search users for team assignment
@@ -159,7 +161,7 @@ export function AddCompanyDialog({ onSuccess }: AddCompanyDialogProps) {
 
   const handleFileUpload = (file: File, type: 'logo' | 'cover') => {
     if (!file.type.startsWith('image/')) {
-      toast.error("Please upload an image file");
+      toast.error(t("please_upload_an_image", "Please upload an image file"));
       return;
     }
 
@@ -196,7 +198,7 @@ export function AddCompanyDialog({ onSuccess }: AddCompanyDialogProps) {
     console.log('[AddCompany] handleSubmit called');
     
     if (!formData.name) {
-      toast.error("Company name is required");
+      toast.error(t("company_name_is_required", "Company name is required"));
       return;
     }
 
@@ -206,7 +208,7 @@ export function AddCompanyDialog({ onSuccess }: AddCompanyDialogProps) {
     
     if (authError || !user) {
       console.error('[AddCompany] Authentication error:', authError);
-      toast.error("You must be logged in to create a company. Please refresh and try again.", {
+      toast.error(t("you_must_be_logged", "You must be logged in to create a company. Please refresh and try again."), {
         duration: 6000
       });
       return;
@@ -216,7 +218,7 @@ export function AddCompanyDialog({ onSuccess }: AddCompanyDialogProps) {
     console.log('[AddCompany] Starting company creation with data:', formData);
 
     // Show loading toast
-    const loadingToast = toast.loading("Creating company...");
+    const loadingToast = toast.loading(t("creating_company", "Creating company..."));
     setLoading(true);
     
     try {
@@ -361,7 +363,7 @@ export function AddCompanyDialog({ onSuccess }: AddCompanyDialogProps) {
       }
 
       toast.dismiss(loadingToast);
-      toast.success("Company created successfully!");
+      toast.success(t("company_created_successfully", "Company created successfully!"));
       console.log('[AddCompany] Process completed successfully');
       
       setOpen(false);
@@ -383,32 +385,32 @@ export function AddCompanyDialog({ onSuccess }: AddCompanyDialogProps) {
       // 🔧 Improved: More specific error messages
       if (err.code === '42703') {
         console.error('[AddCompany] Database schema error: Missing column referenced in trigger');
-        toast.error("Database configuration issue was detected and should now be fixed. Please try again.", {
+        toast.error(t("database_configuration_issue_was", "Database configuration issue was detected and should now be fixed. Please try again."), {
           duration: 6000
         });
       } else if (err.code === '42501') {
         console.error('[AddCompany] RLS Policy Violation: User lacks required role');
-        toast.error("Permission denied. You need Partner or Admin role to create companies. Please contact support.", {
+        toast.error(t("permission_denied_you_need", "Permission denied. You need Partner or Admin role to create companies. Please contact support."), {
           duration: 6000
         });
       } else if (err.message?.includes('row-level security') || err.message?.includes('policy')) {
         console.error('[AddCompany] RLS Security Policy Error');
-        toast.error("Access denied by security policy. Please contact an administrator.", {
+        toast.error(t("access_denied_by_security", "Access denied by security policy. Please contact an administrator."), {
           duration: 6000
         });
       } else if (err.code === '23505') {
         // Unique constraint violation
         console.error('[AddCompany] Unique constraint violation');
         if (err.message?.includes('companies_name_key')) {
-          toast.error("A company with this name already exists.");
+          toast.error(t("a_company_with_this", "A company with this name already exists."));
         } else if (err.message?.includes('companies_slug_key')) {
-          toast.error("A company with a similar name already exists. Try a different name.");
+          toast.error(t("a_company_with_a", "A company with a similar name already exists. Try a different name."));
         } else {
-          toast.error("This company information conflicts with an existing company.");
+          toast.error(t("this_company_information_conflicts", "This company information conflicts with an existing company."));
         }
       } else if (err.message?.includes('JWT') || err.message?.includes('auth')) {
         console.error('[AddCompany] Authentication error');
-        toast.error("Authentication error. Please refresh the page and try again.", {
+        toast.error(t("authentication_error_please_refresh", "Authentication error. Please refresh the page and try again."), {
           duration: 6000
         });
       } else {
@@ -469,7 +471,7 @@ export function AddCompanyDialog({ onSuccess }: AddCompanyDialogProps) {
       <DialogTrigger asChild>
         <Button className="gap-2 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 transition-all duration-300 shadow-lg hover:shadow-xl">
           <Plus className="w-4 h-4" />
-          Add Company
+          {t('common:addCompanyDialog.addCompany', 'Add Company')}
         </Button>
       </DialogTrigger>
       
@@ -477,7 +479,7 @@ export function AddCompanyDialog({ onSuccess }: AddCompanyDialogProps) {
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold flex items-center gap-2">
             <Sparkles className="w-6 h-6 text-primary animate-pulse" />
-            Add New Partner Company
+            {t('common:addCompanyDialog.addNewPartnerCompany', 'Add New Partner Company')}
           </DialogTitle>
         </DialogHeader>
 
@@ -508,7 +510,7 @@ export function AddCompanyDialog({ onSuccess }: AddCompanyDialogProps) {
             <div className="space-y-4 animate-fade-in">
               <div className="space-y-2 relative">
                 <Label htmlFor="name" className="flex items-center gap-2">
-                  Company Name *
+                  {t('common:addCompanyDialog.companyNameRequired', 'Company Name *')}
                 </Label>
                 <div className="relative">
                   <Input
@@ -518,7 +520,7 @@ export function AddCompanyDialog({ onSuccess }: AddCompanyDialogProps) {
                       setCompanySearchQuery(e.target.value);
                       setFormData({ ...formData, name: e.target.value });
                     }}
-                    placeholder="Start typing company name..."
+                    placeholder={t("start_typing_company_name", "Start typing company name...")}
                   />
                   {searchingCompanies && (
                     <Loader2 className="absolute right-3 top-3 w-4 h-4 animate-spin text-muted-foreground" />
@@ -557,7 +559,7 @@ export function AddCompanyDialog({ onSuccess }: AddCompanyDialogProps) {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="website">Website URL</Label>
+                <Label htmlFor="website">{t("website_url", "Website URL")}</Label>
                 <Input
                   id="website"
                   type="url"
@@ -570,23 +572,23 @@ export function AddCompanyDialog({ onSuccess }: AddCompanyDialogProps) {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="industry">Industry</Label>
+                  <Label htmlFor="industry">{t("industry", "Industry")}</Label>
                   <Input
                     id="industry"
                     value={formData.industry}
                     onChange={(e) => setFormData({ ...formData, industry: e.target.value })}
-                    placeholder="Technology, Finance, etc."
+                    placeholder={t("technology_finance_etc", "Technology, Finance, etc.")}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="company_size">Company Size</Label>
+                  <Label htmlFor="company_size">{t("company_size", "Company Size")}</Label>
                   <Select 
                     value={formData.company_size} 
                     onValueChange={(value) => setFormData({ ...formData, company_size: value })}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select size" />
+                      <SelectValue placeholder={t("select_size", "Select size")} />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="1-10">1-10</SelectItem>
@@ -601,33 +603,33 @@ export function AddCompanyDialog({ onSuccess }: AddCompanyDialogProps) {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="headquarters">Headquarters Location</Label>
+                <Label htmlFor="headquarters">{t("headquarters_location", "Headquarters Location")}</Label>
                 <Input
                   id="headquarters"
                   value={formData.headquarters_location}
                   onChange={(e) => setFormData({ ...formData, headquarters_location: e.target.value })}
-                  placeholder="Amsterdam, Netherlands"
+                  placeholder={t("amsterdam_netherlands", "Amsterdam, Netherlands")}
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="tagline">Tagline</Label>
+                <Label htmlFor="tagline">{t("tagline", "Tagline")}</Label>
                 <Input
                   id="tagline"
                   value={formData.tagline}
                   onChange={(e) => setFormData({ ...formData, tagline: e.target.value })}
-                  placeholder="One-line company description"
+                  placeholder={t("oneline_company_description", "One-line company description")}
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
+                <Label htmlFor="description">{t("description", "Description")}</Label>
                 <Textarea
                   id="description"
                   rows={4}
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="Tell us about the company..."
+                  placeholder={t("tell_us_about_the", "Tell us about the company...")}
                   className="resize-none"
                 />
               </div>
@@ -638,7 +640,7 @@ export function AddCompanyDialog({ onSuccess }: AddCompanyDialogProps) {
           {currentStep === 1 && (
             <div className="space-y-6 animate-fade-in">
               <div className="space-y-4">
-                <Label>Company Logo</Label>
+                <Label>{t("company_logo", "Company Logo")}</Label>
                 <div className="flex items-start gap-4">
                   <div className="flex-shrink-0">
                     <Avatar className="w-24 h-24 border-4 border-border">
@@ -654,10 +656,10 @@ export function AddCompanyDialog({ onSuccess }: AddCompanyDialogProps) {
                         <CardContent className="flex flex-col items-center justify-center p-6 text-center">
                           <Upload className="w-8 h-8 text-muted-foreground mb-2" />
                           <p className="text-sm text-muted-foreground">
-                            Click to upload logo
+                            {t('common:addCompanyDialog.clickToUploadLogo', 'Click to upload logo')}
                           </p>
                           <p className="text-xs text-muted-foreground mt-1">
-                            PNG, JPG up to 5MB
+                            {t('common:addCompanyDialog.pngJpgUpTo5mb', 'PNG, JPG up to 5MB')}
                           </p>
                         </CardContent>
                       </Card>
@@ -674,10 +676,10 @@ export function AddCompanyDialog({ onSuccess }: AddCompanyDialogProps) {
               </div>
 
               <div className="space-y-4">
-                <Label>Cover Image</Label>
+                <Label>{t("cover_image", "Cover Image")}</Label>
                 {coverPreview ? (
                   <div className="relative rounded-lg overflow-hidden border-2 border-border">
-                    <img src={coverPreview} alt="Cover" className="w-full h-48 object-cover" />
+                    <img src={coverPreview} alt={t("cover", "Cover")} className="w-full h-48 object-cover" />
                     <Button
                       variant="ghost"
                       size="icon"
@@ -696,10 +698,10 @@ export function AddCompanyDialog({ onSuccess }: AddCompanyDialogProps) {
                       <CardContent className="flex flex-col items-center justify-center p-12 text-center">
                         <ImageIcon className="w-12 h-12 text-muted-foreground mb-3" />
                         <p className="text-sm text-muted-foreground">
-                          Click to upload cover image
+                          {t('common:addCompanyDialog.clickToUploadCoverImage', 'Click to upload cover image')}
                         </p>
                         <p className="text-xs text-muted-foreground mt-1">
-                          Recommended: 1200x400px, PNG or JPG
+                          {t('common:addCompanyDialog.recommendedCoverSize', 'Recommended: 1200x400px, PNG or JPG')}
                         </p>
                       </CardContent>
                     </Card>
@@ -720,11 +722,11 @@ export function AddCompanyDialog({ onSuccess }: AddCompanyDialogProps) {
           {currentStep === 2 && (
             <div className="space-y-6 animate-fade-in">
               <div className="space-y-4">
-                <Label>Assign Team Members</Label>
+                <Label>{t("assign_team_members", "Assign Team Members")}</Label>
                 <div className="relative">
                   <Search className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
                   <Input
-                    placeholder="Search by name or email..."
+                    placeholder={t("search_by_name_or", "Search by name or email...")}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="pl-10"
@@ -757,13 +759,13 @@ export function AddCompanyDialog({ onSuccess }: AddCompanyDialogProps) {
                             </div>
                             <Select onValueChange={(role) => addTeamMember(user, role)}>
                               <SelectTrigger className="w-32">
-                                <SelectValue placeholder="Role" />
+                                <SelectValue placeholder={t("role", "Role")} />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="owner">Owner</SelectItem>
-                                <SelectItem value="admin">Admin</SelectItem>
-                                <SelectItem value="recruiter">Recruiter</SelectItem>
-                                <SelectItem value="viewer">Viewer</SelectItem>
+                                <SelectItem value="owner">{t("owner", "Owner")}</SelectItem>
+                                <SelectItem value="admin">{t("admin", "Admin")}</SelectItem>
+                                <SelectItem value="recruiter">{t("recruiter", "Recruiter")}</SelectItem>
+                                <SelectItem value="viewer">{t("viewer", "Viewer")}</SelectItem>
                               </SelectContent>
                             </Select>
                           </div>
@@ -811,15 +813,15 @@ export function AddCompanyDialog({ onSuccess }: AddCompanyDialogProps) {
               </div>
 
               <div className="space-y-4">
-                <Label>Social Media Links</Label>
+                <Label>{t("social_media_links", "Social Media Links")}</Label>
                 
                 <div className="space-y-2">
                   <Label htmlFor="linkedin" className="flex items-center gap-2 text-sm">
                     <Linkedin className="w-4 h-4" />
-                    LinkedIn Username
+                    {t('common:addCompanyDialog.linkedinUsername', 'LinkedIn Username')}
                   </Label>
                   <div className="flex items-center gap-2">
-                    <span className="text-sm text-muted-foreground whitespace-nowrap">linkedin.com/company/</span>
+                    <span className="text-sm text-muted-foreground whitespace-nowrap">{t("linkedincomcompany", "linkedin.com/company/")}</span>
                     <Input
                       id="linkedin"
                       value={formData.linkedin_username}
@@ -833,10 +835,10 @@ export function AddCompanyDialog({ onSuccess }: AddCompanyDialogProps) {
                 <div className="space-y-2">
                   <Label htmlFor="twitter" className="flex items-center gap-2 text-sm">
                     <Twitter className="w-4 h-4" />
-                    Twitter Username
+                    {t('common:addCompanyDialog.twitterUsername', 'Twitter Username')}
                   </Label>
                   <div className="flex items-center gap-2">
-                    <span className="text-sm text-muted-foreground whitespace-nowrap">twitter.com/</span>
+                    <span className="text-sm text-muted-foreground whitespace-nowrap">{t("twittercom", "twitter.com/")}</span>
                     <Input
                       id="twitter"
                       value={formData.twitter_username}
@@ -850,10 +852,10 @@ export function AddCompanyDialog({ onSuccess }: AddCompanyDialogProps) {
                 <div className="space-y-2">
                   <Label htmlFor="instagram" className="flex items-center gap-2 text-sm">
                     <Instagram className="w-4 h-4" />
-                    Instagram Username
+                    {t('common:addCompanyDialog.instagramUsername', 'Instagram Username')}
                   </Label>
                   <div className="flex items-center gap-2">
-                    <span className="text-sm text-muted-foreground whitespace-nowrap">instagram.com/</span>
+                    <span className="text-sm text-muted-foreground whitespace-nowrap">{t("instagramcom", "instagram.com/")}</span>
                     <Input
                       id="instagram"
                       value={formData.instagram_username}
@@ -871,14 +873,14 @@ export function AddCompanyDialog({ onSuccess }: AddCompanyDialogProps) {
           {currentStep === 3 && (
             <div className="space-y-6 animate-fade-in">
               <div className="text-center mb-6">
-                <h3 className="text-lg font-semibold mb-2">Review Company Details</h3>
-                <p className="text-sm text-muted-foreground">Please review before creating</p>
+                <h3 className="text-lg font-semibold mb-2">{t("review_company_details", "Review Company Details")}</h3>
+                <p className="text-sm text-muted-foreground">{t("please_review_before_creating", "Please review before creating")}</p>
               </div>
 
               <Card className="overflow-hidden border-2">
                 {coverPreview && (
                   <div className="h-32 bg-gradient-to-r from-primary/20 to-primary/10 relative">
-                    <img src={coverPreview} alt="Cover" className="w-full h-full object-cover" />
+                    <img src={coverPreview} alt={t("cover", "Cover")} className="w-full h-full object-cover" />
                   </div>
                 )}
                 <CardContent className="p-6">
@@ -900,7 +902,7 @@ export function AddCompanyDialog({ onSuccess }: AddCompanyDialogProps) {
                   <div className="space-y-4">
                     {formData.description && (
                       <div>
-                        <Label className="text-xs text-muted-foreground">Description</Label>
+                        <Label className="text-xs text-muted-foreground">{t("description", "Description")}</Label>
                         <p className="text-sm mt-1">{formData.description}</p>
                       </div>
                     )}
@@ -908,13 +910,13 @@ export function AddCompanyDialog({ onSuccess }: AddCompanyDialogProps) {
                     <div className="grid grid-cols-2 gap-4">
                       {formData.industry && (
                         <div>
-                          <Label className="text-xs text-muted-foreground">Industry</Label>
+                          <Label className="text-xs text-muted-foreground">{t("industry", "Industry")}</Label>
                           <p className="text-sm mt-1">{formData.industry}</p>
                         </div>
                       )}
                       {formData.company_size && (
                         <div>
-                          <Label className="text-xs text-muted-foreground">Size</Label>
+                          <Label className="text-xs text-muted-foreground">{t("size", "Size")}</Label>
                           <p className="text-sm mt-1">{formData.company_size}</p>
                         </div>
                       )}
@@ -922,19 +924,19 @@ export function AddCompanyDialog({ onSuccess }: AddCompanyDialogProps) {
 
                     {formData.headquarters_location && (
                       <div>
-                        <Label className="text-xs text-muted-foreground">Location</Label>
+                        <Label className="text-xs text-muted-foreground">{t("location", "Location")}</Label>
                         <p className="text-sm mt-1">{formData.headquarters_location}</p>
                       </div>
                     )}
 
                     {(formData.website_url || formData.linkedin_username || formData.twitter_username || formData.instagram_username) && (
                       <div>
-                        <Label className="text-xs text-muted-foreground mb-2 block">Links</Label>
+                        <Label className="text-xs text-muted-foreground mb-2 block">{t("links", "Links")}</Label>
                         <div className="flex flex-wrap gap-2">
                           {formData.website_url && (
                             <Badge variant="outline" className="gap-1">
                               <Globe className="w-3 h-3" />
-                              Website
+                              {t('common:addCompanyDialog.website', 'Website')}
                             </Badge>
                           )}
                           {formData.linkedin_username && (
@@ -962,7 +964,7 @@ export function AddCompanyDialog({ onSuccess }: AddCompanyDialogProps) {
                     {teamMembers.length > 0 && (
                       <div>
                         <Label className="text-xs text-muted-foreground mb-2 block">
-                          Team Members ({teamMembers.length})
+                          {t('common:addCompanyDialog.teamMembersCount', 'Team Members ({{count}})', { count: teamMembers.length })}
                         </Label>
                         <div className="flex -space-x-2">
                           {teamMembers.slice(0, 5).map((member) => (
@@ -995,7 +997,7 @@ export function AddCompanyDialog({ onSuccess }: AddCompanyDialogProps) {
             onClick={() => setCurrentStep(Math.max(0, currentStep - 1))}
             disabled={currentStep === 0 || loading}
           >
-            Back
+            {t('common:addCompanyDialog.back', 'Back')}
           </Button>
           
           <div className="flex gap-2">
@@ -1005,7 +1007,7 @@ export function AddCompanyDialog({ onSuccess }: AddCompanyDialogProps) {
                 disabled={!canProceed()}
                 className="gap-2"
               >
-                Next
+                {t('common:addCompanyDialog.next', 'Next')}
                 <CheckCircle2 className="w-4 h-4" />
               </Button>
             ) : (
@@ -1017,12 +1019,12 @@ export function AddCompanyDialog({ onSuccess }: AddCompanyDialogProps) {
                 {loading ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    Creating...
+                    {t('common:addCompanyDialog.creating', 'Creating...')}
                   </>
                 ) : (
                   <>
                     <Sparkles className="w-4 h-4" />
-                    Create Company
+                    {t('common:addCompanyDialog.createCompany', 'Create Company')}
                   </>
                 )}
               </Button>

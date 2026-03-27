@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -22,6 +23,7 @@ interface MessageTemplatesProps {
 }
 
 export function MessageTemplates({ onSelectTemplate, companyId }: MessageTemplatesProps) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [templates, setTemplates] = useState<any[]>([]);
   const [open, setOpen] = useState(false);
@@ -47,7 +49,7 @@ export function MessageTemplates({ onSelectTemplate, companyId }: MessageTemplat
 
   const createTemplate = async () => {
     if (!newTemplate.name || !newTemplate.content) {
-      toast.error('Please fill in all fields');
+      toast.error(t("please_fill_in_all", "Please fill in all fields"));
       return;
     }
 
@@ -60,13 +62,13 @@ export function MessageTemplates({ onSelectTemplate, companyId }: MessageTemplat
         content: newTemplate.content,
       });
 
-      toast.success('Template created');
+      toast.success(t("template_created", "Template created"));
       setNewTemplate({ name: '', category: '', content: '' });
       setCreateOpen(false);
       loadTemplates();
     } catch (error) {
       console.error('Error creating template:', error);
-      toast.error('Failed to create template');
+      toast.error(t("failed_to_create_template", "Failed to create template"));
     }
   };
 
@@ -80,7 +82,7 @@ export function MessageTemplates({ onSelectTemplate, companyId }: MessageTemplat
       .eq('id', template.id);
 
     setOpen(false);
-    toast.success('Template applied');
+    toast.success(t("template_applied", "Template applied"));
   };
 
   const groupedTemplates = templates.reduce((acc, template) => {
@@ -103,7 +105,7 @@ export function MessageTemplates({ onSelectTemplate, companyId }: MessageTemplat
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle className="flex items-center justify-between">
-              <span>Message Templates</span>
+              <span>{t("message_templates", "Message Templates")}</span>
               <Button size="sm" onClick={() => setCreateOpen(true)}>
                 <Plus className="h-4 w-4 mr-2" />
                 New Template
@@ -142,31 +144,31 @@ export function MessageTemplates({ onSelectTemplate, companyId }: MessageTemplat
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Create Template</DialogTitle>
+            <DialogTitle>{t("create_template", "Create Template")}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label>Template Name</Label>
+              <Label>{t("template_name", "Template Name")}</Label>
               <Input
                 value={newTemplate.name}
                 onChange={(e) => setNewTemplate({ ...newTemplate, name: e.target.value })}
-                placeholder="e.g., Interview Invitation"
+                placeholder={t("eg_interview_invitation", "e.g., Interview Invitation")}
               />
             </div>
             <div>
-              <Label>Category</Label>
+              <Label>{t("category", "Category")}</Label>
               <Input
                 value={newTemplate.category}
                 onChange={(e) => setNewTemplate({ ...newTemplate, category: e.target.value })}
-                placeholder="e.g., interview, feedback, offer"
+                placeholder={t("eg_interview_feedback_offer", "e.g., interview, feedback, offer")}
               />
             </div>
             <div>
-              <Label>Message Content</Label>
+              <Label>{t("message_content", "Message Content")}</Label>
               <Textarea
                 value={newTemplate.content}
                 onChange={(e) => setNewTemplate({ ...newTemplate, content: e.target.value })}
-                placeholder="Template message..."
+                placeholder={t("template_message", "Template message...")}
                 className="min-h-[150px]"
               />
             </div>

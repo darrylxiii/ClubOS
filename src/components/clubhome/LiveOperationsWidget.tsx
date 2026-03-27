@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { useMemo } from "react";
+import { useTranslation } from 'react-i18next';
 
 function getInitials(name: string) {
   return name
@@ -148,6 +149,7 @@ function SessionRow({ session }: { session: ActiveAvatarSession }) {
 // --- Main Widget ---
 
 export function LiveOperationsWidget() {
+  const { t } = useTranslation('common');
   const { onlineMembers, offlineCount, activeSessions, isLoading } = useLiveOperations();
 
   const onlineCount = useMemo(
@@ -166,7 +168,7 @@ export function LiveOperationsWidget() {
 
   return (
     <DashboardWidget
-      title="Live Operations"
+      title={"Live Operations"}
       icon={Radio}
       iconClassName="text-primary"
       isLoading={isLoading}
@@ -177,9 +179,7 @@ export function LiveOperationsWidget() {
       <div className="space-y-3">
         {/* Section 1: Team Online — always visible */}
         <div className="space-y-2">
-          <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
-            Team Online
-          </p>
+          <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">{t('liveOperationsWidget.teamOnline')}</p>
           {onlineMembers.length > 0 ? (
             <div className="flex flex-wrap gap-2 items-center">
               {onlineMembers.map((m) => (
@@ -193,7 +193,7 @@ export function LiveOperationsWidget() {
             </div>
           ) : (
             !isLoading && (
-              <p className="text-[10px] text-muted-foreground">No team members online</p>
+              <p className="text-[10px] text-muted-foreground">{"No team members online"}</p>
             )
           )}
         </div>
@@ -206,9 +206,7 @@ export function LiveOperationsWidget() {
         {/* Section 2: Accounts Active */}
         {activeSessions.length > 0 && (
           <div className="space-y-1">
-            <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
-              Accounts Active
-            </p>
+            <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">{t('liveOperationsWidget.accountsActive')}</p>
             <div className="divide-y divide-border/50">
               {activeSessions.map((s) => (
                 <SessionRow key={s.id} session={s} />

@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
+import { useTranslation } from 'react-i18next';
 
 interface ProjectCardProps {
   project: Project & { matchScore?: number };
@@ -19,6 +20,7 @@ interface ProjectCardProps {
 }
 
 export function ProjectCard({ project, isFreelancer }: ProjectCardProps) {
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
 
   const formatBudget = (min: number | null, max: number | null) => {

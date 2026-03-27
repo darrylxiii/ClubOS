@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -32,6 +33,7 @@ import { toast } from "sonner";
 import { UnifiedLoader, SectionLoader } from "@/components/ui/unified-loader";
 
 export default function ContractDetailPage() {
+  const { t } = useTranslation('contracts');
   const { contractId } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -88,9 +90,9 @@ export default function ContractDetailPage() {
         .eq('id', milestoneId);
 
       if (error) throw error;
-      toast.success("Milestone started!");
+      toast.success(t('text.contractdetailpage.milestoneStarted', 'Milestone started!'));
     } catch (error: unknown) {
-      toast.error(error instanceof Error ? error.message : 'An error occurred');
+      toast.error(error instanceof Error ? error.message : t('text.contractdetailpage.anErrorOccurred', 'An error occurred'));
     }
   };
 
@@ -105,9 +107,9 @@ export default function ContractDetailPage() {
         .eq('id', milestoneId);
 
       if (error) throw error;
-      toast.success("Milestone submitted for review!");
+      toast.success(t('text.contractdetailpage.milestoneSubmittedForReview', 'Milestone submitted for review!'));
     } catch (error: unknown) {
-      toast.error(error instanceof Error ? error.message : 'An error occurred');
+      toast.error(error instanceof Error ? error.message : t('text.contractdetailpage.anErrorOccurred', 'An error occurred'));
     }
   };
 
@@ -130,16 +132,16 @@ export default function ContractDetailPage() {
 
         if (paymentError) {
           console.error('Payment release error:', paymentError);
-          toast.warning("Milestone approved, but payment release failed. Please contact support.");
+          toast.warning(t('text.contractdetailpage.milestoneApprovedButPaymentReleaseFailed', 'Milestone approved, but payment release failed. Please contact support.'));
         } else {
-          toast.success("Milestone approved! Payment released successfully.");
+          toast.success(t('text.contractdetailpage.milestoneApprovedPaymentReleasedSuccessfully', 'Milestone approved! Payment released successfully.'));
         }
       } catch (paymentErr) {
         console.error('Payment release exception:', paymentErr);
-        toast.warning("Milestone approved, but payment release failed. Please contact support.");
+        toast.warning(t('text.contractdetailpage.milestoneApprovedButPaymentReleaseFailed', 'Milestone approved, but payment release failed. Please contact support.'));
       }
     } catch (error: unknown) {
-      toast.error(error instanceof Error ? error.message : 'An error occurred');
+      toast.error(error instanceof Error ? error.message : t('text.contractdetailpage.anErrorOccurred', 'An error occurred'));
     }
   };
 
@@ -210,14 +212,14 @@ export default function ContractDetailPage() {
             </Badge>
           </div>
           <p className="text-muted-foreground">
-            {userView === 'freelancer' ? 'You are the freelancer' : 'You are the client'}
+            {userView === 'freelancer' ? t('text.contractdetailpage.youAreTheFreelancer', 'You are the freelancer') : t('text.contractdetailpage.youAreTheClient', 'You are the client')}
           </p>
         </div>
 
         <div className="flex items-center gap-3">
           {contract.contract_status === 'pending_signature' && (
             <Button onClick={() => navigate(`/contracts/${contractId}/sign`)}>
-              Sign Contract
+              {t('text.contractdetailpage.signContract', 'Sign Contract')}
             </Button>
           )}
           {contract.contract_status === 'active' && (
@@ -228,7 +230,7 @@ export default function ContractDetailPage() {
               </Button>
               <Button>
                 <MessageCircle className="h-4 w-4 mr-2" />
-                Message {userView === 'freelancer' ? 'Client' : 'Freelancer'}
+                Message {userView === 'freelancer' ? t('text.contractdetailpage.client', 'Client') : t('text.contractdetailpage.freelancer', 'Freelancer')}
               </Button>
             </>
           )}
@@ -247,7 +249,7 @@ export default function ContractDetailPage() {
           <div className="flex items-center gap-3">
             <DollarSign className="h-8 w-8 text-primary" />
             <div>
-              <div className="text-xs text-muted-foreground">Total Budget</div>
+              <div className="text-xs text-muted-foreground">{t('contractDetailPage.text2')}</div>
               <div className="text-xl font-bold text-foreground">
                 &euro;{contract.total_budget?.toLocaleString()}
               </div>
@@ -259,7 +261,7 @@ export default function ContractDetailPage() {
           <div className="flex items-center gap-3">
             <FileText className="h-8 w-8 text-primary" />
             <div>
-              <div className="text-xs text-muted-foreground">Contract Type</div>
+              <div className="text-xs text-muted-foreground">{t('contractDetailPage.text3')}</div>
               <div className="text-xl font-bold text-foreground capitalize">
                 {contract.contract_type}
               </div>
@@ -271,7 +273,7 @@ export default function ContractDetailPage() {
           <div className="flex items-center gap-3">
             <Calendar className="h-8 w-8 text-primary" />
             <div>
-              <div className="text-xs text-muted-foreground">Timeline</div>
+              <div className="text-xs text-muted-foreground">{t('contractDetailPage.text4')}</div>
               <div className="text-sm font-bold text-foreground">
                 {contract.start_date && contract.end_date ? (
                   <>
@@ -288,7 +290,7 @@ export default function ContractDetailPage() {
           <div className="flex items-center gap-3">
             <Clock className="h-8 w-8 text-primary" />
             <div>
-              <div className="text-xs text-muted-foreground">Milestones</div>
+              <div className="text-xs text-muted-foreground">{t('contractDetailPage.text5')}</div>
               <div className="text-xl font-bold text-foreground">
                 {milestones.filter(m => m.status === 'paid').length} / {milestones.length}
               </div>
@@ -300,22 +302,20 @@ export default function ContractDetailPage() {
       {/* Main content tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="mb-6">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="milestones">Milestones</TabsTrigger>
-          <TabsTrigger value="payments">Payments</TabsTrigger>
+          <TabsTrigger value="overview">{t('contractDetailPage.text6')}</TabsTrigger>
+          <TabsTrigger value="milestones">{t('contractDetailPage.text7')}</TabsTrigger>
+          <TabsTrigger value="payments">{t('contractDetailPage.text8')}</TabsTrigger>
           {contract.contract_type === 'hourly' && (
-            <TabsTrigger value="time">Time Tracking</TabsTrigger>
+            <TabsTrigger value="time">{t('contractDetailPage.text9')}</TabsTrigger>
           )}
-          <TabsTrigger value="documents">Documents</TabsTrigger>
+          <TabsTrigger value="documents">{t('contractDetailPage.text10')}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 space-y-6">
               <Card className="p-6 border border-border/50">
-                <h3 className="text-lg font-semibold text-foreground mb-4">
-                  Milestone Progress
-                </h3>
+                <h3 className="text-lg font-semibold text-foreground mb-4">{t('contractDetailPage.title')}</h3>
                 <MilestoneTimeline
                   milestones={milestones}
                   view={userView}
@@ -338,14 +338,14 @@ export default function ContractDetailPage() {
 
               <Card className="p-6 border border-border/50">
                 <h3 className="text-lg font-semibold text-foreground mb-4">
-                  {userView === 'freelancer' ? 'Client' : 'Freelancer'} Information
+                  {userView === 'freelancer' ? t('text.contractdetailpage.client', 'Client') : t('text.contractdetailpage.freelancer', 'Freelancer')} Information
                 </h3>
                 <div className="flex items-center gap-3 mb-4">
                   {userView === 'freelancer' ? (
                     <>
                       <Building2 className="h-10 w-10 text-muted-foreground" />
                       <div>
-                        <div className="font-medium text-foreground">Company Name</div>
+                        <div className="font-medium text-foreground">{t('contractDetailPage.text11')}</div>
                         <div className="text-sm text-muted-foreground">
                           Company ID: {contract.company_id}
                         </div>
@@ -355,7 +355,7 @@ export default function ContractDetailPage() {
                     <>
                       <User className="h-10 w-10 text-muted-foreground" />
                       <div>
-                        <div className="font-medium text-foreground">Freelancer Name</div>
+                        <div className="font-medium text-foreground">{t('contractDetailPage.text12')}</div>
                         <div className="text-sm text-muted-foreground">
                           Freelancer ID: {contract.freelancer_id}
                         </div>
@@ -397,12 +397,8 @@ export default function ContractDetailPage() {
           <Card className="p-6 border border-border/50">
             <div className="text-center py-8">
               <Clock className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
-              <h3 className="text-lg font-semibold text-foreground mb-2">
-                Time Tracking
-              </h3>
-              <p className="text-sm text-muted-foreground mb-4">
-                Track hours, submit timesheets, and manage approvals
-              </p>
+              <h3 className="text-lg font-semibold text-foreground mb-2">{t('contractDetailPage.title')}</h3>
+              <p className="text-sm text-muted-foreground mb-4">{t('contractDetailPage.desc')}</p>
               <Button onClick={() => navigate(`/contracts/${contractId}/time-tracking`)}>
                 <Clock className="h-4 w-4 mr-2" />
                 Open Time Tracking
@@ -414,7 +410,7 @@ export default function ContractDetailPage() {
         <TabsContent value="documents">
           <Card className="p-6 border border-border/50">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-semibold">Contract Documents</h3>
+              <h3 className="text-lg font-semibold">{t('contractDetailPage.text13')}</h3>
               <ContractDocumentUpload contractId={contractId!} />
             </div>
             <ContractDocumentsList contractId={contractId!} />

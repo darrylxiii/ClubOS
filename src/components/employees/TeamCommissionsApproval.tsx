@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -27,10 +28,10 @@ interface TeamCommissionsApprovalProps {
   isLoading?: boolean;
 }
 
-export function TeamCommissionsApproval({ 
-  pendingCommissions,
+export function TeamCommissionsApproval({  pendingCommissions,
   isLoading 
 }: TeamCommissionsApprovalProps) {
+const { t } = useTranslation('common');
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const approveCommission = useApproveCommission();
 
@@ -60,7 +61,7 @@ export function TeamCommissionsApproval({
       toast.success(`${ids.length} commission${ids.length > 1 ? 's' : ''} approved`);
       setSelectedIds(new Set());
     } catch (error) {
-      toast.error("Failed to approve commissions");
+      toast.error(t("failed_to_approve_commissions", "Failed to approve commissions"));
     }
   };
 
@@ -72,7 +73,7 @@ export function TeamCommissionsApproval({
       toast.success(`${ids.length} commission${ids.length > 1 ? 's' : ''} marked as disputed`);
       setSelectedIds(new Set());
     } catch (error) {
-      toast.error("Failed to reject commissions");
+      toast.error(t("failed_to_reject_commissions", "Failed to reject commissions"));
     }
   };
 
@@ -85,7 +86,7 @@ export function TeamCommissionsApproval({
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Commission Approvals</CardTitle>
+          <CardTitle>{t("commission_approvals", "Commission Approvals")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="h-48 bg-muted/50 animate-pulse rounded-lg" />
@@ -141,14 +142,14 @@ export function TeamCommissionsApproval({
               checked={selectedIds.size === pendingCommissions.length}
               onCheckedChange={selectAll}
             />
-            <span className="text-sm text-muted-foreground">Select all</span>
+            <span className="text-sm text-muted-foreground">{t("select_all", "Select all")}</span>
           </div>
         )}
 
         {pendingCommissions.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-32 text-muted-foreground">
             <ClipboardCheck className="h-8 w-8 mb-2 opacity-50" />
-            <p>No pending approvals</p>
+            <p>{t("no_pending_approvals", "No pending approvals")}</p>
           </div>
         ) : (
           <div className="space-y-3">

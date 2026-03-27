@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -26,6 +27,7 @@ interface UserProfile {
 }
 
 export function ManualMergeSearch() {
+  const { t } = useTranslation('common');
   const [candidateSearch, setCandidateSearch] = useState("");
   const [userSearch, setUserSearch] = useState("");
   const [candidateResults, setCandidateResults] = useState<CandidateProfile[]>([]);
@@ -38,7 +40,7 @@ export function ManualMergeSearch() {
 
   const searchCandidates = async () => {
     if (!candidateSearch.trim()) {
-      toast.error("Please enter a search term");
+      toast.error(t("please_enter_a_search", "Please enter a search term"));
       return;
     }
 
@@ -54,11 +56,11 @@ export function ManualMergeSearch() {
       setCandidateResults(data || []);
       
       if (!data || data.length === 0) {
-        toast.info("No candidates found");
+        toast.info(t("no_candidates_found", "No candidates found"));
       }
     } catch (error) {
       console.error('Error searching candidates:', error);
-      toast.error('Failed to search candidates');
+      toast.error(t("failed_to_search_candidates", "Failed to search candidates"));
     } finally {
       setLoadingCandidates(false);
     }
@@ -66,7 +68,7 @@ export function ManualMergeSearch() {
 
   const searchUsers = async () => {
     if (!userSearch.trim()) {
-      toast.error("Please enter a search term");
+      toast.error(t("please_enter_a_search", "Please enter a search term"));
       return;
     }
 
@@ -95,11 +97,11 @@ export function ManualMergeSearch() {
       setUserResults(unlinkedUsers);
       
       if (unlinkedUsers.length === 0) {
-        toast.info("No unlinked users found");
+        toast.info(t("no_unlinked_users_found", "No unlinked users found"));
       }
     } catch (error) {
       console.error('Error searching users:', error);
-      toast.error('Failed to search users');
+      toast.error(t("failed_to_search_users", "Failed to search users"));
     } finally {
       setLoadingUsers(false);
     }
@@ -107,13 +109,13 @@ export function ManualMergeSearch() {
 
   const handleCandidateSelect = (candidate: CandidateProfile) => {
     if (candidate.user_id) {
-      toast.error("This candidate is already linked to a user");
+      toast.error(t("this_candidate_is_already", "This candidate is already linked to a user"));
       return;
     }
     
     // Warn about null email
     if (!candidate.email) {
-      toast.error("This candidate has no email address. Please update the candidate profile before merging.");
+      toast.error(t("this_candidate_has_no", "This candidate has no email address. Please update the candidate profile before merging."));
       return;
     }
     
@@ -126,7 +128,7 @@ export function ManualMergeSearch() {
 
   const handlePreviewMerge = () => {
     if (!selectedCandidate || !selectedUser) {
-      toast.error("Please select both a candidate and a user");
+      toast.error(t("please_select_both_a", "Please select both a candidate and a user"));
       return;
     }
     setShowPreview(true);
@@ -140,7 +142,7 @@ export function ManualMergeSearch() {
     setUserResults([]);
     setCandidateSearch("");
     setUserSearch("");
-    toast.success("Profiles merged successfully!");
+    toast.success(t("profiles_merged_successfully", "Profiles merged successfully!"));
   };
 
   return (
@@ -160,7 +162,7 @@ export function ManualMergeSearch() {
           <CardContent className="space-y-4">
             <div className="flex gap-2">
               <Input
-                placeholder="Search by name or email..."
+                placeholder={t("search_by_name_or", "Search by name or email...")}
                 value={candidateSearch}
                 onChange={(e) => setCandidateSearch(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && searchCandidates()}
@@ -178,7 +180,7 @@ export function ManualMergeSearch() {
                       <p className="font-medium">{selectedCandidate.full_name}</p>
                       <p className="text-sm text-muted-foreground">{selectedCandidate.email}</p>
                     </div>
-                    <Badge variant="default">Selected</Badge>
+                    <Badge variant="default">{t("selected", "Selected")}</Badge>
                   </div>
                 </CardContent>
               </Card>
@@ -198,7 +200,7 @@ export function ManualMergeSearch() {
                       <div>
                         <p className="font-medium">{candidate.full_name}</p>
                         <p className="text-sm text-muted-foreground">
-                          {candidate.email || <span className="text-destructive">No email</span>}
+                          {candidate.email || <span className="text-destructive">{t("no_email", "No email")}</span>}
                         </p>
                         {candidate.phone && (
                           <p className="text-xs text-muted-foreground">{candidate.phone}</p>
@@ -206,7 +208,7 @@ export function ManualMergeSearch() {
                       </div>
                       <div className="flex flex-col items-end gap-1">
                         {!candidate.email && (
-                          <Badge variant="destructive">Missing Email</Badge>
+                          <Badge variant="destructive">{t("missing_email", "Missing Email")}</Badge>
                         )}
                         <Badge variant={candidate.user_id ? "destructive" : "secondary"}>
                           {candidate.user_id ? "Linked" : "Unlinked"}
@@ -239,7 +241,7 @@ export function ManualMergeSearch() {
           <CardContent className="space-y-4">
             <div className="flex gap-2">
               <Input
-                placeholder="Search by name or email..."
+                placeholder={t("search_by_name_or", "Search by name or email...")}
                 value={userSearch}
                 onChange={(e) => setUserSearch(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && searchUsers()}
@@ -257,7 +259,7 @@ export function ManualMergeSearch() {
                       <p className="font-medium">{selectedUser.full_name}</p>
                       <p className="text-sm text-muted-foreground">{selectedUser.email}</p>
                     </div>
-                    <Badge variant="default">Selected</Badge>
+                    <Badge variant="default">{t("selected", "Selected")}</Badge>
                   </div>
                 </CardContent>
               </Card>
@@ -295,7 +297,7 @@ export function ManualMergeSearch() {
         <CardContent className="pt-6">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="font-semibold mb-1">Ready to merge?</h3>
+              <h3 className="font-semibold mb-1">{t("ready_to_merge", "Ready to merge?")}</h3>
               <p className="text-sm text-muted-foreground">
                 {selectedCandidate && selectedUser
                   ? `Link ${selectedCandidate.full_name} to ${selectedUser.full_name}`

@@ -6,12 +6,14 @@ import { Users, Building2, BarChart3 } from "lucide-react";
 import { StrategistCompanyTab } from "./StrategistCompanyTab";
 import { StrategistCandidateTab } from "./StrategistCandidateTab";
 import { StrategistWorkloadTab } from "./StrategistWorkloadTab";
+import { useTranslation } from 'react-i18next';
 
 interface StrategistManagementModalProps {
   trigger?: React.ReactNode;
 }
 
 export function StrategistManagementModal({ trigger }: StrategistManagementModalProps) {
+  const { t } = useTranslation('admin');
   const [open, setOpen] = useState(false);
 
   return (
@@ -20,7 +22,7 @@ export function StrategistManagementModal({ trigger }: StrategistManagementModal
         {trigger || (
           <Button variant="outline" className="gap-2">
             <Users className="h-4 w-4" />
-            Manage Strategists
+            {t('strategistManagementModal.manageStrategists')}
           </Button>
         )}
       </DialogTrigger>
@@ -29,7 +31,7 @@ export function StrategistManagementModal({ trigger }: StrategistManagementModal
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl">
             <Users className="h-5 w-5" />
-            Strategist Assignment Manager
+            {t('strategistManagementModal.title')}
           </DialogTitle>
         </DialogHeader>
 
@@ -37,15 +39,15 @@ export function StrategistManagementModal({ trigger }: StrategistManagementModal
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="companies" className="gap-2">
               <Building2 className="h-4 w-4" />
-              Companies
+              {t('strategistManagementModal.companies')}
             </TabsTrigger>
             <TabsTrigger value="candidates" className="gap-2">
               <Users className="h-4 w-4" />
-              Candidates
+              {t('strategistManagementModal.candidates')}
             </TabsTrigger>
             <TabsTrigger value="workload" className="gap-2">
               <BarChart3 className="h-4 w-4" />
-              Workload
+              {t('strategistManagementModal.workload')}
             </TabsTrigger>
           </TabsList>
 

@@ -15,6 +15,7 @@ import {
   User,
   Briefcase
 } from "lucide-react";
+import { useTranslation } from 'react-i18next';
 
 interface ApplicationLog {
   id: string;
@@ -66,6 +67,7 @@ const actionConfig: Record<string, { icon: React.ReactNode; color: string; label
 };
 
 export function ApplicationLogViewer({ candidateId, limit = 20 }: ApplicationLogViewerProps) {
+  const { t } = useTranslation('candidates');
   const [logs, setLogs] = useState<ApplicationLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

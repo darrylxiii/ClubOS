@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/lib/notify";
@@ -42,6 +43,7 @@ interface CourseModule {
 }
 
 export default function ModuleDetail() {
+  const { t } = useTranslation('common');
   const { slug } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -260,9 +262,9 @@ export default function ModuleDetail() {
     return (
       <>
         <div className="w-full px-4 sm:px-6 lg:px-8 py-6 text-center py-12">
-          <h2 className="text-2xl font-bold mb-4">Module not found</h2>
+          <h2 className="text-2xl font-bold mb-4">{t('moduleDetail.text1')}</h2>
           <Link to="/academy">
-            <Button>Back to Academy</Button>
+            <Button>{t('moduleDetail.text2')}</Button>
           </Link>
         </div>
       </>
@@ -343,7 +345,7 @@ export default function ModuleDetail() {
               <div className="aspect-video bg-muted flex items-center justify-center">
                 <div className="text-center p-12">
                   <PlayCircle className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-                  <p className="text-muted-foreground">Media content coming soon</p>
+                  <p className="text-muted-foreground">{t('moduleDetail.text3')}</p>
                 </div>
               </div>
             </Card>
@@ -352,20 +354,20 @@ export default function ModuleDetail() {
           {/* Content Area */}
           <Card className="p-8">
             <div className="prose prose-sm max-w-none">
-              <h2 className="text-xl font-bold mb-4">Module Content</h2>
+              <h2 className="text-xl font-bold mb-4">{t('moduleDetail.text4')}</h2>
               <p className="text-muted-foreground leading-relaxed mb-6">
                 {module.description}
               </p>
 
               {/* Placeholder for content blocks */}
               <div className="space-y-4 text-muted-foreground">
-                <p>Module content will appear here. This can include:</p>
+                <p>{t('moduleDetail.text5')}</p>
                 <ul className="list-disc pl-6 space-y-2">
-                  <li>Text lessons and explanations</li>
-                  <li>Code examples and exercises</li>
-                  <li>Interactive quizzes</li>
-                  <li>Downloadable resources</li>
-                  <li>Expert notes and tips</li>
+                  <li>{t('moduleDetail.text6')}</li>
+                  <li>{t('moduleDetail.text7')}</li>
+                  <li>{t('moduleDetail.text8')}</li>
+                  <li>{t('moduleDetail.text9')}</li>
+                  <li>{t('moduleDetail.text10')}</li>
                 </ul>
               </div>
             </div>
@@ -376,7 +378,7 @@ export default function ModuleDetail() {
             <Card className="p-6">
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <h3 className="font-bold">Your Progress</h3>
+                  <h3 className="font-bold">{t('moduleDetail.text11')}</h3>
                   <span className="text-sm font-semibold">{Math.round(progress)}%</span>
                 </div>
                 <Progress value={progress} className="h-2" />
@@ -384,7 +386,7 @@ export default function ModuleDetail() {
                 {module?.video_url && !module.video_url.includes('youtube.com') && !module.video_url.includes('youtu.be') && (
                   <div className="pt-2 border-t">
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">Video Watched</span>
+                      <span className="text-muted-foreground">{t('moduleDetail.text12')}</span>
                       <span className="font-semibold">{videoWatchedPercentage}%</span>
                     </div>
                     <Progress value={videoWatchedPercentage} className="h-1 mt-2" />

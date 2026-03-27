@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -33,6 +34,7 @@ interface CareerProgress {
 }
 
 export function CareerProgressWidget() {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const navigate = useNavigate();
   const [progress, setProgress] = useState<CareerProgress | null>(null);
@@ -145,15 +147,11 @@ export function CareerProgressWidget() {
         );
       case 'slow':
         return (
-          <Badge variant="outline" className="text-xs text-muted-foreground">
-            Just Getting Started
-          </Badge>
+          <Badge variant="outline" className="text-xs text-muted-foreground">{t('careerProgressWidget.badge.justGettingStarted')}</Badge>
         );
       default:
         return (
-          <Badge variant="outline" className="text-xs">
-            On Track
-          </Badge>
+          <Badge variant="outline" className="text-xs">{t('careerProgressWidget.badge.onTrack')}</Badge>
         );
     }
   };
@@ -251,7 +249,7 @@ export function CareerProgressWidget() {
           className="w-full justify-between text-primary hover:text-primary"
           onClick={() => navigate('/applications')}
         >
-          <span>View All Progress</span>
+          <span>{t("view_all_progress", "View All Progress")}</span>
           <ArrowRight className="w-4 h-4" />
         </Button>
       </CardContent>

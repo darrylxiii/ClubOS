@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -24,6 +25,7 @@ export function BookingLinkBrandingSettings({
   value,
   onChange,
 }: BookingLinkBrandingSettingsProps) {
+  const { t } = useTranslation('common');
   return (
     <div className="space-y-5 pt-4 border-t">
       <h3 className="font-semibold flex items-center gap-2">
@@ -40,7 +42,7 @@ export function BookingLinkBrandingSettings({
 
       {/* Custom Logo */}
       <div className="space-y-2">
-        <Label>Custom Logo (optional)</Label>
+        <Label>{t("custom_logo_optional", "Custom Logo (optional)")}</Label>
         <p className="text-xs text-muted-foreground">
           Add your company logo to the booking page header
         </p>
@@ -48,7 +50,7 @@ export function BookingLinkBrandingSettings({
           <div className="flex items-center gap-3">
             <img
               src={value.custom_logo_url}
-              alt="Custom logo"
+              alt={t("custom_logo", "Custom logo")}
               className="h-12 w-auto rounded border border-border object-contain bg-background p-1"
             />
             <Button
@@ -83,7 +85,7 @@ export function BookingLinkBrandingSettings({
           id="confirmation_message"
           value={value.confirmation_message}
           onChange={(e) => onChange({ ...value, confirmation_message: e.target.value })}
-          placeholder="Thank you for booking. We look forward to meeting you."
+          placeholder={t("thank_you_for_booking", "Thank you for booking. We look forward to meeting you.")}
           rows={3}
           maxLength={500}
         />

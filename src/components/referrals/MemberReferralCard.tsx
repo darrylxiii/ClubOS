@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -12,6 +13,7 @@ interface MemberReferralCardProps {
 }
 
 export function MemberReferralCard({ policy, earnings }: MemberReferralCardProps) {
+  const { t } = useTranslation('common');
   const memberEarnings = earnings.filter(e => 
     policy.id === e.policy_id || 
     (policy.referred_member_id && e.candidate?.id === policy.referred_member_id)
@@ -79,7 +81,7 @@ export function MemberReferralCard({ policy, earnings }: MemberReferralCardProps
                   <Euro className="h-4 w-4" />
                   <span className="text-lg font-bold">{formatCurrency(earnedReward)}</span>
                 </div>
-                <p className="text-xs text-success">Earned</p>
+                <p className="text-xs text-success">{t("earned", "Earned")}</p>
               </>
             ) : (
               <>
@@ -87,7 +89,7 @@ export function MemberReferralCard({ policy, earnings }: MemberReferralCardProps
                   <Euro className="h-4 w-4" />
                   <span className="text-lg font-bold">{formatCurrency(projectedReward)}</span>
                 </div>
-                <p className="text-xs text-muted-foreground">Projected</p>
+                <p className="text-xs text-muted-foreground">{t("projected", "Projected")}</p>
               </>
             )}
           </div>

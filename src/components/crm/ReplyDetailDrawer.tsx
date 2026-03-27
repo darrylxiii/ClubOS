@@ -8,6 +8,7 @@ import { Link } from "react-router-dom";
 import { format } from "date-fns";
 import type { CRMEmailReply } from "@/types/crm-enterprise";
 import { REPLY_CLASSIFICATIONS } from "@/types/crm-enterprise";
+import { useTranslation } from 'react-i18next';
 
 interface ReplyDetailDrawerProps {
   reply: CRMEmailReply | null;
@@ -28,6 +29,7 @@ export function ReplyDetailDrawer({
   onSnooze,
   onMarkActioned,
 }: ReplyDetailDrawerProps) {
+  const { t } = useTranslation('common');
   if (!reply) return null;
   
   const classification = REPLY_CLASSIFICATIONS.find(c => c.value === reply.classification);

@@ -7,6 +7,7 @@ import { Eye, Heart, MessageCircle, Share2, TrendingUp, Users, MapPin, Clock, Do
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import { TimeRangeSelector, TimeRange } from "@/components/analytics/TimeRangeSelector";
 import { useAnalyticsData } from "@/hooks/useAnalyticsData";
 import { Progress } from "@/components/ui/progress";
@@ -19,6 +20,7 @@ interface PostAnalyticsDialogProps {
 }
 
 export const PostAnalyticsDialog = ({ postId, open, onOpenChange }: PostAnalyticsDialogProps) => {
+  const { t } = useTranslation("common");
   const [timeRange, setTimeRange] = useState<TimeRange>("7d");
   const [customRange, setCustomRange] = useState<{ from: Date; to: Date }>();
   const [post, setPost] = useState<any>(null);
@@ -68,14 +70,14 @@ export const PostAnalyticsDialog = ({ postId, open, onOpenChange }: PostAnalytic
     a.href = url;
     a.download = `post-analytics-${postId}.csv`;
     a.click();
-    toast.success("Analytics exported!");
+    toast.success(t('social.postAnalytics.exported'));
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-2xl">Post Analytics</DialogTitle>
+          <DialogTitle className="text-2xl">{t('social.postAnalytics.title')}</DialogTitle>
         </DialogHeader>
 
         {/* Time Range Selector */}
@@ -89,7 +91,7 @@ export const PostAnalyticsDialog = ({ postId, open, onOpenChange }: PostAnalytic
         />
 
         {analytics.loading ? (
-          <div className="text-center py-8">Loading analytics...</div>
+          <div className="text-center py-8">{t('social.postAnalytics.loading')}</div>
         ) : (
           <div className="space-y-6">
             {/* Quick Stats */}
@@ -100,7 +102,7 @@ export const PostAnalyticsDialog = ({ postId, open, onOpenChange }: PostAnalytic
                     <Eye className="h-5 w-5 text-primary" />
                     <div>
                       <p className="text-2xl font-bold">{analytics.uniqueViews}</p>
-                      <p className="text-xs text-muted-foreground">Unique Views</p>
+                      <p className="text-xs text-muted-foreground">{t('social.postAnalytics.uniqueViews')}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -112,7 +114,7 @@ export const PostAnalyticsDialog = ({ postId, open, onOpenChange }: PostAnalytic
                     <Heart className="h-5 w-5 text-red-500" />
                     <div>
                       <p className="text-2xl font-bold">{analytics.likes}</p>
-                      <p className="text-xs text-muted-foreground">Likes</p>
+                      <p className="text-xs text-muted-foreground">{t('social.postAnalytics.likes')}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -124,7 +126,7 @@ export const PostAnalyticsDialog = ({ postId, open, onOpenChange }: PostAnalytic
                     <MessageCircle className="h-5 w-5 text-blue-500" />
                     <div>
                       <p className="text-2xl font-bold">{analytics.comments}</p>
-                      <p className="text-xs text-muted-foreground">Comments</p>
+                      <p className="text-xs text-muted-foreground">{t('social.postAnalytics.comments')}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -136,7 +138,7 @@ export const PostAnalyticsDialog = ({ postId, open, onOpenChange }: PostAnalytic
                     <Share2 className="h-5 w-5 text-green-500" />
                     <div>
                       <p className="text-2xl font-bold">{analytics.shares}</p>
-                      <p className="text-xs text-muted-foreground">Shares</p>
+                      <p className="text-xs text-muted-foreground">{t('social.postAnalytics.shares')}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -148,7 +150,7 @@ export const PostAnalyticsDialog = ({ postId, open, onOpenChange }: PostAnalytic
                     <Bookmark className="h-5 w-5 text-purple-500" />
                     <div>
                       <p className="text-2xl font-bold">{analytics.bookmarks}</p>
-                      <p className="text-xs text-muted-foreground">Bookmarks</p>
+                      <p className="text-xs text-muted-foreground">{t('social.postAnalytics.bookmarks')}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -157,36 +159,36 @@ export const PostAnalyticsDialog = ({ postId, open, onOpenChange }: PostAnalytic
 
             <Tabs defaultValue="overview" className="space-y-4">
               <TabsList className="grid w-full grid-cols-4">
-                <TabsTrigger value="overview">Overview</TabsTrigger>
-                <TabsTrigger value="viewers">Viewers</TabsTrigger>
-                <TabsTrigger value="audience">Audience</TabsTrigger>
-                <TabsTrigger value="interactions">Interactions</TabsTrigger>
+                <TabsTrigger value="overview">{t('social.postAnalytics.tabs.overview')}</TabsTrigger>
+                <TabsTrigger value="viewers">{t('social.postAnalytics.tabs.viewers')}</TabsTrigger>
+                <TabsTrigger value="audience">{t('social.postAnalytics.tabs.audience')}</TabsTrigger>
+                <TabsTrigger value="interactions">{t('social.postAnalytics.tabs.interactions')}</TabsTrigger>
               </TabsList>
 
               <TabsContent value="overview" className="space-y-4">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Performance Summary</CardTitle>
-                    <CardDescription>Key metrics for this post</CardDescription>
+                    <CardTitle>{t('social.postAnalytics.performanceSummary')}</CardTitle>
+                    <CardDescription>{t('social.postAnalytics.keyMetrics')}</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">Total Views</span>
+                      <span className="text-sm text-muted-foreground">{t('social.postAnalytics.totalViews')}</span>
                       <span className="font-semibold">{analytics.totalViews}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">Engagement Rate</span>
+                      <span className="text-sm text-muted-foreground">{t('social.postAnalytics.engagementRate')}</span>
                       <span className="font-semibold">{analytics.avgEngagementRate}%</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">Total Interactions</span>
+                      <span className="text-sm text-muted-foreground">{t('social.postAnalytics.totalInteractions')}</span>
                       <span className="font-semibold">
                         {analytics.likes + analytics.comments + analytics.shares + analytics.bookmarks}
                       </span>
                     </div>
                     <Button onClick={exportData} variant="outline" className="w-full gap-2">
                       <Download className="h-4 w-4" />
-                      Export Analytics
+                      {t('social.postAnalytics.exportAnalytics')}
                     </Button>
                   </CardContent>
                 </Card>
@@ -199,14 +201,14 @@ export const PostAnalyticsDialog = ({ postId, open, onOpenChange }: PostAnalytic
               <TabsContent value="audience" className="space-y-4">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Audience Insights</CardTitle>
-                    <CardDescription>Where your audience is coming from</CardDescription>
+                    <CardTitle>{t('social.postAnalytics.audienceInsights')}</CardTitle>
+                    <CardDescription>{t('social.postAnalytics.audienceSource')}</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div>
                       <h4 className="font-semibold mb-3 flex items-center gap-2">
                         <MapPin className="h-4 w-4" />
-                        Top Locations
+                        {t('social.postAnalytics.topLocations')}
                       </h4>
                       {analytics.locationBreakdown.slice(0, 5).map((location: any) => (
                         <div key={location.location} className="mb-3">
@@ -224,7 +226,7 @@ export const PostAnalyticsDialog = ({ postId, open, onOpenChange }: PostAnalytic
                     <div>
                       <h4 className="font-semibold mb-3 flex items-center gap-2">
                         <Users className="h-4 w-4" />
-                        Device Breakdown
+                        {t('social.postAnalytics.deviceBreakdown')}
                       </h4>
                       {analytics.deviceBreakdown.map((device: any) => (
                         <div key={device.device} className="flex justify-between items-center py-2">

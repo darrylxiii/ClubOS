@@ -11,13 +11,7 @@
  * Returns: { success, records_created, errors }
  */
 
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.58.0';
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { createHandler } from '../_shared/handler.ts';
 
 interface BackfillRequest {
   days_back?: number;
@@ -25,20 +19,13 @@ interface BackfillRequest {
   company_id?: string;
 }
 
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
-  }
+Deno.serve(createHandler(async (req, ctx) => {
+    const { supabase, corsHeaders } = ctx;
 
-  try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
-    const { 
-      days_back = 180, 
+    const {
+      days_back = 180,
       limit = 1000,
-      company_id 
+      company_id
     }: BackfillRequest = await req.json();
 
     console.log(`[ML Backfill] Starting backfill: ${days_back} days, limit ${limit}`);
@@ -198,15 +185,7 @@ serve(async (req) => {
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
-  } catch (error) {
-    console.error('[ML Backfill] Fatal error:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    return new Response(
-      JSON.stringify({ error: errorMessage, success: false }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-  }
-});
+}));
 
 // Determine training labels from application data
 function determineLabels(application: any): {

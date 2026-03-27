@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { logger } from '@/lib/logger';
@@ -17,6 +18,7 @@ interface LiveCaptionsProps {
 }
 
 export function LiveCaptions({ enabled, localStream }: LiveCaptionsProps) {
+  const { t } = useTranslation('common');
   const [captions, setCaptions] = useState<Caption[]>([]);
   const [isListening, setIsListening] = useState(false);
   const recognitionRef = useRef<any>(null);
@@ -58,7 +60,7 @@ export function LiveCaptions({ enabled, localStream }: LiveCaptionsProps) {
         const newCaption: Caption = {
           id: Date.now().toString(),
           text: transcript,
-          speaker: 'You',
+          speaker: t('meetings.you', 'You'),
           timestamp: new Date(),
           isFinal
         };
@@ -106,7 +108,7 @@ export function LiveCaptions({ enabled, localStream }: LiveCaptionsProps) {
         <div className="flex items-center justify-between mb-2">
           <Badge variant="secondary" className="gap-2">
             {isListening && <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />}
-            Live Captions
+            {t('meetings.liveCaptions', 'Live Captions')}
           </Badge>
         </div>
         

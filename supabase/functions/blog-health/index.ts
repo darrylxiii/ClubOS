@@ -67,11 +67,11 @@ serve(async (req) => {
       .eq('status', 'published');
 
     const posts = allPosts || [];
-    const longTitles = posts.filter((p: any) => (p.meta_title || '').length > 55);
-    const longDescs = posts.filter((p: any) => (p.meta_description || '').length > 155);
+    const longTitles = posts.filter((p) => ((p.meta_title as string) || '').length > 55);
+    const longDescs = posts.filter((p) => ((p.meta_description as string) || '').length > 155);
     
     // Fix: use text-based check for placeholder images
-    const placeholderPosts = posts.filter((p: any) => {
+    const placeholderPosts = posts.filter((p) => {
       const heroImage = p.hero_image;
       if (!heroImage) return true;
       if (typeof heroImage === 'string') return heroImage.includes('placeholder.svg');
@@ -80,9 +80,9 @@ serve(async (req) => {
     const missingImages = placeholderPosts.length;
 
     // Structured data validation
-    const missingFaq = posts.filter((p: any) => !p.faq_schema || (Array.isArray(p.faq_schema) && p.faq_schema.length === 0));
-    const missingTakeaways = posts.filter((p: any) => !p.key_takeaways || (Array.isArray(p.key_takeaways) && p.key_takeaways.length === 0));
-    const fewKeywords = posts.filter((p: any) => !p.keywords || (Array.isArray(p.keywords) && p.keywords.length < 3));
+    const missingFaq = posts.filter((p) => !p.faq_schema || (Array.isArray(p.faq_schema) && p.faq_schema.length === 0));
+    const missingTakeaways = posts.filter((p) => !p.key_takeaways || (Array.isArray(p.key_takeaways) && p.key_takeaways.length === 0));
+    const fewKeywords = posts.filter((p) => !p.keywords || (Array.isArray(p.keywords) && (p.keywords as unknown[]).length < 3));
 
     const stuckItems = stuckQueueResult.data || [];
     const draftPosts = draftPostsResult.count || 0;
@@ -160,7 +160,7 @@ serve(async (req) => {
         activeSubscribers: subscribersResult.count || 0,
       },
       issues,
-      stuckItems: stuckItems.map((i: any) => ({
+      stuckItems: stuckItems.map((i) => ({
         id: i.id,
         topic: i.topic,
         lockedAt: i.locked_at,
@@ -172,7 +172,7 @@ serve(async (req) => {
     });
   } catch (error) {
     console.error('Blog health check error:', error);
-    return new Response(JSON.stringify({ status: 'error', error: error.message }), {
+    return new Response(JSON.stringify({ status: 'error', error: error instanceof Error ? error.message : 'Unknown error' }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

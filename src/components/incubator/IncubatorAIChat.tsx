@@ -1,4 +1,5 @@
 import { memo, useState, useRef, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -18,6 +19,7 @@ interface IncubatorAIChatProps {
 }
 
 export const IncubatorAIChat = memo(({ context, onInteraction }: IncubatorAIChatProps) => {
+  const { t } = useTranslation('common');
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -91,12 +93,12 @@ What would you like to work on?`,
         const errorMessage = errorData.error || `Server error: ${response.status}`;
         
         if (response.status === 404) {
-          toast.error('AI assistant is initializing. Please wait a moment and try again.');
+          toast.error(t('incubator.aIAssistantIsInitializingPleaseWaitAMome'));
           console.error('Edge function not deployed yet');
         } else if (response.status === 429) {
-          toast.error('Rate limit reached. Please wait a moment.');
+          toast.error(t('incubator.rateLimitReachedPleaseWaitAMoment'));
         } else if (response.status === 402) {
-          toast.error('AI credits depleted. Please add funds.');
+          toast.error(t('incubator.aICreditsDepletedPleaseAddFunds'));
         } else if (response.status >= 500 && retryCount < 2) {
           console.log(`Server error (${response.status}), retrying (attempt ${retryCount + 1}/2)...`);
           setMessages(prev => prev.filter(m => m.id !== assistantId));
@@ -215,7 +217,7 @@ What would you like to work on?`,
                 <Loader2 className="w-4 h-4 text-primary animate-spin" />
               </div>
               <Card className="p-3">
-                <p className="text-sm text-muted-foreground">Analyzing your question...</p>
+                <p className="text-sm text-muted-foreground">{t('incubator.analyzingYourQuestion')}</p>
               </Card>
             </div>
           )}
@@ -233,7 +235,7 @@ What would you like to work on?`,
                 handleSend();
               }
             }}
-            placeholder="Ask for help with calculations, strategy, or specific sections..."
+            placeholder={t('incubator.askForHelpWithCalculationsStrategyOrSpec')}
             rows={2}
             className="resize-none"
           />
@@ -246,9 +248,7 @@ What would you like to work on?`,
             <Send className="h-4 w-4" />
           </Button>
         </div>
-        <p className="text-xs text-muted-foreground mt-2">
-          Press Enter to send, Shift+Enter for new line
-        </p>
+        <p className="text-xs text-muted-foreground mt-2">{t('incubator.pressEnterToSendShiftEnterForNewLine')}</p>
       </div>
     </div>
   );

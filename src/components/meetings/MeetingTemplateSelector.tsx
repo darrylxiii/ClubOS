@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
@@ -106,6 +107,7 @@ interface MeetingTemplateSelectorProps {
 }
 
 export function MeetingTemplateSelector({ value, onSelect }: MeetingTemplateSelectorProps) {
+  const { t } = useTranslation('common');
   const selectedTemplate = MEETING_TEMPLATES.find((t) => t.id === value);
 
   const getCategoryColor = (category: MeetingTemplate["category"]) => {
@@ -129,7 +131,7 @@ export function MeetingTemplateSelector({ value, onSelect }: MeetingTemplateSele
         }}
       >
         <SelectTrigger>
-          <SelectValue placeholder="Select a meeting template (optional)" />
+          <SelectValue placeholder={t("select_a_meeting_template", "Select a meeting template (optional)")} />
         </SelectTrigger>
         <SelectContent>
           {MEETING_TEMPLATES.map((template) => (

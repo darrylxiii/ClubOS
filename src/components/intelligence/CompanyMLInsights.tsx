@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,6 +13,7 @@ interface CompanyMLInsightsProps {
 }
 
 export function CompanyMLInsights({ companyId }: CompanyMLInsightsProps) {
+  const { t } = useTranslation('common');
   const [mlFeatures, setMlFeatures] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [computing, setComputing] = useState(false);
@@ -161,19 +163,19 @@ export function CompanyMLInsights({ companyId }: CompanyMLInsightsProps) {
           <div className="grid grid-cols-3 gap-4">
             <div className="text-center">
               <div className="text-2xl font-bold text-muted-foreground">{matchImpact.before}%</div>
-              <div className="text-xs text-muted-foreground mt-1">Without Interactions</div>
+              <div className="text-xs text-muted-foreground mt-1">{t("without_interactions", "Without Interactions")}</div>
             </div>
             <div className="flex items-center justify-center">
               <TrendingUp className="h-6 w-6 text-green-500" />
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-green-500">{matchImpact.after}%</div>
-              <div className="text-xs text-muted-foreground mt-1">With Interactions</div>
+              <div className="text-xs text-muted-foreground mt-1">{t("with_interactions", "With Interactions")}</div>
             </div>
           </div>
           <div className="pt-4 border-t">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium">Accuracy Improvement</span>
+              <span className="text-sm font-medium">{t("accuracy_improvement", "Accuracy Improvement")}</span>
               <span className="text-sm font-bold text-green-500">+{matchImpact.improvement}%</span>
             </div>
             <Progress value={(matchImpact.improvement / 35) * 100} className="h-2" />
@@ -224,7 +226,7 @@ export function CompanyMLInsights({ companyId }: CompanyMLInsightsProps) {
         <CardContent>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <div className="text-sm text-muted-foreground">Interaction Coverage</div>
+              <div className="text-sm text-muted-foreground">{t("interaction_coverage", "Interaction Coverage")}</div>
               <div className="text-2xl font-bold mt-1">
                 {interaction_summary?.total || 0} interactions
               </div>
@@ -235,7 +237,7 @@ export function CompanyMLInsights({ companyId }: CompanyMLInsightsProps) {
             </div>
 
             <div>
-              <div className="text-sm text-muted-foreground">Stakeholder Mapping</div>
+              <div className="text-sm text-muted-foreground">{t("stakeholder_mapping", "Stakeholder Mapping")}</div>
               <div className="text-2xl font-bold mt-1">
                 {stakeholder_map?.decision_makers + stakeholder_map?.influencers || 0} key players
               </div>
@@ -246,7 +248,7 @@ export function CompanyMLInsights({ companyId }: CompanyMLInsightsProps) {
             </div>
 
             <div>
-              <div className="text-sm text-muted-foreground">Sentiment Analysis</div>
+              <div className="text-sm text-muted-foreground">{t("sentiment_analysis", "Sentiment Analysis")}</div>
               <div className="text-2xl font-bold mt-1">
                 {interaction_summary?.avg_sentiment !== undefined ? 
                   `${(interaction_summary.avg_sentiment * 100).toFixed(0)}%` : 'N/A'}
@@ -258,7 +260,7 @@ export function CompanyMLInsights({ companyId }: CompanyMLInsightsProps) {
             </div>
 
             <div>
-              <div className="text-sm text-muted-foreground">Response Patterns</div>
+              <div className="text-sm text-muted-foreground">{t("response_patterns", "Response Patterns")}</div>
               <div className="text-2xl font-bold mt-1">
                 {interaction_summary?.avg_response_time_hours || 0}h avg
               </div>
@@ -283,14 +285,14 @@ export function CompanyMLInsights({ companyId }: CompanyMLInsightsProps) {
           <CardContent>
             <div className="grid grid-cols-3 gap-4">
               <div className="space-y-1">
-                <div className="text-sm text-muted-foreground">Decision Timeline</div>
+                <div className="text-sm text-muted-foreground">{t("decision_timeline", "Decision Timeline")}</div>
                 <div className="text-lg font-bold">
                   {ai_recommendations.decision_timeline_estimate || 'Unknown'}
                 </div>
               </div>
 
               <div className="space-y-1">
-                <div className="text-sm text-muted-foreground">Ghost Risk</div>
+                <div className="text-sm text-muted-foreground">{t("ghost_risk", "Ghost Risk")}</div>
                 <div className="text-lg font-bold">
                   {ai_recommendations.ghost_risk || 0}%
                 </div>
@@ -298,7 +300,7 @@ export function CompanyMLInsights({ companyId }: CompanyMLInsightsProps) {
               </div>
 
               <div className="space-y-1">
-                <div className="text-sm text-muted-foreground">Competitive Position</div>
+                <div className="text-sm text-muted-foreground">{t("competitive_position", "Competitive Position")}</div>
                 <Badge variant={
                   ai_recommendations.competitive_position === 'leading' ? 'default' :
                   ai_recommendations.competitive_position === 'competing' ? 'secondary' :

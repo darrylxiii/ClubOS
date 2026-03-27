@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { ChevronDown, Activity } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -9,6 +10,7 @@ import { LiveOperationsWidget } from "./LiveOperationsWidget";
 import { DashboardSection } from "./DashboardSection";
 
 export function OperationsMonitor() {
+  const { t } = useTranslation('common');
   const [expanded, setExpanded] = useState(false);
   const { data: decisions } = useAgentDecisions();
 
@@ -23,7 +25,7 @@ export function OperationsMonitor() {
       >
         <div className="flex items-center gap-3">
           <Activity className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm font-medium">Operations Monitor</span>
+          <span className="text-sm font-medium">{t("operations_monitor", "Operations Monitor")}</span>
           <span className="text-xs text-muted-foreground">
             {agentCount} agents · {decisionCount} decisions (24h)
           </span>

@@ -1,0 +1,29 @@
+{
+  "communicationIntelligence": {
+    "desc": "Unified view of all communications with AI-powered insights",
+    "text2": "Communication Intelligence",
+    "text3": "All Entities",
+    "text4": "Candidates",
+    "text5": "Prospects",
+    "text6": "Partners",
+    "text7": "Healthy",
+    "text8": "Needs Attention",
+    "text9": "At Risk",
+    "text10": "Critical",
+    "text11": "Communication Timeline",
+    "text12": "No relationships tracked yet",
+    "text13": "Detected Patterns",
+    "text14": "No patterns detected"
+  },
+  "messages": {
+    "text1": "Welcome to Messages",
+    "text2": "Start conversations with your network",
+    "text3": "Messages",
+    "text4": "Search conversations and messages...",
+    "text5": "Select a conversation",
+    "text6": "Choose from your existing conversations or start a new one"
+  },
+  "whatsAppInbox": {
+    "text1": "WhatsApp Business"
+  }
+}

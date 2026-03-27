@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Flag, Plus, Trash2, Settings, Users, Building, Percent } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -30,6 +31,7 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 
 export function FeatureFlagManager() {
+  const { t } = useTranslation('common');
   const { flags, isLoading, createFlag, updateFlag, deleteFlag, toggleFlag } = useFeatureFlags();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState<string | null>(null);
@@ -101,7 +103,7 @@ export function FeatureFlagManager() {
           {flags.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               <Flag className="h-12 w-12 mx-auto mb-3 opacity-20" />
-              <p>No feature flags configured</p>
+              <p>{t("no_feature_flags_configured", "No feature flags configured")}</p>
               <Button
                 variant="link"
                 onClick={() => setShowCreateDialog(true)}
@@ -172,7 +174,7 @@ export function FeatureFlagManager() {
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Create Feature Flag</DialogTitle>
+            <DialogTitle>{t("create_feature_flag", "Create Feature Flag")}</DialogTitle>
             <DialogDescription>
               Add a new feature flag to control feature rollout
             </DialogDescription>
@@ -180,20 +182,20 @@ export function FeatureFlagManager() {
 
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Flag Name</Label>
+              <Label htmlFor="name">{t("flag_name", "Flag Name")}</Label>
               <Input
                 id="name"
-                placeholder="New Dashboard Design"
+                placeholder={t("new_dashboard_design", "New Dashboard Design")}
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="key">Flag Key</Label>
+              <Label htmlFor="key">{t("flag_key", "Flag Key")}</Label>
               <Input
                 id="key"
-                placeholder="new_dashboard_design"
+                placeholder={t("new_dashboard_design", "new_dashboard_design")}
                 value={formData.flag_key}
                 onChange={(e) => setFormData({ ...formData, flag_key: e.target.value })}
                 className="font-mono"
@@ -204,10 +206,10 @@ export function FeatureFlagManager() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
+              <Label htmlFor="description">{t("description", "Description")}</Label>
               <Textarea
                 id="description"
-                placeholder="Enables the redesigned dashboard for users"
+                placeholder={t("enables_the_redesigned_dashboard", "Enables the redesigned dashboard for users")}
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               />
@@ -227,10 +229,10 @@ export function FeatureFlagManager() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="roles">Target Roles (comma-separated)</Label>
+              <Label htmlFor="roles">{t("target_roles_commaseparated", "Target Roles (comma-separated)")}</Label>
               <Input
                 id="roles"
-                placeholder="admin, strategist, partner"
+                placeholder={t("admin_strategist_partner", "admin, strategist, partner")}
                 value={formData.target_roles}
                 onChange={(e) => setFormData({ ...formData, target_roles: e.target.value })}
               />
@@ -255,13 +257,13 @@ export function FeatureFlagManager() {
       <AlertDialog open={!!showDeleteDialog} onOpenChange={() => setShowDeleteDialog(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Feature Flag?</AlertDialogTitle>
+            <AlertDialogTitle>{t("delete_feature_flag", "Delete Feature Flag?")}</AlertDialogTitle>
             <AlertDialogDescription>
               This action cannot be undone. Code relying on this flag will return false.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t("cancel", "Cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => showDeleteDialog && handleDelete(showDeleteDialog)}
               className="bg-destructive hover:bg-destructive/90"

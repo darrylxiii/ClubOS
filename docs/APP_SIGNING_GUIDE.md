@@ -26,7 +26,7 @@ This guide covers the complete process for signing and submitting The Quantum Cl
 4. Select **App IDs** → **App**
 5. Enter:
    - Description: `The Quantum Club`
-   - Bundle ID: `app.lovable.ed1ccbeab8dd4007bcc4b3329d10bf67`
+   - Bundle ID: `com.thequantumclub.os`
 6. Enable capabilities:
    - Push Notifications
    - Associated Domains

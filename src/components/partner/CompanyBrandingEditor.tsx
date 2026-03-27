@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Palette, Save } from "lucide-react";
+import { useTranslation } from 'react-i18next';
 
 interface CompanyBrandingEditorProps {
   companyId: string;
@@ -13,6 +14,7 @@ interface CompanyBrandingEditorProps {
 }
 
 export const CompanyBrandingEditor = ({ companyId, canEdit }: CompanyBrandingEditorProps) => {
+  const { t } = useTranslation('partner');
   const [branding, setBranding] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -40,7 +42,7 @@ export const CompanyBrandingEditor = ({ companyId, canEdit }: CompanyBrandingEdi
       });
     } catch (error) {
       console.error('Error fetching branding:', error);
-      toast.error("Failed to load branding settings");
+      toast.error(t('companyBrandingEditor.toast.failedToLoadBrandingSettings'));
     } finally {
       setLoading(false);
     }
@@ -64,10 +66,10 @@ export const CompanyBrandingEditor = ({ companyId, canEdit }: CompanyBrandingEdi
 
       if (error) throw error;
       
-      toast.success("Branding updated successfully");
+      toast.success(t('companyBrandingEditor.toast.brandingUpdatedSuccessfully'));
     } catch (error) {
       console.error('Error updating branding:', error);
-      toast.error("Failed to update branding");
+      toast.error(t('companyBrandingEditor.toast.failedToUpdateBranding'));
     } finally {
       setSaving(false);
     }
@@ -88,9 +90,7 @@ export const CompanyBrandingEditor = ({ companyId, canEdit }: CompanyBrandingEdi
               <Palette className="w-6 h-6" />
               Company Branding
             </CardTitle>
-            <CardDescription>
-              Customize your company's visual identity
-            </CardDescription>
+            <CardDescription>{t('companyBrandingEditor.description')}</CardDescription>
           </div>
           {canEdit && (
             <Button onClick={handleSave} disabled={saving}>
@@ -103,7 +103,7 @@ export const CompanyBrandingEditor = ({ companyId, canEdit }: CompanyBrandingEdi
       <CardContent className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="space-y-2">
-            <Label htmlFor="primary">Primary Color</Label>
+            <Label htmlFor="primary">{t('companyBrandingEditor.label.primaryColor')}</Label>
             <div className="flex gap-2">
               <Input
                 id="primary"
@@ -124,7 +124,7 @@ export const CompanyBrandingEditor = ({ companyId, canEdit }: CompanyBrandingEdi
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="secondary">Secondary Color</Label>
+            <Label htmlFor="secondary">{t('companyBrandingEditor.label.secondaryColor')}</Label>
             <div className="flex gap-2">
               <Input
                 id="secondary"
@@ -145,7 +145,7 @@ export const CompanyBrandingEditor = ({ companyId, canEdit }: CompanyBrandingEdi
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="accent">Accent Color</Label>
+            <Label htmlFor="accent">{t('companyBrandingEditor.label.accentColor')}</Label>
             <div className="flex gap-2">
               <Input
                 id="accent"
@@ -168,30 +168,30 @@ export const CompanyBrandingEditor = ({ companyId, canEdit }: CompanyBrandingEdi
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2">
-            <Label htmlFor="font_heading">Heading Font</Label>
+            <Label htmlFor="font_heading">{t('companyBrandingEditor.label.headingFont')}</Label>
             <Input
               id="font_heading"
               value={branding?.font_heading || 'Inter'}
               onChange={(e) => setBranding({ ...branding, font_heading: e.target.value })}
               disabled={!canEdit}
-              placeholder="Inter, Roboto, etc."
+              placeholder={t('companyBrandingEditor.placeholder.interRobotoEtc')}
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="font_body">Body Font</Label>
+            <Label htmlFor="font_body">{t('companyBrandingEditor.label.bodyFont')}</Label>
             <Input
               id="font_body"
               value={branding?.font_body || 'Inter'}
               onChange={(e) => setBranding({ ...branding, font_body: e.target.value })}
               disabled={!canEdit}
-              placeholder="Inter, Roboto, etc."
+              placeholder={t('companyBrandingEditor.placeholder.interRobotoEtc')}
             />
           </div>
         </div>
 
         <div className="p-6 border-2 border-dashed rounded-lg space-y-4">
-          <h3 className="font-bold">Preview</h3>
+          <h3 className="font-bold">{t('companyBrandingEditor.preview')}</h3>
           <div 
             className="p-4 rounded"
             style={{ 
@@ -200,7 +200,7 @@ export const CompanyBrandingEditor = ({ companyId, canEdit }: CompanyBrandingEdi
               fontFamily: branding?.font_heading
             }}
           >
-            <h4 className="text-xl font-bold">Heading Example</h4>
+            <h4 className="text-xl font-bold">{t('companyBrandingEditor.headingExample')}</h4>
           </div>
           <div 
             className="p-4 rounded"
@@ -210,7 +210,7 @@ export const CompanyBrandingEditor = ({ companyId, canEdit }: CompanyBrandingEdi
               fontFamily: branding?.font_body
             }}
           >
-            <p>Body text example with your selected font and colors.</p>
+            <p>{t('companyBrandingEditor.bodyTextExampleWithYourSelectedFontAndCo')}</p>
           </div>
         </div>
       </CardContent>

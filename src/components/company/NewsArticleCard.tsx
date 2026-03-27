@@ -7,6 +7,7 @@ import { format } from 'date-fns';
 import { extractDomain } from '@/lib/linkPreviewUtils';
 import { supabase } from '@/integrations/supabase/client';
 import { useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface NewsArticleCardProps {
   article: {
@@ -30,6 +31,7 @@ interface NewsArticleCardProps {
 }
 
 export function NewsArticleCard({ article, companyLogoUrl, onRead, className }: NewsArticleCardProps) {
+  const { t } = useTranslation('common');
   const cardRef = useRef<HTMLDivElement>(null);
   const hasTrackedView = useRef(false);
 

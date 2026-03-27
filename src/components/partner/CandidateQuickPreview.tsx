@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -29,6 +30,7 @@ export function CandidateQuickPreview({
   onSchedule,
   position = { x: 0, y: 0 }
 }: CandidateQuickPreviewProps) {
+  const { t } = useTranslation('common');
   return (
     <div
       className="fixed z-50 animate-scale-in"
@@ -88,7 +90,7 @@ export function CandidateQuickPreview({
           {/* Skills */}
           {candidate.skills && candidate.skills.length > 0 && (
             <div className="space-y-2">
-              <p className="text-xs font-semibold text-muted-foreground uppercase">Top Skills</p>
+              <p className="text-xs font-semibold text-muted-foreground uppercase">{t("top_skills", "Top Skills")}</p>
               <div className="flex flex-wrap gap-1.5">
                 {candidate.skills.slice(0, 5).map((skill, idx) => (
                   <Badge 

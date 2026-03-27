@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,6 +17,7 @@ interface ReportBuilderProps {
 }
 
 export function ReportBuilder({ companyId }: ReportBuilderProps) {
+  const { t } = useTranslation('common');
   const [reportName, setReportName] = useState("");
   const [reportDescription, setReportDescription] = useState("");
   const [reportType, setReportType] = useState<string>("hiring_velocity");
@@ -107,7 +109,7 @@ export function ReportBuilder({ companyId }: ReportBuilderProps) {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-3xl font-bold tracking-tight">Custom Report Builder</h2>
+        <h2 className="text-3xl font-bold tracking-tight">{t("custom_report_builder", "Custom Report Builder")}</h2>
         <p className="text-muted-foreground">
           Create, schedule, and manage custom analytics reports
         </p>
@@ -117,27 +119,27 @@ export function ReportBuilder({ companyId }: ReportBuilderProps) {
         {/* Report Builder Form */}
         <Card>
           <CardHeader>
-            <CardTitle>New Report</CardTitle>
+            <CardTitle>{t("new_report", "New Report")}</CardTitle>
             <CardDescription>
               Configure your report settings and save for future use
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="report-name">Report Name</Label>
+              <Label htmlFor="report-name">{t("report_name", "Report Name")}</Label>
               <Input
                 id="report-name"
-                placeholder="e.g., Weekly Hiring Summary"
+                placeholder={t("eg_weekly_hiring_summary", "e.g., Weekly Hiring Summary")}
                 value={reportName}
                 onChange={(e) => setReportName(e.target.value)}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="report-description">Description</Label>
+              <Label htmlFor="report-description">{t("description", "Description")}</Label>
               <Textarea
                 id="report-description"
-                placeholder="Brief description of this report..."
+                placeholder={t("brief_description_of_this", "Brief description of this report...")}
                 value={reportDescription}
                 onChange={(e) => setReportDescription(e.target.value)}
                 rows={3}
@@ -145,38 +147,38 @@ export function ReportBuilder({ companyId }: ReportBuilderProps) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="report-type">Report Type</Label>
+              <Label htmlFor="report-type">{t("report_type", "Report Type")}</Label>
               <Select value={reportType} onValueChange={setReportType}>
                 <SelectTrigger id="report-type">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="hiring_velocity">Hiring Velocity</SelectItem>
-                  <SelectItem value="pipeline">Pipeline Health</SelectItem>
-                  <SelectItem value="recruiter">Recruiter Performance</SelectItem>
-                  <SelectItem value="custom">Custom Query</SelectItem>
+                  <SelectItem value="hiring_velocity">{t("hiring_velocity", "Hiring Velocity")}</SelectItem>
+                  <SelectItem value="pipeline">{t("pipeline_health", "Pipeline Health")}</SelectItem>
+                  <SelectItem value="recruiter">{t("recruiter_performance", "Recruiter Performance")}</SelectItem>
+                  <SelectItem value="custom">{t("custom_query", "Custom Query")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="visualization">Visualization</Label>
+              <Label htmlFor="visualization">{t("visualization", "Visualization")}</Label>
               <Select value={visualizationType} onValueChange={setVisualizationType}>
                 <SelectTrigger id="visualization">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="table">Table</SelectItem>
-                  <SelectItem value="line">Line Chart</SelectItem>
-                  <SelectItem value="bar">Bar Chart</SelectItem>
-                  <SelectItem value="pie">Pie Chart</SelectItem>
+                  <SelectItem value="table">{t("table", "Table")}</SelectItem>
+                  <SelectItem value="line">{t("line_chart", "Line Chart")}</SelectItem>
+                  <SelectItem value="bar">{t("bar_chart", "Bar Chart")}</SelectItem>
+                  <SelectItem value="pie">{t("pie_chart", "Pie Chart")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label htmlFor="scheduled">Schedule Report</Label>
+                <Label htmlFor="scheduled">{t("schedule_report", "Schedule Report")}</Label>
                 <p className="text-sm text-muted-foreground">
                   Automatically run and email this report
                 </p>
@@ -191,10 +193,10 @@ export function ReportBuilder({ companyId }: ReportBuilderProps) {
             {isScheduled && (
               <>
                 <div className="space-y-2">
-                  <Label htmlFor="schedule-cron">Schedule (Cron Expression)</Label>
+                  <Label htmlFor="schedule-cron">{t("schedule_cron_expression", "Schedule (Cron Expression)")}</Label>
                   <Input
                     id="schedule-cron"
-                    placeholder="0 9 * * MON"
+                    placeholder={t("0_9_mon", "0 9 * * MON")}
                     value={scheduleCron}
                     onChange={(e) => setScheduleCron(e.target.value)}
                   />
@@ -204,10 +206,10 @@ export function ReportBuilder({ companyId }: ReportBuilderProps) {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="recipients">Email Recipients</Label>
+                  <Label htmlFor="recipients">{t("email_recipients", "Email Recipients")}</Label>
                   <Input
                     id="recipients"
-                    placeholder="email1@company.com, email2@company.com"
+                    placeholder={t("email1companycom_email2companycom", "email1@company.com, email2@company.com")}
                     value={recipients}
                     onChange={(e) => setRecipients(e.target.value)}
                   />

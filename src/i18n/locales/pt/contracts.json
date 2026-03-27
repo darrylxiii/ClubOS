@@ -1,0 +1,233 @@
+{
+  "title": "Contratos",
+  "subtitle": "Gira os seus contratos e acordos",
+  "create": {
+    "title": "Criar Contrato",
+    "fromTemplate": "Criar a partir de Modelo",
+    "fromScratch": "Criar de Raiz",
+    "duplicate": "Duplicar Contrato"
+  },
+  "edit": {
+    "title": "Editar Contrato",
+    "save": "Guardar Alteracoes",
+    "discard": "Descartar Alteracoes",
+    "preview": "Pre-visualizar"
+  },
+  "sign": {
+    "title": "Assinar Contrato",
+    "eSign": "Assinatura Eletronica",
+    "uploadSignature": "Carregar Assinatura",
+    "drawSignature": "Desenhar Assinatura",
+    "typeSignature": "Digitar Assinatura",
+    "confirm": "Confirmar Assinatura",
+    "signed": "Assinado",
+    "pending": "Assinatura Pendente",
+    "requestSignature": "Solicitar Assinatura"
+  },
+  "status": {
+    "draft": "Rascunho",
+    "pending": "Aprovacao Pendente",
+    "active": "Ativo",
+    "expired": "Expirado",
+    "terminated": "Terminado",
+    "renewed": "Renovado",
+    "cancelled": "Cancelado"
+  },
+  "types": {
+    "employment": "Contrato de Trabalho",
+    "freelance": "Acordo de Freelance",
+    "nda": "Acordo de Confidencialidade",
+    "service": "Acordo de Servicos",
+    "placement": "Acordo de Colocacao",
+    "partnership": "Acordo de Parceria"
+  },
+  "details": {
+    "title": "Detalhes do Contrato",
+    "parties": "Partes",
+    "startDate": "Data de Inicio",
+    "endDate": "Data de Fim",
+    "value": "Valor do Contrato",
+    "currency": "Moeda",
+    "terms": "Termos e Condicoes",
+    "attachments": "Anexos",
+    "history": "Historico de Versoes"
+  },
+  "parties": {
+    "client": "Cliente",
+    "contractor": "Contratado",
+    "employer": "Empregador",
+    "employee": "Colaborador",
+    "party1": "Primeira Parte",
+    "party2": "Segunda Parte"
+  },
+  "templates": {
+    "title": "Modelos de Contrato",
+    "browse": "Procurar Modelos",
+    "create": "Criar Modelo",
+    "edit": "Editar Modelo",
+    "delete": "Eliminar Modelo",
+    "use": "Usar Modelo",
+    "preview": "Pre-visualizar Modelo"
+  },
+  "clauses": {
+    "title": "Clausulas",
+    "add": "Adicionar Clausula",
+    "edit": "Editar Clausula",
+    "remove": "Remover Clausula",
+    "standard": "Clausulas Padrao",
+    "custom": "Clausulas Personalizadas",
+    "library": "Biblioteca de Clausulas"
+  },
+  "milestones": {
+    "title": "Marcos",
+    "add": "Adicionar Marco",
+    "completed": "Concluido",
+    "pending": "Pendente",
+    "dueDate": "Data Limite",
+    "payment": "Valor do Pagamento"
+  },
+  "payments": {
+    "title": "Pagamentos",
+    "schedule": "Calendario de Pagamentos",
+    "history": "Historico de Pagamentos",
+    "pending": "Pagamentos Pendentes",
+    "completed": "Pagamentos Concluidos",
+    "overdue": "Pagamentos em Atraso",
+    "amount": "Montante",
+    "dueDate": "Data de Vencimento"
+  },
+  "actions": {
+    "view": "Ver Contrato",
+    "edit": "Editar Contrato",
+    "delete": "Eliminar Contrato",
+    "duplicate": "Duplicar Contrato",
+    "send": "Enviar para Assinatura",
+    "download": "Transferir PDF",
+    "print": "Imprimir",
+    "archive": "Arquivar",
+    "renew": "Renovar Contrato",
+    "terminate": "Rescindir Contrato"
+  },
+  "notifications": {
+    "created": "Contrato criado com sucesso",
+    "updated": "Contrato atualizado com sucesso",
+    "signed": "Contrato assinado com sucesso",
+    "sent": "Contrato enviado para assinatura",
+    "expiringSoon": "Contrato a expirar brevemente",
+    "expired": "O contrato expirou"
+  },
+  "filters": {
+    "all": "Todos os Contratos",
+    "active": "Ativos",
+    "draft": "Rascunhos",
+    "pending": "Pendentes",
+    "expired": "Expirados",
+    "byType": "Por Tipo",
+    "byParty": "Por Parte",
+    "byDate": "Por Data"
+  },
+  "search": {
+    "placeholder": "Pesquisar contratos...",
+    "noResults": "Nenhum contrato encontrado",
+    "advanced": "Pesquisa Avancada"
+  },
+  "empty": {
+    "noContracts": "Sem contratos ainda",
+    "createFirst": "Crie o seu primeiro contrato",
+    "noTemplates": "Sem modelos disponiveis"
+  },
+  "validation": {
+    "required": "Este campo e obrigatorio",
+    "invalidDate": "Data invalida",
+    "endBeforeStart": "A data de fim deve ser posterior a data de inicio",
+    "missingParty": "Todas as partes devem ser especificadas"
+  },
+  "contractDetailPage": {
+    "title": "Registo de Tempo",
+    "desc": "Registe horas, submeta folhas de horas e gira aprovacoes",
+    "text2": "Orcamento Total",
+    "text3": "Tipo de Contrato",
+    "text4": "Cronologia",
+    "text5": "Marcos",
+    "text6": "Visao Geral",
+    "text7": "Marcos",
+    "text8": "Pagamentos",
+    "text9": "Registo de Tempo",
+    "text10": "Documentos",
+    "text11": "Nome da Empresa",
+    "text12": "Nome do Freelancer",
+    "text13": "Documentos do Contrato"
+  },
+  "contractListPage": {
+    "desc": "Gira os seus contratos de projetos freelance e pagamentos",
+    "text2": "Como Freelancer",
+    "text3": "Como Cliente",
+    "text4": "Total de Contratos",
+    "text5": "Ativos",
+    "text6": "Assinatura Pendente",
+    "text7": "Concluidos",
+    "text8": "Pesquisar contratos...",
+    "text9": "Todos",
+    "text10": "Pendentes",
+    "text11": "Ativos",
+    "text12": "Concluidos"
+  },
+  "contractSignaturePage": {
+    "title": "Termos Principais",
+    "desc": "Reveja os termos do contrato e adicione a sua assinatura para prosseguir",
+    "text2": "Valor Total",
+    "text3": "Calendario de Pagamentos",
+    "text4": "Taxa da Plataforma",
+    "text5": "Protecao por Caucao",
+    "text6": "Termos de Servico",
+    "text7": "Politica de Privacidade"
+  },
+  "retainerContractsPage": {
+    "btn": "Ver Detalhes",
+    "text2": "Contratos de Avenca",
+    "text3": "Gira relacoes continuas com clientes",
+    "text4": "Criar Contrato de Avenca",
+    "text5": "Configure um acordo mensal recorrente",
+    "text6": "Horas Mensais",
+    "text7": "Termos e Descricao",
+    "text8": "Descreva o ambito do trabalho...",
+    "text9": "Cancelar",
+    "text10": "Criar Contrato",
+    "text11": "Ativos",
+    "text12": "Pendentes",
+    "text13": "Concluidos",
+    "text14": "Mensal",
+    "text15": "Tarifa",
+    "text16": "Este Mes",
+    "text17": "Sem avencas ativas",
+    "text18": "Crie um contrato de avenca para comecar",
+    "text19": "Avenca Pendente",
+    "text20": "Aceitar",
+    "text21": "Recusar",
+    "text22": "Sem avencas concluidas",
+    "text23": "Registar Horas",
+    "text24": "Registe o tempo gasto nesta avenca",
+    "text25": "Horas",
+    "text26": "Descricao",
+    "text27": "Em que trabalhou?"
+  },
+  "management": {
+    "title": "Gestao de Contratos",
+    "subtitle": "Gira contratos de freelance, pagamentos e alteracoes",
+    "searchPlaceholder": "Pesquisar contratos...",
+    "createContract": "Criar Contrato",
+    "tabContracts": "Contratos",
+    "tabBudget": "Orcamento e Despesas",
+    "tabChangeOrders": "Alteracoes",
+    "tabInvoices": "Faturas",
+    "filterAll": "Todos",
+    "filterPending": "Pendentes",
+    "filterActive": "Ativos",
+    "filterCompleted": "Concluidos",
+    "noContracts": "Sem contratos ainda",
+    "noFilterMatch": "Nenhum contrato corresponde aos seus filtros",
+    "emptyDescription": "Crie o seu primeiro contrato para comecar a contratar freelancers",
+    "contractInvoices": "Faturas do Contrato",
+    "noInvoices": "Nenhuma fatura gerada ainda"
+  }
+}

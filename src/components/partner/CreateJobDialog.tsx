@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect, useCallback } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
@@ -53,43 +54,43 @@ interface FieldError {
 const TOTAL_STEPS = 5;
 
 const STEP_META = [
-  { label: "Basics", icon: Briefcase },
-  { label: "Location", icon: MapPin },
-  { label: "Compensation", icon: ArrowUpRight },
-  { label: "Details", icon: FileSignature },
-  { label: "Review", icon: CheckCircle2 },
+  { label: t('partner.createjobdialog.basics', 'Basics'), icon: Briefcase },
+  { label: t('partner.createjobdialog.location', 'Location'), icon: MapPin },
+  { label: t('partner.createjobdialog.compensation', 'Compensation'), icon: ArrowUpRight },
+  { label: t('partner.createjobdialog.details', 'Details'), icon: FileSignature },
+  { label: t('partner.createjobdialog.review', 'Review'), icon: CheckCircle2 },
 ];
 
 const EMPLOYMENT_OPTIONS = [
-  { value: "fulltime", label: "Full-time", icon: Briefcase },
-  { value: "parttime", label: "Part-time", icon: Clock },
-  { value: "contract", label: "Contract", icon: FileSignature },
-  { value: "freelance", label: "Freelance", icon: Laptop },
-  { value: "internship", label: "Internship", icon: GraduationCap },
+  { value: "fulltime", label: t('partner.createjobdialog.fulltime', 'Full-time'), icon: Briefcase },
+  { value: "parttime", label: t('partner.createjobdialog.parttime', 'Part-time'), icon: Clock },
+  { value: "contract", label: t('partner.createjobdialog.contract', 'Contract'), icon: FileSignature },
+  { value: "freelance", label: t('partner.createjobdialog.freelance', 'Freelance'), icon: Laptop },
+  { value: "internship", label: t('partner.createjobdialog.internship', 'Internship'), icon: GraduationCap },
 ];
 
 const SENIORITY_OPTIONS = [
-  { value: "junior", label: "Junior" },
-  { value: "mid", label: "Mid-Level" },
-  { value: "senior", label: "Senior" },
-  { value: "lead", label: "Lead" },
-  { value: "director", label: "Director" },
-  { value: "vp_csuite", label: "VP / C-Suite" },
+  { value: "junior", label: t('partner.createjobdialog.junior', 'Junior') },
+  { value: "mid", label: t('partner.createjobdialog.midlevel', 'Mid-Level') },
+  { value: "senior", label: t('partner.createjobdialog.senior', 'Senior') },
+  { value: "lead", label: t('partner.createjobdialog.lead', 'Lead') },
+  { value: "director", label: t('partner.createjobdialog.director', 'Director') },
+  { value: "vp_csuite", label: t('partner.createjobdialog.vpCsuite', 'VP / C-Suite') },
 ];
 
 const LOCATION_TYPE_OPTIONS = [
-  { value: "onsite", label: "On-site", icon: MapPin },
-  { value: "hybrid", label: "Hybrid", icon: Building2 },
-  { value: "remote", label: "Remote", icon: Globe },
-  { value: "flexible", label: "Flexible", icon: Compass },
+  { value: "onsite", label: t('partner.createjobdialog.onsite', 'On-site'), icon: MapPin },
+  { value: "hybrid", label: t('partner.createjobdialog.hybrid', 'Hybrid'), icon: Building2 },
+  { value: "remote", label: t('partner.createjobdialog.remote', 'Remote'), icon: Globe },
+  { value: "flexible", label: t('partner.createjobdialog.flexible', 'Flexible'), icon: Compass },
 ];
 
 const URGENCY_OPTIONS = [
-  { value: "immediate", label: "Immediate" },
-  { value: "two_weeks", label: "Within 2 weeks" },
-  { value: "one_month", label: "Within 1 month" },
-  { value: "three_months", label: "Within 3 months" },
-  { value: "no_rush", label: "No rush" },
+  { value: "immediate", label: t('partner.createjobdialog.immediate', 'Immediate') },
+  { value: "two_weeks", label: t('partner.createjobdialog.within2Weeks', 'Within 2 weeks') },
+  { value: "one_month", label: t('partner.createjobdialog.within1Month', 'Within 1 month') },
+  { value: "three_months", label: t('partner.createjobdialog.within3Months', 'Within 3 months') },
+  { value: "no_rush", label: t('partner.createjobdialog.noRush', 'No rush') },
 ];
 
 const formatFileSize = (bytes: number): string => {
@@ -101,13 +102,13 @@ const formatFileSize = (bytes: number): string => {
 };
 
 // ── Company Combobox (searchable for admins) ──────────────────────
-function CompanyCombobox({ companies, value, onValueChange, disabled, hasError }: {
-  companies: Array<{ id: string; name: string }>;
+function CompanyCombobox({ companies, value, onValueChange, disabled, hasError }: {  companies: Array<{ id: string; name: string }>;
   value: string;
   onValueChange: (v: string) => void;
   disabled?: boolean;
   hasError?: boolean;
 }) {
+const { t } = useTranslation('common');
   const [searchQuery, setSearchQuery] = useState("");
   const [comboOpen, setComboOpen] = useState(false);
   const filtered = companies.filter(c => c.name.toLowerCase().includes(searchQuery.toLowerCase()));
@@ -129,7 +130,7 @@ function CompanyCombobox({ companies, value, onValueChange, disabled, hasError }
       <PopoverContent className="w-[--radix-popover-trigger-width] p-0 z-[100] pointer-events-auto" align="start">
         <div className="p-2 border-b border-border">
           <Input
-            placeholder="Search companies..."
+            placeholder={t("search_companies", "Search companies...")}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="h-8 text-sm"
@@ -138,7 +139,7 @@ function CompanyCombobox({ companies, value, onValueChange, disabled, hasError }
         </div>
         <div className="max-h-[200px] overflow-y-auto p-1">
           {filtered.length === 0 ? (
-            <p className="text-sm text-muted-foreground p-2 text-center">No companies found</p>
+            <p className="text-sm text-muted-foreground p-2 text-center">{t("no_companies_found", "No companies found")}</p>
           ) : (
             filtered.map((c) => (
               <button
@@ -193,7 +194,7 @@ function TagInput({ tags, onChange, placeholder }: { tags: string[]; onChange: (
           className="flex-1"
         />
         <Button type="button" variant="outline" size="sm" onClick={addTag} disabled={!input.trim()}>
-          Add
+          {t('common:add')}
         </Button>
       </div>
       {tags.length > 0 && (
@@ -407,7 +408,7 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
       }
     } catch (error) {
       console.error('Error fetching companies:', error);
-      toast.error("Failed to load companies");
+      toast.error(t("failed_to_load_companies", "Failed to load companies"));
     }
   };
 
@@ -450,13 +451,13 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
     const errors: FieldError[] = [];
 
     if (step === 0) {
-      if (!formData.company_id) errors.push({ field: 'company_id', message: 'Please select a company' });
-      if (!formData.title || formData.title.trim().length < 2) errors.push({ field: 'title', message: 'Title must be at least 2 characters' });
+      if (!formData.company_id) errors.push({ field: 'company_id', message: t('partner.createjobdialog.pleaseSelectACompany', 'Please select a company') });
+      if (!formData.title || formData.title.trim().length < 2) errors.push({ field: 'title', message: t('partner.createjobdialog.titleMustBeAtLeast2', 'Title must be at least 2 characters') });
     }
 
     if (step === 1) {
       if (formData.location_type !== 'remote' && (!formData.location || formData.location.trim().length < 2)) {
-        errors.push({ field: 'location', message: 'Location is required for non-remote roles' });
+        errors.push({ field: 'location', message: t('partner.createjobdialog.locationIsRequiredForNonremoteRoles', 'Location is required for non-remote roles') });
       }
     }
 
@@ -464,10 +465,10 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
       // Fix 4: Salary negative value guard in step validation
       const salaryMin = formData.salary_min ? parseFloat(formData.salary_min) : null;
       const salaryMax = formData.salary_max ? parseFloat(formData.salary_max) : null;
-      if (salaryMin !== null && salaryMin < 0) errors.push({ field: 'salary_min', message: 'Salary cannot be negative' });
-      if (salaryMax !== null && salaryMax < 0) errors.push({ field: 'salary_max', message: 'Salary cannot be negative' });
+      if (salaryMin !== null && salaryMin < 0) errors.push({ field: 'salary_min', message: t('partner.createjobdialog.salaryCannotBeNegative', 'Salary cannot be negative') });
+      if (salaryMax !== null && salaryMax < 0) errors.push({ field: 'salary_max', message: t('partner.createjobdialog.salaryCannotBeNegative', 'Salary cannot be negative') });
       if (salaryMin !== null && salaryMax !== null && salaryMin > salaryMax) {
-        errors.push({ field: 'salary_max', message: 'Minimum salary cannot exceed maximum salary' });
+        errors.push({ field: 'salary_max', message: t('partner.createjobdialog.minimumSalaryCannotExceedMaximumSalary', 'Minimum salary cannot exceed maximum salary') });
       }
     }
 
@@ -569,7 +570,7 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
           message: err.message,
         }));
         setFieldErrors(errors);
-        toast.error("Please fix the form errors");
+        toast.error(t("please_fix_the_form", "Please fix the form errors"));
         return;
       }
 
@@ -682,7 +683,7 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
         if (stealthViewerIds.length > 0) {
           const viewerInserts = stealthViewerIds.map(viewerId => ({ job_id: jobId, user_id: viewerId, granted_by: user?.id }));
           const { error: viewersError } = await supabase.from('job_stealth_viewers').insert(viewerInserts);
-          if (viewersError) { console.error('Error inserting stealth viewers:', viewersError); toast.error("Job created but failed to add some viewers"); }
+          if (viewersError) { console.error('Error inserting stealth viewers:', viewersError); toast.error(t('createJobDialog.toast.jobCreatedButFailedToAddSomeViewers')); }
           else { stealthJobAuditService.logBulkViewersAdded(jobId, finalFormData.title, stealthViewerIds, performer); }
         }
       }
@@ -760,7 +761,7 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
       setSubmitStep("complete");
       clearDraft();
 
-      toast.success(isAutoPublish ? 'Role published successfully.' : 'Role submitted for review.');
+      toast.success(isAutoPublish ? t('partner.createjobdialog.rolePublishedSuccessfully', 'Role published successfully.') : t('partner.createjobdialog.roleSubmittedForReview', 'Role submitted for review.'));
 
       setTimeout(() => {
         onOpenChange(false);
@@ -771,7 +772,7 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
     } catch (error: unknown) {
       console.error('Job creation error:', error);
       setSubmitStep("idle");
-      toast.error(error instanceof Error ? error.message : 'An unexpected error occurred');
+      toast.error(error instanceof Error ? error.message : t('partner.createjobdialog.anUnexpectedErrorOccurred', 'An unexpected error occurred'));
     }
   };
 
@@ -836,7 +837,7 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
     if (draft.jobLocations) setJobLocations(draft.jobLocations);
     setPendingDraft(null);
     setShowDraftChoice(false);
-    toast.success("Draft restored");
+    toast.success(t("draft_restored", "Draft restored"));
   };
 
   // Fix 6: Ctrl+Enter to submit
@@ -851,11 +852,11 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
 
   const renderStep0 = () => (
     <div className="space-y-5">
-      <p className="text-sm text-muted-foreground">Start with the fundamentals. These details help us match the right candidates.</p>
+      <p className="text-sm text-muted-foreground">{t("start_with_the_fundamentals", "Start with the fundamentals. These details help us match the right candidates.")}</p>
 
       {/* Company selector — unlocked for admin/strategist */}
       <div className="space-y-2">
-        <Label className="glass-label">Company <span className="text-destructive">*</span></Label>
+        <Label className="glass-label">{t('partner.createjobdialog.company', 'Company')} <span className="text-destructive">*</span></Label>
         {!isPartner && companies.length > 5 ? (
           <CompanyCombobox
             companies={companies}
@@ -867,7 +868,7 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
         ) : (
           <Select value={formData.company_id} onValueChange={(v) => handleInputChange('company_id', v)} disabled={isSubmitting || (!!companyId && isPartner)}>
             <SelectTrigger className={cn("glass-input", getFieldError('company_id') && 'border-destructive')}>
-              <SelectValue placeholder="Select a company" />
+              <SelectValue placeholder={t("select_a_company", "Select a company")} />
             </SelectTrigger>
             <SelectContent>
               {companies.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
@@ -879,11 +880,11 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
 
       {/* Title */}
       <div className="space-y-2">
-        <Label className="glass-label">Job Title <span className="text-destructive">*</span></Label>
+        <Label className="glass-label">{t('partner.createjobdialog.jobTitle', 'Job Title')} <span className="text-destructive">*</span></Label>
         <Input
           value={formData.title}
           onChange={(e) => handleInputChange('title', e.target.value)}
-          placeholder="e.g. Senior Product Designer"
+          placeholder={t("eg_senior_product_designer", "e.g. Senior Product Designer")}
           maxLength={200}
           className={cn("glass-input", getFieldError('title') && 'border-destructive')}
         />
@@ -893,9 +894,9 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
 
       {/* Department */}
       <div className="space-y-2">
-        <Label className="glass-label">Department</Label>
+        <Label className="glass-label">{t("department", "Department")}</Label>
         <Select value={formData.department || ''} onValueChange={(v) => handleInputChange('department', v)}>
-          <SelectTrigger className="glass-input"><SelectValue placeholder="Select department" /></SelectTrigger>
+          <SelectTrigger className="glass-input"><SelectValue placeholder={t("select_department", "Select department")} /></SelectTrigger>
           <SelectContent>
             {DEPARTMENTS.map((d) => <SelectItem key={d} value={d}>{d}</SelectItem>)}
           </SelectContent>
@@ -904,7 +905,7 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
 
       {/* Employment Type */}
       <div className="space-y-2">
-        <Label className="glass-label">Employment Type</Label>
+        <Label className="glass-label">{t("employment_type", "Employment Type")}</Label>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
           {EMPLOYMENT_OPTIONS.map((opt) => (
             <RadioCard
@@ -921,7 +922,7 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
 
       {/* Seniority */}
       <div className="space-y-2">
-        <Label className="glass-label">Seniority Level</Label>
+        <Label className="glass-label">{t("seniority_level", "Seniority Level")}</Label>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
           {SENIORITY_OPTIONS.map((opt) => (
             <RadioCard
@@ -939,11 +940,11 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
 
   const renderStep1 = () => (
     <div className="space-y-5">
-      <p className="text-sm text-muted-foreground">Where will this person work? Be specific — it improves match quality.</p>
+      <p className="text-sm text-muted-foreground">{t("where_will_this_person", "Where will this person work? Be specific — it improves match quality.")}</p>
 
       {/* Location Type */}
       <div className="space-y-2">
-        <Label className="glass-label">Work Model</Label>
+        <Label className="glass-label">{t("work_model", "Work Model")}</Label>
         <div className="grid grid-cols-2 gap-2">
           {LOCATION_TYPE_OPTIONS.map((opt) => (
             <RadioCard
@@ -969,14 +970,14 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
           ))}
         </div>
         {formData.location_type === 'remote' && (
-          <p className="text-xs text-muted-foreground mt-2">Candidates worldwide will be able to see this role.</p>
+          <p className="text-xs text-muted-foreground mt-2">{t("candidates_worldwide_will_be", "Candidates worldwide will be able to see this role.")}</p>
         )}
       </div>
 
       {/* Primary Location */}
       {formData.location_type !== 'remote' && (
         <div className="space-y-2">
-          <Label className="glass-label">Primary Location <span className="text-destructive">*</span></Label>
+          <Label className="glass-label">{t('partner.createjobdialog.primaryLocation', 'Primary Location')} <span className="text-destructive">*</span></Label>
           {formData.company_id ? (
             <CompanyOfficeLocationPicker
               companyId={formData.company_id}
@@ -986,19 +987,17 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
               className={getFieldError('location') ? 'border-destructive' : ''}
             />
           ) : (
-            <p className="text-sm text-muted-foreground p-3 rounded-xl border border-border/20 bg-card/20">
-              Select a company first to choose from saved offices
-            </p>
+            <p className="text-sm text-muted-foreground p-3 rounded-xl border border-border/20 bg-card/20">{t('createJobDialog.selectACompanyFirstToChooseFromSavedOffi')}</p>
           )}
           {getFieldError('location') && <p className="text-sm text-destructive flex items-center gap-1"><AlertCircle className="w-3 h-3" />{getFieldError('location')}</p>}
-          {locationData && <p className="text-xs text-muted-foreground">Coordinates captured for map display</p>}
+          {locationData && <p className="text-xs text-muted-foreground">{t("coordinates_captured_for_map", "Coordinates captured for map display")}</p>}
         </div>
       )}
 
       {/* Additional Locations — Fix 5: always hide remote toggle */}
       {formData.location_type !== 'remote' && (
         <div className="space-y-2">
-          <Label className="glass-label">Additional Locations</Label>
+          <Label className="glass-label">{t("additional_locations", "Additional Locations")}</Label>
           <MultiLocationInput
             locations={jobLocations}
             isRemote={false}
@@ -1014,32 +1013,32 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
 
   const renderStep2 = () => (
     <div className="space-y-5">
-      <p className="text-sm text-muted-foreground">Setting expectations upfront reduces back-and-forth later.</p>
+      <p className="text-sm text-muted-foreground">{t("setting_expectations_upfront_reduces", "Setting expectations upfront reduces back-and-forth later.")}</p>
 
       {/* Salary */}
       <div className="space-y-2">
-        <Label className="glass-label">Salary Range (Optional)</Label>
+        <Label className="glass-label">{t("salary_range_optional", "Salary Range (Optional)")}</Label>
         <div className="grid grid-cols-3 gap-2">
           <Select value={formData.currency} onValueChange={(v) => handleInputChange('currency', v)}>
             <SelectTrigger className="glass-input"><SelectValue /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="EUR">€ EUR</SelectItem>
-              <SelectItem value="USD">$ USD</SelectItem>
-              <SelectItem value="GBP">£ GBP</SelectItem>
-              <SelectItem value="AED">د.إ AED</SelectItem>
+              <SelectItem value="EUR">{t("eur", "€ EUR")}</SelectItem>
+              <SelectItem value="USD">{t("usd", "$ USD")}</SelectItem>
+              <SelectItem value="GBP">{t("gbp", "£ GBP")}</SelectItem>
+              <SelectItem value="AED">{t("دإ_aed", "د.إ AED")}</SelectItem>
             </SelectContent>
           </Select>
-          <Input type="number" value={formData.salary_min} onChange={(e) => handleInputChange('salary_min', e.target.value)} placeholder="Min" min="0" className={cn("glass-input", getFieldError('salary_min') && 'border-destructive')} />
-          <Input type="number" value={formData.salary_max} onChange={(e) => handleInputChange('salary_max', e.target.value)} placeholder="Max" min="0" className={cn("glass-input", getFieldError('salary_max') && 'border-destructive')} />
+          <Input type="number" value={formData.salary_min} onChange={(e) => handleInputChange('salary_min', e.target.value)} placeholder={t("min", "Min")} min="0" className={cn("glass-input", getFieldError('salary_min') && 'border-destructive')} />
+          <Input type="number" value={formData.salary_max} onChange={(e) => handleInputChange('salary_max', e.target.value)} placeholder={t("max", "Max")} min="0" className={cn("glass-input", getFieldError('salary_max') && 'border-destructive')} />
         </div>
         {getFieldError('salary_min') && <p className="text-sm text-destructive flex items-center gap-1"><AlertCircle className="w-3 h-3" />{getFieldError('salary_min')}</p>}
         {getFieldError('salary_max') && <p className="text-sm text-destructive flex items-center gap-1"><AlertCircle className="w-3 h-3" />{getFieldError('salary_max')}</p>}
-        <p className="text-xs text-muted-foreground">Compensation details are shared only with shortlisted candidates unless displayed on the listing.</p>
+        <p className="text-xs text-muted-foreground">{t('createJobDialog.compensationDetailsAreSharedOnlyWithShor')}</p>
       </div>
 
       {/* Expected Start Date */}
       <div className="space-y-2">
-        <Label className="glass-label">Expected Start Date (Optional)</Label>
+        <Label className="glass-label">{t("expected_start_date_optional", "Expected Start Date (Optional)")}</Label>
         <Popover>
           <PopoverTrigger asChild>
             <Button variant="outline" className={cn("w-full justify-start text-left font-normal glass-input", !startDate && "text-muted-foreground")}>
@@ -1067,9 +1066,9 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
 
       {/* Urgency */}
       <div className="space-y-2">
-        <Label className="glass-label">Urgency</Label>
+        <Label className="glass-label">{t("urgency", "Urgency")}</Label>
         <Select value={formData.urgency || ''} onValueChange={(v) => handleInputChange('urgency', v)}>
-          <SelectTrigger className="glass-input"><SelectValue placeholder="Select urgency" /></SelectTrigger>
+          <SelectTrigger className="glass-input"><SelectValue placeholder={t("select_urgency", "Select urgency")} /></SelectTrigger>
           <SelectContent>
             {URGENCY_OPTIONS.map((opt) => <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>)}
           </SelectContent>
@@ -1080,16 +1079,16 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
 
   const renderStep3 = () => (
     <div className="space-y-5">
-      <p className="text-sm text-muted-foreground">Be specific about what matters. Vague descriptions attract vague applications.</p>
+      <p className="text-sm text-muted-foreground">{t("be_specific_about_what", "Be specific about what matters. Vague descriptions attract vague applications.")}</p>
 
       {/* Description */}
       <div className="space-y-2">
         <Label className="glass-label">Job Description {!jobDescriptionFile && <span className="text-destructive">*</span>}</Label>
-        <p className="text-xs text-muted-foreground -mt-1">Optional if you upload a JD file below.</p>
+        <p className="text-xs text-muted-foreground -mt-1">{t("optional_if_you_upload", "Optional if you upload a JD file below.")}</p>
         <Textarea
           value={formData.description}
           onChange={(e) => handleInputChange('description', e.target.value)}
-          placeholder="What will this person do day-to-day? What does success look like in 6 months?"
+          placeholder={t("what_will_this_person", "What will this person do day-to-day? What does success look like in 6 months?")}
           rows={6}
           maxLength={5000}
           className={cn(getFieldError('description') && 'border-destructive')}
@@ -1100,30 +1099,30 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
 
       {/* Requirements */}
       <div className="space-y-2">
-        <Label className="glass-label">Requirements</Label>
-        <TagInput tags={requirements} onChange={setRequirements} placeholder="e.g. 5+ years TypeScript experience" />
+        <Label className="glass-label">{t("requirements", "Requirements")}</Label>
+        <TagInput tags={requirements} onChange={setRequirements} placeholder={t("eg_5_years_typescript", "e.g. 5+ years TypeScript experience")} />
       </div>
 
       {/* Nice to Have */}
       <div className="space-y-2">
-        <Label className="glass-label">Nice-to-Have</Label>
-        <TagInput tags={niceToHave} onChange={setNiceToHave} placeholder="e.g. Experience with Figma" />
+        <Label className="glass-label">{t("nicetohave", "Nice-to-Have")}</Label>
+        <TagInput tags={niceToHave} onChange={setNiceToHave} placeholder={t("eg_experience_with_figma", "e.g. Experience with Figma")} />
       </div>
 
       {/* Tools */}
       <div className="space-y-2">
-        <Label className="glass-label">Required Tools and Technologies</Label>
+        <Label className="glass-label">{t("required_tools_and_technologies", "Required Tools and Technologies")}</Label>
         <ToolSelector selectedTools={requiredTools} onChange={setRequiredTools} />
       </div>
 
       <div className="space-y-2">
-        <Label className="glass-label">Nice-to-Have Tools</Label>
+        <Label className="glass-label">{t("nicetohave_tools", "Nice-to-Have Tools")}</Label>
         <ToolSelector selectedTools={niceToHaveTools} onChange={setNiceToHaveTools} />
       </div>
 
       {/* File uploads */}
       <div className="space-y-2">
-        <Label className="glass-label">Job Description File (Optional)</Label>
+        <Label className="glass-label">{t("job_description_file_optional", "Job Description File (Optional)")}</Label>
         <div className="flex items-center gap-2">
           <Input type="file" onChange={handleJobDescriptionChange} accept=".pdf,.doc,.docx" className="flex-1" />
           {jobDescriptionFile && (
@@ -1140,7 +1139,7 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
       </div>
 
       <div className="space-y-2">
-        <Label className="glass-label">Supporting Documents (Optional)</Label>
+        <Label className="glass-label">{t("supporting_documents_optional", "Supporting Documents (Optional)")}</Label>
         <Input type="file" multiple onChange={handleSupportingDocumentsChange} accept=".pdf,.doc,.docx" />
         {supportingDocuments.length > 0 && (
           <div className="space-y-2 mt-2">
@@ -1158,7 +1157,7 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
 
       {/* External URL */}
       <div className="space-y-2">
-        <Label className="glass-label">External Job URL (Optional)</Label>
+        <Label className="glass-label">{t("external_job_url_optional", "External Job URL (Optional)")}</Label>
         <Input
           type="url"
           value={formData.external_url || ''}
@@ -1212,7 +1211,7 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
         {/* Stealth — admin/strategist only */}
         {!isPartner && (
           <div className="space-y-4">
-            <Label className="glass-label">Visibility</Label>
+            <Label className="glass-label">{t("visibility", "Visibility")}</Label>
             <StealthJobToggle
               enabled={isStealthEnabled}
               onEnabledChange={setIsStealthEnabled}
@@ -1233,19 +1232,19 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
 
         {/* Review Summary — Fix 7: description spans full width */}
         <div className="space-y-3">
-          <Label className="glass-label">Review Summary</Label>
+          <Label className="glass-label">{t("review_summary", "Review Summary")}</Label>
           <div className="glass rounded-xl p-4 space-y-3 text-sm">
             <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-              <SummaryRow label="Company" value={companyName} />
-              <SummaryRow label="Title" value={formData.title || '—'} />
-              <SummaryRow label="Department" value={formData.department || '—'} />
-              <SummaryRow label="Type" value={employmentLabel} />
-              <SummaryRow label="Seniority" value={seniorityLabel} />
-              <SummaryRow label="Work Model" value={locationTypeLabel} />
-              <SummaryRow label="Location" value={formData.location || '—'} />
+              <SummaryRow label={t("company", "Company")} value={companyName} />
+              <SummaryRow label={t("title", "Title")} value={formData.title || '—'} />
+              <SummaryRow label={t("department", "Department")} value={formData.department || '—'} />
+              <SummaryRow label={t("type", "Type")} value={employmentLabel} />
+              <SummaryRow label={t("seniority", "Seniority")} value={seniorityLabel} />
+              <SummaryRow label={t("work_model", "Work Model")} value={locationTypeLabel} />
+              <SummaryRow label={t("location", "Location")} value={formData.location || '—'} />
               {jobLocations.length > 0 && (
                 <div className="col-span-2">
-                  <span className="text-muted-foreground">Additional Locations:</span>
+                  <span className="text-muted-foreground">{t("additional_locations", "Additional Locations:")}</span>
                   <div className="flex flex-wrap gap-1 mt-1">
                     {jobLocations.map((loc, i) => (
                       <span key={i} className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-muted text-muted-foreground border border-border">
@@ -1255,14 +1254,14 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
                   </div>
                 </div>
               )}
-              <SummaryRow label="Urgency" value={urgencyLabel} />
-              {startDate && <SummaryRow label="Start Date" value={format(startDate, 'PPP')} />}
-              {formData.salary_min && <SummaryRow label="Salary" value={`${formData.currency} ${formData.salary_min}${formData.salary_max ? ` – ${formData.salary_max}` : ''}`} />}
-              {jobDescriptionFile && <SummaryRow label="JD File" value={jobDescriptionFile.name} />}
-              {supportingDocuments.length > 0 && <SummaryRow label="Documents" value={`${supportingDocuments.length} file(s)`} />}
+              <SummaryRow label={t("urgency", "Urgency")} value={urgencyLabel} />
+              {startDate && <SummaryRow label={t("start_date", "Start Date")} value={format(startDate, 'PPP')} />}
+              {formData.salary_min && <SummaryRow label={t("salary", "Salary")} value={`${formData.currency} ${formData.salary_min}${formData.salary_max ? ` – ${formData.salary_max}` : ''}`} />}
+              {jobDescriptionFile && <SummaryRow label={t("jd_file", "JD File")} value={jobDescriptionFile.name} />}
+              {supportingDocuments.length > 0 && <SummaryRow label={t("documents", "Documents")} value={`${supportingDocuments.length} file(s)`} />}
               {requirements.length > 0 && (
                 <div className="col-span-2">
-                  <span className="text-muted-foreground">Requirements:</span>
+                  <span className="text-muted-foreground">{t("requirements", "Requirements:")}</span>
                   <div className="flex flex-wrap gap-1 mt-1">
                     {requirements.map((r, i) => (
                       <span key={i} className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-primary/10 text-primary border border-primary/20">{r}</span>
@@ -1272,7 +1271,7 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
               )}
               {niceToHave.length > 0 && (
                 <div className="col-span-2">
-                  <span className="text-muted-foreground">Nice-to-Have:</span>
+                  <span className="text-muted-foreground">{t("nicetohave", "Nice-to-Have:")}</span>
                   <div className="flex flex-wrap gap-1 mt-1">
                     {niceToHave.map((n, i) => (
                       <span key={i} className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-muted text-muted-foreground border border-border">{n}</span>
@@ -1280,21 +1279,21 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
                   </div>
                 </div>
               )}
-              {requiredTools.length > 0 && <SummaryRow label="Required Tools" value={`${requiredTools.length} selected`} />}
-              {niceToHaveTools.length > 0 && <SummaryRow label="Bonus Tools" value={`${niceToHaveTools.length} selected`} />}
+              {requiredTools.length > 0 && <SummaryRow label={t("required_tools", "Required Tools")} value={`${requiredTools.length} selected`} />}
+              {niceToHaveTools.length > 0 && <SummaryRow label={t("bonus_tools", "Bonus Tools")} value={`${niceToHaveTools.length} selected`} />}
               {/* Admin-only summary rows */}
               {!isPartner && (
                 <>
-                  <SummaryRow label="Pipeline" value={pipelineType === 'continuous' ? 'Continuous' : 'Standard'} />
-                  <SummaryRow label="Stealth" value={isStealthEnabled ? 'Enabled' : 'Off'} />
-                  {feeConfig.useOverride && <SummaryRow label="Fee Override" value="Yes" />}
+                  <SummaryRow label={t("pipeline", "Pipeline")} value={pipelineType === 'continuous' ? t('partner.createjobdialog.continuous', 'Continuous') : t('partner.createjobdialog.standard', 'Standard')} />
+                  <SummaryRow label={t("stealth", "Stealth")} value={isStealthEnabled ? t('partner.createjobdialog.enabled', 'Enabled') : t('partner.createjobdialog.off', 'Off')} />
+                  {feeConfig.useOverride && <SummaryRow label={t("fee_override", "Fee Override")} value="Yes" />}
                 </>
               )}
             </div>
             {/* Description preview — full width */}
             {formData.description && (
               <div className="pt-2 border-t border-border/30">
-                <SummaryRow label="Description" value={formData.description.length > 150 ? formData.description.slice(0, 150) + '…' : formData.description} />
+                <SummaryRow label={t("description", "Description")} value={formData.description.length > 150 ? formData.description.slice(0, 150) + '…' : formData.description} />
               </div>
             )}
           </div>
@@ -1315,7 +1314,7 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
         {submitStep === "complete" && (
           <div className="flex items-center gap-3 p-4 bg-primary/10 border border-primary/20 rounded-xl">
             <CheckCircle2 className="w-5 h-5 text-primary" />
-            <span className="text-sm font-medium">{isPartner ? 'Role submitted for review.' : 'Role published successfully.'}</span>
+            <span className="text-sm font-medium">{isPartner ? t('partner.createjobdialog.roleSubmittedForReview', 'Role submitted for review.') : t('partner.createjobdialog.rolePublishedSuccessfully', 'Role published successfully.')}</span>
           </div>
         )}
       </div>
@@ -1331,7 +1330,7 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
           {/* Header */}
           <div className="p-6 pb-0 space-y-4">
             <SheetHeader>
-              <SheetTitle className="text-lg font-semibold">Create New Role</SheetTitle>
+              <SheetTitle className="text-lg font-semibold">{t("create_new_role", "Create New Role")}</SheetTitle>
             </SheetHeader>
             <StepIndicator currentStep={currentStep} totalSteps={TOTAL_STEPS} />
           </div>
@@ -1349,12 +1348,12 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
           <div className="border-t border-border/50 p-4 flex items-center gap-3">
             {currentStep > 0 && (
               <Button type="button" variant="outline" onClick={goBack} disabled={isSubmitting} className="flex-1">
-                <ChevronLeft className="w-4 h-4 mr-1" /> Back
+                <ChevronLeft className="w-4 h-4 mr-1" /> {t('common:back')}
               </Button>
             )}
             {currentStep < TOTAL_STEPS - 1 ? (
               <Button type="button" onClick={goNext} disabled={isSubmitting} className="flex-1">
-                Next <ChevronRight className="w-4 h-4 ml-1" />
+                {t('common:next')} <ChevronRight className="w-4 h-4 ml-1" />
               </Button>
             ) : (
               <Button
@@ -1364,9 +1363,9 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
                 className="flex-1"
               >
                 {isSubmitting ? (
-                  <><Upload className="w-4 h-4 mr-2 animate-pulse" /> Submitting...</>
+                  <><Upload className="w-4 h-4 mr-2 animate-pulse" />{t("submitting", "Submitting...")}</>
                 ) : (
-                  isPartner ? 'Submit for Review' : 'Publish Role'
+                  isPartner ? t('partner.createjobdialog.submitForReview', 'Submit for Review') : t('partner.createjobdialog.publishRole', 'Publish Role')
                 )}
               </Button>
             )}
@@ -1378,8 +1377,8 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
       <ConfirmDialog
         open={showCloseConfirm}
         onOpenChange={setShowCloseConfirm}
-        title="Your progress is saved"
-        description="Your draft has been saved and will be restored next time you open this form."
+        title={t("your_progress_is_saved", "Your progress is saved")}
+        description={t("your_draft_has_been", "Your draft has been saved and will be restored next time you open this form.")}
         confirmText="Leave"
         cancelText="Continue editing"
         onConfirm={handleConfirmClose}
@@ -1396,7 +1395,7 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
             setShowDraftChoice(false);
           }
         }}
-        title="Continue where you left off?"
+        title={t("continue_where_you_left", "Continue where you left off?")}
         description={pendingDraft ? `You have an unsaved draft from ${new Date(pendingDraft.timestamp).toLocaleString()}. Would you like to continue or start fresh?` : "You have an unsaved draft."}
         confirmText="Continue Draft"
         cancelText="Start Fresh"

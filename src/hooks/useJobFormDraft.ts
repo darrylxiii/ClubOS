@@ -1,15 +1,25 @@
 import { useEffect, useRef, useCallback } from "react";
 import { toast } from "sonner";
+import { type JobFormData } from "@/schemas/jobFormSchema";
+import { type LocationInput } from "@/components/jobs/MultiLocationInput";
+
+interface DraftToolItem {
+  id: string;
+  name: string;
+  slug: string;
+  category: string;
+  logo_url: string | null;
+}
 
 interface DraftData {
-  formData: any;
-  requiredTools: any[];
-  niceToHaveTools: any[];
+  formData: JobFormData;
+  requiredTools: DraftToolItem[];
+  niceToHaveTools: DraftToolItem[];
   requirements: string[];
   niceToHave: string[];
   startDateISO: string | null;
   currentStep: number;
-  jobLocations: any[];
+  jobLocations: LocationInput[];
   timestamp: number;
 }
 
@@ -17,16 +27,16 @@ const DRAFT_KEY = "job_form_draft";
 const AUTO_SAVE_INTERVAL = 30000; // 30 seconds
 
 export const useJobFormDraft = (
-  formData: any,
-  requiredTools: any[],
-  niceToHaveTools: any[],
+  formData: JobFormData,
+  requiredTools: DraftToolItem[],
+  niceToHaveTools: DraftToolItem[],
   isOpen: boolean,
   extras?: {
     requirements: string[];
     niceToHave: string[];
     startDate: Date | undefined;
     currentStep: number;
-    jobLocations: any[];
+    jobLocations: LocationInput[];
   }
 ) => {
   const autoSaveTimer = useRef<NodeJS.Timeout>();

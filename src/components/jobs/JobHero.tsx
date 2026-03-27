@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -46,6 +47,7 @@ export function JobHero({
   onSave,
   onShare,
 }: JobHeroProps) {
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
 
   const formatSalary = () => {
@@ -140,7 +142,7 @@ export function JobHero({
             {matchScore !== null && matchScore !== undefined && (
               <div className="flex flex-col items-center justify-center p-4 rounded-xl bg-gradient-accent">
                 <div className="text-3xl font-black text-white">{matchScore}%</div>
-                <div className="text-xs text-white/80 uppercase tracking-wider">Match</div>
+                <div className="text-xs text-white/80 uppercase tracking-wider">{t("match", "Match")}</div>
               </div>
             )}
           </div>

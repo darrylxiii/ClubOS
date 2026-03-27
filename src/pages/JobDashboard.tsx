@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useJobDashboardData, type PipelineStage, type EnrichedApplication } from "@/hooks/useJobDashboardData";
@@ -34,6 +35,7 @@ import { JobTasksPanel } from "@/components/job-dashboard/JobTasksPanel";
 import { useQuery } from "@tanstack/react-query";
 
 function TaskCountBadge({ jobId }: { jobId: string }) {
+  const { t } = useTranslation('common');
   const { data: count } = useQuery({
     queryKey: ["job-task-count", jobId],
     queryFn: async () => {
@@ -99,14 +101,14 @@ export default function JobDashboard() {
 
   const handleArchive = async () => {
     await archiveJob.mutateAsync(jobId!);
-    toast.success("Job archived successfully");
+    toast.success(t("job_archived_successfully", "Job archived successfully"));
     setShowArchiveDialog(false);
     navigate('/jobs');
   };
 
   const handleDelete = async () => {
     await deleteJob.mutateAsync(jobId!);
-    toast.success("Job deleted successfully");
+    toast.success(t("job_deleted_successfully", "Job deleted successfully"));
     setShowDeleteDialog(false);
     navigate('/jobs');
   };
@@ -126,7 +128,7 @@ export default function JobDashboard() {
     return (
       <Card className="mx-4 sm:mx-6 lg:mx-8 my-6">
         <CardContent className="py-12 text-center">
-          <p className="text-muted-foreground">Job not found</p>
+          <p className="text-muted-foreground">{t("job_not_found", "Job not found")}</p>
         </CardContent>
       </Card>
     );
@@ -192,13 +194,13 @@ export default function JobDashboard() {
         <Dialog open={showBrainConfig} onOpenChange={setShowBrainConfig}>
           <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Job Context Configuration</DialogTitle>
+              <DialogTitle>{t("job_context_configuration", "Job Context Configuration")}</DialogTitle>
             </DialogHeader>
             <EntityKnowledgeProfile
               entityId={jobId!}
               entityType="job"
-              title="Job Knowledge & Voice"
-              description="Tailor the AI's understanding of this specific role."
+              title={t("job_knowledge_voice", "Job Knowledge & Voice")}
+              description={t("tailor_the_ais_understanding", "Tailor the AI's understanding of this specific role.")}
             />
           </DialogContent>
         </Dialog>
@@ -241,7 +243,7 @@ export default function JobDashboard() {
           onViewProfile={(candidate) => {
             const candidateId = candidate.candidate_id || candidate.user_id;
             if (!candidateId) {
-              toast.error('Unable to load candidate profile');
+              toast.error(t("unable_to_load_candidate", "Unable to load candidate profile"));
               return;
             }
             const stageIndex = candidate.current_stage_index || 0;

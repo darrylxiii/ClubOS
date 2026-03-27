@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { lazy, Suspense } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Brain } from 'lucide-react';
@@ -21,6 +22,7 @@ const TAB_MAP: Record<string, string> = {
 };
 
 export default function CommunicationHub() {
+  const { t } = useTranslation('common');
   const [searchParams, setSearchParams] = useSearchParams();
   const activeTab = TAB_MAP[searchParams.get('tab') || ''] || 'intelligence';
 
@@ -35,7 +37,7 @@ export default function CommunicationHub() {
           <div className="space-y-1">
             <div className="flex items-center gap-3">
               <Brain className="h-8 w-8 text-primary" />
-              <h1 className="text-3xl font-bold tracking-tight">COMMUNICATION HUB</h1>
+              <h1 className="text-3xl font-bold tracking-tight">{t("communication_hub", "COMMUNICATION HUB")}</h1>
             </div>
             <p className="text-muted-foreground">
               Unified communication intelligence, analytics, and messaging insights
@@ -44,11 +46,11 @@ export default function CommunicationHub() {
 
           <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
             <TabsList className="h-auto flex-wrap bg-card/50 backdrop-blur-sm rounded-lg p-1">
-              <TabsTrigger value="intelligence">Intelligence</TabsTrigger>
-              <TabsTrigger value="analytics">Analytics</TabsTrigger>
-              <TabsTrigger value="conversations">Conversations</TabsTrigger>
-              <TabsTrigger value="messaging">Messaging</TabsTrigger>
-              <TabsTrigger value="feedback">Feedback</TabsTrigger>
+              <TabsTrigger value="intelligence">{t("intelligence", "Intelligence")}</TabsTrigger>
+              <TabsTrigger value="analytics">{t("analytics", "Analytics")}</TabsTrigger>
+              <TabsTrigger value="conversations">{t("conversations", "Conversations")}</TabsTrigger>
+              <TabsTrigger value="messaging">{t("messaging", "Messaging")}</TabsTrigger>
+              <TabsTrigger value="feedback">{t("feedback", "Feedback")}</TabsTrigger>
             </TabsList>
 
             <Suspense fallback={<PageLoader />}>

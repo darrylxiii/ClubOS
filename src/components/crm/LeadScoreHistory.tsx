@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { motion } from '@/lib/motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -24,6 +25,7 @@ interface LeadScoreHistoryProps {
 }
 
 export function LeadScoreHistory({ prospectId, prospectName }: LeadScoreHistoryProps) {
+  const { t } = useTranslation('common');
   const { data: scoreHistory = [], isLoading } = useQuery({
     queryKey: ['prospect-score-history', prospectId],
     queryFn: async () => {
@@ -89,7 +91,7 @@ export function LeadScoreHistory({ prospectId, prospectName }: LeadScoreHistoryP
         ) : scoreHistory.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
             <History className="h-8 w-8 mx-auto mb-2 opacity-50" />
-            <p>No score changes recorded yet</p>
+            <p>{t("no_score_changes_recorded", "No score changes recorded yet")}</p>
           </div>
         ) : (
         <div className="relative">

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,6 +19,7 @@ interface BookingConversionFunnelProps {
 }
 
 export function BookingConversionFunnel({ bookingLinkId, dateRange }: BookingConversionFunnelProps) {
+  const { t } = useTranslation('common');
   const { data: funnelData, isLoading } = useQuery({
     queryKey: ["booking-funnel", bookingLinkId, dateRange],
     queryFn: async () => {
@@ -88,7 +90,7 @@ export function BookingConversionFunnel({ bookingLinkId, dateRange }: BookingCon
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Conversion Funnel</CardTitle>
+          <CardTitle>{t("conversion_funnel", "Conversion Funnel")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="animate-pulse space-y-4">
@@ -149,7 +151,7 @@ export function BookingConversionFunnel({ bookingLinkId, dateRange }: BookingCon
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
-          <span>Conversion Funnel</span>
+          <span>{t("conversion_funnel", "Conversion Funnel")}</span>
           <span className="text-sm font-normal text-muted-foreground">
             Overall: {overallConversion.toFixed(1)}%
           </span>

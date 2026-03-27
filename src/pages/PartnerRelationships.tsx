@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { motion } from '@/lib/motion';
 import { Brain, RefreshCw, Download, Settings } from 'lucide-react';
 import { RoleGate } from '@/components/RoleGate';
@@ -13,6 +14,7 @@ import { CrossChannelPatternsCard } from '@/components/communication/CrossChanne
 import { PageTitle, Subtitle } from '@/components/ui/typography';
 
 export default function PartnerRelationships() {
+  const { t } = useTranslation('partner');
   const { relationships, loading, stats, refetch } = usePartnerRelationships();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -52,8 +54,8 @@ export default function PartnerRelationships() {
                   <Brain className="h-6 w-6 text-primary" />
                 </div>
                 <div>
-                  <PageTitle>Candidate Relationships</PageTitle>
-                  <Subtitle>Monitor and nurture your candidate connections</Subtitle>
+                  <PageTitle>{t('partnerRelationships.text1')}</PageTitle>
+                  <Subtitle>{t('partnerRelationships.text2')}</Subtitle>
                 </div>
               </div>
             </div>

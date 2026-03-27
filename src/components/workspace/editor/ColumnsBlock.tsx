@@ -1,5 +1,6 @@
 import { createReactBlockSpec } from '@blocknote/react';
 import { Columns2, Columns3 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 
 export const ColumnsBlock = createReactBlockSpec(
@@ -23,6 +24,7 @@ export const ColumnsBlock = createReactBlockSpec(
   },
   {
     render: (props) => {
+      const { t } = useTranslation('common');
       const columnCount = props.block.props.columnCount as number;
 
       const updateColumn = (colNum: number, value: string) => {
@@ -77,7 +79,7 @@ export const ColumnsBlock = createReactBlockSpec(
                 <textarea
                   value={(props.block.props as any)[`column${index + 1}`] || ''}
                   onChange={(e) => updateColumn(index + 1, e.target.value)}
-                  placeholder={`Column ${index + 1} content...`}
+                  placeholder={t('workspace.columnContent', 'Column {{number}} content...', { number: index + 1 })}
                   className="w-full h-full min-h-[80px] bg-transparent resize-none focus:outline-none text-sm"
                 />
               </div>

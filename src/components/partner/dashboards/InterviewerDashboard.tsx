@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { UpcomingInterviewsWidget } from "@/components/partner/UpcomingInterviewsWidget";
 import { Calendar, BarChart3, Clock, CheckCircle, XCircle } from "lucide-react";
@@ -13,6 +14,7 @@ interface InterviewerDashboardProps {
 }
 
 export function InterviewerDashboard({ jobId, applicationId }: InterviewerDashboardProps) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
 
   // Fetch real interviewer stats
@@ -129,21 +131,21 @@ export function InterviewerDashboard({ jobId, applicationId }: InterviewerDashbo
               <div>
                 <div className="flex items-center gap-2 mb-1">
                   <CheckCircle className="h-4 w-4 text-muted-foreground" />
-                  <p className="text-xs text-muted-foreground">Interviews Conducted</p>
+                  <p className="text-xs text-muted-foreground">{t("interviews_conducted", "Interviews Conducted")}</p>
                 </div>
                 <p className="text-2xl font-bold">{interviewerStats.interviewsConducted}</p>
               </div>
               <div>
                 <div className="flex items-center gap-2 mb-1">
                   <Clock className="h-4 w-4 text-muted-foreground" />
-                  <p className="text-xs text-muted-foreground">Avg Feedback Time</p>
+                  <p className="text-xs text-muted-foreground">{t("avg_feedback_time", "Avg Feedback Time")}</p>
                 </div>
                 <p className="text-2xl font-bold">{interviewerStats.avgFeedbackTime}h</p>
               </div>
               <div>
                 <div className="flex items-center gap-2 mb-1">
                   <BarChart3 className="h-4 w-4 text-muted-foreground" />
-                  <p className="text-xs text-muted-foreground">Hire Rate</p>
+                  <p className="text-xs text-muted-foreground">{t("hire_rate", "Hire Rate")}</p>
                 </div>
                 <p className="text-2xl font-bold">{interviewerStats.hireRate}%</p>
               </div>
@@ -151,8 +153,8 @@ export function InterviewerDashboard({ jobId, applicationId }: InterviewerDashbo
           ) : (
             <EmptyState
               icon={BarChart3}
-              title="No Interview Data"
-              description="Complete interviews and submit scorecards to see your performance stats."
+              title={t("no_interview_data", "No Interview Data")}
+              description={t("complete_interviews_and_submit", "Complete interviews and submit scorecards to see your performance stats.")}
             />
           )}
         </CardContent>

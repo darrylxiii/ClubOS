@@ -38,7 +38,8 @@ export function useBiometricAuth() {
     try {
       sessionStorage.setItem(`biometric_${server}`, JSON.stringify({ username, password }));
       return true;
-    } catch {
+    } catch (error) {
+      console.error('[useBiometricAuth] Failed to store credentials:', error);
       return false;
     }
   }, []);
@@ -48,7 +49,8 @@ export function useBiometricAuth() {
     try {
       const stored = sessionStorage.getItem(`biometric_${server}`);
       return stored ? JSON.parse(stored) : null;
-    } catch {
+    } catch (error) {
+      console.error('[useBiometricAuth] Failed to retrieve credentials:', error);
       return null;
     }
   }, []);
@@ -58,7 +60,8 @@ export function useBiometricAuth() {
     try {
       sessionStorage.removeItem(`biometric_${server}`);
       return true;
-    } catch {
+    } catch (error) {
+      console.error('[useBiometricAuth] Failed to delete credentials:', error);
       return false;
     }
   }, []);

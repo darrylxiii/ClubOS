@@ -3,13 +3,8 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
 import { Button, Heading, Paragraph, Spacer, Card, InfoRow, StatusBadge, AlertBox } from "../_shared/email-templates/components.ts";
 import { EMAIL_SENDERS, EMAIL_COLORS, getEmailAppUrl } from "../_shared/email-config.ts";
-
-const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version, x-application-name",
-};
+import { sendEmail } from '../_shared/resend-client.ts';
+import { getCorsHeaders } from '../_shared/cors.ts';
 
 interface PasswordChangedEmailRequest {
   email: string;
@@ -19,6 +14,7 @@ interface PasswordChangedEmailRequest {
 }
 
 const handler = async (req: Request): Promise<Response> => {
+  const corsHeaders = getCorsHeaders(req);
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -94,26 +90,13 @@ const handler = async (req: Request): Promise<Response> => {
       showFooter: true,
     });
 
-    const emailResponse = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${RESEND_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        from: EMAIL_SENDERS.security,
-        to: [email],
-        subject: "✅ Your Password Has Been Changed - The Quantum Club",
-        html,
-      }),
+    const result = await sendEmail({
+      from: EMAIL_SENDERS.security,
+      to: [email],
+      subject: "Your Password Has Been Changed - The Quantum Club",
+      html,
     });
 
-    if (!emailResponse.ok) {
-      const errorText = await emailResponse.text();
-      throw new Error(`Resend API error: ${errorText}`);
-    }
-
-    const result = await emailResponse.json();
     console.log("Password changed confirmation sent successfully:", result);
 
     return new Response(JSON.stringify(result), {

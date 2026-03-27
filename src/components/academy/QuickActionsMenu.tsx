@@ -1,9 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { BookOpen, Trophy, Award, Target } from 'lucide-react';
 
 export const QuickActionsMenu = () => {
+  const { t } = useTranslation('common');
   const actions = [
     { label: 'My Skills', icon: Target, href: '/academy/my-skills' },
     { label: 'Certificates', icon: Award, href: '/academy?tab=certificates' },
@@ -14,7 +16,7 @@ export const QuickActionsMenu = () => {
   return (
     <Card>
       <CardHeader className="pb-3">
-        <CardTitle className="text-sm font-medium">Quick Actions</CardTitle>
+        <CardTitle className="text-sm font-medium">{t('academy.quickActions')}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-2">
         {actions.map((action) => (

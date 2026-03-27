@@ -158,20 +158,20 @@ serve(async (req) => {
     const predictedHires30Days = Math.ceil(totalApplications * conversionRate * 0.5);
     const predictedHires90Days = Math.ceil(totalApplications * conversionRate);
 
-    // Generate AI-powered insights using Lovable AI
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    // Generate AI-powered insights using Google Gemini
+    const GOOGLE_API_KEY = Deno.env.get('GOOGLE_API_KEY');
     let aiInsights = null;
 
-    if (LOVABLE_API_KEY) {
+    if (GOOGLE_API_KEY) {
       try {
-        const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+        const aiResponse = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+            'Authorization': `Bearer ${GOOGLE_API_KEY}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: 'google/gemini-2.5-flash-lite',
+            model: 'gemini-2.5-flash-lite',
             messages: [
               {
                 role: 'system',

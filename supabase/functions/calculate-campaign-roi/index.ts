@@ -1,23 +1,9 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { createHandler } from '../_shared/handler.ts';
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
-
-Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
+Deno.serve(createHandler(async (req, ctx) => {
     const { campaign_id, calculate_all } = await req.json();
 
-    const query = supabase.from('crm_campaigns').select('*');
+    const query = ctx.supabase.from('crm_campaigns').select('*');
     if (campaign_id && !calculate_all) {
       query.eq('id', campaign_id);
     }
@@ -27,19 +13,19 @@ Deno.serve(async (req) => {
 
     for (const campaign of campaigns || []) {
       // Get leads for this campaign
-      const { data: prospects } = await supabase
+      const { data: prospects } = await ctx.supabase
         .from('crm_prospects')
         .select('*, crm_email_replies(count)')
         .eq('campaign_id', campaign.id);
 
       const totalLeads = prospects?.length || 0;
-      
+
       // Count conversions (prospects that reached certain stages)
-      const conversions = prospects?.filter(p => 
+      const conversions = prospects?.filter(p =>
         ['qualified', 'meeting_booked', 'proposal_sent', 'negotiation', 'closed_won'].includes(p.stage)
       ).length || 0;
 
-      const meetings = prospects?.filter(p => 
+      const meetings = prospects?.filter(p =>
         ['meeting_booked', 'proposal_sent', 'negotiation', 'closed_won'].includes(p.stage)
       ).length || 0;
 
@@ -77,7 +63,7 @@ Deno.serve(async (req) => {
         calculated_at: new Date().toISOString(),
       };
 
-      const { data, error } = await supabase
+      const { data, error } = await ctx.supabase
         .from('crm_campaign_roi')
         .upsert(roiData, { onConflict: 'campaign_id' })
         .select()
@@ -106,32 +92,24 @@ Deno.serve(async (req) => {
       totalCost: 0,
     });
 
-    const portfolioROI = totalResults.totalCost > 0 
-      ? ((totalResults.totalRevenue - totalResults.totalCost) / totalResults.totalCost) * 100 
+    const portfolioROI = totalResults.totalCost > 0
+      ? ((totalResults.totalRevenue - totalResults.totalCost) / totalResults.totalCost) * 100
       : 0;
 
-    return new Response(JSON.stringify({ 
+    return new Response(JSON.stringify({
       success: true,
       campaigns: results,
       portfolio: {
         ...totalResults,
         roiPercentage: Math.round(portfolioROI * 100) / 100,
-        avgCostPerLead: totalResults.totalLeads > 0 
-          ? Math.round((totalResults.totalCost / totalResults.totalLeads) * 100) / 100 
+        avgCostPerLead: totalResults.totalLeads > 0
+          ? Math.round((totalResults.totalCost / totalResults.totalLeads) * 100) / 100
           : 0,
-        avgCostPerMeeting: totalResults.totalMeetings > 0 
-          ? Math.round((totalResults.totalCost / totalResults.totalMeetings) * 100) / 100 
+        avgCostPerMeeting: totalResults.totalMeetings > 0
+          ? Math.round((totalResults.totalCost / totalResults.totalMeetings) * 100) / 100
           : 0,
       },
     }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' },
     });
-  } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    console.error('Campaign ROI calculation error:', error);
-    return new Response(JSON.stringify({ error: errorMessage }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-  }
-});
+}));

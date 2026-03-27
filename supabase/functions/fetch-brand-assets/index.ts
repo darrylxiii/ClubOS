@@ -1,39 +1,27 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createHandler } from '../_shared/handler.ts';
+import { resilientFetch } from '../_shared/resilient-fetch.ts';
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+Deno.serve(createHandler(async (req, ctx) => {
+  const { domain } = await req.json();
 
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+  if (!domain) {
+    return new Response(
+      JSON.stringify({ error: 'Domain is required' }),
+      { status: 400, headers: { ...ctx.ctx.corsHeaders, 'Content-Type': 'application/json' } }
+    );
   }
 
-  try {
-    const { domain } = await req.json();
-    
-    if (!domain) {
-      return new Response(
-        JSON.stringify({ error: 'Domain is required' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
+  // Clean domain (remove protocol, www, paths)
+  const cleanDomain = domain
+    .replace(/^https?:\/\//, '')
+    .replace(/^www\./, '')
+    .split('/')[0]
+    .toLowerCase()
+    .trim();
 
-    // Clean domain (remove protocol, www, paths)
-    const cleanDomain = domain
-      .replace(/^https?:\/\//, '')
-      .replace(/^www\./, '')
-      .split('/')[0]
-      .toLowerCase()
-      .trim();
+  console.log(`Fetching brand assets for domain: ${cleanDomain}`);
 
-    console.log(`Fetching brand assets for domain: ${cleanDomain}`);
-
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+  const supabase = ctx.supabase;
 
     // Check cache first
     const { data: cached } = await supabase
@@ -54,7 +42,7 @@ serve(async (req) => {
           colors: cached.colors,
           cached: true
         }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -64,14 +52,19 @@ serve(async (req) => {
       console.error('BRANDFETCH_API_KEY not configured');
       return new Response(
         JSON.stringify({ error: 'Brandfetch API key not configured' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 500, headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const response = await fetch(`https://api.brandfetch.io/v2/brands/${cleanDomain}`, {
+    const { response } = await resilientFetch(`https://api.brandfetch.io/v2/brands/${cleanDomain}`, {
       headers: {
         'Authorization': `Bearer ${brandfetchKey}`,
       },
+    }, {
+      timeoutMs: 10_000,
+      maxRetries: 2,
+      service: 'brandfetch',
+      operation: 'fetch-brand',
     });
 
     if (!response.ok) {
@@ -93,7 +86,7 @@ serve(async (req) => {
 
       return new Response(
         JSON.stringify({ error: 'Brand not found', domain: cleanDomain }),
-        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 404, headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -106,33 +99,33 @@ serve(async (req) => {
 
     if (brandData.logos && brandData.logos.length > 0) {
       // Find primary logo
-      const primaryLogo = brandData.logos.find((l: any) => l.type === 'logo') || brandData.logos[0];
+      const primaryLogo = brandData.logos.find((l: Record<string, unknown>) => l.type === 'logo') || brandData.logos[0];
       if (primaryLogo?.formats) {
-        const svgFormat = primaryLogo.formats.find((f: any) => f.format === 'svg');
-        const pngFormat = primaryLogo.formats.find((f: any) => f.format === 'png');
+        const svgFormat = primaryLogo.formats.find((f: Record<string, unknown>) => f.format === 'svg');
+        const pngFormat = primaryLogo.formats.find((f: Record<string, unknown>) => f.format === 'png');
         logoUrl = svgFormat?.src || pngFormat?.src || primaryLogo.formats[0]?.src;
       }
 
       // Find icon
-      const iconLogo = brandData.logos.find((l: any) => l.type === 'icon' || l.type === 'symbol');
+      const iconLogo = brandData.logos.find((l: Record<string, unknown>) => l.type === 'icon' || l.type === 'symbol');
       if (iconLogo?.formats) {
-        const svgFormat = iconLogo.formats.find((f: any) => f.format === 'svg');
-        const pngFormat = iconLogo.formats.find((f: any) => f.format === 'png');
+        const svgFormat = iconLogo.formats.find((f: Record<string, unknown>) => f.format === 'svg');
+        const pngFormat = iconLogo.formats.find((f: Record<string, unknown>) => f.format === 'png');
         iconUrl = svgFormat?.src || pngFormat?.src || iconLogo.formats[0]?.src;
       }
     }
 
     // Extract colors
     let primaryColor: string | null = null;
-    let colors: any[] = [];
+    let colors: Array<{ hex: string; type: string; brightness: string }> = [];
 
     if (brandData.colors && brandData.colors.length > 0) {
-      colors = brandData.colors.map((c: any) => ({
-        hex: c.hex,
-        type: c.type,
-        brightness: c.brightness
+      colors = brandData.colors.map((c: Record<string, unknown>) => ({
+        hex: c.hex as string,
+        type: c.type as string,
+        brightness: c.brightness as string
       }));
-      const primary = brandData.colors.find((c: any) => c.type === 'accent' || c.type === 'brand');
+      const primary = brandData.colors.find((c: Record<string, unknown>) => c.type === 'accent' || c.type === 'brand');
       primaryColor = primary?.hex || brandData.colors[0]?.hex;
     }
 
@@ -163,15 +156,7 @@ serve(async (req) => {
         colors: colors,
         cached: false
       }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } }
     );
 
-  } catch (error: unknown) {
-    console.error('Error fetching brand assets:', error);
-    const message = error instanceof Error ? error.message : 'Unknown error';
-    return new Response(
-      JSON.stringify({ error: message }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-  }
-});
+}));

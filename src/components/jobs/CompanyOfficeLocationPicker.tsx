@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useMemo, useEffect } from "react";
 import { Building2, MapPin, Plus, Save, Star, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -31,13 +32,13 @@ interface CompanyOfficeLocationPickerProps {
   className?: string;
 }
 
-export function CompanyOfficeLocationPicker({
-  companyId,
+export function CompanyOfficeLocationPicker({  companyId,
   value,
   onChange,
   disabled,
   className,
 }: CompanyOfficeLocationPickerProps) {
+const { t } = useTranslation('common');
   const [open, setOpen] = useState(false);
   const [addingNew, setAddingNew] = useState(false);
   const [saveAsOffice, setSaveAsOffice] = useState(false);
@@ -149,9 +150,9 @@ export function CompanyOfficeLocationPicker({
             <Command>
               <CommandList>
                 {isLoading ? (
-                  <div className="p-4 text-sm text-muted-foreground text-center">Loading offices...</div>
+                  <div className="p-4 text-sm text-muted-foreground text-center">{t("loading_offices", "Loading offices...")}</div>
                 ) : offices.length === 0 ? (
-                  <CommandEmpty>No offices saved yet</CommandEmpty>
+                  <CommandEmpty>{t("no_offices_saved_yet", "No offices saved yet")}</CommandEmpty>
                 ) : (
                   <>
                     {hqOffices.length > 0 && (
@@ -177,7 +178,7 @@ export function CompanyOfficeLocationPicker({
                     className="cursor-pointer"
                   >
                     <Plus className="w-4 h-4 mr-2 text-primary" />
-                    <span className="text-primary font-medium">Add new location</span>
+                    <span className="text-primary font-medium">{t("add_new_location", "Add new location")}</span>
                   </CommandItem>
                 </CommandGroup>
               </CommandList>
@@ -208,7 +209,7 @@ export function CompanyOfficeLocationPicker({
           <EnhancedLocationAutocomplete
             value={newLocation}
             onChange={handleNewLocationSelected}
-            placeholder="e.g. Amsterdam, Netherlands"
+            placeholder={t("eg_amsterdam_netherlands", "e.g. Amsterdam, Netherlands")}
           />
 
           {newLocation && (
@@ -228,8 +229,7 @@ export function CompanyOfficeLocationPicker({
 
                 {saveAsOffice && (
                   <Input
-                    placeholder='e.g. "Berlin Office"'
-                    value={officeLabel}
+                    placeholder="e.g. Berlin Office" value={officeLabel}
                     onChange={(e) => setOfficeLabel(e.target.value)}
                     className="h-9"
                   />

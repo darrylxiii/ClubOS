@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { useTranslation } from 'react-i18next';
 import { Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -88,9 +89,11 @@ function queryToOperators(query: string): { operators: SearchOperators; plainTex
 export function AdvancedSearchInput({
   value,
   onChange,
-  placeholder = "Search emails...",
+  placeholder,
   className,
 }: AdvancedSearchInputProps) {
+  const { t } = useTranslation('messages');
+  const defaultPlaceholder = placeholder || t('searchEmails');
   const [isFocused, setIsFocused] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   
@@ -195,7 +198,7 @@ export function AdvancedSearchInput({
             onChange={(e) => handlePlainTextChange(e.target.value)}
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
-            placeholder={hasOperators ? "Add keywords..." : placeholder}
+            placeholder={hasOperators ? t('addKeywords') : defaultPlaceholder}
             className="flex-1 min-w-[120px] border-0 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-auto text-sm"
           />
         </div>

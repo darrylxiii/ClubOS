@@ -119,10 +119,10 @@ Deno.serve(async (req) => {
 
     console.log('Calculating match score for:', { jobId, jobTitle, company, userId });
 
-    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
+    const googleApiKey = Deno.env.get('GOOGLE_API_KEY');
 
-    if (!lovableApiKey) {
-      throw new Error('LOVABLE_API_KEY not configured');
+    if (!googleApiKey) {
+      throw new Error('GOOGLE_API_KEY not configured');
     }
 
     // Use service client only for privileged writes
@@ -207,15 +207,15 @@ Provide a JSON response with this exact structure:
 
 Be specific and realistic. Timeframes should match the actual effort needed (e.g., "3 days", "2 weeks", "8 months", etc.).`;
 
-    // Call Lovable AI
-    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    // Call Google Gemini
+    const aiResponse = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${lovableApiKey}`,
+        'Authorization': `Bearer ${googleApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash-lite',
+        model: 'gemini-2.5-flash-lite',
         messages: [
           { role: 'system', content: 'You are a career matching expert. Analyze job-candidate matches and provide detailed, actionable breakdowns in JSON format.' },
           { role: 'user', content: prompt }
@@ -229,7 +229,7 @@ Be specific and realistic. Timeframes should match the actual effort needed (e.g
         throw new Error('Rate limit exceeded. Please try again later.');
       }
       if (aiResponse.status === 402) {
-        throw new Error('Payment required. Please add credits to your workspace.');
+        throw new Error('Payment required. Please check your Google API billing.');
       }
       const errorText = await aiResponse.text();
       console.error('AI gateway error:', aiResponse.status, errorText);

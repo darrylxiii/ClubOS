@@ -1,4 +1,5 @@
 import { memo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -18,6 +19,7 @@ export const IncubatorPlanCanvas = memo(({
   onSectionUpdate, 
   totalWordCount 
 }: IncubatorPlanCanvasProps) => {
+  const { t } = useTranslation('common');
   const getWordCount = (text?: string) => {
     if (!text) return 0;
     return text.trim().split(/\s+/).filter(Boolean).length;
@@ -27,7 +29,7 @@ export const IncubatorPlanCanvas = memo(({
     <div className="space-y-6 pb-20">
       {/* Header */}
       <div className="sticky top-0 bg-background/95 backdrop-blur-sm z-10 pb-4 border-b">
-        <h2 className="text-2xl font-bold font-serif">Your One-Pager</h2>
+        <h2 className="text-2xl font-bold font-serif">{t('incubator.yourOnePager')}</h2>
         <div className="flex items-center gap-4 mt-2">
           <Badge variant={totalWordCount > 450 ? 'destructive' : 'outline'}>
             {totalWordCount} / 450 words

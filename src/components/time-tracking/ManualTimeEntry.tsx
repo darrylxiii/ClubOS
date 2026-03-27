@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -36,6 +37,7 @@ interface ManualTimeEntryProps {
 }
 
 export function ManualTimeEntry({ contractId, hourlyRate, onSave }: ManualTimeEntryProps) {
+  const { t } = useTranslation('common');
   const [date, setDate] = useState<Date>(new Date());
   const [startTime, setStartTime] = useState("09:00");
   const [endTime, setEndTime] = useState("17:00");
@@ -100,7 +102,7 @@ export function ManualTimeEntry({ contractId, hourlyRate, onSave }: ManualTimeEn
       <div className="space-y-4">
         {/* Date Picker */}
         <div>
-          <Label className="mb-2 block">Date</Label>
+          <Label className="mb-2 block">{t("date", "Date")}</Label>
           <Popover>
             <PopoverTrigger asChild>
               <Button
@@ -111,7 +113,7 @@ export function ManualTimeEntry({ contractId, hourlyRate, onSave }: ManualTimeEn
                 )}
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
-                {date ? format(date, "PPP") : <span>Pick a date</span>}
+                {date ? format(date, "PPP") : <span>{t("pick_a_date", "Pick a date")}</span>}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
@@ -129,7 +131,7 @@ export function ManualTimeEntry({ contractId, hourlyRate, onSave }: ManualTimeEn
         {/* Time Range */}
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <Label className="mb-2 block">Start Time</Label>
+            <Label className="mb-2 block">{t("start_time", "Start Time")}</Label>
             <Select value={startTime} onValueChange={setStartTime}>
               <SelectTrigger>
                 <SelectValue />
@@ -145,7 +147,7 @@ export function ManualTimeEntry({ contractId, hourlyRate, onSave }: ManualTimeEn
           </div>
 
           <div>
-            <Label className="mb-2 block">End Time</Label>
+            <Label className="mb-2 block">{t("end_time", "End Time")}</Label>
             <Select value={endTime} onValueChange={setEndTime}>
               <SelectTrigger>
                 <SelectValue />
@@ -164,11 +166,11 @@ export function ManualTimeEntry({ contractId, hourlyRate, onSave }: ManualTimeEn
         {/* Hours Summary */}
         <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-md">
           <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">Total Hours:</span>
+            <span className="text-muted-foreground">{t("total_hours", "Total Hours:")}</span>
             <span className="font-semibold text-foreground">{hours.toFixed(2)}h</span>
           </div>
           <div className="flex items-center justify-between text-sm mt-1">
-            <span className="text-muted-foreground">Earnings:</span>
+            <span className="text-muted-foreground">{t("earnings", "Earnings:")}</span>
             <span className="font-semibold text-foreground">
               €{earnings.toFixed(2)}
             </span>
@@ -182,7 +184,7 @@ export function ManualTimeEntry({ contractId, hourlyRate, onSave }: ManualTimeEn
           </Label>
           <Textarea
             id="manual-desc"
-            placeholder="Describe the work completed during this time..."
+            placeholder={t("describe_the_work_completed", "Describe the work completed during this time...")}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             className="min-h-[100px]"

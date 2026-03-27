@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React, { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -31,6 +32,7 @@ const SEVERITY_COLORS = {
  * Provides comprehensive error visualization and insights
  */
 export function ErrorAnalyticsDashboard() {
+  const { t } = useTranslation('common');
   const { recharts, isLoading: chartsLoading } = useRecharts();
 
   // Fetch error trends
@@ -103,7 +105,7 @@ export function ErrorAnalyticsDashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <Card className="lg:col-span-2">
             <CardHeader>
-              <CardTitle className="text-base">Error Trend (Last 7 Days)</CardTitle>
+              <CardTitle className="text-base">{t("error_trend_last_7", "Error Trend (Last 7 Days)")}</CardTitle>
             </CardHeader>
             <CardContent>
               <Skeleton className="h-[300px] w-full" />
@@ -111,7 +113,7 @@ export function ErrorAnalyticsDashboard() {
           </Card>
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Severity Distribution</CardTitle>
+              <CardTitle className="text-base">{t("severity_distribution", "Severity Distribution")}</CardTitle>
             </CardHeader>
             <CardContent>
               <Skeleton className="h-[300px] w-full" />
@@ -131,7 +133,7 @@ export function ErrorAnalyticsDashboard() {
             {/* Line Chart */}
             <Card className="lg:col-span-2">
               <CardHeader>
-                <CardTitle className="text-base">Error Trend (Last 7 Days)</CardTitle>
+                <CardTitle className="text-base">{t("error_trend_last_7", "Error Trend (Last 7 Days)")}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="h-[300px]">
@@ -174,7 +176,7 @@ export function ErrorAnalyticsDashboard() {
             {/* Severity Distribution */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">Severity Distribution</CardTitle>
+                <CardTitle className="text-base">{t("severity_distribution", "Severity Distribution")}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="h-[300px]">
@@ -219,7 +221,7 @@ export function ErrorAnalyticsDashboard() {
         <TabsContent value="components">
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Top Error-Producing Components</CardTitle>
+              <CardTitle className="text-base">{t("top_errorproducing_components", "Top Error-Producing Components")}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="h-[400px]">
@@ -264,7 +266,7 @@ export function ErrorAnalyticsDashboard() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Total Errors (7d)</p>
+                <p className="text-sm text-muted-foreground">{t("total_errors_7d", "Total Errors (7d)")}</p>
                 <p className="text-2xl font-bold">{totalErrors}</p>
               </div>
               <div className={`p-3 rounded-full ${
@@ -288,7 +290,7 @@ export function ErrorAnalyticsDashboard() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Critical Errors</p>
+                <p className="text-sm text-muted-foreground">{t("critical_errors", "Critical Errors")}</p>
                 <p className="text-2xl font-bold text-destructive">{criticalErrors}</p>
               </div>
               <div className="p-3 rounded-full bg-destructive/10">
@@ -303,7 +305,7 @@ export function ErrorAnalyticsDashboard() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Resolution Rate</p>
+                <p className="text-sm text-muted-foreground">{t("resolution_rate", "Resolution Rate")}</p>
                 <p className="text-2xl font-bold">
                   {resolutionStats?.resolutionRate.toFixed(1) || 0}%
                 </p>
@@ -324,7 +326,7 @@ export function ErrorAnalyticsDashboard() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Avg Resolution Time</p>
+                <p className="text-sm text-muted-foreground">{t("avg_resolution_time", "Avg Resolution Time")}</p>
                 <p className="text-2xl font-bold">
                   {resolutionStats?.avgResolutionTimeHours.toFixed(1) || 0}h
                 </p>
@@ -340,9 +342,9 @@ export function ErrorAnalyticsDashboard() {
       {/* Tabs for detailed views */}
       <Tabs defaultValue="trends" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="trends">Error Trends</TabsTrigger>
-          <TabsTrigger value="components">Top Components</TabsTrigger>
-          <TabsTrigger value="performance">Performance</TabsTrigger>
+          <TabsTrigger value="trends">{t("error_trends", "Error Trends")}</TabsTrigger>
+          <TabsTrigger value="components">{t("top_components", "Top Components")}</TabsTrigger>
+          <TabsTrigger value="performance">{t("performance", "Performance")}</TabsTrigger>
         </TabsList>
 
         {renderCharts()}
@@ -377,7 +379,7 @@ export function ErrorAnalyticsDashboard() {
             <Card>
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium">Long Tasks</span>
+                  <span className="text-sm font-medium">{t("long_tasks", "Long Tasks")}</span>
                   <Zap className="h-4 w-4 text-amber-500" />
                 </div>
                 <p className="text-2xl font-bold">{perfSummary.longTaskCount}</p>
@@ -391,7 +393,7 @@ export function ErrorAnalyticsDashboard() {
             <Card>
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium">Memory Status</span>
+                  <span className="text-sm font-medium">{t("memory_status", "Memory Status")}</span>
                   {perfSummary.memoryPressure ? (
                     <XCircle className="h-4 w-4 text-destructive" />
                   ) : (
@@ -408,7 +410,7 @@ export function ErrorAnalyticsDashboard() {
             <Card>
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium">Overall Performance</span>
+                  <span className="text-sm font-medium">{t("overall_performance", "Overall Performance")}</span>
                 </div>
                 <Badge 
                   variant={

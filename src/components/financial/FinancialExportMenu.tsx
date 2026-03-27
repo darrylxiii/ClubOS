@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
@@ -40,6 +41,7 @@ const fmt = (v: number) =>
   new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(v);
 
 export function FinancialExportMenu({ datasets, plSummary, year }: FinancialExportMenuProps) {
+  const { t } = useTranslation('common');
   const [exporting, setExporting] = useState(false);
 
   const handleCSV = async (ds: ExportableData) => {
@@ -47,13 +49,13 @@ export function FinancialExportMenu({ datasets, plSummary, year }: FinancialExpo
     try {
       const rows = await ds.getData();
       if (!rows || rows.length === 0) {
-        toast.info('No data to export');
+        toast.info(t("no_data_to_export", "No data to export"));
         return;
       }
       exportToCSV(rows as any[], ds.filename);
       toast.success(`Exported ${ds.label} as CSV`);
     } catch {
-      toast.error('Export failed');
+      toast.error(t("export_failed", "Export failed"));
     } finally {
       setExporting(false);
     }
@@ -109,7 +111,7 @@ export function FinancialExportMenu({ datasets, plSummary, year }: FinancialExpo
     });
 
     doc.save(`PnL-${y}-${new Date().toISOString().split('T')[0]}.pdf`);
-    toast.success('P&L exported as PDF');
+    toast.success(t("pl_exported_as_pdf", "P&L exported as PDF"));
   };
 
   return (

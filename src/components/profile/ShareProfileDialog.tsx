@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from 'react-i18next';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -25,6 +26,7 @@ interface ShareLink {
 }
 
 export const ShareProfileDialog = ({ open, onClose, userId }: ShareProfileDialogProps) => {
+  const { t } = useTranslation('common');
   const [duration, setDuration] = useState<string>("24");
   const [generating, setGenerating] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -79,11 +81,11 @@ export const ShareProfileDialog = ({ open, onClose, userId }: ShareProfileDialog
 
       if (insertError) throw insertError;
 
-      toast.success("Share link generated!");
+      toast.success(t('shareProfileDialog.linkGenerated', 'Share link generated!'));
       await loadActiveLinks();
     } catch (error: unknown) {
       console.error("Error generating share link:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to generate share link");
+      toast.error(error instanceof Error ? error.message : t('shareProfileDialog.failedToGenerate', 'Failed to generate share link'));
     } finally {
       setGenerating(false);
     }
@@ -93,7 +95,7 @@ export const ShareProfileDialog = ({ open, onClose, userId }: ShareProfileDialog
     const url = `https://os.thequantumclub.com/share/${token}`;
     await navigator.clipboard.writeText(url);
     setCopied(true);
-    toast.success("Link copied to clipboard!");
+    toast.success(t('shareProfileDialog.linkCopied', 'Link copied to clipboard!'));
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -106,11 +108,11 @@ export const ShareProfileDialog = ({ open, onClose, userId }: ShareProfileDialog
 
       if (error) throw error;
 
-      toast.success("Share link deleted");
+      toast.success(t('shareProfileDialog.linkDeleted', 'Share link deleted'));
       await loadActiveLinks();
     } catch (error: unknown) {
       console.error("Error deleting share link:", error);
-      toast.error("Failed to delete share link");
+      toast.error(t('shareProfileDialog.failedToDelete', 'Failed to delete share link'));
     }
   };
 
@@ -118,9 +120,9 @@ export const ShareProfileDialog = ({ open, onClose, userId }: ShareProfileDialog
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Share Your Profile</DialogTitle>
+          <DialogTitle>{t('profile.shareYourProfile')}</DialogTitle>
           <DialogDescription>
-            Generate a temporary link to share your profile with anyone, even if they're not logged in.
+            {t('profile.shareProfileDesc')}
           </DialogDescription>
         </DialogHeader>
 
@@ -128,18 +130,18 @@ export const ShareProfileDialog = ({ open, onClose, userId }: ShareProfileDialog
           {/* Generate New Link */}
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label>Link Duration</Label>
+              <Label>{t('profile.linkDuration')}</Label>
               <Select value={duration} onValueChange={setDuration}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="1">1 hour</SelectItem>
-                  <SelectItem value="6">6 hours</SelectItem>
-                  <SelectItem value="12">12 hours</SelectItem>
-                  <SelectItem value="24">24 hours</SelectItem>
-                  <SelectItem value="48">48 hours</SelectItem>
-                  <SelectItem value="72">72 hours</SelectItem>
+                  <SelectItem value="1">{t('profile.hours', { count: 1 })}</SelectItem>
+                  <SelectItem value="6">{t('profile.hours', { count: 6 })}</SelectItem>
+                  <SelectItem value="12">{t('profile.hours', { count: 12 })}</SelectItem>
+                  <SelectItem value="24">{t('profile.hours', { count: 24 })}</SelectItem>
+                  <SelectItem value="48">{t('profile.hours', { count: 48 })}</SelectItem>
+                  <SelectItem value="72">{t('profile.hours', { count: 72 })}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -149,14 +151,14 @@ export const ShareProfileDialog = ({ open, onClose, userId }: ShareProfileDialog
               disabled={generating}
               className="w-full"
             >
-              {generating ? "Generating..." : "Generate Share Link"}
+              {generating ? t('common:status.generating') : t('profile.generateShareLink')}
             </Button>
           </div>
 
           {/* Active Links */}
           {!loading && activeLinks.length > 0 && (
             <div className="space-y-3">
-              <Label className="text-sm font-semibold">Active Share Links</Label>
+              <Label className="text-sm font-semibold">{t('profile.activeShareLinks')}</Label>
               <div className="space-y-2 max-h-64 overflow-y-auto">
                 {activeLinks.map((link) => (
                   <div
@@ -199,14 +201,14 @@ export const ShareProfileDialog = ({ open, onClose, userId }: ShareProfileDialog
                     </div>
                     <div className="flex items-center justify-between text-xs text-muted-foreground">
                       <span>
-                        Expires{" "}
+                        {t('shareProfileDialog.expires', 'Expires')}{" "}
                         {formatDistanceToNow(new Date(link.expires_at), {
                           addSuffix: true,
                         })}
                       </span>
                       <span className="flex items-center gap-1">
                         <Eye className="h-3 w-3" />
-                        {link.view_count} views
+                        {link.view_count} {t('profile.views')}
                       </span>
                     </div>
                   </div>

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -34,6 +35,7 @@ interface CompanyMembersDialogProps {
 }
 
 export function CompanyMembersDialog({ companyId, companyName }: CompanyMembersDialogProps) {
+  const { t } = useTranslation('common');
   const [open, setOpen] = useState(false);
   const [members, setMembers] = useState<CompanyMember[]>([]);
   const [availableUsers, setAvailableUsers] = useState<User[]>([]);
@@ -90,7 +92,7 @@ export function CompanyMembersDialog({ companyId, companyName }: CompanyMembersD
       setMembers(combinedData as any);
     } catch (error) {
       console.error('Error loading members:', error);
-      toast.error("Failed to load team members");
+      toast.error(t("failed_to_load_team", "Failed to load team members"));
     }
   };
 
@@ -121,7 +123,7 @@ export function CompanyMembersDialog({ companyId, companyName }: CompanyMembersD
 
   const handleAddMember = async () => {
     if (!selectedUser) {
-      toast.error("Please select a user");
+      toast.error(t("please_select_a_user", "Please select a user"));
       return;
     }
 
@@ -138,7 +140,7 @@ export function CompanyMembersDialog({ companyId, companyName }: CompanyMembersD
 
       if (error) throw error;
       
-      toast.success("Team member added successfully");
+      toast.success(t("team_member_added_successfully", "Team member added successfully"));
       setSelectedUser("");
       setSelectedRole("viewer");
       setSearchQuery("");
@@ -146,7 +148,7 @@ export function CompanyMembersDialog({ companyId, companyName }: CompanyMembersD
       loadAvailableUsers();
     } catch (error) {
       console.error('Error adding member:', error);
-      toast.error("Failed to add team member");
+      toast.error(t("failed_to_add_team", "Failed to add team member"));
     } finally {
       setLoading(false);
     }
@@ -163,12 +165,12 @@ export function CompanyMembersDialog({ companyId, companyName }: CompanyMembersD
 
       if (error) throw error;
       
-      toast.success("Team member removed");
+      toast.success(t("team_member_removed", "Team member removed"));
       loadMembers();
       loadAvailableUsers();
     } catch (error) {
       console.error('Error removing member:', error);
-      toast.error("Failed to remove team member");
+      toast.error(t("failed_to_remove_team", "Failed to remove team member"));
     }
   };
 
@@ -181,11 +183,11 @@ export function CompanyMembersDialog({ companyId, companyName }: CompanyMembersD
 
       if (error) throw error;
       
-      toast.success("Role updated");
+      toast.success(t("role_updated", "Role updated"));
       loadMembers();
     } catch (error) {
       console.error('Error updating role:', error);
-      toast.error("Failed to update role");
+      toast.error(t("failed_to_update_role", "Failed to update role"));
     }
   };
 
@@ -239,7 +241,7 @@ export function CompanyMembersDialog({ companyId, companyName }: CompanyMembersD
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
-                placeholder="Search users..."
+                placeholder={t("search_users", "Search users...")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10"
@@ -248,10 +250,10 @@ export function CompanyMembersDialog({ companyId, companyName }: CompanyMembersD
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Select User</Label>
+                <Label>{t("select_user", "Select User")}</Label>
                 <Select value={selectedUser} onValueChange={setSelectedUser}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Choose user..." />
+                    <SelectValue placeholder={t("choose_user", "Choose user...")} />
                   </SelectTrigger>
                   <SelectContent className="max-h-[300px]">
                     {filteredUsers.length === 0 ? (
@@ -273,16 +275,16 @@ export function CompanyMembersDialog({ companyId, companyName }: CompanyMembersD
               </div>
 
               <div className="space-y-2">
-                <Label>Role</Label>
+                <Label>{t("role", "Role")}</Label>
                 <Select value={selectedRole} onValueChange={setSelectedRole}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="owner">Owner</SelectItem>
-                    <SelectItem value="admin">Admin</SelectItem>
-                    <SelectItem value="recruiter">Recruiter</SelectItem>
-                    <SelectItem value="viewer">Viewer</SelectItem>
+                    <SelectItem value="owner">{t("owner", "Owner")}</SelectItem>
+                    <SelectItem value="admin">{t("admin", "Admin")}</SelectItem>
+                    <SelectItem value="recruiter">{t("recruiter", "Recruiter")}</SelectItem>
+                    <SelectItem value="viewer">{t("viewer", "Viewer")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -337,10 +339,10 @@ export function CompanyMembersDialog({ companyId, companyName }: CompanyMembersD
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="owner">Owner</SelectItem>
-                          <SelectItem value="admin">Admin</SelectItem>
-                          <SelectItem value="recruiter">Recruiter</SelectItem>
-                          <SelectItem value="viewer">Viewer</SelectItem>
+                          <SelectItem value="owner">{t("owner", "Owner")}</SelectItem>
+                          <SelectItem value="admin">{t("admin", "Admin")}</SelectItem>
+                          <SelectItem value="recruiter">{t("recruiter", "Recruiter")}</SelectItem>
+                          <SelectItem value="viewer">{t("viewer", "Viewer")}</SelectItem>
                         </SelectContent>
                       </Select>
 

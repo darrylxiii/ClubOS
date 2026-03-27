@@ -7,6 +7,7 @@ import { InlineLoader } from '@/components/ui/unified-loader';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import { useEmailVerification } from '@/hooks/useEmailVerification';
 import type { EmailVerificationProps } from '@/types/verification';
+import { useTranslation } from 'react-i18next';
 
 export const EmailVerification = ({
   email,
@@ -14,6 +15,7 @@ export const EmailVerification = ({
   onEmailChange,
   onVerificationComplete,
 }: EmailVerificationProps) => {
+  const { t } = useTranslation('common');
   const [otpCode, setOtpCode] = useState('');
   const {
     otpSent,

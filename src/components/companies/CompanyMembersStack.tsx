@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -22,6 +23,7 @@ interface CompanyMembersStackProps {
 }
 
 export function CompanyMembersStack({ companyId, maxVisible = 3, showFull = false }: CompanyMembersStackProps) {
+  const { t } = useTranslation('common');
   const [members, setMembers] = useState<CompanyMember[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -93,7 +95,7 @@ export function CompanyMembersStack({ companyId, maxVisible = 3, showFull = fals
     return (
       <div className="text-center py-8 text-muted-foreground">
         <Users className="w-12 h-12 mx-auto mb-2 opacity-50" />
-        <p className="text-sm">No team members yet</p>
+        <p className="text-sm">{t("no_team_members_yet", "No team members yet")}</p>
       </div>
     );
   }

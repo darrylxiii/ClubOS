@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { DollarSign, Target, AlertCircle, Gift, Minus, Layers } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { formatCurrency } from "@/lib/format";
+import { useTranslation } from 'react-i18next';
 
 // Memoized metric card component
 const MetricCard = memo(function MetricCard({ 
@@ -24,6 +25,7 @@ const MetricCard = memo(function MetricCard({
   color: string;
   tooltip: string;
 }) {
+  const { t } = useTranslation('common');
   return (
     <Tooltip>
       <TooltipTrigger asChild>

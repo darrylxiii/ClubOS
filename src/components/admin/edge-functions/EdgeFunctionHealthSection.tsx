@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -6,6 +7,7 @@ import { AlertTriangle, XCircle, Power, Shield } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
 export function EdgeFunctionHealthSection() {
+  const { t } = useTranslation('common');
   const { data: functions = [] } = useEdgeFunctionRegistry();
   const toggleFn = useToggleEdgeFunction();
 
@@ -22,7 +24,7 @@ export function EdgeFunctionHealthSection() {
         <CardContent className="pt-6">
           <div className="flex items-center gap-2 text-green-500">
             <Shield className="h-5 w-5" />
-            <p className="text-sm font-medium">All functions healthy — no issues detected.</p>
+            <p className="text-sm font-medium">{t("all_functions_healthy_no", "All functions healthy — no issues detected.")}</p>
           </div>
         </CardContent>
       </Card>

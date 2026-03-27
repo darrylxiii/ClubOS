@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useDropzone } from 'react-dropzone';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -57,13 +58,14 @@ export function ProposalAttachmentUploader({
   maxFiles = 5,
   maxSizeBytes = 10 * 1024 * 1024, // 10MB
 }: ProposalAttachmentUploaderProps) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<Record<string, number>>({});
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
     if (!user) {
-      toast.error('Please sign in to upload files');
+      toast.error(t('proposals.pleaseSignInToUploadFiles'));
       return;
     }
 
@@ -164,10 +166,10 @@ export function ProposalAttachmentUploader({
         .eq('id', attachment.id);
 
       onAttachmentsChange(attachments.filter(a => a.id !== attachment.id));
-      toast.success('File removed');
+      toast.success(t('proposals.fileRemoved'));
     } catch (error: unknown) {
       console.error('Remove error:', error);
-      toast.error('Failed to remove file');
+      toast.error(t('proposals.failedToRemoveFile'));
     }
   };
 
@@ -193,12 +195,10 @@ export function ProposalAttachmentUploader({
         <input {...getInputProps()} />
         <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
         {isDragActive ? (
-          <p className="text-sm text-primary font-medium">Drop files here...</p>
+          <p className="text-sm text-primary font-medium">{"Drop files here..."}</p>
         ) : (
           <>
-            <p className="text-sm text-muted-foreground">
-              Drag & drop files here, or click to browse
-            </p>
+            <p className="text-sm text-muted-foreground">{t('proposals.dragDropFilesHereOrClickToBrowse')}</p>
             <p className="text-xs text-muted-foreground mt-1">
               PDF, DOC, images, ZIP • Max {formatFileSize(maxSizeBytes)} per file • {maxFiles - attachments.length} slots remaining
             </p>

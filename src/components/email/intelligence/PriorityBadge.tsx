@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { AlertCircle, AlertTriangle, Info, Minus } from "lucide-react";
@@ -9,6 +10,7 @@ interface PriorityBadgeProps {
 }
 
 export function PriorityBadge({ score, reason, size = "md" }: PriorityBadgeProps) {
+  const { t } = useTranslation('common');
   const getPriorityConfig = (score: number) => {
     if (score >= 80) {
       return {
@@ -69,7 +71,7 @@ export function PriorityBadge({ score, reason, size = "md" }: PriorityBadgeProps
       <Tooltip delayDuration={100}>
         <TooltipTrigger asChild>{badge}</TooltipTrigger>
         <TooltipContent side="top" className="max-w-xs">
-          <p className="text-xs font-medium mb-1">Why this priority?</p>
+          <p className="text-xs font-medium mb-1">{t("why_this_priority", "Why this priority?")}</p>
           <p className="text-xs text-muted-foreground">{reason}</p>
         </TooltipContent>
       </Tooltip>

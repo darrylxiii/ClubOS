@@ -14,6 +14,7 @@ import {
   ArrowRight,
   CheckCircle2,
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 type EmptyStateType = 
   | 'no-campaigns' 
@@ -117,6 +118,7 @@ export function CRMEmptyState({
   searchQuery,
   showTips = true,
 }: CRMEmptyStateProps) {
+  const { t } = useTranslation('common');
   const config = emptyStateConfig[type];
   const Icon = config.icon;
 

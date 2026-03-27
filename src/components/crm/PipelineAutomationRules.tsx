@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { motion } from '@/lib/motion';
 import { Zap, Plus, Trash2, ArrowRight, Mail, MessageSquare, Calendar, UserCheck } from 'lucide-react';
@@ -38,6 +39,7 @@ const actions = [
 ];
 
 export function PipelineAutomationRules() {
+  const { t } = useTranslation('common');
   const [rules, setRules] = useState<AutomationRule[]>(defaultRules);
   const [isAdding, setIsAdding] = useState(false);
   const [newRule, setNewRule] = useState({ trigger: '', action: '' });
@@ -46,17 +48,17 @@ export function PipelineAutomationRules() {
     setRules(prev => prev.map(rule => 
       rule.id === id ? { ...rule, enabled: !rule.enabled } : rule
     ));
-    toast.success('Rule updated');
+    toast.success(t("rule_updated", "Rule updated"));
   };
 
   const deleteRule = (id: string) => {
     setRules(prev => prev.filter(rule => rule.id !== id));
-    toast.success('Rule deleted');
+    toast.success(t("rule_deleted", "Rule deleted"));
   };
 
   const addRule = () => {
     if (!newRule.trigger || !newRule.action) {
-      toast.error('Please select both trigger and action');
+      toast.error(t("please_select_both_trigger", "Please select both trigger and action"));
       return;
     }
 
@@ -73,7 +75,7 @@ export function PipelineAutomationRules() {
 
     setNewRule({ trigger: '', action: '' });
     setIsAdding(false);
-    toast.success('Rule created');
+    toast.success(t("rule_created", "Rule created"));
   };
 
   return (
@@ -102,7 +104,7 @@ export function PipelineAutomationRules() {
             <div className="flex items-center gap-3">
               <Select value={newRule.trigger} onValueChange={(v) => setNewRule(p => ({ ...p, trigger: v }))}>
                 <SelectTrigger className="flex-1">
-                  <SelectValue placeholder="When..." />
+                  <SelectValue placeholder={t("when", "When...")} />
                 </SelectTrigger>
                 <SelectContent>
                   {triggers.map(t => (
@@ -120,7 +122,7 @@ export function PipelineAutomationRules() {
 
               <Select value={newRule.action} onValueChange={(v) => setNewRule(p => ({ ...p, action: v }))}>
                 <SelectTrigger className="flex-1">
-                  <SelectValue placeholder="Then..." />
+                  <SelectValue placeholder={t("then", "Then...")} />
                 </SelectTrigger>
                 <SelectContent>
                   {actions.map(a => (
@@ -131,8 +133,8 @@ export function PipelineAutomationRules() {
             </div>
 
             <div className="flex justify-end gap-2">
-              <Button variant="ghost" size="sm" onClick={() => setIsAdding(false)}>Cancel</Button>
-              <Button size="sm" onClick={addRule}>Create Rule</Button>
+              <Button variant="ghost" size="sm" onClick={() => setIsAdding(false)}>{t("cancel", "Cancel")}</Button>
+              <Button size="sm" onClick={addRule}>{t("create_rule", "Create Rule")}</Button>
             </div>
           </motion.div>
         )}

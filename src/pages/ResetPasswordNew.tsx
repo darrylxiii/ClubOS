@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { AssistedPasswordConfirmation } from "@/components/ui/assisted-password-confirmation";
 import { RainbowButton } from "@/components/ui/rainbow-button";
@@ -11,6 +12,7 @@ import { parseEdgeFunctionError, getEdgeFunctionErrorMessage } from "@/utils/edg
 import { generateSecureToken } from "@/utils/passwordReset";
 
 export default function ResetPasswordNew() {
+  const { t } = useTranslation('common');
   const [searchParams] = useSearchParams();
   const token = searchParams.get('token');
   const navigate = useNavigate();
@@ -120,9 +122,9 @@ export default function ResetPasswordNew() {
             <Lock className="w-8 h-8 text-primary" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Create New Password</h1>
+            <h1 className="text-2xl font-bold text-foreground">{t('resetPassword.createNewPassword')}</h1>
             <p className="text-muted-foreground mt-2 text-sm">
-              Your password must be different from previously used passwords
+              {t('resetPassword.mustBeDifferent')}
             </p>
           </div>
         </CardHeader>
@@ -136,7 +138,7 @@ export default function ResetPasswordNew() {
           />
 
           <div className="space-y-3">
-            <p className="text-sm font-semibold text-foreground">Password Requirements:</p>
+            <p className="text-sm font-semibold text-foreground">{t('resetPassword.requirements')}</p>
             <div className="space-y-2">
               {requirements.map((req, i) => (
                 <div key={i} className="flex items-center gap-2 text-sm">
@@ -156,7 +158,7 @@ export default function ResetPasswordNew() {
           {password && confirmPassword && !passwordsMatch && (
             <div className="flex items-center gap-2 text-sm text-warning bg-warning/10 border border-warning/20 rounded-lg p-3">
               <AlertCircle className="w-4 h-4 flex-shrink-0" />
-              <span>Passwords do not match</span>
+              <span>{t('resetPassword.passwordsDoNotMatch')}</span>
             </div>
           )}
 
@@ -165,11 +167,11 @@ export default function ResetPasswordNew() {
             disabled={!canSubmit}
             className="w-full"
           >
-            {isLoading ? "Resetting Password..." : "Reset Password"}
+            {isLoading ? t('resetPassword.resetting') : t('resetPassword.resetPassword')}
           </RainbowButton>
 
           <p className="text-xs text-center text-muted-foreground">
-            After resetting, you'll be redirected to login with your new password
+            {t('resetPassword.redirectAfterReset')}
           </p>
         </CardContent>
       </Card>

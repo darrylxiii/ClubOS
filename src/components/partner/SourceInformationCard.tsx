@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,6 +23,7 @@ interface SourceInfo {
 }
 
 export function SourceInformationCard({ candidateId }: Props) {
+  const { t } = useTranslation('common');
   const [sourceInfo, setSourceInfo] = useState<SourceInfo | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -88,7 +90,7 @@ export function SourceInformationCard({ candidateId }: Props) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Source Information</CardTitle>
+          <CardTitle>{t("source_information", "Source Information")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="animate-pulse space-y-3">
@@ -141,7 +143,7 @@ export function SourceInformationCard({ candidateId }: Props) {
       <CardContent className="space-y-4">
         {sourceInfo.sourcedBy && (
           <div className="flex items-center gap-3">
-            <div className="text-sm text-muted-foreground min-w-[100px]">Sourced by:</div>
+            <div className="text-sm text-muted-foreground min-w-[100px]">{t("sourced_by", "Sourced by:")}</div>
             <div className="flex items-center gap-2">
               <Avatar className="h-8 w-8">
                 <AvatarImage src={sourceInfo.sourcedBy.avatar} />
@@ -153,7 +155,7 @@ export function SourceInformationCard({ candidateId }: Props) {
         )}
 
         <div className="flex items-center gap-3">
-          <div className="text-sm text-muted-foreground min-w-[100px]">Added:</div>
+          <div className="text-sm text-muted-foreground min-w-[100px]">{t("added", "Added:")}</div>
           <div className="flex items-center gap-2">
             <Calendar className="h-4 w-4 text-muted-foreground" />
             <span>{format(new Date(sourceInfo.createdAt), 'MMM dd, yyyy')}</span>
@@ -161,7 +163,7 @@ export function SourceInformationCard({ candidateId }: Props) {
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="text-sm text-muted-foreground min-w-[100px]">Channel:</div>
+          <div className="text-sm text-muted-foreground min-w-[100px]">{t("channel", "Channel:")}</div>
           <Badge variant="outline" className="gap-2">
             {getSourceIcon(sourceInfo.sourceChannel)}
             {getSourceLabel(sourceInfo.sourceChannel)}
@@ -170,7 +172,7 @@ export function SourceInformationCard({ candidateId }: Props) {
 
         {sourceInfo.sourceContext?.note && (
           <div className="pt-3 border-t">
-            <div className="text-sm text-muted-foreground mb-2">Initial Note:</div>
+            <div className="text-sm text-muted-foreground mb-2">{t("initial_note", "Initial Note:")}</div>
             <p className="text-sm italic bg-muted/30 p-3 rounded-md">
               "{sourceInfo.sourceContext.note}"
             </p>

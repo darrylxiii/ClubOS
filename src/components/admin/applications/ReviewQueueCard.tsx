@@ -3,8 +3,10 @@ import { MetricCardSkeleton } from "../shared/MetricCardSkeleton";
 import { AnimatedCard, CardVisual, CardBody, CardTitle, CardDescription } from "@/components/ui/animated-card";
 import { Visual3 } from "@/components/ui/visual-3";
 import { TrendingDown, AlertCircle } from "lucide-react";
+import { useTranslation } from 'react-i18next';
 
 export const ReviewQueueCard = () => {
+  const { t } = useTranslation('admin');
   const { metrics, isLoading } = useApplicationMetrics();
 
   if (isLoading || !metrics) {
@@ -22,7 +24,7 @@ export const ReviewQueueCard = () => {
       <CardBody>
         <div className="flex items-start justify-between">
           <div className="space-y-1">
-            <CardDescription>Review Queue</CardDescription>
+            <CardDescription>{t('applications.reviewQueueCard.reviewQueue')}</CardDescription>
             <CardTitle>{metrics.pending_review}</CardTitle>
           </div>
           <div className="flex items-center gap-1 text-green-500 text-sm font-medium">

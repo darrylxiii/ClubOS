@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { ShieldCheck, Award, Building } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Author } from '@/data/blog';
@@ -6,13 +7,14 @@ import { Author } from '@/data/blog';
 interface ExpertReviewBadgeProps { reviewer: Author; }
 
 const ExpertReviewBadge: React.FC<ExpertReviewBadgeProps> = ({ reviewer }) => {
+  const { t } = useTranslation('common');
   return (
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
           <button className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors cursor-help">
             <ShieldCheck className="h-4 w-4 text-accent" />
-            <span className="underline decoration-dotted underline-offset-2">Expert Reviewed</span>
+            <span className="underline decoration-dotted underline-offset-2">{t('blog.expertReviewed')}</span>
           </button>
         </TooltipTrigger>
         <TooltipContent side="bottom" className="w-72 p-4 bg-card border border-border shadow-lg rounded-xl">
@@ -31,7 +33,7 @@ const ExpertReviewBadge: React.FC<ExpertReviewBadgeProps> = ({ reviewer }) => {
                 <Building className="h-4 w-4" /><span>{reviewer.institution}</span>
               </div>
             )}
-            <p className="text-xs text-muted-foreground pt-2 border-t border-border">✓ Reviewed for accuracy and relevance</p>
+            <p className="text-xs text-muted-foreground pt-2 border-t border-border">{t('blog.reviewedForAccuracy')}</p>
           </div>
         </TooltipContent>
       </Tooltip>

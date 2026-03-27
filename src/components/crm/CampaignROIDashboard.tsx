@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -33,6 +34,7 @@ interface CampaignROI {
 }
 
 export function CampaignROIDashboard() {
+  const { t } = useTranslation('common');
   const { recharts, isLoading: chartsLoading } = useRecharts();
   const { data: roiData, isLoading } = useQuery({
     queryKey: ['campaign-roi'],
@@ -115,17 +117,17 @@ export function CampaignROIDashboard() {
             <p className="font-medium mb-2">{label}</p>
             <div className="space-y-1 text-sm">
               <div className="flex justify-between gap-4">
-                <span className="text-muted-foreground">ROI:</span>
+                <span className="text-muted-foreground">{t("roi", "ROI:")}</span>
                 <span className={`font-medium ${data.roi >= 0 ? 'text-green-500' : 'text-red-500'}`}>
                   {data.roi.toFixed(0)}%
                 </span>
               </div>
               <div className="flex justify-between gap-4">
-                <span className="text-muted-foreground">Revenue:</span>
+                <span className="text-muted-foreground">{t("revenue", "Revenue:")}</span>
                 <span>€{data.revenue.toLocaleString()}</span>
               </div>
               <div className="flex justify-between gap-4">
-                <span className="text-muted-foreground">Cost:</span>
+                <span className="text-muted-foreground">{t("cost", "Cost:")}</span>
                 <span>€{data.cost.toLocaleString()}</span>
               </div>
             </div>
@@ -274,7 +276,7 @@ export function CampaignROIDashboard() {
             ) : (
               <div className="text-center py-8">
                 <DollarSign className="w-12 h-12 mx-auto text-muted-foreground/50 mb-3" />
-                <p className="text-muted-foreground">No ROI data available</p>
+                <p className="text-muted-foreground">{t("no_roi_data_available", "No ROI data available")}</p>
               </div>
             )}
           </CardContent>

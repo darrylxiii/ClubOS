@@ -1,4 +1,5 @@
 import { memo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { motion } from '@/lib/motion';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,6 +9,7 @@ interface CaseSelectionProps {
 }
 
 export const CaseSelection = memo(({ onSelectCase }: CaseSelectionProps) => {
+  const { t } = useTranslation('common');
   const [selectedCase, setSelectedCase] = useState<number | null>(null);
   const [hoveredCase, setHoveredCase] = useState<number | null>(null);
 
@@ -25,10 +27,8 @@ export const CaseSelection = memo(({ onSelectCase }: CaseSelectionProps) => {
     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-background via-background/95 to-primary/5">
       <div className="max-w-6xl w-full space-y-8">
         <div className="text-center space-y-2">
-          <h2 className="text-3xl md:text-4xl font-bold">Choose Your Briefcase</h2>
-          <p className="text-lg text-muted-foreground">
-            This case is yours - it will be revealed at the end
-          </p>
+          <h2 className="text-3xl md:text-4xl font-bold">{t('miljoenenjacht.chooseYourBriefcase')}</h2>
+          <p className="text-lg text-muted-foreground">{t('miljoenenjacht.thisCaseIsYoursItWillBeRevealedAtTheEn')}</p>
         </div>
 
         <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-7 gap-3 md:gap-4">

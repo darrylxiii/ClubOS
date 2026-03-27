@@ -50,15 +50,15 @@ serve(async (req) => {
       );
     }
 
-    const results: any[] = [];
+    const results: Array<{ namespace: string; language: string; status: string; missingKeys: number; missingKeysList?: string[]; action?: string }> = [];
 
     // Helper to flatten nested object keys
-    const getKeys = (obj: any, prefix = ''): string[] => {
+    const getKeys = (obj: Record<string, unknown>, prefix = ''): string[] => {
       const keys: string[] = [];
       for (const [key, value] of Object.entries(obj)) {
         const fullKey = prefix ? `${prefix}.${key}` : key;
         if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
-          keys.push(...getKeys(value, fullKey));
+          keys.push(...getKeys(value as Record<string, unknown>, fullKey));
         } else {
           keys.push(fullKey);
         }
@@ -67,22 +67,22 @@ serve(async (req) => {
     };
 
     // Helper to get value by dot-notation key
-    const getValueByKey = (obj: any, key: string): any => {
+    const getValueByKey = (obj: Record<string, unknown>, key: string): unknown => {
       const parts = key.split('.');
-      let value = obj;
+      let value: unknown = obj;
       for (const part of parts) {
-        value = value?.[part];
+        value = (value as Record<string, unknown>)?.[part];
       }
       return value;
     };
 
     // Helper to set value by dot-notation key
-    const setValueByKey = (obj: any, key: string, value: any): void => {
+    const setValueByKey = (obj: Record<string, unknown>, key: string, value: unknown): void => {
       const parts = key.split('.');
-      let current = obj;
+      let current: Record<string, unknown> = obj;
       for (let i = 0; i < parts.length - 1; i++) {
         if (!current[parts[i]]) current[parts[i]] = {};
-        current = current[parts[i]];
+        current = current[parts[i]] as Record<string, unknown>;
       }
       current[parts[parts.length - 1]] = value;
     };
@@ -140,7 +140,7 @@ serve(async (req) => {
 
           if (mode === 'queue') {
             // Extract only missing key values from English
-            const missingTranslations: any = {};
+            const missingTranslations: Record<string, unknown> = {};
             for (const key of missingKeys) {
               const value = getValueByKey(enTrans.translations, key);
               if (value) {

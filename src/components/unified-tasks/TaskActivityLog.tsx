@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
@@ -60,6 +61,7 @@ const getActionColor = (actionType: string) => {
 };
 
 export const TaskActivityLog = ({ taskId }: TaskActivityLogProps) => {
+  const { t } = useTranslation('common');
   const [activities, setActivities] = useState<ActivityLogEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -114,7 +116,7 @@ export const TaskActivityLog = ({ taskId }: TaskActivityLogProps) => {
     return (
       <div className="text-center py-8 text-muted-foreground">
         <Clock className="h-8 w-8 mx-auto mb-2 opacity-50" />
-        <p className="text-sm">No activity recorded yet</p>
+        <p className="text-sm">{t('tasks.noActivityRecorded', 'No activity recorded yet')}</p>
       </div>
     );
   }

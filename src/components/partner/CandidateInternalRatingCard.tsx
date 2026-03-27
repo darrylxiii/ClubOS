@@ -8,6 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Star, TrendingUp, Activity, Save } from "lucide-react";
+import { useTranslation } from 'react-i18next';
 
 interface Props {
   candidateId: string;
@@ -16,6 +17,7 @@ interface Props {
 }
 
 export const CandidateInternalRatingCard = ({ candidateId, candidate, onUpdate }: Props) => {
+  const { t } = useTranslation('partner');
   const [internalRating, setInternalRating] = useState(candidate.internal_rating || 5);
   const [engagementScore, setEngagementScore] = useState(candidate.engagement_score || 5);
   const [fitScore, setFitScore] = useState(candidate.fit_score || 5);
@@ -49,11 +51,11 @@ export const CandidateInternalRatingCard = ({ candidateId, candidate, onUpdate }
         });
       }
 
-      toast.success('Ratings updated successfully');
+      toast.success(t('candidateInternalRatingCard.toast.ratingsUpdatedSuccessfully'));
       onUpdate();
     } catch (error) {
       console.error('Error updating ratings:', error);
-      toast.error('Failed to update ratings');
+      toast.error(t('candidateInternalRatingCard.toast.failedToUpdateRatings'));
     } finally {
       setSaving(false);
     }
@@ -67,7 +69,7 @@ export const CandidateInternalRatingCard = ({ candidateId, candidate, onUpdate }
             <Star className="w-5 h-5" />
             Internal Assessment Scores
           </CardTitle>
-          <CardDescription>Team evaluation metrics (not visible to candidate)</CardDescription>
+          <CardDescription>{t('candidateInternalRatingCard.description')}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Internal Rating */}
@@ -89,9 +91,7 @@ export const CandidateInternalRatingCard = ({ candidateId, candidate, onUpdate }
               step={0.5}
               className="w-full"
             />
-            <p className="text-xs text-muted-foreground">
-              Overall team assessment of candidate quality
-            </p>
+            <p className="text-xs text-muted-foreground">{t('candidateInternalRatingCard.overallTeamAssessmentOfCandidateQuality')}</p>
           </div>
 
           <Separator />
@@ -115,9 +115,7 @@ export const CandidateInternalRatingCard = ({ candidateId, candidate, onUpdate }
               step={0.5}
               className="w-full"
             />
-            <p className="text-xs text-muted-foreground">
-              Candidate responsiveness and interest level
-            </p>
+            <p className="text-xs text-muted-foreground">{t('candidateInternalRatingCard.candidateResponsivenessAndInterestLevel')}</p>
           </div>
 
           <Separator />
@@ -141,9 +139,7 @@ export const CandidateInternalRatingCard = ({ candidateId, candidate, onUpdate }
               step={0.5}
               className="w-full"
             />
-            <p className="text-xs text-muted-foreground">
-              Skills and experience alignment with opportunities
-            </p>
+            <p className="text-xs text-muted-foreground">{t('candidateInternalRatingCard.skillsAndExperienceAlignmentWithOpportun')}</p>
           </div>
 
           <Separator />
@@ -152,7 +148,7 @@ export const CandidateInternalRatingCard = ({ candidateId, candidate, onUpdate }
           <div className="space-y-2">
             <label className="text-sm font-medium">Rating Notes (Optional)</label>
             <Textarea
-              placeholder="Add context for these ratings..."
+              placeholder={t('candidateInternalRatingCard.placeholder.addContextForTheseRatings')}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={3}
@@ -169,12 +165,10 @@ export const CandidateInternalRatingCard = ({ candidateId, candidate, onUpdate }
       {/* Rating History */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm">Rating History</CardTitle>
+          <CardTitle className="text-sm">{t('candidateInternalRatingCard.title')}</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-xs text-muted-foreground">
-            View all rating changes and team member assessments over time
-          </p>
+          <p className="text-xs text-muted-foreground">{t('candidateInternalRatingCard.viewAllRatingChangesAndTeamMemberAssessm')}</p>
         </CardContent>
       </Card>
     </div>

@@ -1,4 +1,5 @@
 import { memo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -12,6 +13,7 @@ interface PressureCookerResultsProps {
 }
 
 export const PressureCookerResults = memo(({ results, onBack }: PressureCookerResultsProps) => {
+  const { t } = useTranslation('common');
   const metrics = [
     { icon: TrendingUp, label: 'Completion Rate', value: results.completionRate, color: 'text-green-500' },
     { icon: Target, label: 'Prioritization', value: results.prioritizationAccuracy, color: 'text-blue-500' },
@@ -24,7 +26,7 @@ export const PressureCookerResults = memo(({ results, onBack }: PressureCookerRe
       <Card>
         <CardHeader>
           <div className="text-6xl mb-4 text-center">🏆</div>
-          <CardTitle className="text-3xl text-center">Assessment Complete!</CardTitle>
+          <CardTitle className="text-3xl text-center">{t('pressureCooker.assessmentComplete')}</CardTitle>
           <p className="text-center text-muted-foreground">
             You completed {results.tasksCompleted} of {results.totalTasks} tasks
           </p>
@@ -54,23 +56,21 @@ export const PressureCookerResults = memo(({ results, onBack }: PressureCookerRe
         <CardHeader>
           <div className="flex items-center gap-2">
             <MessageSquare className="h-5 w-5" />
-            <CardTitle>Communication Style</CardTitle>
+            <CardTitle>{t('pressureCooker.communicationStyle')}</CardTitle>
           </div>
         </CardHeader>
         <CardContent>
           <Badge variant="outline" className="text-lg px-4 py-2">
             {results.communicationStyle}
           </Badge>
-          <p className="text-sm text-muted-foreground mt-3">
-            Your approach to delegation and task communication
-          </p>
+          <p className="text-sm text-muted-foreground mt-3">{t('pressureCooker.yourApproachToDelegationAndTaskCommunica')}</p>
         </CardContent>
       </Card>
 
       {results.recommendations.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>Recommendations</CardTitle>
+            <CardTitle>{t('pressureCooker.recommendations')}</CardTitle>
           </CardHeader>
           <CardContent>
             <ul className="space-y-2">
@@ -85,9 +85,7 @@ export const PressureCookerResults = memo(({ results, onBack }: PressureCookerRe
         </Card>
       )}
 
-      <Button onClick={onBack} className="w-full" size="lg">
-        Back to Assessments
-      </Button>
+      <Button onClick={onBack} className="w-full" size="lg">{t('pressureCooker.backToAssessments')}</Button>
     </div>
   );
 });

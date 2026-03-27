@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -7,28 +8,29 @@ import { AccountLinking } from '@/components/AccountLinking';
 import { GDPRControls } from './GDPRControls';
 
 export const SecuritySettings = () => {
+  const { t } = useTranslation('settings');
   return (
     <div className="space-y-4">
       <TwoFactorSettings />
-      
+
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Lock className="w-5 h-5" />
-            Password
+            {t('security.password')}
           </CardTitle>
           <CardDescription>
-            Update your password regularly to keep your account secure
+            {t('security.passwordDesc')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label>Change Password</Label>
+            <Label>{t('security.changePassword')}</Label>
             <p className="text-sm text-muted-foreground">
-              You'll be signed out of all devices after changing your password
+              {t('security.changePasswordWarning')}
             </p>
             <Button variant="outline">
-              Change Password
+              {t('security.changePassword')}
             </Button>
           </div>
         </CardContent>

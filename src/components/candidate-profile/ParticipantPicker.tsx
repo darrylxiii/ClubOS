@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 /**
  * ParticipantPicker
  *
@@ -52,6 +53,7 @@ interface ParticipantPickerProps {
 }
 
 export function ParticipantPicker({ participants, onChange }: ParticipantPickerProps) {
+  const { t } = useTranslation('common');
   const [searchOpen, setSearchOpen] = useState(false);
   const [search, setSearch] = useState('');
   const [guestMode, setGuestMode] = useState(false);
@@ -146,7 +148,7 @@ export function ParticipantPicker({ participants, onChange }: ParticipantPickerP
                 )}
               </div>
               {p.isGuest && (
-                <Badge variant="outline" className="text-[10px] shrink-0">Guest</Badge>
+                <Badge variant="outline" className="text-[10px] shrink-0">{t("guest", "Guest")}</Badge>
               )}
               <Select value={p.role} onValueChange={(v) => handleRoleChange(p.id, v)}>
                 <SelectTrigger className="w-[130px] h-7 text-xs">
@@ -184,20 +186,20 @@ export function ParticipantPicker({ participants, onChange }: ParticipantPickerP
           {guestMode ? (
             <div className="space-y-2">
               <div className="flex items-center justify-between mb-1">
-                <span className="text-xs font-medium">Add external guest</span>
+                <span className="text-xs font-medium">{t("add_external_guest", "Add external guest")}</span>
                 <Button variant="ghost" size="sm" className="h-6 text-xs" onClick={() => setGuestMode(false)}>
                   Search users
                 </Button>
               </div>
               <Input
-                placeholder="Name *"
+                placeholder={t("name", "Name *")}
                 value={guestName}
                 onChange={(e) => setGuestName(e.target.value)}
                 className="h-8 text-sm"
                 autoFocus
               />
               <Input
-                placeholder="Email (optional)"
+                placeholder={t("email_optional", "Email (optional)")}
                 value={guestEmail}
                 onChange={(e) => setGuestEmail(e.target.value)}
                 className="h-8 text-sm"
@@ -211,7 +213,7 @@ export function ParticipantPicker({ participants, onChange }: ParticipantPickerP
               <div className="relative mb-2">
                 <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
                 <Input
-                  placeholder="Search by name or email..."
+                  placeholder={t("search_by_name_or", "Search by name or email...")}
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   className="pl-7 h-8 text-sm"
@@ -246,7 +248,7 @@ export function ParticipantPicker({ participants, onChange }: ParticipantPickerP
                           )}
                         </div>
                         {alreadyAdded && (
-                          <span className="text-[10px] text-muted-foreground">Added</span>
+                          <span className="text-[10px] text-muted-foreground">{t("added", "Added")}</span>
                         )}
                       </button>
                     );

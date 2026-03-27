@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Link } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -8,6 +9,7 @@ interface LearningPathCardProps {
 }
 
 export function LearningPathCard({ path }: LearningPathCardProps) {
+  const { t } = useTranslation('common');
   const difficultyColors = {
     beginner: "bg-success/10 text-success",
     intermediate: "bg-warning/10 text-warning",
@@ -48,13 +50,13 @@ export function LearningPathCard({ path }: LearningPathCardProps) {
             )}
             <div className="flex items-center gap-1">
               <BookOpen className="h-4 w-4" />
-              <span>0 courses</span>
+              <span>{t("0_courses", "0 courses")}</span>
             </div>
           </div>
 
           <div className="flex items-center gap-2 text-sm text-primary">
             <TrendingUp className="h-4 w-4" />
-            <span>View Learning Path</span>
+            <span>{t("view_learning_path", "View Learning Path")}</span>
           </div>
         </div>
       </Card>

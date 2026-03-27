@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -13,12 +14,12 @@ interface EmployeeOverviewCardProps {
   hoursThisMonth?: number;
 }
 
-export function EmployeeOverviewCard({ 
-  employee, 
+export function EmployeeOverviewCard({  employee, 
   metrics, 
   currentTarget,
   hoursThisMonth = 0 
 }: EmployeeOverviewCardProps) {
+const { t } = useTranslation('common');
   const targetProgress = currentTarget && currentTarget.revenue_target
     ? (currentTarget.revenue_achieved / currentTarget.revenue_target) * 100
     : 0;
@@ -37,7 +38,7 @@ export function EmployeeOverviewCard({
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-xl">Performance Overview</CardTitle>
+              <CardTitle className="text-xl">{t("performance_overview", "Performance Overview")}</CardTitle>
               <p className="text-sm text-muted-foreground">
                 {employee.job_title} • {employee.department || 'TQC Staff'}
               </p>
@@ -52,25 +53,25 @@ export function EmployeeOverviewCard({
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <MetricItem
               icon={DollarSign}
-              label="Total Earned"
+              label={t("total_earned", "Total Earned")}
               value={formatCurrency(metrics?.total_commissions || 0)}
               color="text-green-500"
             />
             <MetricItem
               icon={TrendingUp}
-              label="Pending"
+              label={t("pending", "Pending")}
               value={formatCurrency(metrics?.pending_commissions || 0)}
               color="text-amber-500"
             />
             <MetricItem
               icon={Award}
-              label="Placements"
+              label={t("placements", "Placements")}
               value={metrics?.placement_count?.toString() || '0'}
               color="text-blue-500"
             />
             <MetricItem
               icon={Clock}
-              label="Hours (Month)"
+              label={t("hours_month", "Hours (Month)")}
               value={`${hoursThisMonth}h`}
               color="text-purple-500"
             />
@@ -85,14 +86,14 @@ export function EmployeeOverviewCard({
               
               <div className="space-y-3">
                 <ProgressItem
-                  label="Revenue Target"
+                  label={t("revenue_target", "Revenue Target")}
                   current={currentTarget.revenue_achieved}
                   target={currentTarget.revenue_target || 0}
                   progress={targetProgress}
                   format="currency"
                 />
                 <ProgressItem
-                  label="Placements"
+                  label={t("placements", "Placements")}
                   current={currentTarget.placements_achieved}
                   target={currentTarget.placements_target || 0}
                   progress={placementProgress}
@@ -103,7 +104,7 @@ export function EmployeeOverviewCard({
 
           {/* Commission Rate */}
           <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-            <span className="text-sm text-muted-foreground">Commission Rate</span>
+            <span className="text-sm text-muted-foreground">{t("commission_rate", "Commission Rate")}</span>
             <span className="font-semibold">{employee.commission_percentage}%</span>
           </div>
         </CardContent>

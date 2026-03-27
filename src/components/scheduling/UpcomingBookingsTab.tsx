@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Calendar, Clock } from 'lucide-react';
@@ -8,13 +9,14 @@ interface UpcomingBookingsTabProps {
 }
 
 export function UpcomingBookingsTab({ bookings }: UpcomingBookingsTabProps) {
+  const { t } = useTranslation('common');
   if (bookings.length === 0) {
     return (
       <Card>
         <CardContent className="flex flex-col items-center justify-center py-12">
           <Calendar className="h-12 w-12 text-muted-foreground mb-4" />
-          <p className="text-lg font-medium">No upcoming bookings</p>
-          <p className="text-muted-foreground">Your confirmed meetings will appear here</p>
+          <p className="text-lg font-medium">{t("no_upcoming_bookings", "No upcoming bookings")}</p>
+          <p className="text-muted-foreground">{t("your_confirmed_meetings_will", "Your confirmed meetings will appear here")}</p>
         </CardContent>
       </Card>
     );

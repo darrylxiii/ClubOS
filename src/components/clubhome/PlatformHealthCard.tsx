@@ -1,9 +1,11 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Activity, AlertCircle, TrendingUp } from "lucide-react";
 import { usePlatformHealth } from "@/hooks/usePlatformHealth";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export function PlatformHealthCard() {
+  const { t } = useTranslation('common');
   const { data: health, isLoading } = usePlatformHealth();
 
   if (isLoading) {
@@ -14,7 +16,7 @@ export function PlatformHealthCard() {
             <Activity className="h-5 w-5" />
             Platform Health
           </CardTitle>
-          <CardDescription>Overall system performance</CardDescription>
+          <CardDescription>{t("overall_system_performance", "Overall system performance")}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -35,7 +37,7 @@ export function PlatformHealthCard() {
           <Activity className="h-5 w-5" />
           Platform Health
         </CardTitle>
-        <CardDescription>Overall system performance</CardDescription>
+        <CardDescription>{t("overall_system_performance", "Overall system performance")}</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
@@ -43,7 +45,7 @@ export function PlatformHealthCard() {
           {/* Health Score */}
           <div className="flex items-center justify-between p-4 rounded-lg bg-muted/50">
             <div>
-              <p className="text-sm text-muted-foreground">Health Score</p>
+              <p className="text-sm text-muted-foreground">{t("health_score", "Health Score")}</p>
               <p className="text-3xl font-bold">{health.healthScore}/100</p>
             </div>
             <div className={`h-16 w-16 rounded-full flex items-center justify-center ${
@@ -58,7 +60,7 @@ export function PlatformHealthCard() {
           {/* Alerts */}
           {health.alerts.length > 0 && (
             <div className="space-y-2">
-              <p className="text-sm font-medium">Alerts</p>
+              <p className="text-sm font-medium">{t("alerts", "Alerts")}</p>
               {health.alerts.map((alert) => (
                 <div 
                   key={alert.id} 
@@ -89,15 +91,15 @@ export function PlatformHealthCard() {
           <div className="grid grid-cols-2 gap-3 pt-2">
             <div className="text-center p-3 rounded-lg bg-muted/30">
               <p className="text-xl font-bold">{health.avgAppsPerJob}</p>
-              <p className="text-xs text-muted-foreground">Apps per Job</p>
+              <p className="text-xs text-muted-foreground">{t("apps_per_job", "Apps per Job")}</p>
             </div>
             <div className="text-center p-3 rounded-lg bg-muted/30">
               <p className="text-xl font-bold">{health.activeMeetings}</p>
-              <p className="text-xs text-muted-foreground">Meetings</p>
+              <p className="text-xs text-muted-foreground">{t("meetings", "Meetings")}</p>
             </div>
             <div className="col-span-2 text-center p-3 rounded-lg bg-muted/30">
               <p className="text-xl font-bold">{health.jobsFilledThisMonth}</p>
-              <p className="text-xs text-muted-foreground">Jobs Filled This Month</p>
+              <p className="text-xs text-muted-foreground">{t("jobs_filled_this_month", "Jobs Filled This Month")}</p>
             </div>
           </div>
 

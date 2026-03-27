@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
@@ -52,6 +53,7 @@ export function ReferralShareSheet({
   open: controlledOpen,
   onOpenChange: controlledOnOpenChange
 }: ReferralShareSheetProps) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [internalOpen, setInternalOpen] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -168,8 +170,8 @@ export function ReferralShareSheet({
         
         <Tabs defaultValue="quick" className="mt-4">
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="quick">Quick Share</TabsTrigger>
-            <TabsTrigger value="custom">Custom Message</TabsTrigger>
+            <TabsTrigger value="quick">{t("quick_share", "Quick Share")}</TabsTrigger>
+            <TabsTrigger value="custom">{t("custom_message", "Custom Message")}</TabsTrigger>
           </TabsList>
           
           <TabsContent value="quick" className="space-y-4 mt-4">
@@ -252,7 +254,7 @@ export function ReferralShareSheet({
           
           <TabsContent value="custom" className="space-y-4 mt-4">
             <div className="space-y-2">
-              <Label>Your Message</Label>
+              <Label>{t("your_message", "Your Message")}</Label>
               <Textarea
                 placeholder={defaultMessage}
                 value={customMessage}
@@ -263,7 +265,7 @@ export function ReferralShareSheet({
             </div>
             
             <div className="space-y-2">
-              <Label>Your Referral Link</Label>
+              <Label>{t("your_referral_link", "Your Referral Link")}</Label>
               <div className="flex gap-2">
                 <Input 
                   value={generateShareLink('custom')}

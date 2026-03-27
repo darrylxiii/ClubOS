@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -39,6 +40,7 @@ export function JobFeeConfiguration({
   disabled = false,
   salaryMax,
 }: JobFeeConfigurationProps) {
+  const { t } = useTranslation('common');
   const [companyData, setCompanyData] = useState<CompanyFeeData | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -137,7 +139,7 @@ export function JobFeeConfiguration({
       <div className="p-4 rounded-lg bg-muted/50 border border-border">
         <div className="flex items-center gap-2 text-muted-foreground">
           <Loader2 className="h-4 w-4 animate-spin" />
-          <span className="text-sm">Loading fee configuration...</span>
+          <span className="text-sm">{t("loading_fee_configuration", "Loading fee configuration...")}</span>
         </div>
       </div>
     );
@@ -148,7 +150,7 @@ export function JobFeeConfiguration({
       <div className="p-4 rounded-lg bg-muted/50 border border-border">
         <div className="flex items-center gap-2 text-muted-foreground">
           <Info className="h-4 w-4" />
-          <span className="text-sm">Select a company to see fee configuration</span>
+          <span className="text-sm">{t("select_a_company_to", "Select a company to see fee configuration")}</span>
         </div>
       </div>
     );
@@ -156,7 +158,7 @@ export function JobFeeConfiguration({
 
   return (
     <div className="space-y-4">
-      <Label className="text-base font-semibold">Fee Configuration</Label>
+      <Label className="text-base font-semibold">{t("fee_configuration", "Fee Configuration")}</Label>
       
       {/* Company Default Display */}
       <Card className={`border-2 ${!feeConfig.useOverride ? "border-primary bg-primary/5" : "border-border"}`}>
@@ -200,7 +202,7 @@ export function JobFeeConfiguration({
       <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30 border border-border">
         <div className="flex items-center gap-2">
           <AlertCircle className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm">Override fee for this role</span>
+          <span className="text-sm">{t("override_fee_for_this", "Override fee for this role")}</span>
         </div>
         <Switch
           checked={feeConfig.useOverride}
@@ -213,7 +215,7 @@ export function JobFeeConfiguration({
       {feeConfig.useOverride && (
         <div className="space-y-4 p-4 rounded-lg border border-primary/30 bg-primary/5">
           <div className="space-y-3">
-            <Label className="text-sm font-medium">Fee Type for This Role</Label>
+            <Label className="text-sm font-medium">{t("fee_type_for_this", "Fee Type for This Role")}</Label>
             <RadioGroup
               value={feeConfig.feeType}
               onValueChange={(v) => handleFeeTypeChange(v as FeeType)}
@@ -231,7 +233,7 @@ export function JobFeeConfiguration({
                 <RadioGroupItem value="percentage" id="job-pct" />
                 <div className="flex items-center gap-2">
                   <Percent className="h-4 w-4" />
-                  <span className="text-sm font-medium">Percentage</span>
+                  <span className="text-sm font-medium">{t("percentage", "Percentage")}</span>
                 </div>
               </Label>
 
@@ -246,7 +248,7 @@ export function JobFeeConfiguration({
                 <RadioGroupItem value="fixed" id="job-fixed" />
                 <div className="flex items-center gap-2">
                   <DollarSign className="h-4 w-4" />
-                  <span className="text-sm font-medium">Fixed</span>
+                  <span className="text-sm font-medium">{t("fixed", "Fixed")}</span>
                 </div>
               </Label>
             </RadioGroup>
@@ -256,7 +258,7 @@ export function JobFeeConfiguration({
           <div className="space-y-2">
             {feeConfig.feeType === "fixed" ? (
               <>
-                <Label htmlFor="job-fixed-amount">Fixed Fee Amount</Label>
+                <Label htmlFor="job-fixed-amount">{t("fixed_fee_amount", "Fixed Fee Amount")}</Label>
                 <div className="flex items-center gap-2">
                   <span className="text-muted-foreground">€</span>
                   <Input
@@ -274,7 +276,7 @@ export function JobFeeConfiguration({
               </>
             ) : (
               <>
-                <Label htmlFor="job-pct-value">Fee Percentage</Label>
+                <Label htmlFor="job-pct-value">{t("fee_percentage", "Fee Percentage")}</Label>
                 <div className="flex items-center gap-2">
                   <Input
                     id="job-pct-value"
@@ -298,7 +300,7 @@ export function JobFeeConfiguration({
       {/* Revenue Preview */}
       <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
         <div className="flex items-center justify-between">
-          <span className="text-sm text-muted-foreground">Estimated Placement Fee:</span>
+          <span className="text-sm text-muted-foreground">{t("estimated_placement_fee", "Estimated Placement Fee:")}</span>
           <span className="font-bold text-emerald-600 dark:text-emerald-400">
             €{previewFee.amount.toLocaleString()}
           </span>

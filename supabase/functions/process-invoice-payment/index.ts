@@ -1,38 +1,19 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import Stripe from "https://esm.sh/stripe@18.5.0";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, stripe-signature",
-};
+import { createHandler } from '../_shared/handler.ts';
+import { createStripeClient, Stripe } from '../_shared/stripe-client.ts';
 
 const logStep = (step: string, details?: any) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
   console.log(`[PROCESS-INVOICE-PAYMENT] ${step}${detailsStr}`);
 };
 
-serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  try {
+Deno.serve(createHandler(async (req, ctx) => {
     logStep("Webhook received");
 
-    const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
     const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET");
-    
-    if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
-    logStep("Stripe key verified");
 
-    const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
-    
-    const supabaseClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
-      { auth: { persistSession: false } }
-    );
+    const stripe = createStripeClient();
+
+    const supabaseClient = ctx.supabase;
 
     // Get the signature from headers
     const signature = req.headers.get("stripe-signature");
@@ -49,12 +30,15 @@ serve(async (req) => {
         const errorMsg = err instanceof Error ? err.message : String(err);
         logStep("Webhook signature verification failed", { error: errorMsg });
         return new Response(JSON.stringify({ error: "Invalid signature" }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          headers: { ...ctx.corsHeaders, "Content-Type": "application/json" },
           status: 400,
         });
       }
     } else {
-      // For testing without webhook secret
+      // Dev-mode bypass: only allow in development
+      if (Deno.env.get('DENO_ENV') !== 'development') {
+        throw new Error('STRIPE_WEBHOOK_SECRET required in production');
+      }
       event = JSON.parse(body);
       logStep("Processing webhook without signature verification (dev mode)");
     }
@@ -66,7 +50,7 @@ serve(async (req) => {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
         const invoiceId = session.metadata?.invoice_id;
-        
+
         if (!invoiceId) {
           logStep("No invoice_id in session metadata");
           break;
@@ -117,7 +101,7 @@ serve(async (req) => {
       case "payment_intent.succeeded": {
         const paymentIntent = event.data.object as Stripe.PaymentIntent;
         logStep("Payment intent succeeded", { paymentIntentId: paymentIntent.id });
-        
+
         // Find invoice by payment intent ID
         const { data: invoice } = await supabaseClient
           .from('partner_invoices')
@@ -133,7 +117,7 @@ serve(async (req) => {
               paid_at: new Date().toISOString(),
             })
             .eq('id', invoice.id);
-          
+
           logStep("Invoice marked as paid", { invoiceId: invoice.id });
         }
         break;
@@ -141,9 +125,9 @@ serve(async (req) => {
 
       case "payment_intent.payment_failed": {
         const paymentIntent = event.data.object as Stripe.PaymentIntent;
-        logStep("Payment intent failed", { 
-          paymentIntentId: paymentIntent.id, 
-          error: paymentIntent.last_payment_error?.message 
+        logStep("Payment intent failed", {
+          paymentIntentId: paymentIntent.id,
+          error: paymentIntent.last_payment_error?.message
         });
         break;
       }
@@ -153,15 +137,7 @@ serve(async (req) => {
     }
 
     return new Response(JSON.stringify({ received: true }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...ctx.corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    logStep("ERROR", { message: errorMessage });
-    return new Response(JSON.stringify({ error: errorMessage }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 500,
-    });
-  }
-});
+}));

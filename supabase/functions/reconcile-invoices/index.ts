@@ -1,10 +1,4 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { createHandler } from '../_shared/handler.ts';
 
 // Normalize company name for fuzzy matching
 function normalizeCompanyName(name: string | null | undefined): string {
@@ -71,16 +65,9 @@ interface ReconciliationResult {
   status: 'matched' | 'suggested' | 'unmatched';
 }
 
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
+Deno.serve(createHandler(async (req, ctx) => {
+  const supabase = ctx.supabase;
 
-  const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-  const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-  const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
-  try {
     const body = await req.json().catch(() => ({}));
     const { 
       action = 'auto-reconcile', 
@@ -100,18 +87,8 @@ serve(async (req) => {
 
     console.log(`[Reconcile Invoices] Action: ${action}, Year: ${year}`);
 
-    // Get user ID from auth header for audit trail
-    const authHeader = req.headers.get('authorization');
-    let userId: string | null = null;
-    if (authHeader) {
-      try {
-        const token = authHeader.replace('Bearer ', '');
-        const { data: { user } } = await supabase.auth.getUser(token);
-        userId = user?.id || null;
-      } catch {
-        // Continue without user ID
-      }
-    }
+    // Get user ID from handler context for audit trail
+    const userId: string | null = ctx.user?.id || null;
 
     // Comprehensive reconciliation: link with all data
     if (action === 'comprehensive-link' && invoice_id && company_id) {
@@ -162,7 +139,7 @@ serve(async (req) => {
 
       return new Response(
         JSON.stringify({ success: true, message: 'Invoice reconciled with comprehensive data' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -188,7 +165,7 @@ serve(async (req) => {
 
       return new Response(
         JSON.stringify({ success: true, message: 'Invoice linked to company' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -207,7 +184,7 @@ serve(async (req) => {
 
       return new Response(
         JSON.stringify({ success: true, message: 'Invoice unlinked' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -371,15 +348,6 @@ serve(async (req) => {
         results,
         suggestions,
       }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } }
     );
-
-  } catch (error) {
-    console.error('[Reconcile Invoices] Error:', error);
-    const message = error instanceof Error ? error.message : 'Unknown error';
-    return new Response(
-      JSON.stringify({ error: message }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-  }
-});
+}));

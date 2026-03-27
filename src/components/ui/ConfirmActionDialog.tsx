@@ -4,6 +4,7 @@
  */
 
 import { useState, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,8 +27,10 @@ export type ActionType = "delete" | "archive" | "cancel" | "restore" | "destruct
 
 interface ActionConfig {
   icon: React.ComponentType<{ className?: string }>;
-  title: string;
-  confirmText: string;
+  titleKey: string;
+  titleFallback: string;
+  confirmTextKey: string;
+  confirmTextFallback: string;
   className: string;
   iconClassName: string;
 }
@@ -35,43 +38,55 @@ interface ActionConfig {
 const actionConfigs: Record<ActionType, ActionConfig> = {
   delete: {
     icon: Trash2,
-    title: "Delete",
-    confirmText: "Delete",
+    titleKey: "actions.delete",
+    titleFallback: "Delete",
+    confirmTextKey: "actions.delete",
+    confirmTextFallback: "Delete",
     className: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
     iconClassName: "text-destructive",
   },
   archive: {
     icon: Archive,
-    title: "Archive",
-    confirmText: "Archive",
+    titleKey: "actions.archive",
+    titleFallback: "Archive",
+    confirmTextKey: "actions.archive",
+    confirmTextFallback: "Archive",
     className: "bg-muted text-muted-foreground hover:bg-muted/90",
     iconClassName: "text-muted-foreground",
   },
   cancel: {
     icon: XCircle,
-    title: "Cancel",
-    confirmText: "Cancel",
+    titleKey: "actions.cancel",
+    titleFallback: "Cancel",
+    confirmTextKey: "actions.cancel",
+    confirmTextFallback: "Cancel",
     className: "bg-warning text-warning-foreground hover:bg-warning/90",
     iconClassName: "text-warning",
   },
   restore: {
     icon: RotateCcw,
-    title: "Restore",
-    confirmText: "Restore",
+    titleKey: "actions.restore",
+    titleFallback: "Restore",
+    confirmTextKey: "actions.restore",
+    confirmTextFallback: "Restore",
     className: "bg-success text-success-foreground hover:bg-success/90",
     iconClassName: "text-success",
   },
   destructive: {
     icon: AlertTriangle,
-    title: "Confirm",
-    confirmText: "Confirm",
+    titleKey: "actions.confirm",
+    titleFallback: "Confirm",
+    confirmTextKey: "actions.confirm",
+    confirmTextFallback: "Confirm",
     className: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
     iconClassName: "text-destructive",
   },
   confirm: {
     icon: AlertCircle,
-    title: "Confirm",
-    confirmText: "Continue",
+    titleKey: "actions.confirm",
+    titleFallback: "Confirm",
+    confirmTextKey: "actions.continue",
+    confirmTextFallback: "Continue",
     className: "",
     iconClassName: "text-primary",
   },
@@ -123,10 +138,10 @@ export function ConfirmActionDialog({
   title,
   description,
   confirmText,
-  cancelText = "Cancel",
+  cancelText,
   requireReason = false,
-  reasonPlaceholder = "Enter reason...",
-  reasonLabel = "Reason",
+  reasonPlaceholder,
+  reasonLabel,
   requireTypeConfirm = false,
   confirmPhrase,
   typeConfirmInstruction,
@@ -134,6 +149,7 @@ export function ConfirmActionDialog({
   isLoading = false,
   children,
 }: ConfirmActionDialogProps) {
+  const { t } = useTranslation('common');
   const [reason, setReason] = useState("");
   const [confirmInput, setConfirmInput] = useState("");
   const [localLoading, setLocalLoading] = useState(false);
@@ -177,7 +193,7 @@ export function ConfirmActionDialog({
         <AlertDialogHeader>
           <AlertDialogTitle className="flex items-center gap-2">
             <Icon className={cn("h-5 w-5", config.iconClassName)} />
-            {title || config.title}
+            {title || t(config.titleKey, config.titleFallback)}
           </AlertDialogTitle>
           <AlertDialogDescription className="text-left">
             {description}
@@ -189,10 +205,10 @@ export function ConfirmActionDialog({
 
           {requireReason && (
             <div className="space-y-2">
-              <Label htmlFor="reason">{reasonLabel}</Label>
+              <Label htmlFor="reason">{reasonLabel || t("dialog.reason", "Reason")}</Label>
               <Textarea
                 id="reason"
-                placeholder={reasonPlaceholder}
+                placeholder={reasonPlaceholder || t("dialog.enterReason", "Enter reason...")}
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
                 className="min-h-[80px]"
@@ -204,11 +220,7 @@ export function ConfirmActionDialog({
           {requireTypeConfirm && confirmPhrase && (
             <div className="space-y-2">
               <Label htmlFor="confirm-input" className="text-sm text-muted-foreground">
-                {typeConfirmInstruction || (
-                  <>
-                    Type <span className="font-mono font-semibold text-foreground">{confirmPhrase}</span> to confirm
-                  </>
-                )}
+                {typeConfirmInstruction || t("dialog.typeToConfirm", "Type {{phrase}} to confirm", { phrase: confirmPhrase })}
               </Label>
               <Input
                 id="confirm-input"
@@ -224,14 +236,14 @@ export function ConfirmActionDialog({
 
         <AlertDialogFooter>
           <AlertDialogCancel disabled={isLoading || localLoading}>
-            {cancelText}
+            {cancelText || t("actions.cancel", "Cancel")}
           </AlertDialogCancel>
           <AlertDialogAction
             onClick={handleConfirm}
             disabled={isConfirmDisabled}
             className={cn(config.className)}
           >
-            {isLoading || localLoading ? "Processing..." : confirmText || config.confirmText}
+            {isLoading || localLoading ? t("actions.processing", "Processing...") : confirmText || t(config.confirmTextKey, config.confirmTextFallback)}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

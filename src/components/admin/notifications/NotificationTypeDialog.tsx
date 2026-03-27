@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -60,6 +61,7 @@ export function NotificationTypeDialog({
   onOpenChange,
   notificationType,
 }: NotificationTypeDialogProps) {
+  const { t } = useTranslation('common');
   const updateMutation = useUpdateNotificationType();
   const createMutation = useCreateNotificationType();
   const isEditing = !!notificationType;
@@ -113,7 +115,7 @@ export function NotificationTypeDialog({
               name="key"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Key</FormLabel>
+                  <FormLabel>{t("key", "Key")}</FormLabel>
                   <FormControl>
                     <Input 
                       {...field} 
@@ -134,9 +136,9 @@ export function NotificationTypeDialog({
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Display Name</FormLabel>
+                  <FormLabel>{t("display_name", "Display Name")}</FormLabel>
                   <FormControl>
-                    <Input {...field} placeholder="Notification Name" />
+                    <Input {...field} placeholder={t("notification_name", "Notification Name")} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -148,11 +150,11 @@ export function NotificationTypeDialog({
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Description</FormLabel>
+                  <FormLabel>{t("description", "Description")}</FormLabel>
                   <FormControl>
                     <Textarea 
                       {...field} 
-                      placeholder="What this notification is for..."
+                      placeholder={t("what_this_notification_is", "What this notification is for...")}
                       rows={2}
                     />
                   </FormControl>
@@ -167,11 +169,11 @@ export function NotificationTypeDialog({
                 name="category"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Category</FormLabel>
+                    <FormLabel>{t("category", "Category")}</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select category" />
+                          <SelectValue placeholder={t("select_category", "Select category")} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -192,18 +194,18 @@ export function NotificationTypeDialog({
                 name="priority"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Priority</FormLabel>
+                    <FormLabel>{t("priority", "Priority")}</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select priority" />
+                          <SelectValue placeholder={t("select_priority", "Select priority")} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="low">Low</SelectItem>
-                        <SelectItem value="normal">Normal</SelectItem>
-                        <SelectItem value="high">High</SelectItem>
-                        <SelectItem value="critical">Critical</SelectItem>
+                        <SelectItem value="low">{t("low", "Low")}</SelectItem>
+                        <SelectItem value="normal">{t("normal", "Normal")}</SelectItem>
+                        <SelectItem value="high">{t("high", "High")}</SelectItem>
+                        <SelectItem value="critical">{t("critical", "Critical")}</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -217,11 +219,11 @@ export function NotificationTypeDialog({
               name="edge_function"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Edge Function</FormLabel>
+                  <FormLabel>{t("edge_function", "Edge Function")}</FormLabel>
                   <FormControl>
                     <Input 
                       {...field} 
-                      placeholder="send-notification-email"
+                      placeholder={t("sendnotificationemail", "send-notification-email")}
                     />
                   </FormControl>
                   <FormDescription>
@@ -239,7 +241,7 @@ export function NotificationTypeDialog({
                 render={({ field }) => (
                   <FormItem className="flex items-center justify-between rounded-lg border p-3">
                     <div className="space-y-0.5">
-                      <FormLabel>Enabled by Default</FormLabel>
+                      <FormLabel>{t("enabled_by_default", "Enabled by Default")}</FormLabel>
                       <FormDescription>
                         New users will receive this notification
                       </FormDescription>
@@ -260,7 +262,7 @@ export function NotificationTypeDialog({
                 render={({ field }) => (
                   <FormItem className="flex items-center justify-between rounded-lg border p-3">
                     <div className="space-y-0.5">
-                      <FormLabel>Allow User Override</FormLabel>
+                      <FormLabel>{t("allow_user_override", "Allow User Override")}</FormLabel>
                       <FormDescription>
                         Users can disable this notification
                       </FormDescription>
@@ -281,7 +283,7 @@ export function NotificationTypeDialog({
                 render={({ field }) => (
                   <FormItem className="flex items-center justify-between rounded-lg border p-3">
                     <div className="space-y-0.5">
-                      <FormLabel>Active</FormLabel>
+                      <FormLabel>{t("active", "Active")}</FormLabel>
                       <FormDescription>
                         This notification type is currently in use
                       </FormDescription>

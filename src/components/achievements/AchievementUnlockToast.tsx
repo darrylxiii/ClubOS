@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from '@/lib/motion';
 import { fireConfetti } from '@/utils/fireConfetti';
 import { X, Sparkles, Share2 } from 'lucide-react';
@@ -16,6 +17,7 @@ interface UnlockedAchievement {
 }
 
 export const AchievementUnlockToast = () => {
+  const { t } = useTranslation('common');
   const [queue, setQueue] = useState<UnlockedAchievement[]>([]);
   const [current, setCurrent] = useState<UnlockedAchievement | null>(null);
 
@@ -113,7 +115,7 @@ export const AchievementUnlockToast = () => {
   const handleShare = () => {
     if (!current) return;
     
-    toast.success('Achievement shared to your feed!');
+    toast.success(t('achievements.sharedToFeed'));
     setCurrent(null);
   };
 
@@ -161,7 +163,7 @@ export const AchievementUnlockToast = () => {
               {/* Achievement Unlocked Header */}
               <div className="flex items-center justify-center gap-2 text-sm font-semibold text-primary">
                 <Sparkles className="h-4 w-4 animate-pulse" />
-                <span>ACHIEVEMENT UNLOCKED</span>
+                <span>{t('achievements.achievementUnlocked')}</span>
                 <Sparkles className="h-4 w-4 animate-pulse" />
               </div>
 
@@ -200,7 +202,7 @@ export const AchievementUnlockToast = () => {
                 variant="default"
               >
                 <Share2 className="h-4 w-4" />
-                Share to Feed
+                {t('achievements.shareToFeed')}
               </Button>
             </div>
           </div>

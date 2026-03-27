@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from 'react-i18next';
 import { Bell, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -13,6 +14,7 @@ interface PushNotificationOptInProps {
 }
 
 export const PushNotificationOptIn = ({ className }: PushNotificationOptInProps) => {
+  const { t } = useTranslation('common');
   const { permissionGranted, requestPermission, isNative } = usePushNotifications();
   const [visible, setVisible] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -85,7 +87,7 @@ export const PushNotificationOptIn = ({ className }: PushNotificationOptInProps)
                 size="icon"
                 className="absolute top-2 right-2 h-7 w-7"
                 onClick={handleDismiss}
-                aria-label="Dismiss"
+                aria-label={t('notifications.dismiss')}
               >
                 <X className="h-4 w-4" />
               </Button>
@@ -96,12 +98,8 @@ export const PushNotificationOptIn = ({ className }: PushNotificationOptInProps)
                 </div>
 
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-foreground mb-1">
-                    Stay in the loop
-                  </h3>
-                  <p className="text-sm text-muted-foreground mb-3">
-                    Get notified about interview invites, job matches, and messages from recruiters.
-                  </p>
+                  <h3 className="font-semibold text-foreground mb-1">{t('notifications.stayInTheLoop')}</h3>
+                  <p className="text-sm text-muted-foreground mb-3">{t('notifications.getNotifiedAboutInterviewInvitesJobMatch')}</p>
                   
                   <div className="flex gap-2">
                     <Button
@@ -116,9 +114,7 @@ export const PushNotificationOptIn = ({ className }: PushNotificationOptInProps)
                       size="sm"
                       variant="ghost"
                       onClick={handleDismiss}
-                    >
-                      Maybe Later
-                    </Button>
+                    >{t('notifications.maybeLater')}</Button>
                   </div>
                 </div>
               </div>

@@ -1,4 +1,5 @@
 import { memo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
 import { useBlindSpotSession } from '@/hooks/useBlindSpotSession';
@@ -10,6 +11,7 @@ import { BlindSpotResults } from '@/components/blind-spot/BlindSpotResults';
 import { BlindSpotResult } from '@/types/assessment';
 
 const BlindSpotDetector = memo(() => {
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
   const [phase, setPhase] = useState<'intro' | 'self-rating' | 'scenarios' | 'results'>('intro');
   const [results, setResults] = useState<BlindSpotResult | null>(null);

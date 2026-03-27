@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -25,6 +26,7 @@ interface PredictiveInsightsCardProps {
 }
 
 export function PredictiveInsightsCard({ entityType, entityId, entityName }: PredictiveInsightsCardProps) {
+  const { t } = useTranslation('common');
   const { loading, prediction, getPrediction } = useRelationshipPredictions();
   const [expanded, setExpanded] = useState(false);
 
@@ -62,7 +64,7 @@ export function PredictiveInsightsCard({ entityType, entityId, entityName }: Pre
         <CardContent className="p-6">
           <div className="flex items-center justify-center gap-2">
             <Brain className="h-5 w-5 animate-pulse text-primary" />
-            <span className="text-muted-foreground">Analyzing relationship...</span>
+            <span className="text-muted-foreground">{t("analyzing_relationship", "Analyzing relationship...")}</span>
           </div>
         </CardContent>
       </Card>
@@ -75,7 +77,7 @@ export function PredictiveInsightsCard({ entityType, entityId, entityName }: Pre
         <CardContent className="p-6">
           <div className="text-center text-muted-foreground">
             <Brain className="h-8 w-8 mx-auto mb-2 opacity-50" />
-            <p>No prediction data available</p>
+            <p>{t("no_prediction_data_available", "No prediction data available")}</p>
             <Button 
               variant="outline" 
               size="sm" 
@@ -118,13 +120,13 @@ export function PredictiveInsightsCard({ entityType, entityId, entityName }: Pre
             <div className={cn("text-2xl font-bold", getHealthColor(predictions.health_score))}>
               {predictions.health_score}%
             </div>
-            <div className="text-xs text-muted-foreground">Health Score</div>
+            <div className="text-xs text-muted-foreground">{t("health_score", "Health Score")}</div>
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold text-green-500">
               {predictions.conversion_probability}%
             </div>
-            <div className="text-xs text-muted-foreground">Conversion</div>
+            <div className="text-xs text-muted-foreground">{t("conversion", "Conversion")}</div>
           </div>
           <div className="text-center">
             <div className={cn(
@@ -133,7 +135,7 @@ export function PredictiveInsightsCard({ entityType, entityId, entityName }: Pre
             )}>
               {predictions.churn_risk}%
             </div>
-            <div className="text-xs text-muted-foreground">Churn Risk</div>
+            <div className="text-xs text-muted-foreground">{t("churn_risk", "Churn Risk")}</div>
           </div>
         </div>
 
@@ -153,7 +155,7 @@ export function PredictiveInsightsCard({ entityType, entityId, entityName }: Pre
         <div className="p-3 rounded-lg bg-primary/10 border border-primary/20">
           <div className="flex items-center gap-2 mb-2">
             <Clock className="h-4 w-4 text-primary" />
-            <span className="text-sm font-medium">Best Time to Reach Out</span>
+            <span className="text-sm font-medium">{t("best_time_to_reach", "Best Time to Reach Out")}</span>
           </div>
           <p className="text-sm text-muted-foreground">
             {optimalTiming.best_time_formatted}
@@ -168,7 +170,7 @@ export function PredictiveInsightsCard({ entityType, entityId, entityName }: Pre
           <div className="flex items-center gap-3 p-3 rounded-lg bg-green-500/10 border border-green-500/20">
             <Target className="h-5 w-5 text-green-500" />
             <div>
-              <p className="text-sm font-medium text-green-400">Estimated Conversion</p>
+              <p className="text-sm font-medium text-green-400">{t("estimated_conversion", "Estimated Conversion")}</p>
               <p className="text-xs text-muted-foreground">
                 ~{predictions.time_to_conversion_days} days with consistent engagement
               </p>
@@ -181,7 +183,7 @@ export function PredictiveInsightsCard({ entityType, entityId, entityName }: Pre
           <div className="flex items-center gap-3 p-3 rounded-lg bg-red-500/10 border border-red-500/20">
             <AlertTriangle className="h-5 w-5 text-red-500" />
             <div>
-              <p className="text-sm font-medium text-red-400">High Churn Risk</p>
+              <p className="text-sm font-medium text-red-400">{t("high_churn_risk", "High Churn Risk")}</p>
               <p className="text-xs text-muted-foreground">
                 Take action within 48 hours to re-engage
               </p>
@@ -229,11 +231,11 @@ export function PredictiveInsightsCard({ entityType, entityId, entityName }: Pre
         <div className="grid grid-cols-2 gap-2 pt-2 border-t border-border/50">
           <div className="text-center p-2">
             <div className="text-lg font-semibold">{metrics.response_rate}%</div>
-            <div className="text-xs text-muted-foreground">Response Rate</div>
+            <div className="text-xs text-muted-foreground">{t("response_rate", "Response Rate")}</div>
           </div>
           <div className="text-center p-2">
             <div className="text-lg font-semibold">{metrics.avg_response_time_hours}h</div>
-            <div className="text-xs text-muted-foreground">Avg Response</div>
+            <div className="text-xs text-muted-foreground">{t("avg_response", "Avg Response")}</div>
           </div>
         </div>
       </CardContent>

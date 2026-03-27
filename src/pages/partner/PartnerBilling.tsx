@@ -1,5 +1,5 @@
 import { useState } from "react";
-
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RoleGate } from "@/components/RoleGate";
@@ -10,6 +10,7 @@ import { BillingDetailsForm } from "@/components/financial/BillingDetailsForm";
 import { PartnerInvoicesView } from "@/components/financial/PartnerInvoicesView";
 
 export default function PartnerBilling() {
+  const { t } = useTranslation('partner');
   const { companyId } = useRole();
   const { data: invoices, isLoading } = usePartnerInvoices(companyId || undefined);
   const [activeTab, setActiveTab] = useState("billing-details");
@@ -18,24 +19,24 @@ export default function PartnerBilling() {
     <RoleGate allowedRoles={['partner', 'company_admin']} showLoading>
       <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold mb-2">Billing & Invoices</h1>
+            <h1 className="text-3xl font-bold mb-2">{t('billing.title')}</h1>
             <p className="text-muted-foreground">
-              Manage your billing details and view invoices
+              {t('billing.description')}
             </p>
           </div>
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
             <TabsList>
-              <TabsTrigger value="billing-details">Billing Details</TabsTrigger>
-              <TabsTrigger value="invoices">Invoices</TabsTrigger>
+              <TabsTrigger value="billing-details">{t('billing.tabDetails')}</TabsTrigger>
+              <TabsTrigger value="invoices">{t('billing.tabInvoices')}</TabsTrigger>
             </TabsList>
 
             <TabsContent value="billing-details" className="space-y-4">
               <Card>
                 <CardHeader>
-                  <CardTitle>Billing Information</CardTitle>
+                  <CardTitle>{t('billing.billingInfo')}</CardTitle>
                   <CardDescription>
-                    Update your company billing details for invoicing
+                    {t('billing.billingInfoDesc')}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -47,9 +48,9 @@ export default function PartnerBilling() {
             <TabsContent value="invoices" className="space-y-4">
               <Card>
                 <CardHeader>
-                  <CardTitle>Your Invoices</CardTitle>
+                  <CardTitle>{t('billing.yourInvoices')}</CardTitle>
                   <CardDescription>
-                    View and download your placement fee invoices
+                    {t('billing.yourInvoicesDesc')}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>

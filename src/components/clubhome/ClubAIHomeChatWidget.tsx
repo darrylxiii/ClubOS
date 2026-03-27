@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useRef, useEffect } from 'react';
 import { Sparkles, Send, Mic, X, Trash2, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -8,6 +9,7 @@ import { LazyMarkdown } from '@/components/ui/LazyMarkdown';
 import { motion, AnimatePresence } from '@/lib/motion';
 
 export function ClubAIHomeChatWidget() {
+  const { t } = useTranslation('common');
   const {
     messages,
     isLoading,
@@ -74,7 +76,7 @@ export function ClubAIHomeChatWidget() {
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
               onFocus={() => setIsExpanded(true)}
-              placeholder="Ask Club AI anything..."
+              placeholder={t("ask_club_ai_anything", "Ask Club AI anything...")}
               className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none min-w-0"
               disabled={isLoading}
             />
@@ -102,7 +104,7 @@ export function ClubAIHomeChatWidget() {
               className="h-8 w-8"
               onClick={handleSend}
               disabled={!input.trim() || isLoading}
-              aria-label="Send message"
+              aria-label={t("send_message", "Send message")}
             >
               <Send className="h-4 w-4" />
             </Button>
@@ -114,7 +116,7 @@ export function ClubAIHomeChatWidget() {
                 size="icon"
                 className="h-8 w-8"
                 onClick={() => setIsExpanded(false)}
-                aria-label="Collapse chat"
+                aria-label={t("collapse_chat", "Collapse chat")}
               >
                 <ChevronDown className="h-4 w-4" />
               </Button>
@@ -202,7 +204,7 @@ export function ClubAIHomeChatWidget() {
                   onClick={clearMessages}
                 >
                   <Trash2 className="h-3 w-3 mr-1" />
-                  Clear
+                  {t('common:clear')}
                 </Button>
                 <span className="text-[10px] text-muted-foreground/50">
                   Powered by Club AI

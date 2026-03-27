@@ -9,6 +9,7 @@ import { FileText, Download, X, Eye, Loader2 } from "lucide-react";
 import { validatePostMediaFile } from "@/lib/fileValidation";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { TextDocumentCreator } from "./TextDocumentCreator";
+import { useTranslation } from 'react-i18next';
 
 interface JobDocumentsProps {
   jobId: string;
@@ -24,6 +25,7 @@ interface DocumentWithUploader {
 }
 
 export const JobDocuments = ({ jobId, onUpdate }: JobDocumentsProps) => {
+  const { t } = useTranslation('partner');
   const [loading, setLoading] = useState(true);
   const [jobDescriptionUrl, setJobDescriptionUrl] = useState<string>('');
   const [supportingDocs, setSupportingDocs] = useState<DocumentWithUploader[]>([]);
@@ -76,7 +78,7 @@ export const JobDocuments = ({ jobId, onUpdate }: JobDocumentsProps) => {
       setSupportingDocs(enrichedDocs);
     } catch (error) {
       console.error('Error fetching documents:', error);
-      toast.error('Failed to load documents');
+      toast.error(t('jobDocuments.toast.failedToLoadDocuments'));
     } finally {
       setLoading(false);
     }
@@ -135,7 +137,7 @@ export const JobDocuments = ({ jobId, onUpdate }: JobDocumentsProps) => {
       }
 
       setJobDescriptionUrl(fileName);
-      toast.success('Job description uploaded successfully');
+      toast.success(t('jobDocuments.toast.jobDescriptionUploadedSuccessfully'));
       onUpdate?.();
     } catch (error: unknown) {
       console.error('Error uploading job description:', error);
@@ -243,11 +245,11 @@ export const JobDocuments = ({ jobId, onUpdate }: JobDocumentsProps) => {
         .remove([docUrl]);
 
       setSupportingDocs(updatedDocs);
-      toast.success('Document removed successfully');
+      toast.success(t('jobDocuments.toast.documentRemovedSuccessfully'));
       onUpdate?.();
     } catch (error) {
       console.error('Error removing document:', error);
-      toast.error('Failed to remove document');
+      toast.error(t('jobDocuments.toast.failedToRemoveDocument'));
     }
   };
 
@@ -264,10 +266,10 @@ export const JobDocuments = ({ jobId, onUpdate }: JobDocumentsProps) => {
       link.href = URL.createObjectURL(blob);
       link.download = name;
       link.click();
-      toast.success('Download started');
+      toast.success(t('jobDocuments.toast.downloadStarted'));
     } catch (error) {
       console.error('Error downloading document:', error);
-      toast.error('Failed to download document');
+      toast.error(t('jobDocuments.toast.failedToDownloadDocument'));
     }
   };
 
@@ -306,7 +308,7 @@ export const JobDocuments = ({ jobId, onUpdate }: JobDocumentsProps) => {
       }
     } catch (error) {
       console.error('Error viewing document:', error);
-      toast.error('Failed to open document viewer');
+      toast.error(t('jobDocuments.toast.failedToOpenDocumentViewer'));
     }
   };
 
@@ -336,8 +338,8 @@ export const JobDocuments = ({ jobId, onUpdate }: JobDocumentsProps) => {
                   <FileText className="w-5 h-5 text-primary" />
                 </div>
                 <div>
-                  <p className="font-semibold">Current Job Description</p>
-                  <p className="text-xs text-muted-foreground">Uploaded document ready to view</p>
+                  <p className="font-semibold">{t('jobDocuments.currentJobDescription')}</p>
+                  <p className="text-xs text-muted-foreground">{t('jobDocuments.uploadedDocumentReadyToView')}</p>
                 </div>
               </div>
               <div className="flex gap-2">
@@ -357,7 +359,7 @@ export const JobDocuments = ({ jobId, onUpdate }: JobDocumentsProps) => {
                   className="gap-2"
                 >
                   <Download className="w-4 h-4" />
-                  Download
+                  {t('common:download')}
                 </Button>
               </div>
             </div>
@@ -366,7 +368,7 @@ export const JobDocuments = ({ jobId, onUpdate }: JobDocumentsProps) => {
           {!jobDescriptionUrl && (
             <div className="text-center py-8 border-2 border-dashed border-muted rounded-lg">
               <FileText className="w-12 h-12 mx-auto text-muted-foreground mb-2" />
-              <p className="text-sm text-muted-foreground">No job description uploaded yet</p>
+              <p className="text-sm text-muted-foreground">{t('jobDocuments.noJobDescriptionUploadedYet')}</p>
             </div>
           )}
 
@@ -387,11 +389,11 @@ export const JobDocuments = ({ jobId, onUpdate }: JobDocumentsProps) => {
               {uploadingJobDesc && (
                 <div className="absolute inset-0 flex items-center justify-center bg-background/80 rounded-md" role="status" aria-live="polite">
                   <Loader2 className="w-5 h-5 animate-spin text-primary mr-2" />
-                  <span className="sr-only">Upload in progress</span>
+                  <span className="sr-only">{t('jobDocuments.uploadInProgress')}</span>
                 </div>
               )}
             </div>
-            <p className="text-xs text-muted-foreground">File will be uploaded automatically when selected</p>
+            <p className="text-xs text-muted-foreground">{t('jobDocuments.fileWillBeUploadedAutomaticallyWhenSelec')}</p>
           </div>
         </CardContent>
       </Card>
@@ -408,7 +410,7 @@ export const JobDocuments = ({ jobId, onUpdate }: JobDocumentsProps) => {
           {/* Existing Documents */}
           {supportingDocs.length > 0 ? (
             <div className="space-y-2">
-              <Label>Existing Documents</Label>
+              <Label>{t('jobDocuments.label.existingDocuments')}</Label>
               <div className="space-y-2">
                 {supportingDocs.map((doc, index) => (
                   <div
@@ -460,13 +462,13 @@ export const JobDocuments = ({ jobId, onUpdate }: JobDocumentsProps) => {
           ) : (
             <div className="text-center py-8 border-2 border-dashed border-muted rounded-lg">
               <FileText className="w-12 h-12 mx-auto text-muted-foreground mb-2" />
-              <p className="text-sm text-muted-foreground">No supporting documents uploaded yet</p>
+              <p className="text-sm text-muted-foreground">{t('jobDocuments.noSupportingDocumentsUploadedYet')}</p>
             </div>
           )}
 
           {/* Upload New Documents */}
           <div className="space-y-2">
-            <Label htmlFor="supporting-docs-upload">Add More Documents</Label>
+            <Label htmlFor="supporting-docs-upload">{t('jobDocuments.label.addMoreDocuments')}</Label>
             <div className="flex gap-2">
               <div className="relative flex-1">
                 <Input
@@ -491,7 +493,7 @@ export const JobDocuments = ({ jobId, onUpdate }: JobDocumentsProps) => {
                 onDocumentCreated={fetchDocuments}
               />
             </div>
-            <p className="text-xs text-muted-foreground">Files will be uploaded automatically when selected</p>
+            <p className="text-xs text-muted-foreground">{t('jobDocuments.filesWillBeUploadedAutomaticallyWhenSele')}</p>
           </div>
         </CardContent>
       </Card>
@@ -519,13 +521,11 @@ export const JobDocuments = ({ jobId, onUpdate }: JobDocumentsProps) => {
                   className="w-full flex-1 rounded-lg border"
                   title={viewerTitle}
                 />
-                <p className="text-xs text-muted-foreground mt-2 text-center">
-                  Powered by Google Docs Viewer
-                </p>
+                <p className="text-xs text-muted-foreground mt-2 text-center">{t('jobDocuments.poweredByGoogleDocsViewer')}</p>
               </div>
             ) : (
               <div className="flex items-center justify-center h-full">
-                <p className="text-muted-foreground">Preview not available for this file type</p>
+                <p className="text-muted-foreground">{t('jobDocuments.previewNotAvailableForThisFileType')}</p>
               </div>
             )}
           </div>

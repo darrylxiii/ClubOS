@@ -8,6 +8,7 @@ import {
 } from '@/components/ui/tooltip';
 import { Search, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 
 interface PartnerPageHeaderProps {
   title: string;
@@ -28,6 +29,7 @@ export const PartnerPageHeader = memo(({
   actions,
   className,
 }: PartnerPageHeaderProps) => {
+  const { t } = useTranslation('partner');
   const [searchOpen, setSearchOpen] = useState(false);
   const hasSearch = onSearchChange !== undefined;
 
@@ -80,7 +82,7 @@ export const PartnerPageHeader = memo(({
                     <Search className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent>Search</TooltipContent>
+                <TooltipContent>{t('common:search')}</TooltipContent>
               </Tooltip>
             )}
           </div>

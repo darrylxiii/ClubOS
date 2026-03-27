@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,6 +11,7 @@ import { toast } from "sonner";
 import { Loader2, TrendingUp, RefreshCw } from "lucide-react";
 
 export function ProjectedEarnings() {
+  const { t } = useTranslation('common');
   const { data: projections, isLoading, refetch } = useQuery({
     queryKey: ["projected-earnings"],
     queryFn: async () => {
@@ -42,10 +44,10 @@ export function ProjectedEarnings() {
     },
     onSuccess: () => {
       refetch();
-      toast.success("Projections recalculated successfully");
+      toast.success(t("projections_recalculated_successfully", "Projections recalculated successfully"));
     },
     onError: (error) => {
-      toast.error("Failed to recalculate projections");
+      toast.error(t("failed_to_recalculate_projections", "Failed to recalculate projections"));
       console.error(error);
     },
   });
@@ -54,9 +56,9 @@ export function ProjectedEarnings() {
   const highConfidence = projections?.filter(p => p.confidence_score >= 0.7).reduce((sum, p) => sum + Number(p.projected_fee_amount), 0) || 0;
 
   const getConfidenceBadge = (score: number) => {
-    if (score >= 0.8) return <Badge variant="default">High</Badge>;
-    if (score >= 0.6) return <Badge variant="secondary">Medium</Badge>;
-    return <Badge variant="outline">Low</Badge>;
+    if (score >= 0.8) return <Badge variant="default">{t("high", "High")}</Badge>;
+    if (score >= 0.6) return <Badge variant="secondary">{t("medium", "Medium")}</Badge>;
+    return <Badge variant="outline">{t("low", "Low")}</Badge>;
   };
 
   const formatCurrency = (amount: number) => {
@@ -107,15 +109,15 @@ export function ProjectedEarnings() {
       <CardContent className="space-y-6">
         <div className="grid gap-4 md:grid-cols-3">
           <div className="space-y-2">
-            <p className="text-sm text-muted-foreground">Total Projected</p>
+            <p className="text-sm text-muted-foreground">{t("total_projected", "Total Projected")}</p>
             <p className="text-2xl font-bold">{formatCurrency(totalProjected)}</p>
           </div>
           <div className="space-y-2">
-            <p className="text-sm text-muted-foreground">High Confidence</p>
+            <p className="text-sm text-muted-foreground">{t("high_confidence", "High Confidence")}</p>
             <p className="text-2xl font-bold text-primary">{formatCurrency(highConfidence)}</p>
           </div>
           <div className="space-y-2">
-            <p className="text-sm text-muted-foreground">Active Candidates</p>
+            <p className="text-sm text-muted-foreground">{t("active_candidates", "Active Candidates")}</p>
             <p className="text-2xl font-bold">{projections?.length || 0}</p>
           </div>
         </div>
@@ -124,14 +126,14 @@ export function ProjectedEarnings() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Candidate</TableHead>
-                <TableHead>Position</TableHead>
-                <TableHead>Company</TableHead>
-                <TableHead>Salary</TableHead>
-                <TableHead>Fee %</TableHead>
-                <TableHead>Projected Fee</TableHead>
-                <TableHead>Confidence</TableHead>
-                <TableHead>Split</TableHead>
+                <TableHead>{t("candidate", "Candidate")}</TableHead>
+                <TableHead>{t("position", "Position")}</TableHead>
+                <TableHead>{t("company", "Company")}</TableHead>
+                <TableHead>{t("salary", "Salary")}</TableHead>
+                <TableHead>{t("fee", "Fee %")}</TableHead>
+                <TableHead>{t("projected_fee", "Projected Fee")}</TableHead>
+                <TableHead>{t("confidence", "Confidence")}</TableHead>
+                <TableHead>{t("split", "Split")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -166,7 +168,7 @@ export function ProjectedEarnings() {
                           {projection.referrer_splits.length} referrer{projection.referrer_splits.length > 1 ? 's' : ''}
                         </Badge>
                       ) : (
-                        <span className="text-muted-foreground text-sm">None</span>
+                        <span className="text-muted-foreground text-sm">{t("none", "None")}</span>
                       )}
                     </TableCell>
                   </TableRow>

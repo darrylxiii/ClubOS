@@ -1,4 +1,5 @@
 import { memo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -12,22 +13,23 @@ interface BlindSpotResultsProps {
 }
 
 export const BlindSpotResults = memo(({ results, onBack }: BlindSpotResultsProps) => {
+  const { t } = useTranslation('common');
   return (
     <div className="container mx-auto p-6 max-w-4xl space-y-6">
       <Card>
         <CardHeader>
           <div className="text-6xl mb-4 text-center">🔍</div>
-          <CardTitle className="text-3xl text-center">Your Self-Awareness Profile</CardTitle>
+          <CardTitle className="text-3xl text-center">{t('blindSpot.yourSelfAwarenessProfile')}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="text-center p-4 rounded-lg bg-muted">
               <div className="text-3xl font-bold">{Math.round(results.selfAwarenessScore)}%</div>
-              <div className="text-sm text-muted-foreground">Self-Awareness Score</div>
+              <div className="text-sm text-muted-foreground">{t('blindSpot.selfAwarenessScore')}</div>
             </div>
             <div className="text-center p-4 rounded-lg bg-muted">
               <div className="text-3xl font-bold">{Math.round(results.coachabilityScore)}%</div>
-              <div className="text-sm text-muted-foreground">Coachability</div>
+              <div className="text-sm text-muted-foreground">{t('blindSpot.coachability')}</div>
             </div>
           </div>
         </CardContent>
@@ -38,11 +40,9 @@ export const BlindSpotResults = memo(({ results, onBack }: BlindSpotResultsProps
           <CardHeader>
             <div className="flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-orange-500" />
-              <CardTitle>Blind Spots</CardTitle>
+              <CardTitle>{t('blindSpot.blindSpots')}</CardTitle>
             </div>
-            <p className="text-sm text-muted-foreground">
-              Skills you may be overestimating
-            </p>
+            <p className="text-sm text-muted-foreground">{t('blindSpot.skillsYouMayBeOverestimating')}</p>
           </CardHeader>
           <CardContent>
             <div className="flex flex-wrap gap-2">
@@ -61,11 +61,9 @@ export const BlindSpotResults = memo(({ results, onBack }: BlindSpotResultsProps
           <CardHeader>
             <div className="flex items-center gap-2">
               <Lightbulb className="h-5 w-5 text-green-500" />
-              <CardTitle>Hidden Strengths</CardTitle>
+              <CardTitle>{t('blindSpot.hiddenStrengths')}</CardTitle>
             </div>
-            <p className="text-sm text-muted-foreground">
-              Skills you're undervaluing
-            </p>
+            <p className="text-sm text-muted-foreground">{t('blindSpot.skillsYoureUndervaluing')}</p>
           </CardHeader>
           <CardContent>
             <div className="flex flex-wrap gap-2">
@@ -83,7 +81,7 @@ export const BlindSpotResults = memo(({ results, onBack }: BlindSpotResultsProps
         <CardHeader>
           <div className="flex items-center gap-2">
             <Eye className="h-5 w-5" />
-            <CardTitle>Dimension Comparison</CardTitle>
+            <CardTitle>{t('blindSpot.dimensionComparison')}</CardTitle>
           </div>
         </CardHeader>
         <CardContent>
@@ -99,11 +97,11 @@ export const BlindSpotResults = memo(({ results, onBack }: BlindSpotResultsProps
                     <span className="text-sm font-medium">{dimension}</span>
                     <div className="flex gap-2 text-xs">
                       <span className="text-muted-foreground">
-                        Self: {scores.self.toFixed(1)}
+                        {t('blindSpot.self')}: {scores.self.toFixed(1)}
                       </span>
                       <span className="text-muted-foreground">|</span>
                       <span className={isBlindSpot ? 'text-orange-500' : isHiddenStrength ? 'text-green-500' : ''}>
-                        Actual: {scores.objective.toFixed(1)}
+                        {t('blindSpot.actual')}: {scores.objective.toFixed(1)}
                       </span>
                     </div>
                   </div>
@@ -128,9 +126,7 @@ export const BlindSpotResults = memo(({ results, onBack }: BlindSpotResultsProps
         </CardContent>
       </Card>
 
-      <Button onClick={onBack} className="w-full" size="lg">
-        Back to Assessments
-      </Button>
+      <Button onClick={onBack} className="w-full" size="lg">{t('blindSpot.backToAssessments')}</Button>
     </div>
   );
 });

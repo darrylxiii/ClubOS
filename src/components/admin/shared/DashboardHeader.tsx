@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslation } from 'react-i18next';
 
 interface DashboardHeaderProps {
   title: string;
@@ -17,6 +18,7 @@ export const DashboardHeader = ({
   isRefreshing = false,
   actions,
 }: DashboardHeaderProps) => {
+  const { t } = useTranslation('admin');
   return (
     <div className="flex items-start justify-between gap-4">
       <div className="space-y-1">

@@ -253,4 +253,4 @@ Candidate Dashboard:
 
 **Status:** Phase 1 in progress
 **Last Updated:** 2025-01-XX
-**Owner:** Lovable AI + Quantum Club Team
+**Owner:** Google Gemini + Quantum Club Team

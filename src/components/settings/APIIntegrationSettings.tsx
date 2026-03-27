@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -27,6 +28,7 @@ interface WebhookEndpoint {
 }
 
 export function APIIntegrationSettings() {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [apiKeys, setApiKeys] = useState<APIKey[]>([]);
   const [webhooks, setWebhooks] = useState<WebhookEndpoint[]>([]);
@@ -71,7 +73,7 @@ export function APIIntegrationSettings() {
 
   const generateApiKey = async () => {
     if (!newKeyName.trim()) {
-      toast.error('Please enter a name for the API key');
+      toast.error(t("please_enter_a_name", "Please enter a name for the API key"));
       return;
     }
     
@@ -95,7 +97,7 @@ export function APIIntegrationSettings() {
     // Show the full key once
     toast.success(
       <div className="space-y-2">
-        <p>API Key created! Copy it now - it won't be shown again:</p>
+        <p>{t("api_key_created_copy", "API Key created! Copy it now - it won't be shown again:")}</p>
         <code className="block p-2 bg-muted rounded text-xs break-all">{key}</code>
       </div>,
       { duration: 30000 }
@@ -104,7 +106,7 @@ export function APIIntegrationSettings() {
 
   const revokeApiKey = (keyId: string) => {
     setApiKeys(apiKeys.filter(k => k.id !== keyId));
-    toast.success('API key revoked');
+    toast.success(t("api_key_revoked", "API key revoked"));
   };
 
   const saveInstantlyKey = async () => {
@@ -117,10 +119,10 @@ export function APIIntegrationSettings() {
         instantly_api_key: instantlyApiKey,
         integrations,
       }));
-      toast.success('API settings saved');
+      toast.success(t("api_settings_saved", "API settings saved"));
     } catch (error) {
       console.error('Error saving API settings:', error);
-      toast.error('Failed to save settings');
+      toast.error(t("failed_to_save_settings", "Failed to save settings"));
     } finally {
       setSaving(false);
     }
@@ -128,7 +130,7 @@ export function APIIntegrationSettings() {
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
-    toast.success('Copied to clipboard');
+    toast.success(t("copied_to_clipboard", "Copied to clipboard"));
   };
 
   return (
@@ -139,12 +141,12 @@ export function APIIntegrationSettings() {
             <Key className="w-5 h-5" />
             Personal API Keys
           </CardTitle>
-          <CardDescription>Generate API keys for programmatic access</CardDescription>
+          <CardDescription>{t("generate_api_keys_for", "Generate API keys for programmatic access")}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex gap-2">
             <Input
-              placeholder="API Key Name (e.g., 'My Integration')"
+              placeholder={t("api_key_name_eg", "API Key Name (e.g., 'My Integration')")}
               value={newKeyName}
               onChange={(e) => setNewKeyName(e.target.value)}
             />
@@ -192,7 +194,7 @@ export function APIIntegrationSettings() {
             <Link2 className="w-5 h-5" />
             Third-Party Integrations
           </CardTitle>
-          <CardDescription>Connect external services to enhance your workflow</CardDescription>
+          <CardDescription>{t("connect_external_services_to", "Connect external services to enhance your workflow")}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Instantly.ai */}
@@ -203,8 +205,8 @@ export function APIIntegrationSettings() {
                   <span className="text-lg font-bold text-primary">I</span>
                 </div>
                 <div>
-                  <Label className="text-base">Instantly.ai</Label>
-                  <p className="text-xs text-muted-foreground">Cold email automation platform</p>
+                  <Label className="text-base">{t("instantlyai", "Instantly.ai")}</Label>
+                  <p className="text-xs text-muted-foreground">{t("cold_email_automation_platform", "Cold email automation platform")}</p>
                 </div>
               </div>
               <Switch
@@ -215,12 +217,12 @@ export function APIIntegrationSettings() {
             
             {integrations.instantly && (
               <div className="space-y-2 pt-2">
-                <Label>API Key</Label>
+                <Label>{t("api_key", "API Key")}</Label>
                 <div className="flex gap-2">
                   <div className="relative flex-1">
                     <Input
                       type={showInstantlyKey ? "text" : "password"}
-                      placeholder="Enter your Instantly API key"
+                      placeholder={t("enter_your_instantly_api", "Enter your Instantly API key")}
                       value={instantlyApiKey}
                       onChange={(e) => setInstantlyApiKey(e.target.value)}
                     />
@@ -254,11 +256,11 @@ export function APIIntegrationSettings() {
                 <span className="text-lg font-bold text-green-500">G</span>
               </div>
               <div>
-                <Label className="text-base">Greenhouse</Label>
-                <p className="text-xs text-muted-foreground">ATS integration (Coming Soon)</p>
+                <Label className="text-base">{t("greenhouse", "Greenhouse")}</Label>
+                <p className="text-xs text-muted-foreground">{t("ats_integration_coming_soon", "ATS integration (Coming Soon)")}</p>
               </div>
             </div>
-            <Badge variant="secondary">Coming Soon</Badge>
+            <Badge variant="secondary">{t("coming_soon", "Coming Soon")}</Badge>
           </div>
 
           {/* Lever */}
@@ -268,11 +270,11 @@ export function APIIntegrationSettings() {
                 <span className="text-lg font-bold text-blue-500">L</span>
               </div>
               <div>
-                <Label className="text-base">Lever</Label>
-                <p className="text-xs text-muted-foreground">ATS integration (Coming Soon)</p>
+                <Label className="text-base">{t("lever", "Lever")}</Label>
+                <p className="text-xs text-muted-foreground">{t("ats_integration_coming_soon", "ATS integration (Coming Soon)")}</p>
               </div>
             </div>
-            <Badge variant="secondary">Coming Soon</Badge>
+            <Badge variant="secondary">{t("coming_soon", "Coming Soon")}</Badge>
           </div>
 
           {/* Slack */}
@@ -282,11 +284,11 @@ export function APIIntegrationSettings() {
                 <span className="text-lg font-bold text-purple-500">S</span>
               </div>
               <div>
-                <Label className="text-base">Slack</Label>
-                <p className="text-xs text-muted-foreground">Team notifications (Coming Soon)</p>
+                <Label className="text-base">{t("slack", "Slack")}</Label>
+                <p className="text-xs text-muted-foreground">{t("team_notifications_coming_soon", "Team notifications (Coming Soon)")}</p>
               </div>
             </div>
-            <Badge variant="secondary">Coming Soon</Badge>
+            <Badge variant="secondary">{t("coming_soon", "Coming Soon")}</Badge>
           </div>
         </CardContent>
       </Card>
@@ -297,13 +299,13 @@ export function APIIntegrationSettings() {
             <Webhook className="w-5 h-5" />
             Webhooks
           </CardTitle>
-          <CardDescription>Receive real-time event notifications</CardDescription>
+          <CardDescription>{t("receive_realtime_event_notifications", "Receive real-time event notifications")}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="text-center py-8 text-muted-foreground">
             <Webhook className="w-12 h-12 mx-auto mb-4 opacity-50" />
-            <p>Webhook configuration coming soon</p>
-            <p className="text-sm">Subscribe to events like new applications, interview scheduled, etc.</p>
+            <p>{t("webhook_configuration_coming_soon", "Webhook configuration coming soon")}</p>
+            <p className="text-sm">{t("subscribe_to_events_like", "Subscribe to events like new applications, interview scheduled, etc.")}</p>
           </div>
         </CardContent>
       </Card>

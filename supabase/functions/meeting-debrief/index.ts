@@ -1,70 +1,26 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { createAuthenticatedHandler } from '../_shared/handler.ts';
 
 // Input validation schema
 const requestSchema = z.object({
   recordingId: z.string().uuid('Invalid recording ID format'),
 });
 
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
-  }
-
-  try {
-    // Validate authorization header
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
-        { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 401 
-        }
-      );
-    }
-
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-
-    // Create auth client to verify user
-    const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
-      global: { headers: { Authorization: authHeader } }
-    });
-
-    const { data: { user }, error: authError } = await supabaseAuth.auth.getUser();
-    if (authError || !user) {
-      console.error('[Auth] Invalid token:', authError);
-      return new Response(
-        JSON.stringify({ error: 'Invalid token' }),
-        { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 401 
-        }
-      );
-    }
-
-    console.log('[Auth] Authenticated user:', user.id);
+Deno.serve(createAuthenticatedHandler(async (req, ctx) => {
+    const { supabase, user, corsHeaders } = ctx;
 
     // Parse and validate request body
     const rawBody = await req.json();
     const validationResult = requestSchema.safeParse(rawBody);
-    
+
     if (!validationResult.success) {
       console.error('[Validation] Invalid request parameters:', validationResult.error.issues);
       return new Response(
         JSON.stringify({ error: 'Invalid recording ID format' }),
-        { 
+        {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 400 
+          status: 400
         }
       );
     }
@@ -72,9 +28,6 @@ serve(async (req) => {
     const { recordingId } = validationResult.data;
 
     console.log('Processing recording:', recordingId);
-
-    // Use service client for privileged operations
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // Get recording details
     const { data: recording, error: fetchError } = await supabase
@@ -149,11 +102,11 @@ serve(async (req) => {
     const transcript = transcriptionResult.text;
     console.log('Transcription completed, length:', transcript.length);
 
-    // Analyze with Lovable AI
+    // Analyze with Google Gemini
     console.log('Starting AI analysis...');
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      throw new Error('Lovable API key not configured');
+    const GOOGLE_API_KEY = Deno.env.get('GOOGLE_API_KEY');
+    if (!GOOGLE_API_KEY) {
+      throw new Error('Google API key not configured');
     }
 
     const analysisPrompt = `You are an expert career coach analyzing an interview recording.
@@ -193,14 +146,14 @@ Focus on:
 4. Professional, personalized follow-up email
 5. Areas for improvement in future interviews`;
 
-    const analysisResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const analysisResponse = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        Authorization: `Bearer ${GOOGLE_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash-lite",
+        model: "gemini-2.5-flash-lite",
         messages: [
           {
             role: "system",
@@ -220,7 +173,7 @@ Focus on:
         throw new Error("Rate limit exceeded. Please try again later.");
       }
       if (analysisResponse.status === 402) {
-        throw new Error("Payment required. Please add credits to your workspace.");
+        throw new Error("Payment required. Please check your Google API billing.");
       }
       const errorText = await analysisResponse.text();
       console.error("AI analysis error:", errorText);
@@ -313,17 +266,12 @@ Focus on:
     // Update status to failed if we have recordingId
     try {
       const rawBody = await req.clone().json();
-      const validationResult = requestSchema.safeParse(rawBody);
-      if (validationResult.success) {
-        const { recordingId } = validationResult.data;
-        const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-        const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-        const supabase = createClient(supabaseUrl, supabaseKey);
-        
+      const failValidation = requestSchema.safeParse(rawBody);
+      if (failValidation.success) {
         await supabase
           .from('meeting_recordings')
           .update({ analysis_status: 'failed' })
-          .eq('id', recordingId);
+          .eq('id', failValidation.data.recordingId);
       }
     } catch (e) {
       console.error('[Internal] Error updating failed status:', e);
@@ -334,4 +282,4 @@ Focus on:
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
-});
+}));

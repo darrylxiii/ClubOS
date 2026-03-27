@@ -1,6 +1,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Keyboard } from "lucide-react";
+import { useTranslation } from 'react-i18next';
 
 interface CRMKeyboardShortcutsHelpProps {
   open: boolean;
@@ -28,6 +29,7 @@ const shortcuts = [
 ];
 
 export function CRMKeyboardShortcutsHelp({ open, onOpenChange }: CRMKeyboardShortcutsHelpProps) {
+  const { t } = useTranslation('common');
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">

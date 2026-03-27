@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 /**
  * Meeting Intelligence Card
  * 
@@ -48,6 +49,7 @@ interface InterviewInsight {
 }
 
 export function MeetingIntelligenceCard({ candidateId }: MeetingIntelligenceCardProps) {
+  const { t } = useTranslation('common');
   const [insights, setInsights] = useState<InterviewInsight[]>([]);
   const [loading, setLoading] = useState(true);
   const [aggregateScore, setAggregateScore] = useState<number | null>(null);
@@ -177,7 +179,7 @@ export function MeetingIntelligenceCard({ candidateId }: MeetingIntelligenceCard
         <Card className="border-dashed border-2 border-muted">
           <CardContent className="py-8 text-center text-muted-foreground">
             <Video className="h-8 w-8 mx-auto mb-2 opacity-50" />
-            <p className="text-sm mb-3">No interview recordings analyzed yet</p>
+            <p className="text-sm mb-3">{t("no_interview_recordings_analyzed", "No interview recordings analyzed yet")}</p>
             <Button variant="outline" size="sm" onClick={() => setShowAddModal(true)}>
               <Plus className="h-4 w-4 mr-1" /> Add Meeting
             </Button>
@@ -191,13 +193,13 @@ export function MeetingIntelligenceCard({ candidateId }: MeetingIntelligenceCard
   const getRecommendationBadge = (rec: string | null) => {
     switch (rec) {
       case 'strong_yes':
-        return <Badge className="bg-green-500">Strong Hire</Badge>;
+        return <Badge className="bg-green-500">{t("strong_hire", "Strong Hire")}</Badge>;
       case 'yes':
-        return <Badge className="bg-emerald-500">Proceed</Badge>;
+        return <Badge className="bg-emerald-500">{t("proceed", "Proceed")}</Badge>;
       case 'maybe':
-        return <Badge className="bg-yellow-500">Consider</Badge>;
+        return <Badge className="bg-yellow-500">{t("consider", "Consider")}</Badge>;
       case 'no':
-        return <Badge className="bg-red-500">Pass</Badge>;
+        return <Badge className="bg-red-500">{t("pass", "Pass")}</Badge>;
       default:
         return null;
     }
@@ -223,7 +225,7 @@ export function MeetingIntelligenceCard({ candidateId }: MeetingIntelligenceCard
           </Button>
           {aggregateScore !== null && (
             <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Avg Score</span>
+              <span className="text-sm text-muted-foreground">{t("avg_score", "Avg Score")}</span>
               <span className={`text-2xl font-bold ${getScoreColor(aggregateScore)}`}>
                 {aggregateScore}
               </span>

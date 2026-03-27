@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -103,6 +104,7 @@ interface ActivityMonitoringDashboardProps {
 }
 
 export function ActivityMonitoringDashboard({ onUserClick }: ActivityMonitoringDashboardProps = {}) {
+  const { t } = useTranslation('common');
   const [users, setUsers] = useState<UserActivity[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<UserActivity[]>([]);
   const [stats, setStats] = useState<ActivityStats>({
@@ -249,7 +251,7 @@ export function ActivityMonitoringDashboard({ onUserClick }: ActivityMonitoringD
 
     } catch (error) {
       console.error('Error fetching activity data:', error);
-      toast.error("Failed to load activity data");
+      toast.error(t("failed_to_load_activity", "Failed to load activity data"));
     } finally {
       setLoading(false);
     }
@@ -332,7 +334,7 @@ export function ActivityMonitoringDashboard({ onUserClick }: ActivityMonitoringD
   };
 
   if (loading) {
-    return <div className="flex items-center justify-center p-8">Loading activity data...</div>;
+    return <div className="flex items-center justify-center p-8">{t("loading_activity_data", "Loading activity data...")}</div>;
   }
 
   return (
@@ -341,7 +343,7 @@ export function ActivityMonitoringDashboard({ onUserClick }: ActivityMonitoringD
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Users</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">{t("total_users", "Total Users")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2">
@@ -353,7 +355,7 @@ export function ActivityMonitoringDashboard({ onUserClick }: ActivityMonitoringD
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Online Now</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">{t("online_now", "Online Now")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2">
@@ -365,7 +367,7 @@ export function ActivityMonitoringDashboard({ onUserClick }: ActivityMonitoringD
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Active Today</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">{t("active_today", "Active Today")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2">
@@ -377,7 +379,7 @@ export function ActivityMonitoringDashboard({ onUserClick }: ActivityMonitoringD
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Inactive</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">{t("inactive", "Inactive")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2">
@@ -393,8 +395,8 @@ export function ActivityMonitoringDashboard({ onUserClick }: ActivityMonitoringD
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>User Activity Monitoring</CardTitle>
-              <CardDescription>Real-time activity tracking for all platform users</CardDescription>
+              <CardTitle>{t("user_activity_monitoring", "User Activity Monitoring")}</CardTitle>
+              <CardDescription>{t("realtime_activity_tracking_for", "Real-time activity tracking for all platform users")}</CardDescription>
             </div>
             <Button variant="outline" size="sm" onClick={fetchData}>
               <RefreshCw className="w-4 h-4 mr-2" />
@@ -409,7 +411,7 @@ export function ActivityMonitoringDashboard({ onUserClick }: ActivityMonitoringD
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
-                placeholder="Search by name, email, or company..."
+                placeholder={t("search_by_name_email", "Search by name, email, or company...")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10"
@@ -418,25 +420,25 @@ export function ActivityMonitoringDashboard({ onUserClick }: ActivityMonitoringD
 
             <Select value={userTypeFilter} onValueChange={setUserTypeFilter}>
               <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="User Type" />
+                <SelectValue placeholder={t("user_type", "User Type")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Types</SelectItem>
-                <SelectItem value="internal">Internal</SelectItem>
-                <SelectItem value="external">External</SelectItem>
+                <SelectItem value="all">{t("all_types", "All Types")}</SelectItem>
+                <SelectItem value="internal">{t("internal", "Internal")}</SelectItem>
+                <SelectItem value="external">{t("external", "External")}</SelectItem>
               </SelectContent>
             </Select>
 
             <Select value={onlineStatusFilter} onValueChange={setOnlineStatusFilter}>
               <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Online Status" />
+                <SelectValue placeholder={t("online_status", "Online Status")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="online">Online</SelectItem>
-                <SelectItem value="away">Away</SelectItem>
-                <SelectItem value="busy">Busy</SelectItem>
-                <SelectItem value="offline">Offline</SelectItem>
+                <SelectItem value="all">{t("all_status", "All Status")}</SelectItem>
+                <SelectItem value="online">{t("online", "Online")}</SelectItem>
+                <SelectItem value="away">{t("away", "Away")}</SelectItem>
+                <SelectItem value="busy">{t("busy", "Busy")}</SelectItem>
+                <SelectItem value="offline">{t("offline", "Offline")}</SelectItem>
               </SelectContent>
             </Select>
 
@@ -451,47 +453,47 @@ export function ActivityMonitoringDashboard({ onUserClick }: ActivityMonitoringD
             <CollapsibleContent className="space-y-4 pt-4 border-t">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <label className="text-sm font-medium mb-2 block">Role</label>
+                  <label className="text-sm font-medium mb-2 block">{t("role", "Role")}</label>
                   <Select value={roleFilter} onValueChange={setRoleFilter}>
                     <SelectTrigger>
-                      <SelectValue placeholder="All Roles" />
+                      <SelectValue placeholder={t("all_roles", "All Roles")} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All Roles</SelectItem>
-                      <SelectItem value="admin">Admin</SelectItem>
-                      <SelectItem value="strategist">Strategist</SelectItem>
-                      <SelectItem value="partner">Partner</SelectItem>
-                      <SelectItem value="user">Candidate</SelectItem>
-                      <SelectItem value="recruiter">Recruiter</SelectItem>
+                      <SelectItem value="all">{t("all_roles", "All Roles")}</SelectItem>
+                      <SelectItem value="admin">{t("admin", "Admin")}</SelectItem>
+                      <SelectItem value="strategist">{t("strategist", "Strategist")}</SelectItem>
+                      <SelectItem value="partner">{t("partner", "Partner")}</SelectItem>
+                      <SelectItem value="user">{t("candidate", "Candidate")}</SelectItem>
+                      <SelectItem value="recruiter">{t("recruiter", "Recruiter")}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div>
-                  <label className="text-sm font-medium mb-2 block">Activity Level</label>
+                  <label className="text-sm font-medium mb-2 block">{t("activity_level", "Activity Level")}</label>
                   <Select value={activityLevelFilter} onValueChange={setActivityLevelFilter}>
                     <SelectTrigger>
-                      <SelectValue placeholder="All Levels" />
+                      <SelectValue placeholder={t("all_levels", "All Levels")} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All Levels</SelectItem>
-                      <SelectItem value="highly_active">Highly Active</SelectItem>
-                      <SelectItem value="active">Active</SelectItem>
-                      <SelectItem value="moderate">Moderate</SelectItem>
-                      <SelectItem value="low">Low</SelectItem>
-                      <SelectItem value="inactive">Inactive</SelectItem>
+                      <SelectItem value="all">{t("all_levels", "All Levels")}</SelectItem>
+                      <SelectItem value="highly_active">{t("highly_active", "Highly Active")}</SelectItem>
+                      <SelectItem value="active">{t("active", "Active")}</SelectItem>
+                      <SelectItem value="moderate">{t("moderate", "Moderate")}</SelectItem>
+                      <SelectItem value="low">{t("low", "Low")}</SelectItem>
+                      <SelectItem value="inactive">{t("inactive", "Inactive")}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div>
-                  <label className="text-sm font-medium mb-2 block">Company</label>
+                  <label className="text-sm font-medium mb-2 block">{t("company", "Company")}</label>
                   <Select value={companyFilter} onValueChange={setCompanyFilter}>
                     <SelectTrigger>
-                      <SelectValue placeholder="All Companies" />
+                      <SelectValue placeholder={t("all_companies", "All Companies")} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All Companies</SelectItem>
+                      <SelectItem value="all">{t("all_companies", "All Companies")}</SelectItem>
                       {companies.map((company) => (
                         <SelectItem key={company.id} value={company.id}>
                           {company.name}
@@ -514,14 +516,14 @@ export function ActivityMonitoringDashboard({ onUserClick }: ActivityMonitoringD
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>User</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Activity Level</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Roles</TableHead>
-                  <TableHead>Company</TableHead>
-                  <TableHead>Last Activity</TableHead>
-                  <TableHead>Actions</TableHead>
+                  <TableHead>{t("user", "User")}</TableHead>
+                  <TableHead>{t("status", "Status")}</TableHead>
+                  <TableHead>{t("activity_level", "Activity Level")}</TableHead>
+                  <TableHead>{t("type", "Type")}</TableHead>
+                  <TableHead>{t("roles", "Roles")}</TableHead>
+                  <TableHead>{t("company", "Company")}</TableHead>
+                  <TableHead>{t("last_activity", "Last Activity")}</TableHead>
+                  <TableHead>{t("actions", "Actions")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -591,7 +593,7 @@ export function ActivityMonitoringDashboard({ onUserClick }: ActivityMonitoringD
                           </TooltipTrigger>
                           <TooltipContent>
                             <div className="space-y-1">
-                              <p className="font-medium">Activity Details</p>
+                              <p className="font-medium">{t("activity_details", "Activity Details")}</p>
                               <p className="text-xs">Last Activity: {new Date(user.last_activity_at).toLocaleString()}</p>
                               {user.last_login_at && (
                                 <p className="text-xs">Last Login: {new Date(user.last_login_at).toLocaleString()}</p>

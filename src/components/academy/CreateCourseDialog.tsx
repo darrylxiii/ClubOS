@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import {
   Dialog,
@@ -37,6 +38,7 @@ export function CreateCourseDialog({
   academyId,
   onSuccess,
 }: CreateCourseDialogProps) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
@@ -264,7 +266,7 @@ export function CreateCourseDialog({
               <Brain className="w-4 h-4" />
               AI Assistant
             </TabsTrigger>
-            <TabsTrigger value="manual">Manual Entry</TabsTrigger>
+            <TabsTrigger value="manual">{t("manual_entry", "Manual Entry")}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="ai" className="space-y-6">
@@ -311,7 +313,7 @@ export function CreateCourseDialog({
                 
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div className="space-y-2">
-                    <Label htmlFor="title">Course Title *</Label>
+                    <Label htmlFor="title">{t("course_title", "Course Title *")}</Label>
                     <Input
                       id="title"
                       value={formData.title}
@@ -323,7 +325,7 @@ export function CreateCourseDialog({
 
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <Label htmlFor="description">Description *</Label>
+                      <Label htmlFor="description">{t("description", "Description *")}</Label>
                       <Button
                         type="button"
                         variant="ghost"
@@ -350,29 +352,29 @@ export function CreateCourseDialog({
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="category">Category/Topic *</Label>
+                    <Label htmlFor="category">{t("categorytopic", "Category/Topic *")}</Label>
                     <Select
                       value={formData.category}
                       onValueChange={(value) => setFormData({ ...formData, category: value })}
                     >
                       <SelectTrigger id="category" className="squircle-sm">
-                        <SelectValue placeholder="Select a category" />
+                        <SelectValue placeholder={t("select_a_category", "Select a category")} />
                       </SelectTrigger>
                       <SelectContent className="squircle">
-                        <SelectItem value="Design">Design</SelectItem>
-                        <SelectItem value="Business">Business</SelectItem>
-                        <SelectItem value="Code">Code</SelectItem>
-                        <SelectItem value="Marketing">Marketing</SelectItem>
-                        <SelectItem value="Leadership">Leadership</SelectItem>
-                        <SelectItem value="Data">Data</SelectItem>
-                        <SelectItem value="Product">Product</SelectItem>
-                        <SelectItem value="Other">Other</SelectItem>
+                        <SelectItem value="Design">{t("design", "Design")}</SelectItem>
+                        <SelectItem value="Business">{t("business", "Business")}</SelectItem>
+                        <SelectItem value="Code">{t("code", "Code")}</SelectItem>
+                        <SelectItem value="Marketing">{t("marketing", "Marketing")}</SelectItem>
+                        <SelectItem value="Leadership">{t("leadership", "Leadership")}</SelectItem>
+                        <SelectItem value="Data">{t("data", "Data")}</SelectItem>
+                        <SelectItem value="Product">{t("product", "Product")}</SelectItem>
+                        <SelectItem value="Other">{t("other", "Other")}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="course-image">Course Image URL (Optional)</Label>
+                    <Label htmlFor="course-image">{t("course_image_url_optional", "Course Image URL (Optional)")}</Label>
                     <Input
                       id="course-image"
                       type="url"
@@ -381,11 +383,11 @@ export function CreateCourseDialog({
                       onChange={(e) => setFormData({ ...formData, course_image_url: e.target.value })}
                       className="squircle-sm"
                     />
-                    <p className="text-xs text-muted-foreground">Image will be displayed on course cards</p>
+                    <p className="text-xs text-muted-foreground">{t("image_will_be_displayed", "Image will be displayed on course cards")}</p>
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="course-video">Course Video URL (Optional)</Label>
+                    <Label htmlFor="course-video">{t("course_video_url_optional", "Course Video URL (Optional)")}</Label>
                     <Input
                       id="course-video"
                       type="url"
@@ -394,12 +396,12 @@ export function CreateCourseDialog({
                       onChange={(e) => setFormData({ ...formData, course_video_url: e.target.value })}
                       className="squircle-sm"
                     />
-                    <p className="text-xs text-muted-foreground">Preview video for the course</p>
+                    <p className="text-xs text-muted-foreground">{t("preview_video_for_the", "Preview video for the course")}</p>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="difficulty">Difficulty Level</Label>
+                      <Label htmlFor="difficulty">{t("difficulty_level", "Difficulty Level")}</Label>
                       <Select
                         value={formData.difficulty_level}
                         onValueChange={(value) => setFormData({ ...formData, difficulty_level: value })}
@@ -408,16 +410,16 @@ export function CreateCourseDialog({
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent className="squircle">
-                          <SelectItem value="beginner">Beginner</SelectItem>
-                          <SelectItem value="intermediate">Intermediate</SelectItem>
-                          <SelectItem value="advanced">Advanced</SelectItem>
-                          <SelectItem value="expert">Expert</SelectItem>
+                          <SelectItem value="beginner">{t("beginner", "Beginner")}</SelectItem>
+                          <SelectItem value="intermediate">{t("intermediate", "Intermediate")}</SelectItem>
+                          <SelectItem value="advanced">{t("advanced", "Advanced")}</SelectItem>
+                          <SelectItem value="expert">{t("expert", "Expert")}</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="hours">Estimated Hours</Label>
+                      <Label htmlFor="hours">{t("estimated_hours", "Estimated Hours")}</Label>
                       <Input
                         id="hours"
                         type="number"
@@ -473,10 +475,10 @@ export function CreateCourseDialog({
           <TabsContent value="manual">
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="manual-title">Course Title *</Label>
+                <Label htmlFor="manual-title">{t("course_title", "Course Title *")}</Label>
                 <Input
                   id="manual-title"
-                  placeholder="e.g., Advanced Career Strategies for Tech Leaders"
+                  placeholder={t("eg_advanced_career_strategies", "e.g., Advanced Career Strategies for Tech Leaders")}
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                   required
@@ -486,7 +488,7 @@ export function CreateCourseDialog({
 
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="manual-description">Description *</Label>
+                  <Label htmlFor="manual-description">{t("description", "Description *")}</Label>
                   <Button
                     type="button"
                     variant="ghost"
@@ -504,7 +506,7 @@ export function CreateCourseDialog({
                 </div>
                 <Textarea
                   id="manual-description"
-                  placeholder="Describe what learners will achieve in this course..."
+                  placeholder={t("describe_what_learners_will", "Describe what learners will achieve in this course...")}
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   required
@@ -514,29 +516,29 @@ export function CreateCourseDialog({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="manual-category">Category/Topic *</Label>
+                <Label htmlFor="manual-category">{t("categorytopic", "Category/Topic *")}</Label>
                 <Select
                   value={formData.category}
                   onValueChange={(value) => setFormData({ ...formData, category: value })}
                 >
                   <SelectTrigger id="manual-category" className="squircle-sm">
-                    <SelectValue placeholder="Select a category" />
+                    <SelectValue placeholder={t("select_a_category", "Select a category")} />
                   </SelectTrigger>
                   <SelectContent className="squircle">
-                    <SelectItem value="Design">Design</SelectItem>
-                    <SelectItem value="Business">Business</SelectItem>
-                    <SelectItem value="Code">Code</SelectItem>
-                    <SelectItem value="Marketing">Marketing</SelectItem>
-                    <SelectItem value="Leadership">Leadership</SelectItem>
-                    <SelectItem value="Data">Data</SelectItem>
-                    <SelectItem value="Product">Product</SelectItem>
-                    <SelectItem value="Other">Other</SelectItem>
+                    <SelectItem value="Design">{t("design", "Design")}</SelectItem>
+                    <SelectItem value="Business">{t("business", "Business")}</SelectItem>
+                    <SelectItem value="Code">{t("code", "Code")}</SelectItem>
+                    <SelectItem value="Marketing">{t("marketing", "Marketing")}</SelectItem>
+                    <SelectItem value="Leadership">{t("leadership", "Leadership")}</SelectItem>
+                    <SelectItem value="Data">{t("data", "Data")}</SelectItem>
+                    <SelectItem value="Product">{t("product", "Product")}</SelectItem>
+                    <SelectItem value="Other">{t("other", "Other")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="manual-course-image">Course Image URL (Optional)</Label>
+                <Label htmlFor="manual-course-image">{t("course_image_url_optional", "Course Image URL (Optional)")}</Label>
                 <Input
                   id="manual-course-image"
                   type="url"
@@ -545,11 +547,11 @@ export function CreateCourseDialog({
                   onChange={(e) => setFormData({ ...formData, course_image_url: e.target.value })}
                   className="squircle-sm"
                 />
-                <p className="text-xs text-muted-foreground">Image will be displayed on course cards</p>
+                <p className="text-xs text-muted-foreground">{t("image_will_be_displayed", "Image will be displayed on course cards")}</p>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="manual-course-video">Course Video URL (Optional)</Label>
+                <Label htmlFor="manual-course-video">{t("course_video_url_optional", "Course Video URL (Optional)")}</Label>
                 <Input
                   id="manual-course-video"
                   type="url"
@@ -558,12 +560,12 @@ export function CreateCourseDialog({
                   onChange={(e) => setFormData({ ...formData, course_video_url: e.target.value })}
                   className="squircle-sm"
                 />
-                <p className="text-xs text-muted-foreground">Preview video for the course</p>
+                <p className="text-xs text-muted-foreground">{t("preview_video_for_the", "Preview video for the course")}</p>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="manual-difficulty">Difficulty Level</Label>
+                  <Label htmlFor="manual-difficulty">{t("difficulty_level", "Difficulty Level")}</Label>
                   <Select
                     value={formData.difficulty_level}
                     onValueChange={(value) => setFormData({ ...formData, difficulty_level: value })}
@@ -572,20 +574,20 @@ export function CreateCourseDialog({
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="squircle">
-                      <SelectItem value="beginner">Beginner</SelectItem>
-                      <SelectItem value="intermediate">Intermediate</SelectItem>
-                      <SelectItem value="advanced">Advanced</SelectItem>
-                      <SelectItem value="expert">Expert</SelectItem>
+                      <SelectItem value="beginner">{t("beginner", "Beginner")}</SelectItem>
+                      <SelectItem value="intermediate">{t("intermediate", "Intermediate")}</SelectItem>
+                      <SelectItem value="advanced">{t("advanced", "Advanced")}</SelectItem>
+                      <SelectItem value="expert">{t("expert", "Expert")}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="manual-hours">Estimated Hours</Label>
+                  <Label htmlFor="manual-hours">{t("estimated_hours", "Estimated Hours")}</Label>
                   <Input
                     id="manual-hours"
                     type="number"
-                    placeholder="e.g., 8"
+                    placeholder={t("eg_8", "e.g., 8")}
                     value={formData.estimated_hours}
                     onChange={(e) => setFormData({ ...formData, estimated_hours: e.target.value })}
                     className="squircle-sm"

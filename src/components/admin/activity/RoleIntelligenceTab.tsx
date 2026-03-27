@@ -17,6 +17,7 @@ import {
   type RevenueShareConfig,
   type InvoiceForShare,
 } from '@/lib/employeeEarnings';
+import { useTranslation } from 'react-i18next';
 
 interface RoleIntelligenceTabProps {
   role: 'admin' | 'strategist' | 'recruiter';
@@ -211,6 +212,7 @@ export function RoleIntelligenceTab({ role }: RoleIntelligenceTabProps) {
   });
 
   const handleSort = (field: SortField) => {
+  const { t } = useTranslation('admin');
     if (sortField === field) {
       setSortAsc(!sortAsc);
     } else {
@@ -245,11 +247,11 @@ export function RoleIntelligenceTab({ role }: RoleIntelligenceTabProps) {
 
   const getActivityBadge = (level: string) => {
     switch (level) {
-      case 'highly_active': return <Badge className="bg-emerald-500">Highly Active</Badge>;
-      case 'active': return <Badge className="bg-green-500">Active</Badge>;
-      case 'moderate': return <Badge className="bg-yellow-500 text-black">Moderate</Badge>;
-      case 'low': return <Badge className="bg-orange-500">Low</Badge>;
-      default: return <Badge variant="secondary">Inactive</Badge>;
+      case 'highly_active': return <Badge className="bg-emerald-500">{t('activity.roleIntelligenceTab.highlyActive')}</Badge>;
+      case 'active': return <Badge className="bg-green-500">{t('common:status.active')}</Badge>;
+      case 'moderate': return <Badge className="bg-yellow-500 text-black">{t('activity.roleIntelligenceTab.moderate')}</Badge>;
+      case 'low': return <Badge className="bg-orange-500">{t('activity.roleIntelligenceTab.low')}</Badge>;
+      default: return <Badge variant="secondary">{t('common:status.inactive')}</Badge>;
     }
   };
 
@@ -275,7 +277,7 @@ export function RoleIntelligenceTab({ role }: RoleIntelligenceTabProps) {
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
         <Card className="bg-card/30 backdrop-blur-[var(--blur-glass)] border-border/20">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xs font-medium">Total</CardTitle>
+            <CardTitle className="text-xs font-medium">{t('activity.roleIntelligenceTab.total')}</CardTitle>
             <RoleIcon className="w-4 h-4 text-muted-foreground" />
           </CardHeader>
           <CardContent className="pt-0">
@@ -286,78 +288,78 @@ export function RoleIntelligenceTab({ role }: RoleIntelligenceTabProps) {
 
         <Card className="bg-card/30 backdrop-blur-[var(--blur-glass)] border-border/20">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xs font-medium">Online</CardTitle>
+            <CardTitle className="text-xs font-medium">{t('activity.roleIntelligenceTab.online2')}</CardTitle>
             <div className="w-3 h-3 rounded-full bg-green-500 animate-pulse" />
           </CardHeader>
           <CardContent className="pt-0">
             <div className="text-2xl font-bold">{stats.online}</div>
-            <p className="text-xs text-muted-foreground">Right now</p>
+            <p className="text-xs text-muted-foreground">{t('activity.roleIntelligenceTab.rightNow')}</p>
           </CardContent>
         </Card>
 
         <Card className="bg-card/30 backdrop-blur-[var(--blur-glass)] border-border/20">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xs font-medium">Logins</CardTitle>
+            <CardTitle className="text-xs font-medium">{t('activity.roleIntelligenceTab.logins2')}</CardTitle>
             <LogIn className="w-4 h-4 text-muted-foreground" />
           </CardHeader>
           <CardContent className="pt-0">
             <div className="text-2xl font-bold">{stats.totalLogins.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">All time</p>
+            <p className="text-xs text-muted-foreground">{t('activity.roleIntelligenceTab.allTime')}</p>
           </CardContent>
         </Card>
 
         <Card className="bg-card/30 backdrop-blur-[var(--blur-glass)] border-border/20">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xs font-medium">Time Online</CardTitle>
+            <CardTitle className="text-xs font-medium">{t('activity.roleIntelligenceTab.timeOnline')}</CardTitle>
             <Timer className="w-4 h-4 text-muted-foreground" />
           </CardHeader>
           <CardContent className="pt-0">
             <div className="text-2xl font-bold">{formatDuration(stats.totalHoursOnline)}</div>
-            <p className="text-xs text-muted-foreground">Combined</p>
+            <p className="text-xs text-muted-foreground">{t('activity.roleIntelligenceTab.combined')}</p>
           </CardContent>
         </Card>
 
         <Card className="bg-card/30 backdrop-blur-[var(--blur-glass)] border-border/20">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xs font-medium">Sourced</CardTitle>
+            <CardTitle className="text-xs font-medium">{t('activity.roleIntelligenceTab.sourced2')}</CardTitle>
             <UserPlus className="w-4 h-4 text-muted-foreground" />
           </CardHeader>
           <CardContent className="pt-0">
             <div className="text-2xl font-bold">{stats.totalCandidates}</div>
-            <p className="text-xs text-muted-foreground">Candidates</p>
+            <p className="text-xs text-muted-foreground">{t('activity.roleIntelligenceTab.candidates')}</p>
           </CardContent>
         </Card>
 
         <Card className="bg-card/30 backdrop-blur-[var(--blur-glass)] border-border/20">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xs font-medium">Placements</CardTitle>
+            <CardTitle className="text-xs font-medium">{t('activity.roleIntelligenceTab.placements')}</CardTitle>
             <Award className="w-4 h-4 text-muted-foreground" />
           </CardHeader>
           <CardContent className="pt-0">
             <div className="text-2xl font-bold">{stats.totalPlacements}</div>
-            <p className="text-xs text-muted-foreground">Successful</p>
+            <p className="text-xs text-muted-foreground">{t('activity.roleIntelligenceTab.successful')}</p>
           </CardContent>
         </Card>
 
         <Card className="bg-card/30 backdrop-blur-[var(--blur-glass)] border-border/20">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xs font-medium">Revenue</CardTitle>
+            <CardTitle className="text-xs font-medium">{t('activity.roleIntelligenceTab.revenue')}</CardTitle>
             <DollarSign className="w-4 h-4 text-muted-foreground" />
           </CardHeader>
           <CardContent className="pt-0">
             <div className="text-2xl font-bold">{formatRevenue(stats.totalRevenue)}</div>
-            <p className="text-xs text-muted-foreground">Generated</p>
+            <p className="text-xs text-muted-foreground">{t('activity.roleIntelligenceTab.generated')}</p>
           </CardContent>
         </Card>
 
         <Card className="bg-card/30 backdrop-blur-[var(--blur-glass)] border-border/20">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xs font-medium">Earnings</CardTitle>
+            <CardTitle className="text-xs font-medium">{t('activity.roleIntelligenceTab.earnings')}</CardTitle>
             <Wallet className="w-4 h-4 text-muted-foreground" />
           </CardHeader>
           <CardContent className="pt-0">
             <div className="text-2xl font-bold">{formatRevenue(stats.totalEarnings)}</div>
-            <p className="text-xs text-muted-foreground">Take-home</p>
+            <p className="text-xs text-muted-foreground">{t('activity.roleIntelligenceTab.takehome')}</p>
           </CardContent>
         </Card>
       </div>
@@ -366,19 +368,19 @@ export function RoleIntelligenceTab({ role }: RoleIntelligenceTabProps) {
       <Card className="bg-card/30 backdrop-blur-[var(--blur-glass)] border-border/20">
         <CardHeader>
           <CardTitle>{config.label} Performance</CardTitle>
-          <CardDescription>Click any row to see full details. Click column headers to sort.</CardDescription>
+          <CardDescription>{t('activity.roleIntelligenceTab.clickAnyRowToSeeFull')}</CardDescription>
         </CardHeader>
         <CardContent>
           {/* Table header */}
           <div className="hidden md:grid grid-cols-[2fr_0.8fr_0.8fr_0.8fr_0.8fr_0.8fr_0.8fr_1fr] gap-2 px-4 py-2 text-xs font-medium text-muted-foreground border-b border-border/20 mb-2">
-            <SortHeader field="name">Employee</SortHeader>
-            <SortHeader field="logins"><span className="text-right w-full">Logins</span></SortHeader>
-            <SortHeader field="time"><span className="text-right w-full">Time Online</span></SortHeader>
-            <SortHeader field="sourced"><span className="text-right w-full">Sourced</span></SortHeader>
-            <SortHeader field="placements"><span className="text-right w-full">Placements</span></SortHeader>
-            <SortHeader field="revenue"><span className="text-right w-full">Revenue</span></SortHeader>
-            <SortHeader field="earnings"><span className="text-right w-full">Earnings</span></SortHeader>
-            <SortHeader field="last_login"><span className="text-right w-full">Last Login</span></SortHeader>
+            <SortHeader field="name">{t('activity.roleIntelligenceTab.employee')}</SortHeader>
+            <SortHeader field="logins"><span className="text-right w-full">{t('activity.roleIntelligenceTab.logins2')}</span></SortHeader>
+            <SortHeader field="time"><span className="text-right w-full">{t('activity.roleIntelligenceTab.timeOnline')}</span></SortHeader>
+            <SortHeader field="sourced"><span className="text-right w-full">{t('activity.roleIntelligenceTab.sourced2')}</span></SortHeader>
+            <SortHeader field="placements"><span className="text-right w-full">{t('activity.roleIntelligenceTab.placements')}</span></SortHeader>
+            <SortHeader field="revenue"><span className="text-right w-full">{t('activity.roleIntelligenceTab.revenue')}</span></SortHeader>
+            <SortHeader field="earnings"><span className="text-right w-full">{t('activity.roleIntelligenceTab.earnings')}</span></SortHeader>
+            <SortHeader field="last_login"><span className="text-right w-full">{t('activity.roleIntelligenceTab.lastLogin')}</span></SortHeader>
           </div>
 
           <ScrollArea className="h-[500px]">
@@ -441,14 +443,14 @@ export function RoleIntelligenceTab({ role }: RoleIntelligenceTabProps) {
                       {getActivityBadge(emp.activity_level)}
                     </div>
                     <div className="grid grid-cols-4 gap-2 text-xs">
-                      <div><span className="text-muted-foreground">Logins:</span> {emp.session_count}</div>
-                      <div><span className="text-muted-foreground">Online:</span> {formatDuration(emp.total_session_duration_minutes)}</div>
-                      <div><span className="text-muted-foreground">Sourced:</span> {emp.candidates_sourced}</div>
-                      <div><span className="text-muted-foreground">Placed:</span> {emp.placements}</div>
-                      <div><span className="text-muted-foreground">Rev:</span> {formatRevenue(emp.revenue)}</div>
-                      <div><span className="text-muted-foreground">Earned:</span> {formatRevenue(emp.total_earnings)}</div>
+                      <div><span className="text-muted-foreground">{"Logins:"}</span> {emp.session_count}</div>
+                      <div><span className="text-muted-foreground">{"Online:"}</span> {formatDuration(emp.total_session_duration_minutes)}</div>
+                      <div><span className="text-muted-foreground">{"Sourced:"}</span> {emp.candidates_sourced}</div>
+                      <div><span className="text-muted-foreground">{"Placed:"}</span> {emp.placements}</div>
+                      <div><span className="text-muted-foreground">{"Rev:"}</span> {formatRevenue(emp.revenue)}</div>
+                      <div><span className="text-muted-foreground">{"Earned:"}</span> {formatRevenue(emp.total_earnings)}</div>
                       <div className="col-span-2">
-                        <span className="text-muted-foreground">Login:</span>{' '}
+                        <span className="text-muted-foreground">{"Login:"}</span>{' '}
                         {emp.last_login_at
                           ? formatDistanceToNow(new Date(emp.last_login_at), { addSuffix: true })
                           : 'Never'}

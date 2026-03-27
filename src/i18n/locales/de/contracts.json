@@ -1,0 +1,233 @@
+{
+  "title": "Verträge",
+  "subtitle": "Verwalten Sie Ihre Verträge und Vereinbarungen",
+  "create": {
+    "title": "Vertrag erstellen",
+    "fromTemplate": "Aus Vorlage erstellen",
+    "fromScratch": "Neu erstellen",
+    "duplicate": "Vertrag duplizieren"
+  },
+  "edit": {
+    "title": "Vertrag bearbeiten",
+    "save": "Änderungen speichern",
+    "discard": "Änderungen verwerfen",
+    "preview": "Vorschau"
+  },
+  "sign": {
+    "title": "Vertrag unterzeichnen",
+    "eSign": "Elektronische Unterschrift",
+    "uploadSignature": "Unterschrift hochladen",
+    "drawSignature": "Unterschrift zeichnen",
+    "typeSignature": "Unterschrift eingeben",
+    "confirm": "Unterschrift bestätigen",
+    "signed": "Unterzeichnet",
+    "pending": "Unterschrift ausstehend",
+    "requestSignature": "Unterschrift anfordern"
+  },
+  "status": {
+    "draft": "Entwurf",
+    "pending": "Genehmigung ausstehend",
+    "active": "Aktiv",
+    "expired": "Abgelaufen",
+    "terminated": "Gekündigt",
+    "renewed": "Verlängert",
+    "cancelled": "Storniert"
+  },
+  "types": {
+    "employment": "Arbeitsvertrag",
+    "freelance": "Freiberufliche Vereinbarung",
+    "nda": "Geheimhaltungsvereinbarung",
+    "service": "Dienstleistungsvertrag",
+    "placement": "Vermittlungsvereinbarung",
+    "partnership": "Partnerschaftsvereinbarung"
+  },
+  "details": {
+    "title": "Vertragsdetails",
+    "parties": "Vertragsparteien",
+    "startDate": "Startdatum",
+    "endDate": "Enddatum",
+    "value": "Vertragswert",
+    "currency": "Währung",
+    "terms": "Geschäftsbedingungen",
+    "attachments": "Anhänge",
+    "history": "Versionshistorie"
+  },
+  "parties": {
+    "client": "Auftraggeber",
+    "contractor": "Auftragnehmer",
+    "employer": "Arbeitgeber",
+    "employee": "Arbeitnehmer",
+    "party1": "Erste Partei",
+    "party2": "Zweite Partei"
+  },
+  "templates": {
+    "title": "Vertragsvorlagen",
+    "browse": "Vorlagen durchsuchen",
+    "create": "Vorlage erstellen",
+    "edit": "Vorlage bearbeiten",
+    "delete": "Vorlage löschen",
+    "use": "Vorlage verwenden",
+    "preview": "Vorlagenvorschau"
+  },
+  "clauses": {
+    "title": "Klauseln",
+    "add": "Klausel hinzufügen",
+    "edit": "Klausel bearbeiten",
+    "remove": "Klausel entfernen",
+    "standard": "Standardklauseln",
+    "custom": "Benutzerdefinierte Klauseln",
+    "library": "Klauselbibliothek"
+  },
+  "milestones": {
+    "title": "Meilensteine",
+    "add": "Meilenstein hinzufügen",
+    "completed": "Abgeschlossen",
+    "pending": "Ausstehend",
+    "dueDate": "Fälligkeitsdatum",
+    "payment": "Zahlungsbetrag"
+  },
+  "payments": {
+    "title": "Zahlungen",
+    "schedule": "Zahlungsplan",
+    "history": "Zahlungsverlauf",
+    "pending": "Ausstehende Zahlungen",
+    "completed": "Abgeschlossene Zahlungen",
+    "overdue": "Überfällige Zahlungen",
+    "amount": "Betrag",
+    "dueDate": "Fälligkeitsdatum"
+  },
+  "actions": {
+    "view": "Vertrag anzeigen",
+    "edit": "Vertrag bearbeiten",
+    "delete": "Vertrag löschen",
+    "duplicate": "Vertrag duplizieren",
+    "send": "Zur Unterzeichnung senden",
+    "download": "PDF herunterladen",
+    "print": "Drucken",
+    "archive": "Archivieren",
+    "renew": "Vertrag verlängern",
+    "terminate": "Vertrag kündigen"
+  },
+  "notifications": {
+    "created": "Vertrag erfolgreich erstellt",
+    "updated": "Vertrag erfolgreich aktualisiert",
+    "signed": "Vertrag erfolgreich unterzeichnet",
+    "sent": "Vertrag zur Unterzeichnung gesendet",
+    "expiringSoon": "Vertrag läuft bald ab",
+    "expired": "Vertrag ist abgelaufen"
+  },
+  "filters": {
+    "all": "Alle Verträge",
+    "active": "Aktiv",
+    "draft": "Entwürfe",
+    "pending": "Ausstehend",
+    "expired": "Abgelaufen",
+    "byType": "Nach Typ",
+    "byParty": "Nach Partei",
+    "byDate": "Nach Datum"
+  },
+  "search": {
+    "placeholder": "Verträge suchen...",
+    "noResults": "Keine Verträge gefunden",
+    "advanced": "Erweiterte Suche"
+  },
+  "empty": {
+    "noContracts": "Noch keine Verträge",
+    "createFirst": "Erstellen Sie Ihren ersten Vertrag",
+    "noTemplates": "Keine Vorlagen verfügbar"
+  },
+  "validation": {
+    "required": "Dieses Feld ist erforderlich",
+    "invalidDate": "Ungültiges Datum",
+    "endBeforeStart": "Das Enddatum muss nach dem Startdatum liegen",
+    "missingParty": "Alle Vertragsparteien müssen angegeben werden"
+  },
+  "contractDetailPage": {
+    "title": "Zeiterfassung",
+    "desc": "Stunden erfassen, Stundennachweise einreichen und Genehmigungen verwalten",
+    "text2": "Gesamtbudget",
+    "text3": "Vertragsart",
+    "text4": "Zeitplan",
+    "text5": "Meilensteine",
+    "text6": "Uebersicht",
+    "text7": "Meilensteine",
+    "text8": "Zahlungen",
+    "text9": "Zeiterfassung",
+    "text10": "Dokumente",
+    "text11": "Firmenname",
+    "text12": "Freelancer-Name",
+    "text13": "Vertragsdokumente"
+  },
+  "contractListPage": {
+    "desc": "your freelance project contracts and payments verwalten",
+    "text2": "Als Freelancer",
+    "text3": "Als Auftraggeber",
+    "text4": "Vertraege gesamt",
+    "text5": "Aktiv",
+    "text6": "Unterschrift ausstehend",
+    "text7": "Abgeschlossen",
+    "text8": "contracts suchen...",
+    "text9": "Alle",
+    "text10": "Ausstehend",
+    "text11": "Aktiv",
+    "text12": "Abgeschlossen"
+  },
+  "contractSignaturePage": {
+    "title": "Wesentliche Bedingungen",
+    "desc": "Pruefen Sie die Vertragsbedingungen und fuegen Sie Ihre Unterschrift hinzu",
+    "text2": "Gesamtwert",
+    "text3": "Zahlungsplan",
+    "text4": "Plattformgebuehr",
+    "text5": "Treuhandschutz",
+    "text6": "Nutzungsbedingungen",
+    "text7": "Datenschutzrichtlinie"
+  },
+  "retainerContractsPage": {
+    "btn": "Details anzeigen",
+    "text2": "Rahmenvertraege",
+    "text3": "ongoing client relationships verwalten",
+    "text4": "Retainer Contract erstellen",
+    "text5": "Richten Sie eine wiederkehrende monatliche Vereinbarung ein",
+    "text6": "Monatliche Stunden",
+    "text7": "Bedingungen & Beschreibung",
+    "text8": "Beschreiben Sie den Arbeitsumfang...",
+    "text9": "Abbrechen",
+    "text10": "Contract erstellen",
+    "text11": "Aktiv",
+    "text12": "Ausstehend",
+    "text13": "Abgeschlossen",
+    "text14": "Monatlich",
+    "text15": "Tarif",
+    "text16": "Dieser Monat",
+    "text17": "Keine aktiven Rahmenvertraege",
+    "text18": "a retainer contract to get started erstellen",
+    "text19": "Ausstehender Rahmenvertrag",
+    "text20": "Akzeptieren",
+    "text21": "Ablehnen",
+    "text22": "Keine abgeschlossenen Rahmenvertraege",
+    "text23": "Stunden erfassen",
+    "text24": "Erfassen Sie die Zeit fuer diesen Rahmenvertrag",
+    "text25": "Stunden",
+    "text26": "Beschreibung",
+    "text27": "Woran haben Sie gearbeitet?"
+  },
+  "management": {
+    "title": "Vertragsverwaltung",
+    "subtitle": "freelance contracts, payments, and change orders verwalten",
+    "searchPlaceholder": "contracts suchen...",
+    "createContract": "Contract erstellen",
+    "tabContracts": "Vertraege",
+    "tabBudget": "Budget & Ausgaben",
+    "tabChangeOrders": "Aenderungsauftraege",
+    "tabInvoices": "Rechnungen",
+    "filterAll": "Alle",
+    "filterPending": "Ausstehend",
+    "filterActive": "Aktiv",
+    "filterCompleted": "Abgeschlossen",
+    "noContracts": "Noch keine contracts",
+    "noFilterMatch": "Keine Vertraege entsprechen Ihren Filtern",
+    "emptyDescription": "your first contract to start hiring freelancers erstellen",
+    "contractInvoices": "Vertragsrechnungen",
+    "noInvoices": "Noch keine invoices generated"
+  }
+}

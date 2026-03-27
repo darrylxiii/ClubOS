@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -22,6 +23,7 @@ interface YearPL {
 }
 
 export function MultiYearPLTable({ legalEntity }: MultiYearPLTableProps) {
+  const { t } = useTranslation('common');
   const currentYear = new Date().getFullYear();
   const years = [currentYear - 2, currentYear - 1, currentYear];
 
@@ -127,7 +129,7 @@ export function MultiYearPLTable({ legalEntity }: MultiYearPLTableProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Multi-Year P&L Comparison</CardTitle>
+        <CardTitle>{t("multiyear_pl_comparison", "Multi-Year P&L Comparison")}</CardTitle>
         <CardDescription>Consolidated profit &amp; loss — {years[0]}–{years[2]}{years[2] === currentYear ? ' (YTD)' : ''}</CardDescription>
       </CardHeader>
       <CardContent>
@@ -136,7 +138,7 @@ export function MultiYearPLTable({ legalEntity }: MultiYearPLTableProps) {
             {[...Array(9)].map((_, i) => <Skeleton key={i} className="h-6 w-full" />)}
           </div>
         ) : !data ? (
-          <p className="text-sm text-muted-foreground">No data available</p>
+          <p className="text-sm text-muted-foreground">{t("no_data_available", "No data available")}</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">

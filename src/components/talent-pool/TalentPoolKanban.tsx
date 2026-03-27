@@ -25,6 +25,7 @@ import { cn } from '@/lib/utils';
 import { CandidateCard } from './CandidateCard';
 import { TalentPoolCandidate, TalentTier } from '@/hooks/useTalentPool';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useTranslation } from 'react-i18next';
 
 interface TalentPoolKanbanProps {
   candidates: TalentPoolCandidate[];
@@ -57,6 +58,7 @@ function SortableCandidateCard({
   onAddToList?: (candidate: TalentPoolCandidate) => void;
   onViewProfile?: (candidate: TalentPoolCandidate) => void;
 }) {
+  const { t } = useTranslation('common');
   const {
     attributes,
     listeners,

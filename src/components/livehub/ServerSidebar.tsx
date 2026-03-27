@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -12,6 +13,7 @@ interface Server {
 }
 
 const ServerSidebar = () => {
+  const { t } = useTranslation('meetings');
   const [servers, setServers] = useState<Server[]>([]);
   const [selectedServerId, setSelectedServerId] = useState<string | null>(null);
 
@@ -51,7 +53,7 @@ const ServerSidebar = () => {
             </Button>
           </TooltipTrigger>
           <TooltipContent side="right">
-            <p>Home</p>
+            <p>{t('livehub.home')}</p>
           </TooltipContent>
         </Tooltip>
 

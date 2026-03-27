@@ -35,18 +35,20 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+import { useTranslation } from 'react-i18next';
 
 const STATUS_OPTIONS = [
-  { value: 'all', label: 'All Statuses' },
-  { value: 'draft', label: 'Draft' },
-  { value: 'published', label: 'Published' },
-  { value: 'scheduled', label: 'Scheduled' },
-  { value: 'archived', label: 'Archived' },
+  { value: 'all', label: t('blogarticlemanagertsx.blogarticlemanager.allStatuses', 'All Statuses') },
+  { value: 'draft', label: t('blogarticlemanagertsx.blogarticlemanager.draft', 'Draft') },
+  { value: 'published', label: t('blogarticlemanagertsx.blogarticlemanager.published', 'Published') },
+  { value: 'scheduled', label: t('blogarticlemanagertsx.blogarticlemanager.scheduled', 'Scheduled') },
+  { value: 'archived', label: t('blogarticlemanagertsx.blogarticlemanager.archived', 'Archived') },
 ];
 
 const delay = (ms: number) => new Promise(r => setTimeout(r, ms));
 
 const BlogArticleManager: React.FC = () => {
+  const { t } = useTranslation('admin');
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -90,9 +92,9 @@ const BlogArticleManager: React.FC = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-blog-posts'] });
-      toast.success('Article updated');
+      toast.success(t('blogarticlemanagertsx.blogarticlemanager.articleUpdated', 'Article updated'));
     },
-    onError: () => toast.error('Failed to update article'),
+    onError: () => toast.error(t('blogarticlemanagertsx.blogarticlemanager.failedToUpdateArticle', 'Failed to update article')),
   });
 
   const deleteMutation = useMutation({
@@ -102,9 +104,9 @@ const BlogArticleManager: React.FC = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-blog-posts'] });
-      toast.success('Article deleted');
+      toast.success(t('blogarticlemanagertsx.blogarticlemanager.articleDeleted', 'Article deleted'));
     },
-    onError: () => toast.error('Failed to delete article'),
+    onError: () => toast.error(t('blogarticlemanagertsx.blogarticlemanager.failedToDeleteArticle', 'Failed to delete article')),
   });
 
   const handleGenerateImage = async (postId: string, title: string) => {
@@ -123,10 +125,10 @@ const BlogArticleManager: React.FC = () => {
       );
       const data = await response.json();
       if (!response.ok) throw new Error(data.error);
-      toast.success('Hero image generated');
+      toast.success(t('blogarticlemanagertsx.blogarticlemanager.heroImageGenerated', 'Hero image generated'));
       queryClient.invalidateQueries({ queryKey: ['admin-blog-posts'] });
     } catch (error) {
-      toast.error('Image generation failed');
+      toast.error(t('blogarticlemanagertsx.blogarticlemanager.imageGenerationFailed', 'Image generation failed'));
     } finally {
       setGeneratingImageFor(null);
     }
@@ -197,7 +199,7 @@ const BlogArticleManager: React.FC = () => {
 
   const handleRegenerateAllBroken = async () => {
     if (brokenPosts.length === 0) {
-      toast.info('No broken articles to regenerate.');
+      toast.info(t('blogarticlemanagertsx.blogarticlemanager.noBrokenArticlesToRegenerate', 'No broken articles to regenerate.'));
       return;
     }
 
@@ -230,7 +232,7 @@ const BlogArticleManager: React.FC = () => {
           <CardContent className="flex items-center justify-between py-4">
             <div>
               <p className="font-medium text-foreground">{brokenPosts.length} articles have broken content</p>
-              <p className="text-sm text-muted-foreground">These were generated with the old schema and render as empty.</p>
+              <p className="text-sm text-muted-foreground">{t('blogarticlemanagertsx.blogarticlemanager.theseWereGeneratedWithTheOld', 'These were generated with the old schema and render as empty.')}</p>
             </div>
             <Button variant="warning" onClick={handleRegenerateAllBroken}>
               <RefreshCw className="h-4 w-4 mr-2" />
@@ -263,7 +265,7 @@ const BlogArticleManager: React.FC = () => {
         <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search articles..."
+            placeholder={t('blogarticlemanagertsx.blogarticlemanager.searchArticles', 'Search articles...')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-9"
@@ -292,7 +294,7 @@ const BlogArticleManager: React.FC = () => {
               <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
             </div>
           ) : !posts?.length ? (
-            <p className="text-muted-foreground text-center py-8">No articles found.</p>
+            <p className="text-muted-foreground text-center py-8">{t('blogarticlemanagertsx.blogarticlemanager.noArticlesFound', 'No articles found.')}</p>
           ) : (
             <div className="space-y-2">
               {posts.map((post: any) => {
@@ -315,8 +317,8 @@ const BlogArticleManager: React.FC = () => {
                       <p className="font-medium text-foreground truncate">{post.title}</p>
                       <div className="flex gap-2 mt-1">
                         <Badge variant="outline" className="text-xs">{post.category}</Badge>
-                        {post.ai_generated && <Badge variant="outline" className="text-xs">AI</Badge>}
-                        {broken && <Badge className="bg-warning/10 text-warning text-xs">Broken</Badge>}
+                        {post.ai_generated && <Badge variant="outline" className="text-xs">{t('blogarticlemanagertsx.blogarticlemanager.ai', 'AI')}</Badge>}
+                        {broken && <Badge className="bg-warning/10 text-warning text-xs">{t('blogarticlemanagertsx.blogarticlemanager.broken', 'Broken')}</Badge>}
                         {post.performance_score > 0 && (
                           <Badge variant="outline" className="text-xs">Score: {post.performance_score}</Badge>
                         )}
@@ -344,7 +346,7 @@ const BlogArticleManager: React.FC = () => {
                         variant="ghost"
                         onClick={() => handleRegenerate(post.id, post.title)}
                         disabled={regeneratingId === post.id || !!bulkProgress}
-                        title="Regenerate article content"
+                        title={t('blogarticlemanagertsx.blogarticlemanager.regenerateArticleContent', 'Regenerate article content')}
                       >
                         {regeneratingId === post.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
                       </Button>
@@ -394,8 +396,8 @@ const BlogArticleManager: React.FC = () => {
       <Dialog open={scheduleDialogOpen} onOpenChange={setScheduleDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Schedule Article</DialogTitle>
-            <DialogDescription>Choose when to publish this article.</DialogDescription>
+            <DialogTitle>{t('blogarticlemanagertsx.blogarticlemanager.scheduleArticle', 'Schedule Article')}</DialogTitle>
+            <DialogDescription>{t('blogarticlemanagertsx.blogarticlemanager.chooseWhenToPublishThisArticle', 'Choose when to publish this article.')}</DialogDescription>
           </DialogHeader>
           <Input
             type="datetime-local"
@@ -403,8 +405,8 @@ const BlogArticleManager: React.FC = () => {
             onChange={(e) => setScheduleDate(e.target.value)}
           />
           <DialogFooter>
-            <Button variant="outline" onClick={() => setScheduleDialogOpen(false)}>Cancel</Button>
-            <Button onClick={handleSchedule} disabled={!scheduleDate}>Schedule</Button>
+            <Button variant="outline" onClick={() => setScheduleDialogOpen(false)}>{t('blogarticlemanagertsx.blogarticlemanager.cancel', 'Cancel')}</Button>
+            <Button onClick={handleSchedule} disabled={!scheduleDate}>{t('blogarticlemanagertsx.blogarticlemanager.schedule', 'Schedule')}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

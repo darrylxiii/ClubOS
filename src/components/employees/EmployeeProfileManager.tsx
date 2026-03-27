@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -28,6 +29,7 @@ import { useUserCompany } from "@/hooks/useUserCompany";
 import { CommissionTierSelector, TierConfig } from "./CommissionTierSelector";
 
 export function EmployeeProfileManager() {
+  const { t } = useTranslation('common');
   const [searchQuery, setSearchQuery] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<EmployeeProfile | null>(null);
@@ -61,10 +63,10 @@ export function EmployeeProfileManager() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['all-employees'] });
-      toast.success("Employee deactivated");
+      toast.success(t("employee_deactivated", "Employee deactivated"));
     },
     onError: () => {
-      toast.error("Failed to deactivate employee");
+      toast.error(t("failed_to_deactivate_employee", "Failed to deactivate employee"));
     },
   });
 
@@ -112,7 +114,7 @@ export function EmployeeProfileManager() {
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search employees..."
+            placeholder={t("search_employees", "Search employees...")}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-9"
@@ -130,7 +132,7 @@ export function EmployeeProfileManager() {
           ) : filteredEmployees?.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-32 text-muted-foreground">
               <Users className="h-8 w-8 mb-2 opacity-50" />
-              <p>No employees found</p>
+              <p>{t("no_employees_found", "No employees found")}</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -180,7 +182,7 @@ export function EmployeeProfileManager() {
                         variant="ghost"
                         size="sm"
                         onClick={() => setViewingEmployee(employee)}
-                        title="View Details"
+                        title={t("view_details", "View Details")}
                       >
                         <Eye className="h-4 w-4" />
                       </Button>
@@ -188,7 +190,7 @@ export function EmployeeProfileManager() {
                         variant="ghost"
                         size="sm"
                         onClick={() => handleEdit(employee)}
-                        title="Edit"
+                        title={t("edit", "Edit")}
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
@@ -197,7 +199,7 @@ export function EmployeeProfileManager() {
                         size="sm"
                         className="text-destructive hover:text-destructive hover:bg-destructive/10"
                         onClick={() => deleteEmployee.mutate(employee.id)}
-                        title="Deactivate"
+                        title={t("deactivate", "Deactivate")}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -213,7 +215,7 @@ export function EmployeeProfileManager() {
         <Dialog open={!!viewingEmployee} onOpenChange={(open) => !open && setViewingEmployee(null)}>
           <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Employee Details</DialogTitle>
+              <DialogTitle>{t("employee_details", "Employee Details")}</DialogTitle>
             </DialogHeader>
             {viewingEmployee && (
               <EmployeeDetailView 
@@ -327,11 +329,11 @@ function EmployeeForm({
       {/* User Selection - only for new employees */}
       {!employee && (
         <div className="space-y-2">
-          <Label>Select User *</Label>
+          <Label>{t("select_user", "Select User *")}</Label>
           <UserSelectCombobox
             value={selectedUser}
             onChange={handleUserSelect}
-            placeholder="Search for a user..."
+            placeholder={t("search_for_a_user", "Search for a user...")}
             companyId={companyId}
           />
           {selectedUser && (
@@ -349,26 +351,26 @@ function EmployeeForm({
 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label>Job Title *</Label>
+          <Label>{t("job_title", "Job Title *")}</Label>
           <Input
             value={formData.job_title}
             onChange={(e) => setFormData({ ...formData, job_title: e.target.value })}
-            placeholder="e.g., Senior Recruiter"
+            placeholder={t("eg_senior_recruiter", "e.g., Senior Recruiter")}
           />
         </div>
         <div className="space-y-2">
-          <Label>Department</Label>
+          <Label>{t("department", "Department")}</Label>
           <Input
             value={formData.department}
             onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-            placeholder="e.g., Recruitment"
+            placeholder={t("eg_recruitment", "e.g., Recruitment")}
           />
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label>Employment Type</Label>
+          <Label>{t("employment_type", "Employment Type")}</Label>
           <Select
             value={formData.employment_type}
             onValueChange={(value) => setFormData({ ...formData, employment_type: value })}
@@ -377,23 +379,23 @@ function EmployeeForm({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="full_time">Full Time</SelectItem>
-              <SelectItem value="part_time">Part Time</SelectItem>
-              <SelectItem value="contractor">Contractor</SelectItem>
+              <SelectItem value="full_time">{t("full_time", "Full Time")}</SelectItem>
+              <SelectItem value="part_time">{t("part_time", "Part Time")}</SelectItem>
+              <SelectItem value="contractor">{t("contractor", "Contractor")}</SelectItem>
             </SelectContent>
           </Select>
         </div>
         <div className="space-y-2">
-          <Label>Manager</Label>
+          <Label>{t("manager", "Manager")}</Label>
           <Select
             value={formData.manager_id || "__none__"}
             onValueChange={(value) => setFormData({ ...formData, manager_id: value === "__none__" ? "" : value })}
           >
             <SelectTrigger>
-              <SelectValue placeholder="Select manager" />
+              <SelectValue placeholder={t("select_manager", "Select manager")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="__none__">No Manager</SelectItem>
+              <SelectItem value="__none__">{t("no_manager", "No Manager")}</SelectItem>
               {allEmployees
                 .filter(e => e.id !== employee?.id)
                 .map(e => {
@@ -411,7 +413,7 @@ function EmployeeForm({
 
       {/* Commission Structure Type Selection */}
       <div className="space-y-2">
-        <Label>Commission Structure</Label>
+        <Label>{t("commission_structure", "Commission Structure")}</Label>
         <Select
           value={formData.commission_structure}
           onValueChange={(value) => setFormData({ ...formData, commission_structure: value })}
@@ -420,10 +422,10 @@ function EmployeeForm({
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="percentage">Percentage</SelectItem>
-            <SelectItem value="tiered">Tiered</SelectItem>
-            <SelectItem value="hybrid">Hybrid (Base + Tiers)</SelectItem>
-            <SelectItem value="fixed">Fixed Amount</SelectItem>
+            <SelectItem value="percentage">{t("percentage", "Percentage")}</SelectItem>
+            <SelectItem value="tiered">{t("tiered", "Tiered")}</SelectItem>
+            <SelectItem value="hybrid">{t("hybrid_base_tiers", "Hybrid (Base + Tiers)")}</SelectItem>
+            <SelectItem value="fixed">{t("fixed_amount", "Fixed Amount")}</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -443,7 +445,7 @@ function EmployeeForm({
 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label>Base Salary (€)</Label>
+          <Label>{t("base_salary", "Base Salary (€)")}</Label>
           <Input
             type="number"
             min="0"
@@ -452,7 +454,7 @@ function EmployeeForm({
           />
         </div>
         <div className="space-y-2">
-          <Label>Annual Bonus Target (€)</Label>
+          <Label>{t("annual_bonus_target", "Annual Bonus Target (€)")}</Label>
           <Input
             type="number"
             min="0"
@@ -463,7 +465,7 @@ function EmployeeForm({
       </div>
 
       <div className="flex justify-end gap-2 pt-4">
-        <Button variant="outline" onClick={onClose}>Cancel</Button>
+        <Button variant="outline" onClick={onClose}>{t("cancel", "Cancel")}</Button>
         <Button 
           onClick={() => saveEmployee.mutate()}
           disabled={(!employee && !formData.user_id) || !formData.job_title.trim() || saveEmployee.isPending}

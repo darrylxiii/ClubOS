@@ -1,7 +1,17 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useSubscription } from '../useSubscription';
-import { supabase } from '@/integrations/supabase/client';
+
+vi.mock('@/integrations/supabase/client', () => ({
+  supabase: {
+    functions: {
+      invoke: vi.fn().mockResolvedValue({ data: null, error: null }),
+    },
+    auth: {
+      getSession: vi.fn().mockResolvedValue({ data: { session: { access_token: 'test-token' } }, error: null }),
+    },
+  },
+}));
 
 vi.mock('@/contexts/AuthContext', () => ({
   useAuth: () => ({ user: { id: 'test-user-id', email: 'test@example.com' } }),

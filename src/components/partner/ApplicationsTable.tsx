@@ -32,6 +32,7 @@ import { CandidateDetailDialog } from "./CandidateDetailDialog";
 import { CandidateActionDialog } from "./CandidateActionDialog";
 import { getVisibleFields } from "@/utils/candidateVisibility";
 import { useRole } from "@/contexts/RoleContext";
+import { useTranslation } from 'react-i18next';
 
 interface ApplicationsTableProps {
   applications: any[];
@@ -39,6 +40,7 @@ interface ApplicationsTableProps {
 }
 
 export const ApplicationsTable = ({ applications, onUpdate }: ApplicationsTableProps) => {
+  const { t } = useTranslation('partner');
   const navigate = useNavigate();
   const { currentRole: role } = useRole();
   const [selectedApp, setSelectedApp] = useState<any>(null);
@@ -66,11 +68,11 @@ export const ApplicationsTable = ({ applications, onUpdate }: ApplicationsTableP
 
   const getUrgencyBadge = (lastActivity: string | null) => {
     if (!lastActivity) {
-      return <Badge variant="destructive">No Activity</Badge>;
+      return <Badge variant="destructive">{t('applicationsTable.badge.noActivity')}</Badge>;
     }
     const daysSince = Math.floor((Date.now() - new Date(lastActivity).getTime()) / (1000 * 60 * 60 * 24));
     if (daysSince > 14) {
-      return <Badge variant="destructive">Urgent</Badge>;
+      return <Badge variant="destructive">{t('applicationsTable.badge.urgent')}</Badge>;
     } else if (daysSince > 7) {
       return <Badge variant="outline" className="border-amber-500 text-amber-500">Needs Follow-up</Badge>;
     }
@@ -91,7 +93,7 @@ export const ApplicationsTable = ({ applications, onUpdate }: ApplicationsTableP
     return (
       <Card>
         <CardContent className="py-12 text-center">
-          <p className="text-muted-foreground">No applications found matching your filters</p>
+          <p className="text-muted-foreground">{t('applicationsTable.noApplicationsFoundMatchingYourFilters')}</p>
         </CardContent>
       </Card>
     );
@@ -112,7 +114,7 @@ export const ApplicationsTable = ({ applications, onUpdate }: ApplicationsTableP
                   <TableHead>Source</TableHead>
                   <TableHead>Last Activity</TableHead>
                   <TableHead>Applied</TableHead>
-                  <TableHead>Actions</TableHead>
+                  <TableHead>{t('common:actions')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -127,7 +129,7 @@ export const ApplicationsTable = ({ applications, onUpdate }: ApplicationsTableP
                   const hasAccount = candidate?.has_account ?? (app.user_id ? true : false);
                   const accountStatusBadge = hasAccount 
                     ? null
-                    : <Badge variant="outline" className="border-amber-500/50 text-amber-600 dark:text-amber-400 text-[10px]">Pending Signup</Badge>;
+                    : <Badge variant="outline" className="border-amber-500/50 text-amber-600 dark:text-amber-400 text-[10px]">{t('applicationsTable.badge.pendingSignup')}</Badge>;
                   
                   return (
                     <TableRow key={app.id} className="hover:bg-muted/50">
@@ -241,7 +243,7 @@ export const ApplicationsTable = ({ applications, onUpdate }: ApplicationsTableP
                               </DropdownMenuItem>
                               <DropdownMenuItem onClick={() => handleOpenAction(app, 'reject')}>
                                 <UserX className="w-4 h-4 mr-2" />
-                                Reject
+                                {t('common:reject')}
                               </DropdownMenuItem>
                               <DropdownMenuItem>
                                 <MessageSquare className="w-4 h-4 mr-2" />

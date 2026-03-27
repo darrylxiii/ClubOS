@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -26,6 +27,7 @@ import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
 export function EmailInbox() {
+  const { t } = useTranslation('common');
   const [filter, setFilter] = useState("inbox");
   const [priorityTab, setPriorityTab] = useState("all");
   const [selectedEmail, setSelectedEmail] = useState<any>(null);
@@ -343,7 +345,7 @@ export function EmailInbox() {
             <div className="flex justify-center mb-4">
               <Mail className="h-16 w-16 text-muted-foreground" />
             </div>
-            <CardTitle className="text-center">Connect Your Email</CardTitle>
+            <CardTitle className="text-center">{t("connect_your_email", "Connect Your Email")}</CardTitle>
             <CardDescription className="text-center">
               Connect Gmail or Outlook to manage your emails from The Quantum Club
             </CardDescription>
@@ -404,7 +406,7 @@ export function EmailInbox() {
         <AdvancedSearchInput
           value={searchQuery}
           onChange={setSearchQuery}
-          placeholder="Search emails..."
+          placeholder={t("search_emails", "Search emails...")}
           className="flex-1 min-w-[150px] sm:min-w-[200px] max-w-2xl"
         />
         <Button
@@ -451,7 +453,7 @@ export function EmailInbox() {
         <Sheet open={mobileSidebarOpen} onOpenChange={setMobileSidebarOpen}>
           <SheetContent side="left" className="p-0 w-[280px] md:hidden">
             <SheetHeader className="p-4 border-b">
-              <SheetTitle>Menu</SheetTitle>
+              <SheetTitle>{t("menu", "Menu")}</SheetTitle>
             </SheetHeader>
             <EmailSidebar
               currentFilter={filter}
@@ -546,7 +548,7 @@ export function EmailInbox() {
         {/* Empty state when no email selected */}
         {!selectedEmail && (
           <div className="hidden md:flex flex-1 items-center justify-center text-muted-foreground">
-            <p>Select an email to read</p>
+            <p>{t("select_an_email_to", "Select an email to read")}</p>
           </div>
         )}
       </div>

@@ -117,7 +117,7 @@ export function SetPasswordModal({ open, onOpenChange }: SetPasswordModalProps) 
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="your@email.com"
+                placeholder={t("youremailcom", "your@email.com")}
                 disabled={isLoading}
                 autoFocus
                 className="bg-background/50"

@@ -3,6 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Play, Share2, User } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { CreateConversationDialog } from "./CreateConversationDialog";
@@ -28,6 +29,7 @@ export const StoryShareCard = ({
   onStoryClick,
   isOwnMessage
 }: StoryShareCardProps) => {
+  const { t } = useTranslation('messages');
   const [signedUrl, setSignedUrl] = useState<string>('');
   const [showForwardDialog, setShowForwardDialog] = useState(false);
 
@@ -70,11 +72,11 @@ export const StoryShareCard = ({
         }
       });
 
-      toast.success('Story forwarded successfully');
+      toast.success(t('story.forwarded'));
       setShowForwardDialog(false);
     } catch (error) {
       console.error('Error forwarding story:', error);
-      toast.error('Failed to forward story');
+      toast.error(t('story.forwardFailed'));
     }
   };
 
@@ -151,7 +153,7 @@ export const StoryShareCard = ({
             }}
           >
             <Share2 className="h-4 w-4" />
-            Forward Story
+            {t('story.forward')}
           </Button>
         </div>
       </Card>
@@ -160,7 +162,7 @@ export const StoryShareCard = ({
         open={showForwardDialog}
         onOpenChange={setShowForwardDialog}
         onConversationCreated={handleForward}
-        title="Forward Story To"
+        title={t('story.forwardTo')}
       />
     </>
   );

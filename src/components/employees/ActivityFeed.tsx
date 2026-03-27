@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -21,6 +22,7 @@ interface ActivityFeedProps {
 }
 
 export function ActivityFeed({ userId, limit = 50 }: ActivityFeedProps) {
+  const { t } = useTranslation('common');
   const { data: feed, isLoading } = useActivityFeed(userId, limit);
   const [filter, setFilter] = useState<string>('all');
 
@@ -97,11 +99,11 @@ export function ActivityFeed({ userId, limit = 50 }: ActivityFeedProps) {
               onChange={(e) => setFilter(e.target.value)}
               className="text-xs bg-muted rounded px-2 py-1"
             >
-              <option value="all">All</option>
-              <option value="hired">Hired</option>
-              <option value="rejected">Rejected</option>
-              <option value="interviewing">Interviewing</option>
-              <option value="screening">Screening</option>
+              <option value="all">{t("all", "All")}</option>
+              <option value="hired">{t("hired", "Hired")}</option>
+              <option value="rejected">{t("rejected", "Rejected")}</option>
+              <option value="interviewing">{t("interviewing", "Interviewing")}</option>
+              <option value="screening">{t("screening", "Screening")}</option>
             </select>
             <Button variant="ghost" size="sm" onClick={exportToCSV}>
               <Download className="h-4 w-4" />
@@ -113,7 +115,7 @@ export function ActivityFeed({ userId, limit = 50 }: ActivityFeedProps) {
         {!filteredFeed?.length ? (
           <div className="text-center py-8 text-muted-foreground">
             <Activity className="h-12 w-12 mx-auto mb-2 opacity-50" />
-            <p>No activity yet</p>
+            <p>{t("no_activity_yet", "No activity yet")}</p>
           </div>
         ) : (
           <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2">

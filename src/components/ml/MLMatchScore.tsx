@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { TrendingUp, Brain, Clock, Target } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -22,6 +23,7 @@ export function MLMatchScore({
   modelVersion,
   className,
 }: MLMatchScoreProps) {
+  const { t } = useTranslation('common');
   const scorePercentage = Math.round(predictionScore * 100);
   const interviewPercentage = Math.round(interviewProbability * 100);
 
@@ -72,7 +74,7 @@ export function MLMatchScore({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Target className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm font-medium">Match Score</span>
+              <span className="text-sm font-medium">{t("match_score", "Match Score")}</span>
             </div>
             <div className="flex items-center gap-2">
               <span className={`text-2xl font-bold ${getScoreColor(predictionScore)}`}>

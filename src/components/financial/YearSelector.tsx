@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { CalendarDays } from 'lucide-react';
@@ -15,6 +16,7 @@ export function YearSelector({
   yearOptions,
   availableYears 
 }: YearSelectorProps) {
+  const { t } = useTranslation('common');
   const hasData = (year: number) => {
     return availableYears?.some(y => y.year === year && y.hasRevenue);
   };
@@ -36,7 +38,7 @@ export function YearSelector({
                 <span>{year}</span>
                 {hasData(year) && (
                   <Badge variant="secondary" className="text-[10px] px-1 py-0">
-                    data
+                    {t('financial.data')}
                   </Badge>
                 )}
               </div>

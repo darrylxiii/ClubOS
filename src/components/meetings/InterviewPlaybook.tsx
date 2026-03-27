@@ -7,6 +7,7 @@ import { Progress } from "@/components/ui/progress";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ChevronDown, Clock, Target, MessageSquare, CheckCircle2 } from "lucide-react";
 import { MeetingTemplate } from "./MeetingTemplateSelector";
+import { useTranslation } from "react-i18next";
 
 interface InterviewPlaybookProps {
   template: MeetingTemplate;
@@ -14,6 +15,7 @@ interface InterviewPlaybookProps {
 }
 
 export function InterviewPlaybook({ template, onQuestionComplete }: InterviewPlaybookProps) {
+  const { t } = useTranslation("meetings");
   const [completedQuestions, setCompletedQuestions] = useState<Set<number>>(new Set());
   const [isRubricOpen, setIsRubricOpen] = useState(false);
 
@@ -39,10 +41,10 @@ export function InterviewPlaybook({ template, onQuestionComplete }: InterviewPla
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg flex items-center gap-2">
             <MessageSquare className="h-5 w-5 text-primary" />
-            Interview Playbook
+            {t('playbook.title')}
           </CardTitle>
           <Badge variant="outline">
-            {completedQuestions.size}/{template.questions.length} completed
+            {t('playbook.completedCount', { completed: completedQuestions.size, total: template.questions.length })}
           </Badge>
         </div>
         <Progress value={progress} className="h-2 mt-2" />
@@ -51,11 +53,11 @@ export function InterviewPlaybook({ template, onQuestionComplete }: InterviewPla
         <div className="flex items-center gap-4 text-sm text-muted-foreground">
           <span className="flex items-center gap-1">
             <Clock className="h-4 w-4" />
-            ~{timePerQuestion} min per question
+            {t('playbook.minPerQuestion', { minutes: timePerQuestion })}
           </span>
           <span className="flex items-center gap-1">
             <Target className="h-4 w-4" />
-            {template.duration} min total
+            {t('playbook.minTotal', { minutes: template.duration })}
           </span>
         </div>
 
@@ -92,7 +94,7 @@ export function InterviewPlaybook({ template, onQuestionComplete }: InterviewPla
               <Button variant="ghost" className="w-full justify-between">
                 <span className="flex items-center gap-2">
                   <Target className="h-4 w-4" />
-                  Scoring Rubric
+                  {t('playbook.scoringRubric')}
                 </span>
                 <ChevronDown className={`h-4 w-4 transition-transform ${isRubricOpen ? "rotate-180" : ""}`} />
               </Button>

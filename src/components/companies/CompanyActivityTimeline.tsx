@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useCompanyActivity, CompanyActivityEvent } from '@/hooks/useCompanyActivity';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -30,6 +31,7 @@ const EVENT_CONFIG: Record<string, {
 };
 
 function ActivityEventCard({ event }: { event: CompanyActivityEvent }) {
+  const { t } = useTranslation('common');
   const config = EVENT_CONFIG[event.event_type] || {
     icon: Clock,
     color: 'text-muted-foreground',
@@ -131,7 +133,7 @@ export function CompanyActivityTimeline({ companyId }: CompanyActivityTimelinePr
     return (
       <div className="text-center py-8">
         <Clock className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-        <p className="text-muted-foreground">No activity yet</p>
+        <p className="text-muted-foreground">{t("no_activity_yet", "No activity yet")}</p>
         <p className="text-xs text-muted-foreground mt-1">
           Activity will appear here as your team creates jobs and manages candidates
         </p>

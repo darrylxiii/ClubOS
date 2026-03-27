@@ -3,8 +3,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { useSecurityMetrics } from "@/hooks/useSecurityMetrics";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useTranslation } from 'react-i18next';
 
 export const RateLimitingCard = () => {
+  const { t } = useTranslation('admin');
   const { rateLimitMetrics, isLoading } = useSecurityMetrics();
 
   if (isLoading || !rateLimitMetrics) {
@@ -31,8 +33,8 @@ export const RateLimitingCard = () => {
     <Card className={isUnderAttack ? "border-orange-500/20" : "border-green-500/20"}>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <div>
-          <CardTitle className="text-sm font-medium">Rate Limiting</CardTitle>
-          <CardDescription>Blocked requests today</CardDescription>
+          <CardTitle className="text-sm font-medium">{t('security.rateLimitingCard.rateLimiting')}</CardTitle>
+          <CardDescription>{t('security.rateLimitingCard.blockedRequestsToday')}</CardDescription>
         </div>
         <Ban className={`h-4 w-4 ${isUnderAttack ? 'text-orange-500' : 'text-green-500'}`} />
       </CardHeader>
@@ -48,7 +50,7 @@ export const RateLimitingCard = () => {
           <div className="mt-4 pt-4 border-t">
             <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
               <Activity className="h-3 w-3" />
-              <span>Top Limited Endpoints</span>
+              <span>{t('security.rateLimitingCard.topLimitedEndpoints')}</span>
             </div>
             <div className="space-y-1">
               {topEndpoints.map(([endpoint, count]) => (

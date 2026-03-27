@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import type { Database } from '@/integrations/supabase/types';
+import { useTranslation } from 'react-i18next';
 
 type CrossChannelPattern = Database['public']['Tables']['cross_channel_patterns']['Row'];
 
@@ -79,6 +80,7 @@ export function CrossChannelPatternAlert({
   onResolve,
   onTakeAction
 }: CrossChannelPatternAlertProps) {
+  const { t } = useTranslation('common');
   const config = patternConfig[pattern.pattern_type || ''] || {
     icon: AlertTriangle,
     color: 'text-muted-foreground',
@@ -119,7 +121,7 @@ export function CrossChannelPatternAlert({
                     {isResolved && (
                       <Badge variant="outline" className="text-xs bg-green-500/10 text-green-500 border-green-500/30">
                         <CheckCircle className="h-3 w-3 mr-1" />
-                        Resolved
+                        {t('communication.resolved', 'Resolved')}
                       </Badge>
                     )}
                   </div>
@@ -129,7 +131,7 @@ export function CrossChannelPatternAlert({
                 </div>
                 <div className="flex items-center gap-2">
                   <Badge variant="secondary" className="text-xs">
-                    {confidence}% confidence
+                    {t('communication.confidence', '{{confidence}}% confidence', { confidence })}
                   </Badge>
                   {!isResolved && onResolve && (
                     <Button
@@ -180,7 +182,7 @@ export function CrossChannelPatternAlert({
               <div className="flex items-center gap-1 mt-2 text-xs text-muted-foreground">
                 <Clock className="h-3 w-3" />
                 <span>
-                  Detected {new Date(pattern.detected_at).toLocaleDateString()}
+                  {t('communication.detected', 'Detected {{date}}', { date: new Date(pattern.detected_at).toLocaleDateString() })}
                 </span>
               </div>
             </div>

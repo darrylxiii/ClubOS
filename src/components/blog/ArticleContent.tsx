@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link2, Check, Lightbulb } from 'lucide-react';
 import { ContentBlock } from '@/data/blog';
 import CTACallout from './CTACallout';
@@ -44,6 +45,7 @@ const defaultInlineCTA = {
 };
 
 const ArticleContent: React.FC<ArticleContentProps> = ({ content, className, category }) => {
+  const { t } = useTranslation('common');
   const [copiedSlug, setCopiedSlug] = useState<string | null>(null);
 
   const copyLink = async (slug: string) => {
@@ -51,7 +53,7 @@ const ArticleContent: React.FC<ArticleContentProps> = ({ content, className, cat
     try {
       await navigator.clipboard.writeText(url);
       setCopiedSlug(slug);
-      toast.success("Link copied to clipboard");
+      toast.success(t('blog.linkCopied'));
       setTimeout(() => setCopiedSlug(null), 2000);
     } catch (error) {
       console.error('Failed to copy link:', error);
@@ -98,7 +100,7 @@ const ArticleContent: React.FC<ArticleContentProps> = ({ content, className, cat
         return (
           <HeadingTag key={index} id={slug} className={cn("text-foreground scroll-mt-24 group relative flex items-center gap-2", styles[block.level || 2])}>
             <span>{block.content}</span>
-            <button onClick={() => copyLink(slug)} className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-muted" aria-label={`Copy link to ${block.content}`}>
+            <button onClick={() => copyLink(slug)} className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-muted" aria-label={t('blog.copyLinkTo', { section: block.content })}>
               {copiedSlug === slug ? <Check className="h-4 w-4 text-accent" /> : <Link2 className="h-4 w-4 text-muted-foreground" />}
             </button>
           </HeadingTag>

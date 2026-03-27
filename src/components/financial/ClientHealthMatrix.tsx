@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -18,6 +19,7 @@ interface ClientHealth {
 }
 
 export function ClientHealthMatrix({ year, legalEntity }: { year?: number; legalEntity?: string }) {
+  const { t } = useTranslation('common');
   const currentYear = year || new Date().getFullYear();
 
   const { data, isLoading } = useQuery({
@@ -135,12 +137,12 @@ export function ClientHealthMatrix({ year, legalEntity }: { year?: number; legal
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b text-xs text-muted-foreground">
-                  <th className="text-left py-2 pr-2">Client</th>
-                  <th className="text-right py-2 px-2">Revenue</th>
-                  <th className="text-right py-2 px-2">Invoices</th>
-                  <th className="text-right py-2 px-2">Avg Interval</th>
-                  <th className="text-right py-2 px-2">Last Invoice</th>
-                  <th className="text-center py-2 pl-2">Status</th>
+                  <th className="text-left py-2 pr-2">{t("client", "Client")}</th>
+                  <th className="text-right py-2 px-2">{t("revenue", "Revenue")}</th>
+                  <th className="text-right py-2 px-2">{t("invoices", "Invoices")}</th>
+                  <th className="text-right py-2 px-2">{t("avg_interval", "Avg Interval")}</th>
+                  <th className="text-right py-2 px-2">{t("last_invoice", "Last Invoice")}</th>
+                  <th className="text-center py-2 pl-2">{t("status", "Status")}</th>
                 </tr>
               </thead>
               <tbody>

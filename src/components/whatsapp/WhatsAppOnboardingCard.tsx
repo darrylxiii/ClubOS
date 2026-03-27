@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -35,6 +36,7 @@ export function WhatsAppOnboardingCard({
   hasConversations,
   onNavigate
 }: WhatsAppOnboardingCardProps) {
+  const { t } = useTranslation('common');
   const steps: OnboardingStep[] = [
     {
       id: 'connect',
@@ -76,7 +78,7 @@ export function WhatsAppOnboardingCard({
           <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-[#25d366] to-[#128c7e] flex items-center justify-center">
             <MessageSquare className="w-8 h-8 text-white" />
           </div>
-          <CardTitle className="text-2xl">Welcome to WhatsApp Business Hub</CardTitle>
+          <CardTitle className="text-2xl">{t("welcome_to_whatsapp_business", "Welcome to WhatsApp Business Hub")}</CardTitle>
           <CardDescription className="text-base max-w-lg mx-auto">
             Connect with candidates directly through WhatsApp. Set up your account to get started with enterprise messaging.
           </CardDescription>
@@ -102,8 +104,8 @@ export function WhatsAppOnboardingCard({
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-lg">Setup Progress</CardTitle>
-              <CardDescription>Complete these steps to start messaging</CardDescription>
+              <CardTitle className="text-lg">{t("setup_progress", "Setup Progress")}</CardTitle>
+              <CardDescription>{t("complete_these_steps_to", "Complete these steps to start messaging")}</CardDescription>
             </div>
             <Badge variant={progress === 100 ? 'default' : 'secondary'} className="text-sm">
               {completedSteps}/{steps.length} complete
@@ -160,8 +162,8 @@ export function WhatsAppOnboardingCard({
               <Upload className="w-6 h-6 text-blue-500" />
             </div>
             <div>
-              <h3 className="font-semibold">Import Existing Chats</h3>
-              <p className="text-sm text-muted-foreground">Upload WhatsApp exports to sync history</p>
+              <h3 className="font-semibold">{t("import_existing_chats", "Import Existing Chats")}</h3>
+              <p className="text-sm text-muted-foreground">{t("upload_whatsapp_exports_to", "Upload WhatsApp exports to sync history")}</p>
             </div>
           </CardContent>
         </Card>
@@ -172,8 +174,8 @@ export function WhatsAppOnboardingCard({
               <Settings className="w-6 h-6 text-amber-500" />
             </div>
             <div>
-              <h3 className="font-semibold">Configure Integration</h3>
-              <p className="text-sm text-muted-foreground">Set up webhooks and API credentials</p>
+              <h3 className="font-semibold">{t("configure_integration", "Configure Integration")}</h3>
+              <p className="text-sm text-muted-foreground">{t("set_up_webhooks_and", "Set up webhooks and API credentials")}</p>
             </div>
           </CardContent>
         </Card>

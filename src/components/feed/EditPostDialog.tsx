@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -13,12 +14,13 @@ interface EditPostDialogProps {
 }
 
 export function EditPostDialog({ post, open, onOpenChange, onUpdate }: EditPostDialogProps) {
+  const { t } = useTranslation('common');
   const [content, setContent] = useState(post.content);
   const [saving, setSaving] = useState(false);
 
   const handleSave = async () => {
     if (!content.trim()) {
-      toast.error('Post content cannot be empty');
+      toast.error(t("post_content_cannot_be", "Post content cannot be empty"));
       return;
     }
 
@@ -34,12 +36,12 @@ export function EditPostDialog({ post, open, onOpenChange, onUpdate }: EditPostD
 
       if (error) throw error;
 
-      toast.success('Post updated successfully');
+      toast.success(t("post_updated_successfully", "Post updated successfully"));
       onOpenChange(false);
       onUpdate();
     } catch (error) {
       console.error('Error updating post:', error);
-      toast.error('Failed to update post');
+      toast.error(t("failed_to_update_post", "Failed to update post"));
     } finally {
       setSaving(false);
     }
@@ -49,14 +51,14 @@ export function EditPostDialog({ post, open, onOpenChange, onUpdate }: EditPostD
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle>Edit Post</DialogTitle>
+          <DialogTitle>{t("edit_post", "Edit Post")}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           <Textarea
             value={content}
             onChange={(e) => setContent(e.target.value)}
             className="min-h-[200px]"
-            placeholder="What's on your mind?"
+            placeholder={t("whats_on_your_mind", "What's on your mind?")}
           />
         </div>
         <DialogFooter>

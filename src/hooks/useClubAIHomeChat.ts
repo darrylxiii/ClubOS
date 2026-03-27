@@ -3,6 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useRole } from '@/contexts/RoleContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { logger } from '@/lib/logger';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -85,7 +86,7 @@ export function useClubAIHomeChat(): UseClubAIHomeChatReturn {
           headers: {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${session.access_token}`,
-            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
           },
           body: JSON.stringify({
             messages: [...messages, userMsg].map(m => ({ role: m.role, content: m.content })),
@@ -179,7 +180,7 @@ export function useClubAIHomeChat(): UseClubAIHomeChatReturn {
       }
     } catch (err: unknown) {
       if (err instanceof DOMException && err.name === 'AbortError') return;
-      console.error('Club AI chat error:', err);
+      logger.error('Club AI chat error', err instanceof Error ? err : new Error(String(err)));
       if (!assistantContent) {
         setMessages(prev => [
           ...prev,

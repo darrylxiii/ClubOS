@@ -1,15 +1,10 @@
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { createHandler } from '../_shared/handler.ts';
 
 /**
- * Unified CORS headers - must include all headers browsers/supabase-js might send
+ * Module-level corsHeaders - reassigned per request from handler context
  */
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-api-key, x-supabase-api-version',
-  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
-  'Access-Control-Max-Age': '86400',
-};
+let corsHeaders: Record<string, string> = {};
 
 interface AuthResult {
   userId: string;
@@ -136,19 +131,10 @@ async function validateAuth(req: Request, requestId: string): Promise<AuthResult
   }
 }
 
-serve(async (req) => {
+Deno.serve(createHandler(async (req, ctx) => {
+  corsHeaders = ctx.corsHeaders;
   const requestId = crypto.randomUUID().slice(0, 8);
   const origin = req.headers.get('origin') || 'unknown';
-  const requestedHeaders = req.headers.get('access-control-request-headers') || '';
-  
-  // Handle CORS preflight with detailed logging
-  if (req.method === 'OPTIONS') {
-    console.log(`[${requestId}] CORS preflight: origin=${origin}, requested-headers=${requestedHeaders}`);
-    return new Response(null, { 
-      status: 204,
-      headers: corsHeaders 
-    });
-  }
 
   console.log(`[${requestId}] ${req.method} request from: ${origin}`);
 
@@ -707,4 +693,4 @@ serve(async (req) => {
       request_id: requestId,
     }, 500);
   }
-});
+}));

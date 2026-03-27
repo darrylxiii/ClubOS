@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -28,6 +29,7 @@ interface KPIActionPlanCardProps {
 }
 
 export function KPIActionPlanCard({ showOnlyMine = false, maxItems = 5, compact = false }: KPIActionPlanCardProps) {
+  const { t } = useTranslation('common');
   const { pendingActions, myActions, updateAction } = useKPIActions();
   const [completeDialogOpen, setCompleteDialogOpen] = useState(false);
   const [selectedAction, setSelectedAction] = useState<KPIImprovementAction | null>(null);
@@ -90,8 +92,8 @@ export function KPIActionPlanCard({ showOnlyMine = false, maxItems = 5, compact 
             <div className="rounded-full bg-emerald-500/10 p-3 mb-3">
               <CheckCircle2 className="h-6 w-6 text-emerald-500" />
             </div>
-            <p className="text-sm font-medium">All caught up!</p>
-            <p className="text-xs text-muted-foreground">No pending action plans</p>
+            <p className="text-sm font-medium">{t("all_caught_up", "All caught up!")}</p>
+            <p className="text-xs text-muted-foreground">{t("no_pending_action_plans", "No pending action plans")}</p>
           </div>
         </CardContent>
       </Card>
@@ -246,9 +248,9 @@ export function KPIActionPlanCard({ showOnlyMine = false, maxItems = 5, compact 
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label>Outcome Notes (Optional)</Label>
+              <Label>{t("outcome_notes_optional", "Outcome Notes (Optional)")}</Label>
               <Textarea
-                placeholder="What was the result? What improved?"
+                placeholder={t("what_was_the_result", "What was the result? What improved?")}
                 value={outcomeNotes}
                 onChange={(e) => setOutcomeNotes(e.target.value)}
                 rows={4}

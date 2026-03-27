@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { motion } from '@/lib/motion';
 import {
   Unlock, Trophy, Gavel, Plus, CheckCircle2, XCircle,
@@ -54,6 +55,7 @@ const decisionStatusConfig = {
 };
 
 export function HistoricalTimeline({ className, limit = 50 }: HistoricalTimelineProps) {
+  const { t } = useTranslation('common');
   const { data: events = [], isLoading } = useMilestoneHistory(limit);
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -111,7 +113,7 @@ export function HistoricalTimeline({ className, limit = 50 }: HistoricalTimeline
           <div className="mx-auto w-12 h-12 rounded-full bg-muted/50 flex items-center justify-center">
             <CalendarDays className="h-6 w-6 text-muted-foreground" />
           </div>
-          <p className="text-heading-sm font-medium">No events yet</p>
+          <p className="text-heading-sm font-medium">{t("no_events_yet", "No events yet")}</p>
           <p className="text-body-sm text-muted-foreground">
             Your milestone history will appear here once milestones are unlocked.
           </p>

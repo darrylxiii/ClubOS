@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -23,6 +24,7 @@ interface EditTimeEntryDialogProps {
 }
 
 export function EditTimeEntryDialog({ entry, open, onOpenChange }: EditTimeEntryDialogProps) {
+  const { t } = useTranslation('common');
   const queryClient = useQueryClient();
   const [description, setDescription] = useState("");
   const [projectId, setProjectId] = useState<string | null>(null);
@@ -100,11 +102,11 @@ export function EditTimeEntryDialog({ entry, open, onOpenChange }: EditTimeEntry
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["time-entries"] });
-      toast.success("Time entry updated");
+      toast.success(t("time_entry_updated", "Time entry updated"));
       onOpenChange(false);
     },
     onError: (error) => {
-      toast.error("Failed to update: " + error.message);
+      toast.error(t("failed_to_update", "Failed to update:") + error.message);
     },
   });
 
@@ -125,7 +127,7 @@ export function EditTimeEntryDialog({ entry, open, onOpenChange }: EditTimeEntry
     const durationSeconds = Math.floor((endDateTime.getTime() - startDateTime.getTime()) / 1000);
 
     if (durationSeconds <= 0) {
-      toast.error("End time must be after start time");
+      toast.error(t("end_time_must_be", "End time must be after start time"));
       return;
     }
 
@@ -159,25 +161,25 @@ export function EditTimeEntryDialog({ entry, open, onOpenChange }: EditTimeEntry
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Edit Time Entry</DialogTitle>
+          <DialogTitle>{t("edit_time_entry", "Edit Time Entry")}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
           {/* Description */}
           <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
+            <Label htmlFor="description">{t("description", "Description")}</Label>
             <Textarea
               id="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="What were you working on?"
+              placeholder={t("what_were_you_working", "What were you working on?")}
               className="min-h-[80px]"
             />
           </div>
 
           {/* Project */}
           <div className="space-y-2">
-            <Label>Project</Label>
+            <Label>{t("project", "Project")}</Label>
             <Select
               value={projectId || "__none__"}
               onValueChange={(val) => {
@@ -186,10 +188,10 @@ export function EditTimeEntryDialog({ entry, open, onOpenChange }: EditTimeEntry
               }}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Select project" />
+                <SelectValue placeholder={t("select_project", "Select project")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="__none__">No project</SelectItem>
+                <SelectItem value="__none__">{t("no_project", "No project")}</SelectItem>
                 {projects?.map((project) => (
                   <SelectItem key={project.id} value={project.id}>
                     <span className="flex items-center gap-2">
@@ -208,16 +210,16 @@ export function EditTimeEntryDialog({ entry, open, onOpenChange }: EditTimeEntry
           {/* Task */}
           {projectId && tasks && tasks.length > 0 && (
             <div className="space-y-2">
-              <Label>Task</Label>
+              <Label>{t("task", "Task")}</Label>
               <Select
                 value={taskId || "__none__"}
                 onValueChange={(val) => setTaskId(val === "__none__" ? null : val)}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select task" />
+                  <SelectValue placeholder={t("select_task", "Select task")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="__none__">No task</SelectItem>
+                  <SelectItem value="__none__">{t("no_task", "No task")}</SelectItem>
                   {tasks.map((task) => (
                     <SelectItem key={task.id} value={task.id}>
                       {task.name}
@@ -231,7 +233,7 @@ export function EditTimeEntryDialog({ entry, open, onOpenChange }: EditTimeEntry
           {/* Date & Time */}
           <div className="grid grid-cols-3 gap-3">
             <div className="space-y-2">
-              <Label>Date</Label>
+              <Label>{t("date", "Date")}</Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
@@ -257,7 +259,7 @@ export function EditTimeEntryDialog({ entry, open, onOpenChange }: EditTimeEntry
             </div>
 
             <div className="space-y-2">
-              <Label>Start</Label>
+              <Label>{t("start", "Start")}</Label>
               <div className="relative">
                 <Clock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
@@ -270,7 +272,7 @@ export function EditTimeEntryDialog({ entry, open, onOpenChange }: EditTimeEntry
             </div>
 
             <div className="space-y-2">
-              <Label>End</Label>
+              <Label>{t("end", "End")}</Label>
               <div className="relative">
                 <Clock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
@@ -285,13 +287,13 @@ export function EditTimeEntryDialog({ entry, open, onOpenChange }: EditTimeEntry
 
           {/* Duration display */}
           <div className="rounded-lg bg-muted/50 p-3 text-center">
-            <span className="text-sm text-muted-foreground">Duration: </span>
+            <span className="text-sm text-muted-foreground">{t("duration", "Duration:")}</span>
             <span className="font-semibold">{formatDuration()}</span>
           </div>
 
           {/* Hourly Rate */}
           <div className="space-y-2">
-            <Label htmlFor="hourlyRate">Hourly Rate (€)</Label>
+            <Label htmlFor="hourlyRate">{t("hourly_rate", "Hourly Rate (€)")}</Label>
             <Input
               id="hourlyRate"
               type="number"
@@ -306,8 +308,8 @@ export function EditTimeEntryDialog({ entry, open, onOpenChange }: EditTimeEntry
           {/* Billable toggle */}
           <div className="flex items-center justify-between rounded-lg border border-border/50 p-3">
             <div>
-              <Label htmlFor="billable" className="text-base">Billable</Label>
-              <p className="text-sm text-muted-foreground">Mark as billable time</p>
+              <Label htmlFor="billable" className="text-base">{t("billable", "Billable")}</Label>
+              <p className="text-sm text-muted-foreground">{t("mark_as_billable_time", "Mark as billable time")}</p>
             </div>
             <Switch
               id="billable"

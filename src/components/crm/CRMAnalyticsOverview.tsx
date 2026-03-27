@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -23,6 +24,7 @@ import { formatCurrency } from '@/lib/revenueCalculations';
 import { useState } from 'react';
 
 export function CRMAnalyticsOverview() {
+  const { t } = useTranslation('common');
   const [dateRange, setDateRange] = useState<'week' | 'month' | '3months'>('month');
   const { data, loading } = useCRMAnalytics({ dateRange });
 
@@ -83,9 +85,9 @@ export function CRMAnalyticsOverview() {
         </h2>
         <Tabs value={dateRange} onValueChange={(v) => setDateRange(v as any)}>
           <TabsList>
-            <TabsTrigger value="week">Week</TabsTrigger>
-            <TabsTrigger value="month">Month</TabsTrigger>
-            <TabsTrigger value="3months">Quarter</TabsTrigger>
+            <TabsTrigger value="week">{t("week", "Week")}</TabsTrigger>
+            <TabsTrigger value="month">{t("month", "Month")}</TabsTrigger>
+            <TabsTrigger value="3months">{t("quarter", "Quarter")}</TabsTrigger>
           </TabsList>
         </Tabs>
       </div>

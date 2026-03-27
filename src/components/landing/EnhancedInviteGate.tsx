@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from 'react-i18next';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -35,6 +36,7 @@ interface WaitlistForm {
 }
 
 export const EnhancedInviteGate = () => {
+  const { t } = useTranslation('common');
   const [code, setCode] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showWaitlist, setShowWaitlist] = useState(false);
@@ -54,29 +56,29 @@ export const EnhancedInviteGate = () => {
     {
       type: "talent" as ApplicantType,
       icon: User,
-      label: "Elite Talent",
-      description: "Seeking career quantum leap",
+      label: t('landing.enhancedinvitegate.eliteTalent', 'Elite Talent'),
+      description: t('landing.enhancedinvitegate.seekingCareerQuantumLeap', 'Seeking career quantum leap'),
       color: "from-blue-500 to-cyan-500",
     },
     {
       type: "partner" as ApplicantType,
       icon: Building2,
-      label: "Hiring Partner",
-      description: "Connect with top 1% talent",
+      label: t('landing.enhancedinvitegate.hiringPartner', 'Hiring Partner'),
+      description: t('landing.enhancedinvitegate.connectWithTop1Talent', 'Connect with top 1% talent'),
       color: "from-purple-500 to-pink-500",
     },
     {
       type: "referrer" as ApplicantType,
       icon: UserPlus,
-      label: "Club Referrer",
-      description: "Bring elite talent to the club",
+      label: t('landing.enhancedinvitegate.clubReferrer', 'Club Referrer'),
+      description: t('landing.enhancedinvitegate.bringEliteTalentToTheClub', 'Bring elite talent to the club'),
       color: "from-green-500 to-emerald-500",
     },
     {
       type: "vip" as ApplicantType,
       icon: Crown,
-      label: "VIP Fast Track",
-      description: "Accelerated club access",
+      label: t('landing.enhancedinvitegate.vipFastTrack', 'VIP Fast Track'),
+      description: t('landing.enhancedinvitegate.acceleratedClubAccess', 'Accelerated club access'),
       color: "from-amber-500 to-orange-500",
     },
   ];
@@ -92,7 +94,7 @@ export const EnhancedInviteGate = () => {
         });
         navigate("/auth");
       } else {
-        toast.error("Invalid access code. Request an invite to join.");
+        toast.error(t('landing.invalidAccessCodeRequestAnInviteToJoin'));
       }
       setIsLoading(false);
       setCode("");
@@ -107,7 +109,7 @@ export const EnhancedInviteGate = () => {
   const handleNext = () => {
     if (currentStep === 2) {
       if (!formData.name || !formData.email) {
-        toast.error("Please fill in required fields");
+        toast.error(t('landing.pleaseFillInRequiredFields'));
         return;
       }
     }
@@ -168,7 +170,7 @@ export const EnhancedInviteGate = () => {
         });
       }, 1500);
     } catch (error: unknown) {
-      toast.error(error instanceof Error ? error.message : "Something went wrong. Please try again.");
+      toast.error(error instanceof Error ? error.message : t('landing.enhancedinvitegate.somethingWentWrongPleaseTryAgain', 'Something went wrong. Please try again.'));
       setIsSuccess(false);
     } finally {
       setIsLoading(false);
@@ -181,12 +183,8 @@ export const EnhancedInviteGate = () => {
         return (
           <div className="space-y-6 animate-fade-in">
             <div className="text-center mb-6">
-              <h3 className="text-xl font-black uppercase tracking-tight mb-2">
-                Choose Your Path
-              </h3>
-              <p className="text-sm text-muted-foreground">
-                Select the category that best describes you
-              </p>
+              <h3 className="text-xl font-black uppercase tracking-tight mb-2">{t('landing.chooseYourPath')}</h3>
+              <p className="text-sm text-muted-foreground">{t('landing.selectTheCategoryThatBestDescribesYou')}</p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -221,25 +219,23 @@ export const EnhancedInviteGate = () => {
               <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r ${applicantTypes.find(t => t.type === formData.applicantType)?.color} text-white text-xs font-bold uppercase mb-4`}>
                 {applicantTypes.find(t => t.type === formData.applicantType)?.label}
               </div>
-              <h3 className="text-xl font-black uppercase tracking-tight">
-                Basic Information
-              </h3>
+              <h3 className="text-xl font-black uppercase tracking-tight">{t('landing.basicInformation')}</h3>
             </div>
 
             <div className="space-y-3">
               <div>
-                <Label className="text-xs font-bold uppercase">Full Name *</Label>
+                <Label className="text-xs font-bold uppercase">{t('landing.fullName ')}</Label>
                 <Input
                   required
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="Jane Smith"
+                  placeholder={t('landing.janeSmith')}
                   className="border-2 transition-all duration-300"
                 />
               </div>
 
               <div>
-                <Label className="text-xs font-bold uppercase">Email *</Label>
+                <Label className="text-xs font-bold uppercase">{t('landing.email ')}</Label>
                 <Input
                   required
                   type="email"
@@ -251,7 +247,7 @@ export const EnhancedInviteGate = () => {
               </div>
 
               <div>
-                <Label className="text-xs font-bold uppercase">LinkedIn Profile</Label>
+                <Label className="text-xs font-bold uppercase">{t('landing.linkedInProfile')}</Label>
                 <Input
                   type="url"
                   value={formData.linkedin}
@@ -263,21 +259,21 @@ export const EnhancedInviteGate = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <Label className="text-xs font-bold uppercase">Phone</Label>
+                  <Label className="text-xs font-bold uppercase">{t('landing.phone')}</Label>
                   <Input
                     type="tel"
                     value={formData.phone || ""}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    placeholder="+1 234 567 8900"
+                    placeholder={t('landing.12345678900')}
                     className="border-2 transition-all duration-300"
                   />
                 </div>
                 <div>
-                  <Label className="text-xs font-bold uppercase">Location</Label>
+                  <Label className="text-xs font-bold uppercase">{t('landing.location')}</Label>
                   <Input
                     value={formData.location || ""}
                     onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                    placeholder="Amsterdam, NL"
+                    placeholder={t('landing.amsterdam')} NL
                     className="border-2 transition-all duration-300"
                   />
                 </div>
@@ -285,11 +281,11 @@ export const EnhancedInviteGate = () => {
 
               {formData.referredByCode !== undefined && (
                 <div>
-                  <Label className="text-xs font-bold uppercase">Referral Code (Optional)</Label>
+                  <Label className="text-xs font-bold uppercase">{t('landing.referralCodeOptional')}</Label>
                   <Input
                     value={formData.referredByCode || ""}
                     onChange={(e) => setFormData({ ...formData, referredByCode: e.target.value.toUpperCase() })}
-                    placeholder="QC-XXXXXX"
+                    placeholder={t('landing.qCXXXXXX')}
                     className="border-2 transition-all duration-300"
                   />
                 </div>
@@ -297,12 +293,8 @@ export const EnhancedInviteGate = () => {
             </div>
 
             <div className="flex gap-3 pt-4">
-              <Button type="button" variant="outline" onClick={handleBack} className="flex-1">
-                Back
-              </Button>
-              <Button type="submit" className="flex-1 hover-lift">
-                Continue
-              </Button>
+              <Button type="button" variant="outline" onClick={handleBack} className="flex-1">{t('landing.back')}</Button>
+              <Button type="submit" className="flex-1 hover-lift">{t('landing.continue')}</Button>
             </div>
           </form>
         );
@@ -311,12 +303,8 @@ export const EnhancedInviteGate = () => {
         return (
           <form onSubmit={handleWaitlistSubmit} className="space-y-4 animate-fade-in">
             <div className="text-center mb-4">
-              <h3 className="text-xl font-black uppercase tracking-tight">
-                Tell Us More
-              </h3>
-              <p className="text-xs text-muted-foreground mt-1">
-                Help us understand your goals
-              </p>
+              <h3 className="text-xl font-black uppercase tracking-tight">{t('landing.tellUsMore')}</h3>
+              <p className="text-xs text-muted-foreground mt-1">{t('landing.helpUsUnderstandYourGoals')}</p>
             </div>
 
             <div className="space-y-3">
@@ -324,57 +312,57 @@ export const EnhancedInviteGate = () => {
                 <>
                   <div>
                     <Label className="text-xs font-bold uppercase">
-                      {formData.applicantType === "partner" ? "Company Name" : "Current Company"}
+                      {formData.applicantType === "partner" ? t('landing.enhancedinvitegate.companyName', 'Company Name') : t('landing.enhancedinvitegate.currentCompany', 'Current Company')}
                     </Label>
                     <Input
                       value={formData.company || ""}
                       onChange={(e) => setFormData({ ...formData, company: e.target.value })}
-                      placeholder="Acme Inc."
+                      placeholder={t('landing.acmeInc')}
                       className="border-2 transition-all duration-300"
                     />
                   </div>
 
                   <div>
                     <Label className="text-xs font-bold uppercase">
-                      {formData.applicantType === "partner" ? "Your Role" : "Current Title"}
+                      {formData.applicantType === "partner" ? t('landing.enhancedinvitegate.yourRole', 'Your Role') : t('landing.enhancedinvitegate.currentTitle', 'Current Title')}
                     </Label>
                     <Input
                       value={formData.jobTitle || ""}
                       onChange={(e) => setFormData({ ...formData, jobTitle: e.target.value })}
-                      placeholder="Senior Product Manager"
+                      placeholder={t('landing.seniorProductManager')}
                       className="border-2 transition-all duration-300"
                     />
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <Label className="text-xs font-bold uppercase">Industry</Label>
+                      <Label className="text-xs font-bold uppercase">{t('landing.industry')}</Label>
                       <Select value={formData.industry} onValueChange={(value) => setFormData({ ...formData, industry: value })}>
                         <SelectTrigger className="border-2">
-                          <SelectValue placeholder="Select..." />
+                          <SelectValue placeholder={t('landing.select')} />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="technology">Technology</SelectItem>
-                          <SelectItem value="finance">Finance</SelectItem>
-                          <SelectItem value="healthcare">Healthcare</SelectItem>
-                          <SelectItem value="consulting">Consulting</SelectItem>
-                          <SelectItem value="other">Other</SelectItem>
+                          <SelectItem value="technology">{t('landing.enhancedinvitegate.technology', 'Technology')}</SelectItem>
+                          <SelectItem value="finance">{t('landing.enhancedinvitegate.finance', 'Finance')}</SelectItem>
+                          <SelectItem value="healthcare">{t('landing.enhancedinvitegate.healthcare', 'Healthcare')}</SelectItem>
+                          <SelectItem value="consulting">{t('landing.enhancedinvitegate.consulting', 'Consulting')}</SelectItem>
+                          <SelectItem value="other">{t('landing.enhancedinvitegate.other', 'Other')}</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                     <div>
-                      <Label className="text-xs font-bold uppercase">Seniority</Label>
+                      <Label className="text-xs font-bold uppercase">{t('landing.seniority')}</Label>
                       <Select value={formData.seniority} onValueChange={(value) => setFormData({ ...formData, seniority: value })}>
                         <SelectTrigger className="border-2">
-                          <SelectValue placeholder="Select..." />
+                          <SelectValue placeholder={t('landing.select')} />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="senior">Senior</SelectItem>
-                          <SelectItem value="lead">Lead</SelectItem>
-                          <SelectItem value="manager">Manager</SelectItem>
-                          <SelectItem value="director">Director</SelectItem>
-                          <SelectItem value="vp">VP+</SelectItem>
-                          <SelectItem value="c-level">C-Level</SelectItem>
+                          <SelectItem value="senior">{t('landing.enhancedinvitegate.senior', 'Senior')}</SelectItem>
+                          <SelectItem value="lead">{t('landing.enhancedinvitegate.lead', 'Lead')}</SelectItem>
+                          <SelectItem value="manager">{t('landing.enhancedinvitegate.manager', 'Manager')}</SelectItem>
+                          <SelectItem value="director">{t('landing.enhancedinvitegate.director', 'Director')}</SelectItem>
+                          <SelectItem value="vp">{t('landing.enhancedinvitegate.vp', 'VP+')}</SelectItem>
+                          <SelectItem value="c-level">{t('landing.enhancedinvitegate.clevel', 'C-Level')}</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -385,15 +373,14 @@ export const EnhancedInviteGate = () => {
               <div>
                 <Label className="text-xs font-bold uppercase">
                   {formData.applicantType === "partner" ? "What You're Looking For" : 
-                   formData.applicantType === "referrer" ? "Your Network Focus" : "Your Goals"}
+                   formData.applicantType === "referrer" ? t('landing.enhancedinvitegate.yourNetworkFocus', 'Your Network Focus') : t('landing.enhancedinvitegate.yourGoals', 'Your Goals')}
                 </Label>
                 <Textarea
                   value={formData.goals || ""}
                   onChange={(e) => setFormData({ ...formData, goals: e.target.value })}
                   placeholder={
                     formData.applicantType === "partner" 
-                      ? "Describe the talent you want to hire..."
-                      : "What are you looking to achieve?"
+                      ? t('landing.enhancedinvitegate.describeTheTalentYouWantTo', 'Describe the talent you want to hire...') : t('landing.enhancedinvitegate.whatAreYouLookingToAchieve', 'What are you looking to achieve?')
                   }
                   className="border-2 transition-all duration-300 min-h-[80px]"
                 />
@@ -401,15 +388,14 @@ export const EnhancedInviteGate = () => {
 
               <div>
                 <Label className="text-xs font-bold uppercase">
-                  {formData.applicantType === "partner" ? "Why Partner with Us?" : "Elevator Pitch"}
+                  {formData.applicantType === "partner" ? t('landing.enhancedinvitegate.whyPartnerWithUs', 'Why Partner with Us?') : t('landing.enhancedinvitegate.elevatorPitch', 'Elevator Pitch')}
                 </Label>
                 <Textarea
                   value={formData.elevatorPitch || ""}
                   onChange={(e) => setFormData({ ...formData, elevatorPitch: e.target.value })}
                   placeholder={
                     formData.applicantType === "partner"
-                      ? "Tell us about your company and hiring needs..."
-                      : "Tell us your story in 2-3 sentences..."
+                      ? t('landing.enhancedinvitegate.tellUsAboutYourCompanyAnd', 'Tell us about your company and hiring needs...') : t('landing.enhancedinvitegate.tellUsYourStoryIn23', 'Tell us your story in 2-3 sentences...')
                   }
                   className="border-2 transition-all duration-300 min-h-[80px]"
                 />
@@ -417,11 +403,9 @@ export const EnhancedInviteGate = () => {
             </div>
 
             <div className="flex gap-3 pt-4">
-              <Button type="button" variant="outline" onClick={handleBack} className="flex-1">
-                Back
-              </Button>
+              <Button type="button" variant="outline" onClick={handleBack} className="flex-1">{t('landing.back')}</Button>
               <Button type="submit" disabled={isLoading} className="flex-1 hover-lift">
-                {isLoading ? "Submitting..." : "Submit Application"}
+                {isLoading ? t('landing.enhancedinvitegate.submitting', 'Submitting...') : t('landing.enhancedinvitegate.submitApplication', 'Submit Application')}
               </Button>
             </div>
           </form>
@@ -441,7 +425,7 @@ export const EnhancedInviteGate = () => {
             <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
             <Input
               type="text"
-              placeholder="ENTER ACCESS CODE"
+              placeholder={t('landing.eNTERACCESSCODE')}
               value={code}
               onChange={(e) => setCode(e.target.value.toUpperCase())}
               className="relative pl-10 h-12 text-sm font-bold uppercase tracking-wider border-2 border-foreground/20 focus:border-foreground/40 bg-background/50 backdrop-blur-sm transition-all duration-300"
@@ -453,7 +437,7 @@ export const EnhancedInviteGate = () => {
             disabled={isLoading || !code}
             className="h-12 px-8 text-sm font-black uppercase tracking-wider hover-lift"
           >
-            {isLoading ? "VERIFYING..." : "UNLOCK"}
+            {isLoading ? t('landing.enhancedinvitegate.verifying', 'VERIFYING...') : t('landing.enhancedinvitegate.unlock', 'UNLOCK')}
           </Button>
         </form>
 
@@ -466,7 +450,7 @@ export const EnhancedInviteGate = () => {
             }}
             className="group relative text-sm text-muted-foreground hover:text-foreground transition-all duration-300 underline decoration-dotted underline-offset-4"
           >
-            <span className="relative z-10">Don't have an invite? Join the waitlist</span>
+            <span className="relative z-10">{t('landing.dontHaveAnInviteJoinTheWaitlist')}</span>
             <div className="absolute inset-0 bg-foreground/5 scale-0 group-hover:scale-100 transition-transform duration-300 rounded -mx-3 -my-2"></div>
           </button>
         </div>
@@ -477,11 +461,9 @@ export const EnhancedInviteGate = () => {
           {!isSuccess ? (
             <>
               <DialogHeader>
-                <DialogTitle className="text-2xl font-black uppercase tracking-tight">
-                  Join The Quantum Club
-                </DialogTitle>
+                <DialogTitle className="text-2xl font-black uppercase tracking-tight">{t('landing.joinTheQuantumClub')}</DialogTitle>
                 <DialogDescription>
-                  Step {currentStep} of 3: {currentStep === 1 ? "Select Path" : currentStep === 2 ? "Contact Info" : "Your Story"}
+                  Step {currentStep} of 3: {currentStep === 1 ? "Select Path" : currentStep === 2 ? t('landing.enhancedinvitegate.contactInfo', 'Contact Info') : t('landing.enhancedinvitegate.yourStory', 'Your Story')}
                 </DialogDescription>
               </DialogHeader>
 
@@ -495,25 +477,17 @@ export const EnhancedInviteGate = () => {
               </div>
               
               <div className="space-y-2">
-                <h3 className="text-2xl font-black uppercase tracking-tight">
-                  Application Submitted!
-                </h3>
-                <p className="text-sm text-muted-foreground max-w-md mx-auto">
-                  We'll review your application and get back to you within 48 hours. Check your email for next steps.
-                </p>
+                <h3 className="text-2xl font-black uppercase tracking-tight">{t('landing.applicationSubmitted')}</h3>
+                <p className="text-sm text-muted-foreground max-w-md mx-auto">{t('landing.wellReviewYourApplicationAndGetBackToYou')}</p>
               </div>
 
               {generatedReferralCode && (
                 <div className="p-6 rounded-lg border-2 border-foreground/20 bg-card/50 backdrop-blur-sm space-y-3">
-                  <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                    Your Referral Code
-                  </p>
+                  <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{t('landing.yourReferralCode')}</p>
                   <div className="text-2xl font-black uppercase tracking-tight">
                     {generatedReferralCode}
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    Share this code to earn priority status and rewards!
-                  </p>
+                  <p className="text-xs text-muted-foreground">{t('landing.shareThisCodeToEarnPriorityStatusAndRewa')}</p>
                 </div>
               )}
 
@@ -531,7 +505,7 @@ export const EnhancedInviteGate = () => {
                 }}
                 className="hover-lift"
               >
-                Close
+                {t('landing.enhancedinvitegate.close', 'Close')}
               </Button>
             </div>
           )}

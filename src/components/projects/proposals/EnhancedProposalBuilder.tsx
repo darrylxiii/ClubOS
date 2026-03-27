@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -32,6 +33,7 @@ export function EnhancedProposalBuilder({
   projectBudgetMax = 0,
   onSubmitSuccess,
 }: EnhancedProposalBuilderProps) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [coverLetter, setCoverLetter] = useState("");
   const [proposedRate, setProposedRate] = useState("");
@@ -100,13 +102,13 @@ export function EnhancedProposalBuilder({
       return { newBalance: deductResult.newBalance };
     },
     onSuccess: (data) => {
-      toast.success("Proposal submitted!", {
+      toast.success(t("proposal_submitted", "Proposal submitted!"), {
         description: `${connectsCost} connects deducted. Balance: ${data.newBalance}`,
       });
       onSubmitSuccess?.();
     },
     onError: (error: Error) => {
-      toast.error("Failed to submit proposal", { description: error.message });
+      toast.error(t("failed_to_submit_proposal", "Failed to submit proposal"), { description: error.message });
     },
   });
 
@@ -127,10 +129,10 @@ export function EnhancedProposalBuilder({
       
       if (data?.coverLetter) {
         setCoverLetter(data.coverLetter);
-        toast.success("AI cover letter generated!");
+        toast.success(t("ai_cover_letter_generated", "AI cover letter generated!"));
       }
     } catch (error) {
-      toast.error("Failed to generate cover letter");
+      toast.error(t("failed_to_generate_cover", "Failed to generate cover letter"));
     } finally {
       setIsGeneratingAI(false);
     }
@@ -163,7 +165,7 @@ export function EnhancedProposalBuilder({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Coins className="h-5 w-5 text-primary" />
-              <span className="font-medium">Connects Required</span>
+              <span className="font-medium">{t("connects_required", "Connects Required")}</span>
             </div>
             <div className="text-right">
               <div className="flex items-center gap-2">
@@ -191,7 +193,7 @@ export function EnhancedProposalBuilder({
               <Zap className="h-5 w-5 text-amber-500" />
             </div>
             <div>
-              <p className="font-medium">Boost this proposal</p>
+              <p className="font-medium">{t("boost_this_proposal", "Boost this proposal")}</p>
               <p className="text-sm text-muted-foreground">
                 +50% connects for priority placement
               </p>
@@ -208,7 +210,7 @@ export function EnhancedProposalBuilder({
         {/* Cover Letter */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <Label htmlFor="coverLetter">Cover Letter</Label>
+            <Label htmlFor="coverLetter">{t("cover_letter", "Cover Letter")}</Label>
             <Button
               variant="outline"
               size="sm"
@@ -227,7 +229,7 @@ export function EnhancedProposalBuilder({
             id="coverLetter"
             value={coverLetter}
             onChange={(e) => setCoverLetter(e.target.value)}
-            placeholder="Explain why you're the perfect fit for this project..."
+            placeholder={t("explain_why_youre_the", "Explain why you're the perfect fit for this project...")}
             className="min-h-[150px]"
           />
           <p className="text-xs text-muted-foreground">
@@ -267,7 +269,7 @@ export function EnhancedProposalBuilder({
               id="duration"
               value={estimatedDuration}
               onChange={(e) => setEstimatedDuration(e.target.value)}
-              placeholder="e.g., 2 weeks"
+              placeholder={t("eg_2_weeks", "e.g., 2 weeks")}
             />
           </div>
         </div>
@@ -276,13 +278,13 @@ export function EnhancedProposalBuilder({
         <div className="grid grid-cols-2 gap-4">
           <Button variant="outline" className="h-auto py-4 flex-col gap-2" disabled>
             <Video className="h-5 w-5" />
-            <span className="text-xs">Add Video Intro</span>
-            <Badge variant="secondary" className="text-xs">Coming Soon</Badge>
+            <span className="text-xs">{t("add_video_intro", "Add Video Intro")}</span>
+            <Badge variant="secondary" className="text-xs">{t("coming_soon", "Coming Soon")}</Badge>
           </Button>
           <Button variant="outline" className="h-auto py-4 flex-col gap-2" disabled>
             <FileText className="h-5 w-5" />
-            <span className="text-xs">Attach Portfolio</span>
-            <Badge variant="secondary" className="text-xs">Coming Soon</Badge>
+            <span className="text-xs">{t("attach_portfolio", "Attach Portfolio")}</span>
+            <Badge variant="secondary" className="text-xs">{t("coming_soon", "Coming Soon")}</Badge>
           </Button>
         </div>
 

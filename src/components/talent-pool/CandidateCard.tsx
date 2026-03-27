@@ -14,6 +14,7 @@ import { cn } from '@/lib/utils';
 import { TierBadge, MoveProbabilityBadge } from './TierBadge';
 import { TalentPoolCandidate } from '@/hooks/useTalentPool';
 import { formatDistanceToNow } from 'date-fns';
+import { useTranslation } from 'react-i18next';
 
 interface CandidateCardProps {
   candidate: TalentPoolCandidate;
@@ -32,6 +33,7 @@ export function CandidateCard({
   onViewProfile,
   className,
 }: CandidateCardProps) {
+  const { t } = useTranslation('common');
   const initials = candidate.full_name
     ?.split(' ')
     .map((n) => n[0])

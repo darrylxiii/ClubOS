@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -40,6 +41,7 @@ interface TargetCompaniesProps {
 }
 
 export function TargetCompanies({ companyId }: TargetCompaniesProps) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [companies, setCompanies] = useState<TargetCompany[]>([]);
   const [loading, setLoading] = useState(true);
@@ -109,7 +111,7 @@ export function TargetCompanies({ companyId }: TargetCompaniesProps) {
       setCompanies(enrichedData || []);
     } catch (error) {
       console.error("Error loading target companies:", error);
-      toast.error("Fout bij laden van target bedrijven");
+      toast.error(t("fout_bij_laden_van", "Fout bij laden van target bedrijven"));
     } finally {
       setLoading(false);
     }
@@ -134,11 +136,11 @@ export function TargetCompanies({ companyId }: TargetCompaniesProps) {
 
       if (error) throw error;
       
-      toast.success("Bedrijf verwijderd");
+      toast.success(t("bedrijf_verwijderd", "Bedrijf verwijderd"));
       loadTargetCompanies();
     } catch (error) {
       console.error("Error deleting company:", error);
-      toast.error("Fout bij verwijderen van bedrijf");
+      toast.error(t("fout_bij_verwijderen_van", "Fout bij verwijderen van bedrijf"));
     }
   };
 
@@ -185,7 +187,7 @@ export function TargetCompanies({ companyId }: TargetCompaniesProps) {
       loadTargetCompanies();
     } catch (error) {
       console.error("Error voting:", error);
-      toast.error("Fout bij stemmen");
+      toast.error(t("fout_bij_stemmen", "Fout bij stemmen"));
     }
   };
 
@@ -229,10 +231,8 @@ export function TargetCompanies({ companyId }: TargetCompaniesProps) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-semibold">Target Bedrijven</h2>
-          <p className="text-muted-foreground">
-            Beheer bedrijven voor headhunting kandidaten
-          </p>
+          <h2 className="text-2xl font-semibold">{t("target_bedrijven", "Target Bedrijven")}</h2>
+          <p className="text-muted-foreground">{t('targetCompanies.beheerBedrijvenVoorHeadhuntingKandidaten')}</p>
         </div>
         <Button onClick={handleCreateCompany}>
           <Plus className="mr-2 h-4 w-4" />
@@ -275,11 +275,11 @@ export function TargetCompanies({ companyId }: TargetCompaniesProps) {
       {/* Views Tabs */}
       <Tabs value={activeView} onValueChange={setActiveView} className="w-full">
         <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="all">Alle Bedrijven</TabsTrigger>
-          <TabsTrigger value="status">Per Status</TabsTrigger>
-          <TabsTrigger value="industry">Per Industrie</TabsTrigger>
-          <TabsTrigger value="done">Voltooid</TabsTrigger>
-          <TabsTrigger value="own">Mijn Bedrijven</TabsTrigger>
+          <TabsTrigger value="all">{t("alle_bedrijven", "Alle Bedrijven")}</TabsTrigger>
+          <TabsTrigger value="status">{t("per_status", "Per Status")}</TabsTrigger>
+          <TabsTrigger value="industry">{t("per_industrie", "Per Industrie")}</TabsTrigger>
+          <TabsTrigger value="done">{t("voltooid", "Voltooid")}</TabsTrigger>
+          <TabsTrigger value="own">{t("mijn_bedrijven", "Mijn Bedrijven")}</TabsTrigger>
         </TabsList>
 
         <TabsContent value={activeView} className="mt-6">

@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { X, UserPlus } from "lucide-react";
+import { useTranslation } from 'react-i18next';
 
 interface CreateProfileStepProps {
   request: MemberRequest;
@@ -41,6 +42,7 @@ export const CreateProfileStep = ({
   onSkipProfile,
   onBack 
 }: CreateProfileStepProps) => {
+  const { t } = useTranslation('admin');
   // FIX #3 & #6: Initialize with correct field types
   const [formData, setFormData] = useState<FormData>({
     full_name: request.name,
@@ -128,10 +130,8 @@ export const CreateProfileStep = ({
       <div className="flex items-center gap-2 mb-6">
         <UserPlus className="w-5 h-5 text-primary" />
         <div>
-          <h3 className="text-lg font-semibold">Create Candidate Profile</h3>
-          <p className="text-sm text-muted-foreground mt-1">
-            You can approve this member without creating a candidate profile. A profile can be created later if needed.
-          </p>
+          <h3 className="text-lg font-semibold">{t('approval.createProfileStep.createCandidateProfile')}</h3>
+          <p className="text-sm text-muted-foreground mt-1">{t('approval.createprofilestep.youCanApproveThisMemberWithout', 'You can approve this member without creating a candidate profile. A profile can be created later if needed.')}</p>
         </div>
       </div>
 
@@ -139,7 +139,7 @@ export const CreateProfileStep = ({
         <CardContent className="p-6 space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="full_name">Full Name *</Label>
+              <Label htmlFor="full_name">{t('approval.createprofilestep.fullName', 'Full Name *')}</Label>
               <Input
                 id="full_name"
                 value={formData.full_name}
@@ -149,7 +149,7 @@ export const CreateProfileStep = ({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="email">Email *</Label>
+              <Label htmlFor="email">{t('approval.createprofilestep.email', 'Email *')}</Label>
               <Input
                 id="email"
                 type="email"
@@ -160,7 +160,7 @@ export const CreateProfileStep = ({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="phone">Phone</Label>
+              <Label htmlFor="phone">{t('approval.createProfileStep.phone')}</Label>
               <Input
                 id="phone"
                 value={formData.phone || ''}
@@ -169,7 +169,7 @@ export const CreateProfileStep = ({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="current_title">Current Title</Label>
+              <Label htmlFor="current_title">{t('approval.createProfileStep.currentTitle')}</Label>
               <Input
                 id="current_title"
                 value={formData.current_title || ''}
@@ -178,7 +178,7 @@ export const CreateProfileStep = ({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="linkedin_url">LinkedIn URL</Label>
+              <Label htmlFor="linkedin_url">{t('approval.createProfileStep.linkedinUrl')}</Label>
               <Input
                 id="linkedin_url"
                 value={formData.linkedin_url || ''}
@@ -187,7 +187,7 @@ export const CreateProfileStep = ({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="years_of_experience">Years of Experience</Label>
+              <Label htmlFor="years_of_experience">{t('approval.createProfileStep.yearsOfExperience')}</Label>
               <Input
                 id="years_of_experience"
                 type="number"
@@ -197,7 +197,7 @@ export const CreateProfileStep = ({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="notice_period">Notice Period</Label>
+              <Label htmlFor="notice_period">{t('approval.createProfileStep.noticePeriod')}</Label>
               <Input
                 id="notice_period"
                 placeholder="e.g., 1 month"
@@ -208,24 +208,24 @@ export const CreateProfileStep = ({
 
             {/* FIX #6: Remote preference as dropdown instead of checkbox */}
             <div className="space-y-2">
-              <Label htmlFor="remote_preference">Work Preference</Label>
+              <Label htmlFor="remote_preference">{t('approval.createProfileStep.workPreference')}</Label>
               <Select
                 value={formData.remote_preference || 'hybrid'}
                 onValueChange={(value) => setFormData({ ...formData, remote_preference: value as RemotePreference })}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select preference" />
+                  <SelectValue placeholder={t('approval.createProfileStep.selectPreference')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="remote">Remote Only</SelectItem>
-                  <SelectItem value="hybrid">Hybrid</SelectItem>
-                  <SelectItem value="on-site">On-Site Only</SelectItem>
+                  <SelectItem value="remote">{t('approval.createprofilestep.remoteOnly', 'Remote Only')}</SelectItem>
+                  <SelectItem value="hybrid">{t('approval.createprofilestep.hybrid', 'Hybrid')}</SelectItem>
+                  <SelectItem value="on-site">{t('approval.createprofilestep.onsiteOnly', 'On-Site Only')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="desired_salary_min">Min Desired Salary (€)</Label>
+              <Label htmlFor="desired_salary_min">{t('approval.createprofilestep.minDesiredSalary', 'Min Desired Salary (€)')}</Label>
               <Input
                 id="desired_salary_min"
                 type="number"
@@ -235,7 +235,7 @@ export const CreateProfileStep = ({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="desired_salary_max">Max Desired Salary (€)</Label>
+              <Label htmlFor="desired_salary_max">{t('approval.createprofilestep.maxDesiredSalary', 'Max Desired Salary (€)')}</Label>
               <Input
                 id="desired_salary_max"
                 type="number"
@@ -247,18 +247,16 @@ export const CreateProfileStep = ({
 
           {/* FIX #3: Desired locations as multiple values */}
           <div className="space-y-2">
-            <Label htmlFor="locations">Desired Locations</Label>
+            <Label htmlFor="locations">{t('approval.createProfileStep.desiredLocations')}</Label>
             <div className="flex gap-2">
               <Input
                 id="locations"
                 value={newLocation}
                 onChange={(e) => setNewLocation(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddLocation())}
-                placeholder="Add a location (e.g., Amsterdam, Remote)"
+                placeholder={t('approval.createProfileStep.addALocationEgAmsterdamRemote')}
               />
-              <Button type="button" onClick={handleAddLocation} variant="outline">
-                Add
-              </Button>
+              <Button type="button" onClick={handleAddLocation} variant="outline">{t('approval.createprofilestep.add', 'Add')}</Button>
             </div>
             <div className="flex flex-wrap gap-2 mt-2">
               {formData.desired_locations.map((location) => (
@@ -274,18 +272,16 @@ export const CreateProfileStep = ({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="skills">Skills</Label>
+            <Label htmlFor="skills">{t('approval.createProfileStep.skills')}</Label>
             <div className="flex gap-2">
               <Input
                 id="skills"
                 value={newSkill}
                 onChange={(e) => setNewSkill(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddSkill())}
-                placeholder="Add a skill"
+                placeholder={t('approval.createProfileStep.addASkill')}
               />
-              <Button type="button" onClick={handleAddSkill} variant="outline">
-                Add
-              </Button>
+              <Button type="button" onClick={handleAddSkill} variant="outline">{t('approval.createprofilestep.add', 'Add')}</Button>
             </div>
             <div className="flex flex-wrap gap-2 mt-2">
               {formData.skills?.map((skill) => (
@@ -303,22 +299,16 @@ export const CreateProfileStep = ({
       </Card>
 
       <div className="flex items-center justify-between pt-4">
-        <Button variant="outline" onClick={onBack}>
-          Back
-        </Button>
+        <Button variant="outline" onClick={onBack}>{t('approval.createprofilestep.back', 'Back')}</Button>
         <div className="flex gap-2">
           <Button 
             variant="ghost" 
             onClick={onSkipProfile}
-          >
-            Skip Profile Creation
-          </Button>
+          >{t('approval.createprofilestep.skipProfileCreation', 'Skip Profile Creation')}</Button>
           <Button 
             onClick={handleSubmit}
             disabled={!formData.full_name || !formData.email}
-          >
-            Create Profile & Continue
-          </Button>
+          >{t('approval.createprofilestep.createProfileContinue', 'Create Profile & Continue')}</Button>
         </div>
       </div>
     </div>

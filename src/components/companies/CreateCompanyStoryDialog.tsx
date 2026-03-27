@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -22,6 +23,7 @@ export function CreateCompanyStoryDialog({
   onOpenChange,
   onStoryCreated,
 }: CreateCompanyStoryDialogProps) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [caption, setCaption] = useState('');
@@ -33,12 +35,12 @@ export function CreateCompanyStoryDialog({
     if (!file) return;
 
     if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) {
-      toast.error('Please select an image or video file');
+      toast.error(t("please_select_an_image", "Please select an image or video file"));
       return;
     }
 
     if (file.size > 50 * 1024 * 1024) {
-      toast.error('File size must be less than 50MB');
+      toast.error(t("file_size_must_be", "File size must be less than 50MB"));
       return;
     }
 
@@ -48,7 +50,7 @@ export function CreateCompanyStoryDialog({
 
   const handleSubmit = async () => {
     if (!user || !mediaFile) {
-      toast.error('Please select a file');
+      toast.error(t("please_select_a_file", "Please select a file"));
       return;
     }
 
@@ -79,7 +81,7 @@ export function CreateCompanyStoryDialog({
 
       if (insertError) throw insertError;
 
-      toast.success('Story created successfully');
+      toast.success(t("story_created_successfully", "Story created successfully"));
       onStoryCreated();
       onOpenChange(false);
       setCaption('');
@@ -87,7 +89,7 @@ export function CreateCompanyStoryDialog({
       setMediaPreview('');
     } catch (error) {
       console.error('Error creating story:', error);
-      toast.error('Failed to create story');
+      toast.error(t("failed_to_create_story", "Failed to create story"));
     } finally {
       setLoading(false);
     }
@@ -97,12 +99,12 @@ export function CreateCompanyStoryDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Create Company Story</DialogTitle>
+          <DialogTitle>{t("create_company_story", "Create Company Story")}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
           <div>
-            <Label htmlFor="media">Upload Image or Video</Label>
+            <Label htmlFor="media">{t("upload_image_or_video", "Upload Image or Video")}</Label>
             <div className="mt-2">
               {!mediaPreview ? (
                 <label
@@ -126,7 +128,7 @@ export function CreateCompanyStoryDialog({
                   {mediaFile?.type.startsWith('image/') ? (
                     <img
                       src={mediaPreview}
-                      alt="Preview"
+                      alt={t("preview", "Preview")}
                       className="w-full h-64 object-cover rounded-lg"
                     />
                   ) : (
@@ -153,10 +155,10 @@ export function CreateCompanyStoryDialog({
           </div>
 
           <div>
-            <Label htmlFor="caption">Caption (optional)</Label>
+            <Label htmlFor="caption">{t("caption_optional", "Caption (optional)")}</Label>
             <Textarea
               id="caption"
-              placeholder="Add a caption to your story..."
+              placeholder={t("add_a_caption_to", "Add a caption to your story...")}
               value={caption}
               onChange={(e) => setCaption(e.target.value)}
               rows={3}

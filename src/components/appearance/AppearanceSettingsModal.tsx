@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -14,6 +15,7 @@ interface AppearanceSettingsModalProps {
 }
 
 export function AppearanceSettingsModal({ open, onOpenChange }: AppearanceSettingsModalProps) {
+  const { t } = useTranslation('common');
   const { settings, updateSettings } = useAppearance();
   const { theme, setTheme } = useTheme();
   const [generating, setGenerating] = useState(false);
@@ -44,12 +46,12 @@ export function AppearanceSettingsModal({ open, onOpenChange }: AppearanceSettin
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-2xl">Appearance Settings</DialogTitle>
+          <DialogTitle className="text-2xl">{t("appearance_settings", "Appearance Settings")}</DialogTitle>
         </DialogHeader>
 
         {/* Theme Selection */}
         <div className="space-y-3">
-          <h3 className="text-sm font-medium">Theme</h3>
+          <h3 className="text-sm font-medium">{t("theme", "Theme")}</h3>
           <div className="grid grid-cols-3 gap-3">
             {themes.map((t) => {
               const Icon = t.icon;
@@ -75,8 +77,8 @@ export function AppearanceSettingsModal({ open, onOpenChange }: AppearanceSettin
         <div className="space-y-4 pt-4 border-t">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-sm font-medium">Custom Background</h3>
-              <p className="text-xs text-muted-foreground">Enable custom background</p>
+              <h3 className="text-sm font-medium">{t("custom_background", "Custom Background")}</h3>
+              <p className="text-xs text-muted-foreground">{t("enable_custom_background", "Enable custom background")}</p>
             </div>
             <Switch
               checked={settings.backgroundEnabled}
@@ -103,7 +105,7 @@ export function AppearanceSettingsModal({ open, onOpenChange }: AppearanceSettin
                   />
                 )}
                 <div className="absolute inset-0 flex items-center justify-center bg-background/50">
-                  <p className="text-sm font-medium">Current Background</p>
+                  <p className="text-sm font-medium">{t("current_background", "Current Background")}</p>
                 </div>
               </div>
 
@@ -120,7 +122,7 @@ export function AppearanceSettingsModal({ open, onOpenChange }: AppearanceSettin
 
               {/* Overlay Color */}
               <div className="space-y-2">
-                <label className="text-sm font-medium">Overlay Color</label>
+                <label className="text-sm font-medium">{t("overlay_color", "Overlay Color")}</label>
                 <div className="flex gap-2">
                   {overlayColors.map((color) => (
                     <button
@@ -141,7 +143,7 @@ export function AppearanceSettingsModal({ open, onOpenChange }: AppearanceSettin
               {/* Overlay Opacity */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium">Overlay Opacity</label>
+                  <label className="text-sm font-medium">{t("overlay_opacity", "Overlay Opacity")}</label>
                   <span className="text-sm text-muted-foreground">{settings.overlayOpacity}%</span>
                 </div>
                 <Slider
@@ -155,7 +157,7 @@ export function AppearanceSettingsModal({ open, onOpenChange }: AppearanceSettin
 
               {/* Blur Toggle */}
               <div className="flex items-center justify-between">
-                <label className="text-sm font-medium">Background Blur</label>
+                <label className="text-sm font-medium">{t("background_blur", "Background Blur")}</label>
                 <Switch
                   checked={settings.blurEnabled}
                   onCheckedChange={(checked) => updateSettings({ blurEnabled: checked })}
@@ -166,7 +168,7 @@ export function AppearanceSettingsModal({ open, onOpenChange }: AppearanceSettin
               {settings.blurEnabled && (
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <label className="text-sm font-medium">Blur Intensity</label>
+                    <label className="text-sm font-medium">{t("blur_intensity", "Blur Intensity")}</label>
                     <span className="text-sm text-muted-foreground">{settings.blurIntensity}px</span>
                   </div>
                   <Slider
@@ -181,7 +183,7 @@ export function AppearanceSettingsModal({ open, onOpenChange }: AppearanceSettin
 
               {/* Apply to all pages */}
               <div className="flex items-center justify-between">
-                <label className="text-sm font-medium">Apply to all pages</label>
+                <label className="text-sm font-medium">{t("apply_to_all_pages", "Apply to all pages")}</label>
                 <Switch
                   checked={settings.applyToAllPages}
                   onCheckedChange={(checked) => updateSettings({ applyToAllPages: checked })}

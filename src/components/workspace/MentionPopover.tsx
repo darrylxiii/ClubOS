@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { InlineLoadingSkeleton } from "@/components/LoadingSkeletons";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
@@ -21,6 +22,7 @@ interface MentionPopoverProps {
 }
 
 export function MentionPopover({ open, onOpenChange, onSelect, trigger }: MentionPopoverProps) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [users, setUsers] = useState<User[]>([]);
   const [search, setSearch] = useState("");
@@ -63,7 +65,7 @@ export function MentionPopover({ open, onOpenChange, onSelect, trigger }: Mentio
       <PopoverContent className="w-[300px] p-0" align="start">
         <Command>
           <CommandInput
-            placeholder="Search users..."
+            placeholder={t("search_users", "Search users...")}
             value={search}
             onValueChange={setSearch}
           />

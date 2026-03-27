@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Eye, TrendingUp, Target, Activity, Users } from "lucide-react";
+import { useTranslation } from 'react-i18next';
 
 interface CandidateAnalyticsProps {
   candidateId: string;
@@ -11,6 +12,7 @@ interface CandidateAnalyticsProps {
 }
 
 export const CandidateAnalytics = ({ candidateId, activeTab }: CandidateAnalyticsProps) => {
+  const { t } = useTranslation('partner');
   const [analytics, setAnalytics] = useState({
     profileViews: 0,
     uniqueViewers: 0,
@@ -63,7 +65,7 @@ export const CandidateAnalytics = ({ candidateId, activeTab }: CandidateAnalytic
       });
     } catch (error) {
       console.error("Error loading analytics:", error);
-      toast.error("Failed to load analytics");
+      toast.error(t('candidateAnalytics.toast.failedToLoadAnalytics'));
     } finally {
       setLoading(false);
     }
@@ -87,7 +89,7 @@ export const CandidateAnalytics = ({ candidateId, activeTab }: CandidateAnalytic
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Profile Views</p>
+                <p className="text-sm text-muted-foreground">{t('candidateAnalytics.profileViews')}</p>
                 <p className="text-3xl font-bold">{analytics.profileViews}</p>
               </div>
               <Eye className="w-8 h-8 text-muted-foreground" />
@@ -99,7 +101,7 @@ export const CandidateAnalytics = ({ candidateId, activeTab }: CandidateAnalytic
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Unique Viewers</p>
+                <p className="text-sm text-muted-foreground">{t('candidateAnalytics.uniqueViewers')}</p>
                 <p className="text-3xl font-bold">{analytics.uniqueViewers}</p>
               </div>
               <Users className="w-8 h-8 text-muted-foreground" />
@@ -111,7 +113,7 @@ export const CandidateAnalytics = ({ candidateId, activeTab }: CandidateAnalytic
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Engagement Score</p>
+                <p className="text-sm text-muted-foreground">{t('candidateAnalytics.engagementScore')}</p>
                 <p className="text-3xl font-bold">{analytics.avgEngagementScore.toFixed(1)}</p>
               </div>
               <Activity className="w-8 h-8 text-muted-foreground" />
@@ -123,7 +125,7 @@ export const CandidateAnalytics = ({ candidateId, activeTab }: CandidateAnalytic
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Fit Score</p>
+                <p className="text-sm text-muted-foreground">{t('candidateAnalytics.fitScore')}</p>
                 <p className="text-3xl font-bold">{analytics.fitScore.toFixed(1)}</p>
               </div>
               <Target className="w-8 h-8 text-muted-foreground" />
@@ -139,11 +141,11 @@ export const CandidateAnalytics = ({ candidateId, activeTab }: CandidateAnalytic
             <Eye className="w-5 h-5" />
             Recent Profile Viewers
           </CardTitle>
-          <CardDescription>Team members who recently viewed this profile</CardDescription>
+          <CardDescription>{t('candidateAnalytics.description')}</CardDescription>
         </CardHeader>
         <CardContent>
           {analytics.recentViewers.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No profile views yet</p>
+            <p className="text-sm text-muted-foreground">{t('candidateAnalytics.noProfileViewsYet')}</p>
           ) : (
             <div className="space-y-3">
               {analytics.recentViewers.map((view) => (
@@ -197,32 +199,24 @@ export const CandidateAnalytics = ({ candidateId, activeTab }: CandidateAnalytic
         <CardContent className="space-y-3">
           {analytics.profileViews > 10 && (
             <div className="flex items-start gap-2">
-              <Badge variant="secondary">High Interest</Badge>
-              <p className="text-sm text-muted-foreground">
-                This candidate has received significant attention from the team
-              </p>
+              <Badge variant="secondary">{t('candidateAnalytics.badge.highInterest')}</Badge>
+              <p className="text-sm text-muted-foreground">{t('candidateAnalytics.thisCandidateHasReceivedSignificantAtten')}</p>
             </div>
           )}
           {analytics.fitScore >= 8 && (
             <div className="flex items-start gap-2">
-              <Badge variant="secondary">Excellent Fit</Badge>
-              <p className="text-sm text-muted-foreground">
-                AI analysis shows strong alignment with role requirements
-              </p>
+              <Badge variant="secondary">{t('candidateAnalytics.badge.excellentFit')}</Badge>
+              <p className="text-sm text-muted-foreground">{t('candidateAnalytics.aiAnalysisShowsStrongAlignmentWithRoleRe')}</p>
             </div>
           )}
           {analytics.avgEngagementScore >= 7 && (
             <div className="flex items-start gap-2">
-              <Badge variant="secondary">Highly Engaged</Badge>
-              <p className="text-sm text-muted-foreground">
-                Candidate shows strong engagement with the application process
-              </p>
+              <Badge variant="secondary">{t('candidateAnalytics.badge.highlyEngaged')}</Badge>
+              <p className="text-sm text-muted-foreground">{t('candidateAnalytics.candidateShowsStrongEngagementWithTheApp')}</p>
             </div>
           )}
           {analytics.profileViews === 0 && (
-            <p className="text-sm text-muted-foreground">
-              No insights available yet. Profile views and interactions will generate AI insights.
-            </p>
+            <p className="text-sm text-muted-foreground">{t('candidateAnalytics.noInsightsAvailableYetProfileViewsAndInt')}</p>
           )}
         </CardContent>
       </Card>

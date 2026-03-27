@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,6 +20,7 @@ interface Candidate {
 }
 
 export function ManualInterviewEntryDialog({ jobId, onSuccess, onClose }: ManualInterviewEntryDialogProps) {
+  const { t } = useTranslation('common');
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [loading, setLoading] = useState(false);
   const [fetchingCandidates, setFetchingCandidates] = useState(true);
@@ -67,7 +69,7 @@ export function ManualInterviewEntryDialog({ jobId, onSuccess, onClose }: Manual
     e.preventDefault();
     
     if (!selectedApplication || !scheduledDate || !scheduledTime) {
-      toast.error("Please fill in all required fields");
+      toast.error(t("please_fill_in_all", "Please fill in all required fields"));
       return;
     }
 
@@ -97,11 +99,11 @@ export function ManualInterviewEntryDialog({ jobId, onSuccess, onClose }: Manual
       
       if (error) throw error;
       
-      toast.success("Interview scheduled successfully");
+      toast.success(t("interview_scheduled_successfully", "Interview scheduled successfully"));
       onSuccess();
     } catch (err) {
       console.error('Error scheduling interview:', err);
-      toast.error("Failed to schedule interview");
+      toast.error(t("failed_to_schedule_interview", "Failed to schedule interview"));
     } finally {
       setLoading(false);
     }
@@ -118,11 +120,11 @@ export function ManualInterviewEntryDialog({ jobId, onSuccess, onClose }: Manual
         {fetchingCandidates ? (
           <div className="h-10 bg-muted/30 rounded animate-pulse" />
         ) : candidates.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No active candidates for this job</p>
+          <p className="text-sm text-muted-foreground">{t("no_active_candidates_for", "No active candidates for this job")}</p>
         ) : (
           <Select value={selectedApplication} onValueChange={setSelectedApplication}>
             <SelectTrigger>
-              <SelectValue placeholder="Select a candidate" />
+              <SelectValue placeholder={t("select_a_candidate", "Select a candidate")} />
             </SelectTrigger>
             <SelectContent>
               {candidates.map((candidate) => (
@@ -175,28 +177,28 @@ export function ManualInterviewEntryDialog({ jobId, onSuccess, onClose }: Manual
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="video">Video Call</SelectItem>
-            <SelectItem value="phone">Phone</SelectItem>
-            <SelectItem value="in-person">In-Person</SelectItem>
-            <SelectItem value="panel">Panel Interview</SelectItem>
-            <SelectItem value="technical">Technical Interview</SelectItem>
+            <SelectItem value="video">{t("video_call", "Video Call")}</SelectItem>
+            <SelectItem value="phone">{t("phone", "Phone")}</SelectItem>
+            <SelectItem value="in-person">{t("inperson", "In-Person")}</SelectItem>
+            <SelectItem value="panel">{t("panel_interview", "Panel Interview")}</SelectItem>
+            <SelectItem value="technical">{t("technical_interview", "Technical Interview")}</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
       {/* Duration */}
       <div className="space-y-2">
-        <Label>Duration</Label>
+        <Label>{t("duration", "Duration")}</Label>
         <Select value={duration} onValueChange={setDuration}>
           <SelectTrigger>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="30">30 minutes</SelectItem>
-            <SelectItem value="45">45 minutes</SelectItem>
-            <SelectItem value="60">1 hour</SelectItem>
-            <SelectItem value="90">1.5 hours</SelectItem>
-            <SelectItem value="120">2 hours</SelectItem>
+            <SelectItem value="30">{t("30_minutes", "30 minutes")}</SelectItem>
+            <SelectItem value="45">{t("45_minutes", "45 minutes")}</SelectItem>
+            <SelectItem value="60">{t("1_hour", "1 hour")}</SelectItem>
+            <SelectItem value="90">{t("15_hours", "1.5 hours")}</SelectItem>
+            <SelectItem value="120">{t("2_hours", "2 hours")}</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -209,7 +211,7 @@ export function ManualInterviewEntryDialog({ jobId, onSuccess, onClose }: Manual
             Location
           </Label>
           <Input 
-            placeholder="Office address or meeting room"
+            placeholder={t("office_address_or_meeting", "Office address or meeting room")}
             value={location}
             onChange={(e) => setLocation(e.target.value)}
           />

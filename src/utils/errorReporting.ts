@@ -10,7 +10,7 @@ export interface ErrorContext {
   userAgent?: string;
   url?: string;
   userId?: string;
-  [key: string]: any;
+  [key: string]: string | number | boolean | null | undefined;
 }
 
 export type ErrorSeverity = 'info' | 'warning' | 'error' | 'critical';

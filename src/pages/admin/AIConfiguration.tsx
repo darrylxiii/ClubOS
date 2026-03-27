@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -36,6 +37,7 @@ const defaultConfig: AIConfig = {
 };
 
 const AIConfiguration = () => {
+  const { t } = useTranslation('admin');
   const [config, setConfig] = useState<AIConfig>(defaultConfig);
   const [testProfile, setTestProfile] = useState('');
   const [testJob, setTestJob] = useState('');
@@ -64,10 +66,10 @@ const AIConfiguration = () => {
       // In a real implementation, save to database
       // For now, just simulate a save
       await new Promise(resolve => setTimeout(resolve, 500));
-      toast.success('Configuration saved successfully');
+      toast.success(t('text.aiconfiguration.configurationSavedSuccessfully', 'Configuration saved successfully'));
     } catch (error) {
       console.error('Error saving config:', error);
-      toast.error('Failed to save configuration');
+      toast.error(t('text.aiconfiguration.failedToSaveConfiguration', 'Failed to save configuration'));
     } finally {
       setSaving(false);
     }
@@ -75,7 +77,7 @@ const AIConfiguration = () => {
 
   const handleReset = () => {
     setConfig(defaultConfig);
-    toast.success('Configuration reset to defaults');
+    toast.success(t('text.aiconfiguration.configurationResetToDefaults', 'Configuration reset to defaults'));
   };
 
   const fetchRealData = async () => {
@@ -113,7 +115,7 @@ const AIConfiguration = () => {
       toast.success(`Loaded ${candidatesData?.length || 0} candidates and ${jobsData?.length || 0} jobs`);
     } catch (error) {
       console.error('Error fetching test data:', error);
-      toast.error('Failed to load candidates and jobs');
+      toast.error(t('text.aiconfiguration.failedToLoadCandidatesAndJobs', 'Failed to load candidates and jobs'));
     } finally {
       setLoadingData(false);
     }
@@ -123,7 +125,7 @@ const AIConfiguration = () => {
     if (testMode === 'hypothetical') {
       // Hypothetical testing mode
       if (!testProfile.trim() || !testJob.trim()) {
-        toast.error('Please provide both profile and job details');
+        toast.error(t('text.aiconfiguration.pleaseProvideBothProfileAndJob', 'Please provide both profile and job details'));
         return;
       }
 
@@ -155,17 +157,17 @@ const AIConfiguration = () => {
         if (error) throw error;
 
         setTestResult(data.analysis);
-        toast.success('Match score calculated with hypothetical data');
+        toast.success(t('text.aiconfiguration.matchScoreCalculatedWithHypotheticalData', 'Match score calculated with hypothetical data'));
       } catch (error) {
         console.error('Error testing match:', error);
-        toast.error('Failed to test matching algorithm');
+        toast.error(t('text.aiconfiguration.failedToTestMatchingAlgorithm', 'Failed to test matching algorithm'));
       } finally {
         setTesting(false);
       }
     } else {
       // Real database testing mode
       if (!selectedCandidateId || !selectedJobId) {
-        toast.error('Please select both a candidate and a job');
+        toast.error(t('text.aiconfiguration.pleaseSelectBothACandidateAnd', 'Please select both a candidate and a job'));
         return;
       }
 
@@ -187,10 +189,10 @@ const AIConfiguration = () => {
         if (error) throw error;
 
         setTestResult(data.analysis);
-        toast.success('Match score calculated with real database data');
+        toast.success(t('text.aiconfiguration.matchScoreCalculatedWithRealDatabase', 'Match score calculated with real database data'));
       } catch (error) {
         console.error('Error testing match:', error);
-        toast.error('Failed to test matching algorithm');
+        toast.error(t('text.aiconfiguration.failedToTestMatchingAlgorithm', 'Failed to test matching algorithm'));
       } finally {
         setTesting(false);
       }
@@ -209,10 +211,8 @@ const AIConfiguration = () => {
   return (
     <div className="w-full px-4 sm:px-6 lg:px-8 py-8 max-w-4xl">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">AI Model Configuration</h1>
-        <p className="text-muted-foreground">
-          Fine-tune the matching algorithm to optimize candidate-job fit
-        </p>
+        <h1 className="text-3xl font-bold mb-2">{t('aIConfiguration.title')}</h1>
+        <p className="text-muted-foreground">{t('aIConfiguration.desc')}</p>
       </div>
 
       <div className="grid gap-6">
@@ -223,9 +223,7 @@ const AIConfiguration = () => {
               <Brain className="h-5 w-5" />
               Match Score Weighting
             </CardTitle>
-            <CardDescription>
-              Adjust how different factors contribute to the overall match score (must total 100%)
-            </CardDescription>
+            <CardDescription>{t('text.aiconfiguration.adjustHowDifferentFactorsContributeTo', 'Adjust how different factors contribute to the overall match score (must total 100%)')}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="space-y-2">
@@ -291,7 +289,7 @@ const AIConfiguration = () => {
             <Separator />
 
             <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-              <span className="font-semibold">Total Weight:</span>
+              <span className="font-semibold">{t('text.aiconfiguration.totalWeight', 'Total Weight:')}</span>
               <span className={`text-xl font-bold ${isWeightValid ? 'text-green-600' : 'text-red-600'}`}>
                 {totalWeight}%
               </span>
@@ -312,14 +310,12 @@ const AIConfiguration = () => {
               <Zap className="h-5 w-5" />
               Match Threshold
             </CardTitle>
-            <CardDescription>
-              Set the minimum score for a "high match" recommendation
-            </CardDescription>
+            <CardDescription>{t('text.aiconfiguration.setTheMinimumScoreForA', 'Set the minimum score for a "high match" recommendation')}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label>High Match Threshold</Label>
+                <Label>{t('text.aiconfiguration.highMatchThreshold', 'High Match Threshold')}</Label>
                 <span className="text-xl font-bold">{config.matchThreshold}%</span>
               </div>
               <Slider
@@ -343,23 +339,21 @@ const AIConfiguration = () => {
               <TestTube className="h-5 w-5" />
               Test Matching Algorithm
             </CardTitle>
-            <CardDescription>
-              Test with hypothetical scenarios or real database records
-            </CardDescription>
+            <CardDescription>{t('text.aiconfiguration.testWithHypotheticalScenariosOrReal', 'Test with hypothetical scenarios or real database records')}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <Tabs value={testMode} onValueChange={(v) => setTestMode(v as 'hypothetical' | 'real')}>
               <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="hypothetical">Hypothetical Test</TabsTrigger>
-                <TabsTrigger value="real">Real Data Test</TabsTrigger>
+                <TabsTrigger value="hypothetical">{t('aIConfiguration.tabHypotheticaltest')}</TabsTrigger>
+                <TabsTrigger value="real">{t('aIConfiguration.tabRealdatatest')}</TabsTrigger>
               </TabsList>
 
               {/* Hypothetical Tab */}
               <TabsContent value="hypothetical" className="space-y-4">
                 <div className="space-y-2">
-                  <Label>Candidate Profile (brief description)</Label>
+                  <Label>{t('text.aiconfiguration.candidateProfileBriefDescription', 'Candidate Profile (brief description)')}</Label>
                   <Textarea
-                    placeholder="E.g., Senior React Developer with 5 years experience, based in Amsterdam..."
+                    placeholder={t('text.aiconfiguration.egSeniorReactDeveloperWith5', 'E.g., Senior React Developer with 5 years experience, based in Amsterdam...')}
                     value={testProfile}
                     onChange={(e) => setTestProfile(e.target.value)}
                     rows={3}
@@ -367,9 +361,9 @@ const AIConfiguration = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Job Details (brief description)</Label>
+                  <Label>{t('text.aiconfiguration.jobDetailsBriefDescription', 'Job Details (brief description)')}</Label>
                   <Textarea
-                    placeholder="E.g., Looking for a React Developer for a fintech startup in Rotterdam..."
+                    placeholder={t('text.aiconfiguration.egLookingForAReactDeveloper', 'E.g., Looking for a React Developer for a fintech startup in Rotterdam...')}
                     value={testJob}
                     onChange={(e) => setTestJob(e.target.value)}
                     rows={3}
@@ -400,10 +394,10 @@ const AIConfiguration = () => {
                 ) : (
                   <>
                     <div className="space-y-2">
-                      <Label>Select Candidate</Label>
+                      <Label>{t('text.aiconfiguration.selectCandidate', 'Select Candidate')}</Label>
                       <Select value={selectedCandidateId} onValueChange={setSelectedCandidateId}>
                         <SelectTrigger>
-                          <SelectValue placeholder="Choose a candidate..." />
+                          <SelectValue placeholder={t('text.aiconfiguration.chooseACandidate', 'Choose a candidate...')} />
                         </SelectTrigger>
                         <SelectContent>
                           {candidates.map(c => (
@@ -418,10 +412,10 @@ const AIConfiguration = () => {
                     </div>
 
                     <div className="space-y-2">
-                      <Label>Select Job</Label>
+                      <Label>{t('text.aiconfiguration.selectJob', 'Select Job')}</Label>
                       <Select value={selectedJobId} onValueChange={setSelectedJobId}>
                         <SelectTrigger>
-                          <SelectValue placeholder="Choose a job..." />
+                          <SelectValue placeholder={t('text.aiconfiguration.chooseAJob', 'Choose a job...')} />
                         </SelectTrigger>
                         <SelectContent>
                           {jobs.map(j => (
@@ -458,9 +452,9 @@ const AIConfiguration = () => {
               <Card className="border-2">
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg">Match Analysis</CardTitle>
+                    <CardTitle className="text-lg">{t('text.aiconfiguration.matchAnalysis', 'Match Analysis')}</CardTitle>
                     <Badge variant={testMode === 'real' ? 'default' : 'secondary'}>
-                      {testMode === 'real' ? 'Real Data' : 'Hypothetical'}
+                      {testMode === 'real' ? t('text.aiconfiguration.realData', 'Real Data') : t('text.aiconfiguration.hypothetical', 'Hypothetical')}
                     </Badge>
                   </div>
                 </CardHeader>
@@ -469,7 +463,7 @@ const AIConfiguration = () => {
                   {/* Overall Score Display */}
                   <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
                     <div>
-                      <p className="text-sm text-muted-foreground mb-1">Overall Match Score</p>
+                      <p className="text-sm text-muted-foreground mb-1">{t('aIConfiguration.desc2')}</p>
                       <div className="flex items-center gap-2">
                         <span className={`text-4xl font-bold ${testResult.overall_score >= 85 ? 'text-green-600' :
                           testResult.overall_score >= 70 ? 'text-yellow-600' :
@@ -500,7 +494,7 @@ const AIConfiguration = () => {
                   >
                     <CollapsibleTrigger asChild>
                       <Button variant="outline" className="w-full justify-between">
-                        <span>View Detailed Reasoning</span>
+                        <span>{t('text.aiconfiguration.viewDetailedReasoning', 'View Detailed Reasoning')}</span>
                         <ChevronDown className={`h-4 w-4 transition-transform ${showReasoningDetails ? 'rotate-180' : ''
                           }`} />
                       </Button>
@@ -613,7 +607,7 @@ const AIConfiguration = () => {
                       {/* Additional Factors */}
                       {testResult.additional_factors?.length > 0 && (
                         <div className="space-y-2">
-                          <h4 className="font-semibold text-sm">Additional Considerations</h4>
+                          <h4 className="font-semibold text-sm">{t('aIConfiguration.title')}</h4>
                           {testResult.additional_factors.map((factor: any, i: number) => (
                             <div key={i} className="p-2 border rounded text-sm">
                               <div className="flex items-center gap-2">
@@ -643,7 +637,7 @@ const AIConfiguration = () => {
             className="flex-1"
           >
             <Save className="h-4 w-4 mr-2" />
-            {saving ? 'Saving...' : 'Save Configuration'}
+            {saving ? t('text.aiconfiguration.saving', 'Saving...') : t('text.aiconfiguration.saveConfiguration', 'Save Configuration')}
           </Button>
           <Button
             onClick={handleReset}

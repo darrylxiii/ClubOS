@@ -41,8 +41,8 @@ SELECT cron.schedule(
   $$
   SELECT
     net.http_post(
-        url:='https://dpjucecmoyfzrduhlctt.supabase.co/functions/v1/send-booking-reminder',
-        headers:='{"Content-Type": "application/json", "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRwanVjZWNtb3lmenJkdWhsY3R0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk0Mjc2MTAsImV4cCI6MjA3NTAwMzYxMH0.hdX709NlaXPUE4ohWtd3LBuAOqPKCBhVep694LC6tRw"}'::jsonb,
+        url:='https://chgrkvftjfibufoopmav.supabase.co/functions/v1/send-booking-reminder',
+        headers:='{"Content-Type": "application/json", "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNoZ3JrdmZ0amZpYnVmb29wbWF2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0OTQ3NDYsImV4cCI6MjA5MDA3MDc0Nn0.gzU9FP-wAAmmQAUClSK53x6kwr_j_N2AkmBPMJ011qc"}'::jsonb,
         body:=concat('{"triggered_at": "', now(), '"}')::jsonb
     ) as request_id;
   $$

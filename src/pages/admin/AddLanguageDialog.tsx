@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -15,6 +16,7 @@ interface AddLanguageDialogProps {
 }
 
 export function AddLanguageDialog({ open, onOpenChange, onLanguageAdded }: AddLanguageDialogProps) {
+  const { t } = useTranslation('common');
   const [isAdding, setIsAdding] = useState(false);
   const [formData, setFormData] = useState({
     code: '',
@@ -27,12 +29,12 @@ export function AddLanguageDialog({ open, onOpenChange, onLanguageAdded }: AddLa
 
   const handleAdd = async () => {
     if (!formData.code || !formData.name || !formData.nativeName || !formData.flag) {
-      toast.error('Please fill in all required fields');
+      toast.error(t("please_fill_in_all", "Please fill in all required fields"));
       return;
     }
 
     if (formData.code.length !== 2) {
-      toast.error('Language code must be 2 characters (e.g., "pt", "it", "ja")');
+      toast.error(t("language_code_must_be", "Language code must be 2 characters (e.g., ')pt\", \"it\", \"ja')"));
       return;
     }
 
@@ -81,7 +83,7 @@ export function AddLanguageDialog({ open, onOpenChange, onLanguageAdded }: AddLa
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Add New Language</DialogTitle>
+          <DialogTitle>{t("add_new_language", "Add New Language")}</DialogTitle>
           <DialogDescription>
             Add a new language to the system. Translations will be automatically generated for all namespaces.
           </DialogDescription>
@@ -90,7 +92,7 @@ export function AddLanguageDialog({ open, onOpenChange, onLanguageAdded }: AddLa
         <div className="space-y-4 py-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="code">Language Code *</Label>
+              <Label htmlFor="code">{t("language_code", "Language Code *")}</Label>
               <Input
                 id="code"
                 value={formData.code}
@@ -99,10 +101,10 @@ export function AddLanguageDialog({ open, onOpenChange, onLanguageAdded }: AddLa
                 maxLength={2}
                 className="uppercase"
               />
-              <p className="text-xs text-muted-foreground">ISO 639-1 code (2 letters)</p>
+              <p className="text-xs text-muted-foreground">{t("iso_6391_code_2", "ISO 639-1 code (2 letters)")}</p>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="flag">Flag Emoji *</Label>
+              <Label htmlFor="flag">{t("flag_emoji", "Flag Emoji *")}</Label>
               <Input
                 id="flag"
                 value={formData.flag}
@@ -114,40 +116,39 @@ export function AddLanguageDialog({ open, onOpenChange, onLanguageAdded }: AddLa
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="name">English Name *</Label>
+            <Label htmlFor="name">{t("english_name", "English Name *")}</Label>
             <Input
               id="name"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              placeholder="Portuguese"
+              placeholder={t("portuguese", "Portuguese")}
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="nativeName">Native Name *</Label>
+            <Label htmlFor="nativeName">{t("native_name", "Native Name *")}</Label>
             <Input
               id="nativeName"
               value={formData.nativeName}
               onChange={(e) => setFormData({ ...formData, nativeName: e.target.value })}
-              placeholder="Português"
+              placeholder={t("português", "Português")}
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="fontFamily">Font Family (Optional)</Label>
+            <Label htmlFor="fontFamily">{t("font_family_optional", "Font Family (Optional)")}</Label>
             <Input
               id="fontFamily"
               value={formData.fontFamily}
               onChange={(e) => setFormData({ ...formData, fontFamily: e.target.value })}
-              placeholder='system-ui, "Noto Sans", sans-serif'
-            />
-            <p className="text-xs text-muted-foreground">For languages that need special fonts</p>
+              placeholder="system-ui, "Noto Sans", sans-serif" />
+            <p className="text-xs text-muted-foreground">{t("for_languages_that_need", "For languages that need special fonts")}</p>
           </div>
 
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label htmlFor="isRTL">Right-to-Left (RTL)</Label>
-              <p className="text-xs text-muted-foreground">Enable for Arabic, Hebrew, etc.</p>
+              <Label htmlFor="isRTL">{t("righttoleft_rtl", "Right-to-Left (RTL)")}</Label>
+              <p className="text-xs text-muted-foreground">{t("enable_for_arabic_hebrew", "Enable for Arabic, Hebrew, etc.")}</p>
             </div>
             <Switch
               id="isRTL"

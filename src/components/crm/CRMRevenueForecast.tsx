@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -18,6 +19,7 @@ import { useCRMDeals } from '@/hooks/useCRMDeals';
 import { formatCurrency } from '@/lib/revenueCalculations';
 
 export function CRMRevenueForecast() {
+  const { t } = useTranslation('common');
   const { deals, metrics, loading } = useCRMDeals({});
 
   if (loading) {
@@ -117,7 +119,7 @@ export function CRMRevenueForecast() {
         {/* Progress to Target */}
         <div className="space-y-2">
           <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">Progress to Target</span>
+            <span className="text-muted-foreground">{t("progress_to_target", "Progress to Target")}</span>
             <span className="font-medium">{progress.toFixed(1)}%</span>
           </div>
           <Progress value={Math.min(progress, 100)} className="h-2" />
@@ -139,7 +141,7 @@ export function CRMRevenueForecast() {
         >
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-muted-foreground">Projected Month-End</p>
+              <p className="text-sm text-muted-foreground">{t("projected_monthend", "Projected Month-End")}</p>
               <p className="text-xl font-bold">{formatCurrency(projectedRevenue)}</p>
             </div>
             <div className={`flex items-center gap-1 text-sm ${forecastVsTarget >= 0 ? 'text-green-500' : 'text-orange-500'
@@ -158,15 +160,15 @@ export function CRMRevenueForecast() {
         <div className="grid grid-cols-3 gap-2 pt-2 border-t border-border/30">
           <div className="text-center">
             <p className="text-lg font-bold">{metrics?.totalDeals || 0}</p>
-            <p className="text-xs text-muted-foreground">Open Deals</p>
+            <p className="text-xs text-muted-foreground">{t("open_deals", "Open Deals")}</p>
           </div>
           <div className="text-center">
             <p className="text-lg font-bold">{metrics?.winRate?.toFixed(0) || 0}%</p>
-            <p className="text-xs text-muted-foreground">Win Rate</p>
+            <p className="text-xs text-muted-foreground">{t("win_rate", "Win Rate")}</p>
           </div>
           <div className="text-center">
             <p className="text-lg font-bold">{formatCurrency(metrics?.avgDealSize || 0).replace('€', '€ ')}</p>
-            <p className="text-xs text-muted-foreground">Avg Deal</p>
+            <p className="text-xs text-muted-foreground">{t("avg_deal", "Avg Deal")}</p>
           </div>
         </div>
       </CardContent>

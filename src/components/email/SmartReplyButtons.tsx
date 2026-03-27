@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Button } from "@/components/ui/button";
 import { Sparkles, Send } from "lucide-react";
 import { Card } from "@/components/ui/card";
@@ -13,6 +14,7 @@ interface SmartReplyButtonsProps {
 }
 
 export function SmartReplyButtons({ smartReplies, onSelectReply }: SmartReplyButtonsProps) {
+  const { t } = useTranslation('common');
   if (!smartReplies || Object.keys(smartReplies).length === 0) {
     return null;
   }
@@ -27,8 +29,8 @@ export function SmartReplyButtons({ smartReplies, onSelectReply }: SmartReplyBut
     <Card className="p-4 border-primary/20 bg-gradient-to-br from-background to-primary/5">
       <div className="flex items-center gap-2 mb-3">
         <Sparkles className="h-4 w-4 text-primary" />
-        <h3 className="text-sm font-semibold">AI Smart Replies</h3>
-        <Badge variant="secondary" className="text-xs">Powered by Club AI</Badge>
+        <h3 className="text-sm font-semibold">{t("ai_smart_replies", "AI Smart Replies")}</h3>
+        <Badge variant="secondary" className="text-xs">{t("powered_by_club_ai", "Powered by Club AI")}</Badge>
       </div>
       
       <div className="space-y-2">

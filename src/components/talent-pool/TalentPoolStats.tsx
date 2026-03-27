@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '@/components/ui/card';
 import { Users, Flame, ThermometerSun, Target, TrendingUp, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -49,44 +50,46 @@ function StatCard({ title, value, icon, colorClass, onClick, isLoading }: StatCa
 }
 
 export function TalentPoolStats({ stats, isLoading, onStatClick }: TalentPoolStatsProps) {
+  const { t } = useTranslation('common');
+
   const statCards = [
     {
-      title: 'Total Pool',
+      title: t('talentPool.totalPool'),
       value: stats.total,
       icon: <Users className="h-5 w-5 text-primary" />,
       colorClass: 'bg-primary/10',
       filter: 'all',
     },
     {
-      title: 'Hot',
+      title: t('talentPool.hot'),
       value: stats.hot,
       icon: <Flame className="h-5 w-5 text-red-400" />,
       colorClass: 'bg-red-500/10',
       filter: 'hot',
     },
     {
-      title: 'Warm',
+      title: t('talentPool.warm'),
       value: stats.warm,
       icon: <ThermometerSun className="h-5 w-5 text-orange-400" />,
       colorClass: 'bg-orange-500/10',
       filter: 'warm',
     },
     {
-      title: 'Strategic',
+      title: t('talentPool.strategic'),
       value: stats.strategic,
       icon: <Target className="h-5 w-5 text-purple-400" />,
       colorClass: 'bg-purple-500/10',
       filter: 'strategic',
     },
     {
-      title: 'High Move Probability',
+      title: t('talentPool.highMoveProbability'),
       value: stats.highMoveProbability,
       icon: <TrendingUp className="h-5 w-5 text-green-400" />,
       colorClass: 'bg-green-500/10',
       filter: 'high-move',
     },
     {
-      title: 'Needs Attention',
+      title: t('talentPool.needsAttention'),
       value: stats.needsAttention,
       icon: <AlertCircle className="h-5 w-5 text-yellow-400" />,
       colorClass: 'bg-yellow-500/10',

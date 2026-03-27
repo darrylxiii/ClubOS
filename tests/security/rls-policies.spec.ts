@@ -55,9 +55,9 @@ test.describe('RLS Policy Verification', () => {
 
       for (const endpoint of protectedEndpoints) {
         try {
-          const response = await request.get(`https://dpjucecmoyfzrduhlctt.supabase.co${endpoint}`, {
+          const response = await request.get(`https://chgrkvftjfibufoopmav.supabase.co${endpoint}`, {
             headers: {
-              'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRwanVjZWNtb3lmenJkdWhsY3R0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk0Mjc2MTAsImV4cCI6MjA3NTAwMzYxMH0.hdX709NlaXPUE4ohWtd3LBuAOqPKCBhVep694LC6tRw',
+              'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNoZ3JrdmZ0amZpYnVmb29wbWF2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0OTQ3NDYsImV4cCI6MjA5MDA3MDc0Nn0.gzU9FP-wAAmmQAUClSK53x6kwr_j_N2AkmBPMJ011qc',
             },
           });
           
@@ -157,10 +157,10 @@ test.describe('RLS Policy Verification', () => {
     test('cannot access files without authentication', async ({ request }) => {
       // Attempt to access a protected file path
       const response = await request.get(
-        'https://dpjucecmoyfzrduhlctt.supabase.co/storage/v1/object/protected/resumes/test.pdf',
+        'https://chgrkvftjfibufoopmav.supabase.co/storage/v1/object/protected/resumes/test.pdf',
         {
           headers: {
-            'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRwanVjZWNtb3lmenJkdWhsY3R0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk0Mjc2MTAsImV4cCI6MjA3NTAwMzYxMH0.hdX709NlaXPUE4ohWtd3LBuAOqPKCBhVep694LC6tRw',
+            'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNoZ3JrdmZ0amZpYnVmb29wbWF2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0OTQ3NDYsImV4cCI6MjA5MDA3MDc0Nn0.gzU9FP-wAAmmQAUClSK53x6kwr_j_N2AkmBPMJ011qc',
           },
         }
       );

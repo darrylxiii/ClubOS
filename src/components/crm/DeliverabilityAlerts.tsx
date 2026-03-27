@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
@@ -24,6 +25,7 @@ interface DeliverabilityAlert {
 }
 
 export function DeliverabilityAlerts() {
+  const { t } = useTranslation('common');
   const [dismissedAlerts, setDismissedAlerts] = useState<Set<string>>(new Set());
 
   // Fetch account health data
@@ -162,7 +164,7 @@ export function DeliverabilityAlerts() {
               <Shield className="h-5 w-5 text-destructive" />
             </div>
             <div>
-              <CardTitle className="text-lg font-semibold">Deliverability Alerts</CardTitle>
+              <CardTitle className="text-lg font-semibold">{t("deliverability_alerts", "Deliverability Alerts")}</CardTitle>
               <p className="text-xs text-muted-foreground">
                 {criticalCount > 0 && <span className="text-destructive">{criticalCount} critical</span>}
                 {criticalCount > 0 && warningCount > 0 && ' • '}
@@ -185,7 +187,7 @@ export function DeliverabilityAlerts() {
         ) : visibleAlerts.length === 0 ? (
           <div className="text-center py-8">
             <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-3" />
-            <h3 className="font-medium text-lg mb-1">All Clear</h3>
+            <h3 className="font-medium text-lg mb-1">{t("all_clear", "All Clear")}</h3>
             <p className="text-sm text-muted-foreground">
               No deliverability issues detected. Keep up the good work!
             </p>
@@ -256,19 +258,19 @@ export function DeliverabilityAlerts() {
                 <p className="text-2xl font-bold text-green-500">
                   {healthData.filter((a: any) => a.health_score >= 80).length}
                 </p>
-                <p className="text-xs text-muted-foreground">Healthy</p>
+                <p className="text-xs text-muted-foreground">{t("healthy", "Healthy")}</p>
               </div>
               <div className="text-center">
                 <p className="text-2xl font-bold text-amber-500">
                   {healthData.filter((a: any) => a.health_score >= 50 && a.health_score < 80).length}
                 </p>
-                <p className="text-xs text-muted-foreground">At Risk</p>
+                <p className="text-xs text-muted-foreground">{t("at_risk", "At Risk")}</p>
               </div>
               <div className="text-center">
                 <p className="text-2xl font-bold text-destructive">
                   {healthData.filter((a: any) => a.health_score < 50).length}
                 </p>
-                <p className="text-xs text-muted-foreground">Critical</p>
+                <p className="text-xs text-muted-foreground">{t("critical", "Critical")}</p>
               </div>
             </div>
           </div>

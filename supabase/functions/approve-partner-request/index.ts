@@ -3,7 +3,7 @@
  * Enterprise-grade: JWT auth, rollback, welcome email, invite code, audit log.
  */
 
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
+import { createAuthenticatedHandler } from '../_shared/handler.ts';
 import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
 import {
   Heading,
@@ -14,7 +14,7 @@ import {
 } from "../_shared/email-templates/components.ts";
 import { EMAIL_SENDERS, EMAIL_COLORS } from "../_shared/email-config.ts";
 
-import { corsHeaders } from "../_shared/cors.ts";
+const corsHeaders: Record<string, string> = {};
 
 function jsonResponse(body: Record<string, unknown>, status: number) {
   return new Response(JSON.stringify(body), {
@@ -23,39 +23,14 @@ function jsonResponse(body: Record<string, unknown>, status: number) {
   });
 }
 
-Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
+Deno.serve(createAuthenticatedHandler(async (req, ctx) => {
+    Object.assign(corsHeaders, ctx.corsHeaders);
+    const supabase = ctx.supabase;
+    const adminUser = ctx.user;
 
-  if (req.method !== "POST") {
-    return jsonResponse({ error: "Method not allowed" }, 405);
-  }
-
-  try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const resendApiKey = Deno.env.get("RESEND_API_KEY");
-
-    const supabase = createClient(supabaseUrl, supabaseServiceKey, {
-      auth: { autoRefreshToken: false, persistSession: false },
-    });
-
-    // ── AUTH: Verify JWT and admin role ──────────────────────
-    const authHeader = req.headers.get("authorization");
-    if (!authHeader) {
-      return jsonResponse({ error: "Unauthorized" }, 401);
-    }
-
-    const token = authHeader.replace("Bearer ", "");
-    const {
-      data: { user: adminUser },
-      error: authError,
-    } = await supabase.auth.getUser(token);
-
-    if (authError || !adminUser) {
-      return jsonResponse({ error: "Invalid token" }, 401);
-    }
 
     const { data: roleData } = await supabase
       .from("user_roles")
@@ -425,14 +400,4 @@ Deno.serve(async (req) => {
       },
       200
     );
-  } catch (error) {
-    console.error("Provisioning error:", error);
-    return jsonResponse(
-      {
-        error:
-          error instanceof Error ? error.message : "Internal server error",
-      },
-      500
-    );
-  }
-});
+}));

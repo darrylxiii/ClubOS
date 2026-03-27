@@ -3,8 +3,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { useSecurityMetrics } from "@/hooks/useSecurityMetrics";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useTranslation } from 'react-i18next';
 
 export const AuthFailuresCard = () => {
+  const { t } = useTranslation('admin');
   const { authMetrics, isLoading } = useSecurityMetrics();
 
   if (isLoading || !authMetrics) {
@@ -28,8 +30,8 @@ export const AuthFailuresCard = () => {
     <Card className={isHighRisk ? "border-red-500/20" : ""}>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <div>
-          <CardTitle className="text-sm font-medium">Failed Logins</CardTitle>
-          <CardDescription>Last 24 hours</CardDescription>
+          <CardTitle className="text-sm font-medium">{t('security.authFailuresCard.failedLogins')}</CardTitle>
+          <CardDescription>{t('security.authFailuresCard.last24Hours')}</CardDescription>
         </div>
         <AlertTriangle className={`h-4 w-4 ${isHighRisk ? 'text-red-500' : 'text-muted-foreground'}`} />
       </CardHeader>
@@ -49,7 +51,7 @@ export const AuthFailuresCard = () => {
           <div className="mt-4 pt-4 border-t">
             <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
               <Users className="h-3 w-3" />
-              <span>Top Failed IPs</span>
+              <span>{t('security.authFailuresCard.topFailedIps')}</span>
             </div>
             <div className="space-y-1">
               {topIPs.slice(0, 3).map((item, idx) => (

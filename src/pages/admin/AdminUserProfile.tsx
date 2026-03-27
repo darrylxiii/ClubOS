@@ -1,4 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,6 +25,7 @@ import { UserSettingsViewer } from "@/components/admin/UserSettingsViewer";
 
 
 export default function AdminUserProfile() {
+  const { t } = useTranslation('admin');
   const { userId } = useParams<{ userId: string }>();
   const navigate = useNavigate();
   const { currentRole } = useRole();
@@ -56,14 +58,14 @@ export default function AdminUserProfile() {
       setProfile(data);
     } catch (error) {
       console.error('Error loading user profile:', error);
-      toast.error('Failed to load user profile');
+      toast.error("Failed to load user profile");
     } finally {
       setLoading(false);
     }
   };
 
   const handleExportUserData = async () => {
-    toast.info('User data export requested. This will be processed according to GDPR requirements.');
+    toast.info("User data export requested. This will be processed according to GDPR requirements.");
   };
 
   if (loading) {
@@ -78,7 +80,7 @@ export default function AdminUserProfile() {
     return (
         <div className="min-h-screen flex items-center justify-center">
           <Alert>
-            <AlertDescription>User profile not found.</AlertDescription>
+            <AlertDescription>{t('adminUserProfile.text2')}</AlertDescription>
           </Alert>
         </div>
     );
@@ -133,10 +135,10 @@ export default function AdminUserProfile() {
                     <Badge variant="secondary">{profile.location}</Badge>
                   )}
                   {profile.email_verified && (
-                    <Badge variant="default">Email Verified</Badge>
+                    <Badge variant="default">{t('adminUserProfile.text3')}</Badge>
                   )}
                   {candidateProfile && (
-                    <Badge variant="default">Has Candidate Profile</Badge>
+                    <Badge variant="default">{t('adminUserProfile.text4')}</Badge>
                   )}
                 </div>
 
@@ -191,18 +193,16 @@ export default function AdminUserProfile() {
         {/* Tabbed Content */}
         <Tabs defaultValue="profile" className="space-y-6">
           <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="profile">Profile Overview</TabsTrigger>
-            <TabsTrigger value="settings">Complete Settings</TabsTrigger>
-            <TabsTrigger value="documents">Documents</TabsTrigger>
-            <TabsTrigger value="verification">Verification</TabsTrigger>
+            <TabsTrigger value="profile">{t('adminUserProfile.text5')}</TabsTrigger>
+            <TabsTrigger value="settings">{t('adminUserProfile.text6')}</TabsTrigger>
+            <TabsTrigger value="documents">{t('adminUserProfile.text7')}</TabsTrigger>
+            <TabsTrigger value="verification">{t('adminUserProfile.text8')}</TabsTrigger>
           </TabsList>
 
           {/* Profile Overview Tab */}
           <TabsContent value="profile">
             <div className="bg-muted/30 rounded-lg p-4">
-              <p className="text-sm text-muted-foreground mb-4">
-                This is the user's public profile view. Edit capabilities are disabled in admin mode.
-              </p>
+              <p className="text-sm text-muted-foreground mb-4">{t('adminUserProfile.desc')}</p>
               <EnhancedProfile viewingUserId={userId} />
             </div>
           </TabsContent>
@@ -231,8 +231,8 @@ export default function AdminUserProfile() {
                     {(profile.resume_url || candidateProfile?.resume_url) && (
                       <div className="flex items-center justify-between p-4 border rounded-lg">
                         <div>
-                          <p className="font-medium">Resume</p>
-                          <p className="text-sm text-muted-foreground">Primary resume document</p>
+                          <p className="font-medium">{t('adminUserProfile.text9')}</p>
+                          <p className="text-sm text-muted-foreground">{t('adminUserProfile.text10')}</p>
                         </div>
                         <Button variant="outline" size="sm" asChild>
                           <a 
@@ -262,12 +262,12 @@ export default function AdminUserProfile() {
           <TabsContent value="verification">
             <Card>
               <CardHeader>
-                <CardTitle>Account Verification Status</CardTitle>
+                <CardTitle>{t('adminUserProfile.text11')}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <h4 className="font-medium">Email Verification</h4>
+                    <h4 className="font-medium">{t('adminUserProfile.text12')}</h4>
                     <Badge variant={profile.email_verified ? "default" : "secondary"}>
                       {profile.email_verified ? 'Verified' : 'Not Verified'}
                     </Badge>
@@ -275,7 +275,7 @@ export default function AdminUserProfile() {
                   </div>
 
                   <div className="space-y-2">
-                    <h4 className="font-medium">Phone Verification</h4>
+                    <h4 className="font-medium">{t('adminUserProfile.text13')}</h4>
                     <Badge variant={profile.phone_verified ? "default" : "secondary"}>
                       {profile.phone_verified ? 'Verified' : 'Not Verified'}
                     </Badge>
@@ -286,12 +286,12 @@ export default function AdminUserProfile() {
                 </div>
 
                 <div className="pt-4 border-t">
-                  <h4 className="font-medium mb-2">Account Activity</h4>
+                  <h4 className="font-medium mb-2">{t('adminUserProfile.text14')}</h4>
                   <div className="space-y-2 text-sm">
-                    <p><span className="text-muted-foreground">Created:</span> {new Date(profile.created_at).toLocaleString()}</p>
-                    <p><span className="text-muted-foreground">Last Updated:</span> {new Date(profile.updated_at).toLocaleString()}</p>
+                    <p><span className="text-muted-foreground">{t('adminUserProfile.text15')}</span> {new Date(profile.created_at).toLocaleString()}</p>
+                    <p><span className="text-muted-foreground">{t('adminUserProfile.text16')}</span> {new Date(profile.updated_at).toLocaleString()}</p>
                     {profile.last_sign_in_at && (
-                      <p><span className="text-muted-foreground">Last Sign In:</span> {new Date(profile.last_sign_in_at).toLocaleString()}</p>
+                      <p><span className="text-muted-foreground">{t('adminUserProfile.text17')}</span> {new Date(profile.last_sign_in_at).toLocaleString()}</p>
                     )}
                   </div>
                 </div>

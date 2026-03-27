@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useEffect } from "react";
+import { useTranslation } from 'react-i18next';
 
 // ── Types ──────────────────────────────────────────────────────────
 interface UnifiedEntityTimelineProps {
@@ -238,9 +239,11 @@ async function fetchTimelineEvents(
 export function UnifiedEntityTimeline({
   entityType,
   entityId,
-  title = "Activity",
+  title,
   limit = 20,
 }: UnifiedEntityTimelineProps) {
+  const { t } = useTranslation('common');
+  const displayTitle = title || t('timeline.activity', 'Activity');
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const [visibleCount, setVisibleCount] = useState(limit);
   const queryClient = useQueryClient();
@@ -305,7 +308,7 @@ export function UnifiedEntityTimeline({
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-lg font-black uppercase">
             <div className="w-1 h-6 bg-foreground" />
-            {title}
+            {displayTitle}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -321,19 +324,19 @@ export function UnifiedEntityTimeline({
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-lg font-black uppercase">
             <div className="w-1 h-6 bg-foreground" />
-            {title}
+            {displayTitle}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-center py-8 space-y-3">
             <AlertCircle className="w-12 h-12 mx-auto text-destructive opacity-50" />
-            <p className="text-muted-foreground">Failed to load activity timeline.</p>
+            <p className="text-muted-foreground">{t('timeline.failedToLoad', 'Failed to load activity timeline.')}</p>
             <Button
               variant="outline"
               size="sm"
               onClick={() => queryClient.invalidateQueries({ queryKey: ["entity-timeline", entityType, entityId] })}
             >
-              Retry
+              {t('timeline.retry', 'Retry')}
             </Button>
           </div>
         </CardContent>
@@ -347,13 +350,13 @@ export function UnifiedEntityTimeline({
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-lg font-black uppercase">
             <div className="w-1 h-6 bg-foreground" />
-            {title}
+            {displayTitle}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-center py-8 space-y-3">
             <Clock className="w-12 h-12 mx-auto text-muted-foreground opacity-50" />
-            <p className="text-muted-foreground">No activity recorded yet.</p>
+            <p className="text-muted-foreground">{t('timeline.noActivity', 'No activity recorded yet.')}</p>
           </div>
         </CardContent>
       </Card>
@@ -366,10 +369,10 @@ export function UnifiedEntityTimeline({
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-lg font-black uppercase">
             <div className="w-1 h-6 bg-foreground" />
-            {title}
+            {displayTitle}
           </CardTitle>
           <Badge variant="secondary" className="text-[10px]">
-            {events.length} events
+            {t('timeline.eventCount', '{{count}} events', { count: events.length })}
           </Badge>
         </div>
       </CardHeader>
@@ -447,7 +450,7 @@ export function UnifiedEntityTimeline({
                         )}
 
                         <p className="text-[10px] text-muted-foreground/60 mt-1">
-                          via {event.source.replace(/_/g, " ")}
+                          {t('timeline.via', 'via {{source}}', { source: event.source.replace(/_/g, " ") })}
                         </p>
                       </div>
                     </motion.div>
@@ -466,7 +469,7 @@ export function UnifiedEntityTimeline({
               onClick={() => setVisibleCount((v) => v + limit)}
               className="text-xs text-muted-foreground"
             >
-              Load more ({events.length - visibleCount} remaining)
+              {t('timeline.loadMore', 'Load more ({{count}} remaining)', { count: events.length - visibleCount })}
             </Button>
           </div>
         )}

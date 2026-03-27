@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Music, ExternalLink } from "lucide-react";
@@ -22,6 +23,7 @@ export function MusicSection({
   spotifyPlaylists = [],
   appleMusicPlaylists = [],
 }: MusicSectionProps) {
+  const { t } = useTranslation('common');
   const hasMusic = (spotifyConnected && spotifyPlaylists.length > 0) || 
                    (appleMusicConnected && appleMusicPlaylists.length > 0);
 
@@ -48,7 +50,7 @@ export function MusicSection({
               <div className="w-8 h-8 rounded-full bg-[#1DB954] flex items-center justify-center">
                 <Music className="w-4 h-4 text-white" />
               </div>
-              <h3 className="font-semibold">Spotify</h3>
+              <h3 className="font-semibold">{t("spotify", "Spotify")}</h3>
             </div>
             <div className="grid gap-3">
               {spotifyPlaylists.map((playlist) => (
@@ -84,7 +86,7 @@ export function MusicSection({
               <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#FA243C] to-[#FB5C74] flex items-center justify-center">
                 <Music className="w-4 h-4 text-white" />
               </div>
-              <h3 className="font-semibold">Apple Music</h3>
+              <h3 className="font-semibold">{t("apple_music", "Apple Music")}</h3>
             </div>
             <div className="grid gap-3">
               {appleMusicPlaylists.map((playlist) => (

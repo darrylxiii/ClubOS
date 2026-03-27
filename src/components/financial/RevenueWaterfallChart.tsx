@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -8,6 +9,7 @@ import { formatCurrency } from '@/lib/currency';
 import useRecharts from '@/hooks/useRecharts';
 
 export function RevenueWaterfallChart({ legalEntity }: { legalEntity?: string }) {
+  const { t } = useTranslation('common');
   const { recharts, isLoading: chartsLoading } = useRecharts();
   const currentYear = new Date().getFullYear();
 
@@ -83,7 +85,7 @@ export function RevenueWaterfallChart({ legalEntity }: { legalEntity?: string })
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Revenue Waterfall</CardTitle>
+          <CardTitle>{t("revenue_waterfall", "Revenue Waterfall")}</CardTitle>
         </CardHeader>
         <CardContent><Skeleton className="h-64 w-full" /></CardContent>
       </Card>
@@ -93,8 +95,8 @@ export function RevenueWaterfallChart({ legalEntity }: { legalEntity?: string })
   if (!data || !recharts) {
     return (
       <Card>
-        <CardHeader><CardTitle>Revenue Waterfall</CardTitle></CardHeader>
-        <CardContent><p className="text-sm text-muted-foreground">No data available</p></CardContent>
+        <CardHeader><CardTitle>{t("revenue_waterfall", "Revenue Waterfall")}</CardTitle></CardHeader>
+        <CardContent><p className="text-sm text-muted-foreground">{t("no_data_available", "No data available")}</p></CardContent>
       </Card>
     );
   }
@@ -104,8 +106,8 @@ export function RevenueWaterfallChart({ legalEntity }: { legalEntity?: string })
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Revenue Waterfall</CardTitle>
-        <CardDescription>Quarterly ARR movement — new clients, expansion, contraction, and churn</CardDescription>
+        <CardTitle>{t("revenue_waterfall", "Revenue Waterfall")}</CardTitle>
+        <CardDescription>{t("quarterly_arr_movement_new", "Quarterly ARR movement — new clients, expansion, contraction, and churn")}</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="h-64">
@@ -136,19 +138,19 @@ export function RevenueWaterfallChart({ legalEntity }: { legalEntity?: string })
             return (
               <>
                 <div className="text-center p-2 rounded bg-primary/10">
-                  <p className="text-xs text-muted-foreground">Net Revenue</p>
+                  <p className="text-xs text-muted-foreground">{t("net_revenue", "Net Revenue")}</p>
                   <p className="font-bold text-sm">{formatCurrency(latest.revenue, 'EUR')}</p>
                 </div>
                 <div className="text-center p-2 rounded bg-success/10">
-                  <p className="text-xs text-muted-foreground">New Clients</p>
+                  <p className="text-xs text-muted-foreground">{t("new_clients", "New Clients")}</p>
                   <p className="font-bold text-sm text-success">{formatCurrency(latest.newClients, 'EUR')}</p>
                 </div>
                 <div className="text-center p-2 rounded bg-warning/10">
-                  <p className="text-xs text-muted-foreground">Contraction</p>
+                  <p className="text-xs text-muted-foreground">{t("contraction", "Contraction")}</p>
                   <p className="font-bold text-sm text-warning">{formatCurrency(Math.abs(latest.contraction), 'EUR')}</p>
                 </div>
                 <div className="text-center p-2 rounded bg-destructive/10">
-                  <p className="text-xs text-muted-foreground">Churned</p>
+                  <p className="text-xs text-muted-foreground">{t("churned", "Churned")}</p>
                   <p className="font-bold text-sm text-destructive">{formatCurrency(Math.abs(latest.churned), 'EUR')}</p>
                 </div>
               </>

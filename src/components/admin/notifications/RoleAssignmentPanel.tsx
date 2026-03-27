@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -26,6 +27,7 @@ const ROLES = [
 ] as const;
 
 export function RoleAssignmentPanel() {
+  const { t } = useTranslation('common');
   const { data: types, isLoading: typesLoading } = useNotificationTypesWithAssignments();
   const { data: assignmentsByRole, isLoading: assignmentsLoading } = useAssignmentsByRole();
   const bulkAssignMutation = useBulkAssignRole();
@@ -143,7 +145,7 @@ export function RoleAssignmentPanel() {
 
               {hasUnsavedChanges && (
                   <div className="flex items-center justify-between pt-2 border-t">
-                    <p className="text-xs text-warning">Unsaved changes</p>
+                    <p className="text-xs text-warning">{t("unsaved_changes", "Unsaved changes")}</p>
                     <Button 
                       size="sm" 
                       onClick={() => handleSaveRole(role.key)}

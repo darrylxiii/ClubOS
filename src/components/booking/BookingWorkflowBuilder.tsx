@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -43,6 +44,7 @@ const WORKFLOW_TYPES = [
 ];
 
 export function BookingWorkflowBuilder({ bookingLinks, userId }: BookingWorkflowBuilderProps) {
+  const { t } = useTranslation('common');
   const [workflows, setWorkflows] = useState<Workflow[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
@@ -75,7 +77,7 @@ export function BookingWorkflowBuilder({ bookingLinks, userId }: BookingWorkflow
 
   const handleCreate = async () => {
     if (!newWorkflow.booking_link_id) {
-      toast.error("Select a booking link");
+      toast.error(t("select_a_booking_link", "Select a booking link"));
       return;
     }
     setCreating(true);
@@ -97,9 +99,9 @@ export function BookingWorkflowBuilder({ bookingLinks, userId }: BookingWorkflow
     const { error } = await supabase.from("booking_workflows").insert(payload as any);
 
     if (error) {
-      toast.error("Failed to create workflow");
+      toast.error(t("failed_to_create_workflow", "Failed to create workflow"));
     } else {
-      toast.success("Workflow created");
+      toast.success(t("workflow_created", "Workflow created"));
       loadWorkflows();
     }
     setCreating(false);
@@ -122,7 +124,7 @@ export function BookingWorkflowBuilder({ bookingLinks, userId }: BookingWorkflow
     const { error } = await supabase.from("booking_workflows").delete().eq("id", id);
     if (!error) {
       setWorkflows((prev) => prev.filter((w) => w.id !== id));
-      toast.success("Workflow removed");
+      toast.success(t("workflow_removed", "Workflow removed"));
     }
   };
 
@@ -142,7 +144,7 @@ export function BookingWorkflowBuilder({ bookingLinks, userId }: BookingWorkflow
       <Card>
         <CardContent className="py-12 text-center">
           <Zap className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-          <p className="text-muted-foreground">Create a booking link first to set up workflows.</p>
+          <p className="text-muted-foreground">{t("create_a_booking_link", "Create a booking link first to set up workflows.")}</p>
         </CardContent>
       </Card>
     );
@@ -164,7 +166,7 @@ export function BookingWorkflowBuilder({ bookingLinks, userId }: BookingWorkflow
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <Label>Booking Link</Label>
+              <Label>{t("booking_link", "Booking Link")}</Label>
               <Select
                 value={newWorkflow.booking_link_id}
                 onValueChange={(v) => setNewWorkflow({ ...newWorkflow, booking_link_id: v })}
@@ -179,7 +181,7 @@ export function BookingWorkflowBuilder({ bookingLinks, userId }: BookingWorkflow
             </div>
 
             <div>
-              <Label>Trigger</Label>
+              <Label>{t("trigger", "Trigger")}</Label>
               <Select
                 value={newWorkflow.trigger_event}
                 onValueChange={(v) => setNewWorkflow({ ...newWorkflow, trigger_event: v })}
@@ -196,25 +198,25 @@ export function BookingWorkflowBuilder({ bookingLinks, userId }: BookingWorkflow
 
           {newWorkflow.trigger_event === "reminder_before" && (
             <div>
-              <Label>Minutes Before</Label>
+              <Label>{t("minutes_before", "Minutes Before")}</Label>
               <Select
                 value={String(newWorkflow.trigger_minutes)}
                 onValueChange={(v) => setNewWorkflow({ ...newWorkflow, trigger_minutes: parseInt(v) })}
               >
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="15">15 minutes</SelectItem>
-                  <SelectItem value="30">30 minutes</SelectItem>
-                  <SelectItem value="60">1 hour</SelectItem>
-                  <SelectItem value="120">2 hours</SelectItem>
-                  <SelectItem value="1440">24 hours</SelectItem>
+                  <SelectItem value="15">{t("15_minutes", "15 minutes")}</SelectItem>
+                  <SelectItem value="30">{t("30_minutes", "30 minutes")}</SelectItem>
+                  <SelectItem value="60">{t("1_hour", "1 hour")}</SelectItem>
+                  <SelectItem value="120">{t("2_hours", "2 hours")}</SelectItem>
+                  <SelectItem value="1440">{t("24_hours", "24 hours")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           )}
 
           <div>
-            <Label>Action</Label>
+            <Label>{t("action", "Action")}</Label>
             <Select
               value={newWorkflow.workflow_type}
               onValueChange={(v) => setNewWorkflow({ ...newWorkflow, workflow_type: v })}
@@ -230,7 +232,7 @@ export function BookingWorkflowBuilder({ bookingLinks, userId }: BookingWorkflow
 
           {newWorkflow.workflow_type === "email" && (
             <div>
-              <Label>Email Template</Label>
+              <Label>{t("email_template", "Email Template")}</Label>
               <Textarea
                 value={newWorkflow.email_template}
                 onChange={(e) => setNewWorkflow({ ...newWorkflow, email_template: e.target.value })}
@@ -245,7 +247,7 @@ export function BookingWorkflowBuilder({ bookingLinks, userId }: BookingWorkflow
 
           {newWorkflow.workflow_type === "sms" && (
             <div>
-              <Label>SMS Template</Label>
+              <Label>{t("sms_template", "SMS Template")}</Label>
               <Textarea
                 value={newWorkflow.sms_template}
                 onChange={(e) => setNewWorkflow({ ...newWorkflow, sms_template: e.target.value })}
@@ -257,7 +259,7 @@ export function BookingWorkflowBuilder({ bookingLinks, userId }: BookingWorkflow
 
           {newWorkflow.workflow_type === "webhook" && (
             <div>
-              <Label>Webhook URL</Label>
+              <Label>{t("webhook_url", "Webhook URL")}</Label>
               <Input
                 value={newWorkflow.webhook_url}
                 onChange={(e) => setNewWorkflow({ ...newWorkflow, webhook_url: e.target.value })}
@@ -278,14 +280,14 @@ export function BookingWorkflowBuilder({ bookingLinks, userId }: BookingWorkflow
       {/* Active workflows */}
       <Card>
         <CardHeader>
-          <CardTitle>Active Workflows</CardTitle>
+          <CardTitle>{t("active_workflows", "Active Workflows")}</CardTitle>
           <CardDescription>
             {workflows.length} workflow{workflows.length !== 1 ? "s" : ""} configured
           </CardDescription>
         </CardHeader>
         <CardContent>
           {loading ? (
-            <p className="text-sm text-muted-foreground text-center py-8">Loading...</p>
+            <p className="text-sm text-muted-foreground text-center py-8">{t("loading", "Loading...")}</p>
           ) : workflows.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-8">
               No workflows yet. Create one above.

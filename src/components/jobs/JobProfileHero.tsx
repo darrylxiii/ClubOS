@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -69,6 +70,7 @@ export function JobProfileHero({
   onSave,
   onShare,
 }: JobProfileHeroProps) {
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
   const [isHoveringAvatar, setIsHoveringAvatar] = useState(false);
 
@@ -272,15 +274,15 @@ export function JobProfileHero({
             <div className="flex items-center gap-6 pt-4 border-t">
               <div>
                 <p className="text-2xl font-bold">{metrics.applicants}</p>
-                <p className="text-xs text-muted-foreground">Applicants</p>
+                <p className="text-xs text-muted-foreground">{t("applicants", "Applicants")}</p>
               </div>
               <div>
                 <p className="text-2xl font-bold">{metrics.views}</p>
-                <p className="text-xs text-muted-foreground">Views</p>
+                <p className="text-xs text-muted-foreground">{t("views", "Views")}</p>
               </div>
               <div>
                 <p className="text-2xl font-bold">{metrics.daysOpen}</p>
-                <p className="text-xs text-muted-foreground">Days Open</p>
+                <p className="text-xs text-muted-foreground">{t("days_open", "Days Open")}</p>
               </div>
             </div>
           )}

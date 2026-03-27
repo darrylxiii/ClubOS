@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { motion } from '@/lib/motion';
 import { Sparkles, ThumbsUp, AlertTriangle, Brain } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -10,6 +11,7 @@ interface AIInsightsCardProps {
 }
 
 export function AIInsightsCard({ candidate, className }: AIInsightsCardProps) {
+  const { t } = useTranslation('common');
   const strengths = Array.isArray(candidate.ai_strengths) ? candidate.ai_strengths : [];
   const concerns = Array.isArray(candidate.ai_concerns) ? candidate.ai_concerns : [];
   const personality = candidate.personality_insights;
@@ -35,8 +37,8 @@ export function AIInsightsCard({ candidate, className }: AIInsightsCardProps) {
     >
       <div className="flex items-center gap-2 mb-4">
         <Brain className="w-4 h-4 text-primary" />
-        <h3 className="text-sm font-semibold tracking-tight">AI Insights</h3>
-        <span className="text-[10px] text-muted-foreground ml-auto">Powered by QUIN</span>
+        <h3 className="text-sm font-semibold tracking-tight">{t("ai_insights", "AI Insights")}</h3>
+        <span className="text-[10px] text-muted-foreground ml-auto">{t("powered_by_quin", "Powered by QUIN")}</span>
       </div>
 
       <div className="space-y-4">
@@ -45,7 +47,7 @@ export function AIInsightsCard({ candidate, className }: AIInsightsCardProps) {
           <div>
             <div className="flex items-center gap-1.5 mb-2">
               <ThumbsUp className="w-3.5 h-3.5 text-emerald-400" />
-              <span className="text-xs font-medium text-emerald-400">Key Strengths</span>
+              <span className="text-xs font-medium text-emerald-400">{t("key_strengths", "Key Strengths")}</span>
             </div>
             <div className="flex flex-wrap gap-1.5">
               {strengths.map((s: string, i: number) => (
@@ -62,7 +64,7 @@ export function AIInsightsCard({ candidate, className }: AIInsightsCardProps) {
           <div>
             <div className="flex items-center gap-1.5 mb-2">
               <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
-              <span className="text-xs font-medium text-amber-400">Key Concerns</span>
+              <span className="text-xs font-medium text-amber-400">{t("key_concerns", "Key Concerns")}</span>
             </div>
             <div className="flex flex-wrap gap-1.5">
               {concerns.map((c: string, i: number) => (
@@ -79,7 +81,7 @@ export function AIInsightsCard({ candidate, className }: AIInsightsCardProps) {
           <div>
             <div className="flex items-center gap-1.5 mb-2">
               <Sparkles className="w-3.5 h-3.5 text-primary" />
-              <span className="text-xs font-medium text-foreground">Personality Traits</span>
+              <span className="text-xs font-medium text-foreground">{t("personality_traits", "Personality Traits")}</span>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {personalityTraits.slice(0, 6).map(([trait, value]) => (

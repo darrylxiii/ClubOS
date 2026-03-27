@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from 'react-i18next';
 import { AdminTableSkeleton } from "@/components/LoadingSkeletons";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -28,6 +29,7 @@ import { toast } from "sonner";
 import { Checkbox } from "@/components/ui/checkbox";
 
 const TargetCompaniesOverview = () => {
+  const { t } = useTranslation('admin');
   const { user } = useAuth();
   const [companies, setCompanies] = useState<Record<string, any>[]>([]);
   const [filteredCompanies, setFilteredCompanies] = useState<Record<string, any>[]>([]);
@@ -109,7 +111,7 @@ const TargetCompaniesOverview = () => {
       setPartnerCompanies(companiesData || []);
     } catch (error: unknown) {
       console.error('Error loading data:', error);
-      toast.error('Failed to load target companies');
+      toast.error(t('text.targetcompaniesoverview.failedToLoadTargetCompanies', 'Failed to load target companies'));
     } finally {
       setLoading(false);
     }
@@ -176,7 +178,7 @@ const TargetCompaniesOverview = () => {
     a.href = url;
     a.download = `target-companies-${new Date().toISOString().split('T')[0]}.csv`;
     a.click();
-    toast.success("CSV exported successfully");
+    toast.success(t('text.targetcompaniesoverview.csvExportedSuccessfully', 'CSV exported successfully'));
   };
 
   const toggleSelection = (id: string) => {
@@ -195,25 +197,25 @@ const TargetCompaniesOverview = () => {
 
   const stats = [
     {
-      label: "Total Targets",
+      label: t('text.targetcompaniesoverview.totalTargets', 'Total Targets'),
       value: companies.length,
       icon: Target,
       color: "text-primary",
     },
     {
-      label: "Active Companies",
+      label: t('text.targetcompaniesoverview.activeCompanies', 'Active Companies'),
       value: new Set(companies.map((tc) => tc.company_id)).size,
       icon: Users,
       color: "text-blue-500",
     },
     {
-      label: "In Progress",
+      label: t('text.targetcompaniesoverview.inProgress', 'In Progress'),
       value: companies.filter((tc) => ["targeting", "hunting"].includes(tc.status)).length,
       icon: TrendingUp,
       color: "text-amber-500",
     },
     {
-      label: "Top Voted",
+      label: t('text.targetcompaniesoverview.topVoted', 'Top Voted'),
       value: Math.max(...companies.map((tc) => tc.vote_count || 0), 0),
       icon: Award,
       color: "text-green-500",
@@ -224,10 +226,8 @@ const TargetCompaniesOverview = () => {
       <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-3xl font-bold">Target Companies Overview</h1>
-        <p className="text-muted-foreground mt-1">
-          All target companies across all partners
-        </p>
+        <h1 className="text-3xl font-bold">{t('targetCompaniesOverview.title')}</h1>
+        <p className="text-muted-foreground mt-1">{t('targetCompaniesOverview.desc')}</p>
       </div>
 
       {/* Stats Grid */}
@@ -251,7 +251,7 @@ const TargetCompaniesOverview = () => {
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search target companies..."
+              placeholder={t('text.targetcompaniesoverview.searchTargetCompanies', 'Search target companies...')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10"
@@ -259,10 +259,10 @@ const TargetCompaniesOverview = () => {
           </div>
           <Select value={companyFilter} onValueChange={setCompanyFilter}>
             <SelectTrigger className="w-full md:w-48">
-              <SelectValue placeholder="All Companies" />
+              <SelectValue placeholder={t('text.targetcompaniesoverview.allCompanies', 'All Companies')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Companies</SelectItem>
+              <SelectItem value="all">{t('text.targetcompaniesoverview.allCompanies', 'All Companies')}</SelectItem>
               {partnerCompanies.map((company) => (
                 <SelectItem key={company.id} value={company.id}>
                   {company.name}
@@ -272,15 +272,15 @@ const TargetCompaniesOverview = () => {
           </Select>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger className="w-full md:w-40">
-              <SelectValue placeholder="All Statuses" />
+              <SelectValue placeholder={t('text.targetcompaniesoverview.allStatuses', 'All Statuses')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Statuses</SelectItem>
-              <SelectItem value="new">New</SelectItem>
-              <SelectItem value="targeting">Targeting</SelectItem>
-              <SelectItem value="hunting">Hunting</SelectItem>
-              <SelectItem value="paused">Paused</SelectItem>
-              <SelectItem value="done">Done</SelectItem>
+              <SelectItem value="all">{t('text.targetcompaniesoverview.allStatuses', 'All Statuses')}</SelectItem>
+              <SelectItem value="new">{t('text.targetcompaniesoverview.new', 'New')}</SelectItem>
+              <SelectItem value="targeting">{t('text.targetcompaniesoverview.targeting', 'Targeting')}</SelectItem>
+              <SelectItem value="hunting">{t('text.targetcompaniesoverview.hunting', 'Hunting')}</SelectItem>
+              <SelectItem value="paused">{t('text.targetcompaniesoverview.paused', 'Paused')}</SelectItem>
+              <SelectItem value="done">{t('text.targetcompaniesoverview.done', 'Done')}</SelectItem>
             </SelectContent>
           </Select>
           <Button onClick={handleExportCSV} variant="outline" className="gap-2">
@@ -301,14 +301,14 @@ const TargetCompaniesOverview = () => {
                   onCheckedChange={toggleSelectAll}
                 />
               </TableHead>
-              <TableHead>Company</TableHead>
-              <TableHead>Target Name</TableHead>
-              <TableHead>Industry</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Priority</TableHead>
-              <TableHead>Votes</TableHead>
-              <TableHead>Contacts</TableHead>
-              <TableHead>Created By</TableHead>
+              <TableHead>{t('text.targetcompaniesoverview.company', 'Company')}</TableHead>
+              <TableHead>{t('text.targetcompaniesoverview.targetName', 'Target Name')}</TableHead>
+              <TableHead>{t('text.targetcompaniesoverview.industry', 'Industry')}</TableHead>
+              <TableHead>{t('text.targetcompaniesoverview.status', 'Status')}</TableHead>
+              <TableHead>{t('text.targetcompaniesoverview.priority', 'Priority')}</TableHead>
+              <TableHead>{t('text.targetcompaniesoverview.votes', 'Votes')}</TableHead>
+              <TableHead>{t('text.targetcompaniesoverview.contacts', 'Contacts')}</TableHead>
+              <TableHead>{t('text.targetcompaniesoverview.createdBy', 'Created By')}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -316,9 +316,7 @@ const TargetCompaniesOverview = () => {
               <AdminTableSkeleton columns={9} />
             ) : filteredCompanies.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
-                  No target companies found
-                </TableCell>
+                <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">{t('text.targetcompaniesoverview.noTargetCompaniesFound', 'No target companies found')}</TableCell>
               </TableRow>
             ) : (
               filteredCompanies.map((tc) => (

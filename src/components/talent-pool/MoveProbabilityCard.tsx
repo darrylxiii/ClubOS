@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import { useMoveProbability } from '@/hooks/useTalentPool';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatDistanceToNow } from 'date-fns';
+import { useTranslation } from 'react-i18next';
 
 interface MoveProbabilityCardProps {
   candidateId: string;
@@ -48,6 +49,7 @@ const factorWeights: Record<keyof FactorBreakdown, number> = {
 };
 
 function getScoreColor(score: number): string {
+  const { t } = useTranslation('common');
   if (score >= 70) return 'text-green-400';
   if (score >= 40) return 'text-yellow-400';
   return 'text-muted-foreground';
@@ -133,7 +135,7 @@ export function MoveProbabilityCard({ candidateId, className }: MoveProbabilityC
           <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
             <CollapsibleTrigger asChild>
               <Button variant="ghost" size="sm" className="w-full justify-between">
-                <span className="text-sm">Factor Breakdown</span>
+                <span className="text-sm">{"Factor Breakdown"}</span>
                 {isExpanded ? (
                   <ChevronUp className="h-4 w-4" />
                 ) : (

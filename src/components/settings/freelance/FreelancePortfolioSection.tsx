@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,6 +26,7 @@ interface FreelancePortfolioSectionProps {
 }
 
 export function FreelancePortfolioSection({ userId, freelanceProfile, onUpdate }: FreelancePortfolioSectionProps) {
+  const { t } = useTranslation('common');
   const [saving, setSaving] = useState(false);
   const [portfolioItems, setPortfolioItems] = useState<PortfolioItem[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -69,7 +71,7 @@ export function FreelancePortfolioSection({ userId, freelanceProfile, onUpdate }
 
   const handleSaveItem = async () => {
     if (!title.trim()) {
-      toast.error("Title is required");
+      toast.error(t("title_is_required", "Title is required"));
       return;
     }
 
@@ -110,7 +112,7 @@ export function FreelancePortfolioSection({ userId, freelanceProfile, onUpdate }
       onUpdate();
     } catch (error: unknown) {
       console.error("Error saving portfolio item:", error);
-      toast.error("Failed to save portfolio item");
+      toast.error(t("failed_to_save_portfolio", "Failed to save portfolio item"));
     } finally {
       setSaving(false);
     }
@@ -132,11 +134,11 @@ export function FreelancePortfolioSection({ userId, freelanceProfile, onUpdate }
       if (error) throw error;
 
       setPortfolioItems(updatedItems);
-      toast.success("Portfolio item deleted");
+      toast.success(t("portfolio_item_deleted", "Portfolio item deleted"));
       onUpdate();
     } catch (error: unknown) {
       console.error("Error deleting portfolio item:", error);
-      toast.error("Failed to delete portfolio item");
+      toast.error(t("failed_to_delete_portfolio", "Failed to delete portfolio item"));
     } finally {
       setSaving(false);
     }
@@ -170,19 +172,19 @@ export function FreelancePortfolioSection({ userId, freelanceProfile, onUpdate }
               </DialogHeader>
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
-                  <Label htmlFor="title">Title *</Label>
+                  <Label htmlFor="title">{t("title", "Title *")}</Label>
                   <Input
                     id="title"
-                    placeholder="Project name"
+                    placeholder={t("project_name", "Project name")}
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="description">Description</Label>
+                  <Label htmlFor="description">{t("description", "Description")}</Label>
                   <Textarea
                     id="description"
-                    placeholder="Describe your work..."
+                    placeholder={t("describe_your_work", "Describe your work...")}
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     rows={3}
@@ -215,10 +217,10 @@ export function FreelancePortfolioSection({ userId, freelanceProfile, onUpdate }
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="tags">Tags (comma-separated)</Label>
+                  <Label htmlFor="tags">{t("tags_commaseparated", "Tags (comma-separated)")}</Label>
                   <Input
                     id="tags"
-                    placeholder="React, TypeScript, Design"
+                    placeholder={t("react_typescript_design", "React, TypeScript, Design")}
                     value={tags}
                     onChange={(e) => setTags(e.target.value)}
                   />
@@ -240,8 +242,8 @@ export function FreelancePortfolioSection({ userId, freelanceProfile, onUpdate }
         {portfolioItems.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
             <Briefcase className="h-12 w-12 mx-auto mb-4 opacity-20" />
-            <p>No portfolio items yet</p>
-            <p className="text-sm">Add your best work to attract more clients</p>
+            <p>{t("no_portfolio_items_yet", "No portfolio items yet")}</p>
+            <p className="text-sm">{t("add_your_best_work", "Add your best work to attract more clients")}</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

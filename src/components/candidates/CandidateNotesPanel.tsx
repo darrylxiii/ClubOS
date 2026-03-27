@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -32,6 +33,7 @@ const noteTypeColors: Record<NoteType, string> = {
 };
 
 export function CandidateNotesPanel({ candidateId }: CandidateNotesPanelProps) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [isExpanded, setIsExpanded] = useState(true);
@@ -76,9 +78,9 @@ export function CandidateNotesPanel({ candidateId }: CandidateNotesPanelProps) {
       queryClient.invalidateQueries({ queryKey: ["candidate-notes", candidateId] });
       setNewNote("");
       setNoteType("general");
-      toast.success("Note added");
+      toast.success(t("note_added", "Note added"));
     },
-    onError: () => toast.error("Failed to add note"),
+    onError: () => toast.error(t("failed_to_add_note", "Failed to add note")),
   });
 
   const updateNote = useMutation({
@@ -93,9 +95,9 @@ export function CandidateNotesPanel({ candidateId }: CandidateNotesPanelProps) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["candidate-notes", candidateId] });
       setEditingId(null);
-      toast.success("Note updated");
+      toast.success(t("note_updated", "Note updated"));
     },
-    onError: () => toast.error("Failed to update note"),
+    onError: () => toast.error(t("failed_to_update_note", "Failed to update note")),
   });
 
   const togglePin = useMutation({
@@ -119,9 +121,9 @@ export function CandidateNotesPanel({ candidateId }: CandidateNotesPanelProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["candidate-notes", candidateId] });
-      toast.success("Note deleted");
+      toast.success(t("note_deleted", "Note deleted"));
     },
-    onError: () => toast.error("Failed to delete note"),
+    onError: () => toast.error(t("failed_to_delete_note", "Failed to delete note")),
   });
 
   return (
@@ -150,19 +152,19 @@ export function CandidateNotesPanel({ candidateId }: CandidateNotesPanelProps) {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="general">General</SelectItem>
-                    <SelectItem value="interview">Interview</SelectItem>
-                    <SelectItem value="feedback">Feedback</SelectItem>
-                    <SelectItem value="follow_up">Follow Up</SelectItem>
-                    <SelectItem value="positive">Positive</SelectItem>
-                    <SelectItem value="concern">Concern</SelectItem>
+                    <SelectItem value="general">{t("general", "General")}</SelectItem>
+                    <SelectItem value="interview">{t("interview", "Interview")}</SelectItem>
+                    <SelectItem value="feedback">{t("feedback", "Feedback")}</SelectItem>
+                    <SelectItem value="follow_up">{t("follow_up", "Follow Up")}</SelectItem>
+                    <SelectItem value="positive">{t("positive", "Positive")}</SelectItem>
+                    <SelectItem value="concern">{t("concern", "Concern")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <Textarea
                 value={newNote}
                 onChange={(e) => setNewNote(e.target.value)}
-                placeholder="Add a note about this candidate..."
+                placeholder={t("add_a_note_about", "Add a note about this candidate...")}
                 rows={2}
               />
               <Button 
@@ -179,9 +181,9 @@ export function CandidateNotesPanel({ candidateId }: CandidateNotesPanelProps) {
             <ScrollArea className="h-[300px]">
               <div className="space-y-3 pr-4">
                 {isLoading ? (
-                  <p className="text-sm text-muted-foreground text-center py-4">Loading notes...</p>
+                  <p className="text-sm text-muted-foreground text-center py-4">{t("loading_notes", "Loading notes...")}</p>
                 ) : notes.length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-4">No notes yet</p>
+                  <p className="text-sm text-muted-foreground text-center py-4">{t("no_notes_yet", "No notes yet")}</p>
                 ) : (
                   notes.map((note: any) => (
                     <div

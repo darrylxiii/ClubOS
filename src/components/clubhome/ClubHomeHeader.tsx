@@ -105,16 +105,16 @@ export const ClubHomeHeader = ({ role }: ClubHomeHeaderProps) => {
         {/* Right: Quick actions */}
         {role === "admin" && (
           <div className="flex items-center gap-1">
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={refreshKPIs} title="Refresh KPIs">
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={refreshKPIs} title={t("refresh_kpis", "Refresh KPIs")}>
               <RefreshCw className="h-4 w-4" />
             </Button>
             <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
-              <Link to="/admin/finance" title="Finance">
+              <Link to="/admin/finance" title={t("finance", "Finance")}>
                 <DollarSign className="h-4 w-4" />
               </Link>
             </Button>
             <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
-              <Link to="/admin/global-analytics" title="Analytics">
+              <Link to="/admin/global-analytics" title={t("analytics", "Analytics")}>
                 <BarChart3 className="h-4 w-4" />
               </Link>
             </Button>

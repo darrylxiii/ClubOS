@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -40,6 +41,7 @@ export function ScheduleMeetingDialog({
   prospect,
   onMeetingScheduled,
 }: ScheduleMeetingDialogProps) {
+  const { t } = useTranslation('common');
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [bookingLinks, setBookingLinks] = useState<BookingLink[]>([]);
@@ -85,7 +87,7 @@ export function ScheduleMeetingDialog({
       }
     } catch (err) {
       console.error('Error loading booking links:', err);
-      toast.error('Failed to load booking links');
+      toast.error(t("failed_to_load_booking", "Failed to load booking links"));
     } finally {
       setLoading(false);
     }
@@ -119,7 +121,7 @@ export function ScheduleMeetingDialog({
 
   const handleSchedule = async () => {
     if (!selectedDate || !selectedTime || !selectedLinkId) {
-      toast.error('Please select a date and time');
+      toast.error(t("please_select_a_date", "Please select a date and time"));
       return;
     }
 
@@ -171,12 +173,12 @@ export function ScheduleMeetingDialog({
           duration_minutes: selectedLink.duration_minutes,
         });
 
-      toast.success('Meeting scheduled successfully');
+      toast.success(t("meeting_scheduled_successfully", "Meeting scheduled successfully"));
       onMeetingScheduled?.();
       onClose();
     } catch (err) {
       console.error('Error scheduling meeting:', err);
-      toast.error('Failed to schedule meeting');
+      toast.error(t("failed_to_schedule_meeting", "Failed to schedule meeting"));
     } finally {
       setSubmitting(false);
     }
@@ -218,13 +220,13 @@ export function ScheduleMeetingDialog({
 
             {/* Booking Link Selection */}
             <div className="space-y-2">
-              <Label>Meeting Type</Label>
+              <Label>{t("meeting_type", "Meeting Type")}</Label>
               {loading ? (
                 <Skeleton className="h-10 w-full" />
               ) : bookingLinks.length > 0 ? (
                 <Select value={selectedLinkId} onValueChange={setSelectedLinkId}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select meeting type" />
+                    <SelectValue placeholder={t("select_meeting_type", "Select meeting type")} />
                   </SelectTrigger>
                   <SelectContent>
                     {bookingLinks.map((link) => (
@@ -243,11 +245,11 @@ export function ScheduleMeetingDialog({
 
             {/* Notes */}
             <div className="space-y-2">
-              <Label>Meeting Notes</Label>
+              <Label>{t("meeting_notes", "Meeting Notes")}</Label>
               <Textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder="Add any notes for this meeting..."
+                placeholder={t("add_any_notes_for", "Add any notes for this meeting...")}
                 rows={3}
               />
             </div>
@@ -266,11 +268,11 @@ export function ScheduleMeetingDialog({
 
           {/* Right: Time Slots */}
           <div className="md:w-1/2">
-            <Label className="mb-2 block">Available Times</Label>
+            <Label className="mb-2 block">{t("available_times", "Available Times")}</Label>
             {!selectedDate ? (
               <div className="flex items-center justify-center h-64 text-muted-foreground">
                 <CalendarIcon className="w-8 h-8 mr-2 opacity-50" />
-                <span>Select a date</span>
+                <span>{t("select_a_date", "Select a date")}</span>
               </div>
             ) : loadingSlots ? (
               <div className="space-y-2">
@@ -296,13 +298,13 @@ export function ScheduleMeetingDialog({
               </ScrollArea>
             ) : (
               <div className="flex items-center justify-center h-64 text-muted-foreground">
-                <span>No available slots for this date</span>
+                <span>{t("no_available_slots_for", "No available slots for this date")}</span>
               </div>
             )}
 
             {selectedDate && selectedTime && selectedLink && (
               <div className="mt-4 p-3 rounded-lg bg-primary/10 border border-primary/20">
-                <p className="text-sm font-medium">Meeting Summary</p>
+                <p className="text-sm font-medium">{t("meeting_summary", "Meeting Summary")}</p>
                 <p className="text-sm text-muted-foreground">
                   {format(selectedDate, 'EEEE, MMMM d, yyyy')} at {selectedTime}
                 </p>
@@ -315,7 +317,7 @@ export function ScheduleMeetingDialog({
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Cancel</Button>
+          <Button variant="outline" onClick={onClose}>{t("cancel", "Cancel")}</Button>
           <Button 
             onClick={handleSchedule} 
             disabled={submitting || !selectedDate || !selectedTime || !selectedLinkId}

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -22,6 +23,7 @@ export function SetPasswordDialog({
   targetName,
   targetEmail,
 }: SetPasswordDialogProps) {
+  const { t } = useTranslation('common');
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -44,7 +46,7 @@ export function SetPasswordDialog({
       });
 
       if (error) {
-        toast.error("Failed to set password. Please try again.");
+        toast.error(t("failed_to_set_password", "Failed to set password. Please try again."));
         return;
       }
 
@@ -58,7 +60,7 @@ export function SetPasswordDialog({
       setConfirmPassword("");
       onOpenChange(false);
     } catch {
-      toast.error("An unexpected error occurred.");
+      toast.error(t("an_unexpected_error_occurred", "An unexpected error occurred."));
     } finally {
       setIsLoading(false);
     }
@@ -79,7 +81,7 @@ export function SetPasswordDialog({
           <div className="w-12 h-12 mx-auto mb-2 bg-primary/10 rounded-xl flex items-center justify-center">
             <KeyRound className="w-6 h-6 text-primary" />
           </div>
-          <DialogTitle className="text-center">Set Temporary Password</DialogTitle>
+          <DialogTitle className="text-center">{t("set_temporary_password", "Set Temporary Password")}</DialogTitle>
           <DialogDescription className="text-center">
             Set a temporary password for <span className="font-medium text-foreground">{targetName}</span>
             <br />

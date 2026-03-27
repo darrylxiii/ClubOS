@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Mail, Send, Loader2, Briefcase } from "lucide-react";
+import { useTranslation } from 'react-i18next';
 
 interface Job {
   id: string;
@@ -31,6 +32,7 @@ export const CandidateInvitationDialog = ({
   candidateName,
   suggestedJobs = []
 }: Props) => {
+  const { t } = useTranslation('partner');
   const [sending, setSending] = useState(false);
   const [selectedJobs, setSelectedJobs] = useState<Job[]>([]);
   const [personalMessage, setPersonalMessage] = useState(
@@ -50,11 +52,11 @@ export const CandidateInvitationDialog = ({
 
       if (error) throw error;
 
-      toast.success('Invitation sent successfully!');
+      toast.success(t('candidateInvitationDialog.toast.invitationSentSuccessfully'));
       onOpenChange(false);
     } catch (error) {
       console.error('Error sending invitation:', error);
-      toast.error('Failed to send invitation');
+      toast.error(t('candidateInvitationDialog.toast.failedToSendInvitation'));
     } finally {
       setSending(false);
     }
@@ -83,13 +85,13 @@ export const CandidateInvitationDialog = ({
 
         <div className="space-y-4 mt-4">
           <div>
-            <Label>Email Address</Label>
+            <Label>{t('candidateInvitationDialog.label.emailAddress')}</Label>
             <Input value={candidateEmail} disabled className="bg-muted" />
           </div>
 
           {suggestedJobs.length > 0 && (
             <div>
-              <Label>Link to Specific Jobs (Optional)</Label>
+              <Label>{t('candidateInvitationDialog.label.linkToSpecificJobsOptional')}</Label>
               <div className="flex flex-wrap gap-2 mt-2">
                 {suggestedJobs.map(job => (
                   <Badge
@@ -103,27 +105,23 @@ export const CandidateInvitationDialog = ({
                   </Badge>
                 ))}
               </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Selected jobs will be mentioned in the invitation email
-              </p>
+              <p className="text-xs text-muted-foreground mt-1">{t('candidateInvitationDialog.selectedJobsWillBeMentionedInTheInvitati')}</p>
             </div>
           )}
 
           <div>
-            <Label>Personal Message</Label>
+            <Label>{t('candidateInvitationDialog.label.personalMessage')}</Label>
             <Textarea
               value={personalMessage}
               onChange={(e) => setPersonalMessage(e.target.value)}
               rows={8}
               className="font-mono text-sm"
             />
-            <p className="text-xs text-muted-foreground mt-1">
-              This message will be included in the invitation email
-            </p>
+            <p className="text-xs text-muted-foreground mt-1">{t('candidateInvitationDialog.thisMessageWillBeIncludedInTheInvitation')}</p>
           </div>
 
           <div className="bg-muted/30 border border-border rounded-lg p-4 text-sm">
-            <p className="font-medium mb-2">What happens next?</p>
+            <p className="font-medium mb-2">{t('candidateInvitationDialog.whatHappensNext')}</p>
             <ul className="list-disc list-inside space-y-1 text-muted-foreground text-xs">
               <li>Candidate receives invitation email with secure link</li>
               <li>Link expires in 7 days</li>
@@ -135,7 +133,7 @@ export const CandidateInvitationDialog = ({
 
         <div className="flex justify-end gap-2 mt-6">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+            {t('common:cancel')}
           </Button>
           <Button onClick={handleSend} disabled={sending}>
             {sending ? (

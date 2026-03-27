@@ -1,4 +1,5 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useTranslation } from 'react-i18next';
 import { DashboardHeader } from "@/components/admin/shared/DashboardHeader";
 import { NotificationStatsCards } from "@/components/admin/notifications/NotificationStatsCards";
 import { NotificationTypesList } from "@/components/admin/notifications/NotificationTypesList";
@@ -7,11 +8,12 @@ import { NotificationAuditLog } from "@/components/admin/notifications/Notificat
 import { Mail, Users, Clock } from "lucide-react";
 
 export default function EmailNotificationManagement() {
+  const { t } = useTranslation('admin');
   return (
     <div className="container mx-auto py-6 space-y-6">
       <DashboardHeader
-        title="Email Notification Management"
-        description="Configure who receives which email notifications across the platform"
+        title={t('emailNotificationManagement.text1')}
+        description={t('emailNotificationManagement.text2')}
       />
 
       <NotificationStatsCards />

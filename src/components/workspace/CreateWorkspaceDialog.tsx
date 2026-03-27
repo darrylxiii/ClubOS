@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -28,6 +29,7 @@ export function CreateWorkspaceDialog({
   onOpenChange,
   onCreated,
 }: CreateWorkspaceDialogProps) {
+  const { t } = useTranslation('common');
   const { createWorkspace } = useWorkspaces();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -91,10 +93,10 @@ export function CreateWorkspaceDialog({
             </div>
 
             <div className="flex-1 space-y-2">
-              <Label htmlFor="name">Workspace Name</Label>
+              <Label htmlFor="name">{t("workspace_name", "Workspace Name")}</Label>
               <Input
                 id="name"
-                placeholder="e.g., Marketing Team"
+                placeholder={t("eg_marketing_team", "e.g., Marketing Team")}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 autoFocus
@@ -103,10 +105,10 @@ export function CreateWorkspaceDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description">Description (optional)</Label>
+            <Label htmlFor="description">{t("description_optional", "Description (optional)")}</Label>
             <Textarea
               id="description"
-              placeholder="What's this workspace for?"
+              placeholder={t("whats_this_workspace_for", "What's this workspace for?")}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={2}
@@ -114,7 +116,7 @@ export function CreateWorkspaceDialog({
           </div>
 
           <div className="flex flex-wrap gap-2 pt-2">
-            <span className="text-xs text-muted-foreground">Quick emoji:</span>
+            <span className="text-xs text-muted-foreground">{t("quick_emoji", "Quick emoji:")}</span>
             {EMOJI_OPTIONS.map((e) => (
               <button
                 key={e}

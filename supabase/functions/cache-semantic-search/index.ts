@@ -1,6 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -11,21 +11,21 @@ interface CacheRequest {
   action: 'search' | 'store' | 'invalidate';
   query?: string;
   embedding?: number[];
-  results?: any[];
-  search_params?: Record<string, any>;
+  results?: Record<string, unknown>[];
+  search_params?: Record<string, unknown>;
   similarity_threshold?: number;
 }
 
 interface CacheResult {
   hit: boolean;
-  results: any[] | null;
+  results: Record<string, unknown>[] | null;
   cache_key?: string;
   similarity?: number;
   cached_at?: string;
 }
 
 // Crypto hash for cache keys
-async function hashQuery(query: string, params: Record<string, any> = {}): Promise<string> {
+async function hashQuery(query: string, params: Record<string, unknown> = {}): Promise<string> {
   const encoder = new TextEncoder();
   const normalized = query.toLowerCase().trim() + JSON.stringify(params);
   const data = encoder.encode(normalized);
@@ -68,7 +68,7 @@ serve(async (req) => {
   }
 });
 
-async function searchCache(supabase: any, input: CacheRequest): Promise<Response> {
+async function searchCache(supabase: SupabaseClient, input: CacheRequest): Promise<Response> {
   if (!input.query) {
     return new Response(JSON.stringify({ error: 'Query is required for search' }), {
       status: 400,
@@ -164,7 +164,7 @@ async function searchCache(supabase: any, input: CacheRequest): Promise<Response
   });
 }
 
-async function storeInCache(supabase: any, input: CacheRequest): Promise<Response> {
+async function storeInCache(supabase: SupabaseClient, input: CacheRequest): Promise<Response> {
   if (!input.query || !input.results) {
     return new Response(JSON.stringify({ error: 'Query and results are required for store' }), {
       status: 400,
@@ -175,7 +175,7 @@ async function storeInCache(supabase: any, input: CacheRequest): Promise<Respons
   const queryHash = await hashQuery(input.query, input.search_params || {});
   const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
-  const cacheEntry: any = {
+  const cacheEntry: Record<string, unknown> = {
     query_hash: queryHash,
     query_text: input.query,
     results_json: input.results,
@@ -215,7 +215,7 @@ async function storeInCache(supabase: any, input: CacheRequest): Promise<Respons
   });
 }
 
-async function invalidateCache(supabase: any, input: CacheRequest): Promise<Response> {
+async function invalidateCache(supabase: SupabaseClient, input: CacheRequest): Promise<Response> {
   if (input.query) {
     const queryHash = await hashQuery(input.query, input.search_params || {});
     await supabase
@@ -235,7 +235,7 @@ async function invalidateCache(supabase: any, input: CacheRequest): Promise<Resp
   });
 }
 
-async function cleanupCache(supabase: any) {
+async function cleanupCache(supabase: SupabaseClient) {
   try {
     // Delete expired entries
     await supabase
@@ -261,7 +261,7 @@ async function cleanupCache(supabase: any) {
         .limit(deleteCount);
 
       if (oldEntries && oldEntries.length > 0) {
-        const idsToDelete = oldEntries.map((e: any) => e.id);
+        const idsToDelete = oldEntries.map((e: { id: string }) => e.id);
         await supabase
           .from('embedding_cache')
           .delete()

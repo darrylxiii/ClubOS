@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -39,6 +40,7 @@ interface TimeProposalsManagerProps {
 }
 
 export function TimeProposalsManager({ proposals, onUpdate }: TimeProposalsManagerProps) {
+  const { t } = useTranslation('common');
   const [responding, setResponding] = useState<string | null>(null);
   const [responseMessage, setResponseMessage] = useState("");
   const [counterDialogOpen, setCounterDialogOpen] = useState(false);
@@ -85,7 +87,7 @@ export function TimeProposalsManager({ proposals, onUpdate }: TimeProposalsManag
 
   const handleCounter = async () => {
     if (!selectedProposal || !counterDate || !counterTime) {
-      toast.error("Please select a date and time");
+      toast.error(t("please_select_a_date", "Please select a date and time"));
       return;
     }
 
@@ -108,7 +110,7 @@ export function TimeProposalsManager({ proposals, onUpdate }: TimeProposalsManag
 
       if (error) throw error;
 
-      toast.success('Counter-proposal sent!');
+      toast.success(t("counterproposal_sent", "Counter-proposal sent!"));
       setCounterDialogOpen(false);
       setCounterDate(undefined);
       setCounterTime("");
@@ -132,13 +134,13 @@ export function TimeProposalsManager({ proposals, onUpdate }: TimeProposalsManag
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'pending':
-        return <Badge variant="secondary"><Clock className="w-3 h-3 mr-1" /> Pending</Badge>;
+        return <Badge variant="secondary"><Clock className="w-3 h-3 mr-1" />{t("pending", "Pending")}</Badge>;
       case 'accepted':
-        return <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30"><Check className="w-3 h-3 mr-1" /> Accepted</Badge>;
+        return <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30"><Check className="w-3 h-3 mr-1" />{t("accepted", "Accepted")}</Badge>;
       case 'declined':
-        return <Badge variant="destructive"><X className="w-3 h-3 mr-1" /> Declined</Badge>;
+        return <Badge variant="destructive"><X className="w-3 h-3 mr-1" />{t("declined", "Declined")}</Badge>;
       case 'expired':
-        return <Badge variant="outline">Expired</Badge>;
+        return <Badge variant="outline">{t("expired", "Expired")}</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -177,7 +179,7 @@ export function TimeProposalsManager({ proposals, onUpdate }: TimeProposalsManag
                 </div>
 
                 <div className="bg-muted p-3 rounded-md">
-                  <p className="text-sm font-medium">Proposed Time:</p>
+                  <p className="text-sm font-medium">{t("proposed_time", "Proposed Time:")}</p>
                   <p className="text-sm">
                     {format(new Date(proposal.proposed_start), "EEEE, MMMM d, yyyy")}
                   </p>
@@ -189,14 +191,14 @@ export function TimeProposalsManager({ proposals, onUpdate }: TimeProposalsManag
 
                 {proposal.message && (
                   <div className="text-sm">
-                    <p className="font-medium">Message:</p>
+                    <p className="font-medium">{t("message", "Message:")}</p>
                     <p className="text-muted-foreground">{proposal.message}</p>
                   </div>
                 )}
 
                 <div className="space-y-2">
                   <Textarea
-                    placeholder="Optional response message..."
+                    placeholder={t("optional_response_message", "Optional response message...")}
                     value={responseMessage}
                     onChange={(e) => setResponseMessage(e.target.value)}
                     className="text-sm"
@@ -252,7 +254,7 @@ export function TimeProposalsManager({ proposals, onUpdate }: TimeProposalsManag
       {pastProposals.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm">Past Proposals</CardTitle>
+            <CardTitle className="text-sm">{t("past_proposals", "Past Proposals")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
             {pastProposals.slice(0, 5).map((proposal) => (
@@ -274,7 +276,7 @@ export function TimeProposalsManager({ proposals, onUpdate }: TimeProposalsManag
       <Dialog open={counterDialogOpen} onOpenChange={setCounterDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Counter-Propose Time</DialogTitle>
+            <DialogTitle>{t("counterpropose_time", "Counter-Propose Time")}</DialogTitle>
             <DialogDescription>
               Suggest an alternative time to {selectedProposal?.proposed_by_name || selectedProposal?.proposed_by_email}
             </DialogDescription>
@@ -282,7 +284,7 @@ export function TimeProposalsManager({ proposals, onUpdate }: TimeProposalsManag
 
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label>Select Date</Label>
+              <Label>{t("select_date", "Select Date")}</Label>
               <Calendar
                 mode="single"
                 selected={counterDate}
@@ -293,10 +295,10 @@ export function TimeProposalsManager({ proposals, onUpdate }: TimeProposalsManag
             </div>
 
             <div className="space-y-2">
-              <Label>Select Time</Label>
+              <Label>{t("select_time", "Select Time")}</Label>
               <Select value={counterTime} onValueChange={setCounterTime}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Choose a time" />
+                  <SelectValue placeholder={t("choose_a_time", "Choose a time")} />
                 </SelectTrigger>
                 <SelectContent>
                   {timeSlots.map((time) => (
@@ -309,11 +311,11 @@ export function TimeProposalsManager({ proposals, onUpdate }: TimeProposalsManag
             </div>
 
             <div className="space-y-2">
-              <Label>Message (optional)</Label>
+              <Label>{t("message_optional", "Message (optional)")}</Label>
               <Textarea
                 value={responseMessage}
                 onChange={(e) => setResponseMessage(e.target.value)}
-                placeholder="Explain why this time works better..."
+                placeholder={t("explain_why_this_time", "Explain why this time works better...")}
                 rows={2}
               />
             </div>

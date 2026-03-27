@@ -18,6 +18,7 @@ import { useRole } from "@/contexts/RoleContext";
 import { trackProfileView } from "@/services/profileViewTracking";
 import { AggregatedScorecardView } from "@/components/scorecards/AggregatedScorecardView";
 import { ApplicationCommentsThread } from "@/components/applications/ApplicationCommentsThread";
+import { useTranslation } from 'react-i18next';
 
 interface CandidateDetailDialogProps {
   open: boolean;
@@ -27,6 +28,7 @@ interface CandidateDetailDialogProps {
 }
 
 export const CandidateDetailDialog = ({ open, onOpenChange, application, stages }: CandidateDetailDialogProps) => {
+  const { t } = useTranslation('partner');
   const { user } = useAuth();
   const { currentRole: role } = useRole();
   const [comments, setComments] = useState<any[]>([]);
@@ -98,11 +100,11 @@ export const CandidateDetailDialog = ({ open, onOpenChange, application, stages 
       });
 
     if (error) {
-      toast.error("Failed to add comment");
+      toast.error(t('candidateDetailDialog.toast.failedToAddComment'));
       return;
     }
 
-    toast.success("Comment added");
+    toast.success(t('candidateDetailDialog.toast.commentAdded'));
     setNewComment("");
     fetchComments();
   };
@@ -118,7 +120,7 @@ export const CandidateDetailDialog = ({ open, onOpenChange, application, stages 
       });
 
     if (error) {
-      toast.error("Failed to submit scorecard");
+      toast.error(t('candidateDetailDialog.toast.failedToSubmitScorecard'));
       return;
     }
 
@@ -131,7 +133,7 @@ export const CandidateDetailDialog = ({ open, onOpenChange, application, stages 
       metadata: { recommendation: scorecard.recommendation },
     });
 
-    toast.success("Scorecard submitted");
+    toast.success(t('candidateDetailDialog.toast.scorecardSubmitted'));
     fetchScorecards();
   };
 
@@ -142,7 +144,7 @@ export const CandidateDetailDialog = ({ open, onOpenChange, application, stages 
       .eq('id', application.id);
 
     if (error) {
-      toast.error("Failed to move candidate");
+      toast.error(t('candidateDetailDialog.toast.failedToMoveCandidate'));
       return;
     }
 
@@ -156,7 +158,7 @@ export const CandidateDetailDialog = ({ open, onOpenChange, application, stages 
       performed_by: user?.id,
     });
 
-    toast.success("Candidate moved");
+    toast.success(t('candidateDetailDialog.toast.candidateMoved'));
     onOpenChange(false);
   };
 
@@ -175,28 +177,28 @@ export const CandidateDetailDialog = ({ open, onOpenChange, application, stages 
 
         <Tabs defaultValue="overview" className="w-full">
           <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="overview">{t('candidateDetailDialog.tab.overview')}</TabsTrigger>
             <TabsTrigger value="interactions">
               <History className="w-4 h-4 mr-2" />
               Timeline
             </TabsTrigger>
-            <TabsTrigger value="scorecard">Scorecard</TabsTrigger>
-            <TabsTrigger value="comments">Comments</TabsTrigger>
-            <TabsTrigger value="activity">Activity</TabsTrigger>
+            <TabsTrigger value="scorecard">{t('candidateDetailDialog.tab.scorecard')}</TabsTrigger>
+            <TabsTrigger value="comments">{t('candidateDetailDialog.tab.comments')}</TabsTrigger>
+            <TabsTrigger value="activity">{t('candidateDetailDialog.tab.activity')}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-4">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
-                  <span>Pipeline Stage</span>
+                  <span>{t('candidateDetailDialog.pipelineStage')}</span>
                   <Badge>{stages[application?.current_stage_index]?.name}</Badge>
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <Select onValueChange={(value) => handleMoveStage(parseInt(value))}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Move to stage..." />
+                    <SelectValue placeholder={t('candidateDetailDialog.placeholder.moveToStage')} />
                   </SelectTrigger>
                   <SelectContent>
                     {stages.map((stage, idx) => (
@@ -211,12 +213,12 @@ export const CandidateDetailDialog = ({ open, onOpenChange, application, stages 
 
             <Card>
               <CardHeader>
-                <CardTitle>Candidate Info</CardTitle>
+                <CardTitle>{t('candidateDetailDialog.title')}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
-                <p><strong>Email:</strong> {visibility.email ? application?.profiles?.email : 'Hidden'}</p>
-                <p><strong>Position:</strong> {application?.position}</p>
-                <p><strong>Company:</strong> {application?.company_name}</p>
+                <p><strong>{t('partner.candidatedetaildialog.email', 'Email:')}</strong> {visibility.email ? application?.profiles?.email : 'Hidden'}</p>
+                <p><strong>{t('partner.candidatedetaildialog.position', 'Position:')}</strong> {application?.position}</p>
+                <p><strong>{t('partner.candidatedetaildialog.company', 'Company:')}</strong> {application?.company_name}</p>
               </CardContent>
             </Card>
 
@@ -238,11 +240,11 @@ export const CandidateDetailDialog = ({ open, onOpenChange, application, stages 
           <TabsContent value="scorecard" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>Submit Evaluation</CardTitle>
+                <CardTitle>{t('candidateDetailDialog.title')}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Overall Rating</label>
+                  <label className="text-sm font-medium">{t('partner.candidatedetaildialog.overallRating', 'Overall Rating')}</label>
                   <Slider
                     value={[scorecard.overall_rating]}
                     onValueChange={([value]) => setScorecard({...scorecard, overall_rating: value})}
@@ -256,7 +258,7 @@ export const CandidateDetailDialog = ({ open, onOpenChange, application, stages 
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Technical Skills</label>
+                  <label className="text-sm font-medium">{t('partner.candidatedetaildialog.technicalSkills', 'Technical Skills')}</label>
                   <Slider
                     value={[scorecard.technical_score]}
                     onValueChange={([value]) => setScorecard({...scorecard, technical_score: value})}
@@ -267,7 +269,7 @@ export const CandidateDetailDialog = ({ open, onOpenChange, application, stages 
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Cultural Fit</label>
+                  <label className="text-sm font-medium">{t('partner.candidatedetaildialog.culturalFit', 'Cultural Fit')}</label>
                   <Slider
                     value={[scorecard.cultural_fit_score]}
                     onValueChange={([value]) => setScorecard({...scorecard, cultural_fit_score: value})}
@@ -278,7 +280,7 @@ export const CandidateDetailDialog = ({ open, onOpenChange, application, stages 
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Communication</label>
+                  <label className="text-sm font-medium">{t('partner.candidatedetaildialog.communication', 'Communication')}</label>
                   <Slider
                     value={[scorecard.communication_score]}
                     onValueChange={([value]) => setScorecard({...scorecard, communication_score: value})}
@@ -289,51 +291,49 @@ export const CandidateDetailDialog = ({ open, onOpenChange, application, stages 
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Recommendation</label>
+                  <label className="text-sm font-medium">{t('partner.candidatedetaildialog.recommendation', 'Recommendation')}</label>
                   <Select value={scorecard.recommendation} onValueChange={(value: any) => setScorecard({...scorecard, recommendation: value})}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="strong_yes">Strong Yes</SelectItem>
-                      <SelectItem value="yes">Yes</SelectItem>
-                      <SelectItem value="neutral">Neutral</SelectItem>
-                      <SelectItem value="no">No</SelectItem>
-                      <SelectItem value="strong_no">Strong No</SelectItem>
+                      <SelectItem value="strong_yes">{t('candidateDetailDialog.option.strongYes')}</SelectItem>
+                      <SelectItem value="yes">{t('candidateDetailDialog.option.yes')}</SelectItem>
+                      <SelectItem value="neutral">{t('candidateDetailDialog.option.neutral')}</SelectItem>
+                      <SelectItem value="no">{t('partner.candidatedetaildialog.no', 'No')}</SelectItem>
+                      <SelectItem value="strong_no">{t('candidateDetailDialog.option.strongNo')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Strengths</label>
+                  <label className="text-sm font-medium">{t('partner.candidatedetaildialog.strengths', 'Strengths')}</label>
                   <Textarea
                     value={scorecard.strengths}
                     onChange={(e) => setScorecard({...scorecard, strengths: e.target.value})}
-                    placeholder="What are their strengths?"
+                    placeholder={t('candidateDetailDialog.placeholder.whatAreTheirStrengths')}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Concerns</label>
+                  <label className="text-sm font-medium">{t('partner.candidatedetaildialog.concerns', 'Concerns')}</label>
                   <Textarea
                     value={scorecard.concerns}
                     onChange={(e) => setScorecard({...scorecard, concerns: e.target.value})}
-                    placeholder="Any concerns?"
+                    placeholder={t('candidateDetailDialog.placeholder.anyConcerns')}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Notes</label>
+                  <label className="text-sm font-medium">{t('partner.candidatedetaildialog.notes', 'Notes')}</label>
                   <Textarea
                     value={scorecard.notes}
                     onChange={(e) => setScorecard({...scorecard, notes: e.target.value})}
-                    placeholder="Additional notes..."
+                    placeholder={t('candidateDetailDialog.placeholder.additionalNotes')}
                   />
                 </div>
 
-                <Button onClick={handleSubmitScorecard} className="w-full">
-                  Submit Scorecard
-                </Button>
+                <Button onClick={handleSubmitScorecard} className="w-full">{t('partner.candidatedetaildialog.submitScorecard', 'Submit Scorecard')}</Button>
               </CardContent>
             </Card>
 
@@ -376,10 +376,10 @@ export const CandidateDetailDialog = ({ open, onOpenChange, application, stages 
           <TabsContent value="activity">
             <Card>
               <CardHeader>
-                <CardTitle>Activity Timeline</CardTitle>
+                <CardTitle>{t('candidateDetailDialog.title')}</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-muted-foreground">Activity timeline coming soon</p>
+                <p className="text-sm text-muted-foreground">{t('candidateDetailDialog.activityTimelineComingSoon')}</p>
               </CardContent>
             </Card>
           </TabsContent>

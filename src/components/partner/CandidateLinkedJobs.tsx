@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Briefcase, ExternalLink, Calendar, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from 'react-i18next';
 
 interface CandidateLinkedJobsProps {
   candidateId: string;
@@ -14,6 +15,7 @@ interface CandidateLinkedJobsProps {
 }
 
 export const CandidateLinkedJobs = ({ candidateId, candidateEmail, activeTab }: CandidateLinkedJobsProps) => {
+  const { t } = useTranslation('partner');
   const navigate = useNavigate();
   const [jobs, setJobs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -56,7 +58,7 @@ export const CandidateLinkedJobs = ({ candidateId, candidateEmail, activeTab }: 
       setJobs(data || []);
     } catch (error) {
       console.error("Error loading jobs:", error);
-      toast.error("Failed to load linked jobs");
+      toast.error(t('candidateLinkedJobs.toast.failedToLoadLinkedJobs'));
     } finally {
       setLoading(false);
     }
@@ -90,7 +92,7 @@ export const CandidateLinkedJobs = ({ candidateId, candidateEmail, activeTab }: 
             <Briefcase className="w-5 h-5" />
             Linked Jobs
           </CardTitle>
-          <CardDescription>No job applications found</CardDescription>
+          <CardDescription>{t('candidateLinkedJobs.description')}</CardDescription>
         </CardHeader>
       </Card>
     );
@@ -104,7 +106,7 @@ export const CandidateLinkedJobs = ({ candidateId, candidateEmail, activeTab }: 
             <Briefcase className="w-5 h-5" />
             Linked Jobs
           </CardTitle>
-          <CardDescription>All jobs this candidate has applied to</CardDescription>
+          <CardDescription>{t('candidateLinkedJobs.description')}</CardDescription>
         </CardHeader>
       </Card>
 
@@ -164,7 +166,7 @@ export const CandidateLinkedJobs = ({ candidateId, candidateEmail, activeTab }: 
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <Calendar className="w-4 h-4" />
                   <div>
-                    <p className="font-medium text-foreground">Applied</p>
+                    <p className="font-medium text-foreground">{t('candidateLinkedJobs.applied')}</p>
                     <p>{new Date(application.applied_at).toLocaleDateString()}</p>
                   </div>
                 </div>
@@ -172,7 +174,7 @@ export const CandidateLinkedJobs = ({ candidateId, candidateEmail, activeTab }: 
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <Calendar className="w-4 h-4" />
                     <div>
-                      <p className="font-medium text-foreground">Last Updated</p>
+                      <p className="font-medium text-foreground">{t('candidateLinkedJobs.lastUpdated')}</p>
                       <p>{new Date(application.updated_at).toLocaleDateString()}</p>
                     </div>
                   </div>
@@ -181,7 +183,7 @@ export const CandidateLinkedJobs = ({ candidateId, candidateEmail, activeTab }: 
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <User className="w-4 h-4" />
                     <div>
-                      <p className="font-medium text-foreground">Salary Range</p>
+                      <p className="font-medium text-foreground">{t('candidateLinkedJobs.salaryRange')}</p>
                       <p>
                         {job.currency || 'EUR'} {job.salary_min.toLocaleString()} - {job.salary_max.toLocaleString()}
                       </p>
@@ -194,7 +196,7 @@ export const CandidateLinkedJobs = ({ candidateId, candidateEmail, activeTab }: 
               {application.status === 'active' && application.stages && (
                 <div className="mt-4">
                   <div className="flex justify-between text-xs text-muted-foreground mb-2">
-                    <span>Stage Progress</span>
+                    <span>{t('candidateLinkedJobs.stageProgress')}</span>
                     <span>
                       {application.current_stage_index + 1} / {application.stages.length}
                     </span>

@@ -10,6 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { ASSESSMENTS } from '@/data/assessments';
 import { Search, Send, Calendar } from 'lucide-react';
 import { useToast } from '@/lib/notify';
+import { useTranslation } from 'react-i18next';
 
 export const SendAssessmentsTab = memo(() => {
   const { createAssignment, loading } = useAssessmentAssignments();
@@ -46,6 +47,7 @@ export const SendAssessmentsTab = memo(() => {
   };
 
   const toggleCandidate = (userId: string) => {
+  const { t } = useTranslation('admin');
     setSelectedCandidates(prev =>
       prev.includes(userId) ? prev.filter(id => id !== userId) : [...prev, userId]
     );

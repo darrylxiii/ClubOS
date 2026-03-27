@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from 'react-i18next';
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,6 +15,7 @@ import {
   TrendingUp
 } from "lucide-react";
 export default function ComplianceDashboard() {
+  const { t } = useTranslation('compliance');
   const navigate = useNavigate();
   const [stats, setStats] = useState({
     agreements: { total: 0, active: 0, pending: 0 },
@@ -81,8 +83,8 @@ export default function ComplianceDashboard() {
 
   const modules = [
     {
-      title: "Legal Agreements",
-      description: "Manage DPAs, BAAs, and other legal documents with e-signature workflow",
+      title: t('dashboard.legalAgreements'),
+      description: t('dashboard.legalAgreementsDesc'),
       icon: FileText,
       stats: [
         { label: "Total Agreements", value: stats.agreements.total },
@@ -94,8 +96,8 @@ export default function ComplianceDashboard() {
       iconColor: "text-blue-500",
     },
     {
-      title: "Subprocessors",
-      description: "Public vendor registry with certifications and data location transparency",
+      title: t('subprocessors.title'),
+      description: t('dashboard.subprocessorsDesc'),
       icon: Shield,
       stats: [
         { label: "Total Vendors", value: stats.subprocessors.total },
@@ -107,8 +109,8 @@ export default function ComplianceDashboard() {
       iconColor: "text-purple-500",
     },
     {
-      title: "Data Classification",
-      description: "Field-level sensitivity tagging and data governance rules",
+      title: t('dashboard.dataClassification'),
+      description: t('dashboard.dataClassificationDesc'),
       icon: Database,
       stats: [
         { label: "Total Rules", value: stats.data_rules.total },
@@ -119,8 +121,8 @@ export default function ComplianceDashboard() {
       iconColor: "text-green-500",
     },
     {
-      title: "Audit Requests",
-      description: "Customer audit request management with document portal",
+      title: t('dashboard.auditRequests'),
+      description: t('dashboard.auditRequestsDesc'),
       icon: Search,
       stats: [
         { label: "Total Requests", value: stats.audit_requests.total },
@@ -144,9 +146,9 @@ export default function ComplianceDashboard() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Compliance & Legal</h1>
+            <h1 className="text-3xl font-bold text-foreground">{t('dashboard.title')}</h1>
             <p className="text-muted-foreground mt-1">
-              Enterprise-grade compliance infrastructure and legal document management
+              {t('dashboard.description')}
             </p>
           </div>
         </div>
@@ -156,7 +158,7 @@ export default function ComplianceDashboard() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle className="text-lg">Overall Compliance Score</CardTitle>
+                <CardTitle className="text-lg">{t('dashboard.complianceScore')}</CardTitle>
                 <CardDescription>Based on agreement status, vendor risk, data governance, and audit responsiveness</CardDescription>
               </div>
               <div className="flex items-center gap-4">
@@ -227,22 +229,22 @@ export default function ComplianceDashboard() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <TrendingUp className="h-5 w-5" />
-              Quick Actions
+              {t('dashboard.quickActions')}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <Button variant="outline" onClick={() => navigate("/compliance/legal-agreements")}>
-                Create DPA
+                {t('dashboard.createDpa')}
               </Button>
               <Button variant="outline" onClick={() => navigate("/compliance/subprocessors")}>
-                Add Subprocessor
+                {t('dashboard.addSubprocessor')}
               </Button>
               <Button variant="outline" onClick={() => navigate("/compliance/data-classification")}>
-                Classify Data
+                {t('dashboard.classifyData')}
               </Button>
               <Button variant="outline" onClick={() => navigate("/compliance/audit-requests")}>
-                New Audit Request
+                {t('dashboard.newAuditRequest')}
               </Button>
             </div>
           </CardContent>

@@ -35,7 +35,7 @@ export const NextStepsCard = () => {
         colors: ['#C9A24E', '#F5F4EF', '#FFD700']
       });
       
-      toast.success('🎉 Stage Complete!', {
+      toast.success(t("stage_complete", "🎉 Stage Complete!"), {
         description: `${taskTitle}. You're making great progress!`,
         duration: 5000,
       });
@@ -48,7 +48,7 @@ export const NextStepsCard = () => {
         colors: ['#C9A24E', '#F5F4EF', '#0E0E10']
       });
 
-      toast.success('Task completed!', {
+      toast.success(t("task_completed", "Task completed!"), {
         description: `${taskTitle} - Great progress!`,
         icon: <CheckCircle2 className="w-4 h-4 text-success" />
       });

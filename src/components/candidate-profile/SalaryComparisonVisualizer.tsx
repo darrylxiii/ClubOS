@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { DollarSign, TrendingUp, AlertTriangle, Check } from "lucide-react";
 import { candidateProfileTokens, getScoreColor } from "@/config/candidate-profile-tokens";
 import { AssessmentBreakdown } from "@/hooks/useAssessmentScores";
+import { useTranslation } from 'react-i18next';
 
 interface SalaryComparisonVisualizerProps {
   candidate: any;
@@ -16,6 +17,7 @@ function formatSalary(val: number): string {
 }
 
 export function SalaryComparisonVisualizer({ candidate, job, breakdown }: SalaryComparisonVisualizerProps) {
+  const { t } = useTranslation('candidates');
   const currentMin = candidate.current_salary_min;
   const currentMax = candidate.current_salary_max || currentMin;
   const desiredMin = candidate.desired_salary_min;
@@ -114,7 +116,7 @@ export function SalaryComparisonVisualizer({ candidate, job, breakdown }: Salary
               {hasOverlap ? (
                 <>
                   <Check className="w-3 h-3 text-green-500" />
-                  <span className="text-green-500">Ranges overlap — alignment possible</span>
+                  <span className="text-green-500">{"Ranges overlap — alignment possible"}</span>
                 </>
               ) : (
                 <>

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -30,6 +31,7 @@ interface MobileJobCardProps {
 }
 
 export function MobileJobCard({ job }: MobileJobCardProps) {
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
 
   const getStatusColor = (status: string) => {
@@ -107,7 +109,7 @@ export function MobileJobCard({ job }: MobileJobCardProps) {
             className="min-h-[44px] flex-col gap-1 h-auto py-2"
           >
             <Eye className="h-4 w-4" />
-            <span className="text-xs">View</span>
+            <span className="text-xs">{t("view", "View")}</span>
           </Button>
           <Button
             variant="ghost"
@@ -116,7 +118,7 @@ export function MobileJobCard({ job }: MobileJobCardProps) {
             className="min-h-[44px] flex-col gap-1 h-auto py-2"
           >
             <Edit className="h-4 w-4" />
-            <span className="text-xs">Manage</span>
+            <span className="text-xs">{t("manage", "Manage")}</span>
           </Button>
           <Button
             variant="ghost"
@@ -125,12 +127,12 @@ export function MobileJobCard({ job }: MobileJobCardProps) {
               navigator.clipboard.writeText(
                 `${window.location.origin}/jobs/${job.id}`
               );
-              toast.success("Link copied to clipboard");
+              toast.success(t("link_copied_to_clipboard", "Link copied to clipboard"));
             }}
             className="min-h-[44px] flex-col gap-1 h-auto py-2"
           >
             <Share2 className="h-4 w-4" />
-            <span className="text-xs">Share</span>
+            <span className="text-xs">{t("share", "Share")}</span>
           </Button>
         </div>
       </CardContent>

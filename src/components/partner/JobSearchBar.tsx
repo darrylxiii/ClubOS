@@ -3,6 +3,7 @@ import { Input } from '@/components/ui/input';
 import { Search, X } from 'lucide-react';
 import { useDebounce } from '@/hooks/use-debounce';
 import { Button } from '@/components/ui/button';
+import { useTranslation } from 'react-i18next';
 
 interface JobSearchBarProps {
   value: string;
@@ -15,8 +16,10 @@ export const JobSearchBar = memo<JobSearchBarProps>(({
   value,
   onChange,
   resultsCount,
-  placeholder = 'Search by job title, company, or location...',
+  placeholder,
 }) => {
+  const { t } = useTranslation('common');
+  const defaultPlaceholder = placeholder || t('partner.searchJobsPlaceholder', 'Search by job title, company, or location...');
   const [localValue, setLocalValue] = useState(value);
   const debouncedValue = useDebounce(localValue, 300);
 
@@ -42,7 +45,7 @@ export const JobSearchBar = memo<JobSearchBarProps>(({
       <Input
         value={localValue}
         onChange={(e) => setLocalValue(e.target.value)}
-        placeholder={placeholder}
+        placeholder={defaultPlaceholder}
         className="pl-12 pr-24 h-12 text-base bg-card border-border/40"
       />
       
@@ -50,7 +53,7 @@ export const JobSearchBar = memo<JobSearchBarProps>(({
         <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-2">
           {resultsCount !== undefined && (
             <span className="text-sm text-muted-foreground mr-1">
-              {resultsCount} {resultsCount === 1 ? 'result' : 'results'}
+              {resultsCount === 1 ? t('partner.oneResult', '1 result') : t('partner.resultCount', '{{count}} results', { count: resultsCount })}
             </span>
           )}
           <Button

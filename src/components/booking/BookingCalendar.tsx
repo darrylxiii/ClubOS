@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
@@ -11,6 +12,7 @@ interface BookingCalendarProps {
 }
 
 export function BookingCalendar({ bookingLink, onDateSelect }: BookingCalendarProps) {
+  const { t } = useTranslation('common');
   const [selectedDate, setSelectedDate] = useState<Date>();
 
   const today = new Date();
@@ -35,7 +37,7 @@ export function BookingCalendar({ bookingLink, onDateSelect }: BookingCalendarPr
   return (
     <div className="flex flex-col items-center">
       <div className="mb-6 text-center">
-        <h3 className="text-lg font-semibold mb-2">Select a Date</h3>
+        <h3 className="text-lg font-semibold mb-2">{t("select_a_date", "Select a Date")}</h3>
         <p className="text-sm text-muted-foreground">
           Choose a date for your appointment
         </p>

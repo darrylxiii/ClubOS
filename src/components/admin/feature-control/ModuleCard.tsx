@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { ChevronDown, ChevronUp, Clock, Zap } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import type { ModuleFlag } from '@/hooks/useModuleFlags';
+import { useTranslation } from 'react-i18next';
 
 interface ModuleCardProps {
   module: ModuleFlag;
@@ -22,6 +23,7 @@ const CATEGORY_COLORS: Record<string, string> = {
 };
 
 export function ModuleCard({ module, onToggle }: ModuleCardProps) {
+  const { t } = useTranslation('admin');
   const [showRoutes, setShowRoutes] = useState(false);
   const category = module.metadata?.category ?? 'Other';
   const routes = module.metadata?.affected_routes ?? [];

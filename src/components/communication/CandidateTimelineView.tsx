@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { MessageSquare, Mail, Phone, Video, Users, Search, Filter } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -32,6 +33,7 @@ const channelConfig: Record<string, { icon: any; label: string; color: string }>
 };
 
 export function CandidateTimelineView({ communications, loading }: Props) {
+  const { t } = useTranslation('common');
   const [search, setSearch] = useState('');
   const [channelFilter, setChannelFilter] = useState<string>('all');
 
@@ -79,7 +81,7 @@ export function CandidateTimelineView({ communications, loading }: Props) {
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search messages..."
+              placeholder={t("search_messages", "Search messages...")}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="pl-9"
@@ -88,14 +90,14 @@ export function CandidateTimelineView({ communications, loading }: Props) {
           <Select value={channelFilter} onValueChange={setChannelFilter}>
             <SelectTrigger className="w-40">
               <Filter className="h-4 w-4 mr-2" />
-              <SelectValue placeholder="All channels" />
+              <SelectValue placeholder={t("all_channels", "All channels")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Channels</SelectItem>
-              <SelectItem value="whatsapp">WhatsApp</SelectItem>
-              <SelectItem value="email">Email</SelectItem>
-              <SelectItem value="phone">Phone</SelectItem>
-              <SelectItem value="meeting">Meeting</SelectItem>
+              <SelectItem value="all">{t("all_channels", "All Channels")}</SelectItem>
+              <SelectItem value="whatsapp">{t("whatsapp", "WhatsApp")}</SelectItem>
+              <SelectItem value="email">{t("email", "Email")}</SelectItem>
+              <SelectItem value="phone">{t("phone", "Phone")}</SelectItem>
+              <SelectItem value="meeting">{t("meeting", "Meeting")}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -105,8 +107,8 @@ export function CandidateTimelineView({ communications, loading }: Props) {
         {filteredComms.length === 0 ? (
           <div className="text-center py-12 text-muted-foreground">
             <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-50" />
-            <p>No communications yet</p>
-            <p className="text-sm">Your message history with TQC will appear here</p>
+            <p>{t("no_communications_yet", "No communications yet")}</p>
+            <p className="text-sm">{t("your_message_history_with", "Your message history with TQC will appear here")}</p>
           </div>
         ) : (
           <div className="space-y-1">

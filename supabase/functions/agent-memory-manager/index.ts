@@ -1,30 +1,17 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.7";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+import { createHandler } from '../_shared/handler.ts';
+import { SupabaseClient } from "npm:@supabase/supabase-js@2";
 
 interface MemoryOperation {
   operation: 'store' | 'retrieve' | 'update_importance' | 'learn_preference' | 'get_context' | 'consolidate' | 'decay';
   userId: string;
-  data?: any;
+  data?: Record<string, unknown>;
 }
 
-serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  try {
+Deno.serve(createHandler(async (req, ctx) => {
     const { operation, userId, data } = await req.json() as MemoryOperation;
-    
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const supabase = ctx.supabase;
 
-    let result: any;
+    let result: Record<string, unknown>;
 
     switch (operation) {
       case 'store':
@@ -53,20 +40,12 @@ serve(async (req) => {
     }
 
     return new Response(JSON.stringify(result), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...ctx.corsHeaders, "Content-Type": "application/json" },
     });
-
-  } catch (error: any) {
-    console.error("Agent Memory Manager error:", error);
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  }
-});
+}));
 
 // Store a new memory
-async function storeMemory(supabase: any, userId: string, data: any) {
+async function storeMemory(supabase: SupabaseClient, userId: string, data: Record<string, unknown>) {
   const { memoryType, content, context, entityType, entityId, source, importanceScore } = data;
 
   const { data: memory, error } = await supabase
@@ -101,7 +80,7 @@ async function storeMemory(supabase: any, userId: string, data: any) {
 }
 
 // Retrieve relevant memories using semantic search
-async function retrieveMemories(supabase: any, userId: string, data: any) {
+async function retrieveMemories(supabase: SupabaseClient, userId: string, data: Record<string, unknown>) {
   const { query, memoryTypes, limit = 10, minRelevance = 0.3 } = data;
 
   let dbQuery = supabase
@@ -124,7 +103,7 @@ async function retrieveMemories(supabase: any, userId: string, data: any) {
 
   // Update last_accessed_at for retrieved memories
   if (memories && memories.length > 0) {
-    const memoryIds = memories.map((m: any) => m.id);
+    const memoryIds = memories.map((m: Record<string, unknown>) => m.id);
     await supabase
       .from('ai_memory')
       .update({ last_accessed_at: new Date().toISOString() })
@@ -135,7 +114,7 @@ async function retrieveMemories(supabase: any, userId: string, data: any) {
 }
 
 // Update memory importance based on usage
-async function updateImportance(supabase: any, userId: string, data: any) {
+async function updateImportance(supabase: SupabaseClient, userId: string, data: Record<string, unknown>) {
   const { memoryId, importanceDelta } = data;
 
   const { data: memory } = await supabase
@@ -163,7 +142,7 @@ async function updateImportance(supabase: any, userId: string, data: any) {
 }
 
 // Learn and store a user preference
-async function learnPreference(supabase: any, userId: string, data: any) {
+async function learnPreference(supabase: SupabaseClient, userId: string, data: Record<string, unknown>) {
   const { category, key, value, source, confidence = 0.5 } = data;
 
   const { data: existing } = await supabase
@@ -212,7 +191,7 @@ async function learnPreference(supabase: any, userId: string, data: any) {
 }
 
 // Get full context for QUIN before responding
-async function getFullContext(supabase: any, userId: string, data: any) {
+async function getFullContext(supabase: SupabaseClient, userId: string, data: Record<string, unknown>) {
   const { sessionId, currentRoute, includeWorkingMemory = true } = data || {};
 
   // Parallel fetch all context data
@@ -222,7 +201,8 @@ async function getFullContext(supabase: any, userId: string, data: any) {
     workingMemoryResult,
     goalsResult,
     recentDecisionsResult,
-    predictiveSignalsResult
+    predictiveSignalsResult,
+    agentSignalsResult
   ] = await Promise.all([
     // Long-term memories
     supabase
@@ -232,14 +212,14 @@ async function getFullContext(supabase: any, userId: string, data: any) {
       .or('expires_at.is.null,expires_at.gt.now()')
       .order('importance_score', { ascending: false })
       .limit(15),
-    
+
     // User preferences
     supabase
       .from('agent_user_preferences')
       .select('*')
       .eq('user_id', userId)
       .gte('confidence_score', 0.4),
-    
+
     // Working memory (if enabled and sessionId provided)
     includeWorkingMemory && sessionId
       ? supabase
@@ -250,7 +230,7 @@ async function getFullContext(supabase: any, userId: string, data: any) {
           .gt('expires_at', new Date().toISOString())
           .order('priority', { ascending: false })
       : Promise.resolve({ data: [] }),
-    
+
     // Active goals
     supabase
       .from('agent_goals')
@@ -259,7 +239,7 @@ async function getFullContext(supabase: any, userId: string, data: any) {
       .eq('status', 'active')
       .order('priority', { ascending: false })
       .limit(5),
-    
+
     // Recent decisions (for continuity)
     supabase
       .from('agent_decision_log')
@@ -267,7 +247,7 @@ async function getFullContext(supabase: any, userId: string, data: any) {
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
       .limit(5),
-    
+
     // Predictive signals
     supabase
       .from('predictive_signals')
@@ -276,7 +256,17 @@ async function getFullContext(supabase: any, userId: string, data: any) {
       .eq('acknowledged', false)
       .or('expires_at.is.null,expires_at.gt.now()')
       .order('confidence_score', { ascending: false })
-      .limit(5)
+      .limit(5),
+
+    // Pending agent signals (cross-agent communication)
+    supabase
+      .from('agent_signals')
+      .select('id, from_agent, to_agent, signal_type, payload, priority, created_at')
+      .eq('status', 'pending')
+      .or('expires_at.is.null,expires_at.gt.now()')
+      .order('priority', { ascending: false })
+      .order('created_at', { ascending: false })
+      .limit(10)
   ]);
 
   const context = {
@@ -286,6 +276,7 @@ async function getFullContext(supabase: any, userId: string, data: any) {
     activeGoals: goalsResult.data || [],
     recentDecisions: recentDecisionsResult.data || [],
     predictiveSignals: predictiveSignalsResult.data || [],
+    agentSignals: agentSignalsResult.data || [],
     contextTimestamp: new Date().toISOString()
   };
 
@@ -293,7 +284,7 @@ async function getFullContext(supabase: any, userId: string, data: any) {
 }
 
 // Consolidate similar memories to reduce noise
-async function consolidateMemories(supabase: any, userId: string) {
+async function consolidateMemories(supabase: SupabaseClient, userId: string) {
   // Get memories that could be consolidated
   const { data: memories } = await supabase
     .from('ai_memory')
@@ -307,20 +298,21 @@ async function consolidateMemories(supabase: any, userId: string) {
   }
 
   // Group by memory_type and identify duplicates (simplified)
-  const grouped = memories.reduce((acc: any, mem: any) => {
-    acc[mem.memory_type] = acc[mem.memory_type] || [];
-    acc[mem.memory_type].push(mem);
+  const grouped = memories.reduce((acc: Record<string, Record<string, unknown>[]>, mem: Record<string, unknown>) => {
+    const memType = mem.memory_type as string;
+    acc[memType] = acc[memType] || [];
+    acc[memType].push(mem);
     return acc;
   }, {});
 
   let consolidatedCount = 0;
 
   for (const [type, mems] of Object.entries(grouped)) {
-    const typeMems = mems as any[];
+    const typeMems = mems as Record<string, unknown>[];
     if (typeMems.length > 5) {
       // Keep top 5 by importance, delete the rest
       const toDelete = typeMems
-        .sort((a, b) => (b.importance_score || 0) - (a.importance_score || 0))
+        .sort((a, b) => ((b.importance_score as number) || 0) - ((a.importance_score as number) || 0))
         .slice(5)
         .map(m => m.id);
 
@@ -335,7 +327,7 @@ async function consolidateMemories(supabase: any, userId: string) {
 }
 
 // Apply decay to old, unused memories
-async function applyMemoryDecay(supabase: any, userId: string) {
+async function applyMemoryDecay(supabase: SupabaseClient, userId: string) {
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 

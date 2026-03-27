@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -15,6 +16,7 @@ export const MessageLoadMoreTrigger = ({
   loading = false,
   className
 }: MessageLoadMoreTriggerProps) => {
+  const { t } = useTranslation('messages');
   const observerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -54,7 +56,7 @@ export const MessageLoadMoreTrigger = ({
       {loading && (
         <div className="flex items-center gap-2 text-muted-foreground text-sm">
           <Loader2 className="h-4 w-4 animate-spin" />
-          <span>Loading more messages...</span>
+          <span>{t('loadingMore')}</span>
         </div>
       )}
     </div>

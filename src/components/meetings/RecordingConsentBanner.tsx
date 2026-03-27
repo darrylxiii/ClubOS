@@ -1,5 +1,6 @@
 import { Badge } from '@/components/ui/badge';
 import { Circle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { motion } from '@/lib/motion';
 
 interface RecordingConsentBannerProps {
@@ -8,6 +9,7 @@ interface RecordingConsentBannerProps {
 }
 
 export function RecordingConsentBanner({ isRecording = true, meetingTitle }: RecordingConsentBannerProps) {
+  const { t } = useTranslation("meetings");
   if (!isRecording) return null;
 
   return (
@@ -27,7 +29,7 @@ export function RecordingConsentBanner({ isRecording = true, meetingTitle }: Rec
         >
           <Circle className="h-3 w-3 fill-current" />
         </motion.div>
-        Club AI is Recording
+        {t('recording.isRecording')}
         {meetingTitle && <span className="text-xs opacity-80">· {meetingTitle}</span>}
       </Badge>
     </motion.div>

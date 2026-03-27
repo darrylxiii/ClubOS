@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -13,6 +14,7 @@ const COLORS = [
 ];
 
 export function EdgeFunctionCostTab() {
+  const { t } = useTranslation('common');
   const { data: functions = [], isLoading } = useEdgeFunctionRegistry();
   const toggleFn = useToggleEdgeFunction();
   const { recharts, isLoading: rechartsLoading } = useRecharts();
@@ -64,7 +66,7 @@ export function EdgeFunctionCostTab() {
                 <DollarSign className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Est. Daily Cost</p>
+                <p className="text-sm text-muted-foreground">{t("est_daily_cost", "Est. Daily Cost")}</p>
                 <p className="text-2xl font-bold">${totalDailyCost.toFixed(2)}</p>
               </div>
             </div>
@@ -77,7 +79,7 @@ export function EdgeFunctionCostTab() {
                 <TrendingDown className="h-5 w-5 text-accent" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Est. Monthly Cost</p>
+                <p className="text-sm text-muted-foreground">{t("est_monthly_cost", "Est. Monthly Cost")}</p>
                 <p className="text-2xl font-bold">${totalMonthlyCost.toFixed(2)}</p>
               </div>
             </div>
@@ -90,7 +92,7 @@ export function EdgeFunctionCostTab() {
                 <AlertTriangle className="h-5 w-5 text-destructive" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Low-ROI Functions</p>
+                <p className="text-sm text-muted-foreground">{t("lowroi_functions", "Low-ROI Functions")}</p>
                 <p className="text-2xl font-bold">{lowRoi.length}</p>
               </div>
             </div>
@@ -102,7 +104,7 @@ export function EdgeFunctionCostTab() {
         {/* Cost by Service Tag */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Cost by Service Tag</CardTitle>
+            <CardTitle className="text-base">{t("cost_by_service_tag", "Cost by Service Tag")}</CardTitle>
           </CardHeader>
           <CardContent>
             {rechartsLoading || !recharts ? (
@@ -139,7 +141,7 @@ export function EdgeFunctionCostTab() {
                 );
               })()
             ) : (
-              <p className="text-sm text-muted-foreground py-4 text-center">No cost tags configured. Add tags and cost estimates in the Registry tab.</p>
+              <p className="text-sm text-muted-foreground py-4 text-center">{t("no_cost_tags_configured", "No cost tags configured. Add tags and cost estimates in the Registry tab.")}</p>
             )}
           </CardContent>
         </Card>
@@ -171,7 +173,7 @@ export function EdgeFunctionCostTab() {
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-muted-foreground py-4 text-center">No low-ROI functions detected.</p>
+              <p className="text-sm text-muted-foreground py-4 text-center">{t("no_lowroi_functions_detected", "No low-ROI functions detected.")}</p>
             )}
           </CardContent>
         </Card>
@@ -180,27 +182,27 @@ export function EdgeFunctionCostTab() {
       {/* Top Cost Functions Table */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Top Cost Functions (Daily Estimate)</CardTitle>
+          <CardTitle className="text-base">{t("top_cost_functions_daily", "Top Cost Functions (Daily Estimate)")}</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           <ScrollArea className="h-[400px]">
             <table className="w-full text-sm">
               <thead className="sticky top-0 bg-card border-b">
                 <tr className="text-left text-muted-foreground">
-                  <th className="p-3 font-medium">Function</th>
-                  <th className="p-3 font-medium hidden md:table-cell">Tags</th>
-                  <th className="p-3 font-medium text-right">Daily Calls</th>
-                  <th className="p-3 font-medium text-right">API Cost</th>
-                  <th className="p-3 font-medium text-right">Compute</th>
-                  <th className="p-3 font-medium text-right">Total/Day</th>
-                  <th className="p-3 font-medium text-right">Monthly</th>
+                  <th className="p-3 font-medium">{t("function", "Function")}</th>
+                  <th className="p-3 font-medium hidden md:table-cell">{t("tags", "Tags")}</th>
+                  <th className="p-3 font-medium text-right">{t("daily_calls", "Daily Calls")}</th>
+                  <th className="p-3 font-medium text-right">{t("api_cost", "API Cost")}</th>
+                  <th className="p-3 font-medium text-right">{t("compute", "Compute")}</th>
+                  <th className="p-3 font-medium text-right">{t("totalday", "Total/Day")}</th>
+                  <th className="p-3 font-medium text-right">{t("monthly", "Monthly")}</th>
                 </tr>
               </thead>
               <tbody>
                 {isLoading ? (
-                  <tr><td colSpan={7} className="p-8 text-center text-muted-foreground">Loading...</td></tr>
+                  <tr><td colSpan={7} className="p-8 text-center text-muted-foreground">{t("loading", "Loading...")}</td></tr>
                 ) : topCostFunctions.length === 0 ? (
-                  <tr><td colSpan={7} className="p-8 text-center text-muted-foreground">No cost data. Configure cost estimates in the Registry.</td></tr>
+                  <tr><td colSpan={7} className="p-8 text-center text-muted-foreground">{t("no_cost_data_configure", "No cost data. Configure cost estimates in the Registry.")}</td></tr>
                 ) : (
                   topCostFunctions.map(fn => (
                     <tr key={fn.id} className="border-b hover:bg-muted/30">

@@ -36,11 +36,13 @@ import { CurrencySelector } from "@/components/financial/CurrencySelector";
 import { EntitySelector, LegalEntityFilter } from "@/components/financial/EntitySelector";
 import { useRole } from "@/contexts/RoleContext";
 import { useState } from "react";
+import { useTranslation } from 'react-i18next';
 import { Currency } from "@/lib/currencyConversion";
 import { supabase } from "@/integrations/supabase/client";
 import { useFinancialPLSummary } from "@/hooks/useFinancialPLSummary";
 
 export default function FinancialDashboard() {
+  const { t } = useTranslation('admin');
   const { selectedYear, setSelectedYear, yearOptions, availableYears } = useFinancialYearSelector();
   const [legalEntity, setLegalEntity] = useState<LegalEntityFilter>('all');
   const entityParam = legalEntity === 'all' ? undefined : legalEntity;
@@ -136,8 +138,8 @@ export default function FinancialDashboard() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Revenue Overview</CardTitle>
-          <CardDescription>Monthly invoiced vs collected revenue</CardDescription>
+          <CardTitle>{t('financialDashboard.text1')}</CardTitle>
+          <CardDescription>{t('financialDashboard.text2')}</CardDescription>
         </CardHeader>
         <CardContent>
           <FinancialOverviewChart year={selectedYear} legalEntity={entityParam} />
@@ -147,8 +149,8 @@ export default function FinancialDashboard() {
       <div className="grid gap-6 md:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Top Clients</CardTitle>
-            <CardDescription>Highest revenue partners this year</CardDescription>
+            <CardTitle className="text-base">{t('financialDashboard.text3')}</CardTitle>
+            <CardDescription>{t('financialDashboard.text4')}</CardDescription>
           </CardHeader>
           <CardContent>
             <TopClientsTable year={selectedYear} limit={5} />
@@ -177,8 +179,8 @@ export default function FinancialDashboard() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Moneybird Invoices</CardTitle>
-          <CardDescription>Individual invoice records synced from Moneybird</CardDescription>
+          <CardTitle>{t('financialDashboard.text5')}</CardTitle>
+          <CardDescription>{t('financialDashboard.text6')}</CardDescription>
         </CardHeader>
         <CardContent>
           <MoneybirdInvoicesTable year={selectedYear} limit={20} />
@@ -188,8 +190,8 @@ export default function FinancialDashboard() {
       {isFinanceOrAdmin && (
         <Card>
           <CardHeader>
-            <CardTitle>Cash Flow Pipeline</CardTitle>
-            <CardDescription>Visual pipeline of expected revenue by collection status</CardDescription>
+            <CardTitle>{t('financialDashboard.text7')}</CardTitle>
+            <CardDescription>{t('financialDashboard.text8')}</CardDescription>
           </CardHeader>
           <CardContent>
             <CashFlowPipeline year={selectedYear} />
@@ -201,13 +203,13 @@ export default function FinancialDashboard() {
 
       <Tabs defaultValue={isStrategist ? 'commissions' : 'fees'} className="space-y-4">
         <TabsList>
-          <TabsTrigger value="fees">Placement Fees</TabsTrigger>
-          <TabsTrigger value="commissions">Commissions</TabsTrigger>
+          <TabsTrigger value="fees">{t('financialDashboard.text9')}</TabsTrigger>
+          <TabsTrigger value="commissions">{t('financialDashboard.text10')}</TabsTrigger>
           {isFinanceOrAdmin && (
             <>
-              <TabsTrigger value="invoices">Invoices</TabsTrigger>
-              <TabsTrigger value="payouts">Referral Payouts</TabsTrigger>
-              <TabsTrigger value="vat">VAT & Tax</TabsTrigger>
+              <TabsTrigger value="invoices">{t('financialDashboard.text11')}</TabsTrigger>
+              <TabsTrigger value="payouts">{t('financialDashboard.text12')}</TabsTrigger>
+              <TabsTrigger value="vat">{t('financialDashboard.text13')}</TabsTrigger>
             </>
           )}
         </TabsList>
@@ -215,8 +217,8 @@ export default function FinancialDashboard() {
         <TabsContent value="fees" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Placement Fees</CardTitle>
-              <CardDescription>Track and manage placement fees generated from hires</CardDescription>
+              <CardTitle>{t('financialDashboard.text14')}</CardTitle>
+              <CardDescription>{t('financialDashboard.text15')}</CardDescription>
             </CardHeader>
             <CardContent>
               {feesLoading ? (
@@ -237,8 +239,8 @@ export default function FinancialDashboard() {
             <TabsContent value="invoices" className="space-y-4">
               <Card>
                 <CardHeader>
-                  <CardTitle>Partner Invoices</CardTitle>
-                  <CardDescription>Generate and manage invoices for partner companies</CardDescription>
+                  <CardTitle>{t('financialDashboard.text16')}</CardTitle>
+                  <CardDescription>{t('financialDashboard.text17')}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   {invoicesLoading ? (
@@ -253,8 +255,8 @@ export default function FinancialDashboard() {
             <TabsContent value="payouts" className="space-y-4">
               <Card>
                 <CardHeader>
-                  <CardTitle>Referral Payouts</CardTitle>
-                  <CardDescription>Review and approve referral reward payouts</CardDescription>
+                  <CardTitle>{t('financialDashboard.text18')}</CardTitle>
+                  <CardDescription>{t('financialDashboard.text19')}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   {payoutsLoading ? (
@@ -270,8 +272,8 @@ export default function FinancialDashboard() {
               <VATLiabilityCard year={selectedYear} legalEntity={entityParam} />
               <Card>
                 <CardHeader>
-                  <CardTitle>VAT Register</CardTitle>
-                  <CardDescription>Quarterly VAT breakdown for BTW-aangifte filing</CardDescription>
+                  <CardTitle>{t('financialDashboard.text20')}</CardTitle>
+                  <CardDescription>{t('financialDashboard.text21')}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <VATRegisterTable year={selectedYear} />

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { CRMActivitySkeleton } from "@/components/LoadingSkeletons";
 import { Button } from '@/components/ui/button';
@@ -20,6 +21,7 @@ const activityIcons: Record<string, typeof Clock> = {
 };
 
 export function CRMActivityReminderBell() {
+  const { t } = useTranslation('common');
   const [activities, setActivities] = useState<CRMActivity[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
@@ -212,8 +214,8 @@ export function CRMActivityReminderBell() {
           ) : (
             <div className="p-8 text-center text-muted-foreground">
               <CheckCircle className="w-10 h-10 mx-auto mb-2 opacity-50" />
-              <p className="text-sm">All caught up!</p>
-              <p className="text-xs">No pending activities</p>
+              <p className="text-sm">{t("all_caught_up", "All caught up!")}</p>
+              <p className="text-xs">{t("no_pending_activities", "No pending activities")}</p>
             </div>
           )}
         </ScrollArea>

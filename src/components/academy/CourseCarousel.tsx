@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -32,6 +33,7 @@ interface CourseCarouselProps {
 }
 
 export const CourseCarousel = ({ title, courses, viewAllLink, showTrending, showProgress }: CourseCarouselProps) => {
+  const { t } = useTranslation('common');
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
@@ -62,7 +64,7 @@ export const CourseCarousel = ({ title, courses, viewAllLink, showTrending, show
         <div className="flex items-center gap-2">
           {viewAllLink && (
             <Link to={viewAllLink}>
-              <Button variant="ghost" size="sm">View All</Button>
+              <Button variant="ghost" size="sm">{t('academy.viewAll')}</Button>
             </Link>
           )}
           <div className="flex gap-1">
@@ -110,7 +112,7 @@ export const CourseCarousel = ({ title, courses, viewAllLink, showTrending, show
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
-                      <span className="text-muted-foreground">No image</span>
+                      <span className="text-muted-foreground">{t('academy.noImage')}</span>
                     </div>
                   )}
                   {showTrending && course.trending_score && course.trending_score > 5 && (
@@ -126,7 +128,7 @@ export const CourseCarousel = ({ title, courses, viewAllLink, showTrending, show
                   {showProgress && (
                     <div className="absolute bottom-0 left-0 right-0 bg-background/80 backdrop-blur-sm p-2">
                       <div className="flex justify-between text-xs mb-1">
-                        <span>Progress</span>
+                        <span>{t('academy.progress')}</span>
                         <span>{course.progress || 0}%</span>
                       </div>
                       <Progress value={course.progress || 0} className="h-1.5" />

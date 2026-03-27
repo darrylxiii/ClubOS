@@ -10,6 +10,7 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { candidateProfileTokens } from '@/config/candidate-profile-tokens';
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 
 type StepStatus = 'pending' | 'running' | 'complete' | 'failed' | 'skipped';
 
@@ -60,6 +61,7 @@ export const EnrichmentProgressModal: React.FC<EnrichmentProgressModalProps> = (
   candidateData,
   onComplete,
 }) => {
+  const { t } = useTranslation('candidates');
   const [steps, setSteps] = useState<EnrichmentStep[]>([]);
   const [isRunning, setIsRunning] = useState(false);
   const [isDone, setIsDone] = useState(false);

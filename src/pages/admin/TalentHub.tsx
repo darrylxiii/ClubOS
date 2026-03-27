@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { lazy, Suspense } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
@@ -23,6 +24,7 @@ const TAB_MAP: Record<string, string> = {
 };
 
 export default function TalentHub() {
+  const { t } = useTranslation('common');
   const [searchParams, setSearchParams] = useSearchParams();
   const activeTab = TAB_MAP[searchParams.get('tab') || ''] || 'requests';
 
@@ -37,7 +39,7 @@ export default function TalentHub() {
           <div className="space-y-1">
             <div className="flex items-center gap-3">
               <Users className="h-8 w-8 text-primary" />
-              <h1 className="text-3xl font-bold tracking-tight">MEMBER MANAGEMENT</h1>
+              <h1 className="text-3xl font-bold tracking-tight">{t("member_management", "MEMBER MANAGEMENT")}</h1>
             </div>
             <p className="text-muted-foreground">
               Member requests, profile merges, rejections, and email templates
@@ -47,12 +49,12 @@ export default function TalentHub() {
           <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
             <div className="overflow-x-auto">
               <TabsList className="inline-flex w-auto min-w-full sm:grid sm:w-full sm:grid-cols-6 h-auto">
-                <TabsTrigger value="requests">Requests</TabsTrigger>
-                <TabsTrigger value="merge">Merge</TabsTrigger>
-                <TabsTrigger value="archived">Archived</TabsTrigger>
-                <TabsTrigger value="sync">Club Sync</TabsTrigger>
-                <TabsTrigger value="rejections">Rejections</TabsTrigger>
-                <TabsTrigger value="emails">Email Templates</TabsTrigger>
+                <TabsTrigger value="requests">{t("requests", "Requests")}</TabsTrigger>
+                <TabsTrigger value="merge">{t("merge", "Merge")}</TabsTrigger>
+                <TabsTrigger value="archived">{t("archived", "Archived")}</TabsTrigger>
+                <TabsTrigger value="sync">{t("club_sync", "Club Sync")}</TabsTrigger>
+                <TabsTrigger value="rejections">{t("rejections", "Rejections")}</TabsTrigger>
+                <TabsTrigger value="emails">{t("email_templates", "Email Templates")}</TabsTrigger>
               </TabsList>
             </div>
 

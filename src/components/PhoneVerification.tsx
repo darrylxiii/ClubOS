@@ -11,6 +11,7 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp
 import { usePhoneVerification } from '@/hooks/usePhoneVerification';
 import { useCountryDetection } from '@/hooks/useCountryDetection';
 import type { PhoneVerificationProps } from '@/types/verification';
+import { useTranslation } from 'react-i18next';
 
 // Country prefixes with known SMS delivery issues
 const LOW_DELIVERY_PREFIXES = ['+44', '+98', '+971', '+91', '+92', '+234', '+966'];
@@ -21,6 +22,7 @@ export const PhoneVerification = ({
   onPhoneChange,
   onVerificationComplete,
 }: PhoneVerificationProps) => {
+  const { t } = useTranslation('common');
   const [otpCode, setOtpCode] = useState('');
   const [smsError, setSmsError] = useState<{ message: string; suggestion?: string } | null>(null);
 
@@ -140,7 +142,7 @@ export const PhoneVerification = ({
             <AlertTriangle className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" />
             <div className="text-xs">
               <p className="text-amber-600 dark:text-amber-400 font-medium">SMS delivery to your region may be delayed or blocked.</p>
-              <p className="text-muted-foreground mt-1">We recommend using <strong>email verification</strong> for faster, more reliable delivery.</p>
+              <p className="text-muted-foreground mt-1">We recommend using <strong>email verification</strong>for faster, more reliable delivery.</p>
             </div>
           </div>
         )}

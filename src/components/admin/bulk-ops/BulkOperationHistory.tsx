@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatDistanceToNow } from "date-fns";
 import { Mail, ClipboardCheck, Calendar, Download, UserPlus, CheckCircle, XCircle, Clock, Loader2 } from "lucide-react";
+import { useTranslation } from 'react-i18next';
 
 const operationIcons: Record<string, React.ReactNode> = {
   email: <Mail className="h-4 w-4" />,
@@ -23,6 +24,7 @@ const statusConfig: Record<string, { icon: React.ReactNode; variant: "default" |
 };
 
 export const BulkOperationHistory = () => {
+  const { t } = useTranslation('admin');
   const { data: operations, isLoading } = useQuery({
     queryKey: ["bulk-operation-history"],
     queryFn: async () => {

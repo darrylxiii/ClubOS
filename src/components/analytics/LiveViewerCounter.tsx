@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from 'react-i18next';
 import { supabase } from "@/integrations/supabase/client";
 import { Eye, Users } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -10,6 +11,7 @@ interface LiveViewerCounterProps {
 }
 
 export const LiveViewerCounter = ({ postId, className }: LiveViewerCounterProps) => {
+  const { t } = useTranslation('analytics');
   const [activeViewers, setActiveViewers] = useState(0);
   const [channel, setChannel] = useState<any>(null);
 
@@ -71,7 +73,7 @@ export const LiveViewerCounter = ({ postId, className }: LiveViewerCounterProps)
       <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
       <Eye className="h-3 w-3" />
       <span className="text-xs font-medium">
-        {activeViewers} viewing now
+        {t('viewingNow', { count: activeViewers })}
       </span>
     </Badge>
   );

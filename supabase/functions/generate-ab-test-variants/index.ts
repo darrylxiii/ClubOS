@@ -1,39 +1,26 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { createHandler } from '../_shared/handler.ts';
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
-
-Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
-    const supabase = createClient(supabaseUrl, supabaseKey);
+Deno.serve(createHandler(async (req, ctx) => {
+    const googleApiKey = Deno.env.get('GOOGLE_API_KEY');
 
     const { campaign_id, variant_type, original_content, industry, target_audience } = await req.json();
 
-    if (!lovableApiKey) {
+    if (!googleApiKey) {
       return new Response(JSON.stringify({ error: 'AI API key not configured' }), {
         status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
     // Get campaign context
-    const { data: campaign } = await supabase
+    const { data: campaign } = await ctx.supabase
       .from('crm_campaigns')
       .select('*')
       .eq('id', campaign_id)
       .single();
 
     // Get top performing variants for context
-    const { data: topPerformers } = await supabase
+    const { data: topPerformers } = await ctx.supabase
       .from('crm_ab_test_variants')
       .select('*')
       .order('reply_rate', { ascending: false })
@@ -84,10 +71,10 @@ Respond with a JSON object containing exactly 3 variants:
   ]
 }`;
 
-    const aiResponse = await fetch('https://api.lovable.dev/v1/chat/completions', {
+    const aiResponse = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${lovableApiKey}`,
+        'Authorization': `Bearer ${googleApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -126,7 +113,7 @@ Respond with a JSON object containing exactly 3 variants:
     // Store variants in database
     const insertedVariants = [];
     for (const variant of variants || []) {
-      const { data, error } = await supabase
+      const { data, error } = await ctx.supabase
         .from('crm_ab_test_variants')
         .insert({
           campaign_id,
@@ -142,18 +129,10 @@ Respond with a JSON object containing exactly 3 variants:
       }
     }
 
-    return new Response(JSON.stringify({ 
-      success: true, 
+    return new Response(JSON.stringify({
+      success: true,
       variants: insertedVariants,
     }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' },
     });
-  } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    console.error('A/B variant generation error:', error);
-    return new Response(JSON.stringify({ error: errorMessage }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-  }
-});
+}));

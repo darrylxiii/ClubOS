@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { RefreshCw, Download, Building2, Users, Mail, TrendingUp, Zap, Loader2 } from 'lucide-react';
 import { RoleGate } from '@/components/RoleGate';
 import { Button } from '@/components/ui/button';
@@ -14,6 +15,7 @@ import { useEmailIntelligenceSync } from '@/hooks/useEmailIntelligenceSync';
 import { notify } from '@/lib/notify';
 
 export default function CompanyRelationships() {
+  const { t } = useTranslation('admin');
   const [selectedCompanyId, setSelectedCompanyId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('overview');
   const { relationships, companies, stats, loading, refetch } = useCompanyRelationships(selectedCompanyId);
@@ -70,10 +72,8 @@ export default function CompanyRelationships() {
                 <Building2 className="h-6 w-6 text-primary" />
               </div>
               <div>
-                <PageTitle>Company Relationships</PageTitle>
-                <p className="text-sm text-muted-foreground">
-                  Monitor and manage relationships with partner companies
-                </p>
+                <PageTitle>{t('companyRelationships.text2')}</PageTitle>
+                <p className="text-sm text-muted-foreground">{t('companyRelationships.desc')}</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -116,7 +116,7 @@ export default function CompanyRelationships() {
                     <p className="text-2xl font-bold">
                       {relationships.reduce((sum, r) => sum + (r.total_communications || 0), 0)}
                     </p>
-                    <p className="text-xs text-muted-foreground">Total Emails Tracked</p>
+                    <p className="text-xs text-muted-foreground">{t('companyRelationships.text3')}</p>
                   </div>
                 </div>
               </CardContent>
@@ -131,7 +131,7 @@ export default function CompanyRelationships() {
                     <p className="text-2xl font-bold">
                       {stats.avgSentiment !== 0 ? `${Math.round(stats.avgSentiment * 100)}%` : '—'}
                     </p>
-                    <p className="text-xs text-muted-foreground">Avg Sentiment</p>
+                    <p className="text-xs text-muted-foreground">{t('companyRelationships.text4')}</p>
                   </div>
                 </div>
               </CardContent>
@@ -144,7 +144,7 @@ export default function CompanyRelationships() {
                   </div>
                   <div>
                     <p className="text-2xl font-bold">{stats.needsAttention + stats.atRisk}</p>
-                    <p className="text-xs text-muted-foreground">Need Attention</p>
+                    <p className="text-xs text-muted-foreground">{t('companyRelationships.text5')}</p>
                   </div>
                 </div>
               </CardContent>
@@ -157,7 +157,7 @@ export default function CompanyRelationships() {
                   </div>
                   <div>
                     <p className="text-2xl font-bold">{stats.critical}</p>
-                    <p className="text-xs text-muted-foreground">Critical</p>
+                    <p className="text-xs text-muted-foreground">{t('companyRelationships.text6')}</p>
                   </div>
                 </div>
               </CardContent>
@@ -169,9 +169,9 @@ export default function CompanyRelationships() {
             <div className="lg:col-span-3">
               <Tabs value={activeTab} onValueChange={setActiveTab}>
                 <TabsList className="mb-4">
-                  <TabsTrigger value="overview">Overview</TabsTrigger>
-                  <TabsTrigger value="contacts">Contacts</TabsTrigger>
-                  <TabsTrigger value="sentiment">Sentiment Analysis</TabsTrigger>
+                  <TabsTrigger value="overview">{t('companyRelationships.text7')}</TabsTrigger>
+                  <TabsTrigger value="contacts">{t('companyRelationships.text8')}</TabsTrigger>
+                  <TabsTrigger value="sentiment">{t('companyRelationships.text9')}</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="overview">
@@ -189,7 +189,7 @@ export default function CompanyRelationships() {
                 <TabsContent value="contacts">
                   <Card>
                     <CardHeader>
-                      <CardTitle>Company Contacts</CardTitle>
+                      <CardTitle>{t('companyRelationships.text10')}</CardTitle>
                       <CardDescription>
                         Manage contacts for each partner company. Add emails manually or auto-detect from communications.
                       </CardDescription>
@@ -212,7 +212,7 @@ export default function CompanyRelationships() {
                 <TabsContent value="sentiment">
                   <Card>
                     <CardHeader>
-                      <CardTitle>Per-Person Sentiment</CardTitle>
+                      <CardTitle>{t('companyRelationships.text11')}</CardTitle>
                       <CardDescription>
                         View sentiment analysis for individual contacts within each company.
                       </CardDescription>

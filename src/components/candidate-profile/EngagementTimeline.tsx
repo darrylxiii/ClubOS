@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Activity, AlertCircle, Clock } from "lucide-react";
@@ -18,6 +19,7 @@ interface WeekBucket {
 }
 
 export function EngagementTimeline({ candidateId, breakdown }: EngagementTimelineProps) {
+  const { t } = useTranslation('common');
   const [weeklyData, setWeeklyData] = useState<WeekBucket[]>([]);
   const [loading, setLoading] = useState(true);
   const [commCount, setCommCount] = useState(0);
@@ -93,7 +95,7 @@ export function EngagementTimeline({ candidateId, breakdown }: EngagementTimelin
           <Activity className="w-4 h-4" />
           Engagement
           {!hasBreakdownData && hasLocalData && (
-            <Badge variant="outline" className="text-[10px] font-normal">Local estimate</Badge>
+            <Badge variant="outline" className="text-[10px] font-normal">{t("local_estimate", "Local estimate")}</Badge>
           )}
         </CardTitle>
       </CardHeader>
@@ -135,7 +137,7 @@ export function EngagementTimeline({ candidateId, breakdown }: EngagementTimelin
               <Skeleton className="h-12 w-full" />
             ) : (
               <div className="pt-2 border-t border-border/50">
-                <p className="text-[10px] text-muted-foreground mb-2">Activity (last 13 weeks)</p>
+                <p className="text-[10px] text-muted-foreground mb-2">{t("activity_last_13_weeks", "Activity (last 13 weeks)")}</p>
                 <div className="flex items-end gap-0.5 h-10">
                   {weeklyData.map((week, i) => (
                     <div
@@ -162,7 +164,7 @@ export function EngagementTimeline({ candidateId, breakdown }: EngagementTimelin
         ) : (
           <div className="text-center py-4">
             <AlertCircle className="w-8 h-8 text-muted-foreground/30 mx-auto mb-2" />
-            <p className="text-sm text-muted-foreground">No engagement data yet</p>
+            <p className="text-sm text-muted-foreground">{t("no_engagement_data_yet", "No engagement data yet")}</p>
             <p className="text-xs text-muted-foreground mt-1">
               Engagement tracks interactions, communications, and platform activity
             </p>

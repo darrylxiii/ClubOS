@@ -1,4 +1,5 @@
 import { ExternalLink } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
 import { LinkItem } from '@/hooks/useConversationMedia';
@@ -9,10 +10,11 @@ interface SharedLinksPanelProps {
 }
 
 export const SharedLinksPanel = ({ links, loading }: SharedLinksPanelProps) => {
+  const { t } = useTranslation('messages');
   if (loading) {
     return (
       <div className="flex items-center justify-center py-8">
-        <p className="text-sm text-muted-foreground">Loading links...</p>
+        <p className="text-sm text-muted-foreground">{t('sharedLinks.loading')}</p>
       </div>
     );
   }
@@ -20,7 +22,7 @@ export const SharedLinksPanel = ({ links, loading }: SharedLinksPanelProps) => {
   if (links.length === 0) {
     return (
       <div className="text-center py-8">
-        <p className="text-sm text-muted-foreground">No links shared yet</p>
+        <p className="text-sm text-muted-foreground">{t('sharedLinks.noLinks')}</p>
       </div>
     );
   }

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -35,6 +36,7 @@ interface ModuleDiscussionProps {
 }
 
 export function ModuleDiscussion({ moduleId }: ModuleDiscussionProps) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   
   const [discussions, setDiscussions] = useState<Discussion[]>([]);
@@ -123,7 +125,7 @@ export function ModuleDiscussion({ moduleId }: ModuleDiscussionProps) {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <MessageSquare className="h-5 w-5 text-primary" />
-          <h3 className="font-semibold">Module Discussion</h3>
+          <h3 className="font-semibold">{t("module_discussion", "Module Discussion")}</h3>
         </div>
         <Button
           size="sm"
@@ -138,12 +140,12 @@ export function ModuleDiscussion({ moduleId }: ModuleDiscussionProps) {
       {showNewDiscussion && (
         <Card className="squircle p-4 space-y-3">
           <Input
-            placeholder="Question title..."
+            placeholder={t("question_title", "Question title...")}
             value={newTitle}
             onChange={(e) => setNewTitle(e.target.value)}
           />
           <Textarea
-            placeholder="Describe your question in detail..."
+            placeholder={t("describe_your_question_in", "Describe your question in detail...")}
             value={newContent}
             onChange={(e) => setNewContent(e.target.value)}
             rows={4}

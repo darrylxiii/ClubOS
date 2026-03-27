@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { motion } from '@/lib/motion';
 import { 
   Trophy, TrendingUp, Target, Coins, Award, 
@@ -18,6 +19,7 @@ interface MyContributionViewProps {
 }
 
 export function MyContributionView({ year }: MyContributionViewProps) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const { data: stats, isLoading, error } = useMyContributions(year);
 
@@ -31,8 +33,8 @@ export function MyContributionView({ year }: MyContributionViewProps) {
         <div className="mx-auto w-16 h-16 rounded-full bg-muted/50 flex items-center justify-center">
           <Trophy className="h-8 w-8 text-muted-foreground" />
         </div>
-        <p className="text-heading-sm font-medium">Unable to load your contributions</p>
-        <p className="text-body-sm text-muted-foreground">Please try again later</p>
+        <p className="text-heading-sm font-medium">{t("unable_to_load_your", "Unable to load your contributions")}</p>
+        <p className="text-body-sm text-muted-foreground">{t("please_try_again_later", "Please try again later")}</p>
       </div>
     );
   }
@@ -54,7 +56,7 @@ export function MyContributionView({ year }: MyContributionViewProps) {
           </AvatarFallback>
         </Avatar>
         <div className="space-y-1">
-          <h2 className="text-heading-md font-bold">My Revenue Contribution</h2>
+          <h2 className="text-heading-md font-bold">{t("my_revenue_contribution", "My Revenue Contribution")}</h2>
           <div className="flex items-center gap-2">
             {stats.rank > 0 && stats.rank <= 3 && (
               <Badge variant="secondary" className="gap-1">
@@ -78,7 +80,7 @@ export function MyContributionView({ year }: MyContributionViewProps) {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           icon={TrendingUp}
-          label="Total Revenue"
+          label={t("total_revenue", "Total Revenue")}
           value={formatEur(stats.totalRevenue)}
           subValue={`${stats.placementCount} placements`}
           color="primary"
@@ -86,7 +88,7 @@ export function MyContributionView({ year }: MyContributionViewProps) {
         />
         <StatCard
           icon={Target}
-          label="Target Progress"
+          label={t("target_progress", "Target Progress")}
           value={`${Math.round(stats.targetProgress)}%`}
           subValue={stats.annualTarget > 0 ? `of ${formatEur(stats.annualTarget)}` : 'No target set'}
           color="success"
@@ -94,7 +96,7 @@ export function MyContributionView({ year }: MyContributionViewProps) {
         />
         <StatCard
           icon={Coins}
-          label="Commission Earned"
+          label={t("commission_earned", "Commission Earned")}
           value={formatEur(stats.commissionEarned)}
           subValue={stats.projectedCommission > 0 ? `+${formatEur(stats.projectedCommission)} pending` : 'YTD paid'}
           color="premium"
@@ -102,7 +104,7 @@ export function MyContributionView({ year }: MyContributionViewProps) {
         />
         <StatCard
           icon={Award}
-          label="Milestones"
+          label={t("milestones", "Milestones")}
           value={stats.milestonesContributed.toString()}
           subValue="contributed to"
           color="accent"
@@ -128,7 +130,7 @@ export function MyContributionView({ year }: MyContributionViewProps) {
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <div className="flex justify-between text-body-sm">
-                  <span className="text-muted-foreground">Sourced</span>
+                  <span className="text-muted-foreground">{t("sourced", "Sourced")}</span>
                   <span className="font-medium">{formatEur(stats.totalRevenueSourced)}</span>
                 </div>
                 <Progress 
@@ -138,7 +140,7 @@ export function MyContributionView({ year }: MyContributionViewProps) {
               </div>
               <div className="space-y-2">
                 <div className="flex justify-between text-body-sm">
-                  <span className="text-muted-foreground">Closed</span>
+                  <span className="text-muted-foreground">{t("closed", "Closed")}</span>
                   <span className="font-medium">{formatEur(stats.totalRevenueClosed)}</span>
                 </div>
                 <Progress 
@@ -148,7 +150,7 @@ export function MyContributionView({ year }: MyContributionViewProps) {
               </div>
               <div className="pt-2 border-t border-border/50">
                 <div className="flex justify-between text-body-md font-semibold">
-                  <span>Total</span>
+                  <span>{t("total", "Total")}</span>
                   <span className="text-primary">{formatEur(stats.totalRevenue)}</span>
                 </div>
               </div>
@@ -181,7 +183,7 @@ export function MyContributionView({ year }: MyContributionViewProps) {
                         </p>
                       </div>
                       <div className="text-right">
-                        <p className="text-body-xs text-muted-foreground">Min revenue</p>
+                        <p className="text-body-xs text-muted-foreground">{t("min_revenue", "Min revenue")}</p>
                         <p className="font-medium">{formatEur(stats.commissionTier.minRevenue)}</p>
                       </div>
                     </div>
@@ -206,7 +208,7 @@ export function MyContributionView({ year }: MyContributionViewProps) {
                 </>
               ) : (
                 <div className="text-center py-4 text-muted-foreground">
-                  <p className="text-body-sm">No commission tier configured</p>
+                  <p className="text-body-sm">{t("no_commission_tier_configured", "No commission tier configured")}</p>
                 </div>
               )}
             </CardContent>

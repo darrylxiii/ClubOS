@@ -15,6 +15,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { format } from "date-fns";
+import { useTranslation } from 'react-i18next';
 
 interface ScimToken {
   id: string;
@@ -41,6 +42,7 @@ interface ScimLog {
 }
 
 export const ScimConfigurationPanel = () => {
+  const { t } = useTranslation('admin');
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [newTokenName, setNewTokenName] = useState("");
   const [newTokenDescription, setNewTokenDescription] = useState("");
@@ -117,10 +119,10 @@ export const ScimConfigurationPanel = () => {
     onSuccess: (token) => {
       setGeneratedToken(token);
       queryClient.invalidateQueries({ queryKey: ['scim-tokens'] });
-      toast.success("SCIM token created");
+      toast.success(t('scim.scimConfigurationPanel.scimTokenCreated'));
     },
     onError: () => {
-      toast.error("Failed to create SCIM token");
+      toast.error(t('scim.scimConfigurationPanel.failedToCreateScimToken'));
     },
   });
 
@@ -135,7 +137,7 @@ export const ScimConfigurationPanel = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['scim-tokens'] });
-      toast.success("Token revoked");
+      toast.success(t('scim.scimConfigurationPanel.tokenRevoked'));
     },
   });
 
@@ -150,13 +152,13 @@ export const ScimConfigurationPanel = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['scim-tokens'] });
-      toast.success("Token deleted");
+      toast.success(t('scim.scimConfigurationPanel.tokenDeleted'));
     },
   });
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
-    toast.success("Copied to clipboard");
+    toast.success(t('scim.scimConfigurationPanel.copiedToClipboard'));
   };
 
   const scimBaseUrl = `${window.location.origin}/functions/v1`;
@@ -177,8 +179,8 @@ export const ScimConfigurationPanel = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold">SCIM 2.0 Provisioning</h2>
-          <p className="text-muted-foreground">Configure automated user provisioning from your identity provider</p>
+          <h2 className="text-2xl font-bold">{t('scim.scimConfigurationPanel.scim20Provisioning')}</h2>
+          <p className="text-muted-foreground">{t('scim.scimConfigurationPanel.configureAutomatedUserProvisioningFromYour')}</p>
         </div>
         <Badge variant="secondary" className="text-sm">
           <Shield className="h-4 w-4 mr-1" />
@@ -197,12 +199,12 @@ export const ScimConfigurationPanel = () => {
       {/* Endpoint Configuration */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm font-medium">SCIM Endpoints</CardTitle>
-          <CardDescription>Configure these URLs in your identity provider</CardDescription>
+          <CardTitle className="text-sm font-medium">{t('scim.scimConfigurationPanel.scimEndpoints')}</CardTitle>
+          <CardDescription>{t('scim.scimConfigurationPanel.configureTheseUrlsInYourIdentity')}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label>Base URL</Label>
+            <Label>{t('scim.scimConfigurationPanel.baseUrl')}</Label>
             <div className="flex gap-2">
               <Input value={scimBaseUrl} readOnly className="font-mono text-sm" />
               <Button variant="outline" size="icon" onClick={() => copyToClipboard(scimBaseUrl)}>
@@ -213,7 +215,7 @@ export const ScimConfigurationPanel = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Users Endpoint</Label>
+              <Label>{t('scim.scimConfigurationPanel.usersEndpoint')}</Label>
               <div className="flex gap-2">
                 <Input value={`${scimBaseUrl}/scim-users`} readOnly className="font-mono text-sm" />
                 <Button variant="outline" size="icon" onClick={() => copyToClipboard(`${scimBaseUrl}/scim-users`)}>
@@ -222,7 +224,7 @@ export const ScimConfigurationPanel = () => {
               </div>
             </div>
             <div className="space-y-2">
-              <Label>Groups Endpoint</Label>
+              <Label>{t('scim.scimConfigurationPanel.groupsEndpoint')}</Label>
               <div className="flex gap-2">
                 <Input value={`${scimBaseUrl}/scim-groups`} readOnly className="font-mono text-sm" />
                 <Button variant="outline" size="icon" onClick={() => copyToClipboard(`${scimBaseUrl}/scim-groups`)}>
@@ -236,9 +238,9 @@ export const ScimConfigurationPanel = () => {
 
       <Tabs defaultValue="tokens">
         <TabsList>
-          <TabsTrigger value="tokens">API Tokens</TabsTrigger>
+          <TabsTrigger value="tokens">{t('scim.scimConfigurationPanel.apiTokens')}</TabsTrigger>
           <TabsTrigger value="groups">Groups ({groups?.length || 0})</TabsTrigger>
-          <TabsTrigger value="logs">Activity Log</TabsTrigger>
+          <TabsTrigger value="logs">{t('scim.scimConfigurationPanel.activityLog')}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="tokens" className="mt-4">
@@ -246,8 +248,8 @@ export const ScimConfigurationPanel = () => {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle className="text-sm font-medium">SCIM Tokens</CardTitle>
-                  <CardDescription>Bearer tokens for IdP authentication</CardDescription>
+                  <CardTitle className="text-sm font-medium">{t('scim.scimConfigurationPanel.scimTokens')}</CardTitle>
+                  <CardDescription>{t('scim.scimConfigurationPanel.bearerTokensForIdpAuthentication')}</CardDescription>
                 </div>
                 <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
                   <DialogTrigger asChild>
@@ -258,7 +260,7 @@ export const ScimConfigurationPanel = () => {
                   </DialogTrigger>
                   <DialogContent>
                     <DialogHeader>
-                      <DialogTitle>Create SCIM Token</DialogTitle>
+                      <DialogTitle>{t('scim.scimConfigurationPanel.createScimToken')}</DialogTitle>
                     </DialogHeader>
                     {generatedToken ? (
                       <div className="space-y-4 py-4">
@@ -269,7 +271,7 @@ export const ScimConfigurationPanel = () => {
                           </AlertDescription>
                         </Alert>
                         <div className="space-y-2">
-                          <Label>Token</Label>
+                          <Label>{t('scim.scimConfigurationPanel.token')}</Label>
                           <div className="flex gap-2">
                             <Input
                               value={showToken ? generatedToken : '•'.repeat(32)}
@@ -298,7 +300,7 @@ export const ScimConfigurationPanel = () => {
                     ) : (
                       <div className="space-y-4 py-4">
                         <div className="space-y-2">
-                          <Label>Token Name</Label>
+                          <Label>{t('scim.scimConfigurationPanel.tokenName')}</Label>
                           <Input
                             value={newTokenName}
                             onChange={(e) => setNewTokenName(e.target.value)}
@@ -306,7 +308,7 @@ export const ScimConfigurationPanel = () => {
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label>Description (optional)</Label>
+                          <Label>{t('scim.scimConfigurationPanel.descriptionOptional')}</Label>
                           <Input
                             value={newTokenDescription}
                             onChange={(e) => setNewTokenDescription(e.target.value)}
@@ -339,12 +341,12 @@ export const ScimConfigurationPanel = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Prefix</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Last Used</TableHead>
-                    <TableHead>Created</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead>{t('common:fields.name')}</TableHead>
+                    <TableHead>{t('scim.scimConfigurationPanel.prefix')}</TableHead>
+                    <TableHead>{t('common:fields.status')}</TableHead>
+                    <TableHead>{t('scim.scimConfigurationPanel.lastUsed')}</TableHead>
+                    <TableHead>{t('scim.scimConfigurationPanel.created')}</TableHead>
+                    <TableHead className="text-right">{t('common:fields.actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -411,17 +413,17 @@ export const ScimConfigurationPanel = () => {
         <TabsContent value="groups" className="mt-4">
           <Card>
             <CardHeader>
-              <CardTitle className="text-sm font-medium">Synced Groups</CardTitle>
-              <CardDescription>Groups provisioned from your identity provider</CardDescription>
+              <CardTitle className="text-sm font-medium">{t('scim.scimConfigurationPanel.syncedGroups')}</CardTitle>
+              <CardDescription>{t('scim.scimConfigurationPanel.groupsProvisionedFromYourIdentityProvider')}</CardDescription>
             </CardHeader>
             <CardContent>
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Group Name</TableHead>
-                    <TableHead>External ID</TableHead>
-                    <TableHead className="text-right">Members</TableHead>
-                    <TableHead>Last Updated</TableHead>
+                    <TableHead>{t('scim.scimConfigurationPanel.groupName')}</TableHead>
+                    <TableHead>{t('scim.scimConfigurationPanel.externalId')}</TableHead>
+                    <TableHead className="text-right">{t('scim.scimConfigurationPanel.members')}</TableHead>
+                    <TableHead>{t('scim.scimConfigurationPanel.lastUpdated')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -451,19 +453,19 @@ export const ScimConfigurationPanel = () => {
         <TabsContent value="logs" className="mt-4">
           <Card>
             <CardHeader>
-              <CardTitle className="text-sm font-medium">Provisioning Activity</CardTitle>
-              <CardDescription>Recent SCIM operations</CardDescription>
+              <CardTitle className="text-sm font-medium">{t('scim.scimConfigurationPanel.provisioningActivity')}</CardTitle>
+              <CardDescription>{t('scim.scimConfigurationPanel.recentScimOperations')}</CardDescription>
             </CardHeader>
             <CardContent>
               <ScrollArea className="h-[400px]">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Operation</TableHead>
-                      <TableHead>Resource</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>IP Address</TableHead>
-                      <TableHead>Time</TableHead>
+                      <TableHead>{t('scim.scimConfigurationPanel.operation')}</TableHead>
+                      <TableHead>{t('scim.scimConfigurationPanel.resource')}</TableHead>
+                      <TableHead>{t('common:fields.status')}</TableHead>
+                      <TableHead>{t('scim.scimConfigurationPanel.ipAddress')}</TableHead>
+                      <TableHead>{t('scim.scimConfigurationPanel.time')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>

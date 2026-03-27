@@ -5,6 +5,7 @@ import { Progress } from "@/components/ui/progress";
 import { CheckCircle2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 interface PollOption {
   id: string;
@@ -31,6 +32,7 @@ export const PollPost = ({
   endsAt,
   onVote,
 }: PollPostProps) => {
+  const { t } = useTranslation("common");
   const [selectedOption, setSelectedOption] = useState<string | undefined>(userVote);
   const [hasVoted, setHasVoted] = useState(!!userVote);
   const pollEnded = new Date(endsAt) < new Date();
@@ -41,7 +43,7 @@ export const PollPost = ({
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        toast.error("Please sign in to vote");
+        toast.error(t('social.poll.signInToVote'));
         return;
       }
 
@@ -66,10 +68,10 @@ export const PollPost = ({
       setSelectedOption(optionId);
       setHasVoted(true);
       onVote?.();
-      toast.success("Vote recorded!");
+      toast.success(t('social.poll.voteRecorded'));
     } catch (error) {
       console.error("Error voting:", error);
-      toast.error("Failed to record vote");
+      toast.error(t('social.poll.voteFailed'));
     }
   };
 
@@ -113,7 +115,7 @@ export const PollPost = ({
                   {(hasVoted || pollEnded) && (
                     <div className="flex items-center gap-2">
                       <span className="text-sm text-muted-foreground">
-                        {option.votes} votes
+                        {t('social.poll.votes', { count: option.votes })}
                       </span>
                       <span className="text-lg font-bold">{percentage}%</span>
                     </div>
@@ -125,9 +127,9 @@ export const PollPost = ({
         })}
       </div>
       <div className="mt-4 flex items-center justify-between text-sm text-muted-foreground">
-        <span>{totalVotes.toLocaleString()} total votes</span>
+        <span>{t('social.poll.totalVotes', { count: totalVotes.toLocaleString() })}</span>
         <span>
-          {pollEnded ? "Poll ended" : `Ends ${new Date(endsAt).toLocaleDateString()}`}
+          {pollEnded ? t('social.poll.ended') : t('social.poll.endsOn', { date: new Date(endsAt).toLocaleDateString() })}
         </span>
       </div>
     </Card>

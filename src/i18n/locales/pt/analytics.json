@@ -1,0 +1,227 @@
+{
+  "title": "Analytics",
+  "subtitle": "Informacoes e metricas de desempenho",
+  "overview": {
+    "title": "Visao Geral",
+    "summary": "Resumo de Desempenho",
+    "keyMetrics": "Metricas Principais",
+    "trends": "Tendencias"
+  },
+  "metrics": {
+    "title": "Metricas Principais",
+    "views": "Visualizacoes",
+    "clicks": "Cliques",
+    "conversions": "Conversoes",
+    "engagement": "Taxa de Envolvimento",
+    "bounceRate": "Taxa de Rejeicao",
+    "avgSessionDuration": "Duracao Media da Sessao",
+    "pageViews": "Visualizacoes de Pagina",
+    "uniqueVisitors": "Visitantes Unicos",
+    "returningVisitors": "Visitantes Recorrentes"
+  },
+  "dashboard": {
+    "title": "Dashboard de Analytics",
+    "filters": "Filtros",
+    "dateRange": "Intervalo de Datas",
+    "comparison": "Comparar com",
+    "export": "Exportar Dados",
+    "refresh": "Atualizar"
+  },
+  "charts": {
+    "lineChart": "Grafico de Linhas",
+    "barChart": "Grafico de Barras",
+    "pieChart": "Grafico Circular",
+    "areaChart": "Grafico de Area",
+    "noData": "Sem dados disponiveis"
+  },
+  "periods": {
+    "today": "Hoje",
+    "yesterday": "Ontem",
+    "last7Days": "Ultimos 7 Dias",
+    "last30Days": "Ultimos 30 Dias",
+    "lastMonth": "Ultimo Mes",
+    "lastQuarter": "Ultimo Trimestre",
+    "lastYear": "Ultimo Ano",
+    "custom": "Intervalo Personalizado"
+  },
+  "hiring": {
+    "title": "Analytics de Recrutamento",
+    "applicationsReceived": "Candidaturas Recebidas",
+    "candidatesScreened": "Candidatos Avaliados",
+    "interviewsConducted": "Entrevistas Realizadas",
+    "offersExtended": "Ofertas Apresentadas",
+    "offerAcceptanceRate": "Taxa de Aceitacao de Ofertas",
+    "timeToHire": "Tempo de Contratacao",
+    "costPerHire": "Custo por Contratacao",
+    "sourceEffectiveness": "Eficacia da Fonte"
+  },
+  "pipeline": {
+    "title": "Analytics do Pipeline",
+    "stageConversion": "Taxas de Conversao por Fase",
+    "bottlenecks": "Estrangulamentos",
+    "velocity": "Velocidade do Pipeline",
+    "dropoffPoints": "Pontos de Abandono"
+  },
+  "engagement": {
+    "title": "Analytics de Envolvimento",
+    "activeUsers": "Utilizadores Ativos",
+    "sessionCount": "Numero de Sessoes",
+    "averageTime": "Tempo Medio na Plataforma",
+    "featureUsage": "Utilizacao de Funcionalidades"
+  },
+  "revenue": {
+    "title": "Analytics de Receita",
+    "totalRevenue": "Receita Total",
+    "monthlyRecurring": "Receita Mensal Recorrente",
+    "growthRate": "Taxa de Crescimento",
+    "projections": "Projecoes",
+    "bySource": "Receita por Fonte"
+  },
+  "reports": {
+    "title": "Relatorios",
+    "generate": "Gerar Relatorio",
+    "schedule": "Agendar Relatorio",
+    "download": "Transferir Relatorio",
+    "share": "Partilhar Relatorio",
+    "templates": "Modelos de Relatorio"
+  },
+  "insights": {
+    "title": "Informacoes de IA",
+    "recommendations": "Recomendacoes",
+    "anomalies": "Anomalias Detetadas",
+    "opportunities": "Oportunidades",
+    "risks": "Riscos"
+  },
+  "comparison": {
+    "vsLastPeriod": "vs. Periodo Anterior",
+    "vsTarget": "vs. Objetivo",
+    "vsIndustry": "vs. Media do Setor",
+    "increase": "Aumento",
+    "decrease": "Diminuicao",
+    "noChange": "Sem Alteracao"
+  },
+  "export": {
+    "csv": "Exportar como CSV",
+    "pdf": "Exportar como PDF",
+    "excel": "Exportar como Excel",
+    "scheduled": "Agendar Exportacao"
+  },
+  "empty": {
+    "noData": "Sem dados disponiveis para este periodo",
+    "noMetrics": "Sem metricas para apresentar",
+    "selectPeriod": "Selecione um intervalo de datas para ver analytics"
+  },
+  "agentDashboard": {
+    "desc": "Gira os seus agentes de IA, acompanhe objetivos e controle niveis de autonomia"
+  },
+  "careerInsightsDashboard": {
+    "text1": "Analise e recomendacoes de carreira baseadas em IA",
+    "text2": "Analise de Lacunas de Competencias",
+    "text3": "As suas competencias vs. requisitos do mercado",
+    "text4": "Posicao no Mercado",
+    "text5": "Como se compara no mercado",
+    "text6": "Percentil na sua area",
+    "text7": "Intervalo Salarial",
+    "text8": "Nivel de Procura",
+    "text9": "Tendencias de Carreira",
+    "text10": "Tendencias do setor que afetam a sua carreira",
+    "text11": "Acoes Recomendadas",
+    "text12": "Recomendacoes personalizadas do Club AI",
+    "text13": "Sem Informacoes Geradas Ainda",
+    "text14": "Clique em 'Gerar Informacoes' para obter recomendacoes de carreira baseadas em IA"
+  },
+  "clientAnalyticsPage": {
+    "title": "Analytics de Clientes",
+    "desc": "Monitorize as suas metricas de contratacao e projetos",
+    "desc2": "Ainda sem projetos"
+  },
+  "enhancedMLDashboard": {
+    "desc": "Monitorize o desempenho de ML e inteligencia empresarial em toda a plataforma",
+    "desc2": "Com dados de inteligencia",
+    "desc3": "Pontos de dados",
+    "desc4": "Pontuacao AUC-ROC",
+    "desc5": "Sem dados de inteligencia ainda. Gere relatorios para empresas para ver informacoes.",
+    "desc6": "Sem informacoes recentes. Registe interacoes para gerar inteligencia.",
+    "text7": "Filtrar por vaga",
+    "text8": "Todas as Vagas",
+    "text9": "Modelo Ativo",
+    "text10": "Empresas Monitorizadas",
+    "text11": "Interacoes (30d)",
+    "text12": "Registos de Treino",
+    "text13": "Precisao do Modelo",
+    "text14": "Classificacao de Inteligencia Empresarial",
+    "text15": "Saude",
+    "text16": "Urgencia",
+    "text17": "Sentimento",
+    "text18": "Sinais de Inteligencia Recentes",
+    "text19": "Cobertura de Interacoes",
+    "text20": "Total de Interacoes (30d)",
+    "text21": "Empresas com Dados",
+    "text22": "Qualidade da Inteligencia",
+    "text23": "Relatorios de IA Gerados",
+    "text24": "Informacoes Extraidas",
+    "text25": "Pontuacao Media de Saude",
+    "text26": "Registo de Modelos",
+    "text27": "A carregar modelos...",
+    "text28": "Ativo",
+    "text29": "AUC-ROC",
+    "text30": "Taxa de Entrevista",
+    "text31": "Taxa de Contratacao",
+    "text32": "Testes A/B",
+    "text33": "A carregar testes...",
+    "text34": "Divisao de Trafego",
+    "text35": "Amostras do Modelo A",
+    "text36": "Amostras do Modelo B"
+  },
+  "freelancerAnalyticsPage": {
+    "title": "Analytics de Freelancer",
+    "desc": "Acompanhe o seu desempenho e crescimento",
+    "desc2": "Projetos realizados"
+  },
+  "messagingAnalytics": {
+    "text1": "Falha ao carregar analytics",
+    "text2": "Analytics de Mensagens",
+    "text3": "Informacoes sobre os seus padroes de comunicacao",
+    "text4": "Ultimos 30 dias",
+    "text5": "Ultimos 30 dias",
+    "text6": "Tempo de resposta",
+    "text7": "Conversas",
+    "text8": "Ficheiros partilhados",
+    "text9": "Atividade",
+    "text10": "Padroes",
+    "text11": "Media",
+    "text12": "Atividade Diaria (Ultimos 7 Dias)",
+    "text13": "Mensagens enviadas e recebidas por dia",
+    "text14": "Distribuicao Horaria",
+    "text15": "Quando envia mensagens ao longo do dia",
+    "text16": "Repartição de Media",
+    "text17": "Tipos de ficheiros partilhados"
+  },
+  "myPerformance": {
+    "desc": "Acompanhe as suas comissoes, objetivos e colocacoes",
+    "text2": "O Meu Desempenho",
+    "text3": "Horas Este Mes",
+    "text4": "Receita por Hora"
+  },
+  "salaryInsights": {
+    "desc": "Informacoes reais do mercado baseadas em dados da plataforma",
+    "desc2": "Negoceie depois de receber uma oferta, nao durante as entrevistas iniciais.",
+    "text3": "Inteligencia Salarial",
+    "text4": "Nivel Inicial",
+    "text5": "Medio-Senior",
+    "text6": "Executivo",
+    "text7": "A obter dados de mercado...",
+    "text8": "Mediana",
+    "text9": "Intervalo Inicial",
+    "text10": "Media do Mercado",
+    "text11": "Competitivo",
+    "text12": "A Sua Posicao no Mercado",
+    "text13": "Conheca o Seu Valor",
+    "text14": "Considere a Compensacao Total",
+    "text15": "O Momento e Importante"
+  },
+  "teamPerformance": {
+    "desc": "Gira e acompanhe o desempenho e comissoes da sua equipa",
+    "text2": "Desempenho da Equipa"
+  }
+}

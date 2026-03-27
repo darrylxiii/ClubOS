@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Eye, Users, Briefcase, Award, TrendingUp } from "lucide-react";
@@ -15,28 +16,29 @@ interface ProfileStatsProps {
 }
 
 export function ProfileStats({ stats, className }: ProfileStatsProps) {
+  const { t } = useTranslation('common');
   const statItems = [
     {
       icon: Eye,
-      label: "Profile Views",
+      label: t('profile.profileViews'),
       value: stats.profileViews,
       color: "text-blue-500"
     },
     {
       icon: Users,
-      label: "Connections",
+      label: t('profile.connections'),
       value: stats.connections,
       color: "text-green-500"
     },
     {
       icon: Briefcase,
-      label: "Active Applications",
+      label: t('profile.activeApplications'),
       value: stats.applicationsActive,
       color: "text-purple-500"
     },
     {
       icon: Award,
-      label: "Achievements",
+      label: t('profile.achievements'),
       value: stats.achievementsUnlocked,
       color: "text-yellow-500"
     },
@@ -45,7 +47,7 @@ export function ProfileStats({ stats, className }: ProfileStatsProps) {
   if (stats.engagementRate !== undefined) {
     statItems.push({
       icon: TrendingUp,
-      label: "Engagement Rate",
+      label: t('profile.engagementRate'),
       value: stats.engagementRate,
       color: "text-primary"
     });

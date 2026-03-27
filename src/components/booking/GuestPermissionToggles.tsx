@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -28,6 +29,7 @@ export function GuestPermissionToggles({
   mode = 'booker',
   disabled = false,
 }: GuestPermissionTogglesProps) {
+  const { t } = useTranslation('common');
   const [isOpen, setIsOpen] = useState(false);
 
   const handleToggle = (key: keyof GuestPermissions, value: boolean) => {
@@ -81,7 +83,7 @@ export function GuestPermissionToggles({
       <div className="space-y-4">
         <div className="flex items-center gap-2 mb-3">
           <Shield className="h-4 w-4 text-muted-foreground" />
-          <h4 className="font-medium text-sm">Guest Permissions</h4>
+          <h4 className="font-medium text-sm">{t("guest_permissions", "Guest Permissions")}</h4>
         </div>
         <p className="text-xs text-muted-foreground mb-4">
           Control what guests and attendees can do with bookings
@@ -114,7 +116,7 @@ export function GuestPermissionToggles({
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
       <CollapsibleTrigger className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors">
         <ChevronDown className={`h-3 w-3 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
-        <span>Guest permissions</span>
+        <span>{t("guest_permissions", "Guest permissions")}</span>
       </CollapsibleTrigger>
       <CollapsibleContent className="pt-3 space-y-3">
         {permissionItems.map((item) => {

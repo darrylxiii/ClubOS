@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { CheckCircle2, Circle, Clock, TrendingUp, History } from "lucide-react";
 import { candidateProfileTokens } from "@/config/candidate-profile-tokens";
 import { getDefaultPipelineStages } from "@/utils/pipelineUtils";
+import { useTranslation } from 'react-i18next';
 
 interface Props {
   application: any;
@@ -13,6 +14,7 @@ interface Props {
 }
 
 export const PipelineBreakdownCard = ({ application, onAdvance, onDecline, onViewHistory }: Props) => {
+  const { t } = useTranslation('candidates');
   if (!application) return null;
 
   // Get stages from application or job's pipeline_stages or use defaults

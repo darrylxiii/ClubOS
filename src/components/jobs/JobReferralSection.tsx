@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -34,6 +35,7 @@ export function JobReferralSection({
   referralBonusPercentage = 10,
   showReferralBonus = true,
 }: JobReferralSectionProps) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [copied, setCopied] = useState(false);
   const { data: referralPotential } = useJobReferralPotential(jobId);
@@ -50,10 +52,10 @@ export function JobReferralSection({
     try {
       await navigator.clipboard.writeText(referralLink);
       setCopied(true);
-      toast.success("Referral link copied!");
+      toast.success(t("referral_link_copied", "Referral link copied!"));
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
-      toast.error("Failed to copy link");
+      toast.error(t("failed_to_copy_link", "Failed to copy link"));
     }
   };
 
@@ -86,7 +88,7 @@ export function JobReferralSection({
               <Gift className="h-5 w-5 text-success" />
             </div>
             <div>
-              <CardTitle className="text-lg">Referral Opportunity</CardTitle>
+              <CardTitle className="text-lg">{t("referral_opportunity", "Referral Opportunity")}</CardTitle>
               <p className="text-sm text-muted-foreground">
                 Earn money by referring qualified candidates
               </p>
@@ -98,14 +100,14 @@ export function JobReferralSection({
           {/* Potential Reward */}
           {potentialEarnings > 0 && (
             <div className="p-4 rounded-lg bg-success/10 border border-success/20 text-center">
-              <p className="text-sm text-muted-foreground mb-1">Potential Referral Reward</p>
+              <p className="text-sm text-muted-foreground mb-1">{t("potential_referral_reward", "Potential Referral Reward")}</p>
               <p className="text-2xl font-bold text-success">{formatCurrency(potentialEarnings)}</p>
             </div>
           )}
 
           {/* Share Section */}
           <div className="space-y-3">
-            <p className="text-sm font-medium">Share your referral link</p>
+            <p className="text-sm font-medium">{t("share_your_referral_link", "Share your referral link")}</p>
             <div className="flex gap-2">
               <Input
                 readOnly
@@ -136,11 +138,11 @@ export function JobReferralSection({
 
           {/* How it works */}
           <div className="text-xs text-muted-foreground space-y-1 pt-2 border-t">
-            <p className="font-medium text-foreground">How it works:</p>
+            <p className="font-medium text-foreground">{t("how_it_works", "How it works:")}</p>
             <ol className="list-decimal list-inside space-y-1">
-              <li>Share your unique referral link with potential candidates</li>
-              <li>When they apply and get hired, you earn your share</li>
-              <li>Track your referrals in real-time from your dashboard</li>
+              <li>{t("share_your_unique_referral", "Share your unique referral link with potential candidates")}</li>
+              <li>{t("when_they_apply_and", "When they apply and get hired, you earn your share")}</li>
+              <li>{t("track_your_referrals_in", "Track your referrals in real-time from your dashboard")}</li>
             </ol>
           </div>
         </CardContent>

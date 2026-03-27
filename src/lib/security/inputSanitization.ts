@@ -83,7 +83,7 @@ export function sanitizeFilename(filename: string): string {
   return filename
     .replace(/[^a-zA-Z0-9._-]/g, '_')  // Replace unsafe chars
     .replace(/_{2,}/g, '_')             // Collapse multiple underscores
-    .replace(/^\\.+/, '')                // Remove leading dots
+    .replace(/^\.+/, '')                 // Remove leading dots
     .slice(0, 255);                     // Limit length
 }
 
@@ -107,7 +107,7 @@ export function escapeRegExp(str: string): string {
  */
 export function sanitizeEmail(email: string): string | null {
   const trimmed = email.trim().toLowerCase();
-  const emailRegex = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   
   if (!emailRegex.test(trimmed)) {
     return null;

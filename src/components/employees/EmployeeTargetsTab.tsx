@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
@@ -10,6 +11,7 @@ interface EmployeeTargetsTabProps {
 }
 
 export function EmployeeTargetsTab({ employeeId }: EmployeeTargetsTabProps) {
+  const { t } = useTranslation('common');
   const { data: targets, isLoading } = useEmployeeTargets(employeeId);
 
   if (isLoading) {
@@ -65,8 +67,8 @@ export function EmployeeTargetsTab({ employeeId }: EmployeeTargetsTabProps) {
                   {target.period_type} Target
                 </CardTitle>
                 <div className="flex gap-2">
-                  {isCurrent && <Badge variant="default">Current</Badge>}
-                  {isPast && <Badge variant="secondary">Completed</Badge>}
+                  {isCurrent && <Badge variant="default">{t("current", "Current")}</Badge>}
+                  {isPast && <Badge variant="secondary">{t("completed", "Completed")}</Badge>}
                 </div>
               </div>
               <CardDescription>
@@ -77,7 +79,7 @@ export function EmployeeTargetsTab({ employeeId }: EmployeeTargetsTabProps) {
               {target.revenue_target && (
                 <TargetProgressRow
                   icon={DollarSign}
-                  label="Revenue"
+                  label={t("revenue", "Revenue")}
                   achieved={target.revenue_achieved}
                   target={target.revenue_target}
                   format="currency"
@@ -86,7 +88,7 @@ export function EmployeeTargetsTab({ employeeId }: EmployeeTargetsTabProps) {
               {target.placements_target && (
                 <TargetProgressRow
                   icon={Users}
-                  label="Placements"
+                  label={t("placements", "Placements")}
                   achieved={target.placements_achieved}
                   target={target.placements_target}
                 />
@@ -94,7 +96,7 @@ export function EmployeeTargetsTab({ employeeId }: EmployeeTargetsTabProps) {
               {target.candidates_sourced_target && (
                 <TargetProgressRow
                   icon={TrendingUp}
-                  label="Candidates Sourced"
+                  label={t("candidates_sourced", "Candidates Sourced")}
                   achieved={target.candidates_sourced_achieved}
                   target={target.candidates_sourced_target}
                 />
@@ -102,7 +104,7 @@ export function EmployeeTargetsTab({ employeeId }: EmployeeTargetsTabProps) {
               {target.interviews_target && (
                 <TargetProgressRow
                   icon={Users}
-                  label="Interviews"
+                  label={t("interviews", "Interviews")}
                   achieved={target.interviews_achieved}
                   target={target.interviews_target}
                 />
@@ -110,7 +112,7 @@ export function EmployeeTargetsTab({ employeeId }: EmployeeTargetsTabProps) {
               {target.hours_target && (
                 <TargetProgressRow
                   icon={Clock}
-                  label="Hours"
+                  label={t("hours", "Hours")}
                   achieved={target.hours_achieved}
                   target={target.hours_target}
                   suffix="h"

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 /**
  * SessionRecoveryBanner — simplified.
  * Legacy "send-recovery-email" removed. The DB-backed ?resume= flow handles cross-device recovery.
@@ -24,6 +25,7 @@ export function SessionRecoveryBanner({
   savedTimestamp,
   onDismiss,
 }: SessionRecoveryBannerProps) {
+  const { t } = useTranslation('common');
   return (
     <Card className="p-4 bg-muted/50 border-border/50 mb-6">
       <div className="flex items-start gap-3">
@@ -31,7 +33,7 @@ export function SessionRecoveryBanner({
         <div className="flex-1">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium">Welcome back</p>
+              <p className="text-sm font-medium">{t("welcome_back", "Welcome back")}</p>
               {savedTimestamp && (
                 <p className="text-xs text-muted-foreground flex items-center gap-1">
                   <Clock className="h-3 w-3" />

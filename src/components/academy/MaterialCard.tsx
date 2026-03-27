@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -33,6 +34,7 @@ export function MaterialCard({
   passingPoints,
   illustration,
 }: MaterialCardProps) {
+  const { t } = useTranslation('common');
   const typeConfig = {
     quiz: { icon: Award, label: "Quiz", color: "bg-warning/10 text-warning" },
     page: { icon: FileText, label: "Page", color: "bg-destructive/10 text-destructive" },
@@ -108,11 +110,11 @@ export function MaterialCard({
         ) : progress > 0 ? (
           <div className="space-y-2">
             <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Progress:</span>
+              <span className="text-muted-foreground">{t("progress", "Progress:")}</span>
               <span className="font-semibold">{progress}%</span>
             </div>
             <Progress value={progress} className="h-1.5" />
-            <Button className="w-full squircle-sm">Continue</Button>
+            <Button className="w-full squircle-sm">{t("continue", "Continue")}</Button>
           </div>
         ) : (
           <Button className="w-full squircle-sm" variant="outline">

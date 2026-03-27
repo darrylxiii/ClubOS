@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Lock, Eye, AlertTriangle } from "lucide-react";
@@ -17,6 +18,7 @@ export function StealthJobToggle({
   disabled = false,
   showWarning = false 
 }: StealthJobToggleProps) {
+  const { t } = useTranslation('common');
   return (
     <div className={cn(
       "flex items-center justify-between p-4 rounded-lg border transition-all",
@@ -67,7 +69,7 @@ export function StealthJobToggle({
                 <AlertTriangle className="h-4 w-4 text-amber-500" />
               </TooltipTrigger>
               <TooltipContent>
-                <p>Changing visibility will affect who can see this job</p>
+                <p>{t("changing_visibility_will_affect", "Changing visibility will affect who can see this job")}</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>

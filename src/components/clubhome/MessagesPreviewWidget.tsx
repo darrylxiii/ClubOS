@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { formatDistanceToNow } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslation } from 'react-i18next';
 
 interface Message {
   id: string;
@@ -21,6 +22,7 @@ interface Message {
 }
 
 export const MessagesPreviewWidget = () => {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -155,7 +157,7 @@ export const MessagesPreviewWidget = () => {
             className="text-center py-6 text-muted-foreground"
           >
             <MessageSquare className="h-10 w-10 mx-auto mb-2 opacity-50" />
-            <p className="text-sm">No messages yet</p>
+            <p className="text-sm">{t('messagesPreviewWidget.noMessagesYet')}</p>
           </motion.div>
         ) : (
           <AnimatePresence mode="popLayout">

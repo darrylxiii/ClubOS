@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -19,15 +20,16 @@ interface ParticipantPanelProps {
 }
 
 export function ParticipantPanel({ participants, onClose }: ParticipantPanelProps) {
+  const { t } = useTranslation('common');
   return (
     <div className="absolute right-0 top-0 bottom-0 w-80 glass-card border-l border-border/20 flex flex-col z-[10001]">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-border/20">
         <div>
-          <h3 className="font-semibold text-lg">Participants</h3>
+          <h3 className="font-semibold text-lg">{t("participants", "Participants")}</h3>
           <p className="text-sm text-muted-foreground">{participants.length} in call</p>
         </div>
-        <Button variant="ghost" size="icon" onClick={onClose} aria-label="Close participants panel">
+        <Button variant="ghost" size="icon" onClick={onClose} aria-label={t("close_participants_panel", "Close participants panel")}>
           <X className="h-5 w-5" aria-hidden="true" />
         </Button>
       </div>

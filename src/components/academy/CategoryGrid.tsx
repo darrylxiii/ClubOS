@@ -1,6 +1,7 @@
 import { memo } from 'react';
 import { Card } from '@/components/ui/card';
 import { LucideIcon, TrendingUp, Code, Users, Crown, Palette, BarChart } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface Category {
   id: string;
@@ -28,6 +29,7 @@ export const CategoryGrid = memo<CategoryGridProps>(({
   categories,
   onCategoryClick,
 }) => {
+  const { t } = useTranslation('common');
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
       {categories.map((category) => {
@@ -47,7 +49,7 @@ export const CategoryGrid = memo<CategoryGridProps>(({
                 <p className="font-medium text-sm">{category.name}</p>
                 {category.course_count !== undefined && (
                   <p className="text-xs text-muted-foreground mt-1">
-                    {category.course_count} {category.course_count === 1 ? 'course' : 'courses'}
+                    {t('academy.courseCount', '{{count}} course', { count: category.course_count })}
                   </p>
                 )}
               </div>

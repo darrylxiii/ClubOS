@@ -195,28 +195,29 @@ interface DesktopSidebarProps {
 
 const DesktopSidebar = ({ children, className, logoLight, logoDark, logoLightShort, logoDarkShort, footer }: DesktopSidebarProps) => {
   const { open, setOpen } = useSidebar();
+  const { t } = useTranslation();
 
   return (
     <motion.aside
       className={cn(
-        // Fixed, non-scrolling viewport column; only the menu area scrolls.
-        "hidden md:flex flex-col fixed left-0 top-0 bottom-0 z-sidebar-desktop overflow-hidden",
-        "bg-card/30 backdrop-blur-[var(--blur-glass)] border-r border-border/20",
-        "shadow-[var(--shadow-glass-lg)]",
+        // Floating Island layout with subtle outer margins
+        "hidden md:flex flex-col fixed left-4 top-4 bottom-4 z-sidebar-desktop overflow-hidden rounded-[2rem]",
+        "bg-background/20 dark:bg-black/40 backdrop-blur-3xl border border-white/5",
+        "shadow-[0_8px_32px_-8px_rgba(0,0,0,0.5)]",
         className
       )}
       animate={{
         width: open ? "300px" : "80px",
       }}
       transition={{
-        duration: 0.3,
-        ease: [0.4, 0, 0.2, 1],
+        duration: 0.4,
+        ease: [0.22, 1, 0.36, 1],
       }}
       onMouseEnter={() => setOpen(true)}
       onMouseLeave={() => setOpen(false)}
     >
       {/* Logo - matching header height for border alignment */}
-      <div className="h-14 sm:h-16 flex items-center justify-center px-4 border-b border-border/20 relative z-header overflow-hidden">
+      <div className="h-14 sm:h-16 flex items-center justify-center px-4 border-b border-white/5 relative z-header overflow-hidden">
         {/* Full logo - visible when expanded */}
         <motion.div
           className="absolute flex items-center justify-center"
@@ -236,12 +237,12 @@ const DesktopSidebar = ({ children, className, logoLight, logoDark, logoLightSho
         >
           <img
             src={logoLightShort}
-            alt="The Quantum Club"
+            alt={t('animatedsidebar.theQuantumClub', 'The Quantum Club')}
             className="hidden dark:block h-24"
           />
           <img
             src={logoDarkShort}
-            alt="The Quantum Club"
+            alt={t('animatedsidebar.theQuantumClub', 'The Quantum Club')}
             className="dark:hidden block h-24"
           />
         </motion.div>
@@ -271,7 +272,7 @@ const DesktopSidebar = ({ children, className, logoLight, logoDark, logoLightSho
           <img
             src={logoDark}
             alt="QC"
-            className="dark:hidden block h-14"
+            className="dark:hidden block h-11"
           />
         </motion.div>
       </div>
@@ -304,6 +305,7 @@ interface MobileSidebarProps {
 
 const MobileSidebar = ({ children, logoLight, logoDark, footer }: MobileSidebarProps) => {
   const { open, setOpen, toggle, isAnimating } = useSidebar();
+  const { t } = useTranslation();
 
   return (
     <>
@@ -311,12 +313,12 @@ const MobileSidebar = ({ children, logoLight, logoDark, footer }: MobileSidebarP
       <div className="h-16 px-4 hidden items-center justify-between bg-card/30 backdrop-blur-[var(--blur-glass)] border-b border-border/20 fixed top-0 left-0 right-0 z-header">
         <img
           src={logoLight}
-          alt="The Quantum Club"
+          alt={t('animatedsidebar.theQuantumClub', 'The Quantum Club')}
           className="h-9 hidden dark:block"
         />
         <img
           src={logoDark}
-          alt="The Quantum Club"
+          alt={t('animatedsidebar.theQuantumClub', 'The Quantum Club')}
           className="h-9 dark:hidden block"
         />
         <Button
@@ -358,19 +360,19 @@ const MobileSidebar = ({ children, logoLight, logoDark, footer }: MobileSidebarP
               <div className="h-16 flex items-center justify-between px-4 border-b border-border/20">
                 <img
                   src={logoLight}
-                  alt="The Quantum Club"
+                  alt={t('animatedsidebar.theQuantumClub', 'The Quantum Club')}
                   className="h-9 hidden dark:block"
                 />
                 <img
                   src={logoDark}
-                  alt="The Quantum Club"
+                  alt={t('animatedsidebar.theQuantumClub', 'The Quantum Club')}
                   className="h-9 dark:hidden block"
                 />
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={() => setOpen(false)}
-                  aria-label="Close sidebar"
+                  aria-label={t('animatedsidebar.closeSidebar', 'Close sidebar')}
                   disabled={isAnimating}
                 >
                   <X className="h-5 w-5" aria-hidden="true" />
@@ -414,6 +416,7 @@ interface SidebarLinkProps {
 export const SidebarLink = ({ item, className }: SidebarLinkProps) => {
   const { open } = useSidebar();
   const location = useLocation();
+  const { t } = useTranslation();
   const isActive = location.pathname === item.path;
   const haptics = useHaptics();
 
@@ -424,7 +427,7 @@ export const SidebarLink = ({ item, className }: SidebarLinkProps) => {
           haptics.impact('light');
           import('sonner').then(({ toast }) => {
             toast(item.lockedMessage || 'Coming soon', {
-              description: 'This feature is currently under development.',
+              description: t('animatedsidebar.thisFeatureIsCurrentlyUnderDevelopment', 'This feature is currently under development.'),
               icon: '🔒',
             });
           });
@@ -442,7 +445,7 @@ export const SidebarLink = ({ item, className }: SidebarLinkProps) => {
         <item.icon className="h-5 w-5 flex-shrink-0 text-muted-foreground" />
         {open && (
           <span className="flex-1 text-left whitespace-nowrap overflow-hidden text-ellipsis text-label-md font-medium text-muted-foreground">
-            {item.name}
+            {t(item.name, item.name.split('.').pop() || item.name)}
           </span>
         )}
         {open && <Lock className="h-3 w-3 flex-shrink-0 text-muted-foreground" />}
@@ -456,33 +459,51 @@ export const SidebarLink = ({ item, className }: SidebarLinkProps) => {
       onMouseEnter={() => prefetchRoute(item.path)}
       onTouchStart={() => { haptics.impact('light'); prefetchRoute(item.path); }}
       className={cn(
-        "flex items-center rounded-xl",
+        "flex items-center rounded-xl relative group",
         open ? "gap-3 px-4" : "justify-center px-0",
         "min-h-[44px] h-[44px]",
-        "transition-all duration-300 ease-in-out",
-        "border border-transparent",
-        "hover:bg-muted/10 hover:scale-[1.02] hover:shadow-[var(--shadow-glass-sm)]",
-        isActive && "bg-muted/15 shadow-[var(--shadow-glass-sm)] border-border/20",
+        "transition-all duration-300 ease-out",
+        "hover:scale-[1.01]",
         className
       )}
     >
+      {/* Liquid Selection Pill */}
+      {isActive && (
+        <motion.div
+          layoutId="sidebar-active"
+          transition={{ type: "spring", stiffness: 350, damping: 30 }}
+          className="absolute inset-0 bg-primary/10 border border-primary/20 rounded-xl backdrop-blur-sm shadow-[inset_0_1px_rgba(255,255,255,0.05),0_0_15px_rgba(var(--primary-rgb),0.15)] z-0"
+        />
+      )}
+      
+      {/* Hover Background (Hidden if active) */}
+      {!isActive && (
+        <div className="absolute inset-0 rounded-xl bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-0" />
+      )}
+
       <item.icon
         className={cn(
-          "h-5 w-5 flex-shrink-0 transition-all duration-300 ease-in-out",
-          isActive ? "text-primary scale-110" : "text-muted-foreground",
+          "h-5 w-5 flex-shrink-0 transition-all duration-300 ease-in-out z-10 relative",
+          isActive ? "text-primary scale-110 drop-shadow-[0_0_8px_rgba(var(--primary-rgb),0.8)]" : "text-muted-foreground",
           "group-hover:scale-110"
         )}
       />
-      {open && (
-        <span
-          className={cn(
-            "whitespace-nowrap overflow-hidden text-ellipsis transition-colors duration-300",
-            isActive ? "text-label-md font-bold text-foreground" : "text-label-md font-medium text-muted-foreground"
-          )}
-        >
-          {item.name}
-        </span>
-      )}
+      <AnimatePresence>
+        {open && (
+          <motion.span
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -10 }}
+            transition={{ duration: 0.2 }}
+            className={cn(
+              "whitespace-nowrap overflow-hidden text-ellipsis transition-colors duration-300 z-10 relative",
+              isActive ? "text-label-md font-bold text-foreground drop-shadow-sm" : "text-label-md font-medium text-muted-foreground group-hover:text-foreground"
+            )}
+          >
+            {t(item.name, item.name.split('.').pop() || item.name)}
+          </motion.span>
+        )}
+      </AnimatePresence>
     </Link>
   );
 };
@@ -504,6 +525,7 @@ interface SidebarGroupProps {
 export const SidebarGroup = ({ group }: SidebarGroupProps) => {
   const { open } = useSidebar();
   const location = useLocation();
+  const { t } = useTranslation();
   const hasActiveItem = group.items.some(item => location.pathname === item.path);
   const { isOpen: groupOpen, toggle } = useNavigationState(group.title, hasActiveItem);
 
@@ -521,40 +543,46 @@ export const SidebarGroup = ({ group }: SidebarGroupProps) => {
       <button
         onClick={toggle}
         className={cn(
-          "flex items-center gap-3 w-full px-4 rounded-lg",
+          "flex items-center gap-3 w-full px-4 rounded-xl",
           "min-h-[40px] h-[40px]",
           "transition-all duration-300 ease-out",
-          "hover:bg-muted/50 hover:scale-[1.01]",
+          "hover:bg-white/5 hover:scale-[1.01]",
           "mb-2",
-          // Enhanced visual feedback for 4 states
-          isExpanded && isActiveGroup && "bg-muted/20 text-primary shadow-sm",
-          isExpanded && !isActiveGroup && "text-foreground",
-          !isExpanded && isActiveGroup && "text-primary/80",
-          !isExpanded && !isActiveGroup && "text-muted-foreground"
+          // Refined luxury aesthetic for group headers
+          isExpanded && isActiveGroup && "text-primary bg-primary/5 border border-primary/10 shadow-[0_4px_14px_0_rgba(var(--primary-rgb),0.05)]",
+          isExpanded && !isActiveGroup && "text-foreground bg-white/[0.02] border border-white/5",
+          !isExpanded && isActiveGroup && "text-primary/80 border border-transparent hover:bg-white/5",
+          !isExpanded && !isActiveGroup && "text-muted-foreground border border-transparent hover:bg-white/5"
         )}
       >
         <group.icon
           className={cn(
             "h-4 w-4 flex-shrink-0 transition-all duration-300",
-            isActiveGroup && "text-primary scale-110"
+            isActiveGroup && "text-primary scale-110 drop-shadow-[0_0_6px_rgba(var(--primary-rgb),0.6)]"
           )}
         />
-        {open && (
-          <span
-            className={cn(
-              "flex-1 text-left text-label-xs uppercase tracking-wide transition-all duration-300 whitespace-nowrap overflow-hidden text-ellipsis",
-              isExpanded && isActiveGroup ? "font-bold" : "font-semibold"
-            )}
-          >
-            {group.title}
-          </span>
-        )}
+        <AnimatePresence>
+          {open && (
+            <motion.span
+              initial={{ opacity: 0, width: 0 }}
+              animate={{ opacity: 1, width: "auto" }}
+              exit={{ opacity: 0, width: 0 }}
+              className={cn(
+                "flex-1 text-left text-[10px] uppercase tracking-widest transition-all duration-300 whitespace-nowrap overflow-hidden text-ellipsis",
+                isExpanded && isActiveGroup ? "font-bold" : "font-semibold"
+              )}
+            >
+              {t(group.title, group.title.split('.').pop() || group.title)}
+            </motion.span>
+          )}
+        </AnimatePresence>
         {open && (
           <ChevronDown
             className={cn(
-              "h-3 w-3 flex-shrink-0 transition-all duration-300",
-              groupOpen ? "rotate-0" : "-rotate-90",
-              isActiveGroup && "text-primary"
+              "h-3 w-3 flex-shrink-0 transition-spring duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]",
+              groupOpen ? "rotate-0 text-foreground/50" : "-rotate-90 text-muted-foreground/30",
+              isActiveGroup && groupOpen && "text-primary/60",
+              isActiveGroup && !groupOpen && "text-primary/40"
             )}
           />
         )}
@@ -568,15 +596,15 @@ export const SidebarGroup = ({ group }: SidebarGroupProps) => {
               height: "auto",
               opacity: 1,
               transition: {
-                height: { duration: 0.3, ease: [0.4, 0, 0.2, 1] },
-                opacity: { duration: 0.25, ease: "easeOut", delay: 0.05 }
+                height: { duration: 0.4, ease: [0.22, 1, 0.36, 1] },
+                opacity: { duration: 0.25, ease: "easeOut", delay: 0.1 }
               }
             }}
             exit={{
               height: 0,
               opacity: 0,
               transition: {
-                height: { duration: 0.25, ease: [0.4, 0, 0.2, 1] },
+                height: { duration: 0.3, ease: [0.22, 1, 0.36, 1] },
                 opacity: { duration: 0.2, ease: "easeIn" }
               }
             }}
@@ -621,6 +649,7 @@ interface SidebarFooterProps {
 
 export const SidebarFooter = ({ userName, userInitial, userAvatarUrl, onSignOut, profilePath }: SidebarFooterProps) => {
   const { open } = useSidebar();
+  const { t } = useTranslation();
   const [appearanceOpen, setAppearanceOpen] = useState(false);
 
   return (
@@ -631,11 +660,11 @@ export const SidebarFooter = ({ userName, userInitial, userAvatarUrl, onSignOut,
             <Button
               variant="ghost"
               className={cn(
-                "w-full flex items-center rounded-xl",
+                "w-full flex items-center rounded-xl border border-transparent",
                 open ? "gap-3 px-4" : "justify-center px-0",
                 "min-h-[44px] h-[44px]",
-                "transition-all duration-300 ease-in-out",
-                "hover:bg-muted/10"
+                "transition-all duration-300 ease-out",
+                "hover:bg-white/5 hover:border-white/10 hover:scale-[1.01]"
               )}
             >
               <Avatar className="h-9 w-9 flex-shrink-0">
@@ -647,7 +676,7 @@ export const SidebarFooter = ({ userName, userInitial, userAvatarUrl, onSignOut,
               {open && (
                 <div className="flex-1 text-left overflow-hidden min-w-0">
                   <p className="text-label-md font-medium whitespace-nowrap overflow-hidden text-ellipsis">{userName}</p>
-                  <p className="text-label-xs text-muted-foreground whitespace-nowrap overflow-hidden text-ellipsis">View profile</p>
+                  <p className="text-label-xs text-muted-foreground whitespace-nowrap overflow-hidden text-ellipsis">{t('animatedsidebar.viewProfile', 'View profile')}</p>
                 </div>
               )}
             </Button>
@@ -659,12 +688,12 @@ export const SidebarFooter = ({ userName, userInitial, userAvatarUrl, onSignOut,
           >
             <DropdownMenuItem asChild>
               <Link to={profilePath} className="cursor-pointer">
-                <span>My Profile</span>
+                <span>{t('animatedsidebar.myProfile', 'My Profile')}</span>
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
               <Link to="/settings" className="cursor-pointer">
-                <span>Settings</span>
+                <span>{t('animatedsidebar.settings', 'Settings')}</span>
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem
@@ -672,13 +701,13 @@ export const SidebarFooter = ({ userName, userInitial, userAvatarUrl, onSignOut,
               className="cursor-pointer"
             >
               <Palette className="mr-2 h-4 w-4" />
-              <span>Appearance</span>
+              <span>{t('animatedsidebar.appearance', 'Appearance')}</span>
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={onSignOut}
               className="cursor-pointer text-destructive"
             >
-              <span>Sign out</span>
+              <span>{t('animatedsidebar.signOut', 'Sign out')}</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

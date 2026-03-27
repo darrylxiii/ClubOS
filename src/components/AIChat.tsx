@@ -7,6 +7,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
 import { notify } from "@/lib/notify";
 import { Send, Bot, User } from "lucide-react";
+import { useTranslation } from 'react-i18next';
 
 interface Message {
   role: "user" | "assistant";
@@ -14,6 +15,7 @@ interface Message {
 }
 
 export const AIChat = () => {
+  const { t } = useTranslation('common');
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -42,7 +44,7 @@ export const AIChat = () => {
       if (error) throw error;
 
       if (data.error) {
-        notify.error("Configuration Required", { description: data.error });
+        notify.error(t('aiChat.configurationRequired', 'Configuration Required'), { description: data.error });
         setMessages((prev) => prev.slice(0, -1));
         return;
       }
@@ -55,9 +57,9 @@ export const AIChat = () => {
     } catch (error: unknown) {
       console.error("Error:", error);
       if (error instanceof DOMException && error.name === 'AbortError') {
-        notify.error("Timeout", { description: "AI request timed out after 30s" });
+        notify.error(t('aiChat.timeout', 'Timeout'), { description: t('aiChat.aiRequestTimedOut', 'AI request timed out after 30s') });
       } else {
-        notify.error("Failed to get response from AI");
+        notify.error(t('aiChat.failedToGetResponse', 'Failed to get response from AI'));
       }
       setMessages((prev) => prev.slice(0, -1));
     } finally {
@@ -70,16 +72,16 @@ export const AIChat = () => {
       <div className="p-4 border-b border-border/50">
         <h2 className="text-xl font-semibold flex items-center gap-2">
           <Bot className="w-5 h-5 text-primary" />
-          AI Assistant
+          {t('aiChat.aiAssistant', 'AI Assistant')}
         </h2>
-        <p className="text-sm text-muted-foreground">Powered by your Ollama server</p>
+        <p className="text-sm text-muted-foreground">{t('aiChat.poweredByOllama', 'Powered by your Ollama server')}</p>
       </div>
 
       <ScrollArea className="flex-1 p-4">
         <div className="space-y-4">
           {messages.length === 0 && (
             <div className="text-center text-muted-foreground py-8">
-              Start a conversation with the AI assistant
+              {t('aiChat.startConversation', 'Start a conversation with the AI assistant')}
             </div>
           )}
           {messages.map((message, index) => (
@@ -114,7 +116,7 @@ export const AIChat = () => {
                 <Bot className="w-4 h-4 text-primary animate-pulse" />
               </div>
               <div className="rounded-lg px-4 py-2 bg-muted flex items-center">
-                <InlineLoader text="Thinking..." />
+                <InlineLoader text={t('aiChat.thinking', 'Thinking...')} />
               </div>
             </div>
           )}
@@ -132,7 +134,7 @@ export const AIChat = () => {
           <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Type your message..."
+            placeholder={t('aiChat.typeYourMessage', 'Type your message...')}
             disabled={isLoading}
             className="flex-1"
           />

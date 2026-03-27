@@ -53,6 +53,7 @@ import {
   QuickFilterType,
   JobStatusFilter,
 } from "./jobs";
+import { useTranslation } from 'react-i18next';
 
 interface PartnerJobsHomeProps {
   companyId: string | null;
@@ -96,6 +97,7 @@ interface CompanyMetrics {
 }
 
 export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
+  const { t } = useTranslation('partner');
   const navigate = useNavigate();
   const { currentRole: role } = useRole();
   const [jobs, setJobs] = useState<JobWithMetrics[]>([]);
@@ -309,7 +311,7 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
       });
     } catch (error) {
       console.error('Error fetching jobs:', error);
-      toast.error("Failed to load jobs");
+      toast.error(t('partnerJobsHome.toast.failedToLoadJobs'));
     } finally {
       setLoading(false);
     }
@@ -485,7 +487,7 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
     try {
       const draftJobs = statusFilteredJobs.filter(j => selectedIds.has(j.id) && j.status === 'draft');
       if (draftJobs.length === 0) {
-        toast.info("No draft jobs selected to publish");
+        toast.info(t('partnerJobsHome.toast.noDraftJobsSelectedToPublish'));
         return;
       }
       
@@ -501,7 +503,7 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
       celebrateAction();
     } catch (error) {
       console.error('Error bulk publishing:', error);
-      toast.error("Failed to publish selected jobs");
+      toast.error(t('partnerJobsHome.toast.failedToPublishSelectedJobs'));
     } finally {
       setIsBulkProcessing(false);
     }
@@ -512,7 +514,7 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
     try {
       const publishedJobs = statusFilteredJobs.filter(j => selectedIds.has(j.id) && j.status === 'published');
       if (publishedJobs.length === 0) {
-        toast.info("No published jobs selected to close");
+        toast.info(t('partnerJobsHome.toast.noPublishedJobsSelectedToClose'));
         return;
       }
       
@@ -527,7 +529,7 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
       fetchJobsWithMetrics();
     } catch (error) {
       console.error('Error bulk closing:', error);
-      toast.error("Failed to close selected jobs");
+      toast.error(t('partnerJobsHome.toast.failedToCloseSelectedJobs'));
     } finally {
       setIsBulkProcessing(false);
     }
@@ -538,7 +540,7 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
     try {
       const archivableJobs = statusFilteredJobs.filter(j => selectedIds.has(j.id) && j.status !== 'archived');
       if (archivableJobs.length === 0) {
-        toast.info("No jobs selected to archive");
+        toast.info(t('partnerJobsHome.toast.noJobsSelectedToArchive'));
         return;
       }
       
@@ -553,7 +555,7 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
       fetchJobsWithMetrics();
     } catch (error) {
       console.error('Error bulk archiving:', error);
-      toast.error("Failed to archive selected jobs");
+      toast.error(t('partnerJobsHome.toast.failedToArchiveSelectedJobs'));
     } finally {
       setIsBulkProcessing(false);
     }
@@ -580,13 +582,13 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
       if (error) throw error;
 
       toast.success(`${jobTitle} is now live!`, {
-        description: "Candidates can now see and apply to this job"
+        description: t('partnerJobsHome.desc.candidatesCanNowSeeAndApplyToThisJob')
       });
       fetchJobsWithMetrics();
       celebrateAction();
     } catch (error) {
       console.error('Error publishing job:', error);
-      toast.error("Failed to publish job");
+      toast.error(t('partnerJobsHome.toast.failedToPublishJob'));
     }
   };
 
@@ -603,7 +605,7 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
       fetchJobsWithMetrics();
     } catch (error) {
       console.error('Error unpublishing job:', error);
-      toast.error("Failed to unpublish job");
+      toast.error(t('partnerJobsHome.toast.failedToUnpublishJob'));
     }
   };
 
@@ -620,7 +622,7 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
       fetchJobsWithMetrics();
     } catch (error) {
       console.error('Error closing job:', error);
-      toast.error("Failed to close job");
+      toast.error(t('partnerJobsHome.toast.failedToCloseJob'));
     }
   };
 
@@ -638,7 +640,7 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
       celebrateAction();
     } catch (error) {
       console.error('Error reopening job:', error);
-      toast.error("Failed to reopen job");
+      toast.error(t('partnerJobsHome.toast.failedToReopenJob'));
     }
   };
 
@@ -655,7 +657,7 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
       fetchJobsWithMetrics();
     } catch (error) {
       console.error('Error archiving job:', error);
-      toast.error("Failed to archive job");
+      toast.error(t('partnerJobsHome.toast.failedToArchiveJob'));
     }
   };
 
@@ -672,7 +674,7 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
       fetchJobsWithMetrics();
     } catch (error) {
       console.error('Error restoring job:', error);
-      toast.error("Failed to restore job");
+      toast.error(t('partnerJobsHome.toast.failedToRestoreJob'));
     }
   };
 
@@ -730,26 +732,26 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
               <DialogHeader>
                 <div className="flex items-center gap-3 mb-2">
                   <Sparkles className="w-6 h-6 text-primary" />
-                  <DialogTitle className="text-2xl">Welcome to Your Hiring HQ</DialogTitle>
+                  <DialogTitle className="text-2xl">{t('partner.partnerjobshome.welcomeToYourHiringHq', 'Welcome to Your Hiring HQ')}</DialogTitle>
                 </div>
                 <DialogDescription className="text-base space-y-4 pt-4">
-                  <p>Your exclusive command center for world-class hiring. Here's what you can do:</p>
+                  <p>{t('partner.partnerjobshome.yourExclusiveCommandCenterForWorldclass', 'Your exclusive command center for world-class hiring. Here\'s what you can do:')}</p>
                   <ul className="space-y-3">
                     <li className="flex items-start gap-3">
                       <CheckCircle className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
-                      <span><strong>Track live metrics</strong> across all your searches</span>
+                      <span><strong>{t('partner.partnerjobshome.trackLiveMetrics', 'Track live metrics')}</strong>{t('partner.partnerjobshome.acrossAllYourSearches', 'across all your searches')}</span>
                     </li>
                     <li className="flex items-start gap-3">
                       <CheckCircle className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
-                      <span><strong>Activate Club Sync</strong> for vetted, premium candidates 3x faster</span>
+                      <span><strong>{t('partner.partnerjobshome.activateClubSync', 'Activate Club Sync')}</strong>for vetted, premium candidates 3x faster</span>
                     </li>
                     <li className="flex items-start gap-3">
                       <CheckCircle className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
-                      <span><strong>Manage your pipeline</strong> with advanced analytics and insights</span>
+                      <span><strong>{t('partner.partnerjobshome.manageYourPipeline', 'Manage your pipeline')}</strong>{t('partner.partnerjobshome.withAdvancedAnalyticsAndInsights', 'with advanced analytics and insights')}</span>
                     </li>
                     <li className="flex items-start gap-3">
                       <CheckCircle className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
-                      <span><strong>Get white-glove support</strong> from the Quantum Club team</span>
+                      <span><strong>{t('partner.partnerjobshome.getWhitegloveSupport', 'Get white-glove support')}</strong>{t('partner.partnerjobshome.fromTheQuantumClubTeam', 'from the Quantum Club team')}</span>
                     </li>
                   </ul>
                 </DialogDescription>
@@ -778,30 +780,30 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
               <DialogHeader>
                 <div className="flex items-center gap-3 mb-2">
                   <Zap className="w-6 h-6 text-primary" />
-                  <DialogTitle className="text-xl">What's Club Sync?</DialogTitle>
+                  <DialogTitle className="text-xl">{t('partner.partnerjobshome.whatsClubSync', 'What\'s Club Sync?')}</DialogTitle>
                 </div>
                 <DialogDescription className="text-base space-y-4 pt-4">
-                  <p className="font-semibold text-foreground">Your premium hiring accelerator.</p>
+                  <p className="font-semibold text-foreground">{t('partnerJobsHome.yourPremiumHiringAccelerator')}</p>
                   <div className="space-y-3">
                     <div className="flex items-start gap-3 p-3 rounded-lg bg-background/20 border border-border/20">
                       <TrendingUp className="w-5 h-5 text-primary mt-0.5" />
                       <div>
                         <p className="font-semibold text-sm">3x Faster Hiring</p>
-                        <p className="text-sm text-muted-foreground">Get vetted candidates in days, not weeks</p>
+                        <p className="text-sm text-muted-foreground">{t('partnerJobsHome.getVettedCandidatesInDaysNotWeeks')}</p>
                       </div>
                     </div>
                     <div className="flex items-start gap-3 p-3 rounded-lg bg-background/20 border border-border/20">
                       <Award className="w-5 h-5 text-primary mt-0.5" />
                       <div>
-                        <p className="font-semibold text-sm">Pre-Vetted Talent</p>
-                        <p className="text-sm text-muted-foreground">Every candidate is Club-verified for quality</p>
+                        <p className="font-semibold text-sm">{t('partnerJobsHome.prevettedTalent')}</p>
+                        <p className="text-sm text-muted-foreground">{t('partnerJobsHome.everyCandidateIsClubverifiedForQuality')}</p>
                       </div>
                     </div>
                     <div className="flex items-start gap-3 p-3 rounded-lg bg-background/20 border border-border/20">
                       <HeadphonesIcon className="w-5 h-5 text-primary mt-0.5" />
                       <div>
-                        <p className="font-semibold text-sm">Dedicated Support</p>
-                        <p className="text-sm text-muted-foreground">Personal recruiter assistance included</p>
+                        <p className="font-semibold text-sm">{t('partnerJobsHome.dedicatedSupport')}</p>
+                        <p className="text-sm text-muted-foreground">{t('partnerJobsHome.personalRecruiterAssistanceIncluded')}</p>
                       </div>
                     </div>
                   </div>
@@ -868,7 +870,7 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
           {/* Live indicator */}
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
             <Radio className="w-3 h-3 text-success animate-pulse" />
-            <span>Live updates enabled</span>
+            <span>{t('partnerJobsHome.liveUpdatesEnabled')}</span>
             <span className="text-muted-foreground/50">•</span>
             <span>{statusFilteredJobs.length} jobs</span>
           </div>
@@ -879,16 +881,13 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
               <div className="p-4 rounded-full bg-card/30 mb-4">
                 <Sparkles className="w-8 h-8 text-muted-foreground" />
               </div>
-              <h3 className="text-lg font-semibold mb-2">No jobs found</h3>
+              <h3 className="text-lg font-semibold mb-2">{t('partnerJobsHome.noJobsFound')}</h3>
               <p className="text-sm text-muted-foreground mb-4">
                 {hasActiveFilters 
-                  ? "Try adjusting your filters to see more results"
-                  : "Create your first job to get started"}
+                  ? t('partner.partnerjobshome.tryAdjustingYourFiltersToSee', 'Try adjusting your filters to see more results') : t('partner.partnerjobshome.createYourFirstJobToGet', 'Create your first job to get started')}
               </p>
               {hasActiveFilters ? (
-                <Button variant="outline" onClick={resetFilters}>
-                  Clear Filters
-                </Button>
+                <Button variant="outline" onClick={resetFilters}>{t('partner.partnerjobshome.clearFilters', 'Clear Filters')}</Button>
               ) : (
                 <Button onClick={() => setCreateDialogOpen(true)}>
                   <Plus className="w-4 h-4 mr-2" />

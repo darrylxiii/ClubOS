@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { motion } from '@/lib/motion';
 import { CheckCircle2, XCircle, RefreshCw, Wifi, WifiOff } from 'lucide-react';
@@ -16,6 +17,7 @@ export function InstantlyConnectionStatus({
   syncing, 
   onSync 
 }: InstantlyConnectionStatusProps) {
+  const { t } = useTranslation('common');
   const [checking, setChecking] = useState(false);
   const [connected, setConnected] = useState<boolean | null>(null);
 
@@ -28,10 +30,10 @@ export function InstantlyConnectionStatus({
       
       if (error) throw error;
       setConnected(true);
-      toast.success('Connected to Instantly API');
+      toast.success(t("connected_to_instantly_api", "Connected to Instantly API"));
     } catch (error) {
       setConnected(false);
-      toast.error('Failed to connect to Instantly API');
+      toast.error(t("failed_to_connect_to", "Failed to connect to Instantly API"));
     } finally {
       setChecking(false);
     }
@@ -60,19 +62,19 @@ export function InstantlyConnectionStatus({
         {connected === true && (
           <div className="flex items-center gap-2 text-green-500">
             <Wifi className="h-5 w-5" />
-            <span className="text-sm font-medium">Connected</span>
+            <span className="text-sm font-medium">{t("connected", "Connected")}</span>
           </div>
         )}
         {connected === false && (
           <div className="flex items-center gap-2 text-red-500">
             <WifiOff className="h-5 w-5" />
-            <span className="text-sm font-medium">Disconnected</span>
+            <span className="text-sm font-medium">{t("disconnected", "Disconnected")}</span>
           </div>
         )}
         {connected === null && (
           <div className="flex items-center gap-2 text-muted-foreground">
             <Wifi className="h-5 w-5" />
-            <span className="text-sm font-medium">Instantly API</span>
+            <span className="text-sm font-medium">{t("instantly_api", "Instantly API")}</span>
           </div>
         )}
       </div>
@@ -80,7 +82,7 @@ export function InstantlyConnectionStatus({
       <div className="h-6 w-px bg-border/50" />
 
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <span>Last sync:</span>
+        <span>{t("last_sync", "Last sync:")}</span>
         <span className="font-medium text-foreground">{formatLastSync(lastSyncedAt)}</span>
       </div>
 
@@ -96,7 +98,7 @@ export function InstantlyConnectionStatus({
           ) : (
             <CheckCircle2 className="h-4 w-4" />
           )}
-          <span className="ml-2">Test</span>
+          <span className="ml-2">{t("test", "Test")}</span>
         </Button>
 
         <Button
@@ -110,7 +112,7 @@ export function InstantlyConnectionStatus({
           ) : (
             <RefreshCw className="h-4 w-4" />
           )}
-          <span className="ml-2">Sync Now</span>
+          <span className="ml-2">{t("sync_now", "Sync Now")}</span>
         </Button>
       </div>
     </motion.div>

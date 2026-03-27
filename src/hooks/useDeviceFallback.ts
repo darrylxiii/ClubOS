@@ -41,7 +41,8 @@ export function useDeviceFallback({
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
       return saved ? JSON.parse(saved) : null;
-    } catch {
+    } catch (error) {
+      console.error('[useDeviceFallback] Failed to load device preferences:', error);
       return null;
     }
   }, []);

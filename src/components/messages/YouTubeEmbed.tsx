@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Play, Maximize2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -12,6 +13,7 @@ interface YouTubeEmbedProps {
 }
 
 export function YouTubeEmbed({ videoId, isOwnMessage, title }: YouTubeEmbedProps) {
+  const { t } = useTranslation('common');
   const [isPlaying, setIsPlaying] = useState(false);
   const { openFloatingPlayer } = useVideoPlayer();
   const thumbnailUrl = getYouTubeThumbnail(videoId, 'hq');
@@ -30,7 +32,7 @@ export function YouTubeEmbed({ videoId, isOwnMessage, title }: YouTubeEmbedProps
           width="100%"
           height="250"
           src={`${embedUrl}?autoplay=1`}
-          title="YouTube video player"
+          title={t("youtube_video_player", "YouTube video player")}
           frameBorder="0"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowFullScreen
@@ -59,7 +61,7 @@ export function YouTubeEmbed({ videoId, isOwnMessage, title }: YouTubeEmbedProps
     >
       <img
         src={thumbnailUrl}
-        alt="YouTube video thumbnail"
+        alt={t("youtube_video_thumbnail", "YouTube video thumbnail")}
         className="w-full aspect-video object-cover"
       />
       <div className={cn(

@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { useState } from "react";
+import { useTranslation } from 'react-i18next';
 
 interface TaskTemplate {
   id: string;
@@ -257,6 +258,7 @@ const templates: TaskTemplate[] = [
 ];
 
 export const TaskTemplates = () => {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [loading, setLoading] = useState<string | null>(null);
 

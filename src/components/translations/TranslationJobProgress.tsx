@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Progress } from '@/components/ui/progress';
@@ -26,6 +27,7 @@ interface TranslationJobProgressProps {
 }
 
 export function TranslationJobProgress({ onJobComplete, onCleanup }: TranslationJobProgressProps) {
+  const { t } = useTranslation('common');
   const [jobs, setJobs] = useState<TranslationJob[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -105,7 +107,7 @@ export function TranslationJobProgress({ onJobComplete, onCleanup }: Translation
       {recentJobs.length > 0 && runningJobs.length === 0 && (
         <div className="rounded-lg border bg-card p-4">
           <div className="flex items-center justify-between mb-3">
-            <h4 className="text-sm font-medium">Recent Jobs</h4>
+            <h4 className="text-sm font-medium">{t("recent_jobs", "Recent Jobs")}</h4>
             {onCleanup && (
               <Button variant="ghost" size="sm" onClick={onCleanup} className="h-7 text-xs">
                 <Trash2 className="h-3 w-3 mr-1" /> Clear History

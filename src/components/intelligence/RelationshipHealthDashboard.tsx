@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { useRelationshipHealth, RiskFilter, RelationshipHealthItem } from '@/hooks/useRelationshipHealth';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -59,6 +60,7 @@ const entityIcons = {
 };
 
 export function RelationshipHealthDashboard() {
+  const { t } = useTranslation('common');
   const [entityFilter, setEntityFilter] = useState<string>('all');
   const [riskFilter, setRiskFilter] = useState<RiskFilter>('all');
 
@@ -121,7 +123,7 @@ export function RelationshipHealthDashboard() {
 
               <div className="mt-3">
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs text-muted-foreground">Health Score</span>
+                  <span className="text-xs text-muted-foreground">{t("health_score", "Health Score")}</span>
                   <span className="text-xs font-medium">{relationship.health_score ?? 0}%</span>
                 </div>
                 <Progress value={relationship.health_score ?? 0} className="h-1.5" />
@@ -147,7 +149,7 @@ export function RelationshipHealthDashboard() {
           <CardContent className="p-4 text-center">
             <Heart className="h-6 w-6 mx-auto text-primary mb-2" />
             <p className="text-2xl font-bold">{stats.total}</p>
-            <p className="text-xs text-muted-foreground">Total Relationships</p>
+            <p className="text-xs text-muted-foreground">{t("total_relationships", "Total Relationships")}</p>
           </CardContent>
         </Card>
         <Card>
@@ -156,21 +158,21 @@ export function RelationshipHealthDashboard() {
               <TrendingUp className="h-4 w-4 text-green-500" />
             </div>
             <p className="text-2xl font-bold text-green-600">{stats.healthy}</p>
-            <p className="text-xs text-muted-foreground">Healthy</p>
+            <p className="text-xs text-muted-foreground">{t("healthy", "Healthy")}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
             <AlertTriangle className="h-6 w-6 mx-auto text-orange-500 mb-2" />
             <p className="text-2xl font-bold text-orange-600">{stats.atRisk}</p>
-            <p className="text-xs text-muted-foreground">At Risk</p>
+            <p className="text-xs text-muted-foreground">{t("at_risk", "At Risk")}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
             <TrendingDown className="h-6 w-6 mx-auto text-red-500 mb-2" />
             <p className="text-2xl font-bold text-red-600">{decliningCount}</p>
-            <p className="text-xs text-muted-foreground">Declining</p>
+            <p className="text-xs text-muted-foreground">{t("declining", "Declining")}</p>
           </CardContent>
         </Card>
         <Card>
@@ -179,7 +181,7 @@ export function RelationshipHealthDashboard() {
               <span className="text-xs font-bold text-primary">{avgHealthScore}</span>
             </div>
             <p className="text-2xl font-bold">{avgHealthScore}%</p>
-            <p className="text-xs text-muted-foreground">Avg Health</p>
+            <p className="text-xs text-muted-foreground">{t("avg_health", "Avg Health")}</p>
           </CardContent>
         </Card>
       </div>
@@ -211,7 +213,7 @@ export function RelationshipHealthDashboard() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>All Relationships</CardTitle>
+              <CardTitle>{t("all_relationships", "All Relationships")}</CardTitle>
               <CardDescription>
                 Track and manage relationship health across all entities
               </CardDescription>
@@ -219,28 +221,28 @@ export function RelationshipHealthDashboard() {
             <div className="flex items-center gap-2">
               <Select value={entityFilter} onValueChange={setEntityFilter}>
                 <SelectTrigger className="w-[140px]">
-                  <SelectValue placeholder="Entity Type" />
+                  <SelectValue placeholder={t("entity_type", "Entity Type")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Types</SelectItem>
-                  <SelectItem value="candidate">Candidates</SelectItem>
-                  <SelectItem value="company">Companies</SelectItem>
-                  <SelectItem value="prospect">Prospects</SelectItem>
-                  <SelectItem value="internal">Internal</SelectItem>
-                  <SelectItem value="partner">Partners</SelectItem>
-                  <SelectItem value="stakeholder">Stakeholders</SelectItem>
+                  <SelectItem value="all">{t("all_types", "All Types")}</SelectItem>
+                  <SelectItem value="candidate">{t("candidates", "Candidates")}</SelectItem>
+                  <SelectItem value="company">{t("companies", "Companies")}</SelectItem>
+                  <SelectItem value="prospect">{t("prospects", "Prospects")}</SelectItem>
+                  <SelectItem value="internal">{t("internal", "Internal")}</SelectItem>
+                  <SelectItem value="partner">{t("partners", "Partners")}</SelectItem>
+                  <SelectItem value="stakeholder">{t("stakeholders", "Stakeholders")}</SelectItem>
                 </SelectContent>
               </Select>
               <Select value={riskFilter} onValueChange={(v) => setRiskFilter(v as RiskFilter)}>
                 <SelectTrigger className="w-[120px]">
-                  <SelectValue placeholder="Risk Level" />
+                  <SelectValue placeholder={t("risk_level", "Risk Level")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Levels</SelectItem>
-                  <SelectItem value="critical">Critical</SelectItem>
-                  <SelectItem value="high">High</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="low">Low</SelectItem>
+                  <SelectItem value="all">{t("all_levels", "All Levels")}</SelectItem>
+                  <SelectItem value="critical">{t("critical", "Critical")}</SelectItem>
+                  <SelectItem value="high">{t("high", "High")}</SelectItem>
+                  <SelectItem value="medium">{t("medium", "Medium")}</SelectItem>
+                  <SelectItem value="low">{t("low", "Low")}</SelectItem>
                 </SelectContent>
               </Select>
               <Button variant="outline" size="icon" onClick={() => refetch()}>

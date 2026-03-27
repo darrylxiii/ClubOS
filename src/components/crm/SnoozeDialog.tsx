@@ -5,6 +5,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Clock, CalendarIcon, Sun, Calendar as CalendarWeek } from 'lucide-react';
 import { addDays, addHours, startOfTomorrow, nextMonday } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 
 interface SnoozeDialogProps {
   open: boolean;
@@ -19,6 +20,7 @@ const quickOptions = [
 ];
 
 export function SnoozeDialog({ open, onClose, onSnooze }: SnoozeDialogProps) {
+  const { t } = useTranslation('common');
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [showCalendar, setShowCalendar] = useState(false);
 

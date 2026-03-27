@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -6,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Timer, TrendingDown, TrendingUp } from 'lucide-react';
 
 export function PlacementVelocity() {
+  const { t } = useTranslation('common');
   const { data, isLoading } = useQuery({
     queryKey: ['placement-velocity'],
     queryFn: async () => {
@@ -94,27 +96,27 @@ export function PlacementVelocity() {
           <Timer className="h-5 w-5" />
           Placement Velocity
         </CardTitle>
-        <CardDescription>Average days from job opening to hire completion</CardDescription>
+        <CardDescription>{t("average_days_from_job", "Average days from job opening to hire completion")}</CardDescription>
       </CardHeader>
       <CardContent>
         {isLoading ? (
           <div className="space-y-3">{[...Array(4)].map((_, i) => <Skeleton key={i} className="h-8 w-full" />)}</div>
         ) : !data ? (
-          <p className="text-sm text-muted-foreground">No placement data available</p>
+          <p className="text-sm text-muted-foreground">{t("no_placement_data_available", "No placement data available")}</p>
         ) : (
           <div className="space-y-4">
             {/* Key metrics */}
             <div className="grid grid-cols-3 gap-3">
               <div className="p-3 rounded-lg bg-muted/50 text-center">
-                <p className="text-xs text-muted-foreground">Average</p>
+                <p className="text-xs text-muted-foreground">{t("average", "Average")}</p>
                 <p className="text-2xl font-bold">{data.avgDays}d</p>
               </div>
               <div className="p-3 rounded-lg bg-muted/50 text-center">
-                <p className="text-xs text-muted-foreground">Median</p>
+                <p className="text-xs text-muted-foreground">{t("median", "Median")}</p>
                 <p className="text-2xl font-bold">{data.medianDays}d</p>
               </div>
               <div className="p-3 rounded-lg bg-muted/50 text-center">
-                <p className="text-xs text-muted-foreground">Benchmark</p>
+                <p className="text-xs text-muted-foreground">{t("benchmark", "Benchmark")}</p>
                 <p className="text-2xl font-bold text-muted-foreground">{data.benchmark}d</p>
                 <Badge variant={data.avgDays <= data.benchmark ? 'default' : 'destructive'} className="text-xs mt-1">
                   {data.avgDays <= data.benchmark ? 'Above' : 'Below'} Target

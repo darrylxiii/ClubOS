@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -28,6 +29,7 @@ interface InterviewerBackchannelProps {
 }
 
 export function InterviewerBackchannel({ meetingId, currentUserId }: InterviewerBackchannelProps) {
+  const { t } = useTranslation('common');
   const [messages, setMessages] = useState<BackchannelMessage[]>([]);
   const [message, setMessage] = useState('');
   const [sending, setSending] = useState(false);
@@ -130,8 +132,8 @@ export function InterviewerBackchannel({ meetingId, currentUserId }: Interviewer
       {/* Header */}
       <div className="flex items-center gap-2 px-4 py-3 border-b border-amber-500/20 bg-amber-500/5">
         <Lock className="w-4 h-4 text-amber-500" />
-        <h3 className="text-sm font-semibold text-foreground">Interviewer Notes</h3>
-        <span className="text-xs text-muted-foreground">(Private)</span>
+        <h3 className="text-sm font-semibold text-foreground">{t("interviewer_notes", "Interviewer Notes")}</h3>
+        <span className="text-xs text-muted-foreground">{t("private", "(Private)")}</span>
       </div>
 
       {/* Tabbed Content: Notes + QUIN Suggestions */}
@@ -154,8 +156,8 @@ export function InterviewerBackchannel({ meetingId, currentUserId }: Interviewer
               {messages.length === 0 ? (
                 <div className="text-center text-sm text-muted-foreground py-8">
                   <Lock className="w-8 h-8 mx-auto mb-2 opacity-30" />
-                  <p>Private coordination space for interviewers</p>
-                  <p className="text-xs mt-1">Share notes and impressions here</p>
+                  <p>{t("private_coordination_space_for", "Private coordination space for interviewers")}</p>
+                  <p className="text-xs mt-1">{t("share_notes_and_impressions", "Share notes and impressions here")}</p>
                 </div>
               ) : (
                 messages.map((msg) => (
@@ -207,7 +209,7 @@ export function InterviewerBackchannel({ meetingId, currentUserId }: Interviewer
               <Textarea
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-                placeholder="Share notes with other interviewers..."
+                placeholder={t("share_notes_with_other", "Share notes with other interviewers...")}
                 className="min-h-[60px] resize-none bg-background/50"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && !e.shiftKey) {

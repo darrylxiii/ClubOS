@@ -3,8 +3,10 @@ import { MetricCardSkeleton } from "../shared/MetricCardSkeleton";
 import { AnimatedCard, CardVisual, CardBody, CardTitle, CardDescription } from "@/components/ui/animated-card";
 import { Visual3 } from "@/components/ui/visual-3";
 import { TrendingUp } from "lucide-react";
+import { useTranslation } from 'react-i18next';
 
 export const TotalApplicationsCard = () => {
+  const { t } = useTranslation('admin');
   const { metrics, isLoading } = useCompanyMetrics();
 
   if (isLoading || !metrics) {
@@ -22,7 +24,7 @@ export const TotalApplicationsCard = () => {
       <CardBody>
         <div className="flex items-start justify-between">
           <div className="space-y-1">
-            <CardDescription>Total Applications</CardDescription>
+            <CardDescription>{t('companies.totalApplicationsCard.totalApplications')}</CardDescription>
             <CardTitle>{metrics.total_applications.toLocaleString()}</CardTitle>
           </div>
           <div className="flex items-center gap-1 text-green-500 text-sm font-medium">

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -31,6 +32,7 @@ interface GlobalRecordingSearchProps {
 }
 
 export function GlobalRecordingSearch({ open, onOpenChange }: GlobalRecordingSearchProps) {
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);
@@ -148,7 +150,7 @@ export function GlobalRecordingSearch({ open, onOpenChange }: GlobalRecordingSea
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search transcripts, summaries, quotes..."
+              placeholder={t("search_transcripts_summaries_quotes", "Search transcripts, summaries, quotes...")}
               value={query}
               onChange={(e) => {
                 setQuery(e.target.value);
@@ -213,20 +215,20 @@ export function GlobalRecordingSearch({ open, onOpenChange }: GlobalRecordingSea
               <div className="text-center py-12 text-muted-foreground">
                 <Search className="h-12 w-12 mx-auto mb-4 opacity-50" />
                 <p>No recordings found for "{query}"</p>
-                <p className="text-sm mt-1">Try different keywords or phrases</p>
+                <p className="text-sm mt-1">{t("try_different_keywords_or", "Try different keywords or phrases")}</p>
               </div>
             ) : (
               <div className="text-center py-12 text-muted-foreground">
                 <Search className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>Type at least 3 characters to search</p>
-                <p className="text-sm mt-1">Search through transcripts, summaries, and quotes</p>
+                <p>{t("type_at_least_3", "Type at least 3 characters to search")}</p>
+                <p className="text-sm mt-1">{t("search_through_transcripts_summaries", "Search through transcripts, summaries, and quotes")}</p>
               </div>
             )}
           </ScrollArea>
 
           {/* Quick tips */}
           <div className="text-xs text-muted-foreground border-t pt-3">
-            <p>Pro tips: Search for specific quotes, candidate names, or topics discussed</p>
+            <p>{t("pro_tips_search_for", "Pro tips: Search for specific quotes, candidate names, or topics discussed")}</p>
           </div>
         </div>
       </DialogContent>

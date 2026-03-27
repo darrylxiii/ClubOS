@@ -1,9 +1,4 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { createAuthenticatedHandler } from '../_shared/handler.ts';
 
 interface RequestBody {
   feedback_id: string;
@@ -12,41 +7,14 @@ interface RequestBody {
   resolved_by: string;
 }
 
-Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  try {
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
-      {
-        auth: {
-          autoRefreshToken: false,
-          persistSession: false,
-        },
-      }
-    );
-
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      throw new Error('Missing authorization header');
-    }
-
-    const { data: { user }, error: authError } = await supabase.auth.getUser(
-      authHeader.replace('Bearer ', '')
-    );
-
-    if (authError || !user) {
-      throw new Error('Unauthorized');
-    }
+Deno.serve(createAuthenticatedHandler(async (req, ctx) => {
+    const supabase = ctx.supabase;
 
     // Verify user is admin
     const { data: roles, error: roleError } = await supabase
       .from('user_roles')
       .select('role')
-      .eq('user_id', user.id)
+      .eq('user_id', ctx.user.id)
       .eq('role', 'admin')
       .single();
 
@@ -282,19 +250,8 @@ Feel free to reply if you have any questions!
         message_id: message.id
       }),
       {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' },
         status: 200,
       }
     );
-
-  } catch (error: any) {
-    console.error('Error in send-feedback-response:', error);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 400,
-      }
-    );
-  }
-});
+}));

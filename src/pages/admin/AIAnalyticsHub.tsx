@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { lazy, Suspense, useState } from 'react';
 import { Brain } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -8,6 +9,7 @@ const RAGAnalyticsDashboard = lazy(() => import('@/pages/admin/RAGAnalyticsDashb
 const EnhancedMLDashboard = lazy(() => import('@/pages/EnhancedMLDashboard'));
 
 export default function AIAnalyticsHub() {
+  const { t } = useTranslation('common');
   const [searchParams, setSearchParams] = useSearchParams();
   const currentTab = searchParams.get('tab') || 'rag';
 
@@ -19,14 +21,14 @@ export default function AIAnalyticsHub() {
     <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
       <div className="flex items-center gap-3">
         <Brain className="h-6 w-6 text-primary" />
-        <h1 className="text-2xl font-bold uppercase tracking-wider">AI Analytics</h1>
+        <h1 className="text-2xl font-bold uppercase tracking-wider">{t("ai_analytics", "AI Analytics")}</h1>
       </div>
 
       <Tabs value={currentTab} onValueChange={handleTabChange}>
         <div className="overflow-x-auto">
           <TabsList className="inline-flex w-auto min-w-full sm:grid sm:grid-cols-2 sm:w-full h-auto bg-card/50 backdrop-blur-sm rounded-lg p-1">
-            <TabsTrigger value="rag">RAG Analytics</TabsTrigger>
-            <TabsTrigger value="ml">ML Dashboard</TabsTrigger>
+            <TabsTrigger value="rag">{t("rag_analytics", "RAG Analytics")}</TabsTrigger>
+            <TabsTrigger value="ml">{t("ml_dashboard", "ML Dashboard")}</TabsTrigger>
           </TabsList>
         </div>
 

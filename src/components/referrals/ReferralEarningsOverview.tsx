@@ -3,6 +3,7 @@ import { Euro, TrendingUp, Briefcase, Target, Building2, Users } from "lucide-re
 import { formatCurrency } from "@/lib/revenueCalculations";
 import { ReferralStats } from "@/hooks/useReferralSystem";
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 
 interface ReferralEarningsOverviewProps {
   stats: ReferralStats;
@@ -10,36 +11,37 @@ interface ReferralEarningsOverviewProps {
 }
 
 export function ReferralEarningsOverview({ stats, loading }: ReferralEarningsOverviewProps) {
+  const { t } = useTranslation('common');
   const cards = [
     {
-      title: "Total Revenue Generated",
+      title: t('referrals.totalRevenueGenerated', 'Total Revenue Generated'),
       value: formatCurrency(stats.totalRevenueGenerated),
       icon: Euro,
-      description: "Placement fees from your referrals",
+      description: t('referrals.placementFeesDesc', 'Placement fees from your referrals'),
       color: "text-primary",
       bgColor: "bg-primary/10",
     },
     {
-      title: "Realized Rewards",
+      title: t('referrals.realizedRewards', 'Realized Rewards'),
       value: formatCurrency(stats.yourEarnings),
       icon: TrendingUp,
-      description: "Confirmed earnings from placed referrals",
+      description: t('referrals.confirmedEarningsDesc', 'Confirmed earnings from placed referrals'),
       color: "text-success",
       bgColor: "bg-success/10",
     },
     {
-      title: "Projected Rewards",
+      title: t('referrals.projectedRewards', 'Projected Rewards'),
       value: formatCurrency(stats.projectedEarnings),
       icon: Target,
-      description: "Estimated from active pipeline candidates",
+      description: t('referrals.estimatedFromPipelineDesc', 'Estimated from active pipeline candidates'),
       color: "text-warning",
       bgColor: "bg-warning/10",
     },
     {
-      title: "Active Pipelines",
+      title: t('referrals.activePipelines', 'Active Pipelines'),
       value: stats.activePipelines.toString(),
       icon: Briefcase,
-      description: `${stats.companiesCount} companies, ${stats.jobsCount} jobs`,
+      description: t('referrals.companiesAndJobs', '{{companies}} companies, {{jobs}} jobs', { companies: stats.companiesCount, jobs: stats.jobsCount }),
       color: "text-info",
       bgColor: "bg-info/10",
     },

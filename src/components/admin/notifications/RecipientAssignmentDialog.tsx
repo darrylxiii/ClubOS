@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import {
   Dialog,
@@ -40,6 +41,7 @@ export function RecipientAssignmentDialog({
   onOpenChange,
   notificationType,
 }: RecipientAssignmentDialogProps) {
+  const { t } = useTranslation('common');
   const { data: assignments, isLoading } = useNotificationAssignments(notificationType.id);
   const createMutation = useCreateAssignment();
   const updateMutation = useUpdateAssignment();
@@ -109,9 +111,9 @@ export function RecipientAssignmentDialog({
 
         <Tabs defaultValue="roles" className="mt-4">
           <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="roles">By Role</TabsTrigger>
-            <TabsTrigger value="users">Individual Users</TabsTrigger>
-            <TabsTrigger value="all">All Users</TabsTrigger>
+            <TabsTrigger value="roles">{t("by_role", "By Role")}</TabsTrigger>
+            <TabsTrigger value="users">{t("individual_users", "Individual Users")}</TabsTrigger>
+            <TabsTrigger value="all">{t("all_users", "All Users")}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="roles" className="space-y-4 mt-4">
@@ -166,7 +168,7 @@ export function RecipientAssignmentDialog({
             </div>
 
             {isLoading ? (
-              <p className="text-sm text-muted-foreground">Loading...</p>
+              <p className="text-sm text-muted-foreground">{t("loading", "Loading...")}</p>
             ) : userAssignments.length === 0 ? (
               <Card variant="static">
                 <CardContent className="p-8 text-center">
@@ -235,7 +237,7 @@ export function RecipientAssignmentDialog({
                     <Users className="h-4 w-4 text-muted-foreground" />
                   </div>
                   <div>
-                    <p className="font-medium">All Users</p>
+                    <p className="font-medium">{t("all_users", "All Users")}</p>
                     <p className="text-xs text-muted-foreground">
                       Send to everyone regardless of role
                     </p>

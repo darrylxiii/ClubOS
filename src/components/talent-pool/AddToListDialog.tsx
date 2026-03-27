@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -44,6 +45,7 @@ export function AddToListDialog({
   onOpenChange,
   onSuccess,
 }: AddToListDialogProps) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
@@ -108,7 +110,7 @@ export function AddToListDialog({
       onSuccess?.();
     },
     onError: (error) => {
-      toast.error('Failed to add to lists: ' + error.message);
+      toast.error(t("failed_to_add_to", "Failed to add to lists:") + error.message);
     },
   });
 
@@ -135,10 +137,10 @@ export function AddToListDialog({
       setShowCreateNew(false);
       setNewListName('');
       setNewListDescription('');
-      toast.success('List created');
+      toast.success(t("list_created", "List created"));
     },
     onError: (error) => {
-      toast.error('Failed to create list: ' + error.message);
+      toast.error(t("failed_to_create_list", "Failed to create list:") + error.message);
     },
   });
 
@@ -161,7 +163,7 @@ export function AddToListDialog({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (selectedListIds.length === 0) {
-      toast.error('Please select at least one list');
+      toast.error(t("please_select_at_least", "Please select at least one list"));
       return;
     }
     addToListsMutation.mutate();
@@ -170,7 +172,7 @@ export function AddToListDialog({
   const handleCreateList = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newListName.trim()) {
-      toast.error('Please enter a list name');
+      toast.error(t("please_enter_a_list", "Please enter a list name"));
       return;
     }
     createListMutation.mutate();
@@ -192,22 +194,22 @@ export function AddToListDialog({
         {showCreateNew ? (
           <form onSubmit={handleCreateList} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="list-name">List Name</Label>
+              <Label htmlFor="list-name">{t("list_name", "List Name")}</Label>
               <Input
                 id="list-name"
                 value={newListName}
                 onChange={(e) => setNewListName(e.target.value)}
-                placeholder="e.g., CMO Pipeline Q1"
+                placeholder={t("eg_cmo_pipeline_q1", "e.g., CMO Pipeline Q1")}
                 autoFocus
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="list-description">Description (optional)</Label>
+              <Label htmlFor="list-description">{t("description_optional", "Description (optional)")}</Label>
               <Textarea
                 id="list-description"
                 value={newListDescription}
                 onChange={(e) => setNewListDescription(e.target.value)}
-                placeholder="Brief description of this list..."
+                placeholder={t("brief_description_of_this", "Brief description of this list...")}
                 rows={2}
               />
             </div>
@@ -234,7 +236,7 @@ export function AddToListDialog({
             {/* Lists */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label>Select Lists</Label>
+                <Label>{t("select_lists", "Select Lists")}</Label>
                 <Button
                   type="button"
                   variant="ghost"
@@ -254,7 +256,7 @@ export function AddToListDialog({
                   </div>
                 ) : lists?.length === 0 ? (
                   <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
-                    <p className="text-sm">No lists yet</p>
+                    <p className="text-sm">{t("no_lists_yet", "No lists yet")}</p>
                     <Button
                       type="button"
                       variant="link"
@@ -317,12 +319,12 @@ export function AddToListDialog({
 
             {/* Notes */}
             <div className="space-y-2">
-              <Label htmlFor="notes">Notes (optional)</Label>
+              <Label htmlFor="notes">{t("notes_optional", "Notes (optional)")}</Label>
               <Textarea
                 id="notes"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder="Why are you adding this candidate to these lists?"
+                placeholder={t("why_are_you_adding", "Why are you adding this candidate to these lists?")}
                 rows={2}
               />
             </div>

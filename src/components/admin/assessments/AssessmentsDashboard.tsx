@@ -5,8 +5,10 @@ import { useAssessmentMetrics } from "@/hooks/useAssessmentMetrics";
 import { MetricCardSkeleton } from "../shared/MetricCardSkeleton";
 import { useQueryClient } from "@tanstack/react-query";
 import { Progress } from "@/components/ui/progress";
+import { useTranslation } from 'react-i18next';
 
 export const AssessmentsDashboard = () => {
+  const { t } = useTranslation('admin');
   const queryClient = useQueryClient();
   const { metrics, isLoading } = useAssessmentMetrics();
 
@@ -17,7 +19,7 @@ export const AssessmentsDashboard = () => {
   if (isLoading || !metrics) {
     return (
       <div className="space-y-6">
-        <DashboardHeader title="Assessments" description="Assessment results" onRefresh={handleRefresh} />
+        <DashboardHeader title={t('assessments.assessmentsDashboard.assessments')} description="Assessment results" onRefresh={handleRefresh} />
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           <MetricCardSkeleton />
           <MetricCardSkeleton />
@@ -30,7 +32,7 @@ export const AssessmentsDashboard = () => {
   return (
     <div className="space-y-6">
       <DashboardHeader
-        title="Assessment Results"
+        title={t('assessments.assessmentsDashboard.assessmentResults')}
         description="Track candidate assessments and scores"
         onRefresh={handleRefresh}
         isRefreshing={isLoading}
@@ -38,14 +40,14 @@ export const AssessmentsDashboard = () => {
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <MetricCard
-          title="Total Completed"
+          title={t('assessments.assessmentsDashboard.totalCompleted')}
           icon={FileText}
           iconColor="info"
           primaryMetric={metrics.total_completed.toLocaleString()}
           secondaryText={`${metrics.in_progress} in progress • ${metrics.pending} pending`}
         />
         <MetricCard
-          title="Average Score"
+          title={t('assessments.assessmentsDashboard.averageScore')}
           icon={TrendingUp}
           iconColor="success"
           primaryMetric={`${metrics.average_score}/10`}
@@ -54,7 +56,7 @@ export const AssessmentsDashboard = () => {
           <Progress value={metrics.average_score * 10} className="h-2 mt-2" />
         </MetricCard>
         <MetricCard
-          title="Pass Rate"
+          title={t('assessments.assessmentsDashboard.passRate')}
           icon={CheckCircle2}
           iconColor="success"
           primaryMetric={`${metrics.pass_rate}%`}

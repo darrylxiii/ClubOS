@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -31,12 +32,13 @@ export function CancelBookingDialog({
   accessToken,
   onCancelled,
 }: CancelBookingDialogProps) {
+  const { t } = useTranslation('common');
   const [reason, setReason] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleCancel = async () => {
     if (!reason.trim()) {
-      toast.error("Please provide a cancellation reason");
+      toast.error(t("please_provide_a_cancellation", "Please provide a cancellation reason"));
       return;
     }
 
@@ -65,7 +67,7 @@ export function CancelBookingDialog({
         if (error) throw error;
       }
 
-      toast.success("Booking cancelled successfully");
+      toast.success(t("booking_cancelled_successfully", "Booking cancelled successfully"));
       onOpenChange(false);
       onCancelled();
     } catch (error: unknown) {
@@ -81,7 +83,7 @@ export function CancelBookingDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Cancel Booking</DialogTitle>
+          <DialogTitle>{t("cancel_booking", "Cancel Booking")}</DialogTitle>
           <DialogDescription>
             This action cannot be undone. Both you and the booking owner will be notified.
           </DialogDescription>
@@ -96,10 +98,10 @@ export function CancelBookingDialog({
 
         <div className="space-y-4 py-4">
           <div className="space-y-2">
-            <Label htmlFor="reason">Cancellation Reason</Label>
+            <Label htmlFor="reason">{t("cancellation_reason", "Cancellation Reason")}</Label>
             <Textarea
               id="reason"
-              placeholder="Please provide a reason for cancelling..."
+              placeholder={t("please_provide_a_reason", "Please provide a reason for cancelling...")}
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               rows={4}

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { categories } from '@/data/blog';
 import { cn } from '@/lib/utils';
 
@@ -8,6 +9,7 @@ interface CategoryPillsProps {
 }
 
 const CategoryPills: React.FC<CategoryPillsProps> = ({ activeCategory, onSelect }) => {
+  const { t } = useTranslation('common');
   return (
     <div className="flex items-center gap-6 overflow-x-auto pb-2 scrollbar-hide">
       <button
@@ -19,7 +21,7 @@ const CategoryPills: React.FC<CategoryPillsProps> = ({ activeCategory, onSelect 
             : "text-muted-foreground border-transparent hover:text-foreground"
         )}
       >
-        All
+        {t('blog.all')}
       </button>
 
       {categories.map((cat) => {

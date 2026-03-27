@@ -1,4 +1,5 @@
 import { memo } from "react";
+import { useTranslation } from 'react-i18next';
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import {
@@ -51,6 +52,7 @@ export const NextActionBadge = memo(({
   showTooltip = true,
   className,
 }: NextActionBadgeProps) => {
+  const { t } = useTranslation('jobs');
   if (!action) return null;
 
   const Icon = action.urgent ? getIcon(action.text) : Lightbulb;
@@ -82,9 +84,9 @@ export const NextActionBadge = memo(({
         </TooltipTrigger>
         <TooltipContent side="top" className="max-w-xs">
           <p className="text-sm">
-            {action.urgent 
-              ? "This role needs attention. Take action to keep the pipeline moving." 
-              : "This role is performing well. Keep up the good work!"}
+            {action.urgent
+              ? t('nextAction.urgentTooltip', 'This role needs attention. Take action to keep the pipeline moving.')
+              : t('nextAction.goodTooltip', 'This role is performing well. Keep up the good work!')}
           </p>
         </TooltipContent>
       </Tooltip>

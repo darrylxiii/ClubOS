@@ -1,4 +1,5 @@
 import { useParams, useSearchParams } from "react-router-dom";
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { ErrorState } from "@/components/ui/error-state";
@@ -36,6 +37,7 @@ import { Progress } from "@/components/ui/progress";
 import { useAssessmentScores } from "@/hooks/useAssessmentScores";
 
 export default function UnifiedCandidateProfile() {
+  const { t } = useTranslation('candidates');
   const { candidateId } = useParams<{ candidateId: string }>();
   const [searchParams] = useSearchParams();
   const fromJob = searchParams.get('fromJob') || searchParams.get('job');
@@ -207,7 +209,7 @@ export default function UnifiedCandidateProfile() {
       <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
         <ErrorState
           variant="page"
-          title="Failed to load candidate"
+          title={t('unifiedCandidateProfile.text1')}
           message="We couldn't load this candidate's profile. Please try again."
           onRetry={() => { setFetchError(false); setLoading(true); loadCandidateData(); }}
         />
@@ -236,7 +238,7 @@ export default function UnifiedCandidateProfile() {
     return (
       <>
         <div className="w-full px-4 sm:px-6 lg:px-8 py-12 text-center">
-          <p className="text-muted-foreground">Candidate not found</p>
+          <p className="text-muted-foreground">{t('unifiedCandidateProfile.text2')}</p>
         </div>
       </>
     );
@@ -318,7 +320,7 @@ export default function UnifiedCandidateProfile() {
             {/* Documents & Assessments */}
             <Card className={candidateProfileTokens.glass.card}>
               <CardHeader>
-                <CardTitle>Documents & Files</CardTitle>
+                <CardTitle>{t('unifiedCandidateProfile.text3')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <CandidateDocumentsViewer
@@ -332,7 +334,7 @@ export default function UnifiedCandidateProfile() {
             {isAdmin && (
               <Card className={candidateProfileTokens.glass.card}>
                 <CardHeader>
-                  <CardTitle>TQC Internal Assessment</CardTitle>
+                  <CardTitle>{t('unifiedCandidateProfile.text4')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <CandidateInternalRatingCard
@@ -347,14 +349,13 @@ export default function UnifiedCandidateProfile() {
             <Card className={candidateProfileTokens.glass.card}>
               <CardHeader>
                 <CardTitle>
-                  {isPartner ? 'Collaboration Notes' : 'Team Notes'}
+                  {isPartner ? t('text.unifiedcandidateprofile.collaborationNotes', 'Collaboration Notes') : t('text.unifiedcandidateprofile.teamNotes', 'Team Notes')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground mb-4">
                   {isPartner
-                    ? 'Share notes with TQC and your team about this candidate'
-                    : 'Internal notes and observations about this candidate'}
+                    ? t('text.unifiedcandidateprofile.shareNotesWithTqcAndYour', 'Share notes with TQC and your team about this candidate') : t('text.unifiedcandidateprofile.internalNotesAndObservationsAboutThis', 'Internal notes and observations about this candidate')}
                 </p>
                 <CandidateNotesManager
                   candidateId={candidateId!}
@@ -376,11 +377,11 @@ export default function UnifiedCandidateProfile() {
             {isAdmin && (
               <Card className={candidateProfileTokens.glass.card}>
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm">Data Completeness</CardTitle>
+                  <CardTitle className="text-sm">{t('unifiedCandidateProfile.text5')}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2">
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Score</span>
+                    <span className="text-muted-foreground">{t('unifiedCandidateProfile.text6')}</span>
                     <span className={`font-semibold ${
                       (candidate.profile_completeness || 0) >= 80 ? 'text-emerald-500' :
                       (candidate.profile_completeness || 0) >= 50 ? 'text-amber-500' : 'text-destructive'
@@ -398,7 +399,7 @@ export default function UnifiedCandidateProfile() {
               <Card className={candidateProfileTokens.glass.card}>
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
-                    <CardTitle className="text-base">Talent Pool Status</CardTitle>
+                    <CardTitle className="text-base">{t('unifiedCandidateProfile.text7')}</CardTitle>
                     {candidate.talent_tier && (
                       <TierBadge tier={candidate.talent_tier} size="sm" />
                     )}
@@ -431,12 +432,12 @@ export default function UnifiedCandidateProfile() {
             {/* Career Preferences - Compact */}
             <Card className={candidateProfileTokens.glass.card}>
               <CardHeader className="pb-3">
-                <CardTitle className="text-base">Career Preferences</CardTitle>
+                <CardTitle className="text-base">{t('unifiedCandidateProfile.text8')}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2 text-sm">
                 {(candidate.desired_salary_min || candidate.desired_salary_max) && (
                   <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Salary:</span>
+                    <span className="text-muted-foreground">{t('unifiedCandidateProfile.text9')}</span>
                     <span className="font-medium text-xs">
                       {candidate.preferred_currency || 'EUR'} {Math.round(candidate.desired_salary_min / 1000)}K-{Math.round(candidate.desired_salary_max / 1000)}K
                     </span>
@@ -445,14 +446,14 @@ export default function UnifiedCandidateProfile() {
 
                 {candidate.notice_period && (
                   <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Notice:</span>
+                    <span className="text-muted-foreground">{t('unifiedCandidateProfile.text10')}</span>
                     <Badge variant="outline" className="text-xs">{candidate.notice_period}</Badge>
                   </div>
                 )}
 
                 {candidate.remote_preference && (
                   <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Work:</span>
+                    <span className="text-muted-foreground">{t('unifiedCandidateProfile.text11')}</span>
                     <Badge variant="outline" className="text-xs capitalize">
                       {candidate.remote_preference.replace('_', ' ')}
                     </Badge>
@@ -461,7 +462,7 @@ export default function UnifiedCandidateProfile() {
 
                 {candidate.desired_locations && candidate.desired_locations.length > 0 && (
                   <div className="space-y-1">
-                    <span className="text-xs text-muted-foreground">Desired Locations:</span>
+                    <span className="text-xs text-muted-foreground">{t('unifiedCandidateProfile.text12')}</span>
                     <div className="flex flex-wrap gap-1">
                       {candidate.desired_locations.map((loc: string, i: number) => (
                         <Badge key={i} variant="secondary" className="text-xs">

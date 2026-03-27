@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -31,6 +32,7 @@ interface TaskToolbarProps {
 }
 
 export function TaskToolbar({ onRefresh }: TaskToolbarProps) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const {
     searchQuery,
@@ -122,10 +124,10 @@ export function TaskToolbar({ onRefresh }: TaskToolbarProps) {
                   onClick={toggleMyTasks}
                 >
                   <UserCircle className="h-4 w-4" />
-                  <span className="hidden sm:inline">My Tasks</span>
+                  <span className="hidden sm:inline">{t("my_tasks", "My Tasks")}</span>
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>Toggle My Tasks</TooltipContent>
+              <TooltipContent>{t("toggle_my_tasks", "Toggle My Tasks")}</TooltipContent>
             </Tooltip>
           </TooltipProvider>
 
@@ -160,7 +162,7 @@ export function TaskToolbar({ onRefresh }: TaskToolbarProps) {
                   <CheckSquare className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>Select All</TooltipContent>
+              <TooltipContent>{t("select_all", "Select All")}</TooltipContent>
             </Tooltip>
           </TooltipProvider>
 
@@ -177,7 +179,7 @@ export function TaskToolbar({ onRefresh }: TaskToolbarProps) {
                   <RefreshCw className={cn("h-4 w-4", loading && "animate-spin")} />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>Refresh</TooltipContent>
+              <TooltipContent>{t("refresh", "Refresh")}</TooltipContent>
             </Tooltip>
           </TooltipProvider>
 
@@ -189,7 +191,7 @@ export function TaskToolbar({ onRefresh }: TaskToolbarProps) {
                   <span>⌘K</span>
                 </div>
               </TooltipTrigger>
-              <TooltipContent>Quick Add Task</TooltipContent>
+              <TooltipContent>{t("quick_add_task", "Quick Add Task")}</TooltipContent>
             </Tooltip>
           </TooltipProvider>
         </div>
@@ -207,7 +209,7 @@ export function TaskToolbar({ onRefresh }: TaskToolbarProps) {
       {/* Active filters display */}
       {(filters.status?.length || filters.priority?.length || filters.dateRange) && (
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-xs text-muted-foreground">Active filters:</span>
+          <span className="text-xs text-muted-foreground">{t("active_filters", "Active filters:")}</span>
           {filters.status?.map(s => (
             <Badge key={s} variant="secondary" className="text-xs capitalize">
               {s.replace('_', ' ')}

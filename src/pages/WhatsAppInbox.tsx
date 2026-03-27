@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from 'react-i18next';
 import { RoleGate } from "@/components/RoleGate";
 import { useWhatsAppConversations } from "@/hooks/useWhatsAppConversations";
 import { useWhatsAppMessages } from "@/hooks/useWhatsAppMessages";
@@ -15,6 +16,7 @@ import { notify } from "@/lib/notify";
 import { useRelationshipHealth } from "@/hooks/useRelationshipHealth";
 import { type ConversationInsight } from "@/components/whatsapp/WhatsAppAIInsights";
 export default function WhatsAppInbox() {
+  const { t } = useTranslation('messages');
   const navigate = useNavigate();
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
   const [showTemplates, setShowTemplates] = useState(false);
@@ -111,7 +113,7 @@ export default function WhatsAppInbox() {
                 <MessageSquare className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h1 className="font-bold text-lg">WhatsApp Business</h1>
+                <h1 className="font-bold text-lg">{t('whatsAppInbox.text1')}</h1>
                 <p className="text-xs text-muted-foreground">
                   {conversations.length} conversations
                 </p>

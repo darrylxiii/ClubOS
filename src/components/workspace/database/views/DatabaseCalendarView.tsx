@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React, { useMemo, useState } from 'react';
 import { DatabaseColumn, DatabaseRow } from '@/hooks/useWorkspaceDatabase';
 import { Button } from '@/components/ui/button';
@@ -45,6 +46,7 @@ export function DatabaseCalendarView({
   onAddRow,
   onUpdateRow,
 }: DatabaseCalendarViewProps) {
+  const { t } = useTranslation('common');
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDateColumn, setSelectedDateColumn] = useState<string | null>(null);
 
@@ -119,7 +121,7 @@ export function DatabaseCalendarView({
   if (dateColumns.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">
-        <p className="text-muted-foreground mb-2">No date columns found</p>
+        <p className="text-muted-foreground mb-2">{t("no_date_columns_found", "No date columns found")}</p>
         <p className="text-sm text-muted-foreground">
           Add a date column to use the calendar view
         </p>
@@ -146,7 +148,7 @@ export function DatabaseCalendarView({
         {dateColumns.length > 1 && (
           <Select value={activeDateColumn || ''} onValueChange={setSelectedDateColumn}>
             <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Select date column" />
+              <SelectValue placeholder={t("select_date_column", "Select date column")} />
             </SelectTrigger>
             <SelectContent>
               {dateColumns.map(col => (

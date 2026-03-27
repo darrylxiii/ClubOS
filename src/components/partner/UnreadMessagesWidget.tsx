@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,6 +22,7 @@ interface UnreadMessage {
 }
 
 export function UnreadMessagesWidget({ companyId, userId }: { companyId: string; userId?: string }) {
+  const { t } = useTranslation('common');
   const { data: messages, isLoading } = useQuery({
     queryKey: ['unread-messages-preview', companyId, userId],
     queryFn: async (): Promise<UnreadMessage[]> => {
@@ -132,8 +134,8 @@ export function UnreadMessagesWidget({ companyId, userId }: { companyId: string;
               <Inbox className="h-5 w-5 text-muted-foreground" />
             </div>
             <div>
-              <p className="font-medium text-foreground">Inbox Zero</p>
-              <p className="text-sm text-muted-foreground">No unread messages</p>
+              <p className="font-medium text-foreground">{t("inbox_zero", "Inbox Zero")}</p>
+              <p className="text-sm text-muted-foreground">{t("no_unread_messages", "No unread messages")}</p>
             </div>
           </motion.div>
         ) : (

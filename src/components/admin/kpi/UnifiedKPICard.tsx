@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -57,6 +58,7 @@ const actionTips: Record<string, string> = {
 };
 
 export function UnifiedKPICard({ kpi, showCategory = false, showSparkline = false }: UnifiedKPICardProps) {
+  const { t } = useTranslation('common');
   // Safe status lookup with fallback to neutral
   const safeStatus = kpi?.status && statusConfig[kpi.status] ? kpi.status : 'neutral';
   const config = statusConfig[safeStatus];
@@ -148,7 +150,7 @@ export function UnifiedKPICard({ kpi, showCategory = false, showSparkline = fals
           {kpi.trendDirection === 'stable' && (
             <div className="flex items-center gap-1 text-sm text-muted-foreground">
               <Minus className="h-4 w-4" />
-              <span>Stable</span>
+              <span>{t("stable", "Stable")}</span>
             </div>
           )}
         </div>

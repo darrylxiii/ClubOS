@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,6 +12,7 @@ import { toast } from 'sonner';
 import { format } from 'date-fns';
 
 export function QuinFinancialCommentary() {
+  const { t } = useTranslation('common');
   const queryClient = useQueryClient();
 
   const { data: commentaries, isLoading } = useQuery({
@@ -51,7 +53,7 @@ export function QuinFinancialCommentary() {
       return data;
     },
     onSuccess: () => {
-      toast.success('QUIN financial narrative generated');
+      toast.success(t("quin_financial_narrative_generated", "QUIN financial narrative generated"));
       queryClient.invalidateQueries({ queryKey: ['financial-commentaries'] });
     },
     onError: (err: Error) => {
@@ -95,8 +97,8 @@ export function QuinFinancialCommentary() {
         ) : !latest ? (
           <div className="text-center py-8 text-muted-foreground">
             <Sparkles className="h-8 w-8 mx-auto mb-3 opacity-50" />
-            <p className="text-sm">No commentary generated yet.</p>
-            <p className="text-xs mt-1">Click "Generate New" to create your first QUIN narrative.</p>
+            <p className="text-sm">{t("no_commentary_generated_yet", "No commentary generated yet.")}</p>
+            <p className="text-xs mt-1">{t("click_generate_new_to", "Click ')Generate New' to create your first QUIN narrative.")}</p>
           </div>
         ) : (
           <div className="space-y-4">

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { User, Clock, MessageSquare, TrendingUp, Mail, Phone } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -19,12 +20,13 @@ interface Props {
 }
 
 export function MyStrategistCard({ strategist }: Props) {
+  const { t } = useTranslation('common');
   if (!strategist) {
     return (
       <Card className="bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border-border/50">
         <CardContent className="p-6 text-center">
           <User className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
-          <p className="text-muted-foreground">No strategist assigned yet</p>
+          <p className="text-muted-foreground">{t("no_strategist_assigned_yet", "No strategist assigned yet")}</p>
           <p className="text-sm text-muted-foreground mt-1">
             A dedicated strategist will be assigned to help you soon
           </p>
@@ -61,7 +63,7 @@ export function MyStrategistCard({ strategist }: Props) {
           </Avatar>
           <div>
             <h3 className="font-semibold text-foreground">{strategist.full_name}</h3>
-            <p className="text-sm text-muted-foreground">Career Strategist</p>
+            <p className="text-sm text-muted-foreground">{t("career_strategist", "Career Strategist")}</p>
             {strategist.last_contact && (
               <p className="text-xs text-muted-foreground mt-1">
                 Last contact: {formatDistanceToNow(new Date(strategist.last_contact), { addSuffix: true })}
@@ -73,7 +75,7 @@ export function MyStrategistCard({ strategist }: Props) {
         {/* Relationship Health */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">Relationship Health</span>
+            <span className="text-sm text-muted-foreground">{t("relationship_health", "Relationship Health")}</span>
             <Badge variant="outline" className={scoreColor}>
               {scoreLabel}
             </Badge>
@@ -92,12 +94,12 @@ export function MyStrategistCard({ strategist }: Props) {
         <div className="p-3 rounded-lg bg-muted/30 border border-border/50">
           <div className="flex items-center gap-2 mb-2">
             <TrendingUp className="h-4 w-4 text-green-500" />
-            <span className="text-sm font-medium">Response Expectations</span>
+            <span className="text-sm font-medium">{t("response_expectations", "Response Expectations")}</span>
           </div>
           <ul className="text-xs text-muted-foreground space-y-1">
-            <li>• WhatsApp: Within 4 hours (business hours)</li>
-            <li>• Email: Within 24 hours</li>
-            <li>• Urgent matters: Same day callback</li>
+            <li>{t("whatsapp_within_4_hours", "• WhatsApp: Within 4 hours (business hours)")}</li>
+            <li>{t("email_within_24_hours", "• Email: Within 24 hours")}</li>
+            <li>{t("urgent_matters_same_day", "• Urgent matters: Same day callback")}</li>
           </ul>
         </div>
 

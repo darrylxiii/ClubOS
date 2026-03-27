@@ -1,16 +1,18 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Check, Lightbulb } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface AEOSummaryBoxProps { takeaways: string[]; className?: string; }
 
 const AEOSummaryBox: React.FC<AEOSummaryBoxProps> = ({ takeaways, className }) => {
+  const { t } = useTranslation('common');
   return (
-    <div id="key-takeaways" role="region" aria-label="Key takeaways summary" data-speakable="true"
+    <div id="key-takeaways" role="region" aria-label={t('blog.keyTakeawaysSummary')} data-speakable="true"
       className={cn("bg-muted/50 border-l-4 border-accent rounded-r-2xl p-6 md:p-8 my-8", className)}>
       <div className="flex items-center gap-2 mb-4">
         <Lightbulb className="h-5 w-5 text-accent" aria-hidden="true" />
-        <h2 className="text-lg font-semibold text-foreground">Key Takeaways</h2>
+        <h2 className="text-lg font-semibold text-foreground">{t('blog.keyTakeaways')}</h2>
       </div>
       <ul className="space-y-3" role="list">
         {takeaways.map((t, i) => (

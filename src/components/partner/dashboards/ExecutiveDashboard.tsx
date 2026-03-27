@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,6 +11,7 @@ interface ExecutiveDashboardProps {
 }
 
 export function ExecutiveDashboard({ jobId }: ExecutiveDashboardProps) {
+  const { t } = useTranslation('common');
   const [finalStageCandidates, setFinalStageCandidates] = useState<any[]>([]);
 
   useEffect(() => {
@@ -34,14 +36,12 @@ export function ExecutiveDashboard({ jobId }: ExecutiveDashboardProps) {
       {/* Simplified View - Only final stage candidates */}
       <Card>
         <CardHeader>
-          <CardTitle>Candidates Ready for Your Review</CardTitle>
+          <CardTitle>{t("candidates_ready_for_your", "Candidates Ready for Your Review")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             {finalStageCandidates.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-8">
-                No candidates in final stage yet
-              </p>
+              <p className="text-sm text-muted-foreground text-center py-8">{t('executiveDashboard.noCandidatesInFinalStageYet')}</p>
             ) : (
               finalStageCandidates.map(candidate => (
                 <div key={candidate.id} className="border rounded-lg p-4">
@@ -75,26 +75,26 @@ export function ExecutiveDashboard({ jobId }: ExecutiveDashboardProps) {
       <div className="grid grid-cols-4 gap-4">
         <Card>
           <CardContent className="pt-4">
-            <p className="text-xs text-muted-foreground">Hires This Month</p>
+            <p className="text-xs text-muted-foreground">{t("hires_this_month", "Hires This Month")}</p>
             <p className="text-2xl font-bold">-</p>
-            <p className="text-xs text-green-500">vs last month</p>
+            <p className="text-xs text-green-500">{t("vs_last_month", "vs last month")}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-4">
-            <p className="text-xs text-muted-foreground">Avg Time to Hire</p>
+            <p className="text-xs text-muted-foreground">{t("avg_time_to_hire", "Avg Time to Hire")}</p>
             <p className="text-2xl font-bold">-d</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-4">
-            <p className="text-xs text-muted-foreground">Offer Acceptance</p>
+            <p className="text-xs text-muted-foreground">{t("offer_acceptance", "Offer Acceptance")}</p>
             <p className="text-2xl font-bold">-%</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-4">
-            <p className="text-xs text-muted-foreground">Quality Score</p>
+            <p className="text-xs text-muted-foreground">{t("quality_score", "Quality Score")}</p>
             <p className="text-2xl font-bold">-%</p>
           </CardContent>
         </Card>

@@ -1,11 +1,8 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.58.0";
+import { createHandler } from '../_shared/handler.ts';
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+const corsHeaders: Record<string, string> = {};
 
 const MAX_RETRIES = 3;
 const RETRY_DELAY_MS = 2000;
@@ -163,7 +160,7 @@ function chunkTranscript(transcript: string, maxChunkSize: number = TRANSCRIPT_C
 // ============================================================================
 
 async function callPrimaryAI(
-  lovableApiKey: string,
+  googleApiKey: string,
   prompt: string
 ): Promise<any> {
   const circuitName = 'primary-ai';
@@ -176,14 +173,14 @@ async function callPrimaryAI(
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), AI_TIMEOUT_MS);
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    const response = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${lovableApiKey}`,
+        'Authorization': `Bearer ${googleApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash-lite',
+        model: 'gemini-2.5-flash-lite',
         messages: [
           { role: 'system', content: 'You are an expert interview analyst. Return only valid JSON.' },
           { role: 'user', content: prompt }
@@ -202,7 +199,7 @@ async function callPrimaryAI(
         throw new Error('AI service rate limited');
       }
       if (response.status === 402) {
-        throw new Error('AI service credits exhausted');
+        throw new Error('AI service quota exceeded');
       }
       throw new Error(`AI analysis failed (${response.status}): ${errorText}`);
     }
@@ -217,7 +214,7 @@ async function callPrimaryAI(
 }
 
 async function callFallbackAI(
-  lovableApiKey: string,
+  googleApiKey: string,
   prompt: string
 ): Promise<any> {
   console.log('[AI] Using fallback model (flash-lite) for simplified analysis');
@@ -231,14 +228,14 @@ async function callFallbackAI(
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), AI_TIMEOUT_MS);
 
-  const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+  const response = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${lovableApiKey}`,
+      'Authorization': `Bearer ${googleApiKey}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'google/gemini-2.5-flash-lite', // Faster, cheaper fallback
+      model: 'gemini-2.5-flash-lite', // Faster, cheaper fallback
       messages: [
         { role: 'system', content: 'You are a helpful assistant. Return only valid JSON.' },
         { role: 'user', content: simplifiedPrompt }
@@ -260,12 +257,12 @@ async function callFallbackAI(
 }
 
 async function analyzeWithFallback(
-  lovableApiKey: string,
+  googleApiKey: string,
   prompt: string
 ): Promise<{ response: any; usedFallback: boolean }> {
   try {
     const response = await withRetry(
-      () => callPrimaryAI(lovableApiKey, prompt),
+      () => callPrimaryAI(googleApiKey, prompt),
       'Primary AI',
       2
     );
@@ -274,7 +271,7 @@ async function analyzeWithFallback(
     console.warn('[AI] Primary analysis failed, attempting fallback:', primaryError);
     
     try {
-      const response = await callFallbackAI(lovableApiKey, prompt);
+      const response = await callFallbackAI(googleApiKey, prompt);
       return { response, usedFallback: true };
     } catch (fallbackError) {
       console.error('[AI] Fallback also failed:', fallbackError);
@@ -286,21 +283,21 @@ async function analyzeWithFallback(
 
 // Summarize chunks for very long transcripts
 async function summarizeChunk(
-  lovableApiKey: string,
+  googleApiKey: string,
   chunk: string,
   chunkIndex: number,
   totalChunks: number
 ): Promise<string> {
   console.log(`[Chunking] Summarizing chunk ${chunkIndex + 1}/${totalChunks}`);
   
-  const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+  const response = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${lovableApiKey}`,
+      'Authorization': `Bearer ${googleApiKey}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'google/gemini-2.5-flash-lite',
+      model: 'gemini-2.5-flash-lite',
       messages: [
         { role: 'system', content: 'Extract key points and quotes from this transcript section. Be concise but preserve important details and exact quotes.' },
         { role: 'user', content: chunk }
@@ -318,7 +315,7 @@ async function summarizeChunk(
 }
 
 async function processLongTranscript(
-  lovableApiKey: string,
+  googleApiKey: string,
   transcript: string
 ): Promise<string> {
   const chunks = chunkTranscript(transcript);
@@ -332,7 +329,7 @@ async function processLongTranscript(
   // Summarize each chunk in parallel (with limit)
   const summaries = await Promise.all(
     chunks.slice(0, 5).map((chunk, i) => // Limit to 5 chunks to avoid timeout
-      summarizeChunk(lovableApiKey, chunk, i, Math.min(chunks.length, 5))
+      summarizeChunk(googleApiKey, chunk, i, Math.min(chunks.length, 5))
         .catch(err => {
           console.warn(`[Chunking] Failed to summarize chunk ${i}:`, err);
           return `[Chunk ${i + 1}]: ${chunk.substring(0, 500)}...`;
@@ -347,35 +344,31 @@ async function processLongTranscript(
 // Main Handler
 // ============================================================================
 
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
-  }
+Deno.serve(createHandler(async (req, ctx) => {
+  Object.assign(corsHeaders, ctx.corsHeaders);
+  const supabase = ctx.supabase;
 
   const startTime = Date.now();
   let recordingId: string | null = null;
   let isReanalysis = false;
 
-  try {
     const body = await req.json();
     recordingId = body.recordingId;
     isReanalysis = body.reanalyze === true;
-    
+
     if (!recordingId) {
       throw new Error('recordingId is required');
     }
 
-    console.log(`[Analysis] 🚀 Starting analysis for recording: ${recordingId}${isReanalysis ? ' (re-analysis)' : ''}`);
+    console.log(`[Analysis] Starting analysis for recording: ${recordingId}${isReanalysis ? ' (re-analysis)' : ''}`);
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
-    
-    if (!lovableApiKey) {
-      throw new Error('AI service not configured. Please add LOVABLE_API_KEY to secrets.');
+    const googleApiKey = Deno.env.get('GOOGLE_API_KEY');
+
+    if (!googleApiKey) {
+      throw new Error('AI service not configured. Please add GOOGLE_API_KEY to secrets.');
     }
-    
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // Step 1: Compile transcript from streaming segments (Phase 3 integration)
     console.log('[Analysis] 📝 Compiling transcript from streaming segments...');
@@ -501,7 +494,7 @@ serve(async (req) => {
       console.log('[Analysis] 📄 Long transcript detected, processing chunks...');
       try {
         transcript = await withTimeout(
-          processLongTranscript(lovableApiKey, transcript),
+          processLongTranscript(googleApiKey, transcript),
           90000, // 90s timeout for chunking
           'Transcript Processing'
         );
@@ -633,7 +626,7 @@ CRITICAL REQUIREMENTS:
     console.log('[Analysis] 🤖 Calling AI service...');
     
     const { response: aiResponse, usedFallback } = await withTimeout(
-      analyzeWithFallback(lovableApiKey, analysisPrompt),
+      analyzeWithFallback(googleApiKey, analysisPrompt),
       AI_TIMEOUT_MS + 10000,
       'AI Analysis'
     );
@@ -701,6 +694,31 @@ CRITICAL REQUIREMENTS:
 
     console.log('[Analysis] 💾 Recording updated with analysis');
 
+    // Bridge: also write to meeting_insights for legacy frontend compatibility
+    if (recording.meeting_id) {
+      try {
+        await supabase.from('meeting_insights').upsert({
+          meeting_id: recording.meeting_id,
+          summary: aiAnalysis.executiveSummary || null,
+          key_points: aiAnalysis.candidateEvaluation?.strengths || [],
+          action_items: aiAnalysis.actionItems || [],
+          decisions: aiAnalysis.decisionGuidance?.nextSteps || [],
+          topics: aiAnalysis.keyMoments?.map((m: any) => m.type).filter(Boolean) || [],
+          sentiment_analysis: {
+            overall: aiAnalysis.candidateEvaluation?.overallFit || 'neutral',
+            engagement: aiAnalysis.interviewQuality?.candidateEngagement || 'medium'
+          },
+          questions_asked: aiAnalysis.decisionGuidance?.followUpQuestions || [],
+          full_transcript: transcript?.substring(0, 50000) || null,
+          analysis_status: 'completed',
+          processing_time_ms: Date.now() - startTime,
+        }, { onConflict: 'meeting_id' });
+        console.log('[Analysis] 🔗 meeting_insights bridge populated');
+      } catch (bridgeErr) {
+        console.warn('[Analysis] ⚠️ meeting_insights bridge failed (non-critical):', bridgeErr);
+      }
+    }
+
     // Distribute to candidate/job profiles
     if (recording.candidate_id) {
       try {
@@ -733,6 +751,68 @@ CRITICAL REQUIREMENTS:
         }, { onConflict: 'recording_id' });
       } catch (err) {
         console.warn('[Analysis] Could not link to job:', err);
+      }
+    }
+
+    // Bridge: populate interview_reports for the InterviewReportView frontend
+    if (recording.meeting_id && recording.candidate_id) {
+      try {
+        const evaluation = aiAnalysis.candidateEvaluation || {};
+        const guidance = aiAnalysis.decisionGuidance || {};
+        await supabase.from('interview_reports').upsert({
+          meeting_id: recording.meeting_id,
+          candidate_id: recording.candidate_id,
+          executive_summary: aiAnalysis.executiveSummary || null,
+          key_strengths: evaluation.strengths || [],
+          key_weaknesses: evaluation.weaknesses || [],
+          technical_assessment: evaluation.skillsAssessment
+            ? evaluation.skillsAssessment.map((s: any) => `${s.skill}: ${s.rating}/5 (${s.evidence || ''})`).join('; ')
+            : null,
+          cultural_fit_assessment: evaluation.cultureFitSignals
+            ? `Positive: ${(evaluation.cultureFitSignals.positive || []).join(', ')}. Concerns: ${(evaluation.cultureFitSignals.concerns || []).join(', ')}`
+            : null,
+          communication_assessment: evaluation.communicationStyle || null,
+          highlights: aiAnalysis.keyMoments || [],
+          recommendation: guidance.recommendation === 'strong_yes' || guidance.recommendation === 'yes'
+            ? 'advance'
+            : guidance.recommendation === 'strong_no' || guidance.recommendation === 'no'
+              ? 'reject'
+              : 'reconsider',
+          recommendation_confidence: guidance.recommendation === 'strong_yes' || guidance.recommendation === 'strong_no' ? 90
+            : guidance.recommendation === 'yes' || guidance.recommendation === 'no' ? 70 : 50,
+          recommendation_reasoning: guidance.riskFactors?.join('. ') || null,
+        }, { onConflict: 'meeting_id' });
+        console.log('[Analysis] 📊 interview_reports bridge populated');
+      } catch (err) {
+        console.warn('[Analysis] ⚠️ interview_reports bridge failed:', err);
+      }
+    }
+
+    // Bridge: populate candidate_interview_performance for performance tracking
+    if (recording.meeting_id && recording.candidate_id) {
+      try {
+        const evaluation = aiAnalysis.candidateEvaluation || {};
+        const fitMap: Record<string, number> = { excellent: 0.95, good: 0.75, fair: 0.50, poor: 0.25 };
+        const fitScore = fitMap[evaluation.overallFit] || 0.5;
+
+        await supabase.from('candidate_interview_performance').upsert({
+          candidate_id: recording.candidate_id,
+          meeting_id: recording.meeting_id,
+          application_id: recording.application_id || null,
+          communication_clarity_score: fitScore,
+          communication_confidence_score: evaluation.confidenceLevel === 'high' ? 0.9 : evaluation.confidenceLevel === 'medium' ? 0.6 : 0.3,
+          technical_competence_score: fitScore,
+          cultural_fit_score: fitScore,
+          red_flags: evaluation.redFlags?.map((f: any) => f.description) || [],
+          green_flags: evaluation.strengths || [],
+          key_strengths: evaluation.strengths || [],
+          areas_for_improvement: evaluation.weaknesses || [],
+          overall_impression: aiAnalysis.executiveSummary || null,
+          hiring_recommendation: aiAnalysis.decisionGuidance?.recommendation || null,
+        }, { onConflict: 'meeting_id' });
+        console.log('[Analysis] 📊 candidate_interview_performance bridge populated');
+      } catch (err) {
+        console.warn('[Analysis] ⚠️ candidate_interview_performance bridge failed:', err);
       }
     }
 
@@ -844,59 +924,4 @@ CRITICAL REQUIREMENTS:
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    console.error('[Analysis] ❌ Error:', errorMessage);
-
-    if (recordingId) {
-      try {
-        const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-        const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-        const supabase = createClient(supabaseUrl, supabaseServiceKey);
-        
-        await supabase
-          .from('meeting_recordings_extended')
-          .update({
-            analysis_status: 'failed',
-            processing_status: 'failed',
-            processing_error: errorMessage,
-            last_analysis_attempt: new Date().toISOString()
-          })
-          .eq('id', recordingId);
-
-        const { data: recording } = await supabase
-          .from('meeting_recordings_extended')
-          .select('meeting_id')
-          .eq('id', recordingId)
-          .single();
-
-        if (recording?.meeting_id) {
-          await supabase.from('meeting_data_audit').insert({
-            meeting_id: recording.meeting_id,
-            recording_id: recordingId,
-            check_type: 'ai_analysis',
-            passed: false,
-            details: {
-              error: errorMessage,
-              duration_ms: Date.now() - startTime
-            }
-          });
-        }
-      } catch (updateErr) {
-        console.error('[Analysis] Failed to update error status:', updateErr);
-      }
-    }
-
-    return new Response(
-      JSON.stringify({ 
-        error: errorMessage,
-        recordingId,
-        canRetry: !errorMessage.includes('credits exhausted')
-      }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      }
-    );
-  }
-});
+}));

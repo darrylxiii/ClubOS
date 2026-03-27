@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/select';
 import { useTeamRevenue, TeamMemberRevenue } from '@/hooks/useTeamRevenue';
 import { useRole } from '@/contexts/RoleContext';
+import { useTranslation } from 'react-i18next';
 
 interface TeamLeaderboardProps {
   className?: string;
@@ -52,6 +53,7 @@ const yearOptions = [
 ];
 
 export function TeamLeaderboard({ className, year }: TeamLeaderboardProps) {
+  const { t } = useTranslation('common');
   const { currentRole } = useRole();
   const [selectedYear, setSelectedYear] = useState<string>(
     year ? String(year) : String(currentYear - 1) // Default to last year since current year may have less data

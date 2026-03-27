@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -22,6 +23,7 @@ interface Course {
 }
 
 export default function ModuleManagement() {
+  const { t } = useTranslation('common');
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -124,9 +126,9 @@ export default function ModuleManagement() {
   if (!course) {
     return (
       <div className="w-full px-4 sm:px-6 lg:px-8 py-6 text-center py-12">
-        <h2 className="text-2xl font-bold mb-4">Course not found</h2>
+        <h2 className="text-2xl font-bold mb-4">{t('moduleManagement.text2')}</h2>
         <Link to="/academy/creator">
-          <Button>Back to Creator Hub</Button>
+          <Button>{t('moduleManagement.text3')}</Button>
         </Link>
       </div>
     );
@@ -160,9 +162,7 @@ export default function ModuleManagement() {
           </div>
           <div>
             <h1 className="text-2xl font-bold">{course.title}</h1>
-            <p className="text-sm text-muted-foreground">
-              Manage modules for this course
-            </p>
+            <p className="text-sm text-muted-foreground">{t('moduleManagement.desc')}</p>
           </div>
         </div>
       </Card>
@@ -170,7 +170,7 @@ export default function ModuleManagement() {
       {/* Modules List */}
       <Card className="p-6">
         <div className="mb-4">
-          <h3 className="font-bold text-lg">Course Modules</h3>
+          <h3 className="font-bold text-lg">{t('moduleManagement.text4')}</h3>
           <p className="text-sm text-muted-foreground">
             {modules.length} module{modules.length !== 1 ? "s" : ""} in this course
           </p>
@@ -178,7 +178,7 @@ export default function ModuleManagement() {
 
         {modules.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-muted-foreground mb-4">No modules yet</p>
+            <p className="text-muted-foreground mb-4">{t('moduleManagement.text5')}</p>
             <Button onClick={() => setShowCreateDialog(true)}>
               <Plus className="mr-2 h-4 w-4" />
               Create First Module

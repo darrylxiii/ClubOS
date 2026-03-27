@@ -1,4 +1,5 @@
 import { DynamicChart } from "@/components/charts/DynamicChart";
+import { useTranslation } from 'react-i18next';
 
 interface CandidateData {
   id: string;
@@ -25,13 +26,14 @@ const COLORS = [
 ];
 
 export function ComparisonRadarChart({ candidates }: ComparisonRadarChartProps) {
+  const { t } = useTranslation('candidates');
   const categories = [
-    { key: "technical", label: "Technical" },
-    { key: "communication", label: "Communication" },
-    { key: "problemSolving", label: "Problem Solving" },
-    { key: "cultureFit", label: "Culture Fit" },
-    { key: "leadership", label: "Leadership" },
-    { key: "experience", label: "Experience" },
+    { key: "technical", label: t('comparison.technical', 'Technical') },
+    { key: "communication", label: t('comparison.communication', 'Communication') },
+    { key: "problemSolving", label: t('comparison.problemSolving', 'Problem Solving') },
+    { key: "cultureFit", label: t('comparison.cultureFit', 'Culture Fit') },
+    { key: "leadership", label: t('comparison.leadership', 'Leadership') },
+    { key: "experience", label: t('comparison.experience', 'Experience') },
   ];
 
   const data = categories.map((cat) => {

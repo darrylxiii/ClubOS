@@ -1,4 +1,5 @@
 import React, { useState, useEffect, memo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ThumbsUp, Lightbulb, GraduationCap, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
@@ -8,13 +9,14 @@ import type { ReactionCounts, ReactionType } from '@/types/blog-api';
 
 interface ArticleReactionsProps { postSlug: string; className?: string; }
 
-const REACTIONS = [
-  { type: 'helpful' as ReactionType, icon: ThumbsUp, label: 'Helpful', color: 'text-green-500' },
-  { type: 'interesting' as ReactionType, icon: Lightbulb, label: 'Interesting', color: 'text-yellow-500' },
-  { type: 'learned' as ReactionType, icon: GraduationCap, label: 'Learned Something', color: 'text-blue-500' },
-] as const;
-
 const ArticleReactions: React.FC<ArticleReactionsProps> = ({ postSlug, className }) => {
+  const { t } = useTranslation('common');
+
+  const REACTIONS = [
+    { type: 'helpful' as ReactionType, icon: ThumbsUp, label: t('blog.helpful'), color: 'text-green-500' },
+    { type: 'interesting' as ReactionType, icon: Lightbulb, label: t('blog.interesting'), color: 'text-yellow-500' },
+    { type: 'learned' as ReactionType, icon: GraduationCap, label: t('blog.learnedSomething'), color: 'text-blue-500' },
+  ] as const;
   const [counts, setCounts] = useState<ReactionCounts>({ helpful: 0, interesting: 0, learned: 0 });
   const [userReaction, setUserReaction] = useState<string | null>(null);
   const [isAnimating, setIsAnimating] = useState<string | null>(null);
@@ -66,10 +68,10 @@ const ArticleReactions: React.FC<ArticleReactionsProps> = ({ postSlug, className
 
   return (
     <div className={cn('py-8 border-t border-border', className)}>
-      <p className="text-sm text-muted-foreground mb-4 text-center">Did you find this article helpful?</p>
+      <p className="text-sm text-muted-foreground mb-4 text-center">{t('blog.didYouFindHelpful')}</p>
       <div className="flex items-center justify-center gap-3">
         {isLoading ? (
-          <div className="flex items-center gap-2 text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /><span className="text-sm">Loading...</span></div>
+          <div className="flex items-center gap-2 text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /><span className="text-sm">{t('blog.loading')}</span></div>
         ) : REACTIONS.map(({ type, icon: Icon, label, color }) => (
           <motion.button key={type} onClick={() => handleReaction(type)}
             className={cn('flex items-center gap-2 px-4 py-2 rounded-full border transition-all',

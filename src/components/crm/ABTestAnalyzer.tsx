@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -36,6 +37,7 @@ interface ABTestVariant {
 }
 
 export function ABTestAnalyzer() {
+  const { t } = useTranslation('common');
   const queryClient = useQueryClient();
   const [subjectLine, setSubjectLine] = useState('');
   const [generating, setGenerating] = useState(false);
@@ -108,7 +110,7 @@ export function ABTestAnalyzer() {
         <CardContent className="space-y-4">
           <div>
             <Textarea
-              placeholder="Enter your subject line to generate A/B test variants..."
+              placeholder={t("enter_your_subject_line", "Enter your subject line to generate A/B test variants...")}
               value={subjectLine}
               onChange={(e) => setSubjectLine(e.target.value)}
               className="min-h-20"
@@ -138,7 +140,7 @@ export function ABTestAnalyzer() {
               animate={{ opacity: 1, y: 0 }}
               className="space-y-2 mt-4"
             >
-              <h4 className="text-sm font-medium">Generated Variants:</h4>
+              <h4 className="text-sm font-medium">{t("generated_variants", "Generated Variants:")}</h4>
               {generatedVariants.map((variant, index) => (
                 <div 
                   key={index}
@@ -205,11 +207,11 @@ export function ABTestAnalyzer() {
                     <div className="text-right">
                       <div className="flex items-center gap-4">
                         <div>
-                          <p className="text-sm text-muted-foreground">Open Rate</p>
+                          <p className="text-sm text-muted-foreground">{t("open_rate", "Open Rate")}</p>
                           <p className="text-lg font-bold text-blue-500">{variant.open_rate?.toFixed(1)}%</p>
                         </div>
                         <div>
-                          <p className="text-sm text-muted-foreground">Reply Rate</p>
+                          <p className="text-sm text-muted-foreground">{t("reply_rate", "Reply Rate")}</p>
                           <p className="text-lg font-bold text-green-500">{variant.reply_rate?.toFixed(1)}%</p>
                         </div>
                       </div>
@@ -221,7 +223,7 @@ export function ABTestAnalyzer() {
           ) : (
             <div className="text-center py-8">
               <FlaskConical className="w-12 h-12 mx-auto text-muted-foreground/50 mb-3" />
-              <p className="text-muted-foreground">No A/B test data available yet</p>
+              <p className="text-muted-foreground">{t("no_ab_test_data", "No A/B test data available yet")}</p>
             </div>
           )}
         </CardContent>

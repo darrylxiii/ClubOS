@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { motion } from '@/lib/motion';
@@ -44,6 +45,7 @@ const sentimentEmojis: Record<string, string> = {
 };
 
 export function ProspectCard({ prospect, isDragging }: ProspectCardProps) {
+  const { t } = useTranslation('common');
   const { data: stageProbabilities } = useStageProbabilities();
 
   // Calculate weighted value
@@ -132,7 +134,7 @@ export function ProspectCard({ prospect, isDragging }: ProspectCardProps) {
                   {formatCurrencyCompact(annualValue)}
                 </Badge>
               </TooltipTrigger>
-              <TooltipContent>Annual Value</TooltipContent>
+              <TooltipContent>{t("annual_value", "Annual Value")}</TooltipContent>
             </Tooltip>
             {weightedValue > 0 && (
               <Tooltip>

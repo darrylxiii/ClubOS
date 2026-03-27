@@ -34,7 +34,8 @@
   "search": {
     "placeholder": "Search messages...",
     "noResults": "No messages found",
-    "inConversation": "In this conversation"
+    "inConversation": "In this conversation",
+    "filters": "Search filters"
   },
   "actions": {
     "reply": "Reply",
@@ -55,6 +56,7 @@
     "title": "Conversation",
     "typeMessage": "Type a message...",
     "send": "Send",
+    "sendMessage": "Send message",
     "loadMore": "Load more messages",
     "noMessages": "No messages yet",
     "startConversation": "Start the conversation"
@@ -144,5 +146,158 @@
     "offline": "Offline",
     "away": "Away",
     "busy": "Busy"
+  },
+  "videoCall": {
+    "joinedRoom": "Joined meeting room",
+    "mediaConnected": "Camera and microphone connected",
+    "joinedNoMedia": "Joined without camera/microphone. You can try reconnecting from settings.",
+    "dbError": "Database error. Retrying...",
+    "connectFailed": "Could not connect to meeting room. Please try again.",
+    "joinFailed": "Failed to join call. Please try again.",
+    "cameraRequired": "Camera/Microphone Access Required",
+    "enablePermissions": "Please enable camera and microphone permissions in your browser to start a video call.",
+    "howToEnable": "How to enable permissions:",
+    "step1": "Click the camera icon in your browser's address bar",
+    "step2": "Select \"Allow\" for both camera and microphone",
+    "step3": "Click the \"Try Again\" button below",
+    "mediaReconnected": "Camera and microphone reconnected",
+    "mediaConnectFailed": "Failed to connect media. Please check your permissions.",
+    "screenShareStarted": "Screen sharing started",
+    "screenShareFailed": "Failed to start screen sharing",
+    "waitingForOthers": "Waiting for others to join",
+    "shareLinkOrWait": "Share the meeting link or wait for other participants",
+    "mediaNotConnected": "Your camera and microphone are not connected",
+    "connectCameraMic": "Connect Camera & Mic",
+    "connected": "Connected",
+    "participantCount": "{{count}} participant",
+    "you": "You",
+    "annotate": "Annotate",
+    "startVideoCall": "Start video call",
+    "callLogMessage": "📹 Video call ended • Duration: {{duration}} • {{count}} participant{{suffix}}"
+  },
+  "voiceRecorder": {
+    "recordingStarted": "Recording started",
+    "micDenied": "Microphone access denied. Please allow microphone permissions in your browser settings.",
+    "micNotFound": "No microphone found on your device.",
+    "micAccessFailed": "Could not access microphone. Please check your device settings.",
+    "transcribed": "Audio transcribed successfully",
+    "transcribeFailed": "Could not transcribe audio, sending without transcript",
+    "sent": "Voice note sent",
+    "sendFailed": "Failed to send voice note",
+    "cancelRecording": "Cancel recording",
+    "stopAndSend": "Stop and send",
+    "stop": "Stop",
+    "transcribing": "Transcribing audio...",
+    "uploading": "Uploading voice note...",
+    "recordVoiceNote": "Record voice note",
+    "microphone": "Microphone"
+  },
+  "youtube": {
+    "invalidUrl": "Invalid YouTube URL",
+    "pasteValidLink": "Please paste a valid YouTube video link",
+    "videoAdded": "YouTube video added",
+    "shareVideo": "Share YouTube video",
+    "shareVideoTitle": "Share YouTube Video",
+    "pasteUrl": "Paste a YouTube video URL to share",
+    "preview": "Preview",
+    "addVideo": "Add Video",
+    "videoLabel": "YouTube Video",
+    "videoPlayer": "YouTube video player",
+    "popOut": "Pop Out",
+    "thumbnailAlt": "YouTube video thumbnail"
+  },
+  "call": {
+    "microphone": "Microphone",
+    "endCall": "End call",
+    "voiceCallLogMessage": "📞 Voice call ended • Duration: {{duration}}",
+    "micAccessGranted": "Microphone access granted",
+    "micAccessDenied": "Microphone access denied. Please allow permissions in your browser.",
+    "micNotFound": "No microphone found on your device.",
+    "micAccessFailed": "Failed to access microphone. Please check your device.",
+    "micRequired": "Microphone Access Required",
+    "enableMicPermissions": "Please enable microphone permissions in your browser to start a voice call.",
+    "clickMicIcon": "Click the microphone icon in your browser's address bar to allow access.",
+    "close": "Close",
+    "startVoice": "Start voice call",
+    "chooseHow": "Choose how to connect",
+    "audioCall": "Audio Call",
+    "videoCall": "Video Call",
+    "encrypted": "Your call will be end-to-end encrypted"
+  },
+  "group": {
+    "groupInfo": "Group Info",
+    "chatInfo": "Chat Info",
+    "closeInfoPanel": "Close info panel",
+    "members": "members",
+    "membersLabel": "Members",
+    "noParticipantData": "No participant data available",
+    "member": "Member",
+    "sharedFiles": "Shared Files",
+    "sharedLinks": "Shared Links"
+  },
+  "messageActions": {
+    "options": "Message options",
+    "replyInThread": "Reply in thread",
+    "forwardMessage": "Forward message",
+    "editMessage": "Edit message",
+    "deleteMessage": "Delete message",
+    "deleteConfirmation": "This will permanently delete this message. This action cannot be undone.",
+    "deleteFailed": "Failed to delete message",
+    "translatedSuccess": "Translated successfully",
+    "translateFailed": "Failed to translate message",
+    "translateDutch": "Translate to Dutch",
+    "translateEnglish": "Translate to English",
+    "translateSpanish": "Translate to Spanish"
+  },
+  "thread": {
+    "title": "Thread",
+    "replySent": "Reply sent",
+    "replyFailed": "Failed to send reply",
+    "replyPlaceholder": "Reply to thread...",
+    "sendReply": "Send reply",
+    "edited": "edited"
+  },
+  "story": {
+    "forwarded": "Story forwarded successfully",
+    "forwardFailed": "Failed to forward story",
+    "altText": "Story",
+    "forward": "Forward Story",
+    "forwardTo": "Forward Story To"
+  },
+  "sharedMedia": {
+    "loading": "Loading media...",
+    "noFiles": "No files shared yet",
+    "images": "Images",
+    "videos": "Videos",
+    "documents": "Documents",
+    "fileDownloaded": "File downloaded",
+    "downloadFailed": "Failed to download file"
+  },
+  "communicationIntelligence": {
+    "desc": "Unified view of all communications with AI-powered insights",
+    "text2": "Communication Intelligence",
+    "text3": "All Entities",
+    "text4": "Candidates",
+    "text5": "Prospects",
+    "text6": "Partners",
+    "text7": "Healthy",
+    "text8": "Needs Attention",
+    "text9": "At Risk",
+    "text10": "Critical",
+    "text11": "Communication Timeline",
+    "text12": "No relationships tracked yet",
+    "text13": "Detected Patterns",
+    "text14": "No patterns detected"
+  },
+  "messages": {
+    "text1": "Welcome to Messages",
+    "text2": "Start conversations with your network",
+    "text3": "Messages",
+    "text4": "Search conversations and messages...",
+    "text5": "Select a conversation",
+    "text6": "Choose from your existing conversations or start a new one"
+  },
+  "whatsAppInbox": {
+    "text1": "WhatsApp Business"
   }
 }

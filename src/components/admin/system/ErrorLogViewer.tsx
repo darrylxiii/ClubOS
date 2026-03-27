@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { AlertCircle } from "lucide-react";
 import { format } from "date-fns";
+import { useTranslation } from 'react-i18next';
 
 interface ErrorLog {
   id: string;
@@ -16,6 +17,7 @@ interface ErrorLog {
 }
 
 export const ErrorLogViewer = () => {
+  const { t } = useTranslation('admin');
   const { data: errors, isLoading } = useQuery({
     queryKey: ['recent-errors'],
     queryFn: async () => {
@@ -47,13 +49,13 @@ export const ErrorLogViewer = () => {
       <CardHeader>
         <div className="flex items-center gap-2">
           <AlertCircle className="w-5 h-5" />
-          <CardTitle>Recent Error Logs</CardTitle>
+          <CardTitle>{t('system.errorLogViewer.recentErrorLogs')}</CardTitle>
         </div>
-        <CardDescription>Last 10 errors across the platform</CardDescription>
+        <CardDescription>{t('system.errorLogViewer.last10ErrorsAcrossThePlatform')}</CardDescription>
       </CardHeader>
       <CardContent>
         {isLoading ? (
-          <p className="text-sm text-muted-foreground">Loading errors...</p>
+          <p className="text-sm text-muted-foreground">{t('system.errorLogViewer.loadingErrors')}</p>
         ) : !errors || errors.length === 0 ? (
           <p className="text-sm text-success">✓ No errors in the last 24 hours</p>
         ) : (

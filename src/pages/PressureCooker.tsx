@@ -1,4 +1,5 @@
 import { memo, useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
 import { usePressureCookerSession } from '@/hooks/usePressureCookerSession';
@@ -9,6 +10,7 @@ import { PressureCookerResults } from '@/components/pressure-cooker/PressureCook
 import { PressureCookerResult } from '@/types/assessment';
 
 const PressureCooker = memo(() => {
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
   const [phase, setPhase] = useState<'intro' | 'playing' | 'results'>('intro');
   const [results, setResults] = useState<PressureCookerResult | null>(null);

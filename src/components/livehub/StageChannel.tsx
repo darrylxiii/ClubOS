@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useStageChannel } from '@/hooks/useStageChannel';
 import { Button } from '@/components/ui/button';
@@ -23,6 +24,7 @@ interface Channel {
 }
 
 const StageChannel = ({ channelId }: StageChannelProps) => {
+  const { t } = useTranslation('meetings');
   const [channel, setChannel] = useState<Channel | null>(null);
   
   const {
@@ -68,17 +70,17 @@ const StageChannel = ({ channelId }: StageChannelProps) => {
   const handleJoinChannel = async () => {
     try {
       await joinChannel();
-      toast.success('Joined stage');
+      toast.success(t('livehub.joinedStage'));
     } catch (error) {
       console.error('Error joining stage:', error);
-      toast.error('Failed to join stage');
+      toast.error(t('livehub.failedToJoinStage'));
     }
   };
 
   const handleLeaveChannel = async () => {
     try {
       await leaveChannel();
-      toast.success('Left stage');
+      toast.success(t('livehub.leftStage'));
     } catch (error) {
       console.error('Error leaving stage:', error);
     }
@@ -95,12 +97,12 @@ const StageChannel = ({ channelId }: StageChannelProps) => {
           <h2 className="font-semibold">{channel.name}</h2>
           {isConnected && (
             <Badge variant="secondary" className="text-xs">
-              {isSpeaker ? 'Speaker' : 'Listener'}
+              {isSpeaker ? t('livehub.speaker') : t('livehub.listener')}
             </Badge>
           )}
         </div>
         <div className="text-xs text-muted-foreground">
-          {speakers.length} {speakers.length === 1 ? 'speaker' : 'speakers'} · {listeners.length} {listeners.length === 1 ? 'listener' : 'listeners'}
+          {t('livehub.speakersCount', { count: speakers.length })} · {t('livehub.listenersCount', { count: listeners.length })}
         </div>
       </div>
 
@@ -114,11 +116,11 @@ const StageChannel = ({ channelId }: StageChannelProps) => {
               </div>
               <h3 className="text-xl font-semibold">{channel.name}</h3>
               <p className="text-sm text-muted-foreground">
-                {speakers.length + listeners.length} {speakers.length + listeners.length === 1 ? 'person' : 'people'} in stage
+                {t('livehub.peopleInStage', { count: speakers.length + listeners.length })}
               </p>
               <Button onClick={handleJoinChannel} size="lg" className="gap-2">
                 <Phone className="w-4 h-4" />
-                Join Stage
+                {t('livehub.joinStage')}
               </Button>
             </div>
           </div>
@@ -134,7 +136,7 @@ const StageChannel = ({ channelId }: StageChannelProps) => {
               <div className="px-4 py-2 bg-muted/30">
                 <h3 className="text-sm font-semibold flex items-center gap-2">
                   <Crown className="w-4 h-4 text-primary" />
-                  Speakers ({speakers.length})
+                  {t('livehub.speakersSection', { count: speakers.length })}
                 </h3>
               </div>
               <div className="p-4">
@@ -180,7 +182,7 @@ const StageChannel = ({ channelId }: StageChannelProps) => {
                           onClick={() => moveToAudience(speaker.id)}
                         >
                           <UserMinus className="w-3 h-3 mr-1" />
-                          Move to Audience
+                          {t('livehub.moveToAudience')}
                         </Button>
                       )}
                     </div>
@@ -193,7 +195,7 @@ const StageChannel = ({ channelId }: StageChannelProps) => {
             <div className="flex-1 flex flex-col min-h-0">
               <div className="px-4 py-2 bg-muted/30">
                 <h3 className="text-sm font-semibold">
-                  Audience ({listeners.length})
+                  {t('livehub.audienceSection', { count: listeners.length })}
                 </h3>
               </div>
               <ScrollArea className="flex-1">
@@ -215,7 +217,7 @@ const StageChannel = ({ channelId }: StageChannelProps) => {
                           {listener.is_hand_raised && (
                             <div className="flex items-center gap-1 text-xs text-orange-500">
                               <Hand className="w-3 h-3" />
-                              Hand raised
+                              {t('livehub.handRaised')}
                             </div>
                           )}
                         </div>
@@ -230,14 +232,14 @@ const StageChannel = ({ channelId }: StageChannelProps) => {
                                 onClick={() => inviteToSpeak(listener.id)}
                               >
                                 <UserPlus className="w-3 h-3 mr-1" />
-                                Invite
+                                {t('livehub.invite')}
                               </Button>
                               <Button
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => lowerHand(listener.id)}
                               >
-                                Lower Hand
+                                {t('livehub.lowerHand')}
                               </Button>
                             </>
                           )}
@@ -247,7 +249,7 @@ const StageChannel = ({ channelId }: StageChannelProps) => {
                   ))}
                   {listeners.length === 0 && (
                     <div className="text-center py-8 text-muted-foreground text-sm">
-                      No listeners yet
+                      {t('livehub.noListenersYet')}
                     </div>
                   )}
                 </div>

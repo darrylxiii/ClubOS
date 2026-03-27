@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React from 'react';
 import {
   Dialog,
@@ -83,6 +84,7 @@ export function KPIDetailModal({
   onTogglePin,
   onConfigureAlert,
 }: KPIDetailModalProps) {
+  const { t } = useTranslation('common');
   if (!kpi) return null;
 
   // Safe status lookup with fallback to neutral
@@ -206,7 +208,7 @@ export function KPIDetailModal({
             {kpi.targetValue && (
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Progress to Target</span>
+                  <span className="text-muted-foreground">{t("progress_to_target", "Progress to Target")}</span>
                   <span className="font-medium">{Math.round(progress)}%</span>
                 </div>
                 <Progress value={progress} className="h-2" />
@@ -215,7 +217,7 @@ export function KPIDetailModal({
 
             {/* Sparkline Trend */}
             <div className="space-y-2">
-              <span className="text-sm font-medium">7-Day Trend</span>
+              <span className="text-sm font-medium">{t("7day_trend", "7-Day Trend")}</span>
               <div className="h-16 bg-muted/30 rounded-lg p-2">
                 <KPISparkline kpi={kpi} height={48} />
               </div>
@@ -224,7 +226,7 @@ export function KPIDetailModal({
             {/* Breakdown */}
             {kpi.breakdown && Object.keys(kpi.breakdown).length > 0 && (
               <div className="space-y-2">
-                <span className="text-sm font-medium">Breakdown</span>
+                <span className="text-sm font-medium">{t("breakdown", "Breakdown")}</span>
                 <div className="grid grid-cols-2 gap-2">
                   {Object.entries(kpi.breakdown).map(([key, val]) => (
                     <div 
@@ -247,7 +249,7 @@ export function KPIDetailModal({
                 <div className="flex items-start gap-3">
                   <Lightbulb className="h-5 w-5 text-amber-500 mt-0.5" />
                   <div className="flex-1">
-                    <p className="text-sm font-medium">Recommended Action</p>
+                    <p className="text-sm font-medium">{t("recommended_action", "Recommended Action")}</p>
                     <p className="text-sm text-muted-foreground mt-1">{tip.tip}</p>
                     {tip.action && (
                       <Button variant="link" className="p-0 h-auto mt-2 text-amber-600">

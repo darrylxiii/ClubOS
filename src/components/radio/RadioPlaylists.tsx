@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,6 +20,7 @@ const MOOD_FILTERS = [
 ];
 
 export function RadioPlaylists() {
+  const { t } = useTranslation('common');
   const [selectedMood, setSelectedMood] = useState<string | null>(null);
   const navigate = useNavigate();
 
@@ -54,7 +56,7 @@ export function RadioPlaylists() {
     <div className="space-y-6">
       {/* Header */}
       <div className="space-y-2">
-        <h2 className="text-3xl font-bold">🎵 Choose Your Vibe</h2>
+        <h2 className="text-3xl font-bold">{t("choose_your_vibe", "🎵 Choose Your Vibe")}</h2>
         <p className="text-muted-foreground">
           Stream curated Spotify playlists for every mood
         </p>
@@ -113,7 +115,7 @@ export function RadioPlaylists() {
                   <div className="absolute bottom-3 right-3">
                     <img
                       src="https://storage.googleapis.com/pr-newsroom-wp/1/2018/11/Spotify_Logo_RGB_Green.png"
-                      alt="Spotify"
+                      alt={t("spotify", "Spotify")}
                       className="h-6 opacity-80"
                     />
                   </div>

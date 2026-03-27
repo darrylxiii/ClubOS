@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -59,6 +60,7 @@ const statusConfig: Record<string, { color: string; icon: typeof CheckCircle2 }>
 };
 
 export function GoalsDashboard() {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [newGoalInput, setNewGoalInput] = useState("");
@@ -106,10 +108,10 @@ export function GoalsDashboard() {
       queryClient.invalidateQueries({ queryKey: ['agent-goals'] });
       setNewGoalInput("");
       setIsCreating(false);
-      toast.success("Goal created! QUIN is now working on it.");
+      toast.success(t("goal_created_quin_is", "Goal created! QUIN is now working on it."));
     },
     onError: (error) => {
-      toast.error("Failed to create goal: " + error.message);
+      toast.error(t("failed_to_create_goal", "Failed to create goal:") + error.message);
     }
   });
 
@@ -124,7 +126,7 @@ export function GoalsDashboard() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['agent-goals'] });
-      toast.success("Goal status updated");
+      toast.success(t("goal_status_updated", "Goal status updated"));
     }
   });
 
@@ -156,34 +158,34 @@ export function GoalsDashboard() {
       <div className="grid gap-4 md:grid-cols-3">
         <Card variant="static">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Goals</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("active_goals", "Active Goals")}</CardTitle>
             <Target className="h-4 w-4 text-emerald-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{activeGoals.length}</div>
-            <p className="text-xs text-muted-foreground">QUIN is working on these</p>
+            <p className="text-xs text-muted-foreground">{t("quin_is_working_on", "QUIN is working on these")}</p>
           </CardContent>
         </Card>
 
         <Card variant="static">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Completed</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("completed", "Completed")}</CardTitle>
             <CheckCircle2 className="h-4 w-4 text-blue-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{completedGoals.length}</div>
-            <p className="text-xs text-muted-foreground">Goals achieved</p>
+            <p className="text-xs text-muted-foreground">{t("goals_achieved", "Goals achieved")}</p>
           </CardContent>
         </Card>
 
         <Card variant="static">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">On Hold</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("on_hold", "On Hold")}</CardTitle>
             <Pause className="h-4 w-4 text-amber-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{pausedGoals.length}</div>
-            <p className="text-xs text-muted-foreground">Waiting for action</p>
+            <p className="text-xs text-muted-foreground">{t("waiting_for_action", "Waiting for action")}</p>
           </CardContent>
         </Card>
       </div>
@@ -199,7 +201,7 @@ export function GoalsDashboard() {
         <CardContent>
           <div className="flex gap-3">
             <Input
-              placeholder="e.g., Fill the Senior PM role within 30 days..."
+              placeholder={t("eg_fill_the_senior", "e.g., Fill the Senior PM role within 30 days...")}
               value={newGoalInput}
               onChange={(e) => setNewGoalInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleCreateGoal()}
@@ -269,7 +271,7 @@ export function GoalsDashboard() {
         <Card variant="static" className="py-12">
           <CardContent className="flex flex-col items-center justify-center text-center">
             <Target className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No goals yet</h3>
+            <h3 className="text-lg font-semibold mb-2">{t("no_goals_yet", "No goals yet")}</h3>
             <p className="text-muted-foreground max-w-md">
               Create your first goal and let QUIN help you achieve it. 
               Simply describe what you want to accomplish.
@@ -314,7 +316,7 @@ function GoalCard({
               {/* Progress Bar */}
               <div className="space-y-1 mb-3">
                 <div className="flex justify-between text-xs text-muted-foreground">
-                  <span>Progress</span>
+                  <span>{t("progress", "Progress")}</span>
                   <span>{progressPercent.toFixed(0)}%</span>
                 </div>
                 <Progress value={progressPercent} className="h-2" />
@@ -339,7 +341,7 @@ function GoalCard({
               {/* Next Action Description */}
               {goal.next_action_description && (
                 <div className="mt-2 p-2 rounded-lg bg-muted/50 text-sm">
-                  <span className="text-muted-foreground">Next: </span>
+                  <span className="text-muted-foreground">{t("next", "Next:")}</span>
                   {goal.next_action_description}
                 </div>
               )}
@@ -347,7 +349,7 @@ function GoalCard({
               {/* Recent Progress */}
               {recentProgress.length > 0 && (
                 <div className="mt-3 space-y-2">
-                  <span className="text-xs font-medium text-muted-foreground">Recent Activity</span>
+                  <span className="text-xs font-medium text-muted-foreground">{t("recent_activity", "Recent Activity")}</span>
                   {recentProgress.map((progress) => (
                     <div key={progress.id} className="flex items-start gap-2 text-xs">
                       <div className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 flex-shrink-0" />
@@ -371,7 +373,7 @@ function GoalCard({
                 variant="ghost" 
                 size="icon"
                 onClick={() => onUpdateStatus('paused')}
-                title="Pause goal"
+                title={t("pause_goal", "Pause goal")}
               >
                 <Pause className="h-4 w-4" />
               </Button>
@@ -381,7 +383,7 @@ function GoalCard({
                 variant="ghost" 
                 size="icon"
                 onClick={() => onUpdateStatus('active')}
-                title="Resume goal"
+                title={t("resume_goal", "Resume goal")}
               >
                 <Play className="h-4 w-4" />
               </Button>
@@ -390,7 +392,7 @@ function GoalCard({
               variant="ghost" 
               size="icon"
               onClick={() => onUpdateStatus('completed')}
-              title="Mark as completed"
+              title={t("mark_as_completed", "Mark as completed")}
             >
               <CheckCircle2 className="h-4 w-4" />
             </Button>

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Monitor, MonitorOff, Eye, Maximize2, Minimize2, GripVertical } from 'lucide-react';
@@ -13,6 +14,7 @@ interface PresenterHUDProps {
 }
 
 export function PresenterHUD({ participantName, onStopSharing, participantCount, stream }: PresenterHUDProps) {
+  const { t } = useTranslation('common');
   const [isMinimized, setIsMinimized] = useState(false);
   const [showPreview, setShowPreview] = useState(true);
   const dragControls = useDragControls();
@@ -85,7 +87,7 @@ export function PresenterHUD({ participantName, onStopSharing, participantCount,
           <div className="flex items-center gap-2">
             <GripVertical className="h-4 w-4 text-white/60" />
             <Monitor className="h-4 w-4 text-white" />
-            <span className="text-sm font-medium text-white">Screen Share</span>
+            <span className="text-sm font-medium text-white">{t("screen_share", "Screen Share")}</span>
           </div>
           <div className="flex items-center gap-2">
             <Button

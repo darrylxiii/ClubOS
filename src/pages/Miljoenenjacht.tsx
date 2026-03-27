@@ -1,4 +1,5 @@
 import { memo, useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { IntroScreen } from '@/components/miljoenenjacht/IntroScreen';
 import { CaseSelection } from '@/components/miljoenenjacht/CaseSelection';
 import { CaseGrid } from '@/components/miljoenenjacht/CaseGrid';
@@ -23,6 +24,8 @@ import { useAssessmentResults } from '@/hooks/useAssessmentResults';
 const ROUNDS_STRUCTURE = [6, 5, 4, 3, 2, 2];
 
 const Miljoenenjacht = memo(() => {
+  const { t } = useTranslation('common');
+
   const { saveResult } = useAssessmentResults();
   const [gameState, setGameState] = useState<GameState>({
     stage: 'intro',
@@ -383,7 +386,7 @@ const Miljoenenjacht = memo(() => {
           <div className="lg:col-span-1 space-y-4">
             <Card>
               <CardContent className="p-4">
-                <h3 className="font-semibold mb-4 text-center">Prize Board</h3>
+                <h3 className="font-semibold mb-4 text-center">{t('miljoenenjacht.title')}</h3>
                 <GameBoard
                   cases={gameState.cases}
                   playerCase={gameState.playerCase || 0}

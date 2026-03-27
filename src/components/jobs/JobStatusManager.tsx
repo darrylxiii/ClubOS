@@ -1,4 +1,5 @@
 import { memo, useState } from "react";
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { JobStatusBadge, JobStatus } from "./JobStatusBadge";
@@ -43,6 +44,7 @@ export const JobStatusManager = memo(({
   currentStatus,
   onStatusChange
 }: JobStatusManagerProps) => {
+  const { t } = useTranslation('jobs');
   const [confirmDialog, setConfirmDialog] = useState<{
     open: boolean;
     action: string;
@@ -93,29 +95,29 @@ export const JobStatusManager = memo(({
             <Button
               onClick={() => handleAction(
                 "publish",
-                "Publish Job",
-                `This will make "${jobTitle}" visible to candidates and start accepting applications.`,
+                t('statusManager.publishJob', 'Publish Job'),
+                t('statusManager.publishDescription', 'This will make "{{title}}" visible to candidates and start accepting applications.', { title: jobTitle }),
                 () => publishJob.mutate({ jobId, jobTitle })
               )}
               className="gap-2 bg-success hover:bg-success/90 text-success-foreground"
               disabled={isLoading}
             >
               {publishJob.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
-              Publish Job
+              {t('statusManager.publishJob', 'Publish Job')}
             </Button>
             <Button
               variant="outline"
               onClick={() => handleAction(
                 "close",
-                "Close Job",
-                `This will close "${jobTitle}" without publishing. You can reopen it later.`,
+                t('statusManager.closeJob', 'Close Job'),
+                t('statusManager.closeWithoutPublishing', 'This will close "{{title}}" without publishing. You can reopen it later.', { title: jobTitle }),
                 () => closeJob.mutate({ jobId, jobTitle })
               )}
               className="gap-2"
               disabled={isLoading}
             >
               {closeJob.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />}
-              Close Job
+              {t('statusManager.closeJob', 'Close Job')}
             </Button>
           </div>
         );
@@ -127,29 +129,29 @@ export const JobStatusManager = memo(({
               variant="outline"
               onClick={() => handleAction(
                 "unpublish",
-                "Unpublish to Draft",
-                `This will hide "${jobTitle}" from candidates and move it back to draft.`,
+                t('statusManager.unpublishToDraft', 'Unpublish to Draft'),
+                t('statusManager.unpublishDescription', 'This will hide "{{title}}" from candidates and move it back to draft.', { title: jobTitle }),
                 () => unpublishJob.mutate({ jobId, jobTitle })
               )}
               className="gap-2"
               disabled={isLoading}
             >
               {unpublishJob.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileEdit className="w-4 h-4" />}
-              Unpublish to Draft
+              {t('statusManager.unpublishToDraft', 'Unpublish to Draft')}
             </Button>
             <Button
               variant="outline"
               onClick={() => handleAction(
                 "close",
-                "Close Job",
-                `This will close "${jobTitle}" and stop accepting new applications.`,
+                t('statusManager.closeJob', 'Close Job'),
+                t('statusManager.closePublishedDescription', 'This will close "{{title}}" and stop accepting new applications.', { title: jobTitle }),
                 () => closeJob.mutate({ jobId, jobTitle })
               )}
               className="gap-2 text-warning hover:text-warning"
               disabled={isLoading}
             >
               {closeJob.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />}
-              Close Job
+              {t('statusManager.closeJob', 'Close Job')}
             </Button>
           </div>
         );
@@ -160,29 +162,29 @@ export const JobStatusManager = memo(({
             <Button
               onClick={() => handleAction(
                 "reopen",
-                "Reopen Job",
-                `This will reopen "${jobTitle}" and start accepting applications again.`,
+                t('statusManager.reopenJob', 'Reopen Job'),
+                t('statusManager.reopenDescription', 'This will reopen "{{title}}" and start accepting applications again.', { title: jobTitle }),
                 () => reopenJob.mutate({ jobId, jobTitle })
               )}
               className="gap-2"
               disabled={isLoading}
             >
               {reopenJob.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
-              Reopen Job
+              {t('statusManager.reopenJob', 'Reopen Job')}
             </Button>
             <Button
               variant="outline"
               onClick={() => handleAction(
                 "archive",
-                "Archive Job",
-                `This will archive "${jobTitle}". Archived jobs are hidden but can be restored.`,
+                t('statusManager.archiveJob', 'Archive Job'),
+                t('statusManager.archiveDescription', 'This will archive "{{title}}". Archived jobs are hidden but can be restored.', { title: jobTitle }),
                 () => archiveJob.mutate({ jobId, jobTitle })
               )}
               className="gap-2"
               disabled={isLoading}
             >
               {archiveJob.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Archive className="w-4 h-4" />}
-              Archive Job
+              {t('statusManager.archiveJob', 'Archive Job')}
             </Button>
           </div>
         );
@@ -193,15 +195,15 @@ export const JobStatusManager = memo(({
             <Button
               onClick={() => handleAction(
                 "restore",
-                "Restore Job",
-                `This will restore "${jobTitle}" from archive. It will be moved to "Closed" status.`,
+                t('statusManager.restoreJob', 'Restore Job'),
+                t('statusManager.restoreDescription', 'This will restore "{{title}}" from archive. It will be moved to "Closed" status.', { title: jobTitle }),
                 () => restoreJob.mutate({ jobId, jobTitle })
               )}
               className="gap-2"
               disabled={isLoading}
             >
               {restoreJob.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
-              Restore from Archive
+              {t('statusManager.restoreFromArchive', 'Restore from Archive')}
             </Button>
           </div>
         );
@@ -213,31 +215,31 @@ export const JobStatusManager = memo(({
 
   // Status flow visualization
   const statusFlow = [
-    { status: "draft" as JobStatus, label: "Draft" },
-    { status: "published" as JobStatus, label: "Active" },
-    { status: "closed" as JobStatus, label: "Closed" },
-    { status: "archived" as JobStatus, label: "Archived" },
+    { status: "draft" as JobStatus, label: t('statusManager.draft', 'Draft') },
+    { status: "published" as JobStatus, label: t('statusManager.active', 'Active') },
+    { status: "closed" as JobStatus, label: t('statusManager.closed', 'Closed') },
+    { status: "archived" as JobStatus, label: t('statusManager.archived', 'Archived') },
   ];
 
   return (
     <>
       <Card>
         <CardHeader>
-          <CardTitle>Job Status</CardTitle>
+          <CardTitle>{t('statusManager.title', 'Job Status')}</CardTitle>
           <CardDescription>
-            Manage the lifecycle of this job posting
+            {t('statusManager.description', 'Manage the lifecycle of this job posting')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Current Status Display */}
           <div className="flex items-center gap-4">
-            <span className="text-sm text-muted-foreground">Current Status:</span>
+            <span className="text-sm text-muted-foreground">{t('statusManager.currentStatus', 'Current Status:')}</span>
             <JobStatusBadge status={currentStatus} size="lg" />
           </div>
 
           {/* Status Flow Visualization */}
           <div className="p-4 bg-muted/30 rounded-lg">
-            <p className="text-xs text-muted-foreground mb-3">Job Lifecycle</p>
+            <p className="text-xs text-muted-foreground mb-3">{t('statusManager.jobLifecycle', 'Job Lifecycle')}</p>
             <div className="flex items-center gap-2 flex-wrap">
               {statusFlow.map((item, index) => (
                 <div key={item.status} className="flex items-center gap-2">
@@ -258,7 +260,7 @@ export const JobStatusManager = memo(({
 
           {/* Action Buttons */}
           <div className="space-y-3">
-            <p className="text-sm font-medium">Available Actions</p>
+            <p className="text-sm font-medium">{t('statusManager.availableActions', 'Available Actions')}</p>
             {renderActions()}
           </div>
         </CardContent>
@@ -272,9 +274,9 @@ export const JobStatusManager = memo(({
             <AlertDialogDescription>{confirmDialog.description}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t('common:cancel', 'Cancel')}</AlertDialogCancel>
             <AlertDialogAction onClick={confirmDialog.onConfirm}>
-              Confirm
+              {t('common:confirm', 'Confirm')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

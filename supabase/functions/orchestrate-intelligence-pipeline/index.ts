@@ -36,25 +36,11 @@ serve(async (req) => {
       errors: [] as any[],
     };
 
-    // Step 1: Calculate stakeholder influence scores
-    try {
-      const step1Start = Date.now();
-      console.log('[Pipeline] Step 1: Calculating stakeholder influence...');
-      
-      const { data: influenceData, error: influenceError } = await supabase.functions.invoke(
-        'calculate-stakeholder-influence',
-        { body: { company_id } }
-      );
-
-      if (influenceError) throw influenceError;
-      
-      results.steps.stakeholder_influence.status = 'completed';
-      results.steps.stakeholder_influence.duration_ms = Date.now() - step1Start;
-      console.log(`[Pipeline] Step 1 completed in ${results.steps.stakeholder_influence.duration_ms}ms`);
-    } catch (error: any) {
-      console.error('[Pipeline] Step 1 failed:', error);
-      results.steps.stakeholder_influence.status = 'failed';
-      results.errors.push({ step: 'stakeholder_influence', error: error.message });
+    // Step 1: Calculate stakeholder influence scores (skipped — function not yet implemented)
+    {
+      console.log('[Pipeline] Step 1: Stakeholder influence — skipped (not yet implemented)');
+      results.steps.stakeholder_influence.status = 'skipped';
+      results.steps.stakeholder_influence.duration_ms = 0;
     }
 
     // Step 2: Extract insights from all interactions (parallel processing with retry support)

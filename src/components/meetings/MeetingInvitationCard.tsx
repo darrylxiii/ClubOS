@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { motion, AnimatePresence } from '@/lib/motion';
 import { X, Video, Calendar, Clock, Users, Check, X as XIcon, HelpCircle } from 'lucide-react';
@@ -32,6 +33,7 @@ export function MeetingInvitationCard({
   onRespond,
   hasConflict = false,
 }: MeetingInvitationCardProps) {
+  const { t } = useTranslation('common');
   const [isResponding, setIsResponding] = useState(false);
   const [isDismissing, setIsDismissing] = useState(false);
 
@@ -71,7 +73,7 @@ export function MeetingInvitationCard({
       onRespond(response);
     } catch (error) {
       console.error('Error responding to invitation:', error);
-      toast.error('Failed to respond to invitation');
+      toast.error(t("failed_to_respond_to", "Failed to respond to invitation"));
     } finally {
       setIsResponding(false);
     }
@@ -115,7 +117,7 @@ export function MeetingInvitationCard({
                 </Avatar>
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-muted-foreground">Meeting Invitation</p>
+                <p className="text-sm font-medium text-muted-foreground">{t("meeting_invitation", "Meeting Invitation")}</p>
                 <p className="text-base font-semibold text-foreground truncate">
                   {invitation.inviter_name || 'Someone'}
                 </p>

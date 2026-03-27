@@ -8,6 +8,7 @@ import type { DisplaySettings } from "./PipelineDisplaySettings";
 import { RescheduleDialog } from "@/components/booking/RescheduleDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { Calendar } from "lucide-react";
+import { useTranslation } from 'react-i18next';
 
 interface Stage {
   name: string;
@@ -103,6 +104,7 @@ export function ExpandablePipelineStage({
   displaySettings,
   totalStages,
 }: ExpandablePipelineStageProps) {
+  const { t } = useTranslation('partner');
   const [stageBookings, setStageBookings] = useState<Booking[]>([]);
   const [loadingBookings, setLoadingBookings] = useState(false);
   const [rescheduleDialogOpen, setRescheduleDialogOpen] = useState(false);

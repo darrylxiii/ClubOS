@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -38,6 +39,7 @@ interface DecisionExplanation {
 }
 
 export function DecisionExplainer({ decisionId }: { decisionId?: string }) {
+  const { t } = useTranslation('common');
   const [selectedDecision, setSelectedDecision] = useState<string | null>(decisionId || null);
 
   const { data: recentDecisions, isLoading } = useQuery({
@@ -87,7 +89,7 @@ export function DecisionExplainer({ decisionId }: { decisionId?: string }) {
         <div className="grid md:grid-cols-2 gap-4">
           {/* Decision List */}
           <div className="space-y-2">
-            <h4 className="text-sm font-medium text-muted-foreground">Recent Decisions</h4>
+            <h4 className="text-sm font-medium text-muted-foreground">{t("recent_decisions", "Recent Decisions")}</h4>
             <ScrollArea className="h-[300px]">
               <div className="space-y-2 pr-2">
                 {recentDecisions?.map((decision) => (
@@ -131,7 +133,7 @@ export function DecisionExplainer({ decisionId }: { decisionId?: string }) {
             {selectedDecisionData ? (
               <>
                 <div className="p-3 rounded-lg bg-muted/30">
-                  <h4 className="text-sm font-medium mb-2">Why this decision?</h4>
+                  <h4 className="text-sm font-medium mb-2">{t("why_this_decision", "Why this decision?")}</h4>
                   <p className="text-sm text-muted-foreground">
                     {selectedDecisionData.reasoning.confidenceExplanation}
                   </p>
@@ -196,7 +198,7 @@ export function DecisionExplainer({ decisionId }: { decisionId?: string }) {
               <div className="flex items-center justify-center h-full text-muted-foreground">
                 <div className="text-center">
                   <HelpCircle className="h-8 w-8 mx-auto mb-2" />
-                  <p className="text-sm">Select a decision to see explanation</p>
+                  <p className="text-sm">{t("select_a_decision_to", "Select a decision to see explanation")}</p>
                 </div>
               </div>
             )}

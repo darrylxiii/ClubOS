@@ -6,8 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { DynamicChart } from "@/components/charts/DynamicChart";
 import { usePlatformSettings } from "@/hooks/usePlatformSettings";
+import { useTranslation } from 'react-i18next';
 
 export const RevenueSparkline = () => {
+  const { t } = useTranslation('common');
   const { settings } = usePlatformSettings();
 
   const { data, isLoading } = useQuery({
@@ -70,7 +72,7 @@ export const RevenueSparkline = () => {
 
   return (
     <DashboardWidget
-      title="Revenue & Growth"
+      title={t('revenueSparkline.title.revenue')} Growth
       icon={DollarSign}
       iconClassName="text-premium"
       isLoading={isLoading}
@@ -122,7 +124,7 @@ export const RevenueSparkline = () => {
         {/* Pipeline */}
         <div className="flex items-center justify-between p-2.5 rounded-lg bg-premium/10 border border-premium/20">
           <div>
-            <p className="text-xs text-muted-foreground">Pipeline Value</p>
+            <p className="text-xs text-muted-foreground">{t('revenueSparkline.pipelineValue')}</p>
             <p className="font-semibold text-premium">{formatCurrency(data?.pipelineValue || 0)}</p>
           </div>
           <span className="text-xs text-muted-foreground">{data?.pipelineCount || 0} active</span>

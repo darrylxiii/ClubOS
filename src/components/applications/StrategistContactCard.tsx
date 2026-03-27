@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { MessageSquare } from "lucide-react";
@@ -15,18 +16,19 @@ interface StrategistContactCardProps {
 }
 
 export function StrategistContactCard({ strategist, lastContact }: StrategistContactCardProps) {
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
 
   if (!strategist) {
     return (
       <div className="p-4 rounded-xl bg-card/30 backdrop-blur-[var(--blur-glass)] border border-border/20 h-full">
-        <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-3">Talent Strategist</div>
+        <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-3">{t("talent_strategist", "Talent Strategist")}</div>
         <div className="flex items-center gap-3">
           <Avatar className="w-12 h-12">
             <AvatarFallback className="bg-muted">?</AvatarFallback>
           </Avatar>
           <div className="flex-1">
-            <div className="text-sm text-muted-foreground">Being assigned...</div>
+            <div className="text-sm text-muted-foreground">{t("being_assigned", "Being assigned...")}</div>
           </div>
         </div>
       </div>
@@ -35,7 +37,7 @@ export function StrategistContactCard({ strategist, lastContact }: StrategistCon
 
   return (
     <div className="p-4 rounded-xl bg-card/30 backdrop-blur-[var(--blur-glass)] border border-border/20 h-full flex flex-col">
-      <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-3">Talent Strategist</div>
+      <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-3">{t("talent_strategist", "Talent Strategist")}</div>
       
       <div className="flex items-center gap-3 mb-3">
         <div className="relative">

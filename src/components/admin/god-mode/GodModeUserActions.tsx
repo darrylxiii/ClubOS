@@ -20,6 +20,7 @@ import { useGodMode, AccountStatus } from '@/hooks/useGodMode';
 import { UserAccountActionsDialog } from './UserAccountActionsDialog';
 import { AccountStatusBadge } from '@/components/ui/UnifiedStatusBadge';
 import { Badge } from '@/components/ui/badge';
+import { useTranslation } from 'react-i18next';
 
 interface GodModeUserActionsProps {
   user: {
@@ -41,6 +42,7 @@ export function GodModeUserActions({
   onActionComplete,
   showStatusBadge = true,
 }: GodModeUserActionsProps) {
+  const { t } = useTranslation('admin');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const [targetIsSuperAdmin, setTargetIsSuperAdmin] = useState(false);

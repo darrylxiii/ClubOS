@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { usePagePermissions, PagePermission } from '@/hooks/usePagePermissions';
 import { WorkspacePage } from '@/hooks/useWorkspacePages';
@@ -76,6 +77,7 @@ export function EnhancedShareDialog({
   page, 
   onUpdate 
 }: EnhancedShareDialogProps) {
+  const { t } = useTranslation('common');
   const [copied, setCopied] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
   const [invitePermission, setInvitePermission] = useState<'view' | 'comment' | 'edit'>('view');
@@ -88,7 +90,7 @@ export function EnhancedShareDialog({
   const handleCopyLink = async () => {
     await navigator.clipboard.writeText(pageUrl);
     setCopied(true);
-    toast.success('Link copied to clipboard');
+    toast.success(t("link_copied_to_clipboard", "Link copied to clipboard"));
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -109,7 +111,7 @@ export function EnhancedShareDialog({
     // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(inviteEmail)) {
-      toast.error('Please enter a valid email address');
+      toast.error(t("please_enter_a_valid", "Please enter a valid email address"));
       return;
     }
 
@@ -149,11 +151,11 @@ export function EnhancedShareDialog({
           <TabsContent value="people" className="space-y-4 mt-4">
             {/* Invite Section */}
             <div className="space-y-3">
-              <Label className="text-sm font-medium">Invite people</Label>
+              <Label className="text-sm font-medium">{t("invite_people", "Invite people")}</Label>
               <div className="flex gap-2">
                 <Input
                   type="email"
-                  placeholder="Enter email address"
+                  placeholder={t("enter_email_address", "Enter email address")}
                   value={inviteEmail}
                   onChange={(e) => setInviteEmail(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleInvite()}
@@ -190,7 +192,7 @@ export function EnhancedShareDialog({
 
             {/* People with Access */}
             <div className="space-y-3">
-              <Label className="text-sm font-medium">People with access</Label>
+              <Label className="text-sm font-medium">{t("people_with_access", "People with access")}</Label>
               <ScrollArea className="h-[200px]">
                 <div className="space-y-2">
                   {/* Owner */}
@@ -202,8 +204,8 @@ export function EnhancedShareDialog({
                         </AvatarFallback>
                       </Avatar>
                       <div>
-                        <p className="text-sm font-medium">You (Owner)</p>
-                        <p className="text-xs text-muted-foreground">Full access</p>
+                        <p className="text-sm font-medium">{t("you_owner", "You (Owner)")}</p>
+                        <p className="text-xs text-muted-foreground">{t("full_access", "Full access")}</p>
                       </div>
                     </div>
                     <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded">
@@ -229,7 +231,7 @@ export function EnhancedShareDialog({
                   {permissions.length === 0 && (
                     <div className="text-center py-6 text-muted-foreground">
                       <Mail className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                      <p className="text-sm">No one else has access yet</p>
+                      <p className="text-sm">{t("no_one_else_has", "No one else has access yet")}</p>
                     </div>
                   )}
                 </div>
@@ -240,7 +242,7 @@ export function EnhancedShareDialog({
           <TabsContent value="access" className="space-y-4 mt-4">
             {/* Visibility Setting */}
             <div className="space-y-3">
-              <Label className="text-sm font-medium">Page Access</Label>
+              <Label className="text-sm font-medium">{t("page_access", "Page Access")}</Label>
               <div className="grid gap-2">
                 {(['private', 'shared', 'public'] as const).map((visibility) => {
                   const config = visibilityConfig[visibility];
@@ -286,7 +288,7 @@ export function EnhancedShareDialog({
 
             {/* Copy Link */}
             <div className="space-y-3">
-              <Label className="text-sm font-medium">Page Link</Label>
+              <Label className="text-sm font-medium">{t("page_link", "Page Link")}</Label>
               <div className="flex items-center gap-2">
                 <Input
                   value={pageUrl}

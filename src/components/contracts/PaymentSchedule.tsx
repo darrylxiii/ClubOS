@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -19,6 +20,7 @@ interface PaymentScheduleProps {
 }
 
 export function PaymentSchedule({ contract, milestones, view }: PaymentScheduleProps) {
+  const { t } = useTranslation('common');
   const totalEarned = milestones
     .filter(m => m.status === 'paid')
     .reduce((sum, m) => sum + Number(m.amount), 0);
@@ -108,7 +110,7 @@ export function PaymentSchedule({ contract, milestones, view }: PaymentScheduleP
                 €{Number(milestone.amount).toLocaleString()}
               </div>
               {milestone.status === 'paid' && (
-                <div className="text-xs text-green-600">Received</div>
+                <div className="text-xs text-green-600">{t("received", "Received")}</div>
               )}
             </div>
           </div>
@@ -118,7 +120,7 @@ export function PaymentSchedule({ contract, milestones, view }: PaymentScheduleP
       {/* Fee breakdown */}
       <div className="pt-4 border-t border-border/50 space-y-2">
         <div className="flex items-center justify-between text-sm">
-          <span className="text-muted-foreground">Total Contract Value</span>
+          <span className="text-muted-foreground">{t("total_contract_value", "Total Contract Value")}</span>
           <span className="font-medium text-foreground">
             €{totalBudget.toLocaleString()}
           </span>

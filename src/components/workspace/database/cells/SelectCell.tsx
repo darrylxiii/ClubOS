@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -33,6 +34,7 @@ const colorClasses: Record<string, string> = {
 };
 
 export function SelectCell({ value, onChange, options, isMulti }: SelectCellProps) {
+  const { t } = useTranslation('common');
   const [isOpen, setIsOpen] = useState(false);
   const [newOption, setNewOption] = useState('');
 
@@ -91,7 +93,7 @@ export function SelectCell({ value, onChange, options, isMulti }: SelectCellProp
               );
             })
           ) : (
-            <span className="text-sm text-muted-foreground">Empty</span>
+            <span className="text-sm text-muted-foreground">{t("empty", "Empty")}</span>
           )}
         </div>
       </PopoverTrigger>
@@ -130,7 +132,7 @@ export function SelectCell({ value, onChange, options, isMulti }: SelectCellProp
               <Input
                 value={newOption}
                 onChange={(e) => setNewOption(e.target.value)}
-                placeholder="Add option..."
+                placeholder={t("add_option", "Add option...")}
                 className="h-8 text-sm"
               />
               <Button

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useRef, useEffect } from 'react';
 import { X, Minimize2, Maximize2, Move } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -14,6 +15,7 @@ declare global {
 }
 
 export function FloatingVideoPlayer() {
+  const { t } = useTranslation('common');
   const { videoState, closeFloatingPlayer, isFloatingPlayerOpen } = useVideoPlayer();
   const [position, setPosition] = useState({ x: window.innerWidth - 420, y: 100 });
   const [isDragging, setIsDragging] = useState(false);
@@ -266,7 +268,7 @@ export function FloatingVideoPlayer() {
             size="icon"
             className="h-7 w-7"
             onClick={handleClose}
-            title="Close"
+            title={t("close", "Close")}
           >
             <X className="w-4 h-4" />
           </Button>
@@ -281,7 +283,7 @@ export function FloatingVideoPlayer() {
             width="100%"
             height="100%"
             src={`${embedUrl}&autoplay=1&rel=0`}
-            title="YouTube video player"
+            title={t("youtube_video_player", "YouTube video player")}
             frameBorder="0"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen

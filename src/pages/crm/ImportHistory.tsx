@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 
+import { useTranslation } from 'react-i18next';
 import { RoleGate } from '@/components/RoleGate';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -39,6 +40,7 @@ interface ImportLog {
 }
 
 export default function ImportHistory() {
+  const { t } = useTranslation('common');
   const [imports, setImports] = useState<ImportLog[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -77,7 +79,7 @@ export default function ImportHistory() {
       })));
     } catch (error) {
       console.error('Error fetching imports:', error);
-      toast.error('Failed to load import history');
+      toast.error("Failed to load import history");
     } finally {
       setLoading(false);
     }
@@ -118,7 +120,7 @@ export default function ImportHistory() {
 
   const handleDownloadErrors = (importLog: ImportLog) => {
     if (!importLog.errors) {
-      toast.info('No error details available');
+      toast.info("No error details available");
       return;
     }
 
@@ -146,9 +148,7 @@ export default function ImportHistory() {
                 <Upload className="w-6 h-6" />
                 Import History
               </h1>
-              <p className="text-sm text-muted-foreground">
-                View and manage your CSV imports
-              </p>
+              <p className="text-sm text-muted-foreground">{t('importHistory.desc')}</p>
             </div>
             <Button onClick={fetchImports} variant="outline">
               <RefreshCw className="w-4 h-4 mr-2" />
@@ -233,7 +233,7 @@ export default function ImportHistory() {
                           <div className="flex items-start gap-2">
                             <AlertCircle className="w-4 h-4 text-red-500 mt-0.5" />
                             <div>
-                              <p className="text-sm font-medium text-red-400">Import Failed</p>
+                              <p className="text-sm font-medium text-red-400">{t('importHistory.text2')}</p>
                               <p className="text-xs text-red-400/80 mt-1">
                                 {importLog.error_message}
                               </p>

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { candidateAuditService } from "@/services/candidateAuditService";
@@ -44,6 +45,7 @@ export function BulkEditCandidatesDialog({
   onOpenChange,
   onComplete
 }: BulkEditCandidatesDialogProps) {
+  const { t } = useTranslation('common');
   const [selectedField, setSelectedField] = useState<string>('');
   const [newValue, setNewValue] = useState<string>('');
   const [reason, setReason] = useState<string>('');
@@ -53,7 +55,7 @@ export function BulkEditCandidatesDialog({
 
   const handleBulkEdit = async () => {
     if (!selectedField || !newValue || !reason) {
-      toast.error('Please fill in all fields');
+      toast.error(t("please_fill_in_all", "Please fill in all fields"));
       return;
     }
 
@@ -135,7 +137,7 @@ export function BulkEditCandidatesDialog({
       setReason('');
     } catch (error: unknown) {
       console.error('Bulk edit error:', error);
-      toast.error('Bulk edit failed: ' + (error instanceof Error ? error.message : 'An unexpected error occurred'));
+      toast.error(t("bulk_edit_failed", "Bulk edit failed:") + (error instanceof Error ? error.message : 'An unexpected error occurred'));
     } finally {
       setLoading(false);
     }
@@ -154,13 +156,13 @@ export function BulkEditCandidatesDialog({
         <div className="space-y-4 py-4">
           {/* Field Selection */}
           <div className="space-y-2">
-            <Label htmlFor="field">Field to Edit</Label>
+            <Label htmlFor="field">{t("field_to_edit", "Field to Edit")}</Label>
             <Select value={selectedField} onValueChange={(value) => {
               setSelectedField(value);
               setNewValue('');
             }}>
               <SelectTrigger id="field">
-                <SelectValue placeholder="Select a field to edit" />
+                <SelectValue placeholder={t("select_a_field_to", "Select a field to edit")} />
               </SelectTrigger>
               <SelectContent>
                 {EDITABLE_FIELDS.map((field) => (
@@ -175,11 +177,11 @@ export function BulkEditCandidatesDialog({
           {/* Value Input */}
           {selectedField && (
             <div className="space-y-2">
-              <Label htmlFor="value">New Value</Label>
+              <Label htmlFor="value">{t("new_value", "New Value")}</Label>
               {selectedFieldConfig?.type === 'select' && selectedFieldConfig.options ? (
                 <Select value={newValue} onValueChange={setNewValue}>
                   <SelectTrigger id="value">
-                    <SelectValue placeholder="Select a value" />
+                    <SelectValue placeholder={t("select_a_value", "Select a value")} />
                   </SelectTrigger>
                   <SelectContent>
                     {selectedFieldConfig.options.map((option) => (
@@ -195,14 +197,14 @@ export function BulkEditCandidatesDialog({
                   type="number"
                   value={newValue}
                   onChange={(e) => setNewValue(e.target.value)}
-                  placeholder="Enter a number"
+                  placeholder={t("enter_a_number", "Enter a number")}
                 />
               ) : (
                 <Input
                   id="value"
                   value={newValue}
                   onChange={(e) => setNewValue(e.target.value)}
-                  placeholder="Enter new value"
+                  placeholder={t("enter_new_value", "Enter new value")}
                 />
               )}
             </div>
@@ -210,19 +212,19 @@ export function BulkEditCandidatesDialog({
 
           {/* Reason */}
           <div className="space-y-2">
-            <Label htmlFor="reason">Reason for Bulk Edit</Label>
+            <Label htmlFor="reason">{t("reason_for_bulk_edit", "Reason for Bulk Edit")}</Label>
             <Textarea
               id="reason"
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              placeholder="e.g., Standardizing notice periods across all candidates"
+              placeholder={t("eg_standardizing_notice_periods", "e.g., Standardizing notice periods across all candidates")}
               rows={3}
             />
           </div>
 
           <Alert>
             <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Bulk Action</AlertTitle>
+            <AlertTitle>{t("bulk_action", "Bulk Action")}</AlertTitle>
             <AlertDescription>
               This will update {candidateIds.length} candidates. All changes will be logged in the audit trail.
             </AlertDescription>

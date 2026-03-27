@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -31,6 +32,7 @@ interface SequencePerformanceChartProps {
 }
 
 export function SequencePerformanceChart({ campaignId, externalCampaignId }: SequencePerformanceChartProps) {
+  const { t } = useTranslation('common');
   const [steps, setSteps] = useState<SequenceStep[]>([]);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
@@ -73,7 +75,7 @@ export function SequencePerformanceChart({ campaignId, externalCampaignId }: Seq
 
       if (error) throw error;
 
-      toast.success('Sequence steps synced successfully');
+      toast.success(t("sequence_steps_synced_successfully", "Sequence steps synced successfully"));
       await fetchSteps();
     } catch (error: unknown) {
       console.error('Error syncing sequence steps:', error);
@@ -142,8 +144,8 @@ export function SequencePerformanceChart({ campaignId, externalCampaignId }: Seq
         <CardContent>
           <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
             <Mail className="h-12 w-12 mb-4 opacity-50" />
-            <p className="text-sm">No sequence steps found</p>
-            <p className="text-xs mt-1">Click "Sync Steps" to fetch data from Instantly</p>
+            <p className="text-sm">{t("no_sequence_steps_found", "No sequence steps found")}</p>
+            <p className="text-xs mt-1">{t("click_sync_steps_to", "Click ')Sync Steps' to fetch data from Instantly")}</p>
           </div>
         </CardContent>
       </Card>

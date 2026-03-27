@@ -189,23 +189,24 @@ serve(async (req) => {
       }
     }
 
-    // 4. Extract relationships from referrals
-    const { data: referrals } = await supabase
-      .from('referrals')
-      .select('id, referrer_id, referee_id, job_id, status, created_at')
+    // 4. Extract relationships from referral earnings
+    const { data: referralEarnings } = await supabase
+      .from('referral_earnings')
+      .select('id, referrer_id, application_id, status, created_at, application:applications(candidate_id, job_id)')
       .gte('created_at', mode === 'incremental' ? sinceDate : '1970-01-01');
 
-    if (referrals) {
-      for (const referral of referrals) {
-        if (referral.referrer_id && referral.referee_id) {
+    if (referralEarnings) {
+      for (const earning of referralEarnings) {
+        const app = (earning as any).application;
+        if (earning.referrer_id && app?.candidate_id) {
           relationships.push({
             source_type: 'user',
-            source_id: referral.referrer_id,
+            source_id: earning.referrer_id,
             target_type: 'candidate',
-            target_id: referral.referee_id,
+            target_id: app.candidate_id,
             relationship_type: 'referred',
-            strength_score: 0.9,
-            evidence: { referral_id: referral.id, status: referral.status }
+            strength_score: earning.status === 'paid' ? 1.0 : 0.7,
+            evidence: { earning_id: earning.id, status: earning.status, job_id: app?.job_id }
           });
         }
       }
@@ -242,8 +243,8 @@ serve(async (req) => {
     if (newMeetings && newMeetings.length > 0) {
       console.log(`[Knowledge Graph] Analyzing ${newMeetings.length} meetings for semantic extraction...`);
 
-      const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
-      if (lovableApiKey) {
+      const googleApiKey = Deno.env.get('GOOGLE_API_KEY');
+      if (googleApiKey) {
         for (const meeting of newMeetings) {
           if (!meeting.meeting_transcripts || meeting.meeting_transcripts.length === 0) continue;
 
@@ -254,10 +255,10 @@ serve(async (req) => {
             .substring(0, 8000); // Limit context window
 
           try {
-            const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+            const aiResponse = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
               method: 'POST',
               headers: {
-                'Authorization': `Bearer ${lovableApiKey}`,
+                'Authorization': `Bearer ${googleApiKey}`,
                 'Content-Type': 'application/json'
               },
               body: JSON.stringify({
@@ -393,7 +394,7 @@ Return JSON:
           meetings: meetings?.length || 0,
           applications: applications?.length || 0,
           interactions: interactions?.length || 0,
-          referrals: referrals?.length || 0,
+          referrals: referralEarnings?.length || 0,
           stakeholders: stakeholders?.length || 0
         }
       }
@@ -408,7 +409,7 @@ Return JSON:
           meetings: meetings?.length || 0,
           applications: applications?.length || 0,
           interactions: interactions?.length || 0,
-          referrals: referrals?.length || 0,
+          referrals: referralEarnings?.length || 0,
           stakeholders: stakeholders?.length || 0
         }
       }),

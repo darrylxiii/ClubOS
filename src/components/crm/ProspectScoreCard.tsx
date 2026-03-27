@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { motion } from '@/lib/motion';
 import { TrendingUp, Building2, Briefcase, MessageSquare, RefreshCw, Star, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -22,6 +23,7 @@ const scoreCategories = [
 ] as const;
 
 export function ProspectScoreCard({ prospectId, currentScore = 0, scoreBreakdown: externalBreakdown, onScoreUpdated }: ProspectScoreCardProps) {
+  const { t } = useTranslation('common');
   const { scoreBreakdown: hookBreakdown, loading, recalculateScore } = useCRMLeadScoring(prospectId);
 
   const breakdown = externalBreakdown || hookBreakdown;
@@ -52,7 +54,7 @@ export function ProspectScoreCard({ prospectId, currentScore = 0, scoreBreakdown
       className="bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl rounded-xl border border-border/50 p-5"
     >
       <div className="flex items-center justify-between mb-4">
-        <h3 className="font-semibold text-foreground">Lead Score</h3>
+        <h3 className="font-semibold text-foreground">{t("lead_score", "Lead Score")}</h3>
         <Button
           variant="ghost"
           size="sm"
@@ -73,7 +75,7 @@ export function ProspectScoreCard({ prospectId, currentScore = 0, scoreBreakdown
           <div className={cn("text-sm font-medium", getScoreColor(score))}>
             {getScoreLabel(score)}
           </div>
-          <div className="text-xs text-muted-foreground">out of 100</div>
+          <div className="text-xs text-muted-foreground">{t("out_of_100", "out of 100")}</div>
         </div>
       </div>
 

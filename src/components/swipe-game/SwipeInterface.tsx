@@ -1,4 +1,5 @@
 import { memo, useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { SkipForward } from 'lucide-react';
@@ -12,6 +13,7 @@ interface SwipeInterfaceProps {
 }
 
 export const SwipeInterface = memo(({ scenarios, onComplete }: SwipeInterfaceProps) => {
+  const { t } = useTranslation('common');
   const [currentIndex, setCurrentIndex] = useState(0);
   const [responses, setResponses] = useState<Array<{ scenario: SwipeScenario; direction: SwipeDirection }>>([]);
 

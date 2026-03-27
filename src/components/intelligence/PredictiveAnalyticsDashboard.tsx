@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -47,6 +48,7 @@ interface PredictiveAnalyticsDashboardProps {
 }
 
 export function PredictiveAnalyticsDashboard({ jobId }: PredictiveAnalyticsDashboardProps) {
+  const { t } = useTranslation('common');
   const [loading, setLoading] = useState(false);
   const [predictions, setPredictions] = useState<Predictions | null>(null);
 
@@ -86,14 +88,14 @@ export function PredictiveAnalyticsDashboard({ jobId }: PredictiveAnalyticsDashb
         };
         
         setPredictions(normalizedPredictions);
-        toast.success("Predictive analytics generated");
+        toast.success(t("predictive_analytics_generated", "Predictive analytics generated"));
       } else {
         throw new Error('No predictions returned from AI');
       }
     } catch (error: unknown) {
       console.error('Error loading predictions:', error);
       setPredictions(null);
-      toast.error("Failed to generate predictions. You can retry or continue without AI insights.");
+      toast.error(t("failed_to_generate_predictions", "Failed to generate predictions. You can retry or continue without AI insights."));
     } finally {
       setLoading(false);
     }
@@ -108,7 +110,7 @@ export function PredictiveAnalyticsDashboard({ jobId }: PredictiveAnalyticsDashb
       <Card className="border-primary/20 bg-gradient-to-br from-card to-primary/5">
         <CardContent className="pt-6 flex flex-col items-center justify-center py-12">
           <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
-          <p className="text-sm text-muted-foreground">Generating predictive analytics...</p>
+          <p className="text-sm text-muted-foreground">{t("generating_predictive_analytics", "Generating predictive analytics...")}</p>
         </CardContent>
       </Card>
     );
@@ -175,7 +177,7 @@ export function PredictiveAnalyticsDashboard({ jobId }: PredictiveAnalyticsDashb
                 </p>
               </div>
               <div className="text-right">
-                <p className="text-xs text-muted-foreground mb-1">Expected range</p>
+                <p className="text-xs text-muted-foreground mb-1">{t("expected_range", "Expected range")}</p>
                 <p className="text-sm font-medium">
                   {predictions.timeToHire.earliestDate ?? 'TBD'} - {predictions.timeToHire.latestDate ?? 'TBD'}
                 </p>
@@ -184,7 +186,7 @@ export function PredictiveAnalyticsDashboard({ jobId }: PredictiveAnalyticsDashb
             <Progress value={(predictions.timeToHire.confidence ?? 0) * 100} className="h-2" />
             {predictions.timeToHire.factors && predictions.timeToHire.factors.length > 0 && (
               <div className="space-y-1">
-                <p className="text-xs font-medium text-muted-foreground">Key Factors:</p>
+                <p className="text-xs font-medium text-muted-foreground">{t("key_factors", "Key Factors:")}</p>
                 <div className="flex flex-wrap gap-2">
                   {predictions.timeToHire.factors.map((factor: string, idx: number) => (
                     <Badge key={idx} variant="secondary" className="text-xs">
@@ -210,7 +212,7 @@ export function PredictiveAnalyticsDashboard({ jobId }: PredictiveAnalyticsDashb
           <CardContent className="space-y-3">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <p className="text-xs text-muted-foreground">Average (All Candidates)</p>
+                <p className="text-xs text-muted-foreground">{t("average_all_candidates", "Average (All Candidates)")}</p>
                 <div className="flex items-center gap-2">
                   <Progress value={(predictions.offerAcceptanceProbability.averageProbability ?? 0) * 100} className="flex-1 h-2" />
                   <span className="text-sm font-semibold">
@@ -220,7 +222,7 @@ export function PredictiveAnalyticsDashboard({ jobId }: PredictiveAnalyticsDashb
               </div>
               {predictions.offerAcceptanceProbability.topCandidate?.probability && (
                 <div className="space-y-2">
-                  <p className="text-xs text-muted-foreground">Top Candidate</p>
+                  <p className="text-xs text-muted-foreground">{t("top_candidate", "Top Candidate")}</p>
                   <div className="flex items-center gap-2">
                     <Progress value={predictions.offerAcceptanceProbability.topCandidate.probability * 100} className="flex-1 h-2" />
                     <span className="text-sm font-semibold">
@@ -232,7 +234,7 @@ export function PredictiveAnalyticsDashboard({ jobId }: PredictiveAnalyticsDashb
             </div>
             {predictions.offerAcceptanceProbability.topCandidate?.reasoning && (
               <div className="p-3 rounded-lg bg-muted/30">
-                <p className="text-xs text-muted-foreground mb-1">Why</p>
+                <p className="text-xs text-muted-foreground mb-1">{t("why", "Why")}</p>
                 <p className="text-sm">{predictions.offerAcceptanceProbability.topCandidate.reasoning}</p>
               </div>
             )}
@@ -251,7 +253,7 @@ export function PredictiveAnalyticsDashboard({ jobId }: PredictiveAnalyticsDashb
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Difficulty Level</span>
+              <span className="text-sm text-muted-foreground">{t("difficulty_level", "Difficulty Level")}</span>
               <Badge variant="outline" className={getDifficultyColor(predictions.hiringDifficulty.score ?? 'medium')}>
                 {(predictions.hiringDifficulty.score ?? 'medium').toUpperCase()}
               </Badge>
@@ -261,7 +263,7 @@ export function PredictiveAnalyticsDashboard({ jobId }: PredictiveAnalyticsDashb
             )}
             {predictions.hiringDifficulty.marketFactors && predictions.hiringDifficulty.marketFactors.length > 0 && (
               <div className="space-y-1">
-                <p className="text-xs font-medium text-muted-foreground">Market Factors:</p>
+                <p className="text-xs font-medium text-muted-foreground">{t("market_factors", "Market Factors:")}</p>
                 <div className="flex flex-wrap gap-2">
                   {predictions.hiringDifficulty.marketFactors.map((factor: string, idx: number) => (
                     <Badge key={idx} variant="secondary" className="text-xs">
@@ -295,7 +297,7 @@ export function PredictiveAnalyticsDashboard({ jobId }: PredictiveAnalyticsDashb
             
             {predictions.pipelineHealth.bottlenecks && predictions.pipelineHealth.bottlenecks.length > 0 && (
               <div className="p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
-                <p className="text-xs font-medium text-yellow-500 mb-2">Bottlenecks Detected</p>
+                <p className="text-xs font-medium text-yellow-500 mb-2">{t("bottlenecks_detected", "Bottlenecks Detected")}</p>
                 <ul className="space-y-1">
                   {predictions.pipelineHealth.bottlenecks.map((bottleneck: string, idx: number) => (
                     <li key={idx} className="text-xs">• {bottleneck}</li>
@@ -306,7 +308,7 @@ export function PredictiveAnalyticsDashboard({ jobId }: PredictiveAnalyticsDashb
 
             {predictions.pipelineHealth.recommendations && predictions.pipelineHealth.recommendations.length > 0 && (
               <div>
-                <p className="text-xs font-medium text-muted-foreground mb-2">Recommendations:</p>
+                <p className="text-xs font-medium text-muted-foreground mb-2">{t("recommendations", "Recommendations:")}</p>
                 <ul className="space-y-1">
                   {predictions.pipelineHealth.recommendations.map((rec: string, idx: number) => (
                     <li key={idx} className="text-xs flex items-start gap-2">
@@ -333,27 +335,27 @@ export function PredictiveAnalyticsDashboard({ jobId }: PredictiveAnalyticsDashb
           <CardContent className="space-y-3">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <p className="text-xs text-muted-foreground mb-1">Est. Cost per Hire</p>
+                <p className="text-xs text-muted-foreground mb-1">{t("est_cost_per_hire", "Est. Cost per Hire")}</p>
                 <p className="text-xl font-bold">€{predictions.costPrediction?.estimatedCostPerHire?.toLocaleString() ?? 'N/A'}</p>
               </div>
               <div>
-                <p className="text-xs text-muted-foreground mb-1">Time Investment</p>
+                <p className="text-xs text-muted-foreground mb-1">{t("time_investment", "Time Investment")}</p>
                 <p className="text-xl font-bold">{predictions.costPrediction?.timeInvestment ?? 'N/A'}</p>
               </div>
             </div>
             <div className="p-3 rounded-lg bg-muted/30">
-              <p className="text-xs font-medium mb-2">Cost Breakdown</p>
+              <p className="text-xs font-medium mb-2">{t("cost_breakdown", "Cost Breakdown")}</p>
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between text-xs">
-                  <span>Recruiting</span>
+                  <span>{t("recruiting", "Recruiting")}</span>
                   <span>€{predictions.costPrediction?.breakdown?.recruiting ?? 0}</span>
                 </div>
                 <div className="flex items-center justify-between text-xs">
-                  <span>Interviews</span>
+                  <span>{t("interviews", "Interviews")}</span>
                   <span>€{predictions.costPrediction?.breakdown?.interviews ?? 0}</span>
                 </div>
                 <div className="flex items-center justify-between text-xs">
-                  <span>Administrative</span>
+                  <span>{t("administrative", "Administrative")}</span>
                   <span>€{predictions.costPrediction?.breakdown?.administrative ?? 0}</span>
                 </div>
               </div>
@@ -366,20 +368,20 @@ export function PredictiveAnalyticsDashboard({ jobId }: PredictiveAnalyticsDashb
       {predictions?.qualityPrediction && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Quality of Hire Forecast</CardTitle>
+            <CardTitle className="text-base">{t("quality_of_hire_forecast", "Quality of Hire Forecast")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="grid grid-cols-3 gap-3">
               <div className="p-3 rounded-lg bg-muted/30 text-center">
-                <p className="text-xs text-muted-foreground mb-1">Expected Quality</p>
+                <p className="text-xs text-muted-foreground mb-1">{t("expected_quality", "Expected Quality")}</p>
                 <Badge variant="default">{predictions.qualityPrediction?.expectedQuality?.toUpperCase() ?? 'N/A'}</Badge>
               </div>
               <div className="p-3 rounded-lg bg-muted/30 text-center">
-                <p className="text-xs text-muted-foreground mb-1">Retention</p>
+                <p className="text-xs text-muted-foreground mb-1">{t("retention", "Retention")}</p>
                 <p className="text-sm font-semibold">{Math.round((predictions.qualityPrediction?.retentionProbability ?? 0) * 100)}%</p>
               </div>
               <div className="p-3 rounded-lg bg-muted/30 text-center">
-                <p className="text-xs text-muted-foreground mb-1">Time to Productivity</p>
+                <p className="text-xs text-muted-foreground mb-1">{t("time_to_productivity", "Time to Productivity")}</p>
                 <Badge variant="outline">{predictions.qualityPrediction?.timeToProductivity ?? 'N/A'}</Badge>
               </div>
             </div>
@@ -391,24 +393,24 @@ export function PredictiveAnalyticsDashboard({ jobId }: PredictiveAnalyticsDashb
       {predictions?.competitiveIntel && (
         <Card className="border-primary/20 bg-gradient-to-br from-card to-primary/5">
           <CardHeader>
-            <CardTitle className="text-base">Market Intelligence</CardTitle>
+            <CardTitle className="text-base">{t("market_intelligence", "Market Intelligence")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <p className="text-xs text-muted-foreground mb-1">Market Demand</p>
+                <p className="text-xs text-muted-foreground mb-1">{t("market_demand", "Market Demand")}</p>
                 <Badge variant="outline">{predictions.competitiveIntel?.marketDemand?.toUpperCase() ?? 'N/A'}</Badge>
               </div>
               <div>
-                <p className="text-xs text-muted-foreground mb-1">Salary Benchmark</p>
+                <p className="text-xs text-muted-foreground mb-1">{t("salary_benchmark", "Salary Benchmark")}</p>
                 <p className="text-sm font-medium">{predictions.competitiveIntel?.salaryBenchmark ?? 'N/A'}</p>
               </div>
               <div>
-                <p className="text-xs text-muted-foreground mb-1">Competing Offers</p>
+                <p className="text-xs text-muted-foreground mb-1">{t("competing_offers", "Competing Offers")}</p>
                 <p className="text-sm font-medium">{predictions.competitiveIntel?.competingOffers ?? 'N/A'}</p>
               </div>
               <div>
-                <p className="text-xs text-muted-foreground mb-1">Action Timing</p>
+                <p className="text-xs text-muted-foreground mb-1">{t("action_timing", "Action Timing")}</p>
                 <p className="text-sm font-medium">{predictions.competitiveIntel?.speedToOffer ?? 'N/A'}</p>
               </div>
             </div>

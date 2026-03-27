@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from 'react-i18next';
 import { logger } from "@/lib/logger";
 import { useParams, useNavigate } from "react-router-dom";
 
@@ -31,6 +32,7 @@ import { CoverLetterBuilder } from "@/components/applications/CoverLetterBuilder
 import { MatchedCandidatesTab } from "@/components/jobs/MatchedCandidatesTab";
 
 export default function JobDetail() {
+  const { t } = useTranslation('jobs');
   const { jobId } = useParams<{ jobId: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -108,14 +110,14 @@ export default function JobDetail() {
 
       if (error) throw error;
       if (!data) {
-        toast.error('Job not found');
+        toast.error(t('text.jobdetail.jobNotFound', 'Job not found'));
         navigate('/jobs');
         return;
       }
       setJob(data);
     } catch (error) {
       logger.error('Error loading job:', { error });
-      toast.error('Failed to load job details');
+      toast.error(t('text.jobdetail.failedToLoadJobDetails', 'Failed to load job details'));
       navigate('/jobs');
     } finally {
       setLoading(false);
@@ -194,13 +196,13 @@ export default function JobDetail() {
 
   const handleApply = async () => {
     if (!user) {
-      toast.error('Please sign in to apply');
+      toast.error(t('text.jobdetail.pleaseSignInToApply', 'Please sign in to apply'));
       navigate('/auth');
       return;
     }
 
     if (isApplied) {
-      toast.info('You have already applied to this job');
+      toast.info(t('text.jobdetail.youHaveAlreadyAppliedToThis', 'You have already applied to this job'));
       return;
     }
 
@@ -244,16 +246,16 @@ export default function JobDetail() {
       if (error) throw error;
 
       setIsApplied(true);
-      toast.success('Application submitted successfully!');
+      toast.success(t('text.jobdetail.applicationSubmittedSuccessfully', 'Application submitted successfully!'));
     } catch (error) {
       logger.error('Error applying:', { error });
-      toast.error('Failed to submit application');
+      toast.error(t('text.jobdetail.failedToSubmitApplication', 'Failed to submit application'));
     }
   };
 
   const handleSave = async () => {
     if (!user) {
-      toast.error('Please sign in to save jobs');
+      toast.error(t('text.jobdetail.pleaseSignInToSaveJobs', 'Please sign in to save jobs'));
       navigate('/auth');
       return;
     }
@@ -270,7 +272,7 @@ export default function JobDetail() {
         if (error) throw error;
 
         setIsSaved(false);
-        toast.info('Job removed from saved jobs');
+        toast.info(t('text.jobdetail.jobRemovedFromSavedJobs', 'Job removed from saved jobs'));
         trackJobSave(user.id, jobId!, false);
       } else {
         // Add to database
@@ -281,12 +283,12 @@ export default function JobDetail() {
         if (error) throw error;
 
         setIsSaved(true);
-        toast.success('Job saved successfully!');
+        toast.success(t('text.jobdetail.jobSavedSuccessfully', 'Job saved successfully!'));
         trackJobSave(user.id, jobId!, true);
       }
     } catch (error) {
       logger.error('Error saving job:', { error });
-      toast.error('Failed to save job. Please try again.');
+      toast.error(t('text.jobdetail.failedToSaveJobPleaseTry', 'Failed to save job. Please try again.'));
     }
   };
 
@@ -306,9 +308,9 @@ export default function JobDetail() {
     } else {
       try {
         await navigator.clipboard.writeText(url);
-        toast.success('Link copied to clipboard!');
+        toast.success(t('text.jobdetail.linkCopiedToClipboard', 'Link copied to clipboard!'));
       } catch (error) {
-        toast.error('Failed to copy link');
+        toast.error(t('text.jobdetail.failedToCopyLink', 'Failed to copy link'));
       }
     }
   };
@@ -325,8 +327,8 @@ export default function JobDetail() {
     return (
       <>
         <div className="flex flex-col items-center justify-center min-h-screen gap-4">
-          <p className="text-muted-foreground">Job not found</p>
-          <Button onClick={() => navigate('/jobs')}>Back to Jobs</Button>
+          <p className="text-muted-foreground">{t('jobDetail.text1')}</p>
+          <Button onClick={() => navigate('/jobs')}>{t('jobDetail.text2')}</Button>
         </div>
       </>
     );
@@ -423,12 +425,12 @@ export default function JobDetail() {
         <div className="container mx-auto px-6 py-6 max-w-6xl space-y-6">
           <Tabs defaultValue="overview" className="w-full">
             <TabsList className="grid w-full grid-cols-5 lg:w-auto lg:inline-grid">
-              <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="details">Details</TabsTrigger>
-              <TabsTrigger value="matches">Matches</TabsTrigger>
-              <TabsTrigger value="company">Company</TabsTrigger>
+              <TabsTrigger value="overview">{t('jobDetail.text3')}</TabsTrigger>
+              <TabsTrigger value="details">{t('jobDetail.text4')}</TabsTrigger>
+              <TabsTrigger value="matches">{t('jobDetail.text5')}</TabsTrigger>
+              <TabsTrigger value="company">{t('jobDetail.text6')}</TabsTrigger>
               {canManageJob(role) && (
-                <TabsTrigger value="activity">Activity</TabsTrigger>
+                <TabsTrigger value="activity">{t('jobDetail.text7')}</TabsTrigger>
               )}
             </TabsList>
 
@@ -443,8 +445,8 @@ export default function JobDetail() {
                         <PenLine className="w-5 h-5 text-primary" />
                       </div>
                       <div>
-                        <p className="font-medium">Generate a Cover Letter</p>
-                        <p className="text-sm text-muted-foreground">Create an AI-powered cover letter for this role</p>
+                        <p className="font-medium">{t('jobDetail.text8')}</p>
+                        <p className="text-sm text-muted-foreground">{t('jobDetail.text9')}</p>
                       </div>
                     </div>
                     <Dialog open={isCoverLetterDialogOpen} onOpenChange={setIsCoverLetterDialogOpen}>
@@ -456,7 +458,7 @@ export default function JobDetail() {
                       </DialogTrigger>
                       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                         <DialogHeader>
-                          <DialogTitle>Cover Letter Builder</DialogTitle>
+                          <DialogTitle>{t('jobDetail.text10')}</DialogTitle>
                         </DialogHeader>
                         <CoverLetterBuilder 
                           jobId={job.id}
@@ -486,8 +488,8 @@ export default function JobDetail() {
               {job.responsibilities && job.responsibilities.length > 0 && (
                 <Card className="border-2">
                   <CardHeader>
-                    <h3 className="text-xl font-black">Key Responsibilities</h3>
-                    <p className="text-sm text-muted-foreground">Main areas you'll be working on</p>
+                    <h3 className="text-xl font-black">{t('jobDetail.text11')}</h3>
+                    <p className="text-sm text-muted-foreground">{t('jobDetail.text12')}</p>
                   </CardHeader>
                   <CardContent>
                     <ul className="space-y-2">
@@ -505,8 +507,8 @@ export default function JobDetail() {
               {job.benefits && job.benefits.length > 0 && (
                 <Card className="border-2">
                   <CardHeader>
-                    <h3 className="text-xl font-black">Top Benefits</h3>
-                    <p className="text-sm text-muted-foreground">What we offer</p>
+                    <h3 className="text-xl font-black">{t('jobDetail.text13')}</h3>
+                    <p className="text-sm text-muted-foreground">{t('jobDetail.text14')}</p>
                   </CardHeader>
                   <CardContent>
                     <ul className="space-y-2">
@@ -567,8 +569,8 @@ export default function JobDetail() {
                     <div className="flex items-center gap-3">
                       <Activity className="w-6 h-6 text-primary" />
                       <div>
-                        <h3 className="text-xl font-black">Job Analytics</h3>
-                        <p className="text-sm text-muted-foreground">Performance metrics and insights</p>
+                        <h3 className="text-xl font-black">{t('jobDetail.text15')}</h3>
+                        <p className="text-sm text-muted-foreground">{t('jobDetail.text16')}</p>
                       </div>
                     </div>
                   </CardHeader>
@@ -576,19 +578,19 @@ export default function JobDetail() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                       <div className="p-4 rounded-lg bg-card/50 border">
                         <p className="text-2xl font-bold">24</p>
-                        <p className="text-xs text-muted-foreground">Total Applications</p>
+                        <p className="text-xs text-muted-foreground">{t('jobDetail.text17')}</p>
                       </div>
                       <div className="p-4 rounded-lg bg-card/50 border">
                         <p className="text-2xl font-bold">156</p>
-                        <p className="text-xs text-muted-foreground">Total Views</p>
+                        <p className="text-xs text-muted-foreground">{t('jobDetail.text18')}</p>
                       </div>
                       <div className="p-4 rounded-lg bg-card/50 border">
                         <p className="text-2xl font-bold">6.5%</p>
-                        <p className="text-xs text-muted-foreground">Conversion Rate</p>
+                        <p className="text-xs text-muted-foreground">{t('jobDetail.text19')}</p>
                       </div>
                       <div className="p-4 rounded-lg bg-card/50 border">
                         <p className="text-2xl font-bold">{daysOpen}d</p>
-                        <p className="text-xs text-muted-foreground">Days Active</p>
+                        <p className="text-xs text-muted-foreground">{t('jobDetail.text20')}</p>
                       </div>
                     </div>
                   </CardContent>

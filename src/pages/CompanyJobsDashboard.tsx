@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from "react-router-dom";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -76,6 +77,7 @@ interface RoleSettings {
 }
 
 const CompanyJobsDashboard = () => {
+  const { t } = useTranslation('jobs');
   const navigate = useNavigate();
   const { companyId, currentRole: role } = useRole();
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -88,11 +90,11 @@ const CompanyJobsDashboard = () => {
   // Pipeline Settings
   const [pipelineSettings, setPipelineSettings] = useState<PipelineSettings>({
     default_stages: [
-      { name: "Applied", order: 0 },
-      { name: "Screening", order: 1 },
-      { name: "Interview", order: 2 },
-      { name: "Final Review", order: 3 },
-      { name: "Offer", order: 4 },
+      { name: t('text.companyjobsdashboard.applied', 'Applied'), order: 0 },
+      { name: t('text.companyjobsdashboard.screening', 'Screening'), order: 1 },
+      { name: t('text.companyjobsdashboard.interview', 'Interview'), order: 2 },
+      { name: t('text.companyjobsdashboard.finalReview', 'Final Review'), order: 3 },
+      { name: t('text.companyjobsdashboard.offer', 'Offer'), order: 4 },
     ],
     auto_advance_rules: {},
     sla_hours_per_stage: {
@@ -149,7 +151,7 @@ const CompanyJobsDashboard = () => {
       setJobs(data || []);
     } catch (error) {
       console.error('Error fetching jobs:', error);
-      toast.error('Failed to load jobs');
+      toast.error(t('text.companyjobsdashboard.failedToLoadJobs', 'Failed to load jobs'));
     } finally {
       setLoading(false);
     }
@@ -193,10 +195,10 @@ const CompanyJobsDashboard = () => {
         );
 
       if (error) throw error;
-      toast.success('Settings saved successfully');
+      toast.success(t('text.companyjobsdashboard.settingsSavedSuccessfully', 'Settings saved successfully'));
     } catch (error) {
       console.error('Error saving settings:', error);
-      toast.error('Failed to save settings');
+      toast.error(t('text.companyjobsdashboard.failedToSaveSettings', 'Failed to save settings'));
     }
   };
 
@@ -208,11 +210,11 @@ const CompanyJobsDashboard = () => {
         .eq('id', jobId);
 
       if (error) throw error;
-      toast.success('Pipeline updated');
+      toast.success(t('text.companyjobsdashboard.pipelineUpdated', 'Pipeline updated'));
       fetchJobs();
     } catch (error) {
       console.error('Error updating pipeline:', error);
-      toast.error('Failed to update pipeline');
+      toast.error(t('text.companyjobsdashboard.failedToUpdatePipeline', 'Failed to update pipeline'));
     }
   };
 
@@ -225,9 +227,7 @@ const CompanyJobsDashboard = () => {
               <AlertCircle className="w-5 h-5 text-destructive" />
               Access Denied
             </CardTitle>
-            <CardDescription>
-              You need to be associated with a company to access this dashboard.
-            </CardDescription>
+            <CardDescription>{t('text.companyjobsdashboard.youNeedToBeAssociatedWith', 'You need to be associated with a company to access this dashboard.')}</CardDescription>
           </CardHeader>
         </Card>
       </div>
@@ -242,13 +242,11 @@ const CompanyJobsDashboard = () => {
             <h1 className="text-2xl font-semibold text-foreground truncate">
               {companyName || 'Your Company'}
             </h1>
-            <p className="text-sm text-muted-foreground mt-0.5">
-              Manage your jobs and customize hiring pipeline
-            </p>
+            <p className="text-sm text-muted-foreground mt-0.5">{t('companyJobsDashboard.desc')}</p>
           </div>
           <Button onClick={() => setCreateDialogOpen(true)} size="sm" className="gap-1.5 h-9 shrink-0">
             <Plus className="w-4 h-4" />
-            <span className="hidden sm:inline">New Job</span>
+            <span className="hidden sm:inline">{t('text.companyjobsdashboard.newJob', 'New Job')}</span>
           </Button>
         </div>
 
@@ -256,15 +254,15 @@ const CompanyJobsDashboard = () => {
           <TabsList className="grid w-full grid-cols-3 max-w-full sm:max-w-md h-auto min-h-[44px] bg-card/30 backdrop-blur-sm border border-border/20">
             <TabsTrigger value="jobs" className="text-xs sm:text-sm">
               <Briefcase className="w-4 h-4 sm:mr-2" />
-              <span className="hidden sm:inline">Jobs</span>
+              <span className="hidden sm:inline">{t('text.companyjobsdashboard.jobs', 'Jobs')}</span>
             </TabsTrigger>
             <TabsTrigger value="pipeline" className="text-xs sm:text-sm">
               <Target className="w-4 h-4 sm:mr-2" />
-              <span className="hidden sm:inline">Pipeline</span>
+              <span className="hidden sm:inline">{t('text.companyjobsdashboard.pipeline', 'Pipeline')}</span>
             </TabsTrigger>
             <TabsTrigger value="role-settings" className="text-xs sm:text-sm">
               <Settings className="w-4 h-4 sm:mr-2" />
-              <span className="hidden sm:inline">Settings</span>
+              <span className="hidden sm:inline">{t('text.companyjobsdashboard.settings', 'Settings')}</span>
             </TabsTrigger>
           </TabsList>
 
@@ -279,10 +277,10 @@ const CompanyJobsDashboard = () => {
             ) : jobs.length === 0 ? (
               <EmptyState
                 icon={Briefcase}
-                title="No jobs yet"
-                description="Create your first job to start hiring top talent"
+                title={t('text.companyjobsdashboard.noJobsYet', 'No jobs yet')}
+                description={t('text.companyjobsdashboard.createYourFirstJobToStart', 'Create your first job to start hiring top talent')}
                 action={{
-                  label: "Create Job",
+                  label: t('text.companyjobsdashboard.createJob', 'Create Job'),
                   onClick: () => setCreateDialogOpen(true),
                 }}
               />
@@ -311,18 +309,14 @@ const CompanyJobsDashboard = () => {
           <TabsContent value="pipeline" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Default Pipeline Configuration</CardTitle>
-                <CardDescription>
-                  Set up your company's default hiring pipeline stages and rules
-                </CardDescription>
+                <CardTitle>{t('text.companyjobsdashboard.defaultPipelineConfiguration', 'Default Pipeline Configuration')}</CardTitle>
+                <CardDescription>{t('text.companyjobsdashboard.setUpYourCompanysDefaultHiring', 'Set up your company\'s default hiring pipeline stages and rules')}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 {/* Default Stages */}
                 <div className="space-y-4">
-                  <Label className="text-base font-semibold">Default Stages</Label>
-                  <p className="text-sm text-muted-foreground">
-                    These stages will be used as the template for all new jobs
-                  </p>
+                  <Label className="text-base font-semibold">{t('text.companyjobsdashboard.defaultStages', 'Default Stages')}</Label>
+                  <p className="text-sm text-muted-foreground">{t('companyJobsDashboard.desc2')}</p>
                   <div className="space-y-2">
                     {pipelineSettings.default_stages.map((stage, index) => (
                       <div key={index} className="flex flex-col sm:flex-row items-start sm:items-center gap-2 p-3 border rounded-lg">
@@ -340,7 +334,7 @@ const CompanyJobsDashboard = () => {
                           className="flex-1 w-full"
                         />
                         <div className="flex items-center gap-2 w-full sm:w-auto">
-                          <Label className="text-sm shrink-0">SLA (hours):</Label>
+                          <Label className="text-sm shrink-0">{t('text.companyjobsdashboard.slaHours', 'SLA (hours):')}</Label>
                           <Input
                             type="number"
                             value={pipelineSettings.sla_hours_per_stage[stage.name] || 24}
@@ -363,14 +357,12 @@ const CompanyJobsDashboard = () => {
 
                 {/* Notification Settings */}
                 <div className="space-y-4">
-                  <Label className="text-base font-semibold">Notification Preferences</Label>
+                  <Label className="text-base font-semibold">{t('text.companyjobsdashboard.notificationPreferences', 'Notification Preferences')}</Label>
                   <div className="space-y-3">
                     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3 border rounded-lg">
                       <div className="flex-1">
-                        <p className="font-medium">New Application</p>
-                        <p className="text-sm text-muted-foreground">
-                          Get notified when a candidate applies
-                        </p>
+                        <p className="font-medium">{t('companyJobsDashboard.desc3')}</p>
+                        <p className="text-sm text-muted-foreground">{t('companyJobsDashboard.desc4')}</p>
                       </div>
                       <Switch
                         checked={pipelineSettings.notification_preferences.notify_on_apply}
@@ -387,10 +379,8 @@ const CompanyJobsDashboard = () => {
                     </div>
                     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3 border rounded-lg">
                       <div className="flex-1">
-                        <p className="font-medium">Stage Changes</p>
-                        <p className="text-sm text-muted-foreground">
-                          Get notified when candidates move between stages
-                        </p>
+                        <p className="font-medium">{t('companyJobsDashboard.desc5')}</p>
+                        <p className="text-sm text-muted-foreground">{t('companyJobsDashboard.desc6')}</p>
                       </div>
                       <Switch
                         checked={pipelineSettings.notification_preferences.notify_on_stage_change}
@@ -407,10 +397,8 @@ const CompanyJobsDashboard = () => {
                     </div>
                     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3 border rounded-lg">
                       <div className="flex-1">
-                        <p className="font-medium">Rejections</p>
-                        <p className="text-sm text-muted-foreground">
-                          Get notified when candidates are rejected
-                        </p>
+                        <p className="font-medium">{t('companyJobsDashboard.desc7')}</p>
+                        <p className="text-sm text-muted-foreground">{t('companyJobsDashboard.desc8')}</p>
                       </div>
                       <Switch
                         checked={pipelineSettings.notification_preferences.notify_on_rejection}
@@ -439,7 +427,7 @@ const CompanyJobsDashboard = () => {
             {selectedJobForSettings && (
               <Card>
                 <CardHeader>
-                  <CardTitle>Job-Specific Pipeline</CardTitle>
+                  <CardTitle>{t('text.companyjobsdashboard.jobspecificPipeline', 'Job-Specific Pipeline')}</CardTitle>
                   <CardDescription>
                     Customize the pipeline for:{" "}
                     {jobs.find((j) => j.id === selectedJobForSettings)?.title}
@@ -464,21 +452,19 @@ const CompanyJobsDashboard = () => {
           <TabsContent value="role-settings" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Role-Specific Configurations</CardTitle>
-                <CardDescription>
-                  Customize settings for individual job roles
-                </CardDescription>
+                <CardTitle>{t('text.companyjobsdashboard.rolespecificConfigurations', 'Role-Specific Configurations')}</CardTitle>
+                <CardDescription>{t('text.companyjobsdashboard.customizeSettingsForIndividualJobRoles', 'Customize settings for individual job roles')}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 {/* Job Selection */}
                 <div className="space-y-2">
-                  <Label>Select Job</Label>
+                  <Label>{t('text.companyjobsdashboard.selectJob', 'Select Job')}</Label>
                   <Select
                     value={selectedJobForSettings}
                     onValueChange={setSelectedJobForSettings}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Choose a job to configure" />
+                      <SelectValue placeholder={t('text.companyjobsdashboard.chooseAJobToConfigure', 'Choose a job to configure')} />
                     </SelectTrigger>
                     <SelectContent>
                       {jobs.map((job) => (
@@ -494,14 +480,12 @@ const CompanyJobsDashboard = () => {
                   <>
                     {/* Scoring Weights */}
                     <div className="space-y-4">
-                      <Label className="text-base font-semibold">Evaluation Weights</Label>
-                      <p className="text-sm text-muted-foreground">
-                        Configure how candidates are scored for this role
-                      </p>
+                      <Label className="text-base font-semibold">{t('text.companyjobsdashboard.evaluationWeights', 'Evaluation Weights')}</Label>
+                      <p className="text-sm text-muted-foreground">{t('companyJobsDashboard.desc9')}</p>
                       <div className="grid gap-4">
                         <div className="space-y-2">
                           <div className="flex items-center justify-between">
-                            <Label>Technical Skills</Label>
+                            <Label>{t('text.companyjobsdashboard.technicalSkills', 'Technical Skills')}</Label>
                             <span className="text-sm text-muted-foreground">
                               {roleSettings[selectedJobForSettings]?.scoring_weights?.technical || 40}%
                             </span>
@@ -527,7 +511,7 @@ const CompanyJobsDashboard = () => {
                         </div>
                         <div className="space-y-2">
                           <div className="flex items-center justify-between">
-                            <Label>Cultural Fit</Label>
+                            <Label>{t('text.companyjobsdashboard.culturalFit', 'Cultural Fit')}</Label>
                             <span className="text-sm text-muted-foreground">
                               {roleSettings[selectedJobForSettings]?.scoring_weights?.cultural_fit || 30}%
                             </span>
@@ -553,7 +537,7 @@ const CompanyJobsDashboard = () => {
                         </div>
                         <div className="space-y-2">
                           <div className="flex items-center justify-between">
-                            <Label>Communication</Label>
+                            <Label>{t('text.companyjobsdashboard.communication', 'Communication')}</Label>
                             <span className="text-sm text-muted-foreground">
                               {roleSettings[selectedJobForSettings]?.scoring_weights?.communication || 30}%
                             </span>
@@ -582,9 +566,9 @@ const CompanyJobsDashboard = () => {
 
                     {/* Custom Questions */}
                     <div className="space-y-4">
-                      <Label className="text-base font-semibold">Custom Screening Questions</Label>
+                      <Label className="text-base font-semibold">{t('text.companyjobsdashboard.customScreeningQuestions', 'Custom Screening Questions')}</Label>
                       <Textarea
-                        placeholder="Add custom questions for this role (one per line)"
+                        placeholder={t('text.companyjobsdashboard.addCustomQuestionsForThisRole', 'Add custom questions for this role (one per line)')}
                         rows={6}
                         value={
                           roleSettings[selectedJobForSettings]?.custom_questions?.join('\n') || ''

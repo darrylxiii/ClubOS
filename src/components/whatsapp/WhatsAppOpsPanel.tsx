@@ -17,6 +17,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { WhatsAppConversation } from '@/hooks/useWhatsAppConversations';
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 
 interface Props {
   conversations: WhatsAppConversation[];
@@ -36,6 +37,7 @@ interface SlaStatus {
 }
 
 function getSlaStatus(lastMessageAt: string | null, direction: string | null): SlaStatus | null {
+  const { t } = useTranslation('common');
   if (!lastMessageAt || direction !== 'inbound') return null;
   
   const waitMinutes = differenceInMinutes(new Date(), new Date(lastMessageAt));
@@ -145,24 +147,24 @@ export function WhatsAppOpsPanel({
       <div className="p-4 border-b shrink-0">
         <div className="flex items-center gap-2 mb-1">
           <Zap className="w-4 h-4 text-primary" />
-          <h3 className="font-semibold text-sm">Ops Triage</h3>
+          <h3 className="font-semibold text-sm">{"Ops Triage"}</h3>
         </div>
-        <p className="text-xs text-muted-foreground">Prioritized response queue</p>
+        <p className="text-xs text-muted-foreground">{"Prioritized response queue"}</p>
       </div>
 
       {/* Quick Stats */}
       <div className="grid grid-cols-3 gap-2 p-3 border-b shrink-0">
         <div className="text-center p-2 rounded bg-muted/50">
           <p className="text-lg font-bold">{stats.totalUnread}</p>
-          <p className="text-[10px] text-muted-foreground">Unread</p>
+          <p className="text-[10px] text-muted-foreground">{"Unread"}</p>
         </div>
         <div className="text-center p-2 rounded bg-muted/50">
           <p className="text-lg font-bold text-amber-500">{stats.needsResponse}</p>
-          <p className="text-[10px] text-muted-foreground">Awaiting</p>
+          <p className="text-[10px] text-muted-foreground">{"Awaiting"}</p>
         </div>
         <div className="text-center p-2 rounded bg-muted/50">
           <p className="text-lg font-bold text-red-500">{stats.criticalCount}</p>
-          <p className="text-[10px] text-muted-foreground">Critical</p>
+          <p className="text-[10px] text-muted-foreground">{"Critical"}</p>
         </div>
       </div>
 
@@ -171,7 +173,7 @@ export function WhatsAppOpsPanel({
         <div className="p-3 border-b shrink-0">
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-2">
             <TrendingUp className="w-3 h-3" />
-            <span>Next Best Action</span>
+            <span>{"Next Best Action"}</span>
           </div>
           <Button
             variant="outline"
@@ -208,7 +210,7 @@ export function WhatsAppOpsPanel({
       {/* Response Queue */}
       <div className="flex-1 min-h-0 flex flex-col">
         <div className="px-3 py-2 flex items-center justify-between shrink-0">
-          <span className="text-xs font-medium text-muted-foreground">Response Queue</span>
+          <span className="text-xs font-medium text-muted-foreground">{"Response Queue"}</span>
           <Badge variant="outline" className="text-[10px] h-5">
             {needsResponseQueue.length}
           </Badge>
@@ -219,7 +221,7 @@ export function WhatsAppOpsPanel({
             {needsResponseQueue.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 <MessageSquare className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                <p className="text-xs">All caught up!</p>
+                <p className="text-xs">{"All caught up!"}</p>
               </div>
             ) : (
               needsResponseQueue.map((conversation) => (

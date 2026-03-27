@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,6 +21,7 @@ const CATEGORIES = [
 ];
 
 export function AddBudgetDialog() {
+  const { t } = useTranslation('common');
   const [open, setOpen] = useState(false);
   const upsert = useUpsertSubscriptionBudget();
   const [form, setForm] = useState({
@@ -58,14 +60,14 @@ export function AddBudgetDialog() {
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Set Category Budget</DialogTitle>
-          <DialogDescription>Define a monthly spend limit for a subscription category.</DialogDescription>
+          <DialogTitle>{t("set_category_budget", "Set Category Budget")}</DialogTitle>
+          <DialogDescription>{t("define_a_monthly_spend", "Define a monthly spend limit for a subscription category.")}</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label>Category</Label>
+            <Label>{t("category", "Category")}</Label>
             <Select value={form.category} onValueChange={(v) => setForm({ ...form, category: v })}>
-              <SelectTrigger><SelectValue placeholder="Select category" /></SelectTrigger>
+              <SelectTrigger><SelectValue placeholder={t("select_category", "Select category")} /></SelectTrigger>
               <SelectContent>
                 {CATEGORIES.map((c) => (
                   <SelectItem key={c} value={c}>{c}</SelectItem>
@@ -74,7 +76,7 @@ export function AddBudgetDialog() {
             </Select>
           </div>
           <div className="space-y-2">
-            <Label>Monthly Budget (EUR)</Label>
+            <Label>{t("monthly_budget_eur", "Monthly Budget (EUR)")}</Label>
             <Input
               type="number"
               step="0.01"
@@ -84,20 +86,20 @@ export function AddBudgetDialog() {
             />
           </div>
           <div className="space-y-2">
-            <Label>Period</Label>
+            <Label>{t("period", "Period")}</Label>
             <Select value={form.period_type} onValueChange={(v) => setForm({ ...form, period_type: v })}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="monthly">Monthly</SelectItem>
-                <SelectItem value="quarterly">Quarterly</SelectItem>
-                <SelectItem value="annual">Annual</SelectItem>
+                <SelectItem value="monthly">{t("monthly", "Monthly")}</SelectItem>
+                <SelectItem value="quarterly">{t("quarterly", "Quarterly")}</SelectItem>
+                <SelectItem value="annual">{t("annual", "Annual")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
           <div className="space-y-2">
-            <Label>Notes (optional)</Label>
+            <Label>{t("notes_optional", "Notes (optional)")}</Label>
             <Input
-              placeholder="Budget rationale..."
+              placeholder={t("budget_rationale", "Budget rationale...")}
               value={form.notes}
               onChange={(e) => setForm({ ...form, notes: e.target.value })}
             />

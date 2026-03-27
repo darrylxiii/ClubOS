@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -46,6 +47,7 @@ interface RevenuePreCalculationProps {
 }
 
 export function RevenuePreCalculation({ deals, stages }: RevenuePreCalculationProps) {
+  const { t } = useTranslation('common');
   const { data: metrics } = usePipelineMetrics();
   
   const calculations = useMemo(() => {
@@ -155,7 +157,7 @@ export function RevenuePreCalculation({ deals, stages }: RevenuePreCalculationPr
               <p className={`text-2xl font-bold ${getConfidenceColor(calculations.avgConfidence)}`}>
                 {Math.round(calculations.avgConfidence)}%
               </p>
-              <p className="text-xs text-muted-foreground">Pipeline Confidence Score</p>
+              <p className="text-xs text-muted-foreground">{t("pipeline_confidence_score", "Pipeline Confidence Score")}</p>
             </CardContent>
           </Card>
         </motion.div>
@@ -165,7 +167,7 @@ export function RevenuePreCalculation({ deals, stages }: RevenuePreCalculationPr
             <CardContent className="pt-6">
               <div className="flex items-center justify-between mb-2">
                 <Users className="h-5 w-5 text-muted-foreground" />
-                <Badge variant="outline" className="text-xs">Active</Badge>
+                <Badge variant="outline" className="text-xs">{t("active", "Active")}</Badge>
               </div>
               <p className="text-2xl font-bold">{calculations.dealCount}</p>
               <p className="text-xs text-muted-foreground">
@@ -185,7 +187,7 @@ export function RevenuePreCalculation({ deals, stages }: RevenuePreCalculationPr
             <TrendingUp className="h-5 w-5" />
             Revenue Confidence Breakdown
           </CardTitle>
-          <CardDescription>Revenue categorized by calculation confidence level</CardDescription>
+          <CardDescription>{t("revenue_categorized_by_calculation", "Revenue categorized by calculation confidence level")}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -193,7 +195,7 @@ export function RevenuePreCalculation({ deals, stages }: RevenuePreCalculationPr
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <CheckCircle className="h-4 w-4 text-emerald-500" />
-                  <span className="text-sm font-medium">High Confidence (75%+)</span>
+                  <span className="text-sm font-medium">{t("high_confidence_75", "High Confidence (75%+)")}</span>
                 </div>
                 <span className="text-sm font-bold text-emerald-500">{formatCurrency(calculations.highConfidenceValue)}</span>
               </div>
@@ -204,7 +206,7 @@ export function RevenuePreCalculation({ deals, stages }: RevenuePreCalculationPr
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <AlertTriangle className="h-4 w-4 text-amber-500" />
-                  <span className="text-sm font-medium">Medium Confidence (50-74%)</span>
+                  <span className="text-sm font-medium">{t("medium_confidence_5074", "Medium Confidence (50-74%)")}</span>
                 </div>
                 <span className="text-sm font-bold text-amber-500">{formatCurrency(calculations.mediumConfidenceValue)}</span>
               </div>
@@ -215,7 +217,7 @@ export function RevenuePreCalculation({ deals, stages }: RevenuePreCalculationPr
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <AlertTriangle className="h-4 w-4 text-destructive" />
-                  <span className="text-sm font-medium">Low Confidence (&lt;50%)</span>
+                  <span className="text-sm font-medium">{t("low_confidence_lt50", "Low Confidence (&lt;50%)")}</span>
                 </div>
                 <span className="text-sm font-bold text-destructive">{formatCurrency(calculations.lowConfidenceValue)}</span>
               </div>
@@ -233,21 +235,21 @@ export function RevenuePreCalculation({ deals, stages }: RevenuePreCalculationPr
               <div className="text-center">
                 <div className="flex items-center justify-center gap-1 mb-1">
                   <Percent className="h-3 w-3 text-primary" />
-                  <span className="text-xs text-muted-foreground">Percentage</span>
+                  <span className="text-xs text-muted-foreground">{t("percentage", "Percentage")}</span>
                 </div>
                 <span className="text-lg font-bold">{calculations.percentageFeeCount}</span>
               </div>
               <div className="text-center">
                 <div className="flex items-center justify-center gap-1 mb-1">
                   <DollarSign className="h-3 w-3 text-emerald-500" />
-                  <span className="text-xs text-muted-foreground">Fixed</span>
+                  <span className="text-xs text-muted-foreground">{t("fixed", "Fixed")}</span>
                 </div>
                 <span className="text-lg font-bold">{calculations.fixedFeeCount}</span>
               </div>
               <div className="text-center">
                 <div className="flex items-center justify-center gap-1 mb-1">
                   <Calculator className="h-3 w-3 text-blue-500" />
-                  <span className="text-xs text-muted-foreground">Hybrid</span>
+                  <span className="text-xs text-muted-foreground">{t("hybrid", "Hybrid")}</span>
                 </div>
                 <span className="text-lg font-bold">{calculations.hybridFeeCount}</span>
               </div>
@@ -259,7 +261,7 @@ export function RevenuePreCalculation({ deals, stages }: RevenuePreCalculationPr
               <div className="flex items-start gap-3">
                 <AlertTriangle className="h-5 w-5 text-amber-500 mt-0.5" />
                 <div className="space-y-1">
-                  <p className="text-sm font-medium text-amber-500">Data Quality Issues</p>
+                  <p className="text-sm font-medium text-amber-500">{t("data_quality_issues", "Data Quality Issues")}</p>
                   <ul className="text-xs text-muted-foreground space-y-1">
                     {calculations.missingFeeCount > 0 && (
                       <li>• {calculations.missingFeeCount} deals missing fee configuration</li>
@@ -282,7 +284,7 @@ export function RevenuePreCalculation({ deals, stages }: RevenuePreCalculationPr
             <Percent className="h-5 w-5" />
             Revenue Calculation Method
           </CardTitle>
-          <CardDescription>How we calculate projected revenue for each deal</CardDescription>
+          <CardDescription>{t("how_we_calculate_projected", "How we calculate projected revenue for each deal")}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-5">
@@ -306,7 +308,7 @@ export function RevenuePreCalculation({ deals, stages }: RevenuePreCalculationPr
             ))}
           </div>
           <p className="text-xs text-muted-foreground mt-4">
-            Formula: <code className="px-1 py-0.5 bg-muted rounded">Base Salary × Fee % × Stage Probability = Weighted Value</code>
+            Formula: <code className="px-1 py-0.5 bg-muted rounded">{t("base_salary_fee_stage", "Base Salary × Fee % × Stage Probability = Weighted Value")}</code>
           </p>
         </CardContent>
       </Card>

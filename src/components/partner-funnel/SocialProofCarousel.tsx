@@ -60,7 +60,7 @@ export function SocialProofCarousel() {
       {liveStats.active_roles != null && liveStats.active_roles > 0 && (
         <div className="flex items-center gap-2">
           <Briefcase className="w-4 h-4 text-primary" />
-          <span><strong className="text-foreground">{liveStats.active_roles}</strong> active roles</span>
+          <span><strong className="text-foreground">{liveStats.active_roles}</strong>{t("active_roles", "active roles")}</span>
         </div>
       )}
       {liveStats.partnerships_this_month != null && liveStats.partnerships_this_month > 0 && (

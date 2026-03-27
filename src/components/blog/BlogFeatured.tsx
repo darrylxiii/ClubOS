@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { motion } from '@/lib/motion';
 import { Clock } from 'lucide-react';
@@ -9,6 +10,7 @@ interface BlogFeaturedProps {
 }
 
 const BlogFeatured: React.FC<BlogFeaturedProps> = ({ post }) => {
+  const { t } = useTranslation('common');
   const category = getCategoryBySlug(post.category);
 
   return (
@@ -55,7 +57,7 @@ const BlogFeatured: React.FC<BlogFeaturedProps> = ({ post }) => {
               <span>·</span>
               <span className="flex items-center gap-1">
                 <Clock className="w-3.5 h-3.5" />
-                {post.readTime} min read
+                {t('blog.minRead', { count: post.readTime })}
               </span>
             </div>
           </motion.div>

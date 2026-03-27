@@ -113,7 +113,8 @@ export function useAssessmentScores(
           // Don't auto-compute — require explicit user action via recompute
           setIsLoading(false);
         }
-      } catch {
+      } catch (error) {
+        console.error('[useAssessmentScores] Failed to load assessment scores:', error);
         if (!cancelled) setIsLoading(false);
       }
     }

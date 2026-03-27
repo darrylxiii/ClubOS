@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -31,6 +32,7 @@ interface TimesheetDetailProps {
 }
 
 export function TimesheetDetail({ timesheet, onBack }: TimesheetDetailProps) {
+  const { t } = useTranslation('common');
   const { recallTimesheet } = useTimesheets();
   const [entries, setEntries] = useState<any[]>([]);
   const [groupedEntries, setGroupedEntries] = useState<TimeEntryGrouped[]>([]);
@@ -149,7 +151,7 @@ export function TimesheetDetail({ timesheet, onBack }: TimesheetDetailProps) {
                 <Clock className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Total Hours</p>
+                <p className="text-sm text-muted-foreground">{t("total_hours", "Total Hours")}</p>
                 <p className="text-2xl font-bold">{Number(timesheet.total_hours).toFixed(1)}</p>
               </div>
             </div>
@@ -163,7 +165,7 @@ export function TimesheetDetail({ timesheet, onBack }: TimesheetDetailProps) {
                 <DollarSign className="h-5 w-5 text-emerald-500" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Billable Hours</p>
+                <p className="text-sm text-muted-foreground">{t("billable_hours", "Billable Hours")}</p>
                 <p className="text-2xl font-bold">{Number(timesheet.billable_hours).toFixed(1)}</p>
               </div>
             </div>
@@ -177,7 +179,7 @@ export function TimesheetDetail({ timesheet, onBack }: TimesheetDetailProps) {
                 <Clock className="h-5 w-5 text-muted-foreground" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Non-Billable</p>
+                <p className="text-sm text-muted-foreground">{t("nonbillable", "Non-Billable")}</p>
                 <p className="text-2xl font-bold">{Number(timesheet.non_billable_hours).toFixed(1)}</p>
               </div>
             </div>
@@ -191,7 +193,7 @@ export function TimesheetDetail({ timesheet, onBack }: TimesheetDetailProps) {
                 <AlertTriangle className="h-5 w-5 text-amber-500" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Overtime</p>
+                <p className="text-sm text-muted-foreground">{t("overtime", "Overtime")}</p>
                 <p className="text-2xl font-bold">{Number(timesheet.overtime_hours).toFixed(1)}</p>
               </div>
             </div>
@@ -228,7 +230,7 @@ export function TimesheetDetail({ timesheet, onBack }: TimesheetDetailProps) {
       {/* Daily Breakdown */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Daily Breakdown</CardTitle>
+          <CardTitle className="text-lg">{t("daily_breakdown", "Daily Breakdown")}</CardTitle>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -258,7 +260,7 @@ export function TimesheetDetail({ timesheet, onBack }: TimesheetDetailProps) {
                   </div>
 
                   {day.entries.length === 0 ? (
-                    <p className="text-sm text-muted-foreground italic">No entries</p>
+                    <p className="text-sm text-muted-foreground italic">{t("no_entries", "No entries")}</p>
                   ) : (
                     <div className="space-y-2">
                       {day.entries.map((entry) => (
@@ -284,10 +286,10 @@ export function TimesheetDetail({ timesheet, onBack }: TimesheetDetailProps) {
                           </div>
                           <div className="flex items-center gap-3">
                             {entry.is_billable && (
-                              <Badge variant="outline" className="text-xs">Billable</Badge>
+                              <Badge variant="outline" className="text-xs">{t("billable", "Billable")}</Badge>
                             )}
                             {entry.is_locked && (
-                              <Badge variant="secondary" className="text-xs">Locked</Badge>
+                              <Badge variant="secondary" className="text-xs">{t("locked", "Locked")}</Badge>
                             )}
                             <span className="text-sm font-medium">
                               {((entry.duration_seconds || 0) / 3600).toFixed(1)}h

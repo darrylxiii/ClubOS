@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useRef, useState, useEffect } from "react";
 import DOMPurify from "dompurify";
 import { Button } from "@/components/ui/button";
@@ -74,6 +75,7 @@ const EMOJI_CATEGORIES = {
 };
 
 export function RichTextEditor({ value, onChange, placeholder, className, onYouTubeClick, onLinkedInClick, onTwitterClick, onInstagramClick, onSpotifyClick }: RichTextEditorProps) {
+  const { t } = useTranslation('common');
   const editorRef = useRef<HTMLDivElement>(null);
   const [showToolbar, setShowToolbar] = useState(false);
   const [showLinkDialog, setShowLinkDialog] = useState(false);
@@ -193,7 +195,7 @@ export function RichTextEditor({ value, onChange, placeholder, className, onYouT
             size="sm"
             className="h-8 w-8 p-0"
             onClick={() => execCommand('bold')}
-            title="Bold"
+            title={t("bold", "Bold")}
           >
             <Bold className="w-4 h-4" />
           </Button>
@@ -204,7 +206,7 @@ export function RichTextEditor({ value, onChange, placeholder, className, onYouT
             size="sm"
             className="h-8 w-8 p-0"
             onClick={() => execCommand('italic')}
-            title="Italic"
+            title={t("italic", "Italic")}
           >
             <Italic className="w-4 h-4" />
           </Button>
@@ -215,7 +217,7 @@ export function RichTextEditor({ value, onChange, placeholder, className, onYouT
             size="sm"
             className="h-8 w-8 p-0"
             onClick={handleBulletList}
-            title="Bullet List"
+            title={t("bullet_list", "Bullet List")}
           >
             <List className="w-4 h-4" />
           </Button>
@@ -226,7 +228,7 @@ export function RichTextEditor({ value, onChange, placeholder, className, onYouT
             size="sm"
             className="h-8 w-8 p-0"
             onClick={handleInsertLink}
-            title="Add Link"
+            title={t("add_link", "Add Link")}
           >
             <LinkIcon className="w-4 h-4" />
           </Button>
@@ -238,7 +240,7 @@ export function RichTextEditor({ value, onChange, placeholder, className, onYouT
               size="sm"
               className="h-8 w-8 p-0"
               onClick={onYouTubeClick}
-              title="Add YouTube Video"
+              title={t("add_youtube_video", "Add YouTube Video")}
             >
               <Youtube className="w-4 h-4 text-red-600" />
             </Button>
@@ -251,7 +253,7 @@ export function RichTextEditor({ value, onChange, placeholder, className, onYouT
               size="sm"
               className="h-8 w-8 p-0"
               onClick={onLinkedInClick}
-              title="Embed LinkedIn Post"
+              title={t("embed_linkedin_post", "Embed LinkedIn Post")}
             >
               <Linkedin className="w-4 h-4 text-blue-600" />
             </Button>
@@ -264,7 +266,7 @@ export function RichTextEditor({ value, onChange, placeholder, className, onYouT
               size="sm"
               className="h-8 w-8 p-0"
               onClick={onTwitterClick}
-              title="Embed X (Twitter) Post"
+              title={t("embed_x_twitter_post", "Embed X (Twitter) Post")}
             >
               <Twitter className="w-4 h-4" />
             </Button>
@@ -277,7 +279,7 @@ export function RichTextEditor({ value, onChange, placeholder, className, onYouT
               size="sm"
               className="h-8 w-8 p-0"
               onClick={onInstagramClick}
-              title="Embed Instagram Post"
+              title={t("embed_instagram_post", "Embed Instagram Post")}
             >
               <Instagram className="w-4 h-4 text-pink-600" />
             </Button>
@@ -290,7 +292,7 @@ export function RichTextEditor({ value, onChange, placeholder, className, onYouT
               size="sm"
               className="h-8 w-8 p-0"
               onClick={onSpotifyClick}
-              title="Embed Spotify"
+              title={t("embed_spotify", "Embed Spotify")}
             >
               <Music className="w-4 h-4 text-green-500" />
             </Button>
@@ -303,7 +305,7 @@ export function RichTextEditor({ value, onChange, placeholder, className, onYouT
                 variant="ghost"
                 size="sm"
                 className="h-8 w-8 p-0"
-                title="Add Emoji"
+                title={t("add_emoji", "Add Emoji")}
               >
                 <Smile className="w-4 h-4" />
               </Button>
@@ -356,7 +358,7 @@ export function RichTextEditor({ value, onChange, placeholder, className, onYouT
               size="sm"
               className="h-8 px-2 ml-auto text-xs"
               onClick={() => setShowPreview(true)}
-              title="Preview Post"
+              title={t("preview_post", "Preview Post")}
             >
               Preview
             </Button>
@@ -388,17 +390,17 @@ export function RichTextEditor({ value, onChange, placeholder, className, onYouT
       <Dialog open={showLinkDialog} onOpenChange={setShowLinkDialog}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Insert Link</DialogTitle>
+            <DialogTitle>{t("insert_link", "Insert Link")}</DialogTitle>
             <DialogDescription>
               Add a link to your post
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="link-text">Link Text</Label>
+              <Label htmlFor="link-text">{t("link_text", "Link Text")}</Label>
               <Input
                 id="link-text"
-                placeholder="Enter text to display"
+                placeholder={t("enter_text_to_display", "Enter text to display")}
                 value={linkText}
                 onChange={(e) => setLinkText(e.target.value)}
               />
@@ -434,7 +436,7 @@ export function RichTextEditor({ value, onChange, placeholder, className, onYouT
       <Dialog open={showPreview} onOpenChange={setShowPreview}>
         <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Post Preview</DialogTitle>
+            <DialogTitle>{t("post_preview", "Post Preview")}</DialogTitle>
             <DialogDescription>
               This is how your post will appear
             </DialogDescription>

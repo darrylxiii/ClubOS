@@ -1,9 +1,4 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+import { createHandler } from '../_shared/handler.ts';
 
 interface AssistRequest {
   action: string;
@@ -12,17 +7,13 @@ interface AssistRequest {
   recipientEmail?: string;
 }
 
-const handler = async (req: Request): Promise<Response> => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  try {
+Deno.serve(createHandler(async (req, ctx) => {
+    const corsHeaders = ctx.corsHeaders;
     const { action, currentText, subject, recipientEmail }: AssistRequest = await req.json();
 
-    const lovableApiKey = Deno.env.get("LOVABLE_API_KEY");
-    if (!lovableApiKey) {
-      throw new Error("LOVABLE_API_KEY not configured");
+    const googleApiKey = Deno.env.get("GOOGLE_API_KEY");
+    if (!googleApiKey) {
+      throw new Error("GOOGLE_API_KEY not configured");
     }
 
     // Build action-specific prompts
@@ -82,15 +73,15 @@ Make it friendly and personable but maintain professionalism.`;
         throw new Error("Invalid action");
     }
 
-    // Call Lovable AI
-    const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    // Call Google Gemini
+    const aiResponse = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${lovableApiKey}`,
+        Authorization: `Bearer ${googleApiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash-lite",
+        model: "gemini-2.5-flash-lite",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt },
@@ -109,7 +100,7 @@ Make it friendly and personable but maintain professionalism.`;
       }
       if (aiResponse.status === 402) {
         return new Response(
-          JSON.stringify({ error: "AI credits exhausted. Please add funds to your Lovable workspace." }),
+          JSON.stringify({ error: "AI quota exceeded. Please check your Google API billing." }),
           { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
@@ -123,16 +114,4 @@ Make it friendly and personable but maintain professionalism.`;
       JSON.stringify({ suggestion }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
-  } catch (error: any) {
-    console.error("Error in assist-email-writing:", error);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
-  }
-};
-
-serve(handler);
+}));

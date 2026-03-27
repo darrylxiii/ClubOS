@@ -2,19 +2,13 @@
  * LiveKit Health Check Endpoint
  * Tests if LiveKit infrastructure is configured and reachable
  */
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createHandler } from '../_shared/handler.ts';
+import { resilientFetch } from '../_shared/resilient-fetch.ts';
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+Deno.serve(createHandler(async (req, ctx) => {
+  const { corsHeaders } = ctx;
 
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  console.log('[LiveKit Health] 🏥 Health check requested at:', new Date().toISOString());
+  console.log('[LiveKit Health] Health check requested at:', new Date().toISOString());
 
   const apiKey = Deno.env.get('LIVEKIT_API_KEY');
   const apiSecret = Deno.env.get('LIVEKIT_API_SECRET');
@@ -33,14 +27,20 @@ serve(async (req) => {
   if (health.configured && livekitUrl) {
     try {
       const startTime = Date.now();
-      
+
       // Try the WebSocket endpoint health check
       // LiveKit cloud uses WSS, so we check if the domain resolves
-      const response = await fetch(`${livekitUrl.replace('wss://', 'https://')}`, {
-        method: 'GET',
-        signal: AbortSignal.timeout(5000)
-      });
-      
+      const { response } = await resilientFetch(
+        `${livekitUrl.replace('wss://', 'https://')}`,
+        { method: 'GET' },
+        {
+          timeoutMs: 5_000,
+          maxRetries: 2, // 1 initial + 1 retry
+          service: 'livekit',
+          operation: 'health-check',
+        },
+      );
+
       health.latencyMs = Date.now() - startTime;
       health.ready = response.status < 500; // Any non-500 response means server is up
       
@@ -61,4 +61,4 @@ serve(async (req) => {
     status: health.ready ? 200 : 503,
     headers: { ...corsHeaders, 'Content-Type': 'application/json' }
   });
-});
+}));

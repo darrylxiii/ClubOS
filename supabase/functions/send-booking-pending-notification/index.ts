@@ -1,15 +1,11 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
-import { 
-  Heading, Paragraph, Spacer, Card, Button, InfoRow, StatusBadge 
+import {
+  Heading, Paragraph, Spacer, Card, Button, InfoRow, StatusBadge
 } from "../_shared/email-templates/components.ts";
 import { EMAIL_SENDERS, EMAIL_COLORS, getEmailAppUrl, getEmailHeaders, htmlToPlainText } from "../_shared/email-config.ts";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+import { getCorsHeaders } from '../_shared/cors.ts';
 
 interface PendingNotificationRequest {
   bookingId: string;
@@ -24,6 +20,7 @@ interface PendingNotificationRequest {
 }
 
 const handler = async (req: Request): Promise<Response> => {
+  const corsHeaders = getCorsHeaders(req);
   console.log("[send-booking-pending-notification] Request received");
 
   if (req.method === "OPTIONS") {

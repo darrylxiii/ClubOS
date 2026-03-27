@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -5,6 +6,7 @@ import { Loader2, CheckCircle, XCircle, RefreshCw, ExternalLink } from 'lucide-r
 import { useMoneybirdConnection, useSyncMoneybirdContacts, useSyncMoneybirdInvoiceStatus } from '@/hooks/useMoneybird';
 
 export function MoneybirdSettingsCard() {
+  const { t } = useTranslation('common');
   const { data: connection, isLoading, refetch } = useMoneybirdConnection();
   const syncContacts = useSyncMoneybirdContacts();
   const syncInvoices = useSyncMoneybirdInvoiceStatus();
@@ -62,19 +64,19 @@ export function MoneybirdSettingsCard() {
           {/* Connection Details */}
           <div className="grid grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
             <div>
-              <p className="text-sm text-muted-foreground">Administration</p>
+              <p className="text-sm text-muted-foreground">{t("administration", "Administration")}</p>
               <p className="font-medium">{connection.administrationName}</p>
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Administration ID</p>
+              <p className="text-sm text-muted-foreground">{t("administration_id", "Administration ID")}</p>
               <p className="font-mono text-sm">{connection.administrationId}</p>
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Country</p>
+              <p className="text-sm text-muted-foreground">{t("country", "Country")}</p>
               <p className="font-medium">{connection.country || 'NL'}</p>
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Currency</p>
+              <p className="text-sm text-muted-foreground">{t("currency", "Currency")}</p>
               <p className="font-medium">{connection.currency || 'EUR'}</p>
             </div>
           </div>

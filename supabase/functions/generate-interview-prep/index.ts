@@ -1,29 +1,15 @@
-import { createClient } from "npm:@supabase/supabase-js@2";
+import { createHandler } from '../_shared/handler.ts';
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
-
-Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  try {
+Deno.serve(createHandler(async (req, ctx) => {
     const { meetingId, candidateId, roleTitle, companyName } = await req.json();
-    
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY not configured");
+
+    const GOOGLE_API_KEY = Deno.env.get("GOOGLE_API_KEY");
+    if (!GOOGLE_API_KEY) {
+      throw new Error("GOOGLE_API_KEY not configured");
     }
 
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
     // === DEDUP GUARD: Return existing brief if already generated for this meeting+candidate ===
-    const { data: existingBrief } = await supabase
+    const { data: existingBrief } = await ctx.supabase
       .from('interview_prep_briefs')
       .select('*')
       .eq('meeting_id', meetingId)
@@ -34,12 +20,12 @@ Deno.serve(async (req) => {
       console.log(`[generate-interview-prep] Cache HIT for meeting ${meetingId} + candidate ${candidateId}`);
       return new Response(
         JSON.stringify({ brief: existingBrief }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { headers: { ...ctx.corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
     // Fetch candidate profile data
-    const { data: candidate, error: candidateError } = await supabase
+    const { data: candidate, error: candidateError } = await ctx.supabase
       .from('candidate_profiles')
       .select('*, profiles!inner(*)')
       .eq('id', candidateId)
@@ -51,8 +37,8 @@ Deno.serve(async (req) => {
 
     // Fetch candidate's experience, skills in parallel
     const [{ data: experience }, { data: skills }] = await Promise.all([
-      supabase.from('experience').select('*').eq('user_id', candidate?.user_id).order('start_date', { ascending: false }),
-      supabase.from('skills').select('*').eq('user_id', candidate?.user_id),
+      ctx.supabase.from('experience').select('*').eq('user_id', candidate?.user_id).order('start_date', { ascending: false }),
+      ctx.supabase.from('skills').select('*').eq('user_id', candidate?.user_id),
     ]);
 
     // Build candidate context
@@ -65,15 +51,15 @@ Deno.serve(async (req) => {
       education: candidate?.education_level,
     };
 
-    // Generate AI prep brief — downgraded to flash-lite (structured JSON from structured input)
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    // Generate AI prep brief -- downgraded to flash-lite (structured JSON from structured input)
+    const response = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        Authorization: `Bearer ${GOOGLE_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash-lite",
+        model: "gemini-2.5-flash-lite",
         messages: [
           {
             role: "system",
@@ -132,7 +118,7 @@ Provide response as valid JSON.`
 
     const data = await response.json();
     const analysisText = data.choices[0].message.content;
-    
+
     let prepBrief;
     try {
       const jsonMatch = analysisText.match(/\{[\s\S]*\}/);
@@ -157,7 +143,7 @@ Provide response as valid JSON.`
     }
 
     // Store prep brief in database
-    const { data: brief, error: insertError } = await supabase
+    const { data: brief, error: insertError } = await ctx.supabase
       .from('interview_prep_briefs')
       .insert({
         meeting_id: meetingId,
@@ -182,13 +168,6 @@ Provide response as valid JSON.`
 
     return new Response(
       JSON.stringify({ brief }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      { headers: { ...ctx.corsHeaders, "Content-Type": "application/json" } }
     );
-  } catch (error) {
-    console.error("Error in generate-interview-prep:", error);
-    return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
-  }
-});
+}));

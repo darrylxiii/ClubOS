@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { TrendingUp, AlertCircle, CheckCircle2 } from 'lucide-react';
 
 export function DataCompletenessBoard() {
+  const { t } = useTranslation('common');
   const { data: completenessMetrics } = useQuery({
     queryKey: ['data-completeness-metrics'],
     queryFn: async () => {
@@ -99,7 +101,7 @@ export function DataCompletenessBoard() {
       {/* Low Completeness Alerts */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm">Missing Data - Priority Fixes</CardTitle>
+          <CardTitle className="text-sm">{t("missing_data_priority_fixes", "Missing Data - Priority Fixes")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-2 max-h-60 overflow-y-auto">

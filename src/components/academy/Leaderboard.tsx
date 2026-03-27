@@ -1,4 +1,5 @@
 import { memo, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -17,6 +18,7 @@ interface LeaderboardEntry {
 }
 
 export const Leaderboard = memo(() => {
+  const { t } = useTranslation('common');
   const [monthlyLeaders, setMonthlyLeaders] = useState<LeaderboardEntry[]>([]);
   const [allTimeLeaders, setAllTimeLeaders] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -108,7 +110,7 @@ export const Leaderboard = memo(() => {
 
       {entries.length === 0 && (
         <Card className="p-8 text-center">
-          <p className="text-muted-foreground">No entries yet</p>
+          <p className="text-muted-foreground">{t('academy.noEntriesYet')}</p>
         </Card>
       )}
     </div>
@@ -135,10 +137,8 @@ export const Leaderboard = memo(() => {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold mb-2">Leaderboard</h2>
-        <p className="text-muted-foreground">
-          Top learners in The Quantum Club Academy
-        </p>
+        <h2 className="text-2xl font-bold mb-2">{t('academy.leaderboard')}</h2>
+        <p className="text-muted-foreground">{t('academy.topLearnersInTheQuantumClubAcademy')}</p>
       </div>
 
       <Tabs defaultValue="monthly" className="space-y-6">

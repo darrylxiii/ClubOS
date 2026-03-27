@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useVoiceChannel } from '@/hooks/useVoiceChannel';
@@ -46,6 +47,7 @@ interface Channel {
 const REACTIONS = ['👍', '❤️', '😂', '😮', '😢', '🎉', '👏', '🔥'];
 
 const VoiceChannel = ({ channelId, channelType, autoJoin = false }: VoiceChannelProps) => {
+  const { t } = useTranslation('meetings');
   const { user } = useAuth();
   const [channel, setChannel] = useState<Channel | null>(null);
   const [isRecording, setIsRecording] = useState(false);
@@ -170,10 +172,10 @@ const VoiceChannel = ({ channelId, channelType, autoJoin = false }: VoiceChannel
       //   setShowRecordingSettings(true);
       // }
 
-      toast.success('Connected to voice channel');
+      toast.success(t('livehub.connectedToVoice'));
     } catch (error: unknown) {
       console.error('Error joining channel:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to connect to voice channel';
+      const errorMessage = error instanceof Error ? error.message : t('livehub.failedToConnect');
       toast.error(errorMessage);
     } finally {
       setIsJoining(false);
@@ -190,7 +192,7 @@ const VoiceChannel = ({ channelId, channelType, autoJoin = false }: VoiceChannel
         await autoRecording.stopRecording();
       }
       await leaveChannel();
-      toast.success('Disconnected from voice channel');
+      toast.success(t('livehub.disconnectedFromVoice'));
     } catch (error) {
       console.error('Error leaving channel:', error);
     }
@@ -208,7 +210,7 @@ const VoiceChannel = ({ channelId, channelType, autoJoin = false }: VoiceChannel
     activeScreenShare = {
       userId: user.id,
       stream: screenStream,
-      userName: 'You',
+      userName: t('livehub.you'),
       avatarUrl: undefined // Could fetch from profile if needed, but 'You' is fine
     };
   } else {
@@ -219,7 +221,7 @@ const VoiceChannel = ({ channelId, channelType, autoJoin = false }: VoiceChannel
         activeScreenShare = {
           userId,
           stream: streams.screen,
-          userName: participant?.user?.full_name || 'Unknown User',
+          userName: participant?.user?.full_name || t('livehub.unknownUser'),
           avatarUrl: participant?.user?.avatar_url
         };
         break;
@@ -234,7 +236,7 @@ const VoiceChannel = ({ channelId, channelType, autoJoin = false }: VoiceChannel
         <div className="absolute top-2 right-2 z-20">
           <Badge variant="destructive" className="animate-pulse flex items-center gap-2">
             <Circle className="h-2 w-2 fill-current" />
-            Recording {Math.floor(autoRecording.recordingDuration / 60)}:{String(autoRecording.recordingDuration % 60).padStart(2, '0')}
+            {t('livehub.recording')} {Math.floor(autoRecording.recordingDuration / 60)}:{String(autoRecording.recordingDuration % 60).padStart(2, '0')}
           </Badge>
         </div>
       )}
@@ -258,7 +260,7 @@ const VoiceChannel = ({ channelId, channelType, autoJoin = false }: VoiceChannel
               />
             )}
             {isConnected && !connectionQuality && (
-              <span className="text-xs text-primary">Connected</span>
+              <span className="text-xs text-primary">{t('livehub.connected')}</span>
             )}
           </div>
 
@@ -271,11 +273,11 @@ const VoiceChannel = ({ channelId, channelType, autoJoin = false }: VoiceChannel
                 onCheckedChange={setPushToTalkEnabled}
               />
               <Label htmlFor="ptt-mode" className="text-xs cursor-pointer font-normal">
-                Push to Talk {pushToTalkEnabled && '(Space)'}
+                {t('livehub.pushToTalk')} {pushToTalkEnabled && `(${t('livehub.space')})`}
               </Label>
               {pushToTalkEnabled && isPushing && (
                 <span className="text-xs text-green-500 font-semibold animate-pulse">
-                  TRANSMITTING
+                  {t('livehub.transmitting')}
                 </span>
               )}
             </div>
@@ -293,7 +295,7 @@ const VoiceChannel = ({ channelId, channelType, autoJoin = false }: VoiceChannel
                 className="gap-2 border-destructive text-destructive"
               >
                 <Square className="w-4 h-4 fill-current" />
-                Stop Recording {Math.floor(autoRecording.recordingDuration / 60)}:{String(autoRecording.recordingDuration % 60).padStart(2, '0')}
+                {t('livehub.stopRecording')} {Math.floor(autoRecording.recordingDuration / 60)}:{String(autoRecording.recordingDuration % 60).padStart(2, '0')}
               </Button>
             ) : (
               <Button
@@ -303,7 +305,7 @@ const VoiceChannel = ({ channelId, channelType, autoJoin = false }: VoiceChannel
                 className="gap-2"
               >
                 <Circle className="w-4 h-4" />
-                Record
+                {t('livehub.record')}
               </Button>
             )}
           </div>
@@ -319,7 +321,7 @@ const VoiceChannel = ({ channelId, channelType, autoJoin = false }: VoiceChannel
             </div>
             <h3 className="text-xl font-semibold">{channel.name}</h3>
             <p className="text-sm text-muted-foreground">
-              {participants.length} {participants.length === 1 ? 'person' : 'people'} in channel
+              {t('livehub.peopleInChannel', { count: participants.length })}
             </p>
             <Button
               onClick={handleJoinChannel}
@@ -328,11 +330,11 @@ const VoiceChannel = ({ channelId, channelType, autoJoin = false }: VoiceChannel
               disabled={isJoining}
             >
               <Phone className="w-4 h-4" />
-              {isJoining ? 'Connecting...' : 'Join Voice'}
+              {isJoining ? t('livehub.connecting') : t('livehub.joinVoice')}
             </Button>
             {isJoining && (
               <p className="text-xs text-muted-foreground animate-pulse">
-                Requesting microphone access...
+                {t('livehub.requestingMicAccess')}
               </p>
             )}
           </div>
@@ -414,7 +416,7 @@ const VoiceChannel = ({ channelId, channelType, autoJoin = false }: VoiceChannel
               className={`h-12 w-12 rounded-full ${isMuted ? 'bg-red-500/20 hover:bg-red-500/30 text-red-500' : ''}`}
               onClick={toggleMute}
               disabled={pushToTalkEnabled}
-              title={pushToTalkEnabled ? "Mute control disabled in Push-to-Talk mode" : undefined}
+              title={pushToTalkEnabled ? t('livehub.muteDisabledInPTT') : undefined}
             >
               {isMuted ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
             </Button>

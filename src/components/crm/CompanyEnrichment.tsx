@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -20,13 +21,14 @@ interface EnrichmentData {
 }
 
 export function CompanyEnrichment() {
+  const { t } = useTranslation('common');
   const [domain, setDomain] = useState("");
   const [loading, setLoading] = useState(false);
   const [enrichmentData, setEnrichmentData] = useState<EnrichmentData | null>(null);
 
   const handleEnrich = async () => {
     if (!domain.trim()) {
-      toast.error("Please enter a domain");
+      toast.error(t("please_enter_a_domain", "Please enter a domain"));
       return;
     }
 
@@ -52,11 +54,11 @@ export function CompanyEnrichment() {
           linkedin_url: enriched.linkedin_url || `https://linkedin.com/company/${domain.split(".")[0]}`,
           founded_year: enriched.founded_year || "Unknown",
         });
-        toast.success("Company data enriched successfully");
+        toast.success(t("company_data_enriched_successfully", "Company data enriched successfully"));
       }
     } catch (error: unknown) {
       console.error('Enrichment error:', error);
-      toast.error("Failed to enrich company data");
+      toast.error(t("failed_to_enrich_company", "Failed to enrich company data"));
     } finally {
       setLoading(false);
     }
@@ -64,7 +66,7 @@ export function CompanyEnrichment() {
 
   const applyToProspect = () => {
     if (!enrichmentData) return;
-    toast.success("Enrichment data applied to prospect");
+    toast.success(t("enrichment_data_applied_to", "Enrichment data applied to prospect"));
     setEnrichmentData(null);
     setDomain("");
   };
@@ -83,7 +85,7 @@ export function CompanyEnrichment() {
       <CardContent className="space-y-4">
         <div className="flex gap-2">
           <Input
-            placeholder="Enter company domain (e.g., example.com)"
+            placeholder={t("enter_company_domain_eg", "Enter company domain (e.g., example.com)")}
             value={domain}
             onChange={(e) => setDomain(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleEnrich()}

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -32,6 +33,7 @@ interface CareerInsight {
 }
 
 export function MemberAgentWidget() {
+  const { t } = useTranslation('common');
   const [expandedInsight, setExpandedInsight] = useState<string | null>(null);
 
   const { data: matchedRoles, isLoading: rolesLoading } = useQuery({
@@ -114,15 +116,15 @@ export function MemberAgentWidget() {
         <div className="grid grid-cols-3 gap-3">
           <div className="text-center p-3 rounded-lg bg-muted/30">
             <p className="text-2xl font-bold">{applicationStats?.active || 0}</p>
-            <p className="text-xs text-muted-foreground">Active</p>
+            <p className="text-xs text-muted-foreground">{t("active", "Active")}</p>
           </div>
           <div className="text-center p-3 rounded-lg bg-muted/30">
             <p className="text-2xl font-bold">{matchedRoles?.length || 0}</p>
-            <p className="text-xs text-muted-foreground">Matches</p>
+            <p className="text-xs text-muted-foreground">{t("matches", "Matches")}</p>
           </div>
           <div className="text-center p-3 rounded-lg bg-muted/30">
             <p className="text-2xl font-bold">3</p>
-            <p className="text-xs text-muted-foreground">Interviews</p>
+            <p className="text-xs text-muted-foreground">{t("interviews", "Interviews")}</p>
           </div>
         </div>
 

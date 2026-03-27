@@ -1,8 +1,22 @@
+import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Clock, Edit, LayoutDashboard, Target, ExternalLink } from "lucide-react";
+import {
+  CheckSquare,
+  Clock,
+  Edit,
+  ExternalLink,
+  LayoutDashboard,
+  Loader2,
+  Sparkles,
+  Target,
+} from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from 'react-i18next';
 
 interface JobCardProps {
   job: {
@@ -19,13 +33,8 @@ interface JobCardProps {
   onEditPipeline: (jobId: string) => void;
 }
 
-import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { Sparkles, Loader2, CheckSquare } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
-
 export const JobCard = ({ job, onViewDashboard, onEditPipeline }: JobCardProps) => {
+  const { t } = useTranslation('partner');
   const [isRecruiting, setIsRecruiting] = useState(false);
 
   const { data: taskSummary } = useQuery({
@@ -46,7 +55,7 @@ export const JobCard = ({ job, onViewDashboard, onEditPipeline }: JobCardProps) 
     e.stopPropagation();
     setIsRecruiting(true);
     try {
-      toast.info("Headhunter Agent activated... analyzing job requirements.");
+      toast.info(t('jobCard.toast.headhunterAgentActivatedAnalyzingJobRequ'));
       const { data, error } = await supabase.functions.invoke('run-headhunter-agent', {
         body: { jobId: job.id } // The function fetches open jobs, but we could pass ID to be specific
       });
@@ -58,7 +67,7 @@ export const JobCard = ({ job, onViewDashboard, onEditPipeline }: JobCardProps) 
           description: `Saved ${data.matches_saved} matches for review.`
         });
       } else {
-        toast.info("Agent finished search but found no new strong matches.");
+        toast.info(t('jobCard.toast.agentFinishedSearchButFoundNoNewStrongMa'));
       }
     } catch (err: unknown) {
       toast.error(`Agent failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
@@ -89,7 +98,7 @@ export const JobCard = ({ job, onViewDashboard, onEditPipeline }: JobCardProps) 
                       </a>
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p>View original posting</p>
+                      <p>{t('jobCard.viewOriginalPosting')}</p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>

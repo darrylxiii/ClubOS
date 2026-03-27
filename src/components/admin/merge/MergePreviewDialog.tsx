@@ -8,6 +8,7 @@ import { AlertCircle, CheckCircle2, Link2, Loader2 } from "lucide-react";
 import { mergeService } from "@/services/mergeService";
 import { toast } from "sonner";
 import { logger } from "@/lib/logger";
+import { useTranslation } from 'react-i18next';
 
 interface MergePreviewDialogProps {
   candidateId: string;
@@ -75,7 +76,7 @@ export function MergePreviewDialog({ candidateId, userId, open, onClose, onSucce
       const result = await mergeService.executeMerge(candidateId, userId, 'manual');
       
       if (result.success) {
-        toast.success('Profiles merged successfully!');
+        toast.success(t('merge.mergePreviewDialog.profilesMergedSuccessfully'));
         onSuccess();
       } else {
         throw new Error(result.error || 'Merge failed');
@@ -90,6 +91,7 @@ export function MergePreviewDialog({ candidateId, userId, open, onClose, onSucce
   };
 
   const renderFieldComparison = (field: MergeField) => {
+  const { t } = useTranslation('admin');
     const { name, candidateValue, userValue, willMerge, conflict } = field;
     
     let badgeVariant: "default" | "secondary" | "destructive" = "secondary";
@@ -112,11 +114,11 @@ export function MergePreviewDialog({ candidateId, userId, open, onClose, onSucce
         <div className="flex-1 grid grid-cols-2 gap-4">
           <div>
             <p className="text-xs text-muted-foreground mb-1">{name} (Candidate)</p>
-            <p className="text-sm font-medium">{candidateValue || <span className="text-muted-foreground italic">Empty</span>}</p>
+            <p className="text-sm font-medium">{candidateValue || <span className="text-muted-foreground italic">{t('merge.mergePreviewDialog.empty')}</span>}</p>
           </div>
           <div>
             <p className="text-xs text-muted-foreground mb-1">{name} (User)</p>
-            <p className="text-sm font-medium">{userValue || <span className="text-muted-foreground italic">Empty</span>}</p>
+            <p className="text-sm font-medium">{userValue || <span className="text-muted-foreground italic">{t('merge.mergePreviewDialog.empty')}</span>}</p>
           </div>
         </div>
       </div>
@@ -149,7 +151,7 @@ export function MergePreviewDialog({ candidateId, userId, open, onClose, onSucce
                   <div className="text-center">
                     <p className="text-2xl font-bold">{preview.candidate.full_name}</p>
                     <p className="text-sm text-muted-foreground">{preview.candidate.email}</p>
-                    <Badge variant="outline" className="mt-2">Candidate</Badge>
+                    <Badge variant="outline" className="mt-2">{t('merge.mergePreviewDialog.candidate')}</Badge>
                   </div>
                 </CardContent>
               </Card>
@@ -158,7 +160,7 @@ export function MergePreviewDialog({ candidateId, userId, open, onClose, onSucce
                 <CardContent className="pt-4">
                   <div className="text-center">
                     <Link2 className="w-8 h-8 mx-auto mb-2 text-primary" />
-                    <p className="text-sm font-medium">Will be linked to</p>
+                    <p className="text-sm font-medium">{t('merge.mergePreviewDialog.willBeLinkedTo')}</p>
                   </div>
                 </CardContent>
               </Card>
@@ -168,7 +170,7 @@ export function MergePreviewDialog({ candidateId, userId, open, onClose, onSucce
                   <div className="text-center">
                     <p className="text-2xl font-bold">{preview.user.full_name}</p>
                     <p className="text-sm text-muted-foreground">{preview.user.email}</p>
-                    <Badge variant="outline" className="mt-2">User</Badge>
+                    <Badge variant="outline" className="mt-2">{t('merge.mergePreviewDialog.user')}</Badge>
                   </div>
                 </CardContent>
               </Card>
@@ -179,14 +181,14 @@ export function MergePreviewDialog({ candidateId, userId, open, onClose, onSucce
               <CardContent className="pt-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-muted-foreground">Applications</p>
+                    <p className="text-sm text-muted-foreground">{t('merge.mergePreviewDialog.applications')}</p>
                     <p className="text-2xl font-bold">{preview.applicationCount || 0}</p>
-                    <p className="text-xs text-muted-foreground">Will be transferred</p>
+                    <p className="text-xs text-muted-foreground">{t('merge.mergePreviewDialog.willBeTransferred')}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Interactions</p>
+                    <p className="text-sm text-muted-foreground">{t('merge.mergePreviewDialog.interactions')}</p>
                     <p className="text-2xl font-bold">{preview.interactionCount || 0}</p>
-                    <p className="text-xs text-muted-foreground">Will be preserved</p>
+                    <p className="text-xs text-muted-foreground">{t('merge.mergePreviewDialog.willBePreserved')}</p>
                   </div>
                 </div>
               </CardContent>
@@ -196,7 +198,7 @@ export function MergePreviewDialog({ candidateId, userId, open, onClose, onSucce
 
             {/* Field Comparison */}
             <div>
-              <h3 className="font-semibold mb-4">Field Comparison</h3>
+              <h3 className="font-semibold mb-4">{t('merge.mergePreviewDialog.fieldComparison')}</h3>
               <div className="space-y-1">
                 {preview.fieldsToMerge?.map((field) => renderFieldComparison(field))}
               </div>
@@ -208,7 +210,7 @@ export function MergePreviewDialog({ candidateId, userId, open, onClose, onSucce
                   <div className="flex items-start gap-2">
                     <AlertCircle className="w-5 h-5 text-yellow-600 shrink-0 mt-0.5" />
                     <div>
-                      <p className="font-medium text-yellow-600">Conflicts Detected</p>
+                      <p className="font-medium text-yellow-600">{t('merge.mergePreviewDialog.conflictsDetected')}</p>
                       <p className="text-sm text-muted-foreground mt-1">
                         {preview.conflicts.length} field(s) have different values. The user's values will be preserved unless they are empty.
                       </p>
@@ -220,7 +222,7 @@ export function MergePreviewDialog({ candidateId, userId, open, onClose, onSucce
           </div>
         ) : (
           <div className="text-center py-8">
-            <p className="text-muted-foreground">Failed to load preview</p>
+            <p className="text-muted-foreground">{t('merge.mergePreviewDialog.failedToLoadPreview')}</p>
           </div>
         )}
 

@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { TrendingUp, Clock, CheckCircle2, XCircle, AlertCircle, User, ArrowRight } from "lucide-react";
 import { EnhancedCandidateActionDialog } from "./EnhancedCandidateActionDialog";
+import { useTranslation } from 'react-i18next';
 
 interface CandidatePipelineStatusProps {
   candidateId: string;
@@ -15,6 +16,7 @@ interface CandidatePipelineStatusProps {
 }
 
 export const CandidatePipelineStatus = ({ candidateId, activeTab }: CandidatePipelineStatusProps) => {
+  const { t } = useTranslation('partner');
   const [applications, setApplications] = useState<any[]>([]);
   const [candidateName, setCandidateName] = useState<string>('');
   const [loading, setLoading] = useState(true);
@@ -86,7 +88,7 @@ export const CandidatePipelineStatus = ({ candidateId, activeTab }: CandidatePip
       setApplications(enrichedApps || []);
     } catch (error) {
       console.error("Error loading applications:", error);
-      toast.error("Failed to load pipeline status");
+      toast.error(t('candidatePipelineStatus.toast.failedToLoadPipelineStatus'));
     } finally {
       setLoading(false);
     }
@@ -162,11 +164,11 @@ export const CandidatePipelineStatus = ({ candidateId, activeTab }: CandidatePip
         });
       }
 
-      toast.success("Pipeline stage updated");
+      toast.success(t('candidatePipelineStatus.toast.pipelineStageUpdated'));
       loadApplications();
     } catch (error) {
       console.error("Error updating stage:", error);
-      toast.error("Failed to update stage");
+      toast.error(t('candidatePipelineStatus.toast.failedToUpdateStage'));
     }
   };
 
@@ -188,7 +190,7 @@ export const CandidatePipelineStatus = ({ candidateId, activeTab }: CandidatePip
             <TrendingUp className="w-5 h-5" />
             Pipeline Status
           </CardTitle>
-          <CardDescription>No active applications found</CardDescription>
+          <CardDescription>{t('candidatePipelineStatus.description')}</CardDescription>
         </CardHeader>
       </Card>
     );
@@ -202,7 +204,7 @@ export const CandidatePipelineStatus = ({ candidateId, activeTab }: CandidatePip
             <TrendingUp className="w-5 h-5" />
             Pipeline Status
           </CardTitle>
-          <CardDescription>Track candidate progress across all job applications</CardDescription>
+          <CardDescription>{t('candidatePipelineStatus.description')}</CardDescription>
         </CardHeader>
       </Card>
 
@@ -253,7 +255,7 @@ export const CandidatePipelineStatus = ({ candidateId, activeTab }: CandidatePip
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium">Current Stage</p>
+                      <p className="text-sm font-medium">{t('candidatePipelineStatus.currentStage')}</p>
                       <p className="text-lg font-semibold">{currentStage.name}</p>
                     </div>
                     <Select
@@ -275,7 +277,7 @@ export const CandidatePipelineStatus = ({ candidateId, activeTab }: CandidatePip
 
                   <div className="space-y-2">
                     <div className="flex justify-between text-xs text-muted-foreground">
-                      <span>Progress</span>
+                      <span>{t('candidatePipelineStatus.progress')}</span>
                       <span>{app.current_stage_index + 1} / {stages.length} stages</span>
                     </div>
                     <div className="w-full bg-muted rounded-full h-2">
@@ -311,7 +313,7 @@ export const CandidatePipelineStatus = ({ candidateId, activeTab }: CandidatePip
                       className="gap-2 border-destructive text-destructive hover:bg-destructive/10"
                     >
                       <XCircle className="h-3 w-3" />
-                      Decline
+                      {t('common:decline')}
                     </Button>
                   </div>
                 </div>

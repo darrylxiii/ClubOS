@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,6 +19,7 @@ interface FreelanceAvailabilitySectionProps {
 }
 
 export function FreelanceAvailabilitySection({ userId, freelanceProfile, onUpdate }: FreelanceAvailabilitySectionProps) {
+  const { t } = useTranslation('common');
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState<string>(freelanceProfile?.freelance_status || 'available');
   const [hoursPerWeek, setHoursPerWeek] = useState<number>(freelanceProfile?.availability_hours_per_week || 20);
@@ -60,11 +62,11 @@ export function FreelanceAvailabilitySection({ userId, freelanceProfile, onUpdat
         }, { onConflict: 'id' });
 
       if (error) throw error;
-      toast.success("Availability settings saved");
+      toast.success(t("availability_settings_saved", "Availability settings saved"));
       onUpdate();
     } catch (error: unknown) {
       console.error("Error saving availability:", error);
-      toast.error("Failed to save availability settings");
+      toast.error(t("failed_to_save_availability", "Failed to save availability settings"));
     } finally {
       setSaving(false);
     }
@@ -84,7 +86,7 @@ export function FreelanceAvailabilitySection({ userId, freelanceProfile, onUpdat
       <CardContent className="space-y-6">
         {/* Current Status */}
         <div className="space-y-3">
-          <Label>Current Status</Label>
+          <Label>{t("current_status", "Current Status")}</Label>
           <div className="flex gap-2">
             {['available', 'busy', 'not_accepting'].map((s) => (
               <Button
@@ -103,7 +105,7 @@ export function FreelanceAvailabilitySection({ userId, freelanceProfile, onUpdat
         {/* Hours Per Week */}
         <div className="space-y-3">
           <div className="flex justify-between">
-            <Label>Hours Per Week</Label>
+            <Label>{t("hours_per_week", "Hours Per Week")}</Label>
             <span className="text-sm font-medium">{hoursPerWeek} hours</span>
           </div>
           <Slider
@@ -140,7 +142,7 @@ export function FreelanceAvailabilitySection({ userId, freelanceProfile, onUpdat
 
         {/* Available From Date */}
         <div className="space-y-2">
-          <Label htmlFor="available-from">Available From</Label>
+          <Label htmlFor="available-from">{t("available_from", "Available From")}</Label>
           <Input
             id="available-from"
             type="date"
@@ -161,15 +163,15 @@ export function FreelanceAvailabilitySection({ userId, freelanceProfile, onUpdat
           </Label>
           <Select value={timezone} onValueChange={setTimezone}>
             <SelectTrigger>
-              <SelectValue placeholder="Select timezone" />
+              <SelectValue placeholder={t("select_timezone", "Select timezone")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="Europe/Amsterdam">Europe/Amsterdam (CET)</SelectItem>
-              <SelectItem value="Europe/London">Europe/London (GMT)</SelectItem>
-              <SelectItem value="America/New_York">America/New York (EST)</SelectItem>
-              <SelectItem value="America/Los_Angeles">America/Los Angeles (PST)</SelectItem>
-              <SelectItem value="Asia/Singapore">Asia/Singapore (SGT)</SelectItem>
-              <SelectItem value="Asia/Tokyo">Asia/Tokyo (JST)</SelectItem>
+              <SelectItem value="Europe/Amsterdam">{t("europeamsterdam_cet", "Europe/Amsterdam (CET)")}</SelectItem>
+              <SelectItem value="Europe/London">{t("europelondon_gmt", "Europe/London (GMT)")}</SelectItem>
+              <SelectItem value="America/New_York">{t("americanew_york_est", "America/New York (EST)")}</SelectItem>
+              <SelectItem value="America/Los_Angeles">{t("americalos_angeles_pst", "America/Los Angeles (PST)")}</SelectItem>
+              <SelectItem value="Asia/Singapore">{t("asiasingapore_sgt", "Asia/Singapore (SGT)")}</SelectItem>
+              <SelectItem value="Asia/Tokyo">{t("asiatokyo_jst", "Asia/Tokyo (JST)")}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -178,7 +180,7 @@ export function FreelanceAvailabilitySection({ userId, freelanceProfile, onUpdat
         <div className="space-y-4 pt-4 border-t">
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label>Accept Direct Invites</Label>
+              <Label>{t("accept_direct_invites", "Accept Direct Invites")}</Label>
               <p className="text-xs text-muted-foreground">
                 Allow clients to invite you directly to projects
               </p>
@@ -191,7 +193,7 @@ export function FreelanceAvailabilitySection({ userId, freelanceProfile, onUpdat
 
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label>Open to Retainers</Label>
+              <Label>{t("open_to_retainers", "Open to Retainers")}</Label>
               <p className="text-xs text-muted-foreground">
                 Show interest in ongoing retainer arrangements
               </p>
@@ -206,10 +208,10 @@ export function FreelanceAvailabilitySection({ userId, freelanceProfile, onUpdat
         {/* Auto-respond Message */}
         {status === 'busy' && (
           <div className="space-y-2">
-            <Label htmlFor="auto-respond">Auto-Respond Message (when busy)</Label>
+            <Label htmlFor="auto-respond">{t("autorespond_message_when_busy", "Auto-Respond Message (when busy)")}</Label>
             <Input
               id="auto-respond"
-              placeholder="Thanks for reaching out! I'm currently at capacity but will be available soon..."
+              placeholder={t("thanks_for_reaching_out", "Thanks for reaching out! I'm currently at capacity but will be available soon...")}
               value={autoRespondMessage}
               onChange={(e) => setAutoRespondMessage(e.target.value)}
             />

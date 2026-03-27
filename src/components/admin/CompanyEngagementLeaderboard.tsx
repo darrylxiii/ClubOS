@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,6 +19,7 @@ interface CompanyEngagement {
 }
 
 export function CompanyEngagementLeaderboard() {
+  const { t } = useTranslation('common');
   const [companies, setCompanies] = useState<CompanyEngagement[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -141,16 +143,16 @@ export function CompanyEngagementLeaderboard() {
       setCompanies(engagementArray);
     } catch (error) {
       console.error('Error fetching engagement data:', error);
-      toast.error("Failed to load engagement data");
+      toast.error(t("failed_to_load_engagement", "Failed to load engagement data"));
     } finally {
       setLoading(false);
     }
   };
 
   const getRankBadge = (index: number) => {
-    if (index === 0) return <Badge className="bg-yellow-500 text-white">🥇 1st</Badge>;
-    if (index === 1) return <Badge className="bg-gray-400 text-white">🥈 2nd</Badge>;
-    if (index === 2) return <Badge className="bg-orange-600 text-white">🥉 3rd</Badge>;
+    if (index === 0) return <Badge className="bg-yellow-500 text-white">{t("1st", "🥇 1st")}</Badge>;
+    if (index === 1) return <Badge className="bg-gray-400 text-white">{t("2nd", "🥈 2nd")}</Badge>;
+    if (index === 2) return <Badge className="bg-orange-600 text-white">{t("3rd", "🥉 3rd")}</Badge>;
     return <Badge variant="outline">{index + 1}</Badge>;
   };
 
@@ -163,7 +165,7 @@ export function CompanyEngagementLeaderboard() {
   };
 
   if (loading) {
-    return <div className="flex items-center justify-center p-8">Loading engagement data...</div>;
+    return <div className="flex items-center justify-center p-8">{t("loading_engagement_data", "Loading engagement data...")}</div>;
   }
 
   return (
@@ -172,8 +174,8 @@ export function CompanyEngagementLeaderboard() {
         <div className="flex items-center gap-2">
           <Trophy className="w-5 h-5 text-yellow-500" />
           <div>
-            <CardTitle>Company Engagement Leaderboard</CardTitle>
-            <CardDescription>Real-time company activity rankings</CardDescription>
+            <CardTitle>{t("company_engagement_leaderboard", "Company Engagement Leaderboard")}</CardTitle>
+            <CardDescription>{t("realtime_company_activity_rankings", "Real-time company activity rankings")}</CardDescription>
           </div>
         </div>
       </CardHeader>
@@ -182,8 +184,8 @@ export function CompanyEngagementLeaderboard() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-20">Rank</TableHead>
-                <TableHead>Company</TableHead>
+                <TableHead className="w-20">{t("rank", "Rank")}</TableHead>
+                <TableHead>{t("company", "Company")}</TableHead>
                 <TableHead className="text-right">
                   <div className="flex items-center justify-end gap-1">
                     <Users className="w-3 h-3" />
@@ -202,8 +204,8 @@ export function CompanyEngagementLeaderboard() {
                     Active 24h
                   </div>
                 </TableHead>
-                <TableHead className="text-right">Total Actions</TableHead>
-                <TableHead className="text-right">Engagement %</TableHead>
+                <TableHead className="text-right">{t("total_actions", "Total Actions")}</TableHead>
+                <TableHead className="text-right">{t("engagement", "Engagement %")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

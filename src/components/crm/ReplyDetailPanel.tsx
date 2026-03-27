@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -30,6 +31,7 @@ export function ReplyDetailPanel({
   onSnooze,
   onMarkActioned,
 }: ReplyDetailPanelProps) {
+  const { t } = useTranslation('common');
   const classification = REPLY_CLASSIFICATIONS.find(c => c.value === reply.classification);
   const [showComposer, setShowComposer] = useState(false);
   const [replyText, setReplyText] = useState(reply.suggested_reply || "");
@@ -145,7 +147,7 @@ export function ReplyDetailPanel({
                 <h4 className="font-medium text-sm mb-2 flex items-center gap-2">
                   <Star className="w-4 h-4 text-primary" />
                   AI Summary
-                  <span className="text-[10px] text-muted-foreground">Powered by QUIN</span>
+                  <span className="text-[10px] text-muted-foreground">{t("powered_by_quin", "Powered by QUIN")}</span>
                 </h4>
                 <p className="text-sm text-muted-foreground leading-relaxed">{reply.ai_summary}</p>
               </CardContent>
@@ -189,7 +191,7 @@ export function ReplyDetailPanel({
                 <Textarea
                   value={replyText}
                   onChange={(e) => setReplyText(e.target.value)}
-                  placeholder="Write your reply..."
+                  placeholder={t("write_your_reply", "Write your reply...")}
                   className="min-h-[120px] resize-y bg-background"
                   disabled={sending}
                 />

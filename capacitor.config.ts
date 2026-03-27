@@ -1,13 +1,9 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'app.lovable.ed1ccbeab8dd4007bcc4b3329d10bf67',
+  appId: 'com.thequantumclub.os',
   appName: 'thequantumclub',
   webDir: 'dist',
-  server: {
-    url: 'https://ed1ccbea-b8dd-4007-bcc4-b3329d10bf67.lovableproject.com?forceHideBadge=true',
-    cleartext: true,
-  },
   plugins: {
     SplashScreen: {
       launchShowDuration: 2000,

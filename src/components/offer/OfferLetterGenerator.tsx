@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -60,6 +61,7 @@ export function OfferLetterGenerator({
   currency = 'EUR',
   onGenerated,
 }: OfferLetterGeneratorProps) {
+  const { t } = useTranslation('common');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>('');
@@ -85,7 +87,7 @@ export function OfferLetterGenerator({
 
   const handleGenerate = async () => {
     if (!selectedTemplateId) {
-      toast.error('Please select a template');
+      toast.error(t("please_select_a_template", "Please select a template"));
       return;
     }
 
@@ -157,10 +159,10 @@ export function OfferLetterGenerator({
           <div className="space-y-6 py-4">
             {/* Template Selection */}
             <div className="space-y-2">
-              <Label>Template</Label>
+              <Label>{t("template", "Template")}</Label>
               <Select value={selectedTemplateId} onValueChange={setSelectedTemplateId}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select a template..." />
+                  <SelectValue placeholder={t("select_a_template", "Select a template...")} />
                 </SelectTrigger>
                 <SelectContent>
                   {templates?.map((template) => (
@@ -168,7 +170,7 @@ export function OfferLetterGenerator({
                       <div className="flex items-center gap-2">
                         {template.name}
                         {template.is_default && (
-                          <Badge variant="secondary" className="text-xs">Default</Badge>
+                          <Badge variant="secondary" className="text-xs">{t("default", "Default")}</Badge>
                         )}
                       </div>
                     </SelectItem>
@@ -187,14 +189,14 @@ export function OfferLetterGenerator({
               </h4>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Candidate Name</Label>
+                  <Label>{t("candidate_name", "Candidate Name")}</Label>
                   <Input
                     value={formData.candidate_name}
                     onChange={(e) => setFormData({ ...formData, candidate_name: e.target.value })}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Job Title</Label>
+                  <Label>{t("job_title", "Job Title")}</Label>
                   <Input
                     value={formData.job_title}
                     onChange={(e) => setFormData({ ...formData, job_title: e.target.value })}
@@ -221,7 +223,7 @@ export function OfferLetterGenerator({
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Bonus</Label>
+                  <Label>{t("bonus", "Bonus")}</Label>
                   <Input
                     value={formData.bonus}
                     onChange={(e) => setFormData({ ...formData, bonus: e.target.value })}
@@ -229,7 +231,7 @@ export function OfferLetterGenerator({
                 </div>
               </div>
               <div className="space-y-2">
-                <Label>Benefits</Label>
+                <Label>{t("benefits", "Benefits")}</Label>
                 <Textarea
                   value={formData.benefits}
                   onChange={(e) => setFormData({ ...formData, benefits: e.target.value })}
@@ -248,21 +250,21 @@ export function OfferLetterGenerator({
               </h4>
               <div className="grid grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <Label>Start Date</Label>
+                  <Label>{t("start_date", "Start Date")}</Label>
                   <Input
                     value={formData.start_date}
                     onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Offer Expiry Date</Label>
+                  <Label>{t("offer_expiry_date", "Offer Expiry Date")}</Label>
                   <Input
                     value={formData.expiry_date}
                     onChange={(e) => setFormData({ ...formData, expiry_date: e.target.value })}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Probation (days)</Label>
+                  <Label>{t("probation_days", "Probation (days)")}</Label>
                   <Input
                     type="number"
                     value={formData.probation_period}
@@ -282,15 +284,15 @@ export function OfferLetterGenerator({
               </h4>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Name</Label>
+                  <Label>{t("name", "Name")}</Label>
                   <Input
                     value={formData.signatory_name}
                     onChange={(e) => setFormData({ ...formData, signatory_name: e.target.value })}
-                    placeholder="e.g., John Smith"
+                    placeholder={t("eg_john_smith", "e.g., John Smith")}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Title</Label>
+                  <Label>{t("title", "Title")}</Label>
                   <Input
                     value={formData.signatory_title}
                     onChange={(e) => setFormData({ ...formData, signatory_title: e.target.value })}
@@ -328,7 +330,7 @@ export function OfferLetterGenerator({
       <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Letter Preview</DialogTitle>
+            <DialogTitle>{t("letter_preview", "Letter Preview")}</DialogTitle>
           </DialogHeader>
           <div className="p-6 bg-white text-black rounded-lg border whitespace-pre-wrap font-serif text-sm leading-relaxed">
             {previewContent}

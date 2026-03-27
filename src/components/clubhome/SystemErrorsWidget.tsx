@@ -6,6 +6,7 @@ import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { useTranslation } from 'react-i18next';
 
 interface ErrorStats {
   critical: number;
@@ -15,6 +16,7 @@ interface ErrorStats {
 }
 
 export const SystemErrorsWidget = () => {
+  const { t } = useTranslation('common');
   const [stats, setStats] = useState<ErrorStats>({
     critical: 0,
     error: 0,
@@ -104,15 +106,15 @@ export const SystemErrorsWidget = () => {
         <div className="grid grid-cols-3 gap-2 mb-4">
           <div className="flex flex-col items-center p-2 rounded-lg bg-red-500/10">
             <span className="text-xl font-bold text-red-500">{stats.critical}</span>
-            <span className="text-xs text-muted-foreground">Critical</span>
+            <span className="text-xs text-muted-foreground">{t('systemErrorsWidget.critical')}</span>
           </div>
           <div className="flex flex-col items-center p-2 rounded-lg bg-orange-500/10">
             <span className="text-xl font-bold text-orange-500">{stats.error}</span>
-            <span className="text-xs text-muted-foreground">Errors</span>
+            <span className="text-xs text-muted-foreground">{t('systemErrorsWidget.errors')}</span>
           </div>
           <div className="flex flex-col items-center p-2 rounded-lg bg-yellow-500/10">
             <span className="text-xl font-bold text-yellow-500">{stats.warning}</span>
-            <span className="text-xs text-muted-foreground">Warnings</span>
+            <span className="text-xs text-muted-foreground">{t('systemErrorsWidget.warnings')}</span>
           </div>
         </div>
 

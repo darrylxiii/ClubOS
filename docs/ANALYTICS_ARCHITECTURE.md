@@ -139,7 +139,7 @@ Raw Data → pg_cron (3 AM UTC) → Aggregation Function → *_daily tables
 ### AI Insights
 
 ```
-User Request → Edge Function → Lovable AI Gateway → Cache → Dashboard
+User Request → Edge Function → Google Gemini API → Cache → Dashboard
                                     ↓
                               gemini-2.5-flash
 ```

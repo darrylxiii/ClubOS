@@ -1,20 +1,7 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
+import { createAuthenticatedHandler } from '../_shared/handler.ts';
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
-
-Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
+Deno.serve(createAuthenticatedHandler(async (req, ctx) => {
+    const supabase = ctx.supabase;
     const { userId, eventType, eventData } = await req.json();
 
     console.log('[Achievement Evaluator] Processing event:', { userId, eventType, eventData });
@@ -398,17 +385,17 @@ Deno.serve(async (req) => {
           // Award XP via engagement system
           const { data: existingEngagement } = await supabase
             .from('user_engagement')
-            .select('total_xp')
+            .select('experience_points')
             .eq('user_id', userId)
             .single();
 
-          const newXp = (existingEngagement?.total_xp || 0) + achievement.points;
+          const newXp = (existingEngagement?.experience_points || 0) + achievement.points;
 
           await supabase
             .from('user_engagement')
             .upsert({
               user_id: userId,
-              total_xp: newXp,
+              experience_points: newXp,
               level: Math.floor(newXp / 100) + 1,
             });
 
@@ -431,13 +418,6 @@ Deno.serve(async (req) => {
         unlockedAchievements,
         eventId: eventRecord?.id,
       }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } }
     );
-  } catch (error) {
-    console.error('[Achievement Evaluator] Error:', error);
-    return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
-    );
-  }
-});
+}));

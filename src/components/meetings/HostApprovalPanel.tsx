@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -23,6 +24,7 @@ interface HostApprovalPanelProps {
 }
 
 export function HostApprovalPanel({ meetingId, isHost }: HostApprovalPanelProps) {
+  const { t } = useTranslation('common');
   const [requests, setRequests] = useState<JoinRequest[]>([]);
   const [processingIds, setProcessingIds] = useState<Set<string>>(new Set());
 
@@ -168,7 +170,7 @@ export function HostApprovalPanel({ meetingId, isHost }: HostApprovalPanelProps)
       
     } catch (error: unknown) {
       console.error('[HostApproval] ❌ Failed to approve:', error);
-      toast.error('Failed to approve guest', {
+      toast.error(t("failed_to_approve_guest", "Failed to approve guest"), {
         description: error instanceof Error ? error.message : 'Please try again',
         action: {
           label: 'Retry',
@@ -199,11 +201,11 @@ export function HostApprovalPanel({ meetingId, isHost }: HostApprovalPanelProps)
 
       if (error) throw error;
 
-      toast.info('Guest request denied');
+      toast.info(t("guest_request_denied", "Guest request denied"));
       setRequests(prev => prev.filter(r => r.id !== requestId));
     } catch (error) {
       console.error('[HostApproval] Failed to reject:', error);
-      toast.error('Failed to reject guest');
+      toast.error(t("failed_to_reject_guest", "Failed to reject guest"));
     } finally {
       setProcessingIds(prev => {
         const next = new Set(prev);
@@ -220,7 +222,7 @@ export function HostApprovalPanel({ meetingId, isHost }: HostApprovalPanelProps)
       <Card className="backdrop-blur-2xl bg-black/80 border-white/10 shadow-2xl">
         <div className="p-4 border-b border-white/10 flex items-center gap-2">
           <UserPlus className="h-5 w-5 text-primary" />
-          <h3 className="font-semibold text-white">Join Requests</h3>
+          <h3 className="font-semibold text-white">{t("join_requests", "Join Requests")}</h3>
           <Badge variant="secondary" className="ml-auto">
             {requests.length}
           </Badge>

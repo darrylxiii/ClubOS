@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -17,6 +18,7 @@ import {
 import { cn } from "@/lib/utils";
 
 export default function GigDetailPage() {
+  const { t } = useTranslation('common');
   const { gigId } = useParams();
   const navigate = useNavigate();
   const [selectedPackage, setSelectedPackage] = useState<"basic" | "standard" | "premium">("standard");
@@ -49,8 +51,8 @@ export default function GigDetailPage() {
     return (
       <>
         <div className="w-full px-4 sm:px-6 lg:px-8 py-12 text-center">
-          <h1 className="text-2xl font-bold mb-4">Gig Not Found</h1>
-          <Button onClick={() => navigate("/projects/gigs")}>Browse Gigs</Button>
+          <h1 className="text-2xl font-bold mb-4">{t('gigDetailPage.text2')}</h1>
+          <Button onClick={() => navigate("/projects/gigs")}>{t('gigDetailPage.text3')}</Button>
         </div>
       </>
     );
@@ -178,10 +180,10 @@ export default function GigDetailPage() {
             {/* Tabs */}
             <Tabs defaultValue="description">
               <TabsList>
-                <TabsTrigger value="description">Description</TabsTrigger>
-                <TabsTrigger value="about">About Seller</TabsTrigger>
-                <TabsTrigger value="reviews">Reviews</TabsTrigger>
-                <TabsTrigger value="faq">FAQ</TabsTrigger>
+                <TabsTrigger value="description">{t('gigDetailPage.text4')}</TabsTrigger>
+                <TabsTrigger value="about">{t('gigDetailPage.text5')}</TabsTrigger>
+                <TabsTrigger value="reviews">{t('gigDetailPage.text6')}</TabsTrigger>
+                <TabsTrigger value="faq">{t('gigDetailPage.tabFaq')}</TabsTrigger>
               </TabsList>
 
               <TabsContent value="description" className="mt-4">
@@ -220,7 +222,7 @@ export default function GigDetailPage() {
                 <Card>
                   <CardContent className="pt-6 text-center text-muted-foreground py-12">
                     <Star className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p>No reviews yet. Be the first to order!</p>
+                    <p>{t('gigDetailPage.text7')}</p>
                   </CardContent>
                 </Card>
               </TabsContent>
@@ -239,9 +241,7 @@ export default function GigDetailPage() {
                         ))}
                       </div>
                     ) : (
-                      <p className="text-center text-muted-foreground py-8">
-                        No FAQs available.
-                      </p>
+                      <p className="text-center text-muted-foreground py-8">{t('gigDetailPage.desc')}</p>
                     )}
                   </CardContent>
                 </Card>
@@ -332,7 +332,7 @@ export default function GigDetailPage() {
             {gig.tags && gig.tags.length > 0 && (
               <Card>
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm">Related Tags</CardTitle>
+                  <CardTitle className="text-sm">{t('gigDetailPage.text8')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="flex flex-wrap gap-2">

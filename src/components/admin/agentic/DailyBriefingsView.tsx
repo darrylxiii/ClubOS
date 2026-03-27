@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { formatDistanceToNow } from 'date-fns';
+import { useTranslation } from 'react-i18next';
 
 interface DailyBriefing {
   id: string;
@@ -36,6 +37,7 @@ export default function DailyBriefingsView() {
   }, []);
 
   const getHighlights = (content: any) => {
+  const { t } = useTranslation('admin');
     if (!content) return [];
     return [
       content.signals_detected_count && `${content.signals_detected_count} signals`,
@@ -45,7 +47,7 @@ export default function DailyBriefingsView() {
   };
 
   if (loading) {
-    return <div className="text-center py-8 text-muted-foreground">Loading...</div>;
+    return <div className="text-center py-8 text-muted-foreground">{t('common:status.loading')}</div>;
   }
 
   return (
@@ -53,9 +55,9 @@ export default function DailyBriefingsView() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Date</TableHead>
-            <TableHead>Highlights</TableHead>
-            <TableHead>Generated</TableHead>
+            <TableHead>{t('common:fields.date')}</TableHead>
+            <TableHead>{t('agentic.dailyBriefingsView.highlights')}</TableHead>
+            <TableHead>{t('agentic.dailyBriefingsView.generated')}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>

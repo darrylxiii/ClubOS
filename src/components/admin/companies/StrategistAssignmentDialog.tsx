@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import {
   Dialog,
@@ -44,6 +45,7 @@ export function StrategistAssignmentDialog({
   onOpenChange,
   company,
 }: StrategistAssignmentDialogProps) {
+  const { t } = useTranslation('common');
   const queryClient = useQueryClient();
   const [selectedStrategistId, setSelectedStrategistId] = useState<string>("");
   const [slaDays, setSlaDays] = useState<number>(3);
@@ -157,7 +159,7 @@ export function StrategistAssignmentDialog({
     },
     onError: (error) => {
       console.error("Assignment error:", error);
-      toast.error("Failed to assign strategist");
+      toast.error(t("failed_to_assign_strategist", "Failed to assign strategist"));
     },
   });
 
@@ -171,7 +173,7 @@ export function StrategistAssignmentDialog({
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success("Strategist assignment removed");
+      toast.success(t("strategist_assignment_removed", "Strategist assignment removed"));
       queryClient.invalidateQueries({ queryKey: ["company-strategist-assignment", company.id] });
       queryClient.invalidateQueries({ queryKey: ["companies"] });
       setSelectedStrategistId("");
@@ -179,7 +181,7 @@ export function StrategistAssignmentDialog({
     },
     onError: (error) => {
       console.error("Remove error:", error);
-      toast.error("Failed to remove assignment");
+      toast.error(t("failed_to_remove_assignment", "Failed to remove assignment"));
     },
   });
 
@@ -208,7 +210,7 @@ export function StrategistAssignmentDialog({
             {/* Current Assignment */}
             {currentAssignment && (
               <div className="p-3 rounded-lg bg-muted/50 border border-border/50">
-                <p className="text-xs text-muted-foreground mb-2">Current Assignment</p>
+                <p className="text-xs text-muted-foreground mb-2">{t("current_assignment", "Current Assignment")}</p>
                 <div className="flex items-center gap-3">
                   <Avatar className="h-8 w-8">
                     <AvatarImage src={currentAssignment.strategist?.avatar_url || undefined} />
@@ -224,20 +226,20 @@ export function StrategistAssignmentDialog({
                       {commissionSplit}% commission split
                     </p>
                   </div>
-                  <Badge variant="secondary">Active</Badge>
+                  <Badge variant="secondary">{t("active", "Active")}</Badge>
                 </div>
               </div>
             )}
 
             {/* Strategist Selection */}
             <div className="space-y-2">
-              <Label>Select Strategist</Label>
+              <Label>{t("select_strategist", "Select Strategist")}</Label>
               <Select
                 value={selectedStrategistId}
                 onValueChange={setSelectedStrategistId}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Choose a strategist..." />
+                  <SelectValue placeholder={t("choose_a_strategist", "Choose a strategist...")} />
                 </SelectTrigger>
                 <SelectContent>
                   {strategists?.map((strategist) => (
@@ -259,7 +261,7 @@ export function StrategistAssignmentDialog({
 
             {/* SLA Response Time */}
             <div className="space-y-2">
-              <Label htmlFor="sla">SLA Response Time (days)</Label>
+              <Label htmlFor="sla">{t("sla_response_time_days", "SLA Response Time (days)")}</Label>
               <Input
                 id="sla"
                 type="number"
@@ -275,7 +277,7 @@ export function StrategistAssignmentDialog({
 
             {/* Commission Split */}
             <div className="space-y-2">
-              <Label htmlFor="split">Commission Split (%)</Label>
+              <Label htmlFor="split">{t("commission_split", "Commission Split (%)")}</Label>
               <Input
                 id="split"
                 type="number"

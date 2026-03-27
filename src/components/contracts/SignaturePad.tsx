@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useRef, useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -9,6 +10,7 @@ interface SignaturePadProps {
 }
 
 export function SignaturePad({ onSave, disabled }: SignaturePadProps) {
+  const { t } = useTranslation('common');
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [hasSignature, setHasSignature] = useState(false);
@@ -118,7 +120,7 @@ export function SignaturePad({ onSave, disabled }: SignaturePadProps) {
         />
         {!hasSignature && !disabled && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <span className="text-muted-foreground/50">Sign here</span>
+            <span className="text-muted-foreground/50">{t("sign_here", "Sign here")}</span>
           </div>
         )}
       </div>

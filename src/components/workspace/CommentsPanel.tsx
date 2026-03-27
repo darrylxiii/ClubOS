@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
@@ -24,6 +25,7 @@ interface CommentsPanelProps {
 }
 
 export function CommentsPanel({ pageId, open, onOpenChange }: CommentsPanelProps) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const { comments, isLoading, addComment, deleteComment, resolveComment, unresolveComment } = usePageComments(pageId);
   const [newComment, setNewComment] = useState("");
@@ -73,7 +75,7 @@ export function CommentsPanel({ pageId, open, onOpenChange }: CommentsPanelProps
         <div className="mt-4 flex flex-col h-[calc(100vh-180px)]">
           <ScrollArea className="flex-1 pr-4">
             {isLoading ? (
-              <div className="text-center py-8 text-muted-foreground">Loading comments...</div>
+              <div className="text-center py-8 text-muted-foreground">{t("loading_comments", "Loading comments...")}</div>
             ) : filteredComments.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 No comments yet. Start a discussion!
@@ -99,14 +101,14 @@ export function CommentsPanel({ pageId, open, onOpenChange }: CommentsPanelProps
           <div className="mt-4 pt-4 border-t">
             {replyingTo && (
               <div className="flex items-center justify-between mb-2 text-sm text-muted-foreground">
-                <span>Replying to comment</span>
+                <span>{t("replying_to_comment", "Replying to comment")}</span>
                 <Button variant="ghost" size="sm" onClick={() => setReplyingTo(null)}>
                   Cancel
                 </Button>
               </div>
             )}
             <Textarea
-              placeholder="Write a comment..."
+              placeholder={t("write_a_comment", "Write a comment...")}
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
               className="min-h-[80px] resize-none"
@@ -117,7 +119,7 @@ export function CommentsPanel({ pageId, open, onOpenChange }: CommentsPanelProps
               }}
             />
             <div className="flex justify-between items-center mt-2">
-              <span className="text-xs text-muted-foreground">⌘ + Enter to submit</span>
+              <span className="text-xs text-muted-foreground">{t("enter_to_submit", "⌘ + Enter to submit")}</span>
               <Button onClick={handleSubmit} disabled={!newComment.trim() || addComment.isPending}>
                 {addComment.isPending ? "Posting..." : "Comment"}
               </Button>

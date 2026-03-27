@@ -2,6 +2,7 @@ import { memo } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { BarChart3 } from "lucide-react";
 import { formatLastActivity } from "@/lib/jobUtils";
+import { useTranslation } from 'react-i18next';
 
 interface JobCardLastActivityProps {
   lastActivity: string | null;
@@ -15,11 +16,12 @@ export const JobCardLastActivity = memo(({
   lastActivity,
   lastActivityUser
 }: JobCardLastActivityProps) => {
+  const { t } = useTranslation('partner');
   return (
     <div className="p-3 rounded-lg bg-card/20 backdrop-blur-sm border border-border/20 hover:border-border/40 transition-all">
       <div className="flex items-center gap-2 mb-2">
         <BarChart3 className="w-4 h-4 text-foreground" />
-        <span className="text-xs text-muted-foreground">Last Activity</span>
+        <span className="text-xs text-muted-foreground">{t('jobCardLastActivity.lastActivity')}</span>
       </div>
       {lastActivityUser ? (
         <div className="flex items-center gap-2">

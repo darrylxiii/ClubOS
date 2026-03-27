@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from "react";
+import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { JobCard } from "@/components/JobCard";
@@ -39,6 +40,7 @@ import { InterviewPrepTabContent } from "@/components/jobs/tabs/InterviewPrepTab
 type SortOption = "match" | "newest" | "salary";
 
 const Jobs = () => {
+  const { t } = useTranslation('jobs');
   const { user } = useAuth();
   const { currentRole: role, companyId: userCompanyId } = useRole();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -248,12 +250,12 @@ const Jobs = () => {
 
   const handleApply = async (jobTitle: string, jobId?: string, companyName?: string) => {
     if (!user) {
-      toast.error("Please sign in to apply.");
+      toast.error(t('text.jobs.pleaseSignInToApply', 'Please sign in to apply.'));
       return;
     }
 
     if (!jobId) {
-      toast.info("Opening job details to apply...");
+      toast.info(t('text.jobs.openingJobDetailsToApply', 'Opening job details to apply...'));
       return;
     }
 
@@ -266,7 +268,7 @@ const Jobs = () => {
         .maybeSingle();
 
       if (existing) {
-        toast.info("You've already applied to this role.");
+        toast.info(t('text.jobs.youveAlreadyAppliedToThisRole', 'You\'ve already applied to this role.'));
         return;
       }
 
@@ -284,11 +286,11 @@ const Jobs = () => {
       if (error) throw error;
 
       toast.success(`Application submitted for ${jobTitle}`, {
-        description: "Your application has been submitted successfully."
+        description: t('text.jobs.yourApplicationHasBeenSubmittedSuccessfully', 'Your application has been submitted successfully.')
       });
     } catch (error) {
       console.error('Application error:', error);
-      toast.error("Failed to submit application. Please try again.");
+      toast.error(t('text.jobs.failedToSubmitApplicationPleaseTry', 'Failed to submit application. Please try again.'));
     }
   };
 
@@ -299,7 +301,7 @@ const Jobs = () => {
 
   const handleClubSync = (jobTitle: string) => {
     toast.success(`Club Sync activated for ${jobTitle}`, {
-      description: "Auto-apply initiated. You will be notified of next steps."
+      description: t('text.jobs.autoapplyInitiatedYouWillBeNotified', 'Auto-apply initiated. You will be notified of next steps.')
     });
   };
 
@@ -318,12 +320,12 @@ const Jobs = () => {
       if (error) throw error;
       
       setClubSyncEnabled(enabled);
-      toast.success(enabled ? "Club Sync enabled" : "Club Sync disabled", {
-        description: enabled ? "You'll automatically apply to roles with 90%+ match" : "Auto-apply has been turned off"
+      toast.success(enabled ? t('text.jobs.clubSyncEnabled', 'Club Sync enabled') : t('text.jobs.clubSyncDisabled', 'Club Sync disabled'), {
+        description: enabled ? t('text.jobs.youllAutomaticallyApplyToRolesWith', 'You\'ll automatically apply to roles with 90%+ match') : t('text.jobs.autoapplyHasBeenTurnedOff', 'Auto-apply has been turned off')
       });
     } catch (error) {
       logger.error('Failed to update Club Sync', error instanceof Error ? error : new Error(String(error)), { componentName: 'Jobs' });
-      toast.error('Failed to update Club Sync setting');
+      toast.error(t('text.jobs.failedToUpdateClubSyncSetting', 'Failed to update Club Sync setting'));
     }
   };
 
@@ -348,7 +350,7 @@ const Jobs = () => {
 
   const toggleSaveJob = async (jobId: string, jobTitle: string) => {
     if (!user) {
-      toast.error('Please sign in to save jobs');
+      toast.error(t('text.jobs.pleaseSignInToSaveJobs', 'Please sign in to save jobs'));
       return;
     }
 
@@ -375,12 +377,12 @@ const Jobs = () => {
         
         setSavedJobIds(prev => [...prev, jobId]);
         toast.success(`Saved ${jobTitle}`, {
-          description: "You can view all saved jobs in the Saved tab."
+          description: t('text.jobs.youCanViewAllSavedJobs', 'You can view all saved jobs in the Saved tab.')
         });
       }
     } catch (error) {
       logger.error('Failed to toggle saved job', error instanceof Error ? error : new Error(String(error)), { componentName: 'Jobs' });
-      toast.error('Failed to save job. Please try again.');
+      toast.error(t('text.jobs.failedToSaveJobPleaseTry', 'Failed to save job. Please try again.'));
     }
   };
 
@@ -451,8 +453,8 @@ const Jobs = () => {
       <div className="w-full px-4 sm:px-6 lg:px-8 pt-16 pb-8 flex items-center justify-center">
         <EmptyState
           icon={Briefcase}
-          title="No company assigned"
-          description="Your account is not linked to a company yet. Please contact your strategist or our team to get set up."
+          title={t('text.jobs.noCompanyAssigned', 'No company assigned')}
+          description={t('text.jobs.yourAccountIsNotLinkedTo', 'Your account is not linked to a company yet. Please contact your strategist or our team to get set up.')}
         />
       </div>
     );
@@ -533,7 +535,7 @@ const Jobs = () => {
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
             <Input 
               type="text" 
-              placeholder="Search opportunities by title, company, or skills..." 
+              placeholder={t('text.jobs.searchOpportunitiesByTitleCompanyOr', 'Search opportunities by title, company, or skills...')} 
               value={searchQuery} 
               onChange={e => setSearchQuery(e.target.value)} 
               className="pl-12 h-14 text-base bg-card/80 border-border/40"
@@ -542,12 +544,8 @@ const Jobs = () => {
 
           {/* Opportunities Header — editorial, understated */}
           <div className="space-y-1 py-4 border-b border-border/30">
-            <h1 className="text-2xl font-semibold tracking-tight">
-              Opportunities
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              Curated roles for The Quantum Club members
-            </p>
+            <h1 className="text-2xl font-semibold tracking-tight">{t('jobs.title')}</h1>
+            <p className="text-sm text-muted-foreground">{t('jobs.desc')}</p>
           </div>
 
           {/* Club Sync - Compact Inline */}
@@ -558,21 +556,17 @@ const Jobs = () => {
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="font-bold">Club Sync</span>
-                  <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/60 bg-background/30 px-2 py-0.5 rounded">
-                    AUTO-APPLY
-                  </span>
+                  <span className="font-bold">{t('text.jobs.clubSync', 'Club Sync')}</span>
+                  <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/60 bg-background/30 px-2 py-0.5 rounded">{t('text.jobs.autoapply', 'AUTO-APPLY')}</span>
                 </div>
-                <span className="text-xs text-muted-foreground">
-                  Auto-apply to 90%+ matches
-                </span>
+                <span className="text-xs text-muted-foreground">{t('text.jobs.autoapplyTo90Matches', 'Auto-apply to 90%+ matches')}</span>
               </div>
             </div>
             <Switch 
               checked={clubSyncEnabled} 
               onCheckedChange={(checked) => {
                 if (!user) {
-                  toast.error('Please sign in to use Club Sync');
+                  toast.error(t('text.jobs.pleaseSignInToUseClub', 'Please sign in to use Club Sync'));
                   return;
                 }
                 
@@ -609,7 +603,7 @@ const Jobs = () => {
                     <DropdownMenuTrigger asChild>
                       <Button variant="outline" size="sm" className="gap-2">
                         <SlidersHorizontal className="w-4 h-4" />
-                        Sort: {sortBy === "match" ? "Match %" : sortBy === "newest" ? "Newest" : "Salary"}
+                        Sort: {sortBy === "match" ? "Match %" : sortBy === "newest" ? t('text.jobs.newest', 'Newest') : t('text.jobs.salary', 'Salary')}
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent className="bg-card/95 backdrop-blur-xl border-border z-50" align="end">
@@ -745,8 +739,8 @@ const Jobs = () => {
                 ) : savedJobs.length === 0 ? (
                   <div className="text-center py-16">
                     <Search className="w-10 h-10 text-muted-foreground mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold mb-1">No saved jobs yet</h3>
-                    <p className="text-sm text-muted-foreground">Browse opportunities and save roles that interest you</p>
+                    <h3 className="text-lg font-semibold mb-1">{t('jobs.title')}</h3>
+                    <p className="text-sm text-muted-foreground">{t('jobs.desc2')}</p>
                   </div>
                 ) : (
                   <div className={cn(

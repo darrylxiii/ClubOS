@@ -6,8 +6,10 @@ import { NewApplicationsCard } from "./NewApplicationsCard";
 import { useApplicationMetrics } from "@/hooks/useApplicationMetrics";
 import { useQueryClient } from "@tanstack/react-query";
 import { AlertPanel } from "../shared/AlertPanel";
+import { useTranslation } from 'react-i18next';
 
 export const ApplicationsDashboard = () => {
+  const { t } = useTranslation('admin');
   const queryClient = useQueryClient();
   const { metrics, isLoading } = useApplicationMetrics();
 
@@ -25,7 +27,7 @@ export const ApplicationsDashboard = () => {
   return (
     <div className="space-y-6">
       <DashboardHeader
-        title="Candidate Applications"
+        title={t('applications.applicationsDashboard.candidateApplications')}
         description="Manage and review candidate applications"
         onRefresh={handleRefresh}
         isRefreshing={isLoading}

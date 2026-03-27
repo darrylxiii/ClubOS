@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import {
     Dialog,
@@ -34,6 +35,7 @@ export function RescheduleInterviewDialog({
     candidateName,
     onRescheduled,
 }: RescheduleInterviewDialogProps) {
+  const { t } = useTranslation('common');
     const [date, setDate] = useState<Date | undefined>(new Date(currentStartTime));
     const [time, setTime] = useState(format(new Date(currentStartTime), 'HH:mm'));
     const [duration, setDuration] = useState('60');
@@ -43,7 +45,7 @@ export function RescheduleInterviewDialog({
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!date) {
-            toast.error('Please select a date');
+            toast.error(t("please_select_a_date", "Please select a date"));
             return;
         }
 
@@ -71,7 +73,7 @@ export function RescheduleInterviewDialog({
 
             if (error) throw error;
 
-            toast.success('Interview rescheduled successfully', {
+            toast.success(t("interview_rescheduled_successfully", "Interview rescheduled successfully"), {
                 description: `New time: ${format(newStart, 'MMM d, yyyy')} at ${time}`,
             });
 
@@ -79,7 +81,7 @@ export function RescheduleInterviewDialog({
             onOpenChange(false);
         } catch (error: unknown) {
             console.error('Error rescheduling interview:', error);
-            toast.error('Failed to reschedule interview');
+            toast.error(t("failed_to_reschedule_interview", "Failed to reschedule interview"));
         } finally {
             setLoading(false);
         }
@@ -89,7 +91,7 @@ export function RescheduleInterviewDialog({
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                    <DialogTitle>Reschedule Interview</DialogTitle>
+                    <DialogTitle>{t("reschedule_interview", "Reschedule Interview")}</DialogTitle>
                     <DialogDescription>
                         {candidateName && `Rescheduling interview with ${candidateName}`}
                     </DialogDescription>
@@ -98,7 +100,7 @@ export function RescheduleInterviewDialog({
                 <form onSubmit={handleSubmit} className="space-y-6">
                     {/* Current Time Display */}
                     <div className="bg-muted p-4 rounded-lg">
-                        <div className="text-sm font-medium mb-2">Current Schedule:</div>
+                        <div className="text-sm font-medium mb-2">{t("current_schedule", "Current Schedule:")}</div>
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
                             <CalendarIcon className="w-4 h-4" />
                             {format(new Date(currentStartTime), 'MMM d, yyyy')}
@@ -109,7 +111,7 @@ export function RescheduleInterviewDialog({
 
                     {/* New Date Selection */}
                     <div className="space-y-2">
-                        <Label>New Date *</Label>
+                        <Label>{t("new_date", "New Date *")}</Label>
                         <Calendar
                             mode="single"
                             selected={date}
@@ -122,7 +124,7 @@ export function RescheduleInterviewDialog({
                     {/* Time Selection */}
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <Label htmlFor="time">Start Time *</Label>
+                            <Label htmlFor="time">{t("start_time", "Start Time *")}</Label>
                             <input
                                 id="time"
                                 type="time"
@@ -134,30 +136,30 @@ export function RescheduleInterviewDialog({
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="duration">Duration (minutes) *</Label>
+                            <Label htmlFor="duration">{t("duration_minutes", "Duration (minutes) *")}</Label>
                             <select
                                 id="duration"
                                 value={duration}
                                 onChange={(e) => setDuration(e.target.value)}
                                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                             >
-                                <option value="30">30 minutes</option>
-                                <option value="45">45 minutes</option>
-                                <option value="60">1 hour</option>
-                                <option value="90">1.5 hours</option>
-                                <option value="120">2 hours</option>
+                                <option value="30">{t("30_minutes", "30 minutes")}</option>
+                                <option value="45">{t("45_minutes", "45 minutes")}</option>
+                                <option value="60">{t("1_hour", "1 hour")}</option>
+                                <option value="90">{t("15_hours", "1.5 hours")}</option>
+                                <option value="120">{t("2_hours", "2 hours")}</option>
                             </select>
                         </div>
                     </div>
 
                     {/* Reason (Optional) */}
                     <div className="space-y-2">
-                        <Label htmlFor="reason">Reason for Rescheduling (Optional)</Label>
+                        <Label htmlFor="reason">{t("reason_for_rescheduling_optional", "Reason for Rescheduling (Optional)")}</Label>
                         <Textarea
                             id="reason"
                             value={reason}
                             onChange={(e) => setReason(e.target.value)}
-                            placeholder="E.g., Candidate requested different time, scheduling conflict..."
+                            placeholder={t("eg_candidate_requested_different", "E.g., Candidate requested different time, scheduling conflict...")}
                             rows={3}
                         />
                     </div>
@@ -170,7 +172,7 @@ export function RescheduleInterviewDialog({
                             onClick={() => onOpenChange(false)}
                             disabled={loading}
                         >
-                            Cancel
+                            {t('common:cancel')}
                         </Button>
                         <Button type="submit" disabled={loading}>
                             {loading ? 'Rescheduling...' : 'Confirm Reschedule'}

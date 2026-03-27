@@ -5,8 +5,10 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Activity, Zap, Clock, TrendingUp, AlertTriangle } from "lucide-react";
 import { motion } from "framer-motion";
+import { useTranslation } from 'react-i18next';
 
-export function HealthScoreDashboard({ companyId }: { companyId: string }) {
+export function HealthScoreDashboard({
+  const { t } = useTranslation('partner'); companyId }: { companyId: string }) {
   const { data: healthData, isLoading } = useQuery({
     queryKey: ['health-score', companyId],
     queryFn: async () => {

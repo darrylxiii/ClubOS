@@ -2,49 +2,16 @@
  * Invite External Interviewer
  * Sends magic link invitation to non-platform users for interview panel participation
  */
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createAuthenticatedHandler } from '../_shared/handler.ts';
 import { EMAIL_SENDERS, EMAIL_COLORS, getEmailAppUrl } from "../_shared/email-config.ts";
+import { sendEmail } from '../_shared/resend-client.ts';
 import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
 import { Heading, Paragraph, Spacer, Card, Button, InfoRow } from "../_shared/email-templates/components.ts";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+Deno.serve(createAuthenticatedHandler(async (req, ctx) => {
+    const { supabase, user, corsHeaders } = ctx;
 
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const resendApiKey = Deno.env.get('RESEND_API_KEY');
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
-    // Verify auth
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
-    }
-
-    const { data: { user }, error: authError } = await supabase.auth.getUser(
-      authHeader.replace('Bearer ', '')
-    );
-
-    if (authError || !user) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
-    }
-
-    const { 
+    const {
       jobId, 
       email, 
       fullName, 
@@ -173,61 +140,52 @@ serve(async (req) => {
     const magicLinkUrl = `${appUrl}/external-interview?token=${magicToken}&job=${jobId}`;
 
     // Send invitation email using base template
-    if (resendApiKey) {
-      const positionTitle = job?.title || 'Open Position';
-      const companyName = company?.name || 'the hiring team';
-      const inviterName = inviterProfile?.full_name || 'A team member';
+    const positionTitle = job?.title || 'Open Position';
+    const companyName = company?.name || 'the hiring team';
+    const inviterName = inviterProfile?.full_name || 'A team member';
 
-      const emailContent = `
-        ${Heading({ text: "You're Invited to Interview", level: 1 })}
-        ${Spacer(16)}
-        ${Paragraph(`${inviterName} from <strong>${companyName}</strong> has invited you to participate in the interview process.`, 'secondary')}
-        ${Spacer(16)}
-        ${Card({
-          variant: 'highlight',
-          content: `
-            ${Heading({ text: positionTitle, level: 3 })}
-            ${Spacer(8)}
-            ${InfoRow({ icon: '🏢', label: 'Company', value: companyName })}
-            ${InfoRow({ icon: '⏳', label: 'Expires', value: `${expiresInDays} days` })}
-          `,
-        })}
-        ${Spacer(16)}
-        ${Paragraph('Click the button below to access candidate profiles, review materials, and submit your interview feedback.', 'secondary')}
-        ${Spacer(24)}
-        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
-          <tr>
-            <td align="center">
-              ${Button({ url: magicLinkUrl, text: 'Access Interview Portal', variant: 'primary' })}
-            </td>
-          </tr>
-        </table>
-        ${Spacer(16)}
-        ${Paragraph(`If the button doesn\'t work, copy this link: <a href="${magicLinkUrl}" style="color: ${EMAIL_COLORS.gold}; word-break: break-all;">${magicLinkUrl}</a>`, 'muted')}
-      `;
+    const emailContent = `
+      ${Heading({ text: "You're Invited to Interview", level: 1 })}
+      ${Spacer(16)}
+      ${Paragraph(`${inviterName} from <strong>${companyName}</strong> has invited you to participate in the interview process.`, 'secondary')}
+      ${Spacer(16)}
+      ${Card({
+        variant: 'highlight',
+        content: `
+          ${Heading({ text: positionTitle, level: 3 })}
+          ${Spacer(8)}
+          ${InfoRow({ icon: '🏢', label: 'Company', value: companyName })}
+          ${InfoRow({ icon: '⏳', label: 'Expires', value: `${expiresInDays} days` })}
+        `,
+      })}
+      ${Spacer(16)}
+      ${Paragraph('Click the button below to access candidate profiles, review materials, and submit your interview feedback.', 'secondary')}
+      ${Spacer(24)}
+      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+        <tr>
+          <td align="center">
+            ${Button({ url: magicLinkUrl, text: 'Access Interview Portal', variant: 'primary' })}
+          </td>
+        </tr>
+      </table>
+      ${Spacer(16)}
+      ${Paragraph(`If the button doesn\'t work, copy this link: <a href="${magicLinkUrl}" style="color: ${EMAIL_COLORS.gold}; word-break: break-all;">${magicLinkUrl}</a>`, 'muted')}
+    `;
 
-      const emailResponse = await fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${resendApiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          from: EMAIL_SENDERS.notifications,
-          to: email,
-          subject: `You're invited to interview candidates for ${positionTitle} at ${companyName}`,
-          html: baseEmailTemplate({
-            preheader: `${inviterName} invited you to interview for ${positionTitle} at ${companyName}`,
-            content: emailContent,
-            showHeader: true,
-            showFooter: true,
-          }),
+    try {
+      await sendEmail({
+        from: EMAIL_SENDERS.notifications,
+        to: email,
+        subject: `You're invited to interview candidates for ${positionTitle} at ${companyName}`,
+        html: baseEmailTemplate({
+          preheader: `${inviterName} invited you to interview for ${positionTitle} at ${companyName}`,
+          content: emailContent,
+          showHeader: true,
+          showFooter: true,
         }),
       });
-
-      if (!emailResponse.ok) {
-        console.error('Email send failed:', await emailResponse.text());
-      }
+    } catch (emailErr) {
+      console.error('Email send failed:', emailErr);
     }
 
     // Log the invite action
@@ -253,14 +211,4 @@ serve(async (req) => {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
 
-  } catch (error) {
-    console.error('Invite external interviewer error:', error);
-    return new Response(JSON.stringify({ 
-      error: 'Failed to invite external interviewer',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    });
-  }
-});
+}));

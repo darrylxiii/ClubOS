@@ -1,9 +1,11 @@
+import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from '@/lib/motion';
 import { RefreshCw, X, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { usePWAUpdate } from '@/hooks/usePWAUpdate';
 
 export function UpdateAvailableBanner() {
+  const { t } = useTranslation('common');
   const { isUpdateAvailable, isUpdating, updateNow, dismissUpdate } = usePWAUpdate();
 
   if (!isUpdateAvailable) return null;
@@ -33,7 +35,7 @@ export function UpdateAvailableBanner() {
             <button
               onClick={dismissUpdate}
               className="p-1 hover:bg-muted rounded-md transition-colors shrink-0"
-              aria-label="Dismiss"
+              aria-label={t("dismiss", "Dismiss")}
               disabled={isUpdating}
             >
               <X className="w-4 h-4 text-muted-foreground" />

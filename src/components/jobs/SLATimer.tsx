@@ -1,4 +1,5 @@
 import { memo } from "react";
+import { useTranslation } from 'react-i18next';
 import { Clock, AlertTriangle, CheckCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -68,6 +69,7 @@ export const SLATimer = memo(({
   variant = "badge",
   className,
 }: SLATimerProps) => {
+  const { t } = useTranslation('jobs');
   const sla = getSLAStatus(daysSinceActivity, slaThreshold);
   const Icon = sla.icon;
 
@@ -93,7 +95,7 @@ export const SLATimer = memo(({
             {sla.label}
           </span>
           <span className="text-xs text-muted-foreground">
-            SLA: {slaThreshold} days
+            {t('sla.threshold', 'SLA: {{days}} days', { days: slaThreshold })}
           </span>
         </div>
       </div>
@@ -120,9 +122,9 @@ export const SLATimer = memo(({
         </TooltipTrigger>
         <TooltipContent>
           <p className="text-sm">
-            {sla.status === "on-track" && "Response time is on track"}
-            {sla.status === "warning" && "Approaching SLA deadline"}
-            {sla.status === "breached" && "SLA has been breached - action needed"}
+            {sla.status === "on-track" && t('sla.onTrack', 'Response time is on track')}
+            {sla.status === "warning" && t('sla.warning', 'Approaching SLA deadline')}
+            {sla.status === "breached" && t('sla.breached', 'SLA has been breached - action needed')}
           </p>
         </TooltipContent>
       </Tooltip>

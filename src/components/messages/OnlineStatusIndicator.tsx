@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 
@@ -11,6 +12,7 @@ interface OnlineStatusIndicatorProps {
 type UserStatus = 'online' | 'away' | 'dnd' | 'invisible' | 'offline';
 
 export const OnlineStatusIndicator = ({ userId, className, showCustomStatus = false }: OnlineStatusIndicatorProps) => {
+  const { t } = useTranslation('messages');
   const [status, setStatus] = useState<UserStatus>('offline');
   const [customStatus, setCustomStatus] = useState<string | null>(null);
   const [customEmoji, setCustomEmoji] = useState<string | null>(null);
@@ -68,11 +70,11 @@ export const OnlineStatusIndicator = ({ userId, className, showCustomStatus = fa
   };
 
   const statusLabels = {
-    online: "Online",
-    away: "Away",
-    dnd: "Do Not Disturb",
-    invisible: "Offline",
-    offline: "Offline",
+    online: t('status.online'),
+    away: t('status.away'),
+    dnd: t('status.dnd'),
+    invisible: t('status.offline'),
+    offline: t('status.offline'),
   };
 
   return (

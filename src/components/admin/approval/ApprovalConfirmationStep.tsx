@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { AssignmentType, StaffAssignment, PipelineAssignment, CompanyAssignmentData } from "@/types/approval";
+import { useTranslation } from 'react-i18next';
 
 interface ApprovalConfirmationStepProps {
   summary: {
@@ -52,26 +53,24 @@ export const ApprovalConfirmationStep = ({
     <div className="space-y-6">
       <div className="flex items-center gap-2 mb-6">
         <CheckCircle2 className="w-5 h-5 text-primary" />
-        <h3 className="text-lg font-semibold">Confirm Approval</h3>
+        <h3 className="text-lg font-semibold">{t('approval.approvalConfirmationStep.confirmApproval')}</h3>
       </div>
 
       <Alert>
-        <AlertDescription>
-          Review the actions that will be performed when you approve this member request.
-        </AlertDescription>
+        <AlertDescription>{t('approval.approvalconfirmationstep.reviewTheActionsThatWillBe', 'Review the actions that will be performed when you approve this member request.')}</AlertDescription>
       </Alert>
 
       <Card>
         <CardContent className="p-6 space-y-4">
           <div>
-            <h4 className="font-semibold mb-3">Actions to be performed:</h4>
+            <h4 className="font-semibold mb-3">{t('approval.approvalconfirmationstep.actionsToBePerformed', 'Actions to be performed:')}</h4>
             <div className="space-y-3">
               {/* Merge action */}
               {summary.action === 'merge' && summary.mergeCount && summary.mergeCount > 0 && (
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-primary" />
                   <span>Merge with {summary.mergeCount} existing candidate profile{summary.mergeCount > 1 ? 's' : ''}</span>
-                  <Badge variant="secondary">Merge</Badge>
+                  <Badge variant="secondary">{t('approval.approvalconfirmationstep.merge', 'Merge')}</Badge>
                 </div>
               )}
 
@@ -79,8 +78,8 @@ export const ApprovalConfirmationStep = ({
               {summary.action === 'create' && summary.profileCreated && (
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-primary" />
-                  <span>Create new candidate profile and link to user account</span>
-                  <Badge variant="secondary">Create & Link</Badge>
+                  <span>{t('approval.approvalConfirmationStep.createNewCandidateProfileAndLink')}</span>
+                  <Badge variant="secondary">{t('approval.approvalconfirmationstep.createLink', 'Create & Link')}</Badge>
                 </div>
               )}
 
@@ -91,12 +90,12 @@ export const ApprovalConfirmationStep = ({
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
                       <span className="font-medium">Assign as {getRoleLabel(summary.staffAssignment.role)}</span>
-                      <Badge variant="default">Staff Role</Badge>
+                      <Badge variant="default">{t('approval.approvalconfirmationstep.staffRole', 'Staff Role')}</Badge>
                     </div>
                     {summary.staffAssignment.companyId && (
                       <div className="flex items-center gap-1 text-sm text-muted-foreground mt-1">
                         <Building2 className="w-3 h-3" />
-                        <span>Will be added to company as partner</span>
+                        <span>{t('approval.approvalConfirmationStep.willBeAddedToCompanyAs')}</span>
                       </div>
                     )}
                   </div>
@@ -109,12 +108,12 @@ export const ApprovalConfirmationStep = ({
                   <Briefcase className="w-4 h-4 text-primary mt-0.5" />
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
-                      <span className="font-medium">Add to job pipeline</span>
-                      <Badge variant="default">Candidate</Badge>
+                      <span className="font-medium">{t('approval.approvalConfirmationStep.addToJobPipeline')}</span>
+                      <Badge variant="default">{t('approval.approvalconfirmationstep.candidate', 'Candidate')}</Badge>
                     </div>
                     <div className="text-sm text-muted-foreground mt-1">
                       {summary.pipelineAssignment.stageName && (
-                        <span>Starting at: <strong>{summary.pipelineAssignment.stageName}</strong> stage</span>
+                        <span>{t('approval.approvalconfirmationstep.startingAt', 'Starting at:')} <strong>{summary.pipelineAssignment.stageName}</strong> stage</span>
                       )}
                     </div>
                     {!summary.profileCreated && (
@@ -133,9 +132,9 @@ export const ApprovalConfirmationStep = ({
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
                       <span className="font-medium">
-                        {summary.action === 'create_company' ? 'Create company' : 'Assign to company'}: {summary.companyAssignment.companyName}
+                        {summary.action === 'create_company' ? t('approval.approvalconfirmationstep.createCompany', 'Create company') : t('approval.approvalconfirmationstep.assignToCompany', 'Assign to company')}: {summary.companyAssignment.companyName}
                       </span>
-                      <Badge variant="default">{summary.action === 'create_company' ? 'New' : 'Existing'}</Badge>
+                      <Badge variant="default">{summary.action === 'create_company' ? t('approval.approvalconfirmationstep.new', 'New') : t('approval.approvalconfirmationstep.existing', 'Existing')}</Badge>
                     </div>
                     <div className="text-sm text-muted-foreground mt-1">
                       Role: <strong>{summary.companyAssignment.companyRole}</strong>
@@ -149,16 +148,16 @@ export const ApprovalConfirmationStep = ({
               {!summary.companyAssignment && summary.assignmentType === 'skip' && (
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <CheckCircle2 className="w-4 h-4" />
-                  <span>No role or pipeline assignment</span>
-                  <Badge variant="outline">Skip</Badge>
+                  <span>{t('approval.approvalConfirmationStep.noRoleOrPipelineAssignment')}</span>
+                  <Badge variant="outline">{t('approval.approvalconfirmationstep.skip', 'Skip')}</Badge>
                 </div>
               )}
 
               {/* Approve action */}
               <div className="flex items-center gap-2 pt-2 border-t">
                 <CheckCircle2 className="w-4 h-4 text-primary" />
-                <span>Approve member request and grant platform access</span>
-                <Badge variant="default">Approve</Badge>
+                <span>{t('approval.approvalConfirmationStep.approveMemberRequestAndGrantPlatform')}</span>
+                <Badge variant="default">{t('approval.approvalconfirmationstep.approve', 'Approve')}</Badge>
               </div>
             </div>
 
@@ -173,7 +172,7 @@ export const ApprovalConfirmationStep = ({
           </div>
 
           <div className="border-t pt-4 space-y-3">
-            <h4 className="font-semibold">Notifications:</h4>
+            <h4 className="font-semibold">{t('approval.approvalconfirmationstep.notifications', 'Notifications:')}</h4>
             
             <div className="flex items-center space-x-2">
               <Checkbox
@@ -203,11 +202,9 @@ export const ApprovalConfirmationStep = ({
       </Card>
 
       <div className="flex items-center justify-between pt-4">
-        <Button variant="outline" onClick={onBack} disabled={isSubmitting}>
-          Back
-        </Button>
+        <Button variant="outline" onClick={onBack} disabled={isSubmitting}>{t('approval.approvalconfirmationstep.back', 'Back')}</Button>
         <Button onClick={onConfirm} disabled={isSubmitting}>
-          {isSubmitting ? 'Processing...' : 'Approve Member'}
+          {isSubmitting ? t('approval.approvalconfirmationstep.processing', 'Processing...') : t('approval.approvalconfirmationstep.approveMember', 'Approve Member')}
         </Button>
       </div>
     </div>

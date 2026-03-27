@@ -16,6 +16,8 @@ const getSentry = async () => {
 type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 type ErrorType = 'react' | 'api' | 'edge_function' | 'database' | 'network' | 'unknown';
 type Severity = 'info' | 'warning' | 'error' | 'critical';
+/** Sentry severity levels accepted by captureException */
+type SentrySeverity = 'fatal' | 'error' | 'warning' | 'log' | 'info' | 'debug';
 
 interface LogContext {
   [key: string]: unknown;
@@ -88,7 +90,7 @@ class Logger {
         if (Sentry) {
           Sentry.captureException(error, {
             extra: { message, ...context },
-            level: (context?.severity as any) || 'error',
+            level: (context?.severity as SentrySeverity | undefined) || 'error',
           });
         }
       });

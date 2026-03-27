@@ -12,9 +12,9 @@ export interface Email {
   from_email: string;
   from_name: string | null;
   from_avatar_url: string | null;
-  to_emails: any;
-  cc_emails?: any;
-  bcc_emails?: any;
+  to_emails: string[] | string;
+  cc_emails?: string[] | string;
+  bcc_emails?: string[] | string;
   reply_to?: string | null;
   body_text: string | null;
   body_html: string | null;
@@ -31,7 +31,7 @@ export interface Email {
   inbox_type?: string | null;
   ai_summary: string | null;
   ai_sentiment: string | null;
-  ai_action_items: any | null;
+  ai_action_items: Record<string, unknown>[] | null;
   ai_processed_at: string | null;
   assigned_to: string | null;
   snoozed_until: string | null;
@@ -47,8 +47,8 @@ export interface Email {
   deleted_at: string | null;
   created_at: string;
   updated_at: string;
-  raw_headers: any;
-  metadata: any;
+  raw_headers: Record<string, unknown> | null;
+  metadata: Record<string, unknown> | null;
 }
 
 export interface EmailLabel {
@@ -347,7 +347,7 @@ export function useEmails(filter: string = "inbox") {
           table: "emails",
         },
         (payload) => {
-          console.log('[useEmails] Realtime event:', payload.eventType, payload.new && 'id' in payload.new ? (payload.new as any).id : 'unknown');
+          console.log('[useEmails] Realtime event:', payload.eventType, payload.new && 'id' in payload.new ? (payload.new as Record<string, unknown>).id : 'unknown');
 
           if (payload.eventType === 'INSERT' && payload.new) {
             // Add new email to list
@@ -363,7 +363,7 @@ export function useEmails(filter: string = "inbox") {
             );
           } else if (payload.eventType === 'DELETE' && payload.old) {
             // Remove deleted email
-            const deletedId = (payload.old as any)?.id;
+            const deletedId = (payload.old as Record<string, unknown>)?.id as string | undefined;
             if (deletedId) {
               setEmails((prev) => prev.filter((email) => email.id !== deletedId));
             }

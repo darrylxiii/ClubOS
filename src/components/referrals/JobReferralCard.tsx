@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -24,6 +25,7 @@ interface JobReferralCardProps {
 }
 
 export function JobReferralCard({ job, earnings, sharePercentage, compact = false }: JobReferralCardProps) {
+  const { t } = useTranslation('common');
   const [isExpanded, setIsExpanded] = useState(false);
   const { data: applications = [] } = useJobApplications(job.id);
 
@@ -107,15 +109,15 @@ export function JobReferralCard({ job, earnings, sharePercentage, compact = fals
           {/* Quick Stats */}
           <div className="grid grid-cols-3 gap-3 mt-4 pt-3 border-t border-border/50">
             <div className="text-center">
-              <p className="text-xs text-muted-foreground">Expected Fee</p>
+              <p className="text-xs text-muted-foreground">{t("expected_fee", "Expected Fee")}</p>
               <p className="font-medium">{formatCurrency(expectedFee)}</p>
             </div>
             <div className="text-center">
-              <p className="text-xs text-muted-foreground">Your Share</p>
+              <p className="text-xs text-muted-foreground">{t("your_share", "Your Share")}</p>
               <p className="font-medium">{sharePercentage}%</p>
             </div>
             <div className="text-center">
-              <p className="text-xs text-muted-foreground">Candidates</p>
+              <p className="text-xs text-muted-foreground">{t("candidates", "Candidates")}</p>
               <p className="font-medium">{totalCandidates}</p>
             </div>
           </div>
@@ -123,7 +125,7 @@ export function JobReferralCard({ job, earnings, sharePercentage, compact = fals
           {/* Pipeline Progress */}
           <div className="mt-3">
             <div className="flex justify-between text-xs text-muted-foreground mb-1">
-              <span>Pipeline Fill</span>
+              <span>{t("pipeline_fill", "Pipeline Fill")}</span>
               <span>{totalCandidates}/5 candidates</span>
             </div>
             <Progress value={progressPercentage} className="h-1.5" />
@@ -139,7 +141,7 @@ export function JobReferralCard({ job, earnings, sharePercentage, compact = fals
                   exit={{ opacity: 0, height: 0 }}
                   className="mt-4 pt-4 border-t border-border/50"
                 >
-                  <h5 className="text-sm font-medium mb-2">Pipeline Breakdown</h5>
+                  <h5 className="text-sm font-medium mb-2">{t("pipeline_breakdown", "Pipeline Breakdown")}</h5>
                   {Object.keys(stageBreakdown).length > 0 ? (
                     <div className="space-y-2">
                       {Object.entries(stageBreakdown).map(([stage, count]) => (
@@ -150,7 +152,7 @@ export function JobReferralCard({ job, earnings, sharePercentage, compact = fals
                       ))}
                     </div>
                   ) : (
-                    <p className="text-sm text-muted-foreground">No candidates in pipeline yet</p>
+                    <p className="text-sm text-muted-foreground">{t("no_candidates_in_pipeline", "No candidates in pipeline yet")}</p>
                   )}
                 </motion.div>
               )}

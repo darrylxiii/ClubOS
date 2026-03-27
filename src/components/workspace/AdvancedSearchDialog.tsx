@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -22,6 +23,7 @@ interface AdvancedSearchDialogProps {
 }
 
 export function AdvancedSearchDialog({ open, onOpenChange }: AdvancedSearchDialogProps) {
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
   const { results, loading, search, clearResults } = useFullTextSearch();
   
@@ -82,7 +84,7 @@ export function AdvancedSearchDialog({ open, onOpenChange }: AdvancedSearchDialo
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search pages by title or content..."
+              placeholder={t("search_pages_by_title", "Search pages by title or content...")}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               className="pl-10 pr-20"
@@ -105,7 +107,7 @@ export function AdvancedSearchDialog({ open, onOpenChange }: AdvancedSearchDialo
           {showFilters && (
             <div className="p-4 bg-muted/50 rounded-lg space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Filters</span>
+                <span className="text-sm font-medium">{t("filters", "Filters")}</span>
                 {hasActiveFilters && (
                   <Button variant="ghost" size="sm" onClick={clearFilters}>
                     <X className="h-3 w-3 mr-1" />
@@ -116,7 +118,7 @@ export function AdvancedSearchDialog({ open, onOpenChange }: AdvancedSearchDialo
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-xs">From Date</Label>
+                  <Label className="text-xs">{t("from_date", "From Date")}</Label>
                   <Input
                     type="date"
                     value={filters.dateFrom}
@@ -124,7 +126,7 @@ export function AdvancedSearchDialog({ open, onOpenChange }: AdvancedSearchDialo
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-xs">To Date</Label>
+                  <Label className="text-xs">{t("to_date", "To Date")}</Label>
                   <Input
                     type="date"
                     value={filters.dateTo}
@@ -153,12 +155,12 @@ export function AdvancedSearchDialog({ open, onOpenChange }: AdvancedSearchDialo
             {query.length < 2 ? (
               <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
                 <Search className="h-12 w-12 mb-2 opacity-50" />
-                <p className="text-sm">Type at least 2 characters to search</p>
+                <p className="text-sm">{t("type_at_least_2", "Type at least 2 characters to search")}</p>
               </div>
             ) : results.length === 0 && !loading ? (
               <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
                 <FileText className="h-12 w-12 mb-2 opacity-50" />
-                <p className="text-sm">No pages found</p>
+                <p className="text-sm">{t("no_pages_found", "No pages found")}</p>
               </div>
             ) : (
               <div className="space-y-1">

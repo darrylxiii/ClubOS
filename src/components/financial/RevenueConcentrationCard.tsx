@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useQuery } from '@tanstack/react-query';
@@ -13,6 +14,7 @@ interface RevenueConcentrationCardProps {
 }
 
 export function RevenueConcentrationCard({ year, legalEntity }: RevenueConcentrationCardProps) {
+  const { t } = useTranslation('common');
   const { data, isLoading } = useQuery({
     queryKey: ['revenue-concentration', year, legalEntity],
     queryFn: async () => {
@@ -100,11 +102,11 @@ export function RevenueConcentrationCard({ year, legalEntity }: RevenueConcentra
               variant={data.riskLevel === 'high' ? 'destructive' : data.riskLevel === 'medium' ? 'secondary' : 'default'}
             >
               {data.riskLevel === 'high' ? (
-                <><AlertTriangle className="h-3 w-3 mr-1" />High Risk</>
+                <><AlertTriangle className="h-3 w-3 mr-1" />{t("high_risk", "High Risk")}</>
               ) : data.riskLevel === 'medium' ? (
-                <>Moderate</>
+                <>{t("moderate", "Moderate")}</>
               ) : (
-                <><CheckCircle2 className="h-3 w-3 mr-1" />Diversified</>
+                <><CheckCircle2 className="h-3 w-3 mr-1" />{t("diversified", "Diversified")}</>
               )}
             </Badge>
           )}
@@ -123,17 +125,17 @@ export function RevenueConcentrationCard({ year, legalEntity }: RevenueConcentra
             {/* Concentration metrics */}
             <div className="grid grid-cols-3 gap-3">
               <div className="text-center p-3 rounded-lg bg-muted/50">
-                <p className="text-xs text-muted-foreground">Top 1 Share</p>
+                <p className="text-xs text-muted-foreground">{t("top_1_share", "Top 1 Share")}</p>
                 <p className={`text-lg font-bold ${data.top1Share > 25 ? 'text-destructive' : ''}`}>
                   {data.top1Share.toFixed(1)}%
                 </p>
               </div>
               <div className="text-center p-3 rounded-lg bg-muted/50">
-                <p className="text-xs text-muted-foreground">Top 3 Share</p>
+                <p className="text-xs text-muted-foreground">{t("top_3_share", "Top 3 Share")}</p>
                 <p className="text-lg font-bold">{data.top3Share.toFixed(1)}%</p>
               </div>
               <div className="text-center p-3 rounded-lg bg-muted/50">
-                <p className="text-xs text-muted-foreground">HHI Index</p>
+                <p className="text-xs text-muted-foreground">{t("hhi_index", "HHI Index")}</p>
                 <p className={`text-lg font-bold ${data.hhi > 2500 ? 'text-destructive' : data.hhi > 1500 ? 'text-warning' : 'text-success'}`}>
                   {data.hhi.toLocaleString()}
                 </p>
@@ -161,10 +163,10 @@ export function RevenueConcentrationCard({ year, legalEntity }: RevenueConcentra
             {/* Investor guidance */}
             <div className="p-3 rounded-lg border text-xs text-muted-foreground">
               <p>
-                <span className="font-medium">HHI Guidelines:</span> &lt;1500 = diversified, 
+                <span className="font-medium">{t("hhi_guidelines", "HHI Guidelines:")}</span> &lt;1500 = diversified, 
                 1500–2500 = moderate concentration, &gt;2500 = highly concentrated.
                 {data.riskLevel === 'high' && (
-                  <span className="text-destructive font-medium"> Action needed: reduce single-client dependency.</span>
+                  <span className="text-destructive font-medium">{t("action_needed_reduce_singleclient", "Action needed: reduce single-client dependency.")}</span>
                 )}
               </p>
             </div>

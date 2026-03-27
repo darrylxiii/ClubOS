@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,6 +24,7 @@ interface MeetingPollProps {
 }
 
 export function MeetingPoll({ pollId, bookingLinkId, voterName, onVoteSubmitted }: MeetingPollProps) {
+  const { t } = useTranslation('common');
   const [poll, setPoll] = useState<any>(null);
   const [timeOptions, setTimeOptions] = useState<TimeOption[]>([]);
   const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
@@ -57,7 +59,7 @@ export function MeetingPoll({ pollId, bookingLinkId, voterName, onVoteSubmitted 
       setTimeOptions((optionsData as any) || []);
     } catch (error: unknown) {
       console.error("Error loading poll:", error);
-      toast.error("Failed to load meeting poll");
+      toast.error(t("failed_to_load_meeting", "Failed to load meeting poll"));
     } finally {
       setLoading(false);
     }
@@ -71,7 +73,7 @@ export function MeetingPoll({ pollId, bookingLinkId, voterName, onVoteSubmitted 
 
   const submitVotes = async () => {
     if (selectedOptions.length === 0) {
-      toast.error("Please select at least one time option");
+      toast.error(t("please_select_at_least", "Please select at least one time option"));
       return;
     }
 
@@ -87,13 +89,13 @@ export function MeetingPoll({ pollId, bookingLinkId, voterName, onVoteSubmitted 
 
       if (error) throw error;
 
-      toast.success("Your votes have been submitted!");
+      toast.success(t("your_votes_have_been", "Your votes have been submitted!"));
       setHasVoted(true);
       loadPoll(); // Reload to see updated vote counts
       onVoteSubmitted?.();
     } catch (error: unknown) {
       console.error("Error submitting votes:", error);
-      toast.error("Failed to submit votes");
+      toast.error(t("failed_to_submit_votes", "Failed to submit votes"));
     } finally {
       setSubmitting(false);
     }
@@ -113,7 +115,7 @@ export function MeetingPoll({ pollId, bookingLinkId, voterName, onVoteSubmitted 
     return (
       <Card>
         <CardContent className="py-8 text-center">
-          <p className="text-muted-foreground">Poll not found</p>
+          <p className="text-muted-foreground">{t("poll_not_found", "Poll not found")}</p>
         </CardContent>
       </Card>
     );
@@ -132,7 +134,7 @@ export function MeetingPoll({ pollId, bookingLinkId, voterName, onVoteSubmitted 
         {hasVoted ? (
           <div className="text-center py-8">
             <Check className="h-12 w-12 text-green-500 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold mb-2">Thank you for voting!</h3>
+            <h3 className="text-xl font-semibold mb-2">{t("thank_you_for_voting", "Thank you for voting!")}</h3>
             <p className="text-muted-foreground">
               We'll notify you once the meeting time is finalized.
             </p>

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -17,23 +18,24 @@ import { ArrowLeft, AlertCircle } from "lucide-react";
 import { migrateToast as toast } from "@/lib/notify";
 import { Breadcrumb } from "@/components/Breadcrumb";
 
-const categories = [
-  { value: 'technical', label: 'Technical Issue' },
-  { value: 'billing', label: 'Billing' },
-  { value: 'account', label: 'Account' },
-  { value: 'feature_request', label: 'Feature Request' },
-  { value: 'bug', label: 'Bug Report' },
-  { value: 'other', label: 'Other' },
+const getCategoryLabels = (t: (key: string) => string) => [
+  { value: 'technical', label: t('support.categories.technical') },
+  { value: 'billing', label: t('support.categories.billing') },
+  { value: 'account', label: t('support.categories.account') },
+  { value: 'feature_request', label: t('support.categories.featureRequest') },
+  { value: 'bug', label: t('support.categories.bug') },
+  { value: 'other', label: t('support.categories.other') },
 ];
 
-const priorities = [
-  { value: 'low', label: 'Low - General question', color: 'text-gray-500' },
-  { value: 'medium', label: 'Medium - Not blocking work', color: 'text-blue-500' },
-  { value: 'high', label: 'High - Blocking some work', color: 'text-orange-500' },
-  { value: 'urgent', label: 'Urgent - Blocking all work', color: 'text-red-500' },
+const getPriorityLabels = (t: (key: string) => string) => [
+  { value: 'low', label: t('support.priorities.low'), color: 'text-gray-500' },
+  { value: 'medium', label: t('support.priorities.medium'), color: 'text-blue-500' },
+  { value: 'high', label: t('support.priorities.high'), color: 'text-orange-500' },
+  { value: 'urgent', label: t('support.priorities.urgent'), color: 'text-red-500' },
 ];
 
 export default function SupportTicketNew() {
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
@@ -49,8 +51,8 @@ export default function SupportTicketNew() {
     
     if (!formData.category || !formData.subject || !formData.description) {
       toast({
-        title: "Missing Information",
-        description: "Please fill in all required fields",
+        title: t('support.missingInfo'),
+        description: t('support.fillRequired'),
         variant: "destructive",
       });
       return;
@@ -77,16 +79,16 @@ export default function SupportTicketNew() {
       if (error) throw error;
 
       toast({
-        title: "Ticket Created",
-        description: `Your ticket ${data.ticket.ticket_number} has been created. We'll respond within ${data.ticket.sla_target_response_minutes || 120} minutes.`,
+        title: t('support.ticketCreated'),
+        description: t('support.ticketCreatedDesc', { number: data.ticket.ticket_number, minutes: data.ticket.sla_target_response_minutes || 120 }),
       });
 
       navigate(`/support/tickets/${data.ticket.id}`);
     } catch (error: unknown) {
       console.error('Error creating ticket:', error);
       toast({
-        title: "Error",
-        description: "Failed to create ticket. Please try again.",
+        title: t('common.error'),
+        description: t('support.createError'),
         variant: "destructive",
       });
     } finally {
@@ -112,13 +114,13 @@ export default function SupportTicketNew() {
         className="mb-6"
       >
         <ArrowLeft className="h-4 w-4 mr-2" />
-        Back to Tickets
+        {t('support.backToTickets')}
       </Button>
 
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Create Support Ticket</h1>
+        <h1 className="text-3xl font-bold mb-2">{t('support.createTicket')}</h1>
         <p className="text-muted-foreground">
-          Describe your issue and we'll get back to you as soon as possible
+          {t('support.createDesc')}
         </p>
       </div>
 
@@ -127,17 +129,17 @@ export default function SupportTicketNew() {
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium mb-2">
-                Category <span className="text-destructive">*</span>
+                {t('support.category')} <span className="text-destructive">*</span>
               </label>
               <Select
                 value={formData.category}
                 onValueChange={(value) => setFormData({ ...formData, category: value })}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select a category" />
+                  <SelectValue placeholder={t('support.selectCategory')} />
                 </SelectTrigger>
                 <SelectContent>
-                  {categories.map((cat) => (
+                  {getCategoryLabels(t).map((cat) => (
                     <SelectItem key={cat.value} value={cat.value}>
                       {cat.label}
                     </SelectItem>
@@ -147,7 +149,7 @@ export default function SupportTicketNew() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2">Priority</label>
+              <label className="block text-sm font-medium mb-2">{t('support.priority')}</label>
               <Select
                 value={formData.priority}
                 onValueChange={(value) => setFormData({ ...formData, priority: value })}
@@ -156,7 +158,7 @@ export default function SupportTicketNew() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {priorities.map((pri) => (
+                  {getPriorityLabels(t).map((pri) => (
                     <SelectItem key={pri.value} value={pri.value}>
                       <span className={pri.color}>{pri.label}</span>
                     </SelectItem>
@@ -170,10 +172,10 @@ export default function SupportTicketNew() {
 
             <div>
               <label className="block text-sm font-medium mb-2">
-                Subject <span className="text-destructive">*</span>
+                {t('support.subject')} <span className="text-destructive">*</span>
               </label>
               <Input
-                placeholder="Brief description of your issue"
+                placeholder={t('support.subjectPlaceholder')}
                 value={formData.subject}
                 onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
                 maxLength={200}
@@ -182,10 +184,10 @@ export default function SupportTicketNew() {
 
             <div>
               <label className="block text-sm font-medium mb-2">
-                Description <span className="text-destructive">*</span>
+                {t('support.description')} <span className="text-destructive">*</span>
               </label>
               <Textarea
-                placeholder="Please provide as much detail as possible..."
+                placeholder={t('support.descriptionPlaceholder')}
                 rows={8}
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
@@ -198,11 +200,11 @@ export default function SupportTicketNew() {
           <div className="flex gap-3">
             <AlertCircle className="h-5 w-5 text-blue-500 flex-shrink-0 mt-0.5" />
             <div className="text-sm">
-              <p className="font-medium mb-1">Before submitting:</p>
+              <p className="font-medium mb-1">{t('support.beforeSubmitting')}</p>
               <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-                <li>Check our <a href="/help" className="text-primary hover:underline">Knowledge Base</a> for instant answers</li>
-                <li>Include error messages or screenshots if applicable</li>
-                <li>Describe steps to reproduce the issue</li>
+                <li>{t('support.checkKb')} <a href="/help" className="text-primary hover:underline">{t('support.knowledgeBase')}</a></li>
+                <li>{t('support.includeErrors')}</li>
+                <li>{t('support.describeSteps')}</li>
               </ul>
             </div>
           </div>
@@ -210,14 +212,14 @@ export default function SupportTicketNew() {
 
         <div className="flex gap-3">
           <Button type="submit" disabled={loading} className="flex-1">
-            {loading ? 'Creating...' : 'Create Ticket'}
+            {loading ? t('support.creating') : t('support.createTicket')}
           </Button>
           <Button
             type="button"
             variant="outline"
             onClick={() => navigate('/support/tickets')}
           >
-            Cancel
+            {t('common.cancel')}
           </Button>
         </div>
       </form>

@@ -1,4 +1,5 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useTranslation } from 'react-i18next';
 import { InstantlyCSVImporter } from "@/components/crm/InstantlyCSVImporter";
 import { CompanyEnrichment } from "@/components/crm/CompanyEnrichment";
 import { EmailContactLookup } from "@/components/crm/EmailContactLookup";
@@ -32,6 +33,7 @@ const integrations = [
 ];
 
 export default function CRMIntegrations() {
+  const { t } = useTranslation('common');
   return (
     <RoleGate allowedRoles={['admin', 'strategist']}>
       <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
@@ -40,9 +42,7 @@ export default function CRMIntegrations() {
           <Plug className="h-6 w-6 text-primary" />
           CRM Integrations
         </h1>
-        <p className="text-muted-foreground">
-          Connect external tools and enrich your prospect data
-        </p>
+        <p className="text-muted-foreground">{t('cRMIntegrations.desc')}</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

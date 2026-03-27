@@ -67,14 +67,14 @@ export const PreferencesSettings = ({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="en">🇬🇧 English</SelectItem>
-                <SelectItem value="nl">🇳🇱 Nederlands</SelectItem>
-                <SelectItem value="de">🇩🇪 Deutsch</SelectItem>
-                <SelectItem value="fr">🇫🇷 Français</SelectItem>
-                <SelectItem value="es">🇪🇸 Español</SelectItem>
-                <SelectItem value="zh">🇨🇳 中文 (Chinese)</SelectItem>
-                <SelectItem value="ar">🇸🇦 العربية (Arabic)</SelectItem>
-                <SelectItem value="ru">🇷🇺 Русский (Russian)</SelectItem>
+                <SelectItem value="en">{t("english", "🇬🇧 English")}</SelectItem>
+                <SelectItem value="nl">{t("nederlands", "🇳🇱 Nederlands")}</SelectItem>
+                <SelectItem value="de">{t("deutsch", "🇩🇪 Deutsch")}</SelectItem>
+                <SelectItem value="fr">{t("français", "🇫🇷 Français")}</SelectItem>
+                <SelectItem value="es">{t("español", "🇪🇸 Español")}</SelectItem>
+                <SelectItem value="zh">{t("中文_chinese", "🇨🇳 中文 (Chinese)")}</SelectItem>
+                <SelectItem value="ar">{t("العربية_arabic", "🇸🇦 العربية (Arabic)")}</SelectItem>
+                <SelectItem value="ru">{t("русский_russian", "🇷🇺 Русский (Russian)")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -88,14 +88,14 @@ export const PreferencesSettings = ({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Europe/Amsterdam">Europe/Amsterdam (CET/CEST)</SelectItem>
-                <SelectItem value="America/New_York">America/New_York (EST/EDT)</SelectItem>
-                <SelectItem value="Asia/Tokyo">Asia/Tokyo (JST)</SelectItem>
-                <SelectItem value="Europe/London">Europe/London (GMT/BST)</SelectItem>
-                <SelectItem value="America/Los_Angeles">America/Los_Angeles (PST/PDT)</SelectItem>
-                <SelectItem value="Asia/Dubai">Asia/Dubai (GST)</SelectItem>
-                <SelectItem value="Asia/Singapore">Asia/Singapore (SGT)</SelectItem>
-                <SelectItem value="Australia/Sydney">Australia/Sydney (AEDT)</SelectItem>
+                <SelectItem value="Europe/Amsterdam">{t("europeamsterdam_cetcest", "Europe/Amsterdam (CET/CEST)")}</SelectItem>
+                <SelectItem value="America/New_York">{t("americanew_york_estedt", "America/New_York (EST/EDT)")}</SelectItem>
+                <SelectItem value="Asia/Tokyo">{t("asiatokyo_jst", "Asia/Tokyo (JST)")}</SelectItem>
+                <SelectItem value="Europe/London">{t("europelondon_gmtbst", "Europe/London (GMT/BST)")}</SelectItem>
+                <SelectItem value="America/Los_Angeles">{t("americalos_angeles_pstpdt", "America/Los_Angeles (PST/PDT)")}</SelectItem>
+                <SelectItem value="Asia/Dubai">{t("asiadubai_gst", "Asia/Dubai (GST)")}</SelectItem>
+                <SelectItem value="Asia/Singapore">{t("asiasingapore_sgt", "Asia/Singapore (SGT)")}</SelectItem>
+                <SelectItem value="Australia/Sydney">{t("australiasydney_aedt", "Australia/Sydney (AEDT)")}</SelectItem>
               </SelectContent>
             </Select>
             <p className="text-xs text-muted-foreground">
@@ -112,12 +112,12 @@ export const PreferencesSettings = ({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="EUR">EUR (€) - Euro</SelectItem>
-                <SelectItem value="USD">USD ($) - US Dollar</SelectItem>
-                <SelectItem value="GBP">GBP (£) - British Pound</SelectItem>
-                <SelectItem value="AED">AED (د.إ) - UAE Dirham</SelectItem>
-                <SelectItem value="BTC">BTC (₿) - Bitcoin</SelectItem>
-                <SelectItem value="ETH">ETH (Ξ) - Ethereum</SelectItem>
+                <SelectItem value="EUR">{t("eur_euro", "EUR (€) - Euro")}</SelectItem>
+                <SelectItem value="USD">{t("usd_us_dollar", "USD ($) - US Dollar")}</SelectItem>
+                <SelectItem value="GBP">{t("gbp_british_pound", "GBP (£) - British Pound")}</SelectItem>
+                <SelectItem value="AED">{t("aed_دإ_uae_dirham", "AED (د.إ) - UAE Dirham")}</SelectItem>
+                <SelectItem value="BTC">{t("btc_bitcoin", "BTC (₿) - Bitcoin")}</SelectItem>
+                <SelectItem value="ETH">{t("eth_ξ_ethereum", "ETH (Ξ) - Ethereum")}</SelectItem>
               </SelectContent>
             </Select>
             <p className="text-xs text-muted-foreground">
@@ -147,17 +147,17 @@ export const PreferencesSettings = ({
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-2">
-            <Label>Job Alert Frequency</Label>
+            <Label>{t("job_alert_frequency", "Job Alert Frequency")}</Label>
             <Select value={jobAlertFrequency} onValueChange={onJobAlertFrequencyChange}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="realtime">Real-time notifications</SelectItem>
-                <SelectItem value="daily">Daily digest</SelectItem>
-                <SelectItem value="weekly">Weekly digest</SelectItem>
-                <SelectItem value="monthly">Monthly digest</SelectItem>
-                <SelectItem value="never">Never send alerts</SelectItem>
+                <SelectItem value="realtime">{t("realtime_notifications", "Real-time notifications")}</SelectItem>
+                <SelectItem value="daily">{t("daily_digest", "Daily digest")}</SelectItem>
+                <SelectItem value="weekly">{t("weekly_digest", "Weekly digest")}</SelectItem>
+                <SelectItem value="monthly">{t("monthly_digest", "Monthly digest")}</SelectItem>
+                <SelectItem value="never">{t("never_send_alerts", "Never send alerts")}</SelectItem>
               </SelectContent>
             </Select>
             <p className="text-xs text-muted-foreground">
@@ -168,16 +168,16 @@ export const PreferencesSettings = ({
           <Separator />
 
           <div className="space-y-2">
-            <Label>Preferred Company Size</Label>
+            <Label>{t("preferred_company_size", "Preferred Company Size")}</Label>
             <Select value={companySizePreference || 'any'} onValueChange={onCompanySizeChange}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="any">Any size</SelectItem>
-                <SelectItem value="startup">Startup (1-50 employees)</SelectItem>
-                <SelectItem value="scaleup">Scale-up (51-500 employees)</SelectItem>
-                <SelectItem value="enterprise">Enterprise (500+ employees)</SelectItem>
+                <SelectItem value="any">{t("any_size", "Any size")}</SelectItem>
+                <SelectItem value="startup">{t("startup_150_employees", "Startup (1-50 employees)")}</SelectItem>
+                <SelectItem value="scaleup">{t("scaleup_51500_employees", "Scale-up (51-500 employees)")}</SelectItem>
+                <SelectItem value="enterprise">{t("enterprise_500_employees", "Enterprise (500+ employees)")}</SelectItem>
               </SelectContent>
             </Select>
             <p className="text-xs text-muted-foreground">
@@ -188,21 +188,21 @@ export const PreferencesSettings = ({
           <Separator />
 
           <div className="space-y-2">
-            <Label>Industry Preferences</Label>
+            <Label>{t("industry_preferences", "Industry Preferences")}</Label>
             <Select value={industryPreference || 'any'} onValueChange={onIndustryChange}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="any">All industries</SelectItem>
-                <SelectItem value="tech">Technology & Software</SelectItem>
-                <SelectItem value="finance">Finance & Banking</SelectItem>
-                <SelectItem value="healthcare">Healthcare & Life Sciences</SelectItem>
-                <SelectItem value="ecommerce">E-commerce & Retail</SelectItem>
-                <SelectItem value="consulting">Consulting & Professional Services</SelectItem>
-                <SelectItem value="manufacturing">Manufacturing & Industrial</SelectItem>
-                <SelectItem value="media">Media & Entertainment</SelectItem>
-                <SelectItem value="education">Education & EdTech</SelectItem>
+                <SelectItem value="any">{t("all_industries", "All industries")}</SelectItem>
+                <SelectItem value="tech">{t("technology_software", "Technology & Software")}</SelectItem>
+                <SelectItem value="finance">{t("finance_banking", "Finance & Banking")}</SelectItem>
+                <SelectItem value="healthcare">{t("healthcare_life_sciences", "Healthcare & Life Sciences")}</SelectItem>
+                <SelectItem value="ecommerce">{t("ecommerce_retail", "E-commerce & Retail")}</SelectItem>
+                <SelectItem value="consulting">{t("consulting_professional_services", "Consulting & Professional Services")}</SelectItem>
+                <SelectItem value="manufacturing">{t("manufacturing_industrial", "Manufacturing & Industrial")}</SelectItem>
+                <SelectItem value="media">{t("media_entertainment", "Media & Entertainment")}</SelectItem>
+                <SelectItem value="education">{t("education_edtech", "Education & EdTech")}</SelectItem>
               </SelectContent>
             </Select>
             <p className="text-xs text-muted-foreground">
@@ -213,14 +213,14 @@ export const PreferencesSettings = ({
           <Separator />
 
           <div className="space-y-2">
-            <Label>Available Hours Per Week</Label>
+            <Label>{t("available_hours_per_week", "Available Hours Per Week")}</Label>
             <Input
               type="number"
               min="1"
               max="168"
               value={availableHoursPerWeek || ''}
               onChange={(e) => onAvailableHoursChange(parseInt(e.target.value) || 0)}
-              placeholder="e.g., 40"
+              placeholder={t("eg_40", "e.g., 40")}
             />
             <p className="text-xs text-muted-foreground">
               <T k="common:preferences.availability.description" fallback="How many hours per week you can commit (for freelance/contract work)" />

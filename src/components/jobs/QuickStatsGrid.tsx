@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { useTranslation } from 'react-i18next';
 
 export interface QuickStat {
   id: string;
@@ -58,6 +59,7 @@ export const QuickStatsGrid = memo(({
   variant = "default",
   className,
 }: QuickStatsGridProps) => {
+  const { t } = useTranslation('jobs');
   const gridCols = {
     2: "grid-cols-2",
     3: "grid-cols-2 sm:grid-cols-3",

@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Building2, Sparkles, ChevronDown, ChevronUp } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslation } from 'react-i18next';
 
 interface PipelineKanbanColumnProps {
   stage: any;
@@ -28,6 +29,7 @@ export const PipelineKanbanColumn = memo(({
   onReject,
   onViewProfile,
 }: PipelineKanbanColumnProps) => {
+  const { t } = useTranslation('jobs');
   const [showAll, setShowAll] = useState(false);
   const count = applications.length;
   const healthColor = avgDays > 14 ? 'bg-destructive' : avgDays > 7 ? 'bg-warning' : 'bg-success';

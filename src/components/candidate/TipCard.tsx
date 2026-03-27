@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import * as Icons from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { useTranslation } from 'react-i18next';
 
 interface TipCardProps {
   tip: QuickTip;
@@ -21,6 +22,7 @@ const categoryLabels: Record<string, string> = {
 };
 
 export function TipCard({ tip, index }: TipCardProps) {
+  const { t } = useTranslation('candidates');
   const navigate = useNavigate();
   const IconComponent = (Icons as any)[tip.icon] || Icons.Sparkles;
 

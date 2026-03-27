@@ -6,8 +6,10 @@ import { useClubAIAnalytics } from "@/hooks/useClubAIAnalytics";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion } from "framer-motion";
 import { Progress } from "@/components/ui/progress";
+import { useTranslation } from 'react-i18next';
 
 export const ClubAIAnalyticsWidget = () => {
+  const { t } = useTranslation('common');
   const { data: analytics, isLoading } = useClubAIAnalytics();
 
   if (isLoading) {
@@ -39,11 +41,11 @@ export const ClubAIAnalyticsWidget = () => {
           <CardTitle className="flex items-center justify-between text-base">
             <div className="flex items-center gap-2">
               <Sparkles className="h-4 w-4 text-premium" />
-              <span>Club AI Analytics</span>
+              <span>{t('clubAIAnalyticsWidget.clubAiAnalytics')}</span>
             </div>
             <Button variant="ghost" size="sm" asChild className="text-xs">
               <Link to="/admin/analytics">
-                View All
+                {t('common:viewAll')}
                 <ArrowRight className="h-3 w-3 ml-1" />
               </Link>
             </Button>
@@ -53,7 +55,7 @@ export const ClubAIAnalyticsWidget = () => {
           {/* Main Metric */}
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs text-muted-foreground">Total Interactions</p>
+              <p className="text-xs text-muted-foreground">{t('clubAIAnalyticsWidget.totalInteractions')}</p>
               <div className="flex items-center gap-2">
                 <span className="text-2xl font-bold">{analytics?.totalInteractions || 0}</span>
                 {analytics && analytics.trend !== 0 && (
@@ -91,11 +93,11 @@ export const ClubAIAnalyticsWidget = () => {
           {/* Stats Grid */}
           <div className="grid grid-cols-2 gap-2 text-xs">
             <div className="p-2 rounded-lg bg-muted/30">
-              <p className="text-muted-foreground">Recommendations</p>
+              <p className="text-muted-foreground">{t('clubAIAnalyticsWidget.recommendations')}</p>
               <p className="font-semibold">{analytics?.recommendationsSent || 0}</p>
             </div>
             <div className="p-2 rounded-lg bg-muted/30">
-              <p className="text-muted-foreground">Acted Upon</p>
+              <p className="text-muted-foreground">{t('clubAIAnalyticsWidget.actedUpon')}</p>
               <p className="font-semibold">{analytics?.recommendationsClicked || 0}</p>
             </div>
           </div>
@@ -103,7 +105,7 @@ export const ClubAIAnalyticsWidget = () => {
           {/* Helpful Ratio */}
           {analytics && analytics.helpfulRatio > 0 && (
             <div className="pt-2 border-t border-border/50">
-              <p className="text-xs text-muted-foreground mb-1">User Satisfaction</p>
+              <p className="text-xs text-muted-foreground mb-1">{t('clubAIAnalyticsWidget.userSatisfaction')}</p>
               <div className="flex items-center gap-2">
                 <Progress value={analytics.helpfulRatio} className="h-1.5 flex-1" />
                 <span className="text-xs font-medium">{analytics.helpfulRatio}%</span>

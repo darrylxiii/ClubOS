@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,6 +23,7 @@ interface MeetingChatSidebarProps {
 }
 
 export function MeetingChatSidebar({ meetingId, participantId, participantName }: MeetingChatSidebarProps) {
+  const { t } = useTranslation('common');
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -115,7 +117,7 @@ export function MeetingChatSidebar({ meetingId, participantId, participantName }
       setMessage('');
     } catch (error) {
       console.error('[Chat] Failed to send message:', error);
-      toast.error('Failed to send message');
+      toast.error(t("failed_to_send_message", "Failed to send message"));
     }
   };
 
@@ -150,7 +152,7 @@ export function MeetingChatSidebar({ meetingId, participantId, participantName }
         <Input
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          placeholder="Type a message..."
+          placeholder={t("type_a_message", "Type a message...")}
           onKeyPress={(e) => e.key === 'Enter' && handleSend()}
           className="bg-white/5"
         />

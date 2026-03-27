@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -17,6 +18,7 @@ interface SkillMatchBreakdownProps {
 }
 
 export function SkillMatchBreakdown({ candidateId, candidate, jobId, breakdown, skills = [] }: SkillMatchBreakdownProps) {
+  const { t } = useTranslation('common');
   const [jobRequirements, setJobRequirements] = useState<string[]>([]);
   const [jobNiceToHave, setJobNiceToHave] = useState<string[]>([]);
   const [candidateSkills, setCandidateSkills] = useState<string[]>([]);
@@ -115,7 +117,7 @@ export function SkillMatchBreakdown({ candidateId, candidate, jobId, breakdown, 
           <div className="flex items-center gap-3">
             <Target className="w-5 h-5 text-primary" />
             <div>
-              <CardTitle className="text-base">Skills & Requirements</CardTitle>
+              <CardTitle className="text-base">{t("skills_requirements", "Skills & Requirements")}</CardTitle>
               {hasJobContext && breakdown?.skills_match && (
                 <p className="text-xs text-muted-foreground mt-0.5">
                   {breakdown.skills_match.details}
@@ -142,14 +144,14 @@ export function SkillMatchBreakdown({ candidateId, candidate, jobId, breakdown, 
       <CardContent className="space-y-4">
         {noSkills && !hasJobContext && (
           <div className="text-center py-4 text-muted-foreground">
-            <p className="text-sm">No skills data available</p>
-            <p className="text-xs mt-1">Use "Extract from CV" to populate skills from the uploaded resume</p>
+            <p className="text-sm">{t("no_skills_data_available", "No skills data available")}</p>
+            <p className="text-xs mt-1">{t("use_extract_from_cv", "Use ')Extract from CV' to populate skills from the uploaded resume")}</p>
           </div>
         )}
 
         {hasJobContext && jobRequirements.length > 0 && (
           <div className="space-y-2">
-            <h4 className="text-sm font-semibold text-chart-2">Must-Have Requirements</h4>
+            <h4 className="text-sm font-semibold text-chart-2">{t("musthave_requirements", "Must-Have Requirements")}</h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {jobRequirements.map((skill) => {
                 const matched = isMatched(skill);
@@ -173,8 +175,8 @@ export function SkillMatchBreakdown({ candidateId, candidate, jobId, breakdown, 
         {hasJobContext && jobNiceToHave.length > 0 && (
           <div className="space-y-2">
             <div className="flex items-center gap-2">
-              <h4 className="text-sm font-semibold text-accent">Nice-to-Have</h4>
-              <Badge variant="outline" className="text-[10px]">Bonus</Badge>
+              <h4 className="text-sm font-semibold text-accent">{t("nicetohave", "Nice-to-Have")}</h4>
+              <Badge variant="outline" className="text-[10px]">{t("bonus", "Bonus")}</Badge>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {jobNiceToHave.map((skill) => {
@@ -207,8 +209,8 @@ export function SkillMatchBreakdown({ candidateId, candidate, jobId, breakdown, 
 
         {hasJobContext && jobRequirements.length === 0 && (
           <div className="text-center py-3 text-muted-foreground border border-dashed rounded-lg">
-            <p className="text-sm">Job has no parsed requirements</p>
-            <p className="text-xs mt-1">Requirements will be auto-extracted from the job description</p>
+            <p className="text-sm">{t("job_has_no_parsed", "Job has no parsed requirements")}</p>
+            <p className="text-xs mt-1">{t("requirements_will_be_autoextracted", "Requirements will be auto-extracted from the job description")}</p>
           </div>
         )}
       </CardContent>

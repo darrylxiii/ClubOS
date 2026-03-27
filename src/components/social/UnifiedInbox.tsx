@@ -6,8 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MessageSquare, ThumbsUp, ThumbsDown, Flag, CheckCheck, Search } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useTranslation } from "react-i18next";
 
 export const UnifiedInbox = () => {
+  const { t } = useTranslation("common");
   const [selectedComment, setSelectedComment] = useState<string | null>(null);
 
   const comments = [
@@ -58,12 +60,12 @@ export const UnifiedInbox = () => {
       <div className="flex items-center justify-between">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Search comments..." className="pl-10" />
+          <Input placeholder={t('social.inbox.searchComments')} className="pl-10" />
         </div>
         <div className="flex gap-2">
           <Badge variant="secondary" className="gap-1">
             <MessageSquare className="h-3 w-3" />
-            {comments.filter(c => c.status === "pending").length} pending
+            {t('social.inbox.pendingCount', { count: comments.filter(c => c.status === "pending").length })}
           </Badge>
         </div>
       </div>
@@ -71,10 +73,10 @@ export const UnifiedInbox = () => {
       {/* Inbox Tabs */}
       <Tabs defaultValue="all" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="all">All</TabsTrigger>
-          <TabsTrigger value="pending">Pending</TabsTrigger>
-          <TabsTrigger value="replied">Replied</TabsTrigger>
-          <TabsTrigger value="spam">Spam</TabsTrigger>
+          <TabsTrigger value="all">{t('social.inbox.tabs.all')}</TabsTrigger>
+          <TabsTrigger value="pending">{t('social.inbox.tabs.pending')}</TabsTrigger>
+          <TabsTrigger value="replied">{t('social.inbox.tabs.replied')}</TabsTrigger>
+          <TabsTrigger value="spam">{t('social.inbox.tabs.spam')}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="all" className="space-y-4">
@@ -111,19 +113,19 @@ export const UnifiedInbox = () => {
                   <div className="flex gap-2 pt-2">
                     <Button variant="outline" size="sm" className="gap-2">
                       <ThumbsUp className="h-3 w-3" />
-                      Approve
+                      {t('social.inbox.approve')}
                     </Button>
                     <Button variant="outline" size="sm" className="gap-2">
                       <MessageSquare className="h-3 w-3" />
-                      Reply
+                      {t('social.inbox.reply')}
                     </Button>
                     <Button variant="outline" size="sm" className="gap-2">
                       <ThumbsDown className="h-3 w-3" />
-                      Hide
+                      {t('social.inbox.hide')}
                     </Button>
                     <Button variant="outline" size="sm" className="gap-2 text-destructive">
                       <Flag className="h-3 w-3" />
-                      Spam
+                      {t('social.inbox.spam')}
                     </Button>
                   </div>
                 </div>
@@ -135,21 +137,21 @@ export const UnifiedInbox = () => {
         <TabsContent value="pending">
           <Card className="p-12 text-center">
             <MessageSquare className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-            <p className="text-muted-foreground">Pending comments will appear here</p>
+            <p className="text-muted-foreground">{t('social.inbox.pendingEmpty')}</p>
           </Card>
         </TabsContent>
 
         <TabsContent value="replied">
           <Card className="p-12 text-center">
             <CheckCheck className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-            <p className="text-muted-foreground">Replied comments will appear here</p>
+            <p className="text-muted-foreground">{t('social.inbox.repliedEmpty')}</p>
           </Card>
         </TabsContent>
 
         <TabsContent value="spam">
           <Card className="p-12 text-center">
             <Flag className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-            <p className="text-muted-foreground">Spam comments will appear here</p>
+            <p className="text-muted-foreground">{t('social.inbox.spamEmpty')}</p>
           </Card>
         </TabsContent>
       </Tabs>

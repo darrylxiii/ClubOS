@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Target, Calendar, TrendingUp, CheckSquare } from "lucide-react";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 
@@ -22,6 +23,7 @@ const getCategoryForResponsibility = (responsibility: string) => {
 };
 
 export function ResponsibilityGrid({ responsibilities = [] }: ResponsibilityGridProps) {
+  const { t } = useTranslation('common');
   if (responsibilities.length === 0) return null;
 
   return (
@@ -30,7 +32,7 @@ export function ResponsibilityGrid({ responsibilities = [] }: ResponsibilityGrid
         <div className="flex items-center gap-3">
           <CheckSquare className="w-6 h-6 text-primary flex-shrink-0" />
           <div>
-            <h3 className="text-xl font-black">Key Responsibilities</h3>
+            <h3 className="text-xl font-black">{t("key_responsibilities", "Key Responsibilities")}</h3>
             <p className="text-sm text-muted-foreground">
               {responsibilities.length} core responsibilities
             </p>

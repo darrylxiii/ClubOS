@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -17,6 +18,7 @@ import { logger } from '@/lib/logger';
 import { meetingLogger as log } from '@/lib/meetingLogger';
 
 export default function MeetingRoom() {
+  const { t } = useTranslation('meetings');
   const { meetingCode } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -174,7 +176,7 @@ export default function MeetingRoom() {
 
       if (!data) {
         log.debug('MeetingRoom', 'Meeting not found with code: ' + meetingCode);
-        toast.error('Meeting not found. Please check the meeting link.');
+        toast.error("Meeting not found. Please check the meeting link.");
         // Don't auto-navigate - let user see the error
         setLoading(false);
         return;
@@ -200,7 +202,7 @@ export default function MeetingRoom() {
         p_password: password,
       });
       if (!isValid) {
-        toast.error('Incorrect password');
+        toast.error("Incorrect password");
         return;
       }
     }
@@ -300,11 +302,11 @@ export default function MeetingRoom() {
                          err?.code === '42501';
       
       if (isRLSError) {
-        toast.error('Not authorized to join', {
+        toast.error("Not authorized to join", {
           description: 'The host must be present before you can join this private meeting. Please wait for them to start.',
         });
       } else {
-        toast.error('Failed to join meeting', {
+        toast.error("Failed to join meeting", {
           description: 'Please check your connection and try again',
           action: {
             label: 'Retry',
@@ -396,10 +398,8 @@ export default function MeetingRoom() {
             <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mx-auto">
               <Video className="h-8 w-8 text-destructive" />
             </div>
-            <h2 className="text-2xl font-bold">Meeting Not Found</h2>
-            <p className="text-muted-foreground">
-              The meeting link may be invalid or the meeting may have been deleted.
-            </p>
+            <h2 className="text-2xl font-bold">{t('meetingRoom.text4')}</h2>
+            <p className="text-muted-foreground">{t('meetingRoom.desc')}</p>
             <Button onClick={() => navigate('/meetings')} className="mt-4">
               View All Meetings
             </Button>
@@ -490,7 +490,7 @@ export default function MeetingRoom() {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter meeting password"
+                  placeholder={t('meetingRoom.text5')}
                 />
               </div>
             )}
@@ -510,9 +510,7 @@ export default function MeetingRoom() {
             </Button>
 
             {!user && (
-              <p className="text-center text-sm text-muted-foreground">
-                Joining as a guest. You'll need host approval to enter.
-              </p>
+              <p className="text-center text-sm text-muted-foreground">{t('meetingRoom.desc2')}</p>
             )}
 
             {!isScheduledTimeReached && !isHost && (
@@ -525,14 +523,12 @@ export default function MeetingRoom() {
             )}
             
             {isHost && !isScheduledTimeReached && (
-              <p className="text-center text-sm text-primary font-medium">
-                You can start the meeting early
-              </p>
+              <p className="text-center text-sm text-primary font-medium">{t('meetingRoom.desc3')}</p>
             )}
           </div>
         ) : (
           <div className="text-center py-8">
-            <p className="text-muted-foreground mb-4">This meeting has ended</p>
+            <p className="text-muted-foreground mb-4">{t('meetingRoom.text6')}</p>
             <Button onClick={() => navigate('/meetings')}>
               Back to Meetings
             </Button>

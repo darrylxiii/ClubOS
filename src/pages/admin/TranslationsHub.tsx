@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { lazy, Suspense } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
@@ -23,6 +24,7 @@ const TAB_MAP: Record<string, string> = {
 };
 
 export default function TranslationsHub() {
+  const { t } = useTranslation('common');
   const [searchParams, setSearchParams] = useSearchParams();
   const activeTab = TAB_MAP[searchParams.get('tab') || ''] || 'manager';
 
@@ -37,7 +39,7 @@ export default function TranslationsHub() {
           <div className="space-y-1">
             <div className="flex items-center gap-3">
               <Languages className="h-8 w-8 text-primary" />
-              <h1 className="text-3xl font-bold tracking-tight">TRANSLATIONS HUB</h1>
+              <h1 className="text-3xl font-bold tracking-tight">{t("translations_hub", "TRANSLATIONS HUB")}</h1>
             </div>
             <p className="text-muted-foreground">
               Language, coverage, brand terms, and audit controls
@@ -46,12 +48,12 @@ export default function TranslationsHub() {
 
           <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
             <TabsList className="h-auto flex-wrap bg-card/50 backdrop-blur-sm rounded-lg p-1">
-              <TabsTrigger value="manager">Manager</TabsTrigger>
-              <TabsTrigger value="editor">Editor</TabsTrigger>
-              <TabsTrigger value="coverage">Coverage</TabsTrigger>
-              <TabsTrigger value="brand-terms">Brand Terms</TabsTrigger>
-              <TabsTrigger value="audit">Audit Log</TabsTrigger>
-              <TabsTrigger value="languages">Languages</TabsTrigger>
+              <TabsTrigger value="manager">{t("manager", "Manager")}</TabsTrigger>
+              <TabsTrigger value="editor">{t("editor", "Editor")}</TabsTrigger>
+              <TabsTrigger value="coverage">{t("coverage", "Coverage")}</TabsTrigger>
+              <TabsTrigger value="brand-terms">{t("brand_terms", "Brand Terms")}</TabsTrigger>
+              <TabsTrigger value="audit">{t("audit_log", "Audit Log")}</TabsTrigger>
+              <TabsTrigger value="languages">{t("languages", "Languages")}</TabsTrigger>
             </TabsList>
 
             <Suspense fallback={<PageLoader />}>

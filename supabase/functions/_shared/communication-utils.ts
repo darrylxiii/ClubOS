@@ -3,6 +3,9 @@
  * Provides functions for sending WhatsApp, SMS, and Email communications
  */
 
+import { sendSMS as sendSMSViaTwilio } from './twilio-client.ts';
+import { sendWhatsAppMessage as sendWhatsAppViaClient } from './whatsapp-client.ts';
+
 interface SendWhatsAppOptions {
   phone: string;
   message: string;
@@ -30,49 +33,19 @@ export async function sendWhatsAppMessage(
   options: SendWhatsAppOptions
 ): Promise<{ success: boolean; messageId?: string; error?: string }> {
   const { phone, message, candidateId, userId } = options;
-  
-  const WHATSAPP_ACCESS_TOKEN = Deno.env.get('WHATSAPP_ACCESS_TOKEN');
-  const WHATSAPP_PHONE_NUMBER_ID = Deno.env.get('WHATSAPP_PHONE_NUMBER_ID');
-  
-  if (!WHATSAPP_ACCESS_TOKEN || !WHATSAPP_PHONE_NUMBER_ID) {
-    console.warn('[communication] WhatsApp credentials not configured');
-    return { success: false, error: 'WhatsApp not configured' };
-  }
-  
+
   try {
     console.log('[communication] Sending WhatsApp to:', phone.substring(0, 8) + '****');
-    
-    // Clean phone number (remove leading +)
-    const cleanPhone = phone.replace(/^\+/, '');
-    
-    const response = await fetch(
-      `https://graph.facebook.com/v18.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`,
-      {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${WHATSAPP_ACCESS_TOKEN}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          messaging_product: 'whatsapp',
-          to: cleanPhone,
-          type: 'text',
-          text: { body: message }
-        }),
-      }
-    );
-    
-    if (!response.ok) {
-      const errorBody = await response.text();
-      console.error('[communication] WhatsApp API error:', response.status, errorBody);
-      return { success: false, error: `WhatsApp API error: ${response.status}` };
-    }
-    
-    const result = await response.json();
-    const messageId = result.messages?.[0]?.id;
-    
+
+    const result = await sendWhatsAppViaClient({
+      type: 'text',
+      to: phone,
+      text: { body: message },
+    });
+
+    const messageId = result.messageId;
     console.log('[communication] WhatsApp sent:', messageId);
-    
+
     // Log the touchpoint
     if (candidateId) {
       await supabase.from('candidate_touchpoints').insert({
@@ -84,7 +57,7 @@ export async function sendWhatsAppMessage(
         metadata: { message_id: messageId, automated: true }
       });
     }
-    
+
     return { success: true, messageId };
   } catch (error) {
     console.error('[communication] WhatsApp error:', error);
@@ -93,52 +66,19 @@ export async function sendWhatsAppMessage(
 }
 
 /**
- * Send SMS via Twilio
+ * Send SMS via Twilio (delegates to shared twilio-client)
  */
 export async function sendSMS(
   options: SendSMSOptions
 ): Promise<{ success: boolean; messageSid?: string; error?: string }> {
   const { phone, message } = options;
-  
-  const TWILIO_ACCOUNT_SID = Deno.env.get('TWILIO_ACCOUNT_SID');
-  const TWILIO_AUTH_TOKEN = Deno.env.get('TWILIO_AUTH_TOKEN');
-  const TWILIO_PHONE_NUMBER = Deno.env.get('TWILIO_PHONE_NUMBER');
-  
-  if (!TWILIO_ACCOUNT_SID || !TWILIO_AUTH_TOKEN || !TWILIO_PHONE_NUMBER) {
-    console.warn('[communication] Twilio credentials not configured');
-    return { success: false, error: 'Twilio not configured' };
-  }
-  
+
   try {
     console.log('[communication] Sending SMS to:', phone.substring(0, 8) + '****');
-    
-    const auth = btoa(`${TWILIO_ACCOUNT_SID}:${TWILIO_AUTH_TOKEN}`);
-    
-    const response = await fetch(
-      `https://api.twilio.com/2010-04-01/Accounts/${TWILIO_ACCOUNT_SID}/Messages.json`,
-      {
-        method: 'POST',
-        headers: {
-          'Authorization': `Basic ${auth}`,
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: new URLSearchParams({
-          To: phone,
-          From: TWILIO_PHONE_NUMBER,
-          Body: message,
-        }),
-      }
-    );
-    
-    if (!response.ok) {
-      const errorBody = await response.text();
-      console.error('[communication] Twilio API error:', response.status, errorBody);
-      return { success: false, error: `Twilio API error: ${response.status}` };
-    }
-    
-    const result = await response.json();
+
+    const result = await sendSMSViaTwilio({ to: phone, body: message });
     console.log('[communication] SMS sent:', result.sid);
-    
+
     return { success: true, messageSid: result.sid };
   } catch (error) {
     console.error('[communication] SMS error:', error);
@@ -147,53 +87,34 @@ export async function sendSMS(
 }
 
 /**
- * Send Email via Resend
+ * Send Email via shared Resend client (with retry + circuit breaker)
  */
-export async function sendEmail(
+export async function sendEmailComm(
   options: SendEmailOptions
 ): Promise<{ success: boolean; emailId?: string; error?: string }> {
+  const { sendEmail: sendEmailViaResend } = await import('./resend-client.ts');
   const { to, subject, body, html } = options;
-  
-  const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
-  
-  if (!RESEND_API_KEY) {
-    console.warn('[communication] Resend API key not configured');
-    return { success: false, error: 'Email not configured' };
-  }
-  
+
   try {
     console.log('[communication] Sending email to:', to);
-    
-    const response = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${RESEND_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        from: 'The Quantum Club <notifications@thequantumclub.com>',
-        to,
-        subject,
-        text: body,
-        html: html || body,
-      }),
+
+    const result = await sendEmailViaResend({
+      from: 'The Quantum Club <notifications@thequantumclub.com>',
+      to,
+      subject,
+      html: html || body,
     });
-    
-    if (!response.ok) {
-      const errorBody = await response.text();
-      console.error('[communication] Resend API error:', response.status, errorBody);
-      return { success: false, error: `Resend API error: ${response.status}` };
-    }
-    
-    const result = await response.json();
+
     console.log('[communication] Email sent:', result.id);
-    
     return { success: true, emailId: result.id };
   } catch (error) {
     console.error('[communication] Email error:', error);
     return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
   }
 }
+
+// Keep backward-compatible alias
+export const sendEmail = sendEmailComm;
 
 /**
  * Get candidate contact information
@@ -252,7 +173,7 @@ export async function logAgentCommunication(
   }
 ): Promise<void> {
   try {
-    await supabase.from('ai_action_log').insert({
+    await supabase.from('intelligence_action_log').insert({
       action_type: `agent_${options.channel}_${options.action}`,
       action_data: {
         agent_name: options.agentName,

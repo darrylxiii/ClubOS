@@ -2,17 +2,19 @@ import { memo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Home, BookOpen, Award, User } from 'lucide-react';
 import { useHaptics } from '@/hooks/useHaptics';
+import { useTranslation } from 'react-i18next';
 
 export const MobileNavigation = memo(() => {
   const navigate = useNavigate();
   const location = useLocation();
   const { impact } = useHaptics();
+  const { t } = useTranslation('common');
 
   const navItems = [
-    { icon: Home, label: 'Home', path: '/academy' },
-    { icon: BookOpen, label: 'My Learning', path: '/academy/my-courses' },
-    { icon: Award, label: 'Achievements', path: '/academy/achievements' },
-    { icon: User, label: 'Profile', path: '/profile' },
+    { icon: Home, label: t('academy.nav.home', 'Home'), path: '/academy' },
+    { icon: BookOpen, label: t('academy.nav.myLearning', 'My Learning'), path: '/academy/my-courses' },
+    { icon: Award, label: t('academy.nav.achievements', 'Achievements'), path: '/academy/achievements' },
+    { icon: User, label: t('academy.nav.profile', 'Profile'), path: '/profile' },
   ];
 
   const isActive = (path: string) => location.pathname === path;

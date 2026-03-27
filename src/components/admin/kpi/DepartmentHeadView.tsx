@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React, { useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -105,6 +106,7 @@ export function DepartmentHeadView({
   onDomainChange,
   onKPIClick,
 }: DepartmentHeadViewProps) {
+  const { t } = useTranslation('common');
   const [timeRange, setTimeRange] = useState<'week' | 'month' | 'quarter'>('month');
   const [viewTab, setViewTab] = useState<'team' | 'comparison' | 'trends'>('team');
 
@@ -165,14 +167,14 @@ export function DepartmentHeadView({
         <div className="flex items-center gap-3">
           <Select value={selectedDomain} onValueChange={(v) => onDomainChange?.(v as KPIDomain)}>
             <SelectTrigger className="w-40">
-              <SelectValue placeholder="Select domain" />
+              <SelectValue placeholder={t("select_domain", "Select domain")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="operations">Operations</SelectItem>
-              <SelectItem value="sales">Sales</SelectItem>
-              <SelectItem value="website">Website</SelectItem>
-              <SelectItem value="platform">Platform</SelectItem>
-              <SelectItem value="growth">Growth</SelectItem>
+              <SelectItem value="operations">{t("operations", "Operations")}</SelectItem>
+              <SelectItem value="sales">{t("sales", "Sales")}</SelectItem>
+              <SelectItem value="website">{t("website", "Website")}</SelectItem>
+              <SelectItem value="platform">{t("platform", "Platform")}</SelectItem>
+              <SelectItem value="growth">{t("growth", "Growth")}</SelectItem>
             </SelectContent>
           </Select>
           <Select value={timeRange} onValueChange={(v) => setTimeRange(v as typeof timeRange)}>
@@ -180,9 +182,9 @@ export function DepartmentHeadView({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="week">This Week</SelectItem>
-              <SelectItem value="month">This Month</SelectItem>
-              <SelectItem value="quarter">This Quarter</SelectItem>
+              <SelectItem value="week">{t("this_week", "This Week")}</SelectItem>
+              <SelectItem value="month">{t("this_month", "This Month")}</SelectItem>
+              <SelectItem value="quarter">{t("this_quarter", "This Quarter")}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -194,7 +196,7 @@ export function DepartmentHeadView({
           <CardContent className="pt-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-muted-foreground">Department Health</p>
+                <p className="text-xs text-muted-foreground">{t("department_health", "Department Health")}</p>
                 <p className="text-2xl font-bold">{domainStats.healthScore.toFixed(0)}%</p>
               </div>
               <div className={cn(
@@ -216,7 +218,7 @@ export function DepartmentHeadView({
           <CardContent className="pt-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-muted-foreground">Team Avg Performance</p>
+                <p className="text-xs text-muted-foreground">{t("team_avg_performance", "Team Avg Performance")}</p>
                 <p className="text-2xl font-bold">{teamSummary.avgPerformance.toFixed(0)}%</p>
               </div>
               <div className="p-2 rounded-full bg-primary/10">
@@ -230,7 +232,7 @@ export function DepartmentHeadView({
           <CardContent className="pt-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-muted-foreground">Improving</p>
+                <p className="text-xs text-muted-foreground">{t("improving", "Improving")}</p>
                 <p className="text-2xl font-bold text-emerald-500">{teamSummary.improving}</p>
               </div>
               <ArrowUpRight className="h-5 w-5 text-emerald-500" />
@@ -242,7 +244,7 @@ export function DepartmentHeadView({
           <CardContent className="pt-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-muted-foreground">Needs Attention</p>
+                <p className="text-xs text-muted-foreground">{t("needs_attention", "Needs Attention")}</p>
                 <p className="text-2xl font-bold text-rose-500">{teamSummary.declining}</p>
               </div>
               <ArrowDownRight className="h-5 w-5 text-rose-500" />
@@ -301,7 +303,7 @@ export function DepartmentHeadView({
 
                   <div className="space-y-2">
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">Overall Performance</span>
+                      <span className="text-muted-foreground">{t("overall_performance", "Overall Performance")}</span>
                       <span className="font-medium">{member.kpiPerformance}%</span>
                     </div>
                     <Progress 
@@ -368,7 +370,7 @@ export function DepartmentHeadView({
               <AlertTriangle className="h-4 w-4 text-amber-500" />
               Needs Attention
             </CardTitle>
-            <CardDescription>KPIs requiring immediate focus</CardDescription>
+            <CardDescription>{t("kpis_requiring_immediate_focus", "KPIs requiring immediate focus")}</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">

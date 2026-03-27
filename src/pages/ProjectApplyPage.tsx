@@ -1,4 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -20,6 +21,7 @@ import {
 } from "lucide-react";
 
 export default function ProjectApplyPage() {
+  const { t } = useTranslation('common');
   const { projectId } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -139,10 +141,8 @@ export default function ProjectApplyPage() {
     return (
       <div className="container mx-auto py-12 text-center max-w-2xl">
         <Card className="p-8">
-          <h2 className="text-2xl font-bold mb-4">Become a Freelancer</h2>
-          <p className="text-muted-foreground mb-6">
-            You need to set up your freelance profile before applying to projects
-          </p>
+          <h2 className="text-2xl font-bold mb-4">{t('projectApplyPage.text2')}</h2>
+          <p className="text-muted-foreground mb-6">{t('projectApplyPage.desc')}</p>
           <Button onClick={() => navigate("/projects/freelancer/setup")}>
             Set Up Profile
           </Button>
@@ -175,7 +175,7 @@ export default function ProjectApplyPage() {
 
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold mb-2">Apply to Project</h1>
+            <h1 className="text-3xl font-bold mb-2">{t('projectApplyPage.text3')}</h1>
             <p className="text-muted-foreground">{project.title}</p>
           </div>
 
@@ -207,7 +207,7 @@ export default function ProjectApplyPage() {
             <Zap className="h-5 w-5 text-primary" />
           </div>
           <div>
-            <h3 className="font-semibold mb-1">Club AI Proposal Generator</h3>
+            <h3 className="font-semibold mb-1">{t('projectApplyPage.text4')}</h3>
             <p className="text-sm text-muted-foreground">
               Let Club AI write a tailored proposal based on your profile and this project.
               You can review and edit before submitting.
@@ -221,10 +221,10 @@ export default function ProjectApplyPage() {
         <Card className="p-6">
           <div className="space-y-4">
             <div>
-              <Label htmlFor="cover-letter">Cover Letter *</Label>
+              <Label htmlFor="cover-letter">{"Cover Letter *"}</Label>
               <Textarea
                 id="cover-letter"
-                placeholder="Explain why you're the perfect fit for this project..."
+                placeholder={t('projectApplyPage.text5')}
                 value={coverLetter}
                 onChange={(e) => setCoverLetter(e.target.value)}
                 rows={12}
@@ -263,7 +263,7 @@ export default function ProjectApplyPage() {
               </div>
 
               <div>
-                <Label htmlFor="timeline">Proposed Timeline (weeks) *</Label>
+                <Label htmlFor="timeline">{"Proposed Timeline (weeks) *"}</Label>
                 <Input
                   id="timeline"
                   type="number"
@@ -291,20 +291,20 @@ export default function ProjectApplyPage() {
             </h3>
             <div className="space-y-3 text-sm">
               <div>
-                <span className="text-muted-foreground">Rate:</span>{" "}
+                <span className="text-muted-foreground">{t('projectApplyPage.text6')}</span>{" "}
                 <span className="font-medium">
                   €{proposedRate || "0"}
                   {project.engagement_type === "hourly" ? "/hr" : " total"}
                 </span>
               </div>
               <div>
-                <span className="text-muted-foreground">Timeline:</span>{" "}
+                <span className="text-muted-foreground">{t('projectApplyPage.text7')}</span>{" "}
                 <span className="font-medium">
                   {proposedTimeline || "0"} weeks
                 </span>
               </div>
               <div>
-                <span className="text-muted-foreground">Cover Letter:</span>{" "}
+                <span className="text-muted-foreground">{t('projectApplyPage.text8')}</span>{" "}
                 <span className="font-medium">{coverLetter.length} characters</span>
               </div>
             </div>

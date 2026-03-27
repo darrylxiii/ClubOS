@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -11,6 +12,7 @@ import { format, subDays } from 'date-fns';
 
 
 export default function MessagingAnalytics() {
+  const { t } = useTranslation('analytics');
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState(false);
@@ -108,7 +110,7 @@ export default function MessagingAnalytics() {
       }
     } catch (error) {
       console.error('Error calculating response time:', error);
-      toast.error('Something went wrong loading analytics.');
+      toast.error("Something went wrong loading analytics.");
     }
 
     setStats({
@@ -186,7 +188,7 @@ export default function MessagingAnalytics() {
     setMediaBreakdown(mediaData);
     } catch (error) {
       console.error('Error loading messaging analytics:', error);
-      toast.error('Failed to load messaging analytics');
+      toast.error("Failed to load messaging analytics");
       setFetchError(true);
     } finally {
       setLoading(false);
@@ -200,7 +202,7 @@ export default function MessagingAnalytics() {
       <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
         <ErrorState
           variant="page"
-          title="Failed to load analytics"
+          title={t('messagingAnalytics.text1')}
           message="We couldn't load your messaging analytics. Please try again."
           onRetry={loadAnalytics}
         />
@@ -219,8 +221,8 @@ export default function MessagingAnalytics() {
   return (
       <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Messaging Analytics</h1>
-        <p className="text-muted-foreground">Insights into your communication patterns</p>
+        <h1 className="text-3xl font-bold">{t('messagingAnalytics.text2')}</h1>
+        <p className="text-muted-foreground">{t('messagingAnalytics.text3')}</p>
       </div>
 
       {/* Stats Grid */}
@@ -234,7 +236,7 @@ export default function MessagingAnalytics() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalSent}</div>
-            <p className="text-xs text-muted-foreground">Last 30 days</p>
+            <p className="text-xs text-muted-foreground">{t('messagingAnalytics.text4')}</p>
           </CardContent>
         </Card>
 
@@ -247,7 +249,7 @@ export default function MessagingAnalytics() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalReceived}</div>
-            <p className="text-xs text-muted-foreground">Last 30 days</p>
+            <p className="text-xs text-muted-foreground">{t('messagingAnalytics.text5')}</p>
           </CardContent>
         </Card>
 
@@ -260,7 +262,7 @@ export default function MessagingAnalytics() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.avgResponseTime}m</div>
-            <p className="text-xs text-muted-foreground">Response time</p>
+            <p className="text-xs text-muted-foreground">{t('messagingAnalytics.text6')}</p>
           </CardContent>
         </Card>
 
@@ -273,7 +275,7 @@ export default function MessagingAnalytics() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.activeConversations}</div>
-            <p className="text-xs text-muted-foreground">Conversations</p>
+            <p className="text-xs text-muted-foreground">{t('messagingAnalytics.text7')}</p>
           </CardContent>
         </Card>
 
@@ -286,7 +288,7 @@ export default function MessagingAnalytics() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.mediaShared}</div>
-            <p className="text-xs text-muted-foreground">Files shared</p>
+            <p className="text-xs text-muted-foreground">{t('messagingAnalytics.text8')}</p>
           </CardContent>
         </Card>
       </div>
@@ -294,16 +296,16 @@ export default function MessagingAnalytics() {
       {/* Charts */}
       <Tabs defaultValue="activity" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="activity">Activity</TabsTrigger>
-          <TabsTrigger value="patterns">Patterns</TabsTrigger>
-          <TabsTrigger value="media">Media</TabsTrigger>
+          <TabsTrigger value="activity">{t('messagingAnalytics.text9')}</TabsTrigger>
+          <TabsTrigger value="patterns">{t('messagingAnalytics.text10')}</TabsTrigger>
+          <TabsTrigger value="media">{t('messagingAnalytics.text11')}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="activity" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Daily Activity (Last 7 Days)</CardTitle>
-              <CardDescription>Messages sent and received each day</CardDescription>
+              <CardTitle>{t('messagingAnalytics.text12')}</CardTitle>
+              <CardDescription>{t('messagingAnalytics.text13')}</CardDescription>
             </CardHeader>
             <CardContent className="h-[300px]">
               <DynamicChart
@@ -326,8 +328,8 @@ export default function MessagingAnalytics() {
         <TabsContent value="patterns" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Hourly Distribution</CardTitle>
-              <CardDescription>When you send messages throughout the day</CardDescription>
+              <CardTitle>{t('messagingAnalytics.text14')}</CardTitle>
+              <CardDescription>{t('messagingAnalytics.text15')}</CardDescription>
             </CardHeader>
             <CardContent className="h-[300px]">
               <DynamicChart
@@ -347,8 +349,8 @@ export default function MessagingAnalytics() {
         <TabsContent value="media" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Media Breakdown</CardTitle>
-              <CardDescription>Types of files shared</CardDescription>
+              <CardTitle>{t('messagingAnalytics.text16')}</CardTitle>
+              <CardDescription>{t('messagingAnalytics.text17')}</CardDescription>
             </CardHeader>
             <CardContent className="h-[300px] flex items-center justify-center">
               <DynamicChart

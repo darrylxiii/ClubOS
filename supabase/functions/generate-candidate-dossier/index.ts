@@ -1,9 +1,4 @@
-import { createClient } from "npm:@supabase/supabase-js@2";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { createHandler } from '../_shared/handler.ts';
 
 // Simple hash for change detection
 function simpleHash(obj: unknown): string {
@@ -19,20 +14,11 @@ function simpleHash(obj: unknown): string {
 
 const CACHE_TTL_MS = 2 * 60 * 60 * 1000; // 2 hours
 
-Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  try {
+Deno.serve(createHandler(async (req, ctx) => {
     const { candidateId, jobId, force } = await req.json();
 
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
     // Fetch candidate data
-    const { data: candidate } = await supabase
+    const { data: candidate } = await ctx.supabase
       .from('candidate_profiles')
       .select('*')
       .eq('id', candidateId)
@@ -40,11 +26,11 @@ Deno.serve(async (req) => {
 
     // Fetch application and interview data in parallel
     const [{ data: application }, { data: feedback }, { data: meetings }, { data: experience }, { data: skills }] = await Promise.all([
-      supabase.from('applications').select('*, stages').eq('candidate_id', candidateId).eq('job_id', jobId).single(),
-      supabase.from('interview_feedback').select('*, bookings(*)').eq('candidate_id', candidateId).order('created_at', { ascending: false }),
-      supabase.from('bookings').select('*, meeting_transcripts(*)').eq('guest_email', candidate?.email).order('scheduled_start', { ascending: false }),
-      supabase.from('experience').select('*').eq('candidate_id', candidateId),
-      supabase.from('skills').select('*').eq('candidate_id', candidateId),
+      ctx.supabase.from('applications').select('*, stages').eq('candidate_id', candidateId).eq('job_id', jobId).single(),
+      ctx.supabase.from('interview_feedback').select('*, bookings(*)').eq('candidate_id', candidateId).order('created_at', { ascending: false }),
+      ctx.supabase.from('bookings').select('*, meeting_transcripts(*)').eq('guest_email', candidate?.email).order('scheduled_start', { ascending: false }),
+      ctx.supabase.from('experience').select('*').eq('candidate_id', candidateId),
+      ctx.supabase.from('skills').select('*').eq('candidate_id', candidateId),
     ]);
 
     // Compute data hash for change detection
@@ -59,7 +45,7 @@ Deno.serve(async (req) => {
 
     // === DB CACHE CHECK ===
     if (!force) {
-      const { data: cachedRow } = await supabase
+      const { data: cachedRow } = await ctx.supabase
         .from('ai_generated_content')
         .select('content, metadata')
         .eq('content_type', 'candidate_dossier')
@@ -77,16 +63,16 @@ Deno.serve(async (req) => {
         if (isFresh || hashMatches) {
           console.log(`[generate-dossier] Cache HIT (fresh=${isFresh}, hashMatch=${hashMatches})`);
           return new Response(JSON.stringify({ dossier: cachedRow.content, cached: true }), {
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' },
           });
         }
       }
     }
 
     // Generate AI dossier
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY not configured');
+    const GOOGLE_API_KEY = Deno.env.get('GOOGLE_API_KEY');
+    if (!GOOGLE_API_KEY) {
+      throw new Error('GOOGLE_API_KEY not configured');
     }
 
     const prompt = `Generate a comprehensive candidate intelligence dossier for hiring decisions.
@@ -161,14 +147,14 @@ Generate a JSON response with this exact structure:
   "timeToProductivity": "fast|average|slow"
 }`;
 
-    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    const aiResponse = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Authorization': `Bearer ${GOOGLE_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash-lite',
+        model: 'gemini-2.5-flash-lite',
         messages: [
           { role: 'system', content: 'You are a talent intelligence AI that generates comprehensive hiring insights. Always respond with valid JSON.' },
           { role: 'user', content: prompt }
@@ -206,7 +192,7 @@ Generate a JSON response with this exact structure:
     }
 
     // Store in DB cache
-    await supabase.from('ai_generated_content').upsert({
+    await ctx.supabase.from('ai_generated_content').upsert({
       content_type: 'candidate_dossier',
       entity_id: `${candidateId}:${jobId}`,
       content: dossier,
@@ -214,14 +200,6 @@ Generate a JSON response with this exact structure:
     }, { onConflict: 'content_type,entity_id' }).then(() => {});
 
     return new Response(JSON.stringify({ dossier }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' },
     });
-
-  } catch (error) {
-    console.error('Error generating dossier:', error);
-    return new Response(JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-  }
-});
+}));

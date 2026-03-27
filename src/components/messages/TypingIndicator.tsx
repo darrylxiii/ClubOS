@@ -1,4 +1,5 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 
 interface TypingIndicatorProps {
@@ -10,12 +11,13 @@ interface TypingIndicatorProps {
 }
 
 export const TypingIndicator = ({ typingUsers }: TypingIndicatorProps) => {
+  const { t } = useTranslation('messages');
   if (typingUsers.length === 0) return null;
 
-  const names = typingUsers.map((u) => u.full_name || "Someone").join(", ");
-  const text = typingUsers.length === 1 
-    ? `${names} is typing...` 
-    : `${names} are typing...`;
+  const names = typingUsers.map((u) => u.full_name || t('someone')).join(", ");
+  const text = typingUsers.length === 1
+    ? t('typing.singular', { name: names })
+    : t('typing.plural', { names });
 
   return (
     <div className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-muted-foreground/90 animate-fade-in glass-subtle rounded-2xl border border-border/30 shadow-glass-sm max-w-fit">

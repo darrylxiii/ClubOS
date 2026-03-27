@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -59,6 +60,7 @@ export function BulkEmailDialog({
   candidateCount,
   jobTitle = 'Open Position'
 }: BulkEmailDialogProps) {
+  const { t } = useTranslation('common');
   const [selectedTemplate, setSelectedTemplate] = useState<string>('interview_invite');
   const [subject, setSubject] = useState(EMAIL_TEMPLATES[0].subject);
   const [emailBody, setEmailBody] = useState(EMAIL_TEMPLATES[0].template);
@@ -75,7 +77,7 @@ export function BulkEmailDialog({
 
   const handleSend = async () => {
     if (!subject.trim() || !emailBody.trim()) {
-      toast.error('Please fill in both subject and email body');
+      toast.error(t("please_fill_in_both", "Please fill in both subject and email body"));
       return;
     }
 
@@ -94,7 +96,7 @@ export function BulkEmailDialog({
         toast.error(`Failed to send ${result.failed} emails. ${result.processed} sent successfully.`);
       }
     } catch (error) {
-      toast.error('Failed to send bulk emails');
+      toast.error(t("failed_to_send_bulk", "Failed to send bulk emails"));
       console.error('Bulk email error:', error);
     } finally {
       setSending(false);
@@ -109,16 +111,14 @@ export function BulkEmailDialog({
             <Mail className="w-5 h-5 text-primary" />
             Send Bulk Email
           </DialogTitle>
-          <DialogDescription>
-            Send an email to all selected candidates
-          </DialogDescription>
+          <DialogDescription>{t('bulkEmailDialog.dialogDescription')}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
           {/* Recipients Info */}
           <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg">
             <Users className="w-4 h-4 text-muted-foreground" />
-            <span className="text-sm text-muted-foreground">Sending to</span>
+            <span className="text-sm text-muted-foreground">{t("sending_to", "Sending to")}</span>
             <Badge variant="secondary">{candidateCount} candidates</Badge>
             {jobTitle && (
               <>
@@ -130,7 +130,7 @@ export function BulkEmailDialog({
 
           {/* Template Selection */}
           <div className="space-y-2">
-            <Label>Email Template</Label>
+            <Label>{t("email_template", "Email Template")}</Label>
             <div className="flex gap-2 flex-wrap">
               {EMAIL_TEMPLATES.map(template => (
                 <Button
@@ -147,23 +147,23 @@ export function BulkEmailDialog({
 
           {/* Subject */}
           <div className="space-y-2">
-            <Label htmlFor="subject">Subject</Label>
+            <Label htmlFor="subject">{t("subject", "Subject")}</Label>
             <Input
               id="subject"
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
-              placeholder="Email subject..."
+              placeholder={t("email_subject", "Email subject...")}
             />
           </div>
 
           {/* Email Body */}
           <div className="space-y-2">
-            <Label htmlFor="body">Email Body</Label>
+            <Label htmlFor="body">{t("email_body", "Email Body")}</Label>
             <Textarea
               id="body"
               value={emailBody}
               onChange={(e) => setEmailBody(e.target.value)}
-              placeholder="Write your email here..."
+              placeholder={t("write_your_email_here", "Write your email here...")}
               rows={10}
               className="font-mono text-sm"
             />
@@ -175,7 +175,7 @@ export function BulkEmailDialog({
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+            {t('common:cancel')}
           </Button>
           <Button onClick={handleSend} disabled={sending} className="gap-2">
             {sending ? (

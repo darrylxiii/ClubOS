@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { supabase } from '@/integrations/supabase/client';
 import { Check, CheckCheck } from 'lucide-react';
@@ -17,6 +18,7 @@ interface ReadReceiptsProps {
 }
 
 export const ReadReceipts = ({ messageId, senderId, conversationId }: ReadReceiptsProps) => {
+  const { t } = useTranslation('messages');
   const [readBy, setReadBy] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -110,7 +112,7 @@ export const ReadReceipts = ({ messageId, senderId, conversationId }: ReadReceip
         </TooltipTrigger>
         <TooltipContent>
           <div className="space-y-1">
-            <p className="font-semibold text-xs">Read by:</p>
+            <p className="font-semibold text-xs">{t('readReceipts.readBy')}:</p>
             {readBy.map((receipt) => (
               <div key={receipt.id} className="text-xs">
                 {receipt.profile?.full_name} - {formatDistanceToNow(new Date(receipt.read_at), { addSuffix: true })}

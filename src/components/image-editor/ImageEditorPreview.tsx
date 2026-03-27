@@ -1,4 +1,5 @@
 import { memo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 
 interface PreviewSize {
@@ -20,6 +21,7 @@ export const ImageEditorPreview = memo(function ImageEditorPreview({
   aspectRatio = 1,
 }: ImageEditorPreviewProps) {
   const getPreviewClasses = (size: number) => {
+  const { t } = useTranslation('common');
     const baseClasses = 'bg-background overflow-hidden border-2 border-border transition-all';
     
     switch (previewShape) {
@@ -49,7 +51,7 @@ export const ImageEditorPreview = memo(function ImageEditorPreview({
 
   return (
     <div className="bg-muted/50 rounded-lg p-4">
-      <p className="text-sm font-medium mb-3">Live Preview</p>
+      <p className="text-sm font-medium mb-3">{t('imageEditor.livePreview')}</p>
       <div className="flex items-end justify-center gap-4 flex-wrap">
         {previewSizes.map((preview) => {
           const { width, height } = getPreviewDimensions(preview.size);

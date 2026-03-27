@@ -1,19 +1,8 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { createHandler } from '../_shared/handler.ts';
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
-
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  try {
+Deno.serve(createHandler(async (req, ctx) => {
     const { query, entity_type, limit = 10, threshold = 0.7 } = await req.json();
-    
+
     if (!query) {
       throw new Error('Query text is required');
     }
@@ -22,22 +11,20 @@ serve(async (req) => {
       throw new Error('entity_type is required (candidate, job, knowledge, interaction, meeting_candidate, meeting_job, meeting_interviewer)');
     }
 
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const supabase = ctx.supabase;
 
     // Generate embedding for the query
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY not configured');
+    const GOOGLE_API_KEY = Deno.env.get('GOOGLE_API_KEY');
+    if (!GOOGLE_API_KEY) {
+      throw new Error('GOOGLE_API_KEY not configured');
     }
 
     console.log(`Semantic search for: "${query}" in ${entity_type}`);
 
-    const embeddingResponse = await fetch('https://ai.gateway.lovable.dev/v1/embeddings', {
+    const embeddingResponse = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/embeddings', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Authorization': `Bearer ${GOOGLE_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -74,7 +61,7 @@ serve(async (req) => {
       case 'knowledge':
         tableName = 'knowledge_base_articles';
         embeddingColumn = 'content_embedding';
-        selectColumns = 'id, title, content, category, tags, content_embedding';
+        selectColumns = 'id, title, content, category, search_keywords, content_embedding';
         break;
       case 'interaction':
         tableName = 'company_interactions';
@@ -176,7 +163,7 @@ serve(async (req) => {
           entity_type,
           count: results.length,
         }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -189,14 +176,7 @@ serve(async (req) => {
         entity_type,
         count: data?.length || 0,
       }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } }
     );
 
-  } catch (error) {
-    console.error('Semantic search error:', error);
-    return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-  }
-});
+}));

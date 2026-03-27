@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
+import { useTranslation } from 'react-i18next';
 
 interface CompletenessIndicatorProps {
   score: number;
@@ -9,6 +10,7 @@ interface CompletenessIndicatorProps {
 }
 
 export function CompletenessIndicator({ score, size = "sm", showLabel = false, className }: CompletenessIndicatorProps) {
+  const { t } = useTranslation('candidates');
   const radius = size === "sm" ? 12 : 16;
   const strokeWidth = size === "sm" ? 2.5 : 3;
   const circumference = 2 * Math.PI * radius;
@@ -62,7 +64,7 @@ export function CompletenessIndicator({ score, size = "sm", showLabel = false, c
           </div>
         </TooltipTrigger>
         <TooltipContent side="top" className="text-xs">
-          Profile completeness: {score}%
+          {t('completeness.tooltip', 'Profile completeness: {{score}}%', { score })}
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>

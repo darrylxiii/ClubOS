@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -49,6 +50,7 @@ interface Dossier {
 
 // Viewer identity gate — must provide name/email before viewing
 function ViewerIdentityGate({ onSubmit }: { onSubmit: (name: string, email: string, company: string) => void }) {
+  const { t } = useTranslation('common');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [company, setCompany] = useState('');
@@ -59,42 +61,42 @@ function ViewerIdentityGate({ onSubmit }: { onSubmit: (name: string, email: stri
         <CardHeader className="text-center">
           <div className="flex items-center justify-center gap-2 mb-2">
             <Sparkles className="h-5 w-5 text-primary" />
-            <span className="text-sm font-medium text-primary">The Quantum Club</span>
+            <span className="text-sm font-medium text-primary">{t("the_quantum_club", "The Quantum Club")}</span>
           </div>
-          <CardTitle>Identify yourself to view this dossier</CardTitle>
+          <CardTitle>{t("identify_yourself_to_view", "Identify yourself to view this dossier")}</CardTitle>
           <p className="text-sm text-muted-foreground mt-2">
             For security and compliance, we require your details before granting access.
           </p>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <Label htmlFor="viewer-name">Full name *</Label>
+            <Label htmlFor="viewer-name">{t("full_name", "Full name *")}</Label>
             <Input
               id="viewer-name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Jane Doe"
+              placeholder={t("jane_doe", "Jane Doe")}
               required
             />
           </div>
           <div>
-            <Label htmlFor="viewer-email">Work email *</Label>
+            <Label htmlFor="viewer-email">{t("work_email", "Work email *")}</Label>
             <Input
               id="viewer-email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="jane@company.com"
+              placeholder={t("janecompanycom", "jane@company.com")}
               required
             />
           </div>
           <div>
-            <Label htmlFor="viewer-company">Company</Label>
+            <Label htmlFor="viewer-company">{t("company", "Company")}</Label>
             <Input
               id="viewer-company"
               value={company}
               onChange={(e) => setCompany(e.target.value)}
-              placeholder="Acme Corp"
+              placeholder={t("acme_corp", "Acme Corp")}
             />
           </div>
           <Button
@@ -226,15 +228,15 @@ export default function DossierView() {
   const getRecommendationBadge = (recommendation?: string) => {
     switch (recommendation) {
       case 'strong_hire':
-        return <Badge className="bg-green-500/20 text-green-400 border-green-500/30">Strong Hire</Badge>;
+        return <Badge className="bg-green-500/20 text-green-400 border-green-500/30">{t("strong_hire", "Strong Hire")}</Badge>;
       case 'hire':
-        return <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30">Hire</Badge>;
+        return <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30">{t("hire", "Hire")}</Badge>;
       case 'no_hire':
-        return <Badge className="bg-red-500/20 text-red-400 border-red-500/30">No Hire</Badge>;
+        return <Badge className="bg-red-500/20 text-red-400 border-red-500/30">{t("no_hire", "No Hire")}</Badge>;
       case 'needs_more_info':
-        return <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30">Needs More Info</Badge>;
+        return <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30">{t("needs_more_info", "Needs More Info")}</Badge>;
       default:
-        return <Badge variant="outline">Pending</Badge>;
+        return <Badge variant="outline">{t("pending", "Pending")}</Badge>;
     }
   };
 
@@ -255,7 +257,7 @@ export default function DossierView() {
       <div className="min-h-screen bg-background flex items-center justify-center p-8">
         <Card className="max-w-md w-full text-center p-8">
           <AlertTriangle className="h-12 w-12 text-destructive mx-auto mb-4" />
-          <h2 className="text-xl font-bold mb-2">Access Denied</h2>
+          <h2 className="text-xl font-bold mb-2">{t("access_denied", "Access Denied")}</h2>
           <p className="text-muted-foreground">{error || 'Dossier not found.'}</p>
         </Card>
       </div>
@@ -267,7 +269,7 @@ export default function DossierView() {
       <div className="min-h-screen bg-background flex items-center justify-center p-8">
         <Card className="max-w-md w-full text-center p-8">
           <ShieldAlert className="h-12 w-12 text-destructive mx-auto mb-4" />
-          <h2 className="text-xl font-bold mb-2">Domain Not Authorized</h2>
+          <h2 className="text-xl font-bold mb-2">{t("domain_not_authorized", "Domain Not Authorized")}</h2>
           <p className="text-muted-foreground">
             Your email domain is not on the allowed list for this dossier. Please contact the sender for access.
           </p>
@@ -297,7 +299,7 @@ export default function DossierView() {
               <div>
                 <div className="flex items-center gap-2 mb-2">
                   <Sparkles className="h-5 w-5 text-primary" />
-                  <span className="text-sm font-medium text-primary">The Quantum Club</span>
+                  <span className="text-sm font-medium text-primary">{t("the_quantum_club", "The Quantum Club")}</span>
                 </div>
                 <CardTitle className="text-2xl mb-1">
                   {content.candidate_name || 'Candidate'} — {content.role_title || 'Interview'}
@@ -452,7 +454,7 @@ export default function DossierView() {
         {content.next_steps && content.next_steps.length > 0 && (
           <Card className="border-primary/20">
             <CardHeader>
-              <CardTitle>Recommended Next Steps</CardTitle>
+              <CardTitle>{t("recommended_next_steps", "Recommended Next Steps")}</CardTitle>
             </CardHeader>
             <CardContent>
               <ol className="space-y-2">
@@ -471,7 +473,7 @@ export default function DossierView() {
 
         {/* Footer */}
         <div className="text-center text-xs text-muted-foreground py-4">
-          <p>Generated by The Quantum Club • Confidential</p>
+          <p>{t("generated_by_the_quantum", "Generated by The Quantum Club • Confidential")}</p>
           <p className="mt-1">This link expires {dossier.expires_at ? format(new Date(dossier.expires_at), 'MMM d, yyyy') : 'never'}</p>
           <p className="mt-1">Viewed by {viewerIdentity.name} ({viewerIdentity.email})</p>
         </div>

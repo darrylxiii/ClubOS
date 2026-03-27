@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -16,6 +17,7 @@ import { formatDistanceToNow, format } from 'date-fns';
 const CRITICAL_CATEGORIES = ['Infrastructure', 'Security'];
 
 export function EdgeFunctionRegistryTab() {
+  const { t } = useTranslation('common');
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [showDisabledOnly, setShowDisabledOnly] = useState(false);
@@ -60,15 +62,15 @@ export function EdgeFunctionRegistryTab() {
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Search functions..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
+          <Input placeholder={t("search_functions", "Search functions...")} value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
         </div>
         <Select value={categoryFilter} onValueChange={setCategoryFilter}>
           <SelectTrigger className="w-[180px]">
             <Filter className="h-4 w-4 mr-2" />
-            <SelectValue placeholder="Category" />
+            <SelectValue placeholder={t("category", "Category")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Categories</SelectItem>
+            <SelectItem value="all">{t("all_categories", "All Categories")}</SelectItem>
             {categories.map(cat => (
               <SelectItem key={cat} value={cat}>{cat}</SelectItem>
             ))}
@@ -105,34 +107,34 @@ export function EdgeFunctionRegistryTab() {
               <table className="w-full text-sm">
                 <thead className="sticky top-0 bg-card border-b z-10">
                   <tr className="text-left text-muted-foreground">
-                    <th className="p-3 font-medium">Function</th>
-                    <th className="p-3 font-medium hidden md:table-cell">Category</th>
-                    <th className="p-3 font-medium text-center">Status</th>
+                    <th className="p-3 font-medium">{t("function", "Function")}</th>
+                    <th className="p-3 font-medium hidden md:table-cell">{t("category", "Category")}</th>
+                    <th className="p-3 font-medium text-center">{t("status", "Status")}</th>
                     <th className="p-3 font-medium text-center hidden lg:table-cell">
                       <Tooltip>
                         <TooltipTrigger className="flex items-center gap-1">
                           <Gauge className="h-3.5 w-3.5" /> Sampling
                         </TooltipTrigger>
-                        <TooltipContent>Percentage of calls that actually execute (0–100%)</TooltipContent>
+                        <TooltipContent>{t("percentage_of_calls_that", "Percentage of calls that actually execute (0–100%)")}</TooltipContent>
                       </Tooltip>
                     </th>
-                    <th className="p-3 font-medium text-right hidden lg:table-cell">Invocations</th>
-                    <th className="p-3 font-medium text-right hidden xl:table-cell">Error Rate</th>
+                    <th className="p-3 font-medium text-right hidden lg:table-cell">{t("invocations", "Invocations")}</th>
+                    <th className="p-3 font-medium text-right hidden xl:table-cell">{t("error_rate", "Error Rate")}</th>
                     <th className="p-3 font-medium text-right hidden xl:table-cell">
                       <Tooltip>
                         <TooltipTrigger className="flex items-center gap-1">
                           <DollarSign className="h-3.5 w-3.5" /> Cost/Call
                         </TooltipTrigger>
-                        <TooltipContent>Estimated external API + compute cost per invocation</TooltipContent>
+                        <TooltipContent>{t("estimated_external_api_compute", "Estimated external API + compute cost per invocation")}</TooltipContent>
                       </Tooltip>
                     </th>
                   </tr>
                 </thead>
                 <tbody>
                   {isLoading ? (
-                    <tr><td colSpan={7} className="p-8 text-center text-muted-foreground">Loading...</td></tr>
+                    <tr><td colSpan={7} className="p-8 text-center text-muted-foreground">{t("loading", "Loading...")}</td></tr>
                   ) : filtered.length === 0 ? (
-                    <tr><td colSpan={7} className="p-8 text-center text-muted-foreground">No functions found</td></tr>
+                    <tr><td colSpan={7} className="p-8 text-center text-muted-foreground">{t("no_functions_found", "No functions found")}</td></tr>
                   ) : (
                     filtered.map(fn => (
                       <FunctionRow key={fn.id} fn={fn} onToggle={handleToggle} />
@@ -148,7 +150,7 @@ export function EdgeFunctionRegistryTab() {
       <ConfirmDialog
         open={confirmDialog.open}
         onOpenChange={(open) => setConfirmDialog(prev => ({ ...prev, open }))}
-        title="Disable critical function?"
+        title={t("disable_critical_function", "Disable critical function?")}
         description={`"${confirmDialog.name}" belongs to a critical category (Infrastructure/Security). Disabling it may affect platform stability. Are you sure?`}
         confirmText="Disable Function"
         variant="destructive"
@@ -184,7 +186,7 @@ function FunctionRow({ fn, onToggle }: { fn: EdgeFunctionEntry; onToggle: (fn: E
                 </Tooltip>
               )}
               {isCritical && (
-                <Badge variant="outline" className="text-[10px] px-1 py-0 border-destructive/30 text-destructive">Critical</Badge>
+                <Badge variant="outline" className="text-[10px] px-1 py-0 border-destructive/30 text-destructive">{t("critical", "Critical")}</Badge>
               )}
               {fn.tags && fn.tags.length > 0 && fn.tags.map(tag => (
                 <Badge key={tag} variant="secondary" className="text-[10px] px-1 py-0">{tag}</Badge>

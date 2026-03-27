@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from 'react-i18next';
 import { supabase } from "@/integrations/supabase/client";
 import { logger } from "@/lib/logger";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,6 +26,7 @@ interface CareerPath {
 }
 
 export default function CareerPath() {
+  const { t } = useTranslation('common');
   const [currentRole, setCurrentRole] = useState("Software Engineer");
   const [careerPaths, setCareerPaths] = useState<CareerPath[]>([]);
   const [selectedPath, setSelectedPath] = useState<CareerPath | null>(null);
@@ -97,10 +99,8 @@ export default function CareerPath() {
   return (
     <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
       <div>
-        <h1 className="text-3xl font-black uppercase mb-2">Career Progression</h1>
-        <p className="text-muted-foreground">
-          Explore potential career paths and what it takes to get there
-        </p>
+        <h1 className="text-3xl font-black uppercase mb-2">{t('careerPath.text5')}</h1>
+        <p className="text-muted-foreground">{t('careerPath.desc')}</p>
       </div>
 
       {/* Current Role Input */}
@@ -116,7 +116,7 @@ export default function CareerPath() {
             <Input
               value={currentRole}
               onChange={(e) => setCurrentRole(e.target.value)}
-              placeholder="Enter your current role"
+              placeholder={t('careerPath.text6')}
               className="flex-1"
             />
             <Button onClick={fetchCareerPaths}>
@@ -171,7 +171,7 @@ export default function CareerPath() {
 
               {/* Required Skills */}
               <div>
-                <p className="text-sm font-bold mb-2">Required Skills</p>
+                <p className="text-sm font-bold mb-2">{t('careerPath.text7')}</p>
                 <div className="flex flex-wrap gap-2">
                   {path.required_skills.map((skill, idx) => (
                     <Badge key={idx} variant="outline" className="text-xs">
@@ -209,10 +209,8 @@ export default function CareerPath() {
                     <CheckCircle2 className="w-4 h-4" />
                   </div>
                   <div className="flex-1 pt-1">
-                    <h4 className="font-bold mb-1">Year 0-1: Foundation</h4>
-                    <p className="text-sm text-muted-foreground mb-2">
-                      Master core skills and build a strong technical foundation
-                    </p>
+                    <h4 className="font-bold mb-1">{t('careerPath.text8')}</h4>
+                    <p className="text-sm text-muted-foreground mb-2">{t('careerPath.desc2')}</p>
                     <div className="flex flex-wrap gap-2">
                       {selectedPath.required_skills.slice(0, 2).map((skill, idx) => (
                         <Badge key={idx} variant="outline" className="text-xs">
@@ -229,9 +227,7 @@ export default function CareerPath() {
                   </div>
                   <div className="flex-1 pt-1">
                     <h4 className="font-bold mb-1">Year 1-{Math.ceil(selectedPath.avg_years / 2)}: Growth</h4>
-                    <p className="text-sm text-muted-foreground mb-2">
-                      Take on more complex projects and develop leadership skills
-                    </p>
+                    <p className="text-sm text-muted-foreground mb-2">{t('careerPath.desc3')}</p>
                     <div className="flex flex-wrap gap-2">
                       {selectedPath.required_skills.slice(2).map((skill, idx) => (
                         <Badge key={idx} variant="outline" className="text-xs">
@@ -248,9 +244,7 @@ export default function CareerPath() {
                   </div>
                   <div className="flex-1 pt-1">
                     <h4 className="font-bold mb-1">Year {Math.ceil(selectedPath.avg_years / 2)}-{selectedPath.avg_years}: Transition</h4>
-                    <p className="text-sm text-muted-foreground">
-                      Demonstrate consistent performance and readiness for the next level
-                    </p>
+                    <p className="text-sm text-muted-foreground">{t('careerPath.desc4')}</p>
                   </div>
                 </div>
               </div>
@@ -258,23 +252,23 @@ export default function CareerPath() {
 
             {/* Action Items */}
             <div className="p-4 rounded-lg bg-success/10 border border-success/30">
-              <h4 className="font-bold mb-3">Next Steps</h4>
+              <h4 className="font-bold mb-3">{t('careerPath.text9')}</h4>
               <ul className="space-y-2 text-sm">
                 <li className="flex items-start gap-2">
                   <CheckCircle2 className="w-4 h-4 mt-0.5 text-success shrink-0" />
-                  <span>Identify skill gaps and create a learning plan</span>
+                  <span>{t('careerPath.text10')}</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <CheckCircle2 className="w-4 h-4 mt-0.5 text-success shrink-0" />
-                  <span>Find a mentor who has made this transition</span>
+                  <span>{t('careerPath.text11')}</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <CheckCircle2 className="w-4 h-4 mt-0.5 text-success shrink-0" />
-                  <span>Take on stretch projects that align with the target role</span>
+                  <span>{t('careerPath.text12')}</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <CheckCircle2 className="w-4 h-4 mt-0.5 text-success shrink-0" />
-                  <span>Build visibility with decision-makers in your organization</span>
+                  <span>{t('careerPath.text13')}</span>
                 </li>
               </ul>
             </div>

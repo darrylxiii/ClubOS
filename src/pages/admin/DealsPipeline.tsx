@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from 'react-i18next';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DealPipelineKanban } from "@/components/deals/DealPipelineKanban";
 import { PipelineMetricsCards } from "@/components/deals/PipelineMetricsCards";
@@ -17,6 +18,7 @@ import { useDealPipeline, useDealStages } from "@/hooks/useDealPipeline";
 import { useNavigate } from "react-router-dom";
 
 export default function DealsPipeline() {
+  const { t } = useTranslation('admin');
   const navigate = useNavigate();
   const { data: deals } = useDealPipeline();
   const { data: stages } = useDealStages();

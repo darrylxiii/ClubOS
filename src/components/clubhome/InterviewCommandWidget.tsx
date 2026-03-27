@@ -19,6 +19,7 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { format, formatDistanceToNow, isToday, isTomorrow, addHours } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 interface InterviewItem {
   id: string;
@@ -48,6 +49,7 @@ interface PendingScorecard {
 }
 
 export const InterviewCommandWidget = () => {
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
   const [todayInterviews, setTodayInterviews] = useState<InterviewItem[]>([]);
   const [pendingScorecards, setPendingScorecards] = useState<PendingScorecard[]>([]);
@@ -236,7 +238,7 @@ export const InterviewCommandWidget = () => {
             {todayInterviews.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 <Calendar className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                <p>No interviews scheduled for today</p>
+                <p>{t('interviewCommandWidget.noInterviewsScheduledForToday')}</p>
               </div>
             ) : (
               <div className="space-y-3">
@@ -310,7 +312,7 @@ export const InterviewCommandWidget = () => {
             {pendingScorecards.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 <CheckCircle2 className="w-12 h-12 mx-auto mb-3 opacity-50 text-green-500" />
-                <p>All scorecards submitted!</p>
+                <p>{t('interviewCommandWidget.allScorecardsSubmitted')}</p>
               </div>
             ) : (
               <div className="space-y-3">
@@ -350,7 +352,7 @@ export const InterviewCommandWidget = () => {
                             </Badge>
                           )}
                           <Button size="sm" variant="outline">
-                            Submit
+                            {t('common:submit')}
                           </Button>
                         </div>
                       </div>

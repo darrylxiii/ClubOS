@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { useBlogGeneration, type ContentFormat } from '@/hooks/useBlogGeneration';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 
 const CATEGORIES = [
   { value: 'career-insights', label: 'Career Insights' },
@@ -50,6 +51,7 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 const BlogQueueTable: React.FC = () => {
+  const { t } = useTranslation('admin');
   const {
     isGenerating,
     isSuggesting,

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -104,6 +105,7 @@ export function ExternalContentImportModal({
   defaultEntity,
   defaultContentType,
 }: ExternalContentImportModalProps) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const queryClient = useQueryClient();
   
@@ -216,14 +218,14 @@ export function ExternalContentImportModal({
       return data;
     },
     onSuccess: () => {
-      toast.success('Content imported successfully', {
+      toast.success(t("content_imported_successfully", "Content imported successfully"), {
         description: 'AI is now processing and extracting insights.',
       });
       queryClient.invalidateQueries({ queryKey: ['external-imports'] });
       handleClose();
     },
     onError: (error: Error) => {
-      toast.error('Failed to import content', {
+      toast.error(t("failed_to_import_content", "Failed to import content"), {
         description: error.message,
       });
     },
@@ -268,7 +270,7 @@ export function ExternalContentImportModal({
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Content Type Selection */}
           <div className="space-y-2">
-            <Label>Content Type</Label>
+            <Label>{t("content_type", "Content Type")}</Label>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               {(Object.keys(contentTypeConfig) as ContentType[]).map((type) => {
                 const typeConfig = contentTypeConfig[type];
@@ -299,16 +301,16 @@ export function ExternalContentImportModal({
           {/* Entity Assignment */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <EntityContextPicker
-              label="Primary Entity *"
+              label={t("primary_entity", "Primary Entity *")}
               value={primaryEntity}
               onChange={setPrimaryEntity}
-              placeholder="Who/what is this about?"
+              placeholder={t("whowhat_is_this_about", "Who/what is this about?")}
             />
             <EntityContextPicker
-              label="Secondary Entity (Optional)"
+              label={t("secondary_entity_optional", "Secondary Entity (Optional)")}
               value={secondaryEntity}
               onChange={setSecondaryEntity}
-              placeholder="Additional context..."
+              placeholder={t("additional_context", "Additional context...")}
             />
           </div>
 
@@ -316,7 +318,7 @@ export function ExternalContentImportModal({
 
           {/* File Upload or Paste Content */}
           <div className="space-y-4">
-            <Label>Content</Label>
+            <Label>{t("content", "Content")}</Label>
             
             {/* File Dropzone */}
             <div
@@ -377,7 +379,7 @@ export function ExternalContentImportModal({
             </div>
 
             <Textarea
-              placeholder="Paste WhatsApp export, LinkedIn messages, or any text content here..."
+              placeholder={t("paste_whatsapp_export_linkedin", "Paste WhatsApp export, LinkedIn messages, or any text content here...")}
               value={pastedContent}
               onChange={(e) => setPastedContent(e.target.value)}
               rows={4}
@@ -389,18 +391,18 @@ export function ExternalContentImportModal({
           {/* Metadata */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="title">Title *</Label>
+              <Label htmlFor="title">{t("title", "Title *")}</Label>
               <Input
                 id="title"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="e.g., Call with John about Product Role"
+                placeholder={t("eg_call_with_john", "e.g., Call with John about Product Role")}
                 required
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="original-date">Original Date</Label>
+              <Label htmlFor="original-date">{t("original_date", "Original Date")}</Label>
               <Input
                 id="original-date"
                 type="datetime-local"
@@ -410,10 +412,10 @@ export function ExternalContentImportModal({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="source-platform">Source Platform</Label>
+              <Label htmlFor="source-platform">{t("source_platform", "Source Platform")}</Label>
               <Select value={sourcePlatform} onValueChange={setSourcePlatform}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Where did this happen?" />
+                  <SelectValue placeholder={t("where_did_this_happen", "Where did this happen?")} />
                 </SelectTrigger>
                 <SelectContent>
                   {sourcePlatforms.map((platform) => (
@@ -427,50 +429,50 @@ export function ExternalContentImportModal({
 
             {(contentType === 'call_recording' || contentType === 'meeting_notes') && (
               <div className="space-y-2">
-                <Label htmlFor="duration">Duration (minutes)</Label>
+                <Label htmlFor="duration">{t("duration_minutes", "Duration (minutes)")}</Label>
                 <Input
                   id="duration"
                   type="number"
                   value={durationMinutes}
                   onChange={(e) => setDurationMinutes(e.target.value)}
-                  placeholder="e.g., 30"
+                  placeholder={t("eg_30", "e.g., 30")}
                 />
               </div>
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="participants">Participants</Label>
+              <Label htmlFor="participants">{t("participants", "Participants")}</Label>
               <Input
                 id="participants"
                 value={participants}
                 onChange={(e) => setParticipants(e.target.value)}
-                placeholder="John Doe, Jane Smith (comma separated)"
+                placeholder={t("john_doe_jane_smith", "John Doe, Jane Smith (comma separated)")}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="urgency">Urgency Level</Label>
+              <Label htmlFor="urgency">{t("urgency_level", "Urgency Level")}</Label>
               <Select value={urgencyLevel} onValueChange={(v) => setUrgencyLevel(v as typeof urgencyLevel)}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="low">Low</SelectItem>
-                  <SelectItem value="normal">Normal</SelectItem>
-                  <SelectItem value="high">High</SelectItem>
-                  <SelectItem value="urgent">Urgent</SelectItem>
+                  <SelectItem value="low">{t("low", "Low")}</SelectItem>
+                  <SelectItem value="normal">{t("normal", "Normal")}</SelectItem>
+                  <SelectItem value="high">{t("high", "High")}</SelectItem>
+                  <SelectItem value="urgent">{t("urgent", "Urgent")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description">Description (Optional)</Label>
+            <Label htmlFor="description">{t("description_optional", "Description (Optional)")}</Label>
             <Textarea
               id="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Additional context about this import..."
+              placeholder={t("additional_context_about_this", "Additional context about this import...")}
               rows={2}
             />
           </div>

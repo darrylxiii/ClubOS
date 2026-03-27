@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { Button } from '@/components/ui/button';
@@ -21,6 +22,7 @@ interface PreCallDiagnosticsProps {
 }
 
 export function PreCallDiagnostics({ onComplete, onCancel }: PreCallDiagnosticsProps) {
+  const { t } = useTranslation('common');
   const [checks, setChecks] = useState<DiagnosticCheck[]>([
     { name: 'Camera Access', status: 'pending' },
     { name: 'Microphone Access', status: 'pending' },
@@ -236,7 +238,7 @@ export function PreCallDiagnostics({ onComplete, onCancel }: PreCallDiagnosticsP
     osc.start();
     osc.stop(ctx.currentTime + 0.5);
 
-    toast.info('Playing test sound...', { duration: 1000 });
+    toast.info(t("playing_test_sound", "Playing test sound..."), { duration: 1000 });
   };
 
   const allPassed = checks.every(c => c.status === 'passed' || c.status === 'warning');
@@ -261,7 +263,7 @@ export function PreCallDiagnostics({ onComplete, onCancel }: PreCallDiagnosticsP
         >
           <Card className="p-4 md:p-8 space-y-4 md:space-y-6 bg-gray-900/90 border-gray-700/50 backdrop-blur-sm shadow-2xl">
             <div className="text-center">
-              <h2 className="text-2xl font-bold mb-2 text-white">Pre-Call Diagnostics</h2>
+              <h2 className="text-2xl font-bold mb-2 text-white">{t("precall_diagnostics", "Pre-Call Diagnostics")}</h2>
               <p className="text-gray-400">
                 Checking your device and connection quality...
               </p>
@@ -304,7 +306,7 @@ export function PreCallDiagnostics({ onComplete, onCancel }: PreCallDiagnosticsP
                         <p className="font-medium text-white">{check.name}</p>
                         {index === 1 && check.status === 'passed' && (
                           <div className="flex gap-2 items-center">
-                            <span className="text-xs text-gray-400">Input Level:</span>
+                            <span className="text-xs text-gray-400">{t("input_level", "Input Level:")}</span>
                             <div className="w-24 h-2 bg-gray-700/50 rounded-full overflow-hidden border border-white/5">
                               <motion.div
                                 className="h-full bg-gradient-to-r from-green-500 to-emerald-400"

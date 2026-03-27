@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Card } from '@/components/ui/card';
@@ -9,6 +10,7 @@ import { Award, CheckCircle, Download, XCircle } from 'lucide-react';
 import { format } from 'date-fns';
 
 export default function CertificateVerification() {
+  const { t } = useTranslation('common');
   const { code } = useParams<{ code: string }>();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- certificate table not in generated types
   const [certificate, setCertificate] = useState<any>(null);
@@ -76,7 +78,7 @@ export default function CertificateVerification() {
                 <XCircle className="w-12 h-12 text-destructive" />
               </div>
             </div>
-            <h1 className="text-2xl font-bold mb-2">Certificate Not Found</h1>
+            <h1 className="text-2xl font-bold mb-2">{t('certificateVerification.text2')}</h1>
             <p className="text-muted-foreground">{error}</p>
           </Card>
         </div>
@@ -98,26 +100,26 @@ export default function CertificateVerification() {
 
             <div className="flex items-center justify-center gap-2 text-primary">
               <CheckCircle className="w-5 h-5" />
-              <span className="font-semibold">Verified Certificate</span>
+              <span className="font-semibold">{t('certificateVerification.text3')}</span>
             </div>
 
             <div>
-              <h1 className="text-3xl font-bold mb-2">Certificate of Completion</h1>
+              <h1 className="text-3xl font-bold mb-2">{t('certificateVerification.text4')}</h1>
               <p className="text-xl text-muted-foreground">{certificate.courses?.title}</p>
             </div>
 
             <div className="grid gap-4 py-6 border-y border-border">
               <div>
-                <p className="text-sm text-muted-foreground">Certificate Number</p>
+                <p className="text-sm text-muted-foreground">{t('certificateVerification.text5')}</p>
                 <p className="font-mono text-lg">{certificate.certificate_number}</p>
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Issued On</p>
+                <p className="text-sm text-muted-foreground">{t('certificateVerification.text6')}</p>
                 <p className="text-lg">{format(new Date(certificate.issued_at), 'MMMM d, yyyy')}</p>
               </div>
               {certificate.metadata?.skills && (
                 <div>
-                  <p className="text-sm text-muted-foreground mb-2">Skills Demonstrated</p>
+                  <p className="text-sm text-muted-foreground mb-2">{t('certificateVerification.text7')}</p>
                   <div className="flex flex-wrap gap-2 justify-center">
                     {certificate.metadata.skills.map((skill: string, i: number) => (
                       <span
@@ -133,9 +135,7 @@ export default function CertificateVerification() {
             </div>
 
             <div className="space-y-3">
-              <p className="text-sm text-muted-foreground">
-                This certificate verifies that the holder has successfully completed the course requirements.
-              </p>
+              <p className="text-sm text-muted-foreground">{t('certificateVerification.desc')}</p>
 
               {certificate.pdf_url && (
                 <Button className="w-full" size="lg">

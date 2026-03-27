@@ -1,9 +1,5 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { logAIUsage, extractClientInfo } from "../_shared/ai-logger.ts";
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
-};
+import { createHandler } from '../_shared/handler.ts';
+import { logAIUsage, extractClientInfo } from '../_shared/ai-logger.ts';
 
 const authorRotation = [
   { id: 'tqc-editorial', name: 'TQC Editorial', credentials: 'The Quantum Club' },
@@ -11,92 +7,81 @@ const authorRotation = [
   { id: 'marcus-williams', name: 'Marcus Williams', credentials: 'Career Intelligence Director' },
 ];
 
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+Deno.serve(createHandler(async (req, ctx) => {
+  const { queueId, topic, category, targetKeywords, contentFormat, slugOverride } = await req.json();
+
+  // Atomic queue claim -- use the DB function instead of SELECT then UPDATE
+  if (queueId) {
+    const { error: claimErr } = await ctx.supabase
+      .from('blog_generation_queue')
+      .update({ status: 'generating', locked_at: new Date().toISOString(), updated_at: new Date().toISOString() })
+      .eq('id', queueId)
+      .eq('status', 'pending');
+
+    // If claim fails (already claimed by another worker), skip
+    if (claimErr) {
+      console.warn(`Queue item ${queueId} claim failed, likely already processing`);
+    }
   }
 
-  try {
-    const { queueId, topic, category, targetKeywords, contentFormat, slugOverride } = await req.json();
+  const format = contentFormat || 'deep-dive';
+  const normalizedTopic = String(topic || '').trim();
+  if (!normalizedTopic) throw new Error('topic is required');
 
-    const { createClient } = await import("https://esm.sh/@supabase/supabase-js@2");
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
-    );
+  const baseSlug = normalizedTopic
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
+    .slice(0, 80);
 
-    // Atomic queue claim — use the DB function instead of SELECT then UPDATE
-    if (queueId) {
-      const { error: claimErr } = await supabase
-        .from('blog_generation_queue')
-        .update({ status: 'generating', locked_at: new Date().toISOString(), updated_at: new Date().toISOString() })
-        .eq('id', queueId)
-        .eq('status', 'pending');
+  const normalizedSlugOverride = typeof slugOverride === 'string'
+    ? slugOverride
+        .toLowerCase()
+        .replace(/[^a-z0-9-]+/g, '-')
+        .replace(/^-|-$/g, '')
+        .slice(0, 110)
+    : '';
 
-      // If claim fails (already claimed by another worker), skip
-      if (claimErr) {
-        console.warn(`Queue item ${queueId} claim failed, likely already processing`);
-      }
+  const resolveUniqueSlug = async (candidateBase: string) => {
+    const safeBase = candidateBase || `article-${Date.now().toString(36)}`;
+    let candidate = safeBase.slice(0, 110);
+
+    for (let attempt = 0; attempt < 20; attempt++) {
+      const { data: existingRows, error: existingError } = await ctx.supabase
+        .from('blog_posts')
+        .select('id')
+        .eq('slug', candidate)
+        .limit(1);
+
+      if (existingError) throw existingError;
+      if (!existingRows || existingRows.length === 0) return candidate;
+
+      const suffix = `-${attempt + 2}`;
+      candidate = `${safeBase.slice(0, Math.max(1, 110 - suffix.length))}${suffix}`;
     }
 
-    const format = contentFormat || 'deep-dive';
-    const normalizedTopic = String(topic || '').trim();
-    if (!normalizedTopic) throw new Error('topic is required');
+    return `${safeBase.slice(0, 100)}-${Date.now().toString(36).slice(-8)}`;
+  };
 
-    const baseSlug = normalizedTopic
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-|-$/g, '')
-      .slice(0, 80);
+  const slug = await resolveUniqueSlug(normalizedSlugOverride || baseSlug);
 
-    const normalizedSlugOverride = typeof slugOverride === 'string'
-      ? slugOverride
-          .toLowerCase()
-          .replace(/[^a-z0-9-]+/g, '-')
-          .replace(/^-|-$/g, '')
-          .slice(0, 110)
-      : '';
+  // Rotate authors
+  const author = authorRotation[Math.floor(Math.random() * authorRotation.length)];
 
-    const resolveUniqueSlug = async (candidateBase: string) => {
-      const safeBase = candidateBase || `article-${Date.now().toString(36)}`;
-      let candidate = safeBase.slice(0, 110);
+  const GOOGLE_API_KEY = Deno.env.get('GOOGLE_API_KEY');
+  if (!GOOGLE_API_KEY) throw new Error('GOOGLE_API_KEY not configured');
 
-      for (let attempt = 0; attempt < 20; attempt++) {
-        const { data: existingRows, error: existingError } = await supabase
-          .from('blog_posts')
-          .select('id')
-          .eq('slug', candidate)
-          .limit(1);
+  // Get recent posts for internal linking suggestions
+  const { data: recentPosts } = await ctx.supabase
+    .from('blog_posts')
+    .select('slug, title, category')
+    .eq('status', 'published')
+    .order('published_at', { ascending: false })
+    .limit(20);
 
-        if (existingError) throw existingError;
-        if (!existingRows || existingRows.length === 0) return candidate;
+  const existingArticles = (recentPosts || []).map((p: any) => `"${p.title}" (/blog/${p.category}/${p.slug})`).join('\n');
 
-        const suffix = `-${attempt + 2}`;
-        candidate = `${safeBase.slice(0, Math.max(1, 110 - suffix.length))}${suffix}`;
-      }
-
-      return `${safeBase.slice(0, 100)}-${Date.now().toString(36).slice(-8)}`;
-    };
-
-    const slug = await resolveUniqueSlug(normalizedSlugOverride || baseSlug);
-
-    // Rotate authors
-    const author = authorRotation[Math.floor(Math.random() * authorRotation.length)];
-
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) throw new Error('LOVABLE_API_KEY not configured');
-
-    // Get recent posts for internal linking suggestions
-    const { data: recentPosts } = await supabase
-      .from('blog_posts')
-      .select('slug, title, category')
-      .eq('status', 'published')
-      .order('published_at', { ascending: false })
-      .limit(20);
-
-    const existingArticles = (recentPosts || []).map(p => `"${p.title}" (/blog/${p.category}/${p.slug})`).join('\n');
-
-    const systemPrompt = `You are the editorial AI for The Quantum Club, a luxury invite-only talent platform connecting top-tier professionals with exceptional career opportunities.
+  const systemPrompt = `You are the editorial AI for The Quantum Club, a luxury invite-only talent platform connecting top-tier professionals with exceptional career opportunities.
 
 Writing standards:
 - Tone: calm, discreet, competent. Never use exclamation points.
@@ -112,7 +97,7 @@ SEO constraints (STRICT):
 - metaDescription: EXACTLY 140-155 characters including spaces. Include a verb and primary keyword. Must read as a compelling reason to click.
 - excerpt: 120-160 characters.
 
-GEO (Generative Engine Optimization) rules — optimize for AI search engines (Perplexity, Google AI Overviews, ChatGPT):
+GEO (Generative Engine Optimization) rules -- optimize for AI search engines (Perplexity, Google AI Overviews, ChatGPT):
 - Start every H2 section with a single direct-answer sentence of 15-25 words BEFORE elaborating. This sentence should directly answer the question implied by the heading.
 - Include 2-3 explicit inline definitions using the pattern: "[Term] refers to [concise definition]."
 - Include one structured comparison or "versus" section as a list block with clear contrasting points.
@@ -121,7 +106,7 @@ GEO (Generative Engine Optimization) rules — optimize for AI search engines (P
 
 You write for senior professionals and C-suite executives who value substance over fluff.`;
 
-    const userPrompt = `Write a comprehensive, in-depth article about: "${normalizedTopic}"
+  const userPrompt = `Write a comprehensive, in-depth article about: "${normalizedTopic}"
 Category: ${category}
 Target keywords: ${(targetKeywords || []).join(', ')}
 Author: ${author.name}, ${author.credentials}
@@ -149,307 +134,300 @@ CRITICAL - Use these exact field names for ContentBlock objects:
 
 The field for text content is ALWAYS "content", never "text". The field for quote attribution is ALWAYS "caption", never "attribution".`;
 
-    const createToolParameters = (lightweightSchema = false) => ({
-      type: 'object',
-      properties: {
-        title: { type: 'string' },
-        excerpt: { type: 'string' },
-        content: {
-          type: 'array',
-          items: lightweightSchema
-            ? {
-                type: 'object',
-                properties: {
-                  type: { type: 'string' },
-                  content: { type: 'string' },
-                  level: { type: 'integer' },
-                  items: { type: 'array', items: { type: 'string' } },
-                  caption: { type: 'string' },
-                },
-              }
-            : {
-                type: 'object',
-                properties: {
-                  type: { type: 'string' },
-                  content: { type: 'string' },
-                  level: { type: 'integer' },
-                  items: { type: 'array', items: { type: 'string' } },
-                  caption: { type: 'string' },
-                },
-                required: ['type', 'content'],
+  const createToolParameters = (lightweightSchema = false) => ({
+    type: 'object',
+    properties: {
+      title: { type: 'string' },
+      excerpt: { type: 'string' },
+      content: {
+        type: 'array',
+        items: lightweightSchema
+          ? {
+              type: 'object',
+              properties: {
+                type: { type: 'string' },
+                content: { type: 'string' },
+                level: { type: 'integer' },
+                items: { type: 'array', items: { type: 'string' } },
+                caption: { type: 'string' },
               },
-        },
-        keyTakeaways: { type: 'array', items: { type: 'string' } },
-        metaTitle: { type: 'string' },
-        metaDescription: { type: 'string' },
-        keywords: { type: 'array', items: { type: 'string' } },
-        faqSchema: {
-          type: 'array',
-          items: {
-            type: 'object',
-            properties: {
-              question: { type: 'string' },
-              answer: { type: 'string' },
+            }
+          : {
+              type: 'object',
+              properties: {
+                type: { type: 'string' },
+                content: { type: 'string' },
+                level: { type: 'integer' },
+                items: { type: 'array', items: { type: 'string' } },
+                caption: { type: 'string' },
+              },
+              required: ['type', 'content'],
             },
-            required: ['question', 'answer'],
+      },
+      keyTakeaways: { type: 'array', items: { type: 'string' } },
+      metaTitle: { type: 'string' },
+      metaDescription: { type: 'string' },
+      keywords: { type: 'array', items: { type: 'string' } },
+      faqSchema: {
+        type: 'array',
+        items: {
+          type: 'object',
+          properties: {
+            question: { type: 'string' },
+            answer: { type: 'string' },
           },
+          required: ['question', 'answer'],
         },
       },
-      required: ['title', 'excerpt', 'content', 'keyTakeaways', 'metaTitle', 'metaDescription', 'keywords', 'faqSchema'],
-    });
+    },
+    required: ['title', 'excerpt', 'content', 'keyTakeaways', 'metaTitle', 'metaDescription', 'keywords', 'faqSchema'],
+  });
 
-    const createAiPayload = (lightweightSchema = false) => ({
-      model: 'google/gemini-2.5-flash',
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt },
-      ],
-      temperature: 0.7,
-      tools: [
-        {
-          type: 'function',
-          function: {
-            name: 'create_article',
-            description: 'Create a structured blog article with FAQ schema',
-            parameters: createToolParameters(lightweightSchema),
-          },
+  const createAiPayload = (lightweightSchema = false) => ({
+    model: 'gemini-2.5-flash',
+    messages: [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: userPrompt },
+    ],
+    temperature: 0.7,
+    tools: [
+      {
+        type: 'function',
+        function: {
+          name: 'create_article',
+          description: 'Create a structured blog article with FAQ schema',
+          parameters: createToolParameters(lightweightSchema),
         },
-      ],
-      tool_choice: { type: 'function', function: { name: 'create_article' } },
-    });
+      },
+    ],
+    tool_choice: { type: 'function', function: { name: 'create_article' } },
+  });
 
-    let response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+  let response = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${GOOGLE_API_KEY}`,
+    },
+    body: JSON.stringify(createAiPayload(false)),
+  });
+
+  if (!response.ok && response.status === 400) {
+    const primaryErrBody = await response.text();
+    console.warn('AI gateway rejected primary tool schema, retrying with lightweight schema:', primaryErrBody.slice(0, 200));
+
+    response = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        Authorization: `Bearer ${GOOGLE_API_KEY}`,
       },
-      body: JSON.stringify(createAiPayload(false)),
+      body: JSON.stringify(createAiPayload(true)),
     });
+  }
 
-    if (!response.ok && response.status === 400) {
-      const primaryErrBody = await response.text();
-      console.warn('AI gateway rejected primary tool schema, retrying with lightweight schema:', primaryErrBody.slice(0, 200));
-
-      response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        },
-        body: JSON.stringify(createAiPayload(true)),
+  if (!response.ok) {
+    if (response.status === 429) {
+      // On rate limit, release the queue item back to pending
+      if (queueId) {
+        await ctx.supabase.from('blog_generation_queue')
+          .update({ status: 'pending', locked_at: null, updated_at: new Date().toISOString() })
+          .eq('id', queueId);
+      }
+      return new Response(JSON.stringify({ error: 'AI rate limit exceeded. Please try again later.', code: 'AI_RATE_LIMITED' }), {
+        status: 429, headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' },
       });
     }
+    if (response.status === 402) {
+      if (queueId) {
+        await ctx.supabase.from('blog_generation_queue')
+          .update({ status: 'pending', locked_at: null, updated_at: new Date().toISOString() })
+          .eq('id', queueId);
+      }
+      return new Response(JSON.stringify({ error: 'AI quota exceeded. Please add funds.', code: 'AI_QUOTA_EXCEEDED' }), {
+        status: 402, headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    const errBody = await response.text();
+    console.error(`AI gateway error (${response.status}):`, errBody);
+    throw new Error(`AI generation failed: ${response.status} - ${errBody.slice(0, 200)}`);
+  }
 
-    if (!response.ok) {
-      if (response.status === 429) {
-        // On rate limit, release the queue item back to pending
-        if (queueId) {
-          await supabase.from('blog_generation_queue')
-            .update({ status: 'pending', locked_at: null, updated_at: new Date().toISOString() })
-            .eq('id', queueId);
+  const aiResult = await response.json();
+  const aiStartTime = Date.now();
+
+  // Extract token usage for cost tracking
+  const tokensUsed = aiResult.usage?.total_tokens
+    || ((aiResult.usage?.prompt_tokens || 0) + (aiResult.usage?.completion_tokens || 0))
+    || null;
+
+  const clientInfo = extractClientInfo(req);
+  const parseModelJson = (raw: unknown) => {
+    if (typeof raw !== 'string') {
+      throw new Error('AI response did not include valid JSON');
+    }
+
+    const trimmed = raw.trim();
+    const unwrapped = trimmed.startsWith('```')
+      ? trimmed
+          .replace(/^```(?:json)?\s*/i, '')
+          .replace(/\s*```$/, '')
+          .trim()
+      : trimmed;
+
+    return JSON.parse(unwrapped);
+  };
+
+  const toolCall = aiResult.choices?.[0]?.message?.tool_calls?.[0];
+  let content;
+  if (toolCall?.function?.arguments) {
+    content = parseModelJson(toolCall.function.arguments);
+  } else {
+    content = parseModelJson(aiResult.choices?.[0]?.message?.content);
+  }
+
+  // --- Post-generation validation ---
+  const blocks = content.content || [];
+
+  // Normalize: if AI used "text" instead of "content", fix it
+  for (const block of blocks) {
+    if (!block.content && block.text) {
+      block.content = block.text;
+      delete block.text;
+    }
+    if (block.attribution && !block.caption) {
+      block.caption = block.attribution;
+      delete block.attribution;
+    }
+  }
+
+  // --- Internal link validation ---
+  const publishedSlugs = new Set((recentPosts || []).map((p: any) => p.slug));
+  const internalLinkRegex = /\[([^\]]+)\]\((\/blog\/[^)]+)\)/g;
+  let brokenLinksRemoved = 0;
+
+  for (const block of blocks) {
+    if (block.type === 'paragraph' && block.content) {
+      block.content = block.content.replace(internalLinkRegex, (match: string, text: string, url: string) => {
+        // Extract slug from URL like /blog/category/slug
+        const parts = url.split('/').filter(Boolean);
+        const slug = parts[parts.length - 1];
+        if (!publishedSlugs.has(slug)) {
+          brokenLinksRemoved++;
+          console.warn(`Removed broken internal link: ${url}`);
+          return text; // Strip the link, keep the text
         }
-        return new Response(JSON.stringify({ error: 'AI rate limit exceeded. Please try again later.', code: 'AI_RATE_LIMITED' }), {
-          status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-      if (response.status === 402) {
-        if (queueId) {
-          await supabase.from('blog_generation_queue')
-            .update({ status: 'pending', locked_at: null, updated_at: new Date().toISOString() })
-            .eq('id', queueId);
-        }
-        return new Response(JSON.stringify({ error: 'AI credits exhausted. Please add funds.', code: 'AI_CREDITS_EXHAUSTED' }), {
-          status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-      const errBody = await response.text();
-      console.error(`AI gateway error (${response.status}):`, errBody);
-      throw new Error(`AI generation failed: ${response.status} - ${errBody.slice(0, 200)}`);
+        return match;
+      });
     }
+  }
 
-    const aiResult = await response.json();
-    const aiStartTime = Date.now();
+  if (brokenLinksRemoved > 0) {
+    console.log(`Cleaned ${brokenLinksRemoved} broken internal links from generated content`);
+  }
 
-    // Extract token usage for cost tracking
-    const tokensUsed = aiResult.usage?.total_tokens
-      || ((aiResult.usage?.prompt_tokens || 0) + (aiResult.usage?.completion_tokens || 0))
-      || null;
+  const totalChars = blocks.reduce((sum: number, b: any) => sum + (b.content?.length || 0), 0);
+  const headingCount = blocks.filter((b: any) => b.type === 'heading').length;
+  const blockCount = blocks.length;
 
-    const clientInfo = extractClientInfo(req);
-    const parseModelJson = (raw: unknown) => {
-      if (typeof raw !== 'string') {
-        throw new Error('AI response did not include valid JSON');
-      }
+  const qualityPass = totalChars >= 6000 && blockCount >= 12 && headingCount >= 3;
 
-      const trimmed = raw.trim();
-      const unwrapped = trimmed.startsWith('```')
-        ? trimmed
-            .replace(/^```(?:json)?\s*/i, '')
-            .replace(/\s*```$/, '')
-            .trim()
-        : trimmed;
+  // Insert blog post
+  const { data: post, error: insertError } = await ctx.supabase
+    .from('blog_posts')
+    .insert({
+      slug,
+      title: content.title,
+      excerpt: content.excerpt,
+      category,
+      content: blocks,
+      hero_image: { url: '/placeholder.svg', alt: content.title },
+      keywords: content.keywords,
+      key_takeaways: content.keyTakeaways,
+      meta_title: content.metaTitle,
+      meta_description: content.metaDescription,
+      faq_schema: content.faqSchema || [],
+      author_id: author.id,
+      status: qualityPass ? 'published' : 'failed',
+      published_at: qualityPass ? new Date().toISOString() : null,
+      ai_generated: true,
+      performance_score: 0,
+      content_format: format,
+    })
+    .select()
+    .single();
 
-      return JSON.parse(unwrapped);
-    };
+  if (insertError) throw insertError;
 
-    const toolCall = aiResult.choices?.[0]?.message?.tool_calls?.[0];
-    let content;
-    if (toolCall?.function?.arguments) {
-      content = parseModelJson(toolCall.function.arguments);
-    } else {
-      content = parseModelJson(aiResult.choices?.[0]?.message?.content);
-    }
+  // Log AI usage for cost tracking
+  logAIUsage({
+    functionName: 'blog-generate',
+    tokensUsed: tokensUsed || undefined,
+    responseTimeMs: Date.now() - aiStartTime,
+    success: qualityPass,
+    requestPayload: { topic: normalizedTopic, category, format, slug },
+    ...clientInfo,
+  }).catch(() => {});
 
-    // --- Post-generation validation ---
-    const blocks = content.content || [];
-    
-    // Normalize: if AI used "text" instead of "content", fix it
-    for (const block of blocks) {
-      if (!block.content && block.text) {
-        block.content = block.text;
-        delete block.text;
-      }
-      if (block.attribution && !block.caption) {
-        block.caption = block.attribution;
-        delete block.attribution;
-      }
-    }
-
-    // --- Internal link validation ---
-    const publishedSlugs = new Set((recentPosts || []).map((p: any) => p.slug));
-    const internalLinkRegex = /\[([^\]]+)\]\((\/blog\/[^)]+)\)/g;
-    let brokenLinksRemoved = 0;
-
-    for (const block of blocks) {
-      if (block.type === 'paragraph' && block.content) {
-        block.content = block.content.replace(internalLinkRegex, (match: string, text: string, url: string) => {
-          // Extract slug from URL like /blog/category/slug
-          const parts = url.split('/').filter(Boolean);
-          const slug = parts[parts.length - 1];
-          if (!publishedSlugs.has(slug)) {
-            brokenLinksRemoved++;
-            console.warn(`Removed broken internal link: ${url}`);
-            return text; // Strip the link, keep the text
-          }
-          return match;
-        });
-      }
-    }
-
-    if (brokenLinksRemoved > 0) {
-      console.log(`Cleaned ${brokenLinksRemoved} broken internal links from generated content`);
-    }
-
-    const totalChars = blocks.reduce((sum: number, b: any) => sum + (b.content?.length || 0), 0);
-    const headingCount = blocks.filter((b: any) => b.type === 'heading').length;
-    const blockCount = blocks.length;
-
-    const qualityPass = totalChars >= 6000 && blockCount >= 12 && headingCount >= 3;
-
-    // Insert blog post
-    const { data: post, error: insertError } = await supabase
-      .from('blog_posts')
-      .insert({
-        slug,
-        title: content.title,
-        excerpt: content.excerpt,
-        category,
-        content: blocks,
-        hero_image: { url: '/placeholder.svg', alt: content.title },
-        keywords: content.keywords,
-        key_takeaways: content.keyTakeaways,
-        meta_title: content.metaTitle,
-        meta_description: content.metaDescription,
-        faq_schema: content.faqSchema || [],
-        author_id: author.id,
-        status: qualityPass ? 'published' : 'failed',
-        published_at: qualityPass ? new Date().toISOString() : null,
-        ai_generated: true,
-        performance_score: 0,
-        content_format: format,
+  // Update queue
+  if (queueId) {
+    await ctx.supabase
+      .from('blog_generation_queue')
+      .update({
+        status: qualityPass ? 'completed' : 'failed',
+        generated_post_id: post.id,
+        locked_at: null,
+        error_message: qualityPass ? null : `Quality check failed: ${totalChars} chars (need 6000+), ${blockCount} blocks (need 12+), ${headingCount} headings (need 3+)`,
+        updated_at: new Date().toISOString(),
       })
-      .select()
-      .single();
+      .eq('id', queueId);
+  }
 
-    if (insertError) throw insertError;
+  // Fire-and-forget hero image generation (async, don't block response)
+  if (qualityPass && post.id) {
+    const imagePrompt = `${content.title} - ${category} - professional editorial`;
+    const imageUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1/blog-generate-image`;
+    fetch(imageUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
+      },
+      body: JSON.stringify({ postId: post.id, prompt: imagePrompt }),
+    }).catch(err => console.warn('Hero image generation fire-and-forget failed:', err.message));
 
-    // Log AI usage for cost tracking
-    logAIUsage({
-      functionName: 'blog-generate',
-      tokensUsed: tokensUsed || undefined,
-      responseTimeMs: Date.now() - aiStartTime,
-      success: qualityPass,
-      requestPayload: { topic: normalizedTopic, category, format, slug },
-      ...clientInfo,
-    }).catch(() => {});
+    // Auto-newsletter with spam protection: only send if no article was published in the last 6 hours
+    const { data: recentPublished } = await ctx.supabase
+      .from('blog_posts')
+      .select('published_at')
+      .eq('status', 'published')
+      .neq('id', post.id)
+      .order('published_at', { ascending: false })
+      .limit(1);
 
-    // Update queue
-    if (queueId) {
-      await supabase
-        .from('blog_generation_queue')
-        .update({
-          status: qualityPass ? 'completed' : 'failed',
-          generated_post_id: post.id,
-          locked_at: null,
-          error_message: qualityPass ? null : `Quality check failed: ${totalChars} chars (need 6000+), ${blockCount} blocks (need 12+), ${headingCount} headings (need 3+)`,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', queueId);
-    }
+    const sixHoursAgo = Date.now() - 6 * 3600000;
+    const lastPublishedAt = recentPublished?.[0]?.published_at;
+    const shouldSendNewsletter = !lastPublishedAt || new Date(lastPublishedAt).getTime() < sixHoursAgo;
 
-    // Fire-and-forget hero image generation (async, don't block response)
-    if (qualityPass && post.id) {
-      const imagePrompt = `${content.title} - ${category} - professional editorial`;
-      const imageUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1/blog-generate-image`;
-      fetch(imageUrl, {
+    if (shouldSendNewsletter) {
+      const newsletterUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1/blog-newsletter-send`;
+      fetch(newsletterUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
         },
-        body: JSON.stringify({ postId: post.id, prompt: imagePrompt }),
-      }).catch(err => console.warn('Hero image generation fire-and-forget failed:', err.message));
-
-      // Auto-newsletter with spam protection: only send if no article was published in the last 6 hours
-      const { data: recentPublished } = await supabase
-        .from('blog_posts')
-        .select('published_at')
-        .eq('status', 'published')
-        .neq('id', post.id)
-        .order('published_at', { ascending: false })
-        .limit(1);
-
-      const sixHoursAgo = Date.now() - 6 * 3600000;
-      const lastPublishedAt = recentPublished?.[0]?.published_at;
-      const shouldSendNewsletter = !lastPublishedAt || new Date(lastPublishedAt).getTime() < sixHoursAgo;
-
-      if (shouldSendNewsletter) {
-        const newsletterUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1/blog-newsletter-send`;
-        fetch(newsletterUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
-          },
-          body: JSON.stringify({ postId: post.id }),
-        }).catch(err => console.warn('Newsletter fire-and-forget failed:', err.message));
-      } else {
-        console.log(`Skipping newsletter: another article was published within 6 hours`);
-      }
+        body: JSON.stringify({ postId: post.id }),
+      }).catch(err => console.warn('Newsletter fire-and-forget failed:', err.message));
+    } else {
+      console.log(`Skipping newsletter: another article was published within 6 hours`);
     }
-
-    console.log(`Blog generated: "${content.title}" | ${blockCount} blocks, ${totalChars} chars, ${headingCount} headings | quality: ${qualityPass ? 'PASS' : 'FAIL'}`);
-
-    return new Response(
-      JSON.stringify({ success: true, postId: post.id, title: post.title, slug: post.slug, qualityPass }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-    );
-  } catch (error) {
-    console.error('Blog generate error:', error);
-    return new Response(
-      JSON.stringify({ error: error.message || 'Generation failed' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-    );
   }
-});
+
+  console.log(`Blog generated: "${content.title}" | ${blockCount} blocks, ${totalChars} chars, ${headingCount} headings | quality: ${qualityPass ? 'PASS' : 'FAIL'}`);
+
+  return new Response(
+    JSON.stringify({ success: true, postId: post.id, title: post.title, slug: post.slug, qualityPass }),
+    { headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } },
+  );
+}));

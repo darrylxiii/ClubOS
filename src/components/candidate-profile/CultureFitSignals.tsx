@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -20,6 +21,7 @@ interface FeedbackEntry {
 }
 
 export function CultureFitSignals({ candidateId, breakdown }: CultureFitSignalsProps) {
+  const { t } = useTranslation('common');
   const [feedback, setFeedback] = useState<FeedbackEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -72,10 +74,10 @@ export function CultureFitSignals({ candidateId, breakdown }: CultureFitSignalsP
           <Users className="w-4 h-4" />
           Culture Fit Signals
           {isAIBaseline && (
-            <Badge variant="outline" className="text-[10px] font-normal">AI baseline</Badge>
+            <Badge variant="outline" className="text-[10px] font-normal">{t("ai_baseline", "AI baseline")}</Badge>
           )}
           {isLocalFallback && (
-            <Badge variant="outline" className="text-[10px] font-normal">From feedback</Badge>
+            <Badge variant="outline" className="text-[10px] font-normal">{t("from_feedback", "From feedback")}</Badge>
           )}
         </CardTitle>
       </CardHeader>
@@ -151,7 +153,7 @@ export function CultureFitSignals({ candidateId, breakdown }: CultureFitSignalsP
             {/* Concerns */}
             {feedback.some(fb => fb.concerns && fb.concerns.length > 0) && (
               <div className="pt-2 border-t border-border/50">
-                <p className="text-xs font-medium text-muted-foreground mb-1">Flagged Concerns</p>
+                <p className="text-xs font-medium text-muted-foreground mb-1">{t("flagged_concerns", "Flagged Concerns")}</p>
                 {feedback
                   .flatMap(fb => fb.concerns || [])
                   .slice(0, 3)
@@ -177,7 +179,7 @@ export function CultureFitSignals({ candidateId, breakdown }: CultureFitSignalsP
         ) : (
           <div className="text-center py-4">
             <AlertCircle className="w-8 h-8 text-muted-foreground/30 mx-auto mb-2" />
-            <p className="text-sm text-muted-foreground">No culture fit data yet</p>
+            <p className="text-sm text-muted-foreground">{t("no_culture_fit_data", "No culture fit data yet")}</p>
             <p className="text-xs text-muted-foreground mt-1">
               Schedule interviews or generate personality insights to bootstrap this score
             </p>

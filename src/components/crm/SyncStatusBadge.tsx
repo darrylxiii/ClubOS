@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, CheckCircle, AlertCircle, Clock, RefreshCw } from 'lucide-react';
 import { formatDistanceToNow, differenceInMinutes } from 'date-fns';
@@ -30,6 +31,7 @@ export function SyncStatusBadge({
   onRefresh,
   compact = false
 }: SyncStatusBadgeProps) {
+  const { t } = useTranslation('common');
   if (isSyncing) {
     return (
       <Badge variant="outline" className="bg-purple-500/10 border-purple-500/30 text-purple-400 animate-pulse">
@@ -91,7 +93,7 @@ export function SyncStatusBadge({
               : 'Instantly sync'
             }
           </p>
-          <p><strong>Last sync:</strong> {timeAgo}</p>
+          <p><strong>{t("last_sync", "Last sync:")}</strong> {timeAgo}</p>
           <p>
             <span className="text-green-400">{lastSync.created_records || 0} new</span>
             {' • '}

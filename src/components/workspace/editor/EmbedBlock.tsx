@@ -1,5 +1,6 @@
 import { createReactBlockSpec } from '@blocknote/react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { 
   Link, Youtube, Figma, Play, FileText, ExternalLink, X, 
   Music, Presentation, Table2, PenTool, Palette, FileSpreadsheet 
@@ -257,6 +258,7 @@ export const EmbedBlock = createReactBlockSpec(
       const embedData = parseEmbedUrl(url);
 
       const handleSubmit = (e: React.FormEvent) => {
+  const { t } = useTranslation('common');
         e.preventDefault();
         if (inputUrl.trim()) {
           props.editor.updateBlock(props.block, {
@@ -281,21 +283,21 @@ export const EmbedBlock = createReactBlockSpec(
           >
             <div className="flex items-center gap-2 mb-3">
               <Link className="h-5 w-5 text-muted-foreground" />
-              <span className="font-medium">Embed</span>
+              <span className="font-medium">{t('workspace.embed', 'Embed')}</span>
             </div>
             <div className="flex gap-2">
               <Input
-                placeholder="Paste URL (YouTube, Figma, Miro, Google Docs, Spotify...)"
+                placeholder={t('workspace.pasteUrlEmbed', 'Paste URL (YouTube, Figma, Miro, Google Docs, Spotify...)')}
                 value={inputUrl}
                 onChange={(e) => setInputUrl(e.target.value)}
                 className="flex-1"
               />
               <Button type="submit" size="sm" disabled={!inputUrl.trim()}>
-                Embed
+                {t('workspace.embed', 'Embed')}
               </Button>
             </div>
             <p className="text-xs text-muted-foreground mt-2">
-              Supports YouTube, Vimeo, Figma, Loom, Miro, Google Docs/Sheets/Slides, Airtable, Canva, Spotify, and more
+              {t('workspace.embedSupports', 'Supports YouTube, Vimeo, Figma, Loom, Miro, Google Docs/Sheets/Slides, Airtable, Canva, Spotify, and more')}
             </p>
           </form>
         );
@@ -304,9 +306,9 @@ export const EmbedBlock = createReactBlockSpec(
       if (!embedData) {
         return (
           <div className="border border-destructive/50 rounded-lg p-4 my-2 bg-destructive/10" contentEditable={false}>
-            <p className="text-sm text-destructive">Invalid or unsupported URL</p>
+            <p className="text-sm text-destructive">{t('workspace.invalidOrUnsupportedUrl', 'Invalid or unsupported URL')}</p>
             <Button variant="ghost" size="sm" className="mt-2" onClick={handleRemove}>
-              Try again
+              {t('workspace.tryAgain', 'Try again')}
             </Button>
           </div>
         );
@@ -334,7 +336,7 @@ export const EmbedBlock = createReactBlockSpec(
               rel="noopener noreferrer"
               className="text-primary hover:underline text-sm"
             >
-              Open in new tab →
+              {t('workspace.openInNewTab', 'Open in new tab')} →
             </a>
           </div>
         );

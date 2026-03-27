@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -78,6 +79,7 @@ interface UserItemProps {
 }
 
 function UserItem({ user, isSelected, onToggle, disabled }: UserItemProps) {
+  const { t } = useTranslation('common');
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -321,7 +323,7 @@ export function StealthViewerSelector({
       <div className="space-y-3">
         <div className="flex items-center gap-2">
           <Users className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm font-medium">Current Viewers</span>
+          <span className="text-sm font-medium">{t("current_viewers", "Current Viewers")}</span>
           <Badge variant="secondary" className="text-xs">
             {existingViewers.length}
           </Badge>
@@ -398,7 +400,7 @@ export function StealthViewerSelector({
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="Search users by name, email, or company..."
+          placeholder={t("search_users_by_name", "Search users by name, email, or company...")}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="pl-9"
@@ -416,7 +418,7 @@ export function StealthViewerSelector({
             <ExistingViewersList />
 
             <UserGroup
-              title="Team Members"
+              title={t("team_members", "Team Members")}
               icon={Building2}
               users={groupedUsers.companyUsers}
               selectedUserIds={selectedUserIds}
@@ -425,7 +427,7 @@ export function StealthViewerSelector({
             />
 
             <UserGroup
-              title="Admins & Strategists"
+              title={t("admins_strategists", "Admins & Strategists")}
               icon={Shield}
               users={groupedUsers.adminsAndStrategists}
               selectedUserIds={selectedUserIds}
@@ -434,7 +436,7 @@ export function StealthViewerSelector({
             />
 
             <UserGroup
-              title="Other Users"
+              title={t("other_users", "Other Users")}
               icon={Users}
               users={groupedUsers.otherUsers}
               selectedUserIds={selectedUserIds}
@@ -447,9 +449,9 @@ export function StealthViewerSelector({
               groupedUsers.otherUsers.length === 0 && (
                 <div className="text-center py-8 text-muted-foreground">
                   <Users className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                  <p className="text-sm">No users found</p>
+                  <p className="text-sm">{t("no_users_found", "No users found")}</p>
                   {searchQuery && (
-                    <p className="text-xs">Try a different search term</p>
+                    <p className="text-xs">{t("try_a_different_search", "Try a different search term")}</p>
                   )}
                 </div>
               )}

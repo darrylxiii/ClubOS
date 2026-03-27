@@ -95,13 +95,13 @@ export function useCandidateAnalytics(userId: string | undefined, dateRange?: { 
       }
 
       // Fetch profile views (placeholder until types regenerate)
-      const profileViews: any[] = [];
+      const profileViews: Array<{ company_id?: string; created_at: string; companies?: { name?: string } }> = [];
 
       // Calculate profile metrics
       const totalViews = profileViews?.length || 0;
       const uniqueViewers = new Set(profileViews?.map(v => v.company_id)).size;
       
-      const viewsByDate = profileViews?.reduce((acc: Record<string, number>, view: any) => {
+      const viewsByDate = profileViews?.reduce((acc: Record<string, number>, view) => {
         const date = new Date(view.created_at).toLocaleDateString();
         acc[date] = (acc[date] || 0) + 1;
         return acc;
@@ -112,7 +112,7 @@ export function useCandidateAnalytics(userId: string | undefined, dateRange?: { 
         views: Number(views),
       })).slice(-30);
 
-      const viewsByCompany = profileViews?.reduce((acc: Record<string, number>, view: any) => {
+      const viewsByCompany = profileViews?.reduce((acc: Record<string, number>, view) => {
         const companyName = view.companies?.name || 'Unknown';
         acc[companyName] = (acc[companyName] || 0) + 1;
         return acc;
@@ -171,7 +171,18 @@ export function useCandidateAnalytics(userId: string | undefined, dateRange?: { 
         .select('*')
         .eq('candidate_id', profile.id);
 
-      const interviewPerformanceData = (interviewData || []) as any[];
+      const interviewPerformanceData = (interviewData || []) as Array<{
+        interview_completed?: boolean;
+        overall_score?: number | null;
+        overall_rating?: number;
+        technical_score?: number;
+        technical_skills_score?: number;
+        cultural_fit_score?: number;
+        communication_score?: number;
+        communication_clarity_score?: number;
+        no_show?: boolean;
+        status?: string;
+      }>;
       const totalInterviews = interviewPerformanceData.length;
       const completedInterviews = interviewPerformanceData.filter(i => i.interview_completed || i.overall_score !== null).length;
       
@@ -198,9 +209,9 @@ export function useCandidateAnalytics(userId: string | undefined, dateRange?: { 
         .order('created_at', { ascending: false })
         .limit(100);
 
-      const searches = (searchData || []) as any[];
+      const searches = (searchData || []) as Array<{ search_query?: string }>;
       const totalSearches = searches.length;
-      const searchTerms = searches.reduce((acc: Record<string, number>, search: any) => {
+      const searchTerms = searches.reduce((acc: Record<string, number>, search) => {
         const term = search.search_query || 'blank search';
         acc[term] = (acc[term] || 0) + 1;
         return acc;
@@ -226,7 +237,7 @@ export function useCandidateAnalytics(userId: string | undefined, dateRange?: { 
         .select('*')
         .eq('referred_by', userId);
 
-      const referrals = (referralData || []) as any[];
+      const referrals = (referralData || []) as Array<{ status?: string; reward_paid?: number; amount_paid?: number }>;
       const referralsMade = referrals.length;
       const referralsHired = referrals.filter(r => r.status === 'hired').length;
       const rewardsEarned = referrals.reduce((sum, r) => sum + (r.reward_paid || r.amount_paid || 0), 0);

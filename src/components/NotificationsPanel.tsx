@@ -1,15 +1,14 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { Bell, Settings, Check, ChevronDown } from 'lucide-react';
+import { Bell, Settings, Check } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 import { NotificationCard } from './NotificationCard';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,9 +24,9 @@ interface Notification {
   title: string;
   message: string;
   type: string;
-  category: string;
+  category: string | null;
   is_read: boolean;
-  is_archived: boolean;
+  is_archived: boolean | null;
   action_url: string | null;
   metadata: any;
   created_at: string;
@@ -73,7 +72,7 @@ export const NotificationsPanel = () => {
       setNotifications(data || []);
     } catch (error) {
       console.error('Error loading notifications:', error);
-      toast.error('Failed to load notifications');
+      toast.error(t("failed_to_load_notifications", "Failed to load notifications"));
     } finally {
       setLoading(false);
     }
@@ -128,7 +127,7 @@ export const NotificationsPanel = () => {
       );
     } catch (error) {
       console.error('Error marking notification as read:', error);
-      toast.error('Failed to mark as read');
+      toast.error(t("failed_to_mark_as", "Failed to mark as read"));
     }
   };
 
@@ -155,10 +154,10 @@ export const NotificationsPanel = () => {
         }))
       );
       
-      toast.success('All notifications marked as read');
+      toast.success(t("all_notifications_marked_as", "All notifications marked as read"));
     } catch (error) {
       console.error('Error marking all as read:', error);
-      toast.error('Failed to mark all as read');
+      toast.error(t("failed_to_mark_all", "Failed to mark all as read"));
     }
   };
 
@@ -175,10 +174,10 @@ export const NotificationsPanel = () => {
       if (error) throw error;
 
       setNotifications(prev => prev.filter(n => n.id !== notificationId));
-      toast.success('Notification archived');
+      toast.success(t("notification_archived", "Notification archived"));
     } catch (error) {
       console.error('Error archiving notification:', error);
-      toast.error('Failed to archive notification');
+      toast.error(t("failed_to_archive_notification", "Failed to archive notification"));
     }
   };
 
@@ -195,10 +194,10 @@ export const NotificationsPanel = () => {
       if (error) throw error;
 
       setNotifications(prev => prev.filter(n => n.id !== notificationId));
-      toast.success('Notification deleted');
+      toast.success(t("notification_deleted", "Notification deleted"));
     } catch (error) {
       console.error('Error deleting notification:', error);
-      toast.error('Failed to delete notification');
+      toast.error(t("failed_to_delete_notification", "Failed to delete notification"));
     }
   };
 
@@ -240,9 +239,9 @@ export const NotificationsPanel = () => {
   }, [notifications]);
 
   return (
-    <div className="flex flex-col h-full max-h-screen overflow-hidden">
+    <div className="flex flex-col h-[80vh] max-h-[600px] overflow-hidden bg-transparent">
       {/* Header */}
-      <div className="sticky top-0 z-10 backdrop-blur-lg bg-background/80 border-b flex-shrink-0">
+      <div className="sticky top-0 z-10 bg-background/40 backdrop-blur-2xl border-b border-white/5 flex-shrink-0">
         <div className="flex items-center justify-between p-3 sm:p-4">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <div className="relative flex-shrink-0">
@@ -286,30 +285,36 @@ export const NotificationsPanel = () => {
         </div>
 
         {/* Filter Pills */}
-        <div className="flex gap-2 px-3 sm:px-4 pb-3 overflow-x-auto mobile-scroll-x">
-          <Badge
-            variant={filter === 'all' ? 'default' : 'outline'}
-            className="cursor-pointer min-h-[36px] flex items-center whitespace-nowrap"
+        <div className="flex gap-1.5 px-3 sm:px-4 pb-3 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+          <button
+            className={cn(
+              "px-3 py-1.5 rounded-full text-xs font-semibold tracking-wide transition-all duration-300 whitespace-nowrap",
+              filter === 'all' ? "bg-white/15 text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground hover:bg-white/5"
+            )}
             onClick={() => setFilter('all')}
           >
             <T k="common:notifications.filters.all" fallback="All" />
-          </Badge>
-          <Badge
-            variant={filter === 'unread' ? 'default' : 'outline'}
-            className="cursor-pointer min-h-[36px] flex items-center whitespace-nowrap"
+          </button>
+          <button
+            className={cn(
+               "px-3 py-1.5 rounded-full text-xs font-semibold tracking-wide transition-all duration-300 whitespace-nowrap flex items-center gap-1.5",
+               filter === 'unread' ? "bg-white/15 text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground hover:bg-white/5"
+            )}
             onClick={() => setFilter('unread')}
           >
-            <T k="common:notifications.filters.unread" fallback="Unread" /> {unreadCount > 0 && `(${unreadCount})`}
-          </Badge>
+            <T k="common:notifications.filters.unread" fallback="Unread" /> {unreadCount > 0 && <span className="bg-primary/20 text-primary px-1.5 py-0.5 rounded-full text-[10px] leading-none">{unreadCount}</span>}
+          </button>
           {['mention', 'message', 'interview', 'application', 'referral', 'system'].map(type => (
-            <Badge
+            <button
               key={type}
-              variant={filter === type ? 'default' : 'outline'}
-              className="cursor-pointer capitalize min-h-[36px] flex items-center whitespace-nowrap"
+              className={cn(
+                 "px-3 py-1.5 rounded-full text-xs font-semibold tracking-wide transition-all duration-300 capitalize whitespace-nowrap",
+                 filter === type ? "bg-white/15 text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground hover:bg-white/5"
+              )}
               onClick={() => setFilter(type)}
             >
               {t(`common:notifications.filters.${type}`, type)}
-            </Badge>
+            </button>
           ))}
         </div>
       </div>
@@ -397,7 +402,7 @@ function VirtualizedNotificationList({
   return (
     <div
       ref={parentRef}
-      className="h-full overflow-y-auto p-3 sm:p-4"
+      className="h-full overflow-y-auto p-3 sm:p-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
       style={{ contain: 'strict' }}
     >
       <div
@@ -424,10 +429,10 @@ function VirtualizedNotificationList({
               }}
             >
               {item.type === 'header' ? (
-                <div className="flex items-center gap-2 p-2 mb-2">
-                  <ChevronDown className="w-4 h-4" />
-                  <span className="font-semibold capitalize text-sm sm:text-base">{item.period}</span>
-                  <Badge variant="secondary" className="ml-auto">{item.count}</Badge>
+                <div className="flex items-center gap-3 py-2 px-1 mb-2 mt-1">
+                  <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/70">{item.period}</span>
+                  <div className="h-[1px] flex-1 bg-gradient-to-r from-white/5 to-transparent" />
+                  <span className="text-[9px] font-bold text-muted-foreground/50 flex items-center justify-center w-5 h-5 rounded-full border border-white/5 bg-white/5">{item.count}</span>
                 </div>
               ) : (
                 <div className="mb-2">

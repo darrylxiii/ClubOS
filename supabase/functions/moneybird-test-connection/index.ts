@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { resilientFetch } from '../_shared/resilient-fetch.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -19,29 +20,37 @@ serve(async (req) => {
     if (!accessToken || !administrationId) {
       console.log('[Moneybird Test] Missing credentials');
       return new Response(
-        JSON.stringify({ 
-          connected: false, 
-          error: 'Moneybird credentials not configured' 
+        JSON.stringify({
+          connected: false,
+          error: 'Moneybird credentials not configured'
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     // Test the connection by fetching administration details
-    const response = await fetch(
+    // Note: This endpoint (/{administrationId}.json) sits outside the standard
+    // /{administrationId}/{resource} pattern, so we use resilientFetch directly.
+    const { response } = await resilientFetch(
       `${MONEYBIRD_API_BASE}/${administrationId}.json`,
       {
         headers: { 'Authorization': `Bearer ${accessToken}` },
-      }
+      },
+      {
+        timeoutMs: 15_000,
+        maxRetries: 2,
+        service: 'moneybird',
+        operation: 'test-connection',
+      },
     );
 
     if (!response.ok) {
       const errorText = await response.text();
       console.error('[Moneybird Test] API error:', response.status, errorText);
       return new Response(
-        JSON.stringify({ 
-          connected: false, 
-          error: `API error: ${response.status}` 
+        JSON.stringify({
+          connected: false,
+          error: `API error: ${response.status}`
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
@@ -64,9 +73,9 @@ serve(async (req) => {
   } catch (error) {
     console.error('[Moneybird Test] Error:', error);
     return new Response(
-      JSON.stringify({ 
-        connected: false, 
-        error: error instanceof Error ? error.message : 'Connection failed' 
+      JSON.stringify({
+        connected: false,
+        error: error instanceof Error ? error.message : 'Connection failed'
       }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

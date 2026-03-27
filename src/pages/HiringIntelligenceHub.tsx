@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from "react-router-dom";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,8 +18,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { format } from "date-fns";
 
 // Predictions Tab Content Component
-function PredictionsTabContent({ 
-  jobs, 
+function PredictionsTabContent({  jobs, 
   navigate, 
   EmptyState 
 }: { 
@@ -26,6 +26,7 @@ function PredictionsTabContent({
   navigate: (path: string) => void;
   EmptyState: React.FC<{ icon: React.ElementType; title: string; description: string; action?: { label: string; onClick: () => void } }>;
 }) {
+const { t } = useTranslation('common');
   const { data: insights, isLoading } = useAggregatedHiringIntelligence();
   const refreshMutation = useRefreshAggregatedIntelligence();
 
@@ -35,7 +36,7 @@ function PredictionsTabContent({
         <CardContent className="pt-6">
           <EmptyState
             icon={Target}
-            title="No Predictions Available"
+            title={t("no_predictions_available", "No Predictions Available")}
             description="AI predictions will appear once you have active jobs with candidates in the pipeline."
             action={{ label: "Create Job", onClick: () => navigate('/jobs/new') }}
           />
@@ -77,7 +78,7 @@ export default function HiringIntelligenceHub({ embedded = false }: { embedded?:
     return (
       <Wrapper>
         <div className="container mx-auto py-6">
-          <p className="text-center text-muted-foreground">Loading intelligence hub...</p>
+          <p className="text-center text-muted-foreground">{t("loading_intelligence_hub", "Loading intelligence hub...")}</p>
         </div>
       </Wrapper>
     );
@@ -128,7 +129,7 @@ export default function HiringIntelligenceHub({ embedded = false }: { embedded?:
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm text-muted-foreground">Active Jobs</CardTitle>
+              <CardTitle className="text-sm text-muted-foreground">{t("active_jobs", "Active Jobs")}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold">{stats.activeJobs}</div>
@@ -141,27 +142,27 @@ export default function HiringIntelligenceHub({ embedded = false }: { embedded?:
 
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm text-muted-foreground">Candidates in Pipeline</CardTitle>
+              <CardTitle className="text-sm text-muted-foreground">{t("candidates_in_pipeline", "Candidates in Pipeline")}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold">{stats.totalCandidates}</div>
-              <p className="text-xs text-muted-foreground">Across all active jobs</p>
+              <p className="text-xs text-muted-foreground">{t("across_all_active_jobs", "Across all active jobs")}</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm text-muted-foreground">Predicted Hires</CardTitle>
+              <CardTitle className="text-sm text-muted-foreground">{t("predicted_hires", "Predicted Hires")}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold">{stats.predictedHires}</div>
-              <p className="text-xs text-muted-foreground">Next 30 days (AI forecast)</p>
+              <p className="text-xs text-muted-foreground">{t("next_30_days_ai", "Next 30 days (AI forecast)")}</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm text-muted-foreground">Avg Match Score</CardTitle>
+              <CardTitle className="text-sm text-muted-foreground">{t("avg_match_score", "Avg Match Score")}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold">
@@ -177,11 +178,11 @@ export default function HiringIntelligenceHub({ embedded = false }: { embedded?:
         {/* Tabs for different views */}
         <Tabs defaultValue="overview" className="w-full">
           <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="candidates">Top Candidates</TabsTrigger>
-            <TabsTrigger value="interviews">Interviews</TabsTrigger>
-            <TabsTrigger value="predictions">Predictions</TabsTrigger>
-            <TabsTrigger value="performance">Performance</TabsTrigger>
+            <TabsTrigger value="overview">{t("overview", "Overview")}</TabsTrigger>
+            <TabsTrigger value="candidates">{t("top_candidates", "Top Candidates")}</TabsTrigger>
+            <TabsTrigger value="interviews">{t("interviews", "Interviews")}</TabsTrigger>
+            <TabsTrigger value="predictions">{t("predictions", "Predictions")}</TabsTrigger>
+            <TabsTrigger value="performance">{t("performance", "Performance")}</TabsTrigger>
           </TabsList>
 
           {/* Overview Tab */}
@@ -198,7 +199,7 @@ export default function HiringIntelligenceHub({ embedded = false }: { embedded?:
                 {jobs.length === 0 ? (
                   <EmptyState
                     icon={Briefcase}
-                    title="No Jobs Yet"
+                    title={t("no_jobs_yet", "No Jobs Yet")}
                     description="Create and publish jobs to start tracking hiring intelligence and candidate pipelines."
                     action={{ label: "Create Job", onClick: () => navigate('/jobs/new') }}
                   />
@@ -207,7 +208,7 @@ export default function HiringIntelligenceHub({ embedded = false }: { embedded?:
                     <div className="mx-auto w-12 h-12 rounded-full bg-green-500/10 flex items-center justify-center mb-4">
                       <TrendingUp className="h-6 w-6 text-green-500" />
                     </div>
-                    <p className="text-sm text-muted-foreground">All published jobs are healthy!</p>
+                    <p className="text-sm text-muted-foreground">{t("all_published_jobs_are", "All published jobs are healthy!")}</p>
                   </div>
                 ) : (
                   <div className="space-y-4">
@@ -235,14 +236,14 @@ export default function HiringIntelligenceHub({ embedded = false }: { embedded?:
             {/* Pipeline Health Heatmap */}
             <Card>
               <CardHeader>
-                <CardTitle>Pipeline Health Across Jobs</CardTitle>
+                <CardTitle>{t("pipeline_health_across_jobs", "Pipeline Health Across Jobs")}</CardTitle>
               </CardHeader>
               <CardContent>
                 {jobs.length === 0 ? (
                   <EmptyState
                     icon={BarChart3}
-                    title="No Pipeline Data"
-                    description="Publish jobs and receive applications to see pipeline health metrics."
+                    title={t("no_pipeline_data", "No Pipeline Data")}
+                    description={t("publish_jobs_and_receive", "Publish jobs and receive applications to see pipeline health metrics.")}
                   />
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -268,7 +269,7 @@ export default function HiringIntelligenceHub({ embedded = false }: { embedded?:
                         <CardContent>
                           <div className="space-y-2">
                             <div className="flex justify-between text-xs">
-                              <span>Health Score</span>
+                              <span>{t("health_score", "Health Score")}</span>
                               <span className="font-bold">{job.healthScore}%</span>
                             </div>
                             <Progress value={job.healthScore} />
@@ -292,7 +293,7 @@ export default function HiringIntelligenceHub({ embedded = false }: { embedded?:
                 <CardContent className="pt-6">
                   <EmptyState
                     icon={Users}
-                    title="No Candidates Yet"
+                    title={t("no_candidates_yet", "No Candidates Yet")}
                     description="When candidates apply to your jobs, the top performers will appear here with AI-generated insights."
                     action={{ label: "View Jobs", onClick: () => navigate('/jobs') }}
                   />
@@ -324,7 +325,7 @@ export default function HiringIntelligenceHub({ embedded = false }: { embedded?:
                 {upcomingInterviewsAllJobs.length === 0 ? (
                   <EmptyState
                     icon={Calendar}
-                    title="No Upcoming Interviews"
+                    title={t("no_upcoming_interviews", "No Upcoming Interviews")}
                     description="Schedule interviews with candidates from the job dashboard. Interviews will appear here automatically."
                     action={{ label: "View Jobs", onClick: () => navigate('/jobs') }}
                   />
@@ -364,29 +365,29 @@ export default function HiringIntelligenceHub({ embedded = false }: { embedded?:
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <Card>
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm text-muted-foreground">This Week</CardTitle>
+                  <CardTitle className="text-sm text-muted-foreground">{t("this_week", "This Week")}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">{interviewStats.thisWeek}</div>
-                  <p className="text-xs text-muted-foreground">Scheduled interviews</p>
+                  <p className="text-xs text-muted-foreground">{t("scheduled_interviews", "Scheduled interviews")}</p>
                 </CardContent>
               </Card>
               <Card>
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm text-muted-foreground">Feedback Pending</CardTitle>
+                  <CardTitle className="text-sm text-muted-foreground">{t("feedback_pending", "Feedback Pending")}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold text-amber-500">{interviewStats.feedbackPending}</div>
-                  <p className="text-xs text-muted-foreground">Awaiting submission</p>
+                  <p className="text-xs text-muted-foreground">{t("awaiting_submission", "Awaiting submission")}</p>
                 </CardContent>
               </Card>
               <Card>
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm text-muted-foreground">Avg Feedback Time</CardTitle>
+                  <CardTitle className="text-sm text-muted-foreground">{t("avg_feedback_time", "Avg Feedback Time")}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">{interviewStats.avgFeedbackTime}h</div>
-                  <p className="text-xs text-muted-foreground">Target: &lt;24h</p>
+                  <p className="text-xs text-muted-foreground">{t("target_lt24h", "Target: &lt;24h")}</p>
                 </CardContent>
               </Card>
             </div>

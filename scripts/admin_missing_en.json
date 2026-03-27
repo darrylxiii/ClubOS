@@ -1,0 +1,930 @@
+{
+  "activitySettingsDialog": {
+    "activeThresholdMustBeLessThan": "Active threshold must be less than Warning threshold"
+  },
+  "adminMemberRequests": {
+    "reasonForDeclineWillBeSent": "Reason for Decline (will be sent to applicant)",
+    "partnerDeclinedButTheNotificationEmail": "Partner declined, but the notification email could not be sent."
+  },
+  "blogArticleManager": {
+    "theseWereGeneratedWithTheOld": "These were generated with the old schema and render as empty."
+  },
+  "blogEngineControlModal": {
+    "publishArticlesAutomaticallyWhenQualityPasses": "Publish articles automatically when quality passes.",
+    "holdArticlesForManualReviewBefore": "Hold articles for manual review before publishing."
+  },
+  "blogLearningsPanel": {
+    "noLearningsYetTheEngineDiscovers": "No learnings yet. The engine discovers patterns as it generates and analyzes content."
+  },
+  "blogQueueTable": {
+    "addATopicWithCategoryKeywords": "Add a topic with category, keywords, and format for AI generation.",
+    "queueIsEmptyAddATopic": "Queue is empty. Add a topic above or generate AI suggestions."
+  },
+  "complianceDashboard": {
+    "soc2AuditReportLast90": "SOC 2 Audit Report (Last 90 Days)"
+  },
+  "disasterRecoveryDashboard": {
+    "clickTestPitrToRunYour": "Click ')Test PITR' to run your first test"
+  },
+  "partnerProvisioningModal": {
+    "passwordMustBeAtLeast12": "Password must be at least 12 characters"
+  },
+  "activity": {
+    "realTimeActivityTab": {
+      "eventsByDeviceTypeLast5": "Events by device type (last 5 minutes)"
+    },
+    "roleIntelligenceTab": {
+      "online2": "Online",
+      "logins2": "Logins",
+      "sourced2": "Sourced",
+      "clickAnyRowToSeeFull": "Click any row to see full details. Click column headers to sort."
+    },
+    "userDetailModal": {
+      "comprehensiveActivityPerformanceAndEarningsData": "Comprehensive activity, performance, and earnings data"
+    }
+  },
+  "agentic": {
+    "missionControlView": {
+      "noHeartbeatRunsYetTheSystem": "No heartbeat runs yet. The system will start pulsing soon."
+    },
+    "sourcingCommandPanel": {
+      "noSourcingMissionsYetForThis": "No sourcing missions yet for this role."
+    }
+  },
+  "approval": {
+    "approvalConfirmationStep": {
+      "createNewCandidateProfileAndLink": "Create new candidate profile and link to user account",
+      "willBeAddedToCompanyAs": "Will be added to company as partner",
+      "approveMemberRequestAndGrantPlatform": "Approve member request and grant platform access"
+    },
+    "memberApprovalWorkflowDialog": {
+      "adminIdIsMissingPleaseRefresh": "Admin ID is missing. Please refresh and try again."
+    }
+  },
+  "assessments": {
+    "sendAssessmentsTab": {
+      "egCompleteThisForTheProduct": "E.g., 'Complete this for the Product Manager role'"
+    },
+    "assessmentsDashboard": {
+      "assessments": "Assessments",
+      "assessmentResults": "Assessment Results",
+      "totalCompleted": "Total Completed",
+      "averageScore": "Average Score",
+      "passRate": "Pass Rate"
+    }
+  },
+  "bulk-ops": {
+    "bulkInvitationTab": {
+      "addAPersonalizedMessageToThe": "Add a personalized message to the invitation email..."
+    }
+  },
+  "compliance": {
+    "securityIncidentsPanel": {
+      "documentANewSecurityIncidentFor": "Document a new security incident for tracking and resolution."
+    }
+  },
+  "enterprise": {
+    "sLADashboard": {
+      "currentPerformanceAgainstServiceLevelTargets": "Current performance against service level targets",
+      "slaBreachesInTheLast30": "SLA breaches in the last 30 days",
+      "serviceLevelAgreementMonitoringAndCompliance": "Service Level Agreement monitoring and compliance",
+      "noViolationsInTheLast30": "No violations in the last 30 days"
+    },
+    "whiteLabelManager": {
+      "brandColors": "Brand Colors",
+      "brandAssets": "Brand Assets",
+      "customDomain": "Custom Domain",
+      "advancedCustomization": "Advanced Customization",
+      "defineTheColorPaletteForThis": "Define the color palette for this tenant",
+      "uploadLogosAndFavicons": "Upload logos and favicons",
+      "configureACustomDomainForThis": "Configure a custom domain for this tenant",
+      "customCssAndEmailTemplates": "Custom CSS and email templates",
+      "primaryColor": "Primary Color",
+      "secondaryColor": "Secondary Color",
+      "accentColor": "Accent Color",
+      "logoUrl": "Logo URL",
+      "faviconUrl": "Favicon URL",
+      "customCss": "Custom CSS",
+      "emailFooter": "Email Footer",
+      "customizeBrandingForEnterpriseTenants": "Customize branding for enterprise tenants",
+      "whiteLabelMode": "White Label Mode",
+      "enableCustomBrandingForThisCompany": "Enable custom branding for this company",
+      "dnsConfiguration": "DNS Configuration",
+      "whiteLabelConfiguration": "White Label Configuration",
+      "previewText": "Preview Text",
+      "chooseACompanyToConfigure": "Choose a company to configure",
+      "brandingSettingsSaved": "Branding settings saved",
+      "failedToSaveBranding": "Failed to save branding"
+    }
+  },
+  "kpi": {
+    "sLAStatusPanel": {
+      "sla": "SLA",
+      "functionsWithOpenCircuitBreakersTemporarily": "Functions with open circuit breakers (temporarily disabled)"
+    },
+    "costOverview": {
+      "noAiFunctionCallsInThe": "No AI function calls in the last 24 hours",
+      "cacheAiResponsesForRepeatedQueries": "Cache AI responses for repeated queries to reduce API calls",
+      "reviewMeetingRecordingsConsiderAutocleanupAfter": "Review meeting recordings - consider auto-cleanup after 90 days"
+    }
+  },
+  "scim": {
+    "scimConfigurationPanel": {
+      "configureTheseUrlsInYourIdentity": "Configure these URLs in your identity provider",
+      "groupsProvisionedFromYourIdentityProvider": "Groups provisioned from your identity provider",
+      "configureAutomatedUserProvisioningFromYour": "Configure automated user provisioning from your identity provider"
+    }
+  },
+  "system": {
+    "systemHealthDashboard": {
+      "system": "System"
+    }
+  },
+  "webhooks": {
+    "webhookReliabilityDashboard": {
+      "monitorWebhookDeliveryHealthAndManage": "Monitor webhook delivery health and manage failed deliveries"
+    }
+  },
+  "aIConfiguration": {
+    "title": "Additional Considerations",
+    "desc": "Fine-tune the matching algorithm to optimize candidate-job fit",
+    "desc2": "Overall Match Score",
+    "tabHypotheticaltest": "Hypothetical Test",
+    "tabRealdatatest": "Real Data Test"
+  },
+  "activationFunnelDashboard": {
+    "text1": "Activation Funnel",
+    "text2": "Track user progression through key milestones",
+    "text3": "Last 7 days",
+    "text4": "Last 30 days",
+    "text5": "Last 90 days",
+    "text6": "User progression through activation milestones",
+    "text7": "Average time users take to reach each milestone"
+  },
+  "adminAuditLog": {
+    "text1": "Success",
+    "text2": "Failed",
+    "text3": "Blocked",
+    "text4": "Search by action, email, or resource...",
+    "text5": "Filter by type",
+    "text6": "All Events",
+    "text7": "Authentication",
+    "text8": "User Actions",
+    "text9": "Settings",
+    "text10": "Documents",
+    "text11": "Security",
+    "text12": "Recent Events",
+    "text13": "Showing last 100 events",
+    "text14": "No audit events found",
+    "text15": "Events will appear here as actions are performed"
+  },
+  "adminExports": {
+    "desc": "One-time admin export. These downloads are generated on demand and require an authenticated session.",
+    "btn2": "Download all SQL parts",
+    "text3": "Database exports",
+    "text4": "Warnings"
+  },
+  "adminUserProfile": {
+    "desc": "This is the user's public profile view. Edit capabilities are disabled in admin mode.",
+    "text2": "User profile not found.",
+    "text3": "Email Verified",
+    "text4": "Has Candidate Profile",
+    "text5": "Profile Overview",
+    "text6": "Complete Settings",
+    "text7": "Documents",
+    "text8": "Verification",
+    "text9": "Resume",
+    "text10": "Primary resume document",
+    "text11": "Account Verification Status",
+    "text12": "Email Verification",
+    "text13": "Phone Verification",
+    "text14": "Account Activity",
+    "text15": "Created:",
+    "text16": "Last Updated:",
+    "text17": "Last Sign In:"
+  },
+  "announcementsPage": {
+    "title": "ANNOUNCEMENTS",
+    "text1": "Title",
+    "text2": "Message",
+    "text3": "Banner",
+    "text4": "Modal",
+    "text5": "Toast",
+    "text6": "Priority",
+    "text7": "Low",
+    "text8": "Normal",
+    "text9": "High",
+    "text10": "Critical",
+    "text11": "Expires At (optional)",
+    "text12": "Dismissible",
+    "text13": "Publish",
+    "text14": "Active",
+    "text15": "Critical",
+    "text16": "Title",
+    "text17": "Type",
+    "text18": "Priority",
+    "text19": "Targets",
+    "text20": "Status",
+    "text21": "Created",
+    "text22": "Actions"
+  },
+  "avatarControlHub": {
+    "desc": "No job data yet. Start a session linked to a job to see insights.",
+    "text2": "Possibly left running",
+    "text3": "Very short",
+    "text4": "Over 2x expected",
+    "text5": "Account Traffic Control",
+    "text6": "Total Accounts",
+    "text7": "Active Sessions",
+    "text8": "Available",
+    "text9": "At Risk",
+    "text10": "Accounts",
+    "text11": "Session History",
+    "text12": "Recent Sessions",
+    "text13": "Correct time",
+    "text14": "No sessions yet.",
+    "text15": "Job",
+    "text16": "Company",
+    "text17": "Sessions",
+    "text18": "Total Time",
+    "text19": "Avg / Session",
+    "text20": "Accounts",
+    "text21": "Last Activity"
+  },
+  "bulkOperationsHub": {
+    "title": "Bulk Operations Hub",
+    "desc": "Perform bulk actions on candidates and pipeline data"
+  },
+  "candidateSchedulingAdmin": {
+    "text1": "Pending",
+    "text2": "Confirmed",
+    "text3": "Cancelled",
+    "text4": "Expired",
+    "text5": "Pending",
+    "text6": "Confirmed",
+    "text7": "Rescheduled",
+    "text8": "Cancelled",
+    "text9": "Expired",
+    "text10": "Candidate",
+    "text11": "Status",
+    "text12": "Submitted",
+    "text13": "Actions",
+    "text14": "Candidate",
+    "text15": "Status",
+    "text16": "Submitted",
+    "text17": "Cancel",
+    "text18": "Confirm",
+    "text19": "Reschedule"
+  },
+  "companyRelationships": {
+    "desc": "Monitor and manage relationships with partner companies",
+    "text2": "Company Relationships",
+    "text3": "Total Emails Tracked",
+    "text4": "Avg Sentiment",
+    "text5": "Need Attention",
+    "text6": "Critical",
+    "text7": "Overview",
+    "text8": "Contacts",
+    "text9": "Sentiment Analysis",
+    "text10": "Company Contacts",
+    "text11": "Per-Person Sentiment"
+  },
+  "consentManagementPage": {
+    "text1": "Processing Activities (ROPA)",
+    "text2": "Withdrawn",
+    "text3": "Expired",
+    "text4": "Type",
+    "text5": "Purpose",
+    "text6": "Status",
+    "text7": "Granted",
+    "text8": "Expires",
+    "text9": "Withdrawn",
+    "text10": "Active",
+    "text11": "Pending",
+    "text12": "Record of Processing Activities (GDPR Art. 30)",
+    "text13": "Activity",
+    "text14": "Retention",
+    "text15": "Status",
+    "text16": "Done",
+    "text17": "Required",
+    "text18": "N/A",
+    "text19": "Activities involving data transfers outside EU/EEA"
+  },
+  "conversationAnalytics": {
+    "text1": "Conversation Analytics",
+    "text2": "Messaging metrics and communication insights",
+    "text3": "Total Messages (30d)",
+    "text4": "Avg Response Time",
+    "text5": "Active Conversations",
+    "text6": "AI-Assisted",
+    "text7": "Message Volume Trend",
+    "text8": "Daily message and conversation counts",
+    "text9": "Sentiment Analysis",
+    "text10": "Communication sentiment breakdown"
+  },
+  "customerHealthPage": {
+    "text1": "Company",
+    "text2": "Usage",
+    "text3": "Adoption",
+    "text4": "Support"
+  },
+  "dueDiligenceDashboard": {
+    "desc": "Investor-ready metrics, documentation, and data room",
+    "text2": "Due Diligence Center"
+  },
+  "edgeFunctionCommandCenter": {
+    "desc": "Monitor, control, and optimize all backend functions across the platform.",
+    "text2": "Edge Function Command Center"
+  },
+  "emailNotificationManagement": {
+    "text1": "Email Notification Management",
+    "text2": "Configure who receives which email notifications across the platform"
+  },
+  "emailTemplateManager": {
+    "text1": "Subject:",
+    "text2": "Function:"
+  },
+  "emailTrackingAnalytics": {
+    "text1": "Last 7 days",
+    "text2": "Last 30 days",
+    "text3": "Last 90 days",
+    "text4": "Sent",
+    "text5": "Bounced",
+    "text6": "Recipient",
+    "text7": "Delivered",
+    "text8": "Opens",
+    "text9": "Clicks",
+    "text10": "Status",
+    "text11": "Yes",
+    "text12": "Bounced",
+    "text13": "Engaged",
+    "text14": "Opened",
+    "text15": "Delivered",
+    "text16": "Sent",
+    "text17": "Clicks"
+  },
+  "employeeManagement": {
+    "desc": "Comprehensive HR, performance, and commission management",
+    "text2": "Employee Management",
+    "text3": "Employees",
+    "text4": "Pending",
+    "text5": "Approved",
+    "text6": "Paid YTD",
+    "text7": "Pending Reviews",
+    "text8": "Leaderboard",
+    "text9": "Profiles",
+    "text10": "Targets",
+    "text11": "Commissions",
+    "text12": "Payouts",
+    "text13": "Reviews",
+    "text14": "Training",
+    "text15": "Onboarding"
+  },
+  "enterpriseDashboard": {
+    "desc": "SOC 2 compliance, SLA monitoring, disaster recovery, and white-label configuration",
+    "text2": "Enterprise Management"
+  },
+  "expenseTracking": {
+    "text1": "Track operating expenses, recurring costs, and vendor subscriptions",
+    "text2": "Expense Ledger",
+    "text3": "No expenses found",
+    "text4": "Date",
+    "text5": "Category",
+    "text6": "Description",
+    "text7": "Vendor",
+    "text8": "Amount",
+    "text9": "Type",
+    "text10": "One-time",
+    "text11": "Receipt attached"
+  },
+  "financialDashboard": {
+    "text1": "Revenue Overview",
+    "text2": "Monthly invoiced vs collected revenue",
+    "text3": "Top Clients",
+    "text4": "Highest revenue partners this year",
+    "text5": "Moneybird Invoices",
+    "text6": "Individual invoice records synced from Moneybird",
+    "text7": "Cash Flow Pipeline",
+    "text8": "Visual pipeline of expected revenue by collection status",
+    "text9": "Placement Fees",
+    "text10": "Commissions",
+    "text11": "Invoices",
+    "text12": "Referral Payouts",
+    "text13": "VAT & Tax",
+    "text14": "Placement Fees",
+    "text15": "Track and manage placement fees generated from hires",
+    "text16": "Partner Invoices",
+    "text17": "Generate and manage invoices for partner companies",
+    "text18": "Referral Payouts",
+    "text19": "Review and approve referral reward payouts",
+    "text20": "VAT Register",
+    "text21": "Quarterly VAT breakdown for BTW-aangifte filing"
+  },
+  "globalAnalytics": {
+    "title": "Global Analytics",
+    "desc": "Cross-company insights, funnel performance and platform engagement",
+    "desc2": "No hiring data available yet",
+    "tabPlatformoverview": "Platform Overview",
+    "tabFunnelanalytics": "Funnel Analytics",
+    "tabUserengagement": "User Engagement",
+    "tabApplicationstrend": "Applications Trend",
+    "tabConversionfunnel": "Conversion Funnel",
+    "tabTopcompanies": "Top Companies"
+  },
+  "godMode": {
+    "text1": "Elevated Privileges Active",
+    "text2": "All actions in this panel are logged and audited. Use with extreme caution.",
+    "text3": "Feature Flags",
+    "text4": "User Lookup",
+    "text5": "Impersonation",
+    "text6": "Database",
+    "text7": "Feature Flags",
+    "text8": "Toggle features on/off across the platform",
+    "text9": "Loading flags...",
+    "text10": "No Feature Flags",
+    "text11": "Feature flags will appear here when configured in the database.",
+    "text12": "User Lookup",
+    "text13": "Search and view any user's profile",
+    "text14": "Search by name or email...",
+    "text15": "Searching...",
+    "text16": "No users found",
+    "text17": "Enter at least 2 characters to search",
+    "text18": "Impersonation Sessions",
+    "text19": "View history of admin impersonation sessions",
+    "text20": "Loading sessions...",
+    "text21": "No Impersonation Sessions",
+    "text22": "No admin impersonation sessions have been recorded.",
+    "text23": "Database Tools",
+    "text24": "Direct database access and maintenance tools",
+    "text25": "Cache Management",
+    "text26": "Clear application caches",
+    "text27": "Clear All Caches",
+    "text28": "Session Management",
+    "text29": "Force logout all users",
+    "text30": "Invalidate All Sessions"
+  },
+  "integrationMarketplace": {
+    "text1": "Available",
+    "text2": "Installed",
+    "text3": "Categories",
+    "text4": "Featured",
+    "text5": "Configure"
+  },
+  "investorMetrics": {
+    "text1": "Conservative SaaS multiple",
+    "text2": "Growth SaaS multiple",
+    "text3": "Premium SaaS multiple",
+    "text4": "Collected revenue",
+    "text5": "Active customers and retention",
+    "text6": "Total Customers",
+    "text7": "Active (12mo)",
+    "text8": "Net Revenue Retention",
+    "text9": "Logo Retention",
+    "text10": "LTV, CAC, and payback period",
+    "text11": "LTV:CAC Ratio",
+    "text12": "Rule of 40",
+    "text13": "Platform usage and engagement",
+    "text14": "Total Users",
+    "text15": "Candidates",
+    "text16": "Applications",
+    "text17": "Placements",
+    "text18": "Placement Rate",
+    "text19": "Avg Deal Size"
+  },
+  "invoiceReconciliation": {
+    "desc": "Link Moneybird invoices to companies for revenue attribution",
+    "text2": "Invoice Reconciliation",
+    "text3": "Total Invoices",
+    "text4": "Matched",
+    "text5": "Unmatched",
+    "text6": "Needs Review",
+    "text7": "Match Rate",
+    "text8": "Search invoices...",
+    "text9": "Unmatched Invoices",
+    "text10": "Moneybird Contact",
+    "text11": "Amount",
+    "text12": "Date",
+    "text13": "Status",
+    "text14": "Matched Invoices",
+    "text15": "Moneybird Contact",
+    "text16": "Linked Company",
+    "text17": "Amount",
+    "text18": "Type",
+    "text19": "Date",
+    "text20": "Needs Finance Review",
+    "text21": "Company",
+    "text22": "Amount",
+    "text23": "Type",
+    "text24": "Variance",
+    "text25": "Notes"
+  },
+  "jobAnalyticsIndex": {
+    "desc": "View detailed analytics for each job posting",
+    "text2": "Per-Job Analytics",
+    "text3": "Active Jobs",
+    "text4": "Total Applications",
+    "text5": "Avg. Applications",
+    "text6": "New This Month",
+    "text7": "Active Jobs",
+    "text8": "Loading jobs...",
+    "text9": "No Active Jobs",
+    "text10": "Create a job posting to start tracking analytics."
+  },
+  "jobApprovals": {
+    "title": "Job Approvals",
+    "desc": "Review and approve jobs submitted by partners.",
+    "desc2": "No jobs pending approval."
+  },
+  "jobPostingTemplates": {
+    "text1": "Department",
+    "text2": "Remote",
+    "text3": "Hybrid",
+    "text4": "Contract",
+    "text5": "Internship",
+    "text6": "Description",
+    "text7": "We're looking for...",
+    "text8": "Requirements",
+    "text9": "Benefits",
+    "text10": "Templates",
+    "text11": "Departments",
+    "text12": "Global",
+    "text13": "Description",
+    "text14": "Requirements",
+    "text15": "Benefits"
+  },
+  "marketplaceAnalytics": {
+    "title": "Marketplace Analytics",
+    "desc": "Platform performance and GMV metrics",
+    "desc2": "Completed Projects",
+    "desc3": "Avg. Contract Value",
+    "desc4": "Connects Purchased",
+    "desc5": "Connects Revenue"
+  },
+  "rAGAnalyticsDashboard": {
+    "desc": "Real-time performance metrics for the retrieval-augmented generation system",
+    "desc2": "Based on precision, recall, and hallucination rate",
+    "desc3": "No intent data available yet",
+    "desc4": "No data available",
+    "text5": "Last 7 days",
+    "text6": "Last 30 days",
+    "text7": "Last 90 days",
+    "text8": "System Health Score",
+    "text9": "Total Queries",
+    "text10": "Cache Hit Rate",
+    "text11": "Avg Latency",
+    "text12": "Relevant results in top 5",
+    "text13": "Coverage of relevant docs",
+    "text14": "Context Utilization",
+    "text15": "Hallucination Rate",
+    "text16": "AI responses with unsupported claims",
+    "text17": "Precision & Recall Trends",
+    "text18": "Daily averages over time",
+    "text19": "Context Utilization",
+    "text20": "Current",
+    "text21": "Current Rate",
+    "text22": "Threshold",
+    "text23": "Avg Latency",
+    "text24": "Average response time",
+    "text25": "P95 Latency",
+    "text26": "Feedback Rate",
+    "text27": "Positive feedback",
+    "text28": "Latency Trends Over Time",
+    "text29": "Average latency by day",
+    "text30": "Query Intent Distribution",
+    "text31": "Classification of user queries by intent type",
+    "text32": "Intent Summary",
+    "text33": "Query types breakdown",
+    "text34": "Active Prompt Experiments",
+    "text35": "Impressions",
+    "text36": "Positive",
+    "text37": "Negative",
+    "text38": "Success Rate",
+    "text39": "No active experiments",
+    "text40": "Create a prompt experiment to start A/B testing",
+    "text41": "Total Queries",
+    "text42": "Cache Hit Rate",
+    "text43": "Positive Feedback",
+    "text44": "System Status"
+  },
+  "revenueDashboard": {
+    "text1": "Revenue Dashboard",
+    "text2": "Track ARR, MRR, and revenue metrics for due diligence",
+    "text3": "Overview",
+    "text4": "ARR Tracking",
+    "text5": "Revenue Distribution",
+    "text6": "Cohort Analysis",
+    "text7": "Target Customers",
+    "text8": "Target Candidates"
+  },
+  "riskManagementDashboard": {
+    "desc": "Capacity planning, risk registry, and scaling readiness",
+    "text2": "Risk & Scale Management"
+  },
+  "strategistProjectsDashboard": {
+    "desc": "Curate perfect freelancer matches for client projects",
+    "text2": "Open Projects",
+    "text3": "Available Talent",
+    "text4": "Placements This Month",
+    "text5": "Commission Earned",
+    "text6": "Search projects...",
+    "text7": "Open",
+    "text8": "Matched",
+    "text9": "All",
+    "text10": "No projects found",
+    "text11": "Match Freelancers to Project",
+    "text12": "Notes for Shortlist",
+    "text13": "Add notes about why you're recommending these freelancers..."
+  },
+  "supportTicketAdmin": {
+    "text1": "Analytics",
+    "text2": "Critical",
+    "text3": "Resolved",
+    "text4": "Open",
+    "text5": "Resolved",
+    "text6": "Closed",
+    "text7": "Critical",
+    "text8": "High",
+    "text9": "Medium",
+    "text10": "Low",
+    "text11": "Subject",
+    "text12": "Priority",
+    "text13": "Status",
+    "text14": "Category",
+    "text15": "Created",
+    "text16": "Actions",
+    "text17": "Breached",
+    "text18": "Take",
+    "text19": "Resolve",
+    "text20": "Close",
+    "text21": "Priority",
+    "text22": "Responses",
+    "text23": "Reply"
+  },
+  "systemHealth": {
+    "text1": "System Health",
+    "text2": "Real-time platform monitoring and diagnostics",
+    "text3": "System Health",
+    "text4": "Real-time platform monitoring and diagnostics",
+    "text5": "Overview",
+    "text6": "Functions",
+    "text7": "Error Logs"
+  },
+  "targetCompaniesOverview": {
+    "title": "Target Companies Overview",
+    "desc": "All target companies across all partners"
+  },
+  "templateManagement": {
+    "desc": "Create and manage templates for your team",
+    "text2": "Template Management",
+    "text3": "Total",
+    "text4": "System",
+    "text5": "Company",
+    "text6": "Personal",
+    "text7": "Total Uses",
+    "text8": "Search templates...",
+    "text9": "All",
+    "text10": "System",
+    "text11": "Company",
+    "text12": "Personal",
+    "text13": "No templates found"
+  },
+  "userActivity": {
+    "desc": "Comprehensive tracking and analysis of user behavior",
+    "text2": "Active Users",
+    "text3": "Currently browsing",
+    "text4": "Sessions (24h)",
+    "text5": "Total sessions",
+    "text6": "Events (24h)",
+    "text7": "User interactions",
+    "text8": "Frustrations (24h)",
+    "text9": "Issues detected",
+    "text10": "User Journey Analysis"
+  },
+  "userEngagementDashboard": {
+    "text1": "User Engagement",
+    "text2": "Platform usage and engagement metrics",
+    "text3": "Active Users (30d)",
+    "text4": "Avg Session Time",
+    "text5": "Page Views",
+    "text6": "Actions Performed",
+    "text7": "Daily Active Users",
+    "text8": "User activity trend over time",
+    "text9": "Top Features",
+    "text10": "Most used platform features"
+  },
+  "userManagementHub": {
+    "title": "User Management",
+    "desc": "Manage candidates, partners, staff, and pending requests"
+  },
+  "whatsAppHub": {
+    "text1": "WhatsApp Hub",
+    "text2": "Ops",
+    "text3": "Connected",
+    "text4": "Not Connected"
+  },
+  "whatsAppSettings": {
+    "desc": "Connect your WhatsApp Business account to start messaging",
+    "desc2": "No automation rules configured yet.",
+    "text3": "WhatsApp Settings",
+    "text4": "Configure your WhatsApp Business integration",
+    "text5": "Connection",
+    "text6": "Templates",
+    "text7": "Automation",
+    "text8": "Webhook",
+    "text9": "Connected",
+    "text10": "Active",
+    "text11": "Phone Number ID",
+    "text12": "Display Phone Number",
+    "text13": "Not Connected",
+    "text14": "Message Templates",
+    "text15": "Pre-approved templates for outbound messaging",
+    "text16": "Webhook URL",
+    "text17": "Verify Token",
+    "text18": "Webhook Fields to Subscribe"
+  },
+  "adminAchievementsManager": {
+    "companyAchievements": "Company Achievements",
+    "platformAchievements": "Platform Achievements",
+    "companies": "Companies",
+    "achievementAnalytics": "Achievement Analytics",
+    "overviewOfAchievementDistributionAndEngagement": "Overview of achievement distribution and engagement",
+    "grantCompanyAchievement": "Grant Company Achievement",
+    "grantPlatformAchievement": "Grant Platform Achievement",
+    "createNewAchievement": "Create New Achievement",
+    "editCompanyAchievement": "Edit Company Achievement",
+    "editPlatformAchievement": "Edit Platform Achievement",
+    "achievementEarners": "Achievement Earners",
+    "achievement": "Achievement",
+    "userOptional": "User (Optional)",
+    "companyOptional": "Company (Optional)",
+    "user": "User",
+    "achievementType": "Achievement Type",
+    "company": "Company",
+    "interactionType": "Interaction Type",
+    "amountRequired": "Amount Required",
+    "timeBound": "Time Bound",
+    "durationDays": "Duration (days)",
+    "category": "Category",
+    "rarity": "Rarity",
+    "xpReward": "XP Reward",
+    "icon": "Icon",
+    "iconEmoji": "Icon Emoji",
+    "xpPoints": "XP Points",
+    "saveChanges": "Save Changes",
+    "managePlatformAndCompanyAchievements": "Manage platform and company achievements",
+    "acrossAllTypes": "Across all types",
+    "withAchievements": "With achievements",
+    "requireCompletionWithinASpecificTimeframe": "Require completion within a specific timeframe",
+    "achievementsManagement": "Achievements Management",
+    "topCompanyAchievements": "Top Company Achievements",
+    "topPlatformAchievements": "Top Platform Achievements",
+    "unlockCriteria": "Unlock Criteria",
+    "usercompany": "User/Company",
+    "dateEarned": "Date Earned",
+    "analytics": "Analytics",
+    "selectAchievement": "Select achievement",
+    "selectUser": "Select user",
+    "selectCompany": "Select company",
+    "searchCompanyAchievements": "Search company achievements...",
+    "searchPlatformAchievements": "Search platform achievements...",
+    "errorLoadingCompanyAchievements": "Error loading company achievements",
+    "errorLoadingPlatformAchievements": "Error loading platform achievements",
+    "errorLoadingEarners": "Error loading earners",
+    "errorCreatingAchievement": "Error creating achievement",
+    "achievementUpdatedSuccessfully": "Achievement updated successfully",
+    "errorUpdatingAchievement": "Error updating achievement",
+    "achievementGrantedSuccessfully": "Achievement granted successfully",
+    "errorGrantingAchievement": "Error granting achievement",
+    "achievementDeletedSuccessfully": "Achievement deleted successfully",
+    "errorDeletingAchievement": "Error deleting achievement",
+    "achievementRevokedSuccessfully": "Achievement revoked successfully",
+    "errorRevokingAchievement": "Error revoking achievement"
+  },
+  "applicationStats": {
+    "totalApplications": "Total Applications",
+    "pendingReview": "Pending Review",
+    "approved": "Approved",
+    "rejected": "Rejected",
+    "conversionRate": "Conversion Rate",
+    "lastSubmission": "Last Submission"
+  },
+  "onboardingProgressTracker": {
+    "contact": "Contact",
+    "professional": "Professional",
+    "career": "Career",
+    "compensation": "Compensation",
+    "preferences": "Preferences",
+    "password": "Password",
+    "onboardingProgress": "Onboarding Progress",
+    "completed": "Completed",
+    "notStarted": "Not Started",
+    "dataCollectedSoFar": "Data Collected So Far"
+  },
+  "revenueShareSummary": {
+    "ytdRevenue": "YTD Revenue",
+    "collectedRevenue": "Collected Revenue",
+    "shareObligations": "Share Obligations",
+    "netRevenue": "Net Revenue",
+    "afterShareObligations": "After share obligations"
+  },
+  "strategistManagementModal": {
+    "manageStrategists": "Manage Strategists",
+    "title": "Strategist Assignment Manager",
+    "companies": "Companies",
+    "candidates": "Candidates",
+    "workload": "Workload"
+  },
+  "voiceCommandButton": {
+    "stopVoiceCommands": "Stop voice commands",
+    "startVoiceCommands": "Start voice commands",
+    "listeningPrompt": "Listening... Say \"Go to [page]\" or \"Search for [term]\"",
+    "voiceCommandsAdmin": "Voice commands (Admin)"
+  },
+  "mlTrainingDashboard": {
+    "title": "ML Training Pipeline",
+    "embeddingsGenerated": "Embeddings Generated",
+    "trainingDataPrepared": "Training Data Prepared",
+    "modelTrainingComplete": "Model Training Complete",
+    "trainingFailed": "Training Failed",
+    "generateEmbeddings": "1. Generate Embeddings",
+    "prepareTrainingData": "2. Prepare Training Data",
+    "trainModel": "3. Train Model"
+  },
+  "gameAdmin": {
+    "totalCompletions": "Total Completions",
+    "averageScore": "Average Score",
+    "avgRiskScore": "Avg. Risk Score",
+    "avgPrioritizationScore": "Avg. Prioritization Score",
+    "avgSelfAwareness": "Avg. Self-Awareness",
+    "averageAccuracy": "Average Accuracy",
+    "avgTimeSpent": "Avg. Time Spent",
+    "allResults": "All Results",
+    "searchPlaceholder": "Search by name or email...",
+    "noResults": "No results found",
+    "candidate": "Candidate",
+    "score": "Score",
+    "accuracy": "Accuracy",
+    "timeSpent": "Time Spent",
+    "completed": "Completed",
+    "actions": "Actions",
+    "viewProfile": "View Profile",
+    "unknown": "Unknown"
+  },
+  "depreciation": {
+    "title": "Depreciation Schedule",
+    "subtitle": "Monthly depreciation ledger",
+    "generateEntries": "Generate Entries",
+    "postAll": "Post All",
+    "totalEntries": "Total Entries",
+    "totalDepreciation": "Total Depreciation",
+    "posted": "Posted",
+    "pending": "Pending",
+    "asset": "Asset",
+    "category": "Category",
+    "depreciation": "Depreciation",
+    "accumulated": "Accumulated",
+    "bookValue": "Book Value",
+    "status": "Status",
+    "action": "Action",
+    "noEntries": "No entries for this period. Click \"Generate Entries\" to create.",
+    "post": "Post",
+    "runHistory": "Depreciation Run History",
+    "noRuns": "No depreciation runs recorded for {{year}}.",
+    "period": "Period",
+    "runType": "Run Type",
+    "entries": "Entries",
+    "runDate": "Run Date"
+  },
+  "assetRegister": {
+    "title": "Asset Register",
+    "subtitle": "Manage all company assets",
+    "addAsset": "Add Asset",
+    "totalAssets": "Total Assets",
+    "filteredAssets": "Filtered Assets",
+    "active": "Active",
+    "purchaseValue": "Purchase Value",
+    "bookValue": "Book Value",
+    "searchPlaceholder": "Search assets...",
+    "allCategories": "All Categories",
+    "allStatus": "All Status",
+    "underMaintenance": "Under Maintenance",
+    "disposed": "Disposed",
+    "fullyDepreciated": "Fully Depreciated",
+    "sold": "Sold",
+    "writtenOff": "Written Off",
+    "purchaseDateRange": "Purchase date range",
+    "allAssets": "All Assets"
+  },
+  "intangibleAssets": {
+    "title": "Intangible Assets",
+    "subtitle": "Software licenses and development costs",
+    "addIntangible": "Add Intangible",
+    "totalIntangibles": "Total Intangibles",
+    "active": "Active",
+    "totalValue": "Total Value",
+    "bookValue": "Book Value",
+    "softwareDev": "Software & Development",
+    "noAssets": "No intangible assets yet",
+    "noAssetsDesc": "Add software licenses, development costs, or other intangible assets to track their value and amortization."
+  }
+}

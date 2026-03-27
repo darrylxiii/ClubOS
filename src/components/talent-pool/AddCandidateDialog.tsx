@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import {
   Dialog,
@@ -33,6 +34,7 @@ export function AddCandidateDialog({
   onOpenChange,
   onSuccess,
 }: AddCandidateDialogProps) {
+  const { t } = useTranslation('common');
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     full_name: '',
@@ -49,12 +51,12 @@ export function AddCandidateDialog({
     e.preventDefault();
 
     if (!formData.full_name.trim()) {
-      toast.error('Name is required');
+      toast.error(t("name_is_required", "Name is required"));
       return;
     }
 
     setIsLoading(true);
-    const toastId = toast.loading('Adding candidate...');
+    const toastId = toast.loading(t("adding_candidate", "Adding candidate..."));
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -77,7 +79,7 @@ export function AddCandidateDialog({
 
       if (profileError) throw profileError;
 
-      toast.success('Candidate added successfully', { id: toastId });
+      toast.success(t("candidate_added_successfully", "Candidate added successfully"), { id: toastId });
       onSuccess();
       onOpenChange(false);
       
@@ -94,7 +96,7 @@ export function AddCandidateDialog({
       });
     } catch (error) {
       console.error('Add candidate error:', error);
-      toast.error('Failed to add candidate', { id: toastId });
+      toast.error(t("failed_to_add_candidate", "Failed to add candidate"), { id: toastId });
     } finally {
       setIsLoading(false);
     }
@@ -116,29 +118,29 @@ export function AddCandidateDialog({
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="col-span-2 space-y-2">
-              <Label htmlFor="full_name">Full Name *</Label>
+              <Label htmlFor="full_name">{t("full_name", "Full Name *")}</Label>
               <Input
                 id="full_name"
                 value={formData.full_name}
                 onChange={(e) => setFormData(prev => ({ ...prev, full_name: e.target.value }))}
-                placeholder="John Doe"
+                placeholder={t("john_doe", "John Doe")}
                 required
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">{t("email", "Email")}</Label>
               <Input
                 id="email"
                 type="email"
                 value={formData.email}
                 onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                placeholder="john@example.com"
+                placeholder={t("johnexamplecom", "john@example.com")}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="phone">Phone</Label>
+              <Label htmlFor="phone">{t("phone", "Phone")}</Label>
               <Input
                 id="phone"
                 value={formData.phone}
@@ -148,27 +150,27 @@ export function AddCandidateDialog({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="headline">Current Role</Label>
+              <Label htmlFor="headline">{t("current_role", "Current Role")}</Label>
               <Input
                 id="headline"
                 value={formData.headline}
                 onChange={(e) => setFormData(prev => ({ ...prev, headline: e.target.value }))}
-                placeholder="Senior Engineer"
+                placeholder={t("senior_engineer", "Senior Engineer")}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="location">Location</Label>
+              <Label htmlFor="location">{t("location", "Location")}</Label>
               <Input
                 id="location"
                 value={formData.location}
                 onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
-                placeholder="Amsterdam, NL"
+                placeholder={t("amsterdam_nl", "Amsterdam, NL")}
               />
             </div>
 
             <div className="col-span-2 space-y-2">
-              <Label htmlFor="tier">Initial Tier</Label>
+              <Label htmlFor="tier">{t("initial_tier", "Initial Tier")}</Label>
               <Select
                 value={formData.tier}
                 onValueChange={(value) => setFormData(prev => ({ ...prev, tier: value }))}
@@ -177,22 +179,22 @@ export function AddCandidateDialog({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="hot">🔥 Hot</SelectItem>
-                  <SelectItem value="warm">☀️ Warm</SelectItem>
-                  <SelectItem value="strategic">🎯 Strategic</SelectItem>
-                  <SelectItem value="nurture">🌱 Nurture</SelectItem>
-                  <SelectItem value="passive">😴 Passive</SelectItem>
+                  <SelectItem value="hot">{t("hot", "🔥 Hot")}</SelectItem>
+                  <SelectItem value="warm">{t("warm", "☀️ Warm")}</SelectItem>
+                  <SelectItem value="strategic">{t("strategic", "🎯 Strategic")}</SelectItem>
+                  <SelectItem value="nurture">{t("nurture", "🌱 Nurture")}</SelectItem>
+                  <SelectItem value="passive">{t("passive", "😴 Passive")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="col-span-2 space-y-2">
-              <Label htmlFor="notes">Notes</Label>
+              <Label htmlFor="notes">{t("notes", "Notes")}</Label>
               <Textarea
                 id="notes"
                 value={formData.notes}
                 onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
-                placeholder="Any relevant notes about the candidate..."
+                placeholder={t("any_relevant_notes_about", "Any relevant notes about the candidate...")}
                 rows={3}
               />
             </div>

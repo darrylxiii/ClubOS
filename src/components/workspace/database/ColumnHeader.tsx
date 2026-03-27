@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React, { useState } from 'react';
 import { DatabaseColumn, ColumnType } from '@/hooks/useWorkspaceDatabase';
 import { Button } from '@/components/ui/button';
@@ -84,6 +85,7 @@ const columnTypeLabels: Record<ColumnType, string> = {
 };
 
 export function ColumnHeader({ column, onUpdate, onDelete }: ColumnHeaderProps) {
+  const { t } = useTranslation('common');
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editName, setEditName] = useState(column.name);
   const [editType, setEditType] = useState(column.column_type);
@@ -137,18 +139,18 @@ export function ColumnHeader({ column, onUpdate, onDelete }: ColumnHeaderProps) 
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Edit property</DialogTitle>
+            <DialogTitle>{t("edit_property", "Edit property")}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label>Property name</Label>
+              <Label>{t("property_name", "Property name")}</Label>
               <Input
                 value={editName}
                 onChange={(e) => setEditName(e.target.value)}
               />
             </div>
             <div className="space-y-2">
-              <Label>Property type</Label>
+              <Label>{t("property_type", "Property type")}</Label>
               <Select value={editType} onValueChange={(v) => setEditType(v as ColumnType)}>
                 <SelectTrigger>
                   <SelectValue />

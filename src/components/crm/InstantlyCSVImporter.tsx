@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -35,6 +36,7 @@ const CRM_FIELDS = [
 ];
 
 export function InstantlyCSVImporter() {
+  const { t } = useTranslation('common');
   const [step, setStep] = useState<"upload" | "mapping" | "importing" | "complete">("upload");
   const [csvData, setCSVData] = useState<CSVRow[]>([]);
   const [csvHeaders, setCSVHeaders] = useState<string[]>([]);
@@ -121,7 +123,7 @@ export function InstantlyCSVImporter() {
     
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
-      toast.error("Please sign in to import prospects");
+      toast.error(t("please_sign_in_to", "Please sign in to import prospects"));
       return;
     }
 
@@ -203,7 +205,7 @@ export function InstantlyCSVImporter() {
           <FileSpreadsheet className="h-5 w-5 text-primary" />
           Instantly.ai CSV Import
         </CardTitle>
-        <CardDescription>Import prospects from your Instantly.ai campaigns</CardDescription>
+        <CardDescription>{t("import_prospects_from_your", "Import prospects from your Instantly.ai campaigns")}</CardDescription>
       </CardHeader>
       <CardContent>
         <AnimatePresence mode="wait">
@@ -211,9 +213,9 @@ export function InstantlyCSVImporter() {
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="space-y-4">
               <div className="border-2 border-dashed border-border/50 rounded-lg p-8 text-center hover:border-primary/50 transition-colors">
                 <Upload className="h-10 w-10 mx-auto mb-4 text-muted-foreground" />
-                <p className="text-muted-foreground mb-4">Drop your CSV here or click to browse</p>
+                <p className="text-muted-foreground mb-4">{t("drop_your_csv_here", "Drop your CSV here or click to browse")}</p>
                 <Label htmlFor="csv-upload" className="cursor-pointer">
-                  <Button variant="outline" asChild><span>Select CSV File</span></Button>
+                  <Button variant="outline" asChild><span>{t("select_csv_file", "Select CSV File")}</span></Button>
                 </Label>
                 <Input id="csv-upload" type="file" accept=".csv" className="hidden" onChange={handleFileUpload} />
               </div>
@@ -227,7 +229,7 @@ export function InstantlyCSVImporter() {
                   <p className="text-sm text-muted-foreground">File: {fileName}</p>
                   <p className="text-sm text-muted-foreground">{csvData.length} rows found</p>
                 </div>
-                <Button variant="ghost" size="sm" onClick={reset}><X className="h-4 w-4 mr-1" /> Cancel</Button>
+                <Button variant="ghost" size="sm" onClick={reset}><X className="h-4 w-4 mr-1" />{t("cancel", "Cancel")}</Button>
               </div>
 
               <div className="space-y-3 max-h-[400px] overflow-y-auto">
@@ -264,7 +266,7 @@ export function InstantlyCSVImporter() {
           {step === "importing" && (
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="space-y-4 text-center py-8">
               <div className="animate-spin h-10 w-10 border-4 border-primary border-t-transparent rounded-full mx-auto" />
-              <p className="text-muted-foreground">Importing prospects...</p>
+              <p className="text-muted-foreground">{t("importing_prospects", "Importing prospects...")}</p>
               <Progress value={importProgress} className="w-full" />
               <p className="text-sm text-muted-foreground">{importProgress}% complete</p>
             </motion.div>
@@ -275,12 +277,12 @@ export function InstantlyCSVImporter() {
               <div className="h-16 w-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto">
                 <Check className="h-8 w-8 text-primary" />
               </div>
-              <h3 className="text-lg font-semibold">Import Complete</h3>
+              <h3 className="text-lg font-semibold">{t("import_complete", "Import Complete")}</h3>
               <div className="flex justify-center gap-4">
                 <Badge variant="outline" className="bg-green-500/10 text-green-500">{importResults.success} Imported</Badge>
                 {importResults.failed > 0 && <Badge variant="outline" className="bg-red-500/10 text-red-500">{importResults.failed} Failed</Badge>}
               </div>
-              <Button onClick={reset} variant="outline">Import Another File</Button>
+              <Button onClick={reset} variant="outline">{t("import_another_file", "Import Another File")}</Button>
             </motion.div>
           )}
         </AnimatePresence>

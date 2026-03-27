@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Eye, UserCheck, UserX, MessageSquare, AlertCircle } from "lucide-react";
 import { CandidateDetailDialog } from "./CandidateDetailDialog";
 import { EnhancedCandidateActionDialog } from "./EnhancedCandidateActionDialog";
+import { useTranslation } from 'react-i18next';
 
 interface JobDashboardCandidatesProps {
   jobId: string;
@@ -16,6 +17,7 @@ interface JobDashboardCandidatesProps {
 }
 
 export const JobDashboardCandidates = ({ jobId, stages, onUpdate, needsClubCheck }: JobDashboardCandidatesProps) => {
+  const { t } = useTranslation('partner');
   const [applications, setApplications] = useState<any[]>([]);
   const [selectedCandidate, setSelectedCandidate] = useState<any>(null);
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
@@ -103,7 +105,7 @@ export const JobDashboardCandidates = ({ jobId, stages, onUpdate, needsClubCheck
       updateStats(data || []);
     } catch (error) {
       console.error('Error fetching applications:', error);
-      toast.error("Failed to load candidates");
+      toast.error(t('jobDashboardCandidates.toast.failedToLoadCandidates'));
     } finally {
       setLoading(false);
     }
@@ -160,10 +162,8 @@ export const JobDashboardCandidates = ({ jobId, stages, onUpdate, needsClubCheck
       <Card className="border-2 border-dashed">
         <CardContent className="flex flex-col items-center justify-center py-12">
           <UserCheck className="w-12 h-12 text-muted-foreground mb-4" />
-          <h3 className="text-lg font-bold mb-2">No applications yet</h3>
-          <p className="text-sm text-muted-foreground">
-            Applications will appear here once candidates start applying
-          </p>
+          <h3 className="text-lg font-bold mb-2">{t('jobDashboardCandidates.noApplicationsYet')}</h3>
+          <p className="text-sm text-muted-foreground">{t('jobDashboardCandidates.applicationsWillAppearHereOnceCandidates')}</p>
         </CardContent>
       </Card>
     );
@@ -183,9 +183,7 @@ export const JobDashboardCandidates = ({ jobId, stages, onUpdate, needsClubCheck
                   <h3 className="font-bold text-lg">
                     {needsClubCheck} Candidate{needsClubCheck !== 1 ? 's' : ''} Need Club Check
                   </h3>
-                  <p className="text-sm text-muted-foreground">
-                    Review and advance premium candidates faster with our exclusive vetting
-                  </p>
+                  <p className="text-sm text-muted-foreground">{t('jobDashboardCandidates.reviewAndAdvancePremiumCandidatesFasterW')}</p>
                 </div>
               </div>
               <Button 
@@ -218,9 +216,7 @@ export const JobDashboardCandidates = ({ jobId, stages, onUpdate, needsClubCheck
               </CardHeader>
               <CardContent>
                 {stageApplications.length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-4">
-                    No candidates in this stage
-                  </p>
+                  <p className="text-sm text-muted-foreground text-center py-4">{t('jobDashboardCandidates.noCandidatesInThisStage')}</p>
                 ) : (
                   <div className="space-y-2">
                     {stageApplications.map((app) => (
@@ -256,7 +252,7 @@ export const JobDashboardCandidates = ({ jobId, stages, onUpdate, needsClubCheck
                             }}
                           >
                             <Eye className="w-4 h-4 mr-2" />
-                            View
+                            {t('common:view')}
                           </Button>
                           <Button
                             size="sm"
@@ -273,7 +269,7 @@ export const JobDashboardCandidates = ({ jobId, stages, onUpdate, needsClubCheck
                             onClick={() => handleOpenActionDialog(app, 'decline')}
                           >
                             <UserX className="w-4 h-4 mr-2" />
-                            Reject
+                            {t('common:reject')}
                           </Button>
                         </div>
                       </div>

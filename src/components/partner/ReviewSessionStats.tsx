@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { Clock, CheckCircle2, XCircle, Pause, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 
 interface ReviewSessionStatsProps {
   totalInQueue: number;
@@ -21,6 +22,7 @@ export function ReviewSessionStats({
   sessionStartTime,
   className,
 }: ReviewSessionStatsProps) {
+  const { t } = useTranslation('common');
   const totalReviewed = approvedCount + rejectedCount + heldCount;
 
   const avgTimePerReview = useMemo(() => {
@@ -38,7 +40,7 @@ export function ReviewSessionStats({
     )}>
       <span className="flex items-center gap-1">
         <Zap className="h-3 w-3 text-primary" />
-        <span className="font-medium text-foreground">{totalReviewed}</span> reviewed
+        <span className="font-medium text-foreground">{totalReviewed}</span> {t('partner.reviewed', 'reviewed')}
       </span>
 
       {approvedCount > 0 && (
@@ -65,13 +67,13 @@ export function ReviewSessionStats({
       {avgTimePerReview && (
         <span className="flex items-center gap-1">
           <Clock className="h-3 w-3" />
-          avg {avgTimePerReview}
+          {t('partner.avgTime', 'avg')} {avgTimePerReview}
         </span>
       )}
 
       {totalInQueue > 0 && (
         <span className="ml-auto text-muted-foreground/70">
-          {totalInQueue - totalReviewed} remaining
+          {t('partner.remainingCount', '{{count}} remaining', { count: totalInQueue - totalReviewed })}
         </span>
       )}
     </div>

@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { LazyMarkdown } from '@/components/ui/LazyMarkdown';
+import { useTranslation } from 'react-i18next';
 
 interface BackupVerificationLog {
   id: string;
@@ -223,6 +224,7 @@ Full post-mortem: [Link]
 `;
 
 export const DisasterRecoveryDashboard = () => {
+  const { t } = useTranslation('admin');
   // Fetch latest backup verification
   const { data: latestBackup, isLoading: backupLoading } = useQuery({
     queryKey: ['latest-backup-verification'],
@@ -392,31 +394,31 @@ export const DisasterRecoveryDashboard = () => {
 
   const runManualVerification = async () => {
     try {
-      toast.info('Running manual backup verification...');
+      toast.info(t('disasterRecoveryDashboard.runningManualBackupVerification'));
       const { data, error } = await supabase.functions.invoke('verify-database-backups');
       
       if (error) throw error;
       
-      toast.success('Backup verification completed successfully');
+      toast.success(t('disasterRecoveryDashboard.backupVerificationCompletedSuccessfully'));
       setTimeout(() => window.location.reload(), 2000);
     } catch (error) {
       console.error('Manual verification failed:', error);
-      toast.error('Failed to run backup verification');
+      toast.error(t('disasterRecoveryDashboard.failedToRunBackupVerification'));
     }
   };
 
   const runManualPitrTest = async () => {
     try {
-      toast.info('Running manual PITR test...');
+      toast.info(t('disasterRecoveryDashboard.runningManualPitrTest'));
       const { data, error } = await supabase.functions.invoke('test-pitr-recovery');
       
       if (error) throw error;
       
-      toast.success('PITR test completed successfully');
+      toast.success(t('disasterRecoveryDashboard.pitrTestCompletedSuccessfully'));
       setTimeout(() => window.location.reload(), 2000);
     } catch (error) {
       console.error('Manual PITR test failed:', error);
-      toast.error('Failed to run PITR test');
+      toast.error(t('disasterRecoveryDashboard.failedToRunPitrTest'));
     }
   };
 
@@ -433,11 +435,11 @@ export const DisasterRecoveryDashboard = () => {
       
       if (error) throw error;
       
-      toast.success('Alert acknowledged');
+      toast.success(t('disasterRecoveryDashboard.alertAcknowledged'));
       refetchAlerts();
     } catch (error) {
       console.error('Failed to acknowledge alert:', error);
-      toast.error('Failed to acknowledge alert');
+      toast.error(t('disasterRecoveryDashboard.failedToAcknowledgeAlert'));
     }
   };
 
@@ -479,7 +481,7 @@ export const DisasterRecoveryDashboard = () => {
     <div className="space-y-6 p-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold">Disaster Recovery Command Center</h2>
+          <h2 className="text-3xl font-bold">{t('disasterRecoveryDashboard.disasterRecoveryCommandCenter')}</h2>
           <p className="text-muted-foreground mt-1">
             Comprehensive backup verification, PITR testing, and incident management
           </p>
@@ -501,7 +503,7 @@ export const DisasterRecoveryDashboard = () => {
         {/* RTO Status */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">RTO Target</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('disasterRecoveryDashboard.rtoTarget')}</CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -515,7 +517,7 @@ export const DisasterRecoveryDashboard = () => {
         {/* RPO Status */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Current RPO</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('disasterRecoveryDashboard.currentRpo')}</CardTitle>
             <Database className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -536,7 +538,7 @@ export const DisasterRecoveryDashboard = () => {
         {/* Backup Health */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Backup Health</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('disasterRecoveryDashboard.backupHealth')}</CardTitle>
             <Shield className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -558,7 +560,7 @@ export const DisasterRecoveryDashboard = () => {
         {/* PITR Test Status */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">PITR Status</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('disasterRecoveryDashboard.pitrStatus')}</CardTitle>
             <TestTube className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -580,7 +582,7 @@ export const DisasterRecoveryDashboard = () => {
         {/* Recovery Success Rate */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Success Rate</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('disasterRecoveryDashboard.successRate')}</CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -594,7 +596,7 @@ export const DisasterRecoveryDashboard = () => {
         {/* Active Playbooks */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Playbooks</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('disasterRecoveryDashboard.playbooks')}</CardTitle>
             <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -657,14 +659,14 @@ export const DisasterRecoveryDashboard = () => {
       {/* Main Tabs */}
       <Tabs defaultValue="overview" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="backups">Backup History</TabsTrigger>
-          <TabsTrigger value="incidents">Incidents</TabsTrigger>
-          <TabsTrigger value="drills">DR Drills</TabsTrigger>
-          <TabsTrigger value="playbooks">Playbooks</TabsTrigger>
-          <TabsTrigger value="dependencies">Dependencies</TabsTrigger>
-          <TabsTrigger value="contacts">Contacts</TabsTrigger>
-          <TabsTrigger value="runbooks">Runbooks</TabsTrigger>
+          <TabsTrigger value="overview">{t('disasterRecoveryDashboard.overview')}</TabsTrigger>
+          <TabsTrigger value="backups">{t('disasterRecoveryDashboard.backupHistory')}</TabsTrigger>
+          <TabsTrigger value="incidents">{t('disasterRecoveryDashboard.incidents')}</TabsTrigger>
+          <TabsTrigger value="drills">{t('disasterRecoveryDashboard.drDrills')}</TabsTrigger>
+          <TabsTrigger value="playbooks">{t('disasterRecoveryDashboard.playbooks')}</TabsTrigger>
+          <TabsTrigger value="dependencies">{t('disasterRecoveryDashboard.dependencies')}</TabsTrigger>
+          <TabsTrigger value="contacts">{t('disasterRecoveryDashboard.contacts')}</TabsTrigger>
+          <TabsTrigger value="runbooks">{t('disasterRecoveryDashboard.runbooks')}</TabsTrigger>
         </TabsList>
 
         {/* Overview Tab */}
@@ -673,7 +675,7 @@ export const DisasterRecoveryDashboard = () => {
           {latestBackup?.tier_results && (
             <Card>
               <CardHeader>
-                <CardTitle>Backup Verification by Tier</CardTitle>
+                <CardTitle>{t('disasterRecoveryDashboard.backupVerificationByTier')}</CardTitle>
                 <p className="text-sm text-muted-foreground">
                   Latest verification: {new Date(latestBackup.timestamp).toLocaleString()}
                 </p>
@@ -725,7 +727,7 @@ export const DisasterRecoveryDashboard = () => {
                 </div>
                 <div className="mt-4 pt-4 border-t">
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Total Coverage</span>
+                    <span className="text-muted-foreground">{t('disasterRecoveryDashboard.totalCoverage')}</span>
                     <span className="font-medium">
                       {latestBackup.tables_verified}/{latestBackup.total_tables} tables ({((latestBackup.tables_verified / latestBackup.total_tables) * 100).toFixed(1)}%)
                     </span>
@@ -741,7 +743,7 @@ export const DisasterRecoveryDashboard = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
-                <CardTitle>Recent Backup Verifications</CardTitle>
+                <CardTitle>{t('disasterRecoveryDashboard.recentBackupVerifications')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
@@ -773,7 +775,7 @@ export const DisasterRecoveryDashboard = () => {
             {/* PITR Test Results */}
             <Card>
               <CardHeader>
-                <CardTitle>Recent PITR Tests</CardTitle>
+                <CardTitle>{t('disasterRecoveryDashboard.recentPitrTests')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
@@ -801,8 +803,8 @@ export const DisasterRecoveryDashboard = () => {
                   {(!pitrTests || pitrTests.length === 0) && (
                     <div className="text-center py-8 text-muted-foreground">
                       <TestTube className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                      <p>No PITR tests run yet</p>
-                      <p className="text-sm">Click "Test PITR" to run your first test</p>
+                      <p>{t('disasterRecoveryDashboard.noPitrTestsRunYet')}</p>
+                      <p className="text-sm">{t('disasterRecoveryDashboard.clickTestPitrToRunYour')}</p>
                     </div>
                   )}
                 </div>
@@ -815,7 +817,7 @@ export const DisasterRecoveryDashboard = () => {
         <TabsContent value="incidents" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Recent Incidents</CardTitle>
+              <CardTitle>{t('disasterRecoveryDashboard.recentIncidents')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
@@ -847,7 +849,7 @@ export const DisasterRecoveryDashboard = () => {
                 {!recentIncidents || recentIncidents.length === 0 && (
                   <div className="text-center py-8 text-muted-foreground">
                     <Shield className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                    <p>No recent incidents</p>
+                    <p>{t('disasterRecoveryDashboard.noRecentIncidents')}</p>
                   </div>
                 )}
               </div>
@@ -859,7 +861,7 @@ export const DisasterRecoveryDashboard = () => {
         <TabsContent value="drills" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Scheduled DR Drills</CardTitle>
+              <CardTitle>{t('disasterRecoveryDashboard.scheduledDrDrills')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
@@ -879,7 +881,7 @@ export const DisasterRecoveryDashboard = () => {
                 ))}
                 {!drillSchedule || drillSchedule.length === 0 && (
                   <div className="text-center py-8 text-muted-foreground">
-                    <p>No scheduled drills</p>
+                    <p>{t('disasterRecoveryDashboard.noScheduledDrills')}</p>
                   </div>
                 )}
               </div>
@@ -891,7 +893,7 @@ export const DisasterRecoveryDashboard = () => {
         <TabsContent value="playbooks" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Recovery Playbooks</CardTitle>
+              <CardTitle>{t('disasterRecoveryDashboard.recoveryPlaybooks')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -927,7 +929,7 @@ export const DisasterRecoveryDashboard = () => {
         <TabsContent value="dependencies" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Service Dependencies</CardTitle>
+              <CardTitle>{t('disasterRecoveryDashboard.serviceDependencies')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
@@ -964,7 +966,7 @@ export const DisasterRecoveryDashboard = () => {
         <TabsContent value="contacts" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>DR Contact List</CardTitle>
+              <CardTitle>{t('disasterRecoveryDashboard.drContactList')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
@@ -999,7 +1001,7 @@ export const DisasterRecoveryDashboard = () => {
             <CardHeader className="flex flex-row items-center justify-between">
               <div className="flex items-center gap-3">
                 <FileText className="h-6 w-6 text-primary" />
-                <CardTitle>Disaster Recovery Runbooks</CardTitle>
+                <CardTitle>{t('disasterRecoveryDashboard.disasterRecoveryRunbooks')}</CardTitle>
               </div>
               <Button variant="outline" onClick={downloadRunbooks}>
                 <Download className="h-4 w-4 mr-2" />

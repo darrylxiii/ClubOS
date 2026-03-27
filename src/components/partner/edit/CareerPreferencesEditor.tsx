@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,6 +13,7 @@ interface CareerPreferencesEditorProps {
 }
 
 export function CareerPreferencesEditor({ candidate, onChange }: CareerPreferencesEditorProps) {
+  const { t } = useTranslation('common');
   const [currentSalaryMin, setCurrentSalaryMin] = useState(candidate.current_salary_min || '');
   const [currentSalaryMax, setCurrentSalaryMax] = useState(candidate.current_salary_max || '');
   const [desiredSalaryMin, setDesiredSalaryMin] = useState(candidate.desired_salary_min || '');
@@ -84,7 +86,7 @@ export function CareerPreferencesEditor({ candidate, onChange }: CareerPreferenc
             type="number"
             value={currentSalaryMin}
             onChange={(e) => setCurrentSalaryMin(e.target.value)}
-            placeholder="e.g., 80000"
+            placeholder={t("eg_80000", "e.g., 80000")}
           />
         </div>
 
@@ -95,7 +97,7 @@ export function CareerPreferencesEditor({ candidate, onChange }: CareerPreferenc
             type="number"
             value={currentSalaryMax}
             onChange={(e) => setCurrentSalaryMax(e.target.value)}
-            placeholder="e.g., 100000"
+            placeholder={t("eg_100000", "e.g., 100000")}
           />
         </div>
 
@@ -106,7 +108,7 @@ export function CareerPreferencesEditor({ candidate, onChange }: CareerPreferenc
             type="number"
             value={desiredSalaryMin}
             onChange={(e) => setDesiredSalaryMin(e.target.value)}
-            placeholder="e.g., 120000"
+            placeholder={t("eg_120000", "e.g., 120000")}
           />
         </div>
 
@@ -117,23 +119,23 @@ export function CareerPreferencesEditor({ candidate, onChange }: CareerPreferenc
             type="number"
             value={desiredSalaryMax}
             onChange={(e) => setDesiredSalaryMax(e.target.value)}
-            placeholder="e.g., 150000"
+            placeholder={t("eg_150000", "e.g., 150000")}
           />
         </div>
       </div>
 
       {/* Currency */}
       <div className="space-y-2">
-        <Label htmlFor="currency">Preferred Currency</Label>
+        <Label htmlFor="currency">{t("preferred_currency", "Preferred Currency")}</Label>
         <Select value={currency} onValueChange={setCurrency}>
           <SelectTrigger id="currency">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="USD">USD ($)</SelectItem>
-            <SelectItem value="EUR">EUR (€)</SelectItem>
-            <SelectItem value="GBP">GBP (£)</SelectItem>
-            <SelectItem value="CAD">CAD ($)</SelectItem>
+            <SelectItem value="USD">{t("usd", "USD ($)")}</SelectItem>
+            <SelectItem value="EUR">{t("eur", "EUR (€)")}</SelectItem>
+            <SelectItem value="GBP">{t("gbp", "GBP (£)")}</SelectItem>
+            <SelectItem value="CAD">{t("cad", "CAD ($)")}</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -146,15 +148,15 @@ export function CareerPreferencesEditor({ candidate, onChange }: CareerPreferenc
         </Label>
         <Select value={noticePeriod} onValueChange={setNoticePeriod}>
           <SelectTrigger id="notice_period">
-            <SelectValue placeholder="Select notice period" />
+            <SelectValue placeholder={t("select_notice_period", "Select notice period")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="immediate">Immediate</SelectItem>
-            <SelectItem value="1_week">1 Week</SelectItem>
-            <SelectItem value="2_weeks">2 Weeks</SelectItem>
-            <SelectItem value="1_month">1 Month</SelectItem>
-            <SelectItem value="2_months">2 Months</SelectItem>
-            <SelectItem value="3_months">3 Months</SelectItem>
+            <SelectItem value="immediate">{t("immediate", "Immediate")}</SelectItem>
+            <SelectItem value="1_week">{t("1_week", "1 Week")}</SelectItem>
+            <SelectItem value="2_weeks">{t("2_weeks", "2 Weeks")}</SelectItem>
+            <SelectItem value="1_month">{t("1_month", "1 Month")}</SelectItem>
+            <SelectItem value="2_months">{t("2_months", "2 Months")}</SelectItem>
+            <SelectItem value="3_months">{t("3_months", "3 Months")}</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -169,11 +171,11 @@ export function CareerPreferencesEditor({ candidate, onChange }: CareerPreferenc
           <Input
             value={newLocation}
             onChange={(e) => setNewLocation(e.target.value)}
-            placeholder="e.g., San Francisco, CA"
+            placeholder={t("eg_san_francisco_ca", "e.g., San Francisco, CA")}
             onKeyDown={(e) => e.key === 'Enter' && handleAddLocation()}
           />
           <Button onClick={handleAddLocation} variant="outline">
-            Add
+            {t('common:add')}
           </Button>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -191,16 +193,16 @@ export function CareerPreferencesEditor({ candidate, onChange }: CareerPreferenc
 
       {/* Remote Preference */}
       <div className="space-y-2">
-        <Label htmlFor="remote_preference">Remote Preference</Label>
+        <Label htmlFor="remote_preference">{t("remote_preference", "Remote Preference")}</Label>
         <Select value={remotePreference} onValueChange={setRemotePreference}>
           <SelectTrigger id="remote_preference">
-            <SelectValue placeholder="Select remote preference" />
+            <SelectValue placeholder={t("select_remote_preference", "Select remote preference")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="remote_only">Remote Only</SelectItem>
-            <SelectItem value="hybrid">Hybrid</SelectItem>
-            <SelectItem value="on_site">On-Site</SelectItem>
-            <SelectItem value="flexible">Flexible</SelectItem>
+            <SelectItem value="remote_only">{t("remote_only", "Remote Only")}</SelectItem>
+            <SelectItem value="hybrid">{t("hybrid", "Hybrid")}</SelectItem>
+            <SelectItem value="on_site">{t("onsite", "On-Site")}</SelectItem>
+            <SelectItem value="flexible">{t("flexible", "Flexible")}</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -213,28 +215,28 @@ export function CareerPreferencesEditor({ candidate, onChange }: CareerPreferenc
         </Label>
         <Select value={companySizePreference} onValueChange={setCompanySizePreference}>
           <SelectTrigger id="company_size">
-            <SelectValue placeholder="Select company size" />
+            <SelectValue placeholder={t("select_company_size", "Select company size")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="startup">Startup (&lt;50)</SelectItem>
-            <SelectItem value="scaleup">Scale-up (50-500)</SelectItem>
-            <SelectItem value="enterprise">Enterprise (500+)</SelectItem>
+            <SelectItem value="startup">{t("startup_lt50", "Startup (&lt;50)")}</SelectItem>
+            <SelectItem value="scaleup">{t("scaleup_50500", "Scale-up (50-500)")}</SelectItem>
+            <SelectItem value="enterprise">{t("enterprise_500", "Enterprise (500+)")}</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
       {/* Industries */}
       <div className="space-y-3">
-        <Label>Industry Preferences</Label>
+        <Label>{t("industry_preferences", "Industry Preferences")}</Label>
         <div className="flex gap-2">
           <Input
             value={newIndustry}
             onChange={(e) => setNewIndustry(e.target.value)}
-            placeholder="e.g., FinTech, SaaS"
+            placeholder={t("eg_fintech_saas", "e.g., FinTech, SaaS")}
             onKeyDown={(e) => e.key === 'Enter' && handleAddIndustry()}
           />
           <Button onClick={handleAddIndustry} variant="outline">
-            Add
+            {t('common:add')}
           </Button>
         </div>
         <div className="flex flex-wrap gap-2">

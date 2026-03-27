@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import {
   DropdownMenu,
@@ -15,6 +16,7 @@ interface PageExportProps {
 }
 
 export function PageExport({ page }: PageExportProps) {
+  const { t } = useTranslation('common');
   const [exporting, setExporting] = useState<'pdf' | 'md' | null>(null);
 
   // Convert BlockNote content to plain text
@@ -177,10 +179,10 @@ export function PageExport({ page }: PageExportProps) {
       // Save
       const filename = `${page.title || 'untitled'}.pdf`.replace(/[^a-z0-9.-]/gi, '_');
       doc.save(filename);
-      toast.success('PDF exported successfully');
+      toast.success(t("pdf_exported_successfully", "PDF exported successfully"));
     } catch (error) {
       console.error('PDF export error:', error);
-      toast.error('Failed to export PDF');
+      toast.error(t("failed_to_export_pdf", "Failed to export PDF"));
     } finally {
       setExporting(null);
     }
@@ -204,10 +206,10 @@ export function PageExport({ page }: PageExportProps) {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
       
-      toast.success('Markdown exported successfully');
+      toast.success(t("markdown_exported_successfully", "Markdown exported successfully"));
     } catch (error) {
       console.error('Markdown export error:', error);
-      toast.error('Failed to export Markdown');
+      toast.error(t("failed_to_export_markdown", "Failed to export Markdown"));
     } finally {
       setExporting(null);
     }

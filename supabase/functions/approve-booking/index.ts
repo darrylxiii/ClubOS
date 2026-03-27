@@ -1,24 +1,9 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createAuthenticatedHandler } from '../_shared/handler.ts';
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
-
-serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  try {
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
-      return new Response(
-        JSON.stringify({ error: "Unauthorized" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
+Deno.serve(createAuthenticatedHandler(async (req, ctx) => {
+    const corsHeaders = ctx.corsHeaders;
+    const supabaseClient = ctx.supabase;
+    const user = ctx.user;
 
     const { bookingId, action, rejectionReason } = await req.json();
 
@@ -33,22 +18,6 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ error: "Invalid action. Must be 'approve' or 'reject'" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    const supabaseClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
-    );
-
-    // Get user from auth header
-    const token = authHeader.replace("Bearer ", "");
-    const { data: { user }, error: authError } = await supabaseClient.auth.getUser(token);
-
-    if (authError || !user) {
-      return new Response(
-        JSON.stringify({ error: "Invalid authentication" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -243,71 +212,62 @@ serve(async (req) => {
       }
 
       // Send rejection email to guest
-      const resendApiKey = Deno.env.get("RESEND_API_KEY");
-      if (resendApiKey) {
-        try {
-          // Import email system dynamically
-          const { baseEmailTemplate } = await import("../_shared/email-templates/base-template.ts");
-          const { Heading, Paragraph, Spacer, Card, Button } = await import("../_shared/email-templates/components.ts");
-          const { EMAIL_SENDERS } = await import("../_shared/email-config.ts");
+      try {
+        // Import email system dynamically
+        const { sendEmail } = await import("../_shared/resend-client.ts");
+        const { baseEmailTemplate } = await import("../_shared/email-templates/base-template.ts");
+        const { Heading, Paragraph, Spacer, Card, Button } = await import("../_shared/email-templates/components.ts");
+        const { EMAIL_SENDERS, EMAIL_COLORS } = await import("../_shared/email-config.ts");
 
-          const meetingTitle = booking.booking_links?.title || "Meeting";
-          const bookingSlug = booking.booking_links?.slug;
-          const appUrl = Deno.env.get("APP_URL") || "https://os.thequantumclub.com";
+        const meetingTitle = booking.booking_links?.title || "Meeting";
+        const bookingSlug = booking.booking_links?.slug;
+        const appUrl = Deno.env.get("APP_URL") || "https://os.thequantumclub.com";
 
-          const emailContent = `
-            ${Heading({ text: 'Booking Request Update', level: 1 })}
+        const emailContent = `
+          ${Heading({ text: 'Booking Request Update', level: 1 })}
+          ${Spacer(16)}
+          ${Paragraph(`Hi ${booking.guest_name},`, 'primary')}
+          ${Spacer(8)}
+          ${Paragraph(`Unfortunately, your booking request for <strong>${meetingTitle}</strong> could not be confirmed.`, 'secondary')}
+          ${rejectionReason ? `
             ${Spacer(16)}
-            ${Paragraph(`Hi ${booking.guest_name},`, 'primary')}
-            ${Spacer(8)}
-            ${Paragraph(`Unfortunately, your booking request for <strong>${meetingTitle}</strong> could not be confirmed.`, 'secondary')}
-            ${rejectionReason ? `
-              ${Spacer(16)}
-              ${Card({
-                variant: 'default',
-                content: `
-                  <p style="margin: 0; font-size: 14px; font-weight: 600; color: ${(await import("../_shared/email-config.ts")).EMAIL_COLORS.textSecondary};">Reason</p>
-                  <p style="margin: 8px 0 0; font-size: 14px; color: ${(await import("../_shared/email-config.ts")).EMAIL_COLORS.textPrimary};">${rejectionReason}</p>
-                `,
-              })}
-            ` : ''}
-            ${Spacer(24)}
-            ${Paragraph('Please feel free to request a different time slot.', 'secondary')}
-            ${bookingSlug ? `
-              ${Spacer(16)}
-              <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
-                <tr>
-                  <td align="center">
-                    ${Button({ url: `${appUrl}/book/${bookingSlug}`, text: 'Book Another Time', variant: 'primary' })}
-                  </td>
-                </tr>
-              </table>
-            ` : ''}
-            ${Spacer(24)}
-            ${Paragraph('Best regards,<br><strong>The Quantum Club</strong>', 'secondary')}
-          `;
+            ${Card({
+              variant: 'default',
+              content: `
+                <p style="margin: 0; font-size: 14px; font-weight: 600; color: ${EMAIL_COLORS.textSecondary};">Reason</p>
+                <p style="margin: 8px 0 0; font-size: 14px; color: ${EMAIL_COLORS.textPrimary};">${rejectionReason}</p>
+              `,
+            })}
+          ` : ''}
+          ${Spacer(24)}
+          ${Paragraph('Please feel free to request a different time slot.', 'secondary')}
+          ${bookingSlug ? `
+            ${Spacer(16)}
+            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+              <tr>
+                <td align="center">
+                  ${Button({ url: `${appUrl}/book/${bookingSlug}`, text: 'Book Another Time', variant: 'primary' })}
+                </td>
+              </tr>
+            </table>
+          ` : ''}
+          ${Spacer(24)}
+          ${Paragraph('Best regards,<br><strong>The Quantum Club</strong>', 'secondary')}
+        `;
 
-          await fetch("https://api.resend.com/emails", {
-            method: "POST",
-            headers: {
-              "Authorization": `Bearer ${resendApiKey}`,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              from: EMAIL_SENDERS.bookings,
-              to: [booking.guest_email],
-              subject: `Booking Request Update - ${meetingTitle}`,
-              html: baseEmailTemplate({
-                preheader: `Your booking request for ${meetingTitle} could not be confirmed`,
-                content: emailContent,
-                showHeader: true,
-                showFooter: true,
-              }),
-            }),
-          });
-        } catch (emailError) {
-          console.error("[Approve Booking] Failed to send rejection email:", emailError);
-        }
+        await sendEmail({
+          from: EMAIL_SENDERS.bookings,
+          to: [booking.guest_email],
+          subject: `Booking Request Update - ${meetingTitle}`,
+          html: baseEmailTemplate({
+            preheader: `Your booking request for ${meetingTitle} could not be confirmed`,
+            content: emailContent,
+            showHeader: true,
+            showFooter: true,
+          }),
+        });
+      } catch (emailError) {
+        console.error("[Approve Booking] Failed to send rejection email:", emailError);
       }
 
       console.log("[Approve Booking] Successfully rejected booking:", bookingId);
@@ -327,14 +287,4 @@ serve(async (req) => {
       { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
 
-  } catch (error: any) {
-    console.error("[Approve Booking] Error:", error);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
-  }
-});
+}));

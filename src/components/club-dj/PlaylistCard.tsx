@@ -1,6 +1,7 @@
 import { Music, Edit2, Trash2, Eye, EyeOff, Radio } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
+import { useTranslation } from 'react-i18next';
 
 interface PlaylistCardProps {
   playlist: any;
@@ -10,6 +11,7 @@ interface PlaylistCardProps {
 }
 
 export function PlaylistCard({ playlist, onEdit, onDelete, onTogglePublish }: PlaylistCardProps) {
+  const { t } = useTranslation('common');
   const trackCount = playlist.playlist_tracks?.[0]?.count || 0;
   const isSpotify = playlist.playlist_type === 'spotify';
 

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -17,6 +18,7 @@ interface RecurringBookingToggleProps {
 }
 
 export function RecurringBookingToggle({ value, onChange }: RecurringBookingToggleProps) {
+  const { t } = useTranslation('common');
   return (
     <div className="space-y-3">
       <div className="flex items-center space-x-2">
@@ -40,7 +42,7 @@ export function RecurringBookingToggle({ value, onChange }: RecurringBookingTogg
         <div className="pl-6 space-y-3 animate-in slide-in-from-top-2 duration-200">
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label className="text-xs">Frequency</Label>
+              <Label className="text-xs">{t("frequency", "Frequency")}</Label>
               <Select
                 value={value.frequency}
                 onValueChange={(freq) =>
@@ -51,15 +53,15 @@ export function RecurringBookingToggle({ value, onChange }: RecurringBookingTogg
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="weekly">Weekly</SelectItem>
-                  <SelectItem value="biweekly">Every 2 weeks</SelectItem>
-                  <SelectItem value="monthly">Monthly</SelectItem>
+                  <SelectItem value="weekly">{t("weekly", "Weekly")}</SelectItem>
+                  <SelectItem value="biweekly">{t("every_2_weeks", "Every 2 weeks")}</SelectItem>
+                  <SelectItem value="monthly">{t("monthly", "Monthly")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs">Occurrences</Label>
+              <Label className="text-xs">{t("occurrences", "Occurrences")}</Label>
               <Input
                 type="number"
                 min={2}

@@ -1,4 +1,5 @@
 import { Badge } from "@/components/ui/badge";
+import { useTranslation } from 'react-i18next';
 import { Progress } from "@/components/ui/progress";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,6 +9,7 @@ import { PartnerGlassCard } from "@/components/partner/PartnerGlassCard";
 import { PartnerInlineStats } from "@/components/partner/PartnerInlineStats";
 
 export default function SLADashboard() {
+  const { t } = useTranslation('partner');
   const { companyId } = useRole();
 
   const { data: slaConfig } = useQuery({
@@ -50,32 +52,32 @@ export default function SLADashboard() {
 
   const slaItems = [
     {
-      title: "Response Time",
+      title: t('sla.responseTime'),
       target: `${slaConfig?.response_time_hours || 24}h`,
       compliance: calculateCompliance('response_time'),
       icon: Clock,
-      description: "Time to first response"
+      description: t('sla.responseTimeDesc')
     },
     {
-      title: "Shortlist Delivery",
+      title: t('sla.shortlistDelivery'),
       target: `${slaConfig?.shortlist_delivery_hours || 48}h`,
       compliance: calculateCompliance('shortlist_delivery'),
       icon: Target,
-      description: "Candidate shortlist delivery"
+      description: t('sla.shortlistDeliveryDesc')
     },
     {
-      title: "Interview Scheduling",
+      title: t('sla.interviewScheduling'),
       target: `${slaConfig?.interview_scheduling_hours || 48}h`,
       compliance: calculateCompliance('interview_scheduling'),
       icon: Clock,
-      description: "Interview setup time"
+      description: t('sla.interviewSchedulingDesc')
     },
     {
-      title: "Replacement Guarantee",
+      title: t('sla.replacementGuarantee'),
       target: `${slaConfig?.replacement_guarantee_days || 90} days`,
       compliance: calculateCompliance('replacement'),
       icon: TrendingUp,
-      description: "Candidate replacement window"
+      description: t('sla.replacementGuaranteeDesc')
     }
   ];
 
@@ -110,7 +112,7 @@ export default function SLADashboard() {
             <div className="space-y-4">
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Target</span>
+                  <span className="text-muted-foreground">{t('sla.target')}</span>
                   <span className="font-semibold">{item.target}</span>
                 </div>
                 <Progress value={item.compliance} className="h-2" />
@@ -119,7 +121,7 @@ export default function SLADashboard() {
                 <div className="flex items-start gap-2 p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
                   <AlertCircle className="w-4 h-4 text-destructive mt-0.5" />
                   <p className="text-sm text-destructive">
-                    Below target compliance. Review processes to improve performance.
+                    {t('sla.belowTarget')}
                   </p>
                 </div>
               )}
@@ -129,8 +131,8 @@ export default function SLADashboard() {
       </div>
 
       <PartnerGlassCard
-        title="Recent SLA Performance"
-        description="Last 30 days of SLA tracking"
+        title={t('sla.recentPerformance')}
+        description={t('sla.last30Days')}
       >
         {slaMetrics && slaMetrics.length > 0 ? (
           <div className="space-y-2">
@@ -151,7 +153,7 @@ export default function SLADashboard() {
         ) : (
           <div className="text-center py-12 text-muted-foreground">
             <Target className="w-12 h-12 mx-auto mb-4 opacity-30" />
-            <p>No SLA metrics recorded yet</p>
+            <p>{t('sla.noMetrics')}</p>
           </div>
         )}
       </PartnerGlassCard>

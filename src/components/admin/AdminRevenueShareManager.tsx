@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -33,6 +34,7 @@ interface RevenueShare {
 }
 
 export function AdminRevenueShareManager() {
+  const { t } = useTranslation('common');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingShare, setEditingShare] = useState<RevenueShare | null>(null);
   const queryClient = useQueryClient();
@@ -136,7 +138,7 @@ export function AdminRevenueShareManager() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-revenue-shares'] });
-      toast.success('Status updated');
+      toast.success(t("status_updated", "Status updated"));
     }
   });
 
@@ -151,7 +153,7 @@ export function AdminRevenueShareManager() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-revenue-shares'] });
-      toast.success('Revenue share deleted');
+      toast.success(t("revenue_share_deleted", "Revenue share deleted"));
     }
   });
 
@@ -178,7 +180,7 @@ export function AdminRevenueShareManager() {
 
   const handleSubmit = () => {
     if (!userId) {
-      toast.error('Please select a user');
+      toast.error(t("please_select_a_user", "Please select a user"));
       return;
     }
 
@@ -233,10 +235,10 @@ export function AdminRevenueShareManager() {
             </DialogHeader>
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <Label>User</Label>
+                <Label>{t("user", "User")}</Label>
                 <Select value={userId} onValueChange={setUserId}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select user..." />
+                    <SelectValue placeholder={t("select_user", "Select user...")} />
                   </SelectTrigger>
                   <SelectContent>
                     {users?.map(user => (
@@ -249,7 +251,7 @@ export function AdminRevenueShareManager() {
               </div>
 
               <div className="space-y-2">
-                <Label>Share Type</Label>
+                <Label>{t("share_type", "Share Type")}</Label>
                 <Select value={shareType} onValueChange={setShareType}>
                   <SelectTrigger>
                     <SelectValue />
@@ -273,7 +275,7 @@ export function AdminRevenueShareManager() {
 
               {shareType === 'fixed_percentage' && (
                 <div className="space-y-2">
-                  <Label>Percentage (%)</Label>
+                  <Label>{t("percentage", "Percentage (%)")}</Label>
                   <Input
                     type="number"
                     step="0.5"
@@ -281,49 +283,49 @@ export function AdminRevenueShareManager() {
                     max="100"
                     value={sharePercentage}
                     onChange={(e) => setSharePercentage(e.target.value)}
-                    placeholder="e.g., 5"
+                    placeholder={t("eg_5", "e.g., 5")}
                   />
                 </div>
               )}
 
               {shareType === 'per_placement' && (
                 <div className="space-y-2">
-                  <Label>Fixed Amount (€)</Label>
+                  <Label>{t("fixed_amount", "Fixed Amount (€)")}</Label>
                   <Input
                     type="number"
                     step="100"
                     min="0"
                     value={shareFixedAmount}
                     onChange={(e) => setShareFixedAmount(e.target.value)}
-                    placeholder="e.g., 1000"
+                    placeholder={t("eg_1000", "e.g., 1000")}
                   />
                 </div>
               )}
 
               <div className="space-y-2">
-                <Label>Applies To</Label>
+                <Label>{t("applies_to", "Applies To")}</Label>
                 <Select value={appliesTo} onValueChange={setAppliesTo}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all_deals">All Deals</SelectItem>
-                    <SelectItem value="self_sourced">Self-Sourced Only</SelectItem>
-                    <SelectItem value="referred">Referred Candidates</SelectItem>
-                    <SelectItem value="member_referrals">Member Referrals</SelectItem>
+                    <SelectItem value="all_deals">{t("all_deals", "All Deals")}</SelectItem>
+                    <SelectItem value="self_sourced">{t("selfsourced_only", "Self-Sourced Only")}</SelectItem>
+                    <SelectItem value="referred">{t("referred_candidates", "Referred Candidates")}</SelectItem>
+                    <SelectItem value="member_referrals">{t("member_referrals", "Member Referrals")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="space-y-2">
-                <Label>Minimum Deal Value (€) - Optional</Label>
+                <Label>{t("minimum_deal_value_optional", "Minimum Deal Value (€) - Optional")}</Label>
                 <Input
                   type="number"
                   step="1000"
                   min="0"
                   value={minDealValue}
                   onChange={(e) => setMinDealValue(e.target.value)}
-                  placeholder="No minimum"
+                  placeholder={t("no_minimum", "No minimum")}
                 />
               </div>
 
@@ -354,13 +356,13 @@ export function AdminRevenueShareManager() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>User</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Share</TableHead>
-                <TableHead>Applies To</TableHead>
-                <TableHead>Min. Deal</TableHead>
-                <TableHead>Active</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead>{t("user", "User")}</TableHead>
+                <TableHead>{t("type", "Type")}</TableHead>
+                <TableHead>{t("share", "Share")}</TableHead>
+                <TableHead>{t("applies_to", "Applies To")}</TableHead>
+                <TableHead>{t("min_deal", "Min. Deal")}</TableHead>
+                <TableHead>{t("active", "Active")}</TableHead>
+                <TableHead className="text-right">{t("actions", "Actions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

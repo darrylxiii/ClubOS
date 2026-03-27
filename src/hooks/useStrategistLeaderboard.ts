@@ -1,5 +1,24 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import type { Database } from '@/integrations/supabase/types';
+
+type SnapshotRow = Database['public']['Tables']['strategist_performance_snapshots']['Row'];
+
+interface SnapshotWithProfile extends SnapshotRow {
+  profiles: { full_name: string | null; avatar_url: string | null } | null;
+}
+
+interface StrategistWithProfile {
+  user_id: string;
+  profiles: { full_name: string | null; avatar_url: string | null } | null;
+}
+
+interface ApplicationRow {
+  sourced_by: string | null;
+  status: string;
+  created_at: string;
+  updated_at: string;
+}
 
 export interface StrategistRanking {
   id: string;
@@ -44,7 +63,7 @@ export function useStrategistLeaderboard(period: 'weekly' | 'monthly' | 'quarter
         return calculateLiveRankings();
       }
 
-      return snapshots.map((s: any, idx: number) => ({
+      return (snapshots as SnapshotWithProfile[]).map((s, idx: number) => ({
         id: s.id,
         strategist_id: s.strategist_id,
         strategist_name: s.profiles?.full_name || 'Unknown',
@@ -84,10 +103,10 @@ async function calculateLiveRankings(): Promise<StrategistRanking[]> {
     .select('sourced_by, status, created_at, updated_at')
     .not('sourced_by', 'is', null);
 
-  const rankings: StrategistRanking[] = strategists.map((s: any, idx: number) => {
-    const userApps = (applications || []).filter((a: any) => a.sourced_by === s.user_id);
-    
-    const placements = userApps.filter((a: any) => a.status === 'hired').length;
+  const rankings: StrategistRanking[] = (strategists as StrategistWithProfile[]).map((s, idx: number) => {
+    const userApps = (applications as ApplicationRow[] || []).filter((a) => a.sourced_by === s.user_id);
+
+    const placements = userApps.filter((a) => a.status === 'hired').length;
     const revenue = placements * 25000; // Estimated avg fee
     
     const score = (revenue / 1000) * 0.3 + placements * 10 * 0.25;
@@ -100,7 +119,7 @@ async function calculateLiveRankings(): Promise<StrategistRanking[]> {
       placements_count: placements,
       revenue_generated: revenue,
       deals_closed: placements,
-      deals_in_pipeline: userApps.filter((a: any) => !['hired', 'rejected'].includes(a.status)).length,
+      deals_in_pipeline: userApps.filter((a) => !['hired', 'rejected'].includes(a.status)).length,
       avg_time_to_fill: 0,
       conversion_rate: userApps.length > 0 ? (placements / userApps.length) * 100 : 0,
       candidate_nps_avg: null,

@@ -9,6 +9,7 @@ import { useRole } from "@/contexts/RoleContext";
 import { ProfileStrengthDialog } from "./profile/ProfileStrengthDialog";
 import { ProfileCompletionBreakdown } from "./profile/ProfileCompletionBreakdown";
 import { getTasksForRole, ProfileTask } from "@/lib/profileStrengthTasks";
+import { useTranslation } from 'react-i18next';
 
 interface ProfileStats {
   current_level: number;
@@ -24,6 +25,7 @@ interface ProfileStats {
 }
 
 export const ProfileCompletion = () => {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const { currentRole: role } = useRole();
   const navigate = useNavigate();

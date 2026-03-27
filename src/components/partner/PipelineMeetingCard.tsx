@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { InterviewFeedbackDialog } from "./InterviewFeedbackDialog";
 import { useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 
 interface PipelineMeetingCardProps {
   booking: {
@@ -45,6 +46,7 @@ export const PipelineMeetingCard = ({
   onReschedule,
   className,
 }: PipelineMeetingCardProps) => {
+  const { t } = useTranslation('partner');
   const [feedbackDialogOpen, setFeedbackDialogOpen] = useState(false);
   const queryClient = useQueryClient();
   const startTime = new Date(booking.scheduled_start);
@@ -92,9 +94,7 @@ export const PipelineMeetingCard = ({
       );
     }
     return (
-      <Badge variant="outline">
-        Scheduled
-      </Badge>
+      <Badge variant="outline">{t('pipelineMeetingCard.badge.scheduled')}</Badge>
     );
   };
   
@@ -186,13 +186,13 @@ export const PipelineMeetingCard = ({
             {booking.interview_prep_sent_at && (
               <div className="flex items-center gap-1 text-green-600">
                 <CheckCircle2 className="w-3 h-3" />
-                <span>Prep sent</span>
+                <span>{t('pipelineMeetingCard.prepSent')}</span>
               </div>
             )}
             {!booking.interview_prep_sent_at && !isCompleted && (
               <div className="flex items-center gap-1 text-muted-foreground">
                 <FileText className="w-3 h-3" />
-                <span>Prep pending</span>
+                <span>{t('pipelineMeetingCard.prepPending')}</span>
               </div>
             )}
           </div>

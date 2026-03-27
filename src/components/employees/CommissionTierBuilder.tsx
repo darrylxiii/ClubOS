@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -23,6 +24,7 @@ import {
 } from "lucide-react";
 
 export function CommissionTierBuilder() {
+  const { t } = useTranslation('common');
   const { data: tiers, isLoading } = useCommissionTiers();
   const createTier = useCreateCommissionTier();
   const updateTier = useUpdateCommissionTier();
@@ -38,7 +40,7 @@ export function CommissionTierBuilder() {
 
   const handleCreate = async () => {
     if (!newTier.name || newTier.percentage <= 0) {
-      toast.error('Please fill in all required fields');
+      toast.error(t("please_fill_in_all", "Please fill in all required fields"));
       return;
     }
 
@@ -51,18 +53,18 @@ export function CommissionTierBuilder() {
         is_default: false,
       });
       setNewTier({ name: '', min_revenue: 0, max_revenue: 0, percentage: 0 });
-      toast.success('Commission tier created');
+      toast.success(t("commission_tier_created", "Commission tier created"));
     } catch (error) {
-      toast.error('Failed to create tier');
+      toast.error(t("failed_to_create_tier", "Failed to create tier"));
     }
   };
 
   const handleDelete = async (id: string) => {
     try {
       await deleteTier.mutateAsync(id);
-      toast.success('Tier deleted');
+      toast.success(t("tier_deleted", "Tier deleted"));
     } catch (error) {
-      toast.error('Failed to delete tier');
+      toast.error(t("failed_to_delete_tier", "Failed to delete tier"));
     }
   };
 
@@ -92,8 +94,8 @@ export function CommissionTierBuilder() {
           ) : tiers?.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               <Layers className="h-12 w-12 mx-auto mb-2 opacity-50" />
-              <p>No commission tiers defined</p>
-              <p className="text-sm">Create your first tier below</p>
+              <p>{t("no_commission_tiers_defined", "No commission tiers defined")}</p>
+              <p className="text-sm">{t("create_your_first_tier", "Create your first tier below")}</p>
             </div>
           ) : (
             tiers?.map((tier, index) => (
@@ -131,18 +133,18 @@ export function CommissionTierBuilder() {
 
         {/* Add New Tier */}
         <div className="border-t border-border/50 pt-4">
-          <h4 className="text-sm font-medium mb-3">Add New Tier</h4>
+          <h4 className="text-sm font-medium mb-3">{t("add_new_tier", "Add New Tier")}</h4>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <div className="space-y-1">
-              <Label className="text-xs">Tier Name</Label>
+              <Label className="text-xs">{t("tier_name", "Tier Name")}</Label>
               <Input
-                placeholder="e.g. Bronze"
+                placeholder={t("eg_bronze", "e.g. Bronze")}
                 value={newTier.name}
                 onChange={(e) => setNewTier(prev => ({ ...prev, name: e.target.value }))}
               />
             </div>
             <div className="space-y-1">
-              <Label className="text-xs">Min Revenue (€)</Label>
+              <Label className="text-xs">{t("min_revenue", "Min Revenue (€)")}</Label>
               <Input
                 type="number"
                 min={0}
@@ -151,17 +153,17 @@ export function CommissionTierBuilder() {
               />
             </div>
             <div className="space-y-1">
-              <Label className="text-xs">Max Revenue (€)</Label>
+              <Label className="text-xs">{t("max_revenue", "Max Revenue (€)")}</Label>
               <Input
                 type="number"
                 min={0}
-                placeholder="Leave 0 for unlimited"
+                placeholder={t("leave_0_for_unlimited", "Leave 0 for unlimited")}
                 value={newTier.max_revenue || ''}
                 onChange={(e) => setNewTier(prev => ({ ...prev, max_revenue: parseInt(e.target.value) || 0 }))}
               />
             </div>
             <div className="space-y-1">
-              <Label className="text-xs">Commission %</Label>
+              <Label className="text-xs">{t("commission", "Commission %")}</Label>
               <Input
                 type="number"
                 min={0}
@@ -188,7 +190,7 @@ export function CommissionTierBuilder() {
 
         {/* Quick Setup */}
         <div className="border-t border-border/50 pt-4">
-          <h4 className="text-sm font-medium mb-2">Quick Setup Templates</h4>
+          <h4 className="text-sm font-medium mb-2">{t("quick_setup_templates", "Quick Setup Templates")}</h4>
           <div className="flex flex-wrap gap-2">
             <Button 
               variant="outline" 
@@ -203,7 +205,7 @@ export function CommissionTierBuilder() {
                 for (const t of templates) {
                   await createTier.mutateAsync(t);
                 }
-                toast.success('Default tiers created');
+                toast.success(t("default_tiers_created", "Default tiers created"));
               }}
             >
               Apply Default Tiers

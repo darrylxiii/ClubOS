@@ -1,28 +1,16 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { createHandler } from '../_shared/handler.ts';
+import { resilientFetch } from '../_shared/resilient-fetch.ts';
+import { SupabaseClient } from 'npm:@supabase/supabase-js@2';
 
 interface OrchestrationRequest {
   trigger_type: string;
   entity_type: string;
   entity_id: string;
-  trigger_event?: any;
+  trigger_event?: Record<string, unknown>;
 }
 
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
+Deno.serve(createHandler(async (req, ctx) => {
+    const supabase = ctx.supabase;
     const { trigger_type, entity_type, entity_id, trigger_event } = await req.json() as OrchestrationRequest;
 
     console.log(`[orchestrate-workflow] Processing trigger ${trigger_type} for ${entity_type}:${entity_id}`);
@@ -39,13 +27,13 @@ serve(async (req) => {
     if (!workflows || workflows.length === 0) {
       return new Response(
         JSON.stringify({ success: true, message: 'No applicable workflows found' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     console.log(`[orchestrate-workflow] Found ${workflows.length} applicable workflows`);
 
-    const executionResults: any[] = [];
+    const executionResults: Array<{ workflow_id: string; workflow_name: string; execution_id: string; actions_count: number; status: string }> = [];
 
     for (const workflow of workflows) {
       // Check cooldown
@@ -110,7 +98,7 @@ serve(async (req) => {
       }
 
       // Execute actions
-      const actionsExecuted: any[] = [];
+      const actionsExecuted: Array<{ action: unknown; result?: unknown; error?: string; status: string }> = [];
       let hasError = false;
       let errorMessage = '';
 
@@ -118,11 +106,12 @@ serve(async (req) => {
         try {
           const actionResult = await executeAction(supabase, action, entity_type, entity_id, trigger_event);
           actionsExecuted.push({ action, result: actionResult, status: 'success' });
-        } catch (actionError: any) {
+        } catch (actionError: unknown) {
           console.error(`[orchestrate-workflow] Action error:`, actionError);
-          actionsExecuted.push({ action, error: actionError.message, status: 'failed' });
+          const msg = actionError instanceof Error ? actionError.message : String(actionError);
+          actionsExecuted.push({ action, error: msg, status: 'failed' });
           hasError = true;
-          errorMessage = actionError.message;
+          errorMessage = msg;
         }
       }
 
@@ -149,25 +138,17 @@ serve(async (req) => {
     console.log(`[orchestrate-workflow] Executed ${executionResults.length} workflows`);
 
     return new Response(
-      JSON.stringify({ 
-        success: true, 
+      JSON.stringify({
+        success: true,
         executions: executionResults,
       }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } }
     );
-  } catch (error: any) {
-    console.error('[orchestrate-workflow] Error:', error);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-  }
-});
+}));
 
-function evaluateConditions(conditions: any, event: any): boolean {
+function evaluateConditions(conditions: Record<string, unknown> | null, event: Record<string, unknown> | undefined): boolean {
   if (!conditions || Object.keys(conditions).length === 0) return true;
 
-  // Simple condition evaluation
   if (conditions.hours_threshold && event?.hours_since) {
     if (event.hours_since < conditions.hours_threshold) return false;
   }
@@ -191,22 +172,49 @@ function evaluateConditions(conditions: any, event: any): boolean {
   return true;
 }
 
-async function executeAction(supabase: any, action: any, entityType: string, entityId: string, event: any): Promise<any> {
-  const actionType = action.type;
-  const config = action.config || {};
+async function getEntityContact(supabase: SupabaseClient, entityType: string, entityId: string) {
+  if (entityType === 'candidate') {
+    const { data } = await supabase
+      .from('candidate_profiles')
+      .select('id, first_name, last_name, email, phone, assigned_strategist')
+      .eq('id', entityId)
+      .single();
+    return data;
+  }
+  if (entityType === 'prospect') {
+    const { data } = await supabase
+      .from('crm_prospects')
+      .select('id, first_name, last_name, email, phone')
+      .eq('id', entityId)
+      .single();
+    return data;
+  }
+  return null;
+}
+
+async function executeAction(supabase: SupabaseClient, action: Record<string, unknown>, entityType: string, entityId: string, event: Record<string, unknown> | undefined): Promise<Record<string, unknown>> {
+  const actionType = action.type as string;
+  const config = (action.config || {}) as Record<string, unknown>;
 
   switch (actionType) {
     case 'create_task': {
+      const dueDate = new Date();
+      dueDate.setDate(dueDate.getDate() + (config.due_days || 3));
+
       const { data, error } = await supabase
         .from('unified_tasks')
         .insert({
           title: config.title || `Follow up with ${entityType}`,
           description: config.description || `Auto-generated task based on workflow trigger`,
           priority: config.priority || 'medium',
-          status: 'todo',
-          entity_type: entityType,
-          entity_id: entityId,
+          status: 'pending',
+          due_date: dueDate.toISOString(),
           source: 'workflow_automation',
+          metadata: {
+            entity_type: entityType,
+            entity_id: entityId,
+            auto_generated: true,
+          },
         })
         .select()
         .single();
@@ -216,15 +224,13 @@ async function executeAction(supabase: any, action: any, entityType: string, ent
     }
 
     case 'alert_admin': {
-      // Create a notification/alert
       const { error } = await supabase
-        .from('security_alerts')
+        .from('notifications')
         .insert({
-          alert_type: 'workflow_alert',
-          severity: config.severity || 'medium',
           title: config.message || `Workflow alert for ${entityType}`,
-          description: `Entity: ${entityId}\nTrigger: ${JSON.stringify(event)}`,
-          metadata: { entity_type: entityType, entity_id: entityId, event },
+          message: `Entity: ${entityId}\nTrigger: ${JSON.stringify(event)}`,
+          type: config.severity || 'warning',
+          category: 'workflow_alert',
         });
 
       if (error) throw error;
@@ -232,10 +238,22 @@ async function executeAction(supabase: any, action: any, entityType: string, ent
     }
 
     case 'assign_strategist': {
-      // This would typically assign to an available strategist
-      // For now, we just log it
-      console.log(`[action] Would assign ${entityType}:${entityId} to strategist`);
-      return { assigned: true };
+      const { data: strategists } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('role', 'strategist')
+        .limit(1);
+
+      if (strategists && strategists.length > 0 && entityType === 'candidate') {
+        const { error } = await supabase
+          .from('candidate_profiles')
+          .update({ assigned_strategist: strategists[0].id })
+          .eq('id', entityId);
+
+        if (error) throw error;
+        return { assigned_to: strategists[0].id };
+      }
+      return { skipped: true, reason: 'No strategist available' };
     }
 
     case 'update_stage': {
@@ -252,30 +270,50 @@ async function executeAction(supabase: any, action: any, entityType: string, ent
     }
 
     case 'send_whatsapp': {
-      // Would integrate with WhatsApp sending
-      console.log(`[action] Would send WhatsApp to ${entityType}:${entityId}`);
-      return { message_queued: true };
+      const contact = await getEntityContact(supabase, entityType, entityId);
+      if (contact?.phone) {
+        const { sendWhatsAppMessage } = await import('../_shared/whatsapp-client.ts');
+        const result = await sendWhatsAppMessage({
+          type: 'text',
+          to: contact.phone,
+          text: { body: config.message || `Following up regarding your application` },
+        });
+        return { message_sent: true, messageId: result.messageId };
+      }
+      return { skipped: true, reason: 'No phone number found' };
     }
 
     case 'send_email': {
-      // Would integrate with email sending
-      console.log(`[action] Would send email to ${entityType}:${entityId}`);
-      return { email_queued: true };
+      const contact = await getEntityContact(supabase, entityType, entityId);
+      if (contact?.email) {
+        const { sendEmail } = await import('../_shared/resend-client.ts');
+        const result = await sendEmail({
+          from: 'QUIN <quin@os.thequantumclub.com>',
+          to: [contact.email],
+          subject: config.subject || 'Following Up',
+          html: config.html || `<p>${config.message || 'We wanted to follow up with you.'}</p>`,
+        });
+        return { email_sent: true, emailId: result.id };
+      }
+      return { skipped: true, reason: 'No email found' };
     }
 
     case 'add_tag': {
-      // Would add a tag to the entity
       console.log(`[action] Would add tag ${config.tag} to ${entityType}:${entityId}`);
       return { tag_added: config.tag };
     }
 
     case 'webhook': {
       if (config.url) {
-        const response = await fetch(config.url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ entity_type: entityType, entity_id: entityId, event }),
-        });
+        const { response } = await resilientFetch(
+          config.url,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ entity_type: entityType, entity_id: entityId, event }),
+          },
+          { timeoutMs: 10_000, maxRetries: 1, service: 'workflow-webhook', operation: 'outbound' }
+        );
         return { webhook_sent: true, status: response.status };
       }
       return { skipped: true, reason: 'No webhook URL' };

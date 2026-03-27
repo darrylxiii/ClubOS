@@ -5,6 +5,7 @@ import { SpeakingBadge } from '@/components/shared/AudioLevelIndicator';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { logger } from '@/lib/logger';
+import { useTranslation } from 'react-i18next';
 
 interface Participant {
   id: string;
@@ -45,6 +46,7 @@ const ParticipantGrid = ({
   remoteStreams
 }: ParticipantGridProps) => {
   const { user } = useAuth();
+  const { t } = useTranslation('meetings');
   const videoRefs = useRef<Map<string, HTMLVideoElement>>(new Map());
   const [videoStates, setVideoStates] = useState<Map<string, VideoState>>(new Map());
   const retryTimeoutsRef = useRef<Map<string, NodeJS.Timeout>>(new Map());
@@ -371,7 +373,7 @@ const ParticipantGrid = ({
           <div className="absolute inset-0 flex items-center justify-center bg-card/80 backdrop-blur-sm rounded-lg">
             <div className="flex flex-col items-center gap-2">
               <Loader2 className="w-8 h-8 animate-spin text-primary" />
-              <span className="text-xs text-muted-foreground">Loading video...</span>
+              <span className="text-xs text-muted-foreground">{t('video.loading', 'Loading video...')}</span>
             </div>
           </div>
         );
@@ -380,7 +382,7 @@ const ParticipantGrid = ({
           <div className="absolute inset-0 flex items-center justify-center bg-card/80 backdrop-blur-sm rounded-lg">
             <div className="flex flex-col items-center gap-2">
               <VideoOff className="w-8 h-8 text-muted-foreground" />
-              <span className="text-xs text-muted-foreground">Waiting for video...</span>
+              <span className="text-xs text-muted-foreground">{t('video.waiting', 'Waiting for video...')}</span>
             </div>
           </div>
         );
@@ -389,7 +391,7 @@ const ParticipantGrid = ({
           <div className="absolute inset-0 flex items-center justify-center bg-card/80 backdrop-blur-sm rounded-lg">
             <div className="flex flex-col items-center gap-2">
               <VideoOff className="w-8 h-8 text-destructive" />
-              <span className="text-xs text-destructive">Video error</span>
+              <span className="text-xs text-destructive">{t('video.error', 'Video error')}</span>
             </div>
           </div>
         );
@@ -459,8 +461,8 @@ const ParticipantGrid = ({
             {/* Name and status */}
             <div className="absolute bottom-2 left-2 right-2 bg-card/50 backdrop-blur-md rounded-lg px-3 py-1.5 flex items-center justify-between border border-border/20">
               <span className="text-sm font-medium truncate">
-                {participant.user?.full_name || 'Unknown User'}
-                {isCurrentUser && ' (You)'}
+                {participant.user?.full_name || t('voice.unknownUser', 'Unknown User')}
+                {isCurrentUser && ` (${t('voice.you', 'You')})`}
               </span>
               <div className="flex items-center gap-1">
                 {participant.is_screen_sharing && (

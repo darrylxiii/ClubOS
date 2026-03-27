@@ -4,7 +4,7 @@
  */
 import { http, HttpResponse } from 'msw';
 
-const SUPABASE_URL = 'https://dpjucecmoyfzrduhlctt.supabase.co';
+const SUPABASE_URL = 'https://chgrkvftjfibufoopmav.supabase.co';
 
 // User fixtures
 export const mockUsers = {

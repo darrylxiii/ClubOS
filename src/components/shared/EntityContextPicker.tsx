@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useMemo, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -74,6 +75,7 @@ export function EntityContextPicker({
   disabled = false,
   className,
 }: EntityContextPickerProps) {
+  const { t } = useTranslation('common');
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
   const [activeTab, setActiveTab] = useState<SelectedEntity['type']>(allowedTypes[0]);
@@ -338,7 +340,7 @@ export function EntityContextPicker({
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search..."
+                placeholder={t("search", "Search...")}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="pl-9"

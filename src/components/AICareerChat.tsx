@@ -8,6 +8,7 @@ import { Send, Sparkles } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useTranslation } from 'react-i18next';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -15,6 +16,7 @@ interface Message {
 }
 
 export const AICareerChat = () => {
+  const { t } = useTranslation('common');
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
@@ -58,11 +60,11 @@ export const AICareerChat = () => {
 
       if (!resp.ok) {
         if (resp.status === 429) {
-          toast.error("Rate limit exceeded. Please try again later.");
+          toast.error(t('aiCareerChat.rateLimitExceeded', 'Rate limit exceeded. Please try again later.'));
           return;
         }
         if (resp.status === 402) {
-          toast.error("AI service temporarily unavailable.");
+          toast.error(t('aiCareerChat.aiServiceUnavailable', 'AI service temporarily unavailable.'));
           return;
         }
         throw new Error('Failed to start stream');
@@ -106,7 +108,7 @@ export const AICareerChat = () => {
 
     } catch (error) {
       console.error('Error in chat:', error);
-      toast.error("Failed to get response. Please try again.");
+      toast.error(t('aiCareerChat.failedToGetResponse', 'Failed to get response. Please try again.'));
     } finally {
       setIsLoading(false);
     }
@@ -117,7 +119,7 @@ export const AICareerChat = () => {
       <div className="p-4 border-b">
         <div className="flex items-center gap-2">
           <Sparkles className="w-5 h-5 text-primary" />
-          <h3 className="font-semibold">AI Career Advisor</h3>
+          <h3 className="font-semibold">{t('aiCareerChat.aiCareerAdvisor', 'AI Career Advisor')}</h3>
         </div>
       </div>
 
@@ -141,7 +143,7 @@ export const AICareerChat = () => {
           {isLoading && (
             <div className="flex justify-start">
               <div className="bg-muted rounded-lg p-3">
-                <InlineLoader text="Analyzing..." />
+                <InlineLoader text={t('aiCareerChat.analyzing', 'Analyzing...')} />
               </div>
             </div>
           )}
@@ -161,7 +163,7 @@ export const AICareerChat = () => {
           <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask about your career..."
+            placeholder={t('aiCareerChat.askAboutYourCareer', 'Ask about your career...')}
             disabled={isLoading}
           />
           <Button type="submit" size="icon" disabled={isLoading || !input.trim()}>

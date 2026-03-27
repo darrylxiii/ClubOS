@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useSearchParams, useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { RoleGate } from '@/components/RoleGate';
 import { useRole } from '@/contexts/RoleContext';
@@ -59,6 +60,7 @@ const navItems: NavItem[] = [
 ];
 
 export default function WhatsAppHub() {
+  const { t } = useTranslation('admin');
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const location = useLocation();
@@ -221,7 +223,7 @@ export default function WhatsAppHub() {
                   <Home className="w-4 h-4" />
                 </Button>
                 <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/50" />
-                <span className="font-medium">WhatsApp Hub</span>
+                <span className="font-medium">{t('whatsAppHub.text1')}</span>
               </nav>
             </div>
             
@@ -243,7 +245,7 @@ export default function WhatsAppHub() {
                     ) : (
                       <PanelRight className="w-4 h-4" />
                     )}
-                    <span className="text-xs">Ops</span>
+                    <span className="text-xs">{t('whatsAppHub.text2')}</span>
                     {needsResponse.length > 0 && (
                       <Badge variant="destructive" className="h-4 px-1 text-[10px]">
                         {needsResponse.length}
@@ -283,12 +285,12 @@ export default function WhatsAppHub() {
                     {isConnected ? (
                       <>
                         <Wifi className="w-3.5 h-3.5" />
-                        <span className="hidden sm:inline">Connected</span>
+                        <span className="hidden sm:inline">{t('whatsAppHub.text3')}</span>
                       </>
                     ) : (
                       <>
                         <WifiOff className="w-3.5 h-3.5" />
-                        <span className="hidden sm:inline">Not Connected</span>
+                        <span className="hidden sm:inline">{t('whatsAppHub.text4')}</span>
                       </>
                     )}
                   </div>

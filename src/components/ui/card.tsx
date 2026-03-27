@@ -4,34 +4,37 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const cardVariants = cva(
-  "rounded-2xl border text-card-foreground transition-all duration-300",
+  "rounded-[2rem] border text-card-foreground transition-all duration-500 relative overflow-hidden",
   {
     variants: {
       variant: {
         default: [
-          "border-border/20 bg-card/80",
-          "shadow-md hover:shadow-lg",
-          "hover:border-border/40 hover:bg-card/90",
+          "border-[0.5px] border-white/10 dark:border-white/5 bg-white/[0.02] dark:bg-black/40 backdrop-blur-3xl",
+          "shadow-[0_8px_32px_rgba(0,0,0,0.12)] shadow-black/20",
+          "hover:border-white/20 hover:bg-white/[0.04] dark:hover:bg-black/50 hover:shadow-black/30",
+          "after:absolute after:inset-0 after:rounded-[inherit] after:shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] after:pointer-events-none z-0"
         ],
         static: [
-          "border-border/20 bg-card/80",
+          "border-[0.5px] border-white/5 dark:border-white/10 bg-black/20 backdrop-blur-xl",
           "shadow-sm",
         ],
         elevated: [
-          "border-border/30 bg-card/90",
-          "shadow-lg",
+          "border-[0.5px] border-white/10 dark:border-white/20 bg-white/[0.05] dark:bg-black/60 backdrop-blur-3xl",
+          "shadow-[0_16px_48px_-8px_rgba(0,0,0,0.5)] shadow-primary/20",
+          "after:absolute after:inset-0 after:rounded-[inherit] after:shadow-[inset_0_1px_2px_rgba(255,255,255,0.2)] after:pointer-events-none z-0"
         ],
         interactive: [
-          "border-border/20 bg-card/80",
-          "shadow-md hover:shadow-lg",
-          "hover:border-border/40 hover:bg-card/90",
-          "cursor-pointer hover:scale-[1.01] active:scale-[0.99]",
+          "border-[0.5px] border-white/10 dark:border-white/5 bg-white/[0.02] dark:bg-black/40 backdrop-blur-3xl",
+          "shadow-xl shadow-black/10 hover:shadow-2xl hover:shadow-primary/20",
+          "hover:border-primary/30 hover:bg-primary/5",
+          "cursor-pointer hover:scale-[1.02] active:scale-[0.98] hover:-translate-y-1 transition-spring",
+          "after:absolute after:inset-0 after:rounded-[inherit] after:shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] after:pointer-events-none z-0"
         ],
         outline: [
-          "border-border/30 bg-transparent",
+          "border-border/30 bg-transparent rounded-2xl",
         ],
         ghost: [
-          "border-transparent bg-transparent",
+          "border-transparent bg-transparent rounded-2xl",
         ],
       },
     },
@@ -58,7 +61,7 @@ Card.displayName = "Card";
 
 const CardHeader = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
-    <div ref={ref} className={cn("flex flex-col space-y-2 p-6", className)} {...props} />
+    <div ref={ref} className={cn("flex flex-col space-y-2 p-8 relative z-10", className)} {...props} />
   ),
 );
 CardHeader.displayName = "CardHeader";
@@ -78,13 +81,13 @@ const CardDescription = React.forwardRef<HTMLParagraphElement, React.HTMLAttribu
 CardDescription.displayName = "CardDescription";
 
 const CardContent = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
-  ({ className, ...props }, ref) => <div ref={ref} className={cn("p-6 pt-0", className)} {...props} />,
+  ({ className, ...props }, ref) => <div ref={ref} className={cn("p-8 pt-0 relative z-10", className)} {...props} />,
 );
 CardContent.displayName = "CardContent";
 
 const CardFooter = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
-    <div ref={ref} className={cn("flex items-center p-6 pt-0", className)} {...props} />
+    <div ref={ref} className={cn("flex items-center p-8 pt-0 relative z-10", className)} {...props} />
   ),
 );
 CardFooter.displayName = "CardFooter";

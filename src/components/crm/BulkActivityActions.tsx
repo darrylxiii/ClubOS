@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { motion, AnimatePresence } from '@/lib/motion';
 import { Button } from '@/components/ui/button';
@@ -34,6 +35,7 @@ export function BulkActivityActions({
   onClearSelection,
   onSuccess,
 }: BulkActivityActionsProps) {
+  const { t } = useTranslation('common');
   const [loading, setLoading] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [rescheduleDate, setRescheduleDate] = useState<Date | null>(null);
@@ -201,7 +203,7 @@ export function BulkActivityActions({
               size="icon" 
               onClick={onClearSelection} 
               className="h-8 w-8"
-              aria-label="Clear selection"
+              aria-label={t("clear_selection", "Clear selection")}
             >
               <X className="w-4 h-4" />
             </Button>
@@ -213,7 +215,7 @@ export function BulkActivityActions({
       <ConfirmDialog
         open={confirmDelete}
         onOpenChange={setConfirmDelete}
-        title="Delete Activities"
+        title={t("delete_activities", "Delete Activities")}
         description={`Are you sure you want to delete ${selectedCount} activities? This action cannot be undone.`}
         confirmText="Delete"
         onConfirm={handleBulkDelete}

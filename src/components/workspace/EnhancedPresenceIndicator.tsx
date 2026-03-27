@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from '@/lib/motion';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -22,6 +23,7 @@ interface EnhancedPresenceIndicatorProps {
 }
 
 export function EnhancedPresenceIndicator({ pageId, showDetails = false }: EnhancedPresenceIndicatorProps) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [presenceUsers, setPresenceUsers] = useState<PresenceUser[]>([]);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -143,7 +145,7 @@ export function EnhancedPresenceIndicator({ pageId, showDetails = false }: Enhan
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
             <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
           </span>
-          <span className="text-xs text-muted-foreground hidden sm:inline">Live</span>
+          <span className="text-xs text-muted-foreground hidden sm:inline">{t("live", "Live")}</span>
         </div>
       </div>
     </TooltipProvider>

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, CheckCircle2, XCircle, Clock } from 'lucide-react';
@@ -17,6 +18,7 @@ const OPERATION_LABELS: Record<string, string> = {
 };
 
 export function MoneybirdSyncLogs() {
+  const { t } = useTranslation('common');
   const { data: connection } = useMoneybirdConnection();
   const { data: logs, isLoading: logsLoading } = useMoneybirdSyncLogs(30);
 
@@ -27,8 +29,8 @@ export function MoneybirdSyncLogs() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Recent Activity</CardTitle>
-        <CardDescription>Last 30 sync operations and events</CardDescription>
+        <CardTitle>{t("recent_activity", "Recent Activity")}</CardTitle>
+        <CardDescription>{t("last_30_sync_operations", "Last 30 sync operations and events")}</CardDescription>
       </CardHeader>
       <CardContent>
         {logsLoading ? (

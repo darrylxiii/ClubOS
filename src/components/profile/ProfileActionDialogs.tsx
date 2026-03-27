@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import {
   Dialog,
@@ -38,6 +39,7 @@ export function ProfileActionDialogs({
   onClose,
   onSubmit,
 }: ProfileActionDialogsProps) {
+  const { t } = useTranslation('common');
   const [message, setMessage] = useState("");
   const [endorsementType, setEndorsementType] = useState("skill");
   const [reportReason, setReportReason] = useState("spam");
@@ -52,16 +54,14 @@ export function ProfileActionDialogs({
               <FileText className="w-5 h-5 text-accent" />
               Request Resume
             </DialogTitle>
-            <DialogDescription>
-              Request an AI-analyzed resume from this member. They'll receive a notification and can share their resume or portfolio.
-            </DialogDescription>
+            <DialogDescription>{t('profile.profileactiondialogs.requestAnAianalyzedResumeFromThis', 'Request an AI-analyzed resume from this member. They\'ll receive a notification and can share their resume or portfolio.')}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label htmlFor="resume-message">Add a message (optional)</Label>
+              <Label htmlFor="resume-message">{t("add_a_message_optional", "Add a message (optional)")}</Label>
               <Textarea
                 id="resume-message"
-                placeholder="I'd love to learn more about your experience..."
+                placeholder={t("id_love_to_learn", "I'd love to learn more about your experience...")}
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 className="glass"
@@ -69,13 +69,13 @@ export function ProfileActionDialogs({
             </div>
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => onClose('resume')}>
-                Cancel
+                {t('profile.profileactiondialogs.cancel', 'Cancel')}
               </Button>
               <Button onClick={() => {
                 onSubmit('resume', { message });
                 setMessage("");
               }}>
-                Send Request
+                {t('profile.profileactiondialogs.sendRequest', 'Send Request')}
               </Button>
             </div>
           </div>
@@ -106,10 +106,10 @@ export function ProfileActionDialogs({
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label htmlFor="meeting-message">Meeting purpose</Label>
+              <Label htmlFor="meeting-message">{t("meeting_purpose", "Meeting purpose")}</Label>
               <Textarea
                 id="meeting-message"
-                placeholder="Describe what you'd like to discuss..."
+                placeholder={t("describe_what_youd_like", "Describe what you'd like to discuss...")}
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 className="glass"
@@ -117,13 +117,13 @@ export function ProfileActionDialogs({
             </div>
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => onClose('meeting')}>
-                Cancel
+                {t('profile.profileactiondialogs.cancel', 'Cancel')}
               </Button>
               <Button onClick={() => {
                 onSubmit('meeting', { type: meetingType, message });
                 setMessage("");
               }}>
-                {meetingType === 'suggest' ? 'Get AI Suggestions' : 'Send Request'}
+                {meetingType === 'suggest' ? t('profile.profileactiondialogs.getAiSuggestions', 'Get AI Suggestions') : t('profile.profileactiondialogs.sendRequest', 'Send Request')}
               </Button>
             </div>
           </div>
@@ -138,16 +138,14 @@ export function ProfileActionDialogs({
               <Award className="w-5 h-5 text-accent" />
               Request Quantum Verification
             </DialogTitle>
-            <DialogDescription>
-              Request verification for this member's credentials, skills, or achievements.
-            </DialogDescription>
+            <DialogDescription>{t('profile.profileactiondialogs.requestVerificationForThisMembersCredentials', 'Request verification for this member\'s credentials, skills, or achievements.')}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label htmlFor="verification-message">Verification details</Label>
+              <Label htmlFor="verification-message">{t("verification_details", "Verification details")}</Label>
               <Textarea
                 id="verification-message"
-                placeholder="Specify what you'd like to verify..."
+                placeholder={t("specify_what_youd_like", "Specify what you'd like to verify...")}
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 className="glass"
@@ -155,13 +153,13 @@ export function ProfileActionDialogs({
             </div>
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => onClose('verification')}>
-                Cancel
+                {t('profile.profileactiondialogs.cancel', 'Cancel')}
               </Button>
               <Button onClick={() => {
                 onSubmit('verification', { message });
                 setMessage("");
               }}>
-                Send Request
+                {t('profile.profileactiondialogs.sendRequest', 'Send Request')}
               </Button>
             </div>
           </div>
@@ -174,17 +172,16 @@ export function ProfileActionDialogs({
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Download className="w-5 h-5 text-accent" />
-              {exportType === 'summary' ? 'Download AI Career Summary' : 'Export Quantum ID'}
+              {exportType === 'summary' ? t('profile.profileactiondialogs.downloadAiCareerSummary', 'Download AI Career Summary') : t('profile.profileactiondialogs.exportQuantumId', 'Export Quantum ID')}
             </DialogTitle>
             <DialogDescription>
               {exportType === 'summary' 
-                ? 'Generate an AI-powered career summary in PDF format.'
-                : 'Export contact information as a Quantum ID vCard with AR code.'}
+                ? t('profile.profileactiondialogs.generateAnAipoweredCareerSummaryIn', 'Generate an AI-powered career summary in PDF format.') : t('profile.profileactiondialogs.exportContactInformationAsAQuantum', 'Export contact information as a Quantum ID vCard with AR code.')}
             </DialogDescription>
           </DialogHeader>
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={() => onClose('export')}>
-              Cancel
+              {t('profile.profileactiondialogs.cancel', 'Cancel')}
             </Button>
             <Button onClick={() => onSubmit('export', { type: exportType })}>
               <Download className="w-4 h-4 mr-2" />
@@ -202,33 +199,31 @@ export function ProfileActionDialogs({
               <ThumbsUp className="w-5 h-5 text-accent" />
               Endorse Member
             </DialogTitle>
-            <DialogDescription>
-              Share your experience working with this member.
-            </DialogDescription>
+            <DialogDescription>{t('profile.profileactiondialogs.shareYourExperienceWorkingWithThis', 'Share your experience working with this member.')}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label>Endorsement Type</Label>
+              <Label>{t("endorsement_type", "Endorsement Type")}</Label>
               <RadioGroup value={endorsementType} onValueChange={setEndorsementType} className="space-y-2">
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="skill" id="skill" />
-                  <Label htmlFor="skill" className="font-normal">Skills & Expertise</Label>
+                  <Label htmlFor="skill" className="font-normal">{t("skills_expertise", "Skills & Expertise")}</Label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="collaboration" id="collaboration" />
-                  <Label htmlFor="collaboration" className="font-normal">Collaboration</Label>
+                  <Label htmlFor="collaboration" className="font-normal">{t("collaboration", "Collaboration")}</Label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="leadership" id="leadership" />
-                  <Label htmlFor="leadership" className="font-normal">Leadership</Label>
+                  <Label htmlFor="leadership" className="font-normal">{t("leadership", "Leadership")}</Label>
                 </div>
               </RadioGroup>
             </div>
             <div>
-              <Label htmlFor="endorse-message">Your endorsement</Label>
+              <Label htmlFor="endorse-message">{t("your_endorsement", "Your endorsement")}</Label>
               <Textarea
                 id="endorse-message"
-                placeholder="Share your experience..."
+                placeholder={t("share_your_experience", "Share your experience...")}
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 className="glass"
@@ -236,13 +231,13 @@ export function ProfileActionDialogs({
             </div>
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => onClose('endorse')}>
-                Cancel
+                {t('profile.profileactiondialogs.cancel', 'Cancel')}
               </Button>
               <Button onClick={() => {
                 onSubmit('endorse', { type: endorsementType, message });
                 setMessage("");
               }}>
-                Submit Endorsement
+                {t('profile.profileactiondialogs.submitEndorsement', 'Submit Endorsement')}
               </Button>
             </div>
           </div>
@@ -257,16 +252,14 @@ export function ProfileActionDialogs({
               <Users className="w-5 h-5 text-accent" />
               Invite to Club Project
             </DialogTitle>
-            <DialogDescription>
-              Invite this member to collaborate on a private club project or team.
-            </DialogDescription>
+            <DialogDescription>{t('profile.profileactiondialogs.inviteThisMemberToCollaborateOn', 'Invite this member to collaborate on a private club project or team.')}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label htmlFor="invite-message">Project details</Label>
+              <Label htmlFor="invite-message">{t("project_details", "Project details")}</Label>
               <Textarea
                 id="invite-message"
-                placeholder="Describe the project and role..."
+                placeholder={t("describe_the_project_and", "Describe the project and role...")}
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 className="glass"
@@ -274,13 +267,13 @@ export function ProfileActionDialogs({
             </div>
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => onClose('invite')}>
-                Cancel
+                {t('profile.profileactiondialogs.cancel', 'Cancel')}
               </Button>
               <Button onClick={() => {
                 onSubmit('invite', { message });
                 setMessage("");
               }}>
-                Send Invitation
+                {t('profile.profileactiondialogs.sendInvitation', 'Send Invitation')}
               </Button>
             </div>
           </div>
@@ -295,37 +288,35 @@ export function ProfileActionDialogs({
               <Shield className="w-5 h-5 text-destructive" />
               Report or Block User
             </DialogTitle>
-            <DialogDescription>
-              Help keep the Quantum Club safe by reporting inappropriate behavior.
-            </DialogDescription>
+            <DialogDescription>{t('profile.profileactiondialogs.helpKeepTheQuantumClubSafe', 'Help keep the Quantum Club safe by reporting inappropriate behavior.')}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label>Reason</Label>
+              <Label>{t("reason", "Reason")}</Label>
               <RadioGroup value={reportReason} onValueChange={setReportReason} className="space-y-2">
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="spam" id="spam" />
-                  <Label htmlFor="spam" className="font-normal">Spam</Label>
+                  <Label htmlFor="spam" className="font-normal">{t("spam", "Spam")}</Label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="harassment" id="harassment" />
-                  <Label htmlFor="harassment" className="font-normal">Harassment</Label>
+                  <Label htmlFor="harassment" className="font-normal">{t("harassment", "Harassment")}</Label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="inappropriate" id="inappropriate" />
-                  <Label htmlFor="inappropriate" className="font-normal">Inappropriate Content</Label>
+                  <Label htmlFor="inappropriate" className="font-normal">{t("inappropriate_content", "Inappropriate Content")}</Label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="other" id="other" />
-                  <Label htmlFor="other" className="font-normal">Other</Label>
+                  <Label htmlFor="other" className="font-normal">{t("other", "Other")}</Label>
                 </div>
               </RadioGroup>
             </div>
             <div>
-              <Label htmlFor="report-message">Additional details</Label>
+              <Label htmlFor="report-message">{t("additional_details", "Additional details")}</Label>
               <Textarea
                 id="report-message"
-                placeholder="Provide more information..."
+                placeholder={t("provide_more_information", "Provide more information...")}
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 className="glass"
@@ -333,14 +324,14 @@ export function ProfileActionDialogs({
             </div>
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => onClose('report')}>
-                Cancel
+                {t('profile.profileactiondialogs.cancel', 'Cancel')}
               </Button>
               <Button variant="ghost" onClick={() => {
                 onSubmit('report', { reason: reportReason, message });
                 setMessage("");
                 setReportReason("spam");
               }}>
-                Submit Report
+                {t('profile.profileactiondialogs.submitReport', 'Submit Report')}
               </Button>
             </div>
           </div>

@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { formatDistanceToNow } from 'date-fns';
+import { useTranslation } from 'react-i18next';
 
 interface HeartbeatLog {
   id: string;
@@ -15,6 +16,7 @@ interface HeartbeatLog {
 }
 
 export default function AgenticHeartbeatLogs() {
+  const { t } = useTranslation('admin');
   const [logs, setLogs] = useState<HeartbeatLog[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -38,7 +40,7 @@ export default function AgenticHeartbeatLogs() {
   }, []);
 
   if (loading) {
-    return <div className="text-center py-8 text-muted-foreground">Loading...</div>;
+    return <div className="text-center py-8 text-muted-foreground">{t('common:status.loading')}</div>;
   }
 
   return (
@@ -46,11 +48,11 @@ export default function AgenticHeartbeatLogs() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Run At</TableHead>
-            <TableHead>Agents Invoked</TableHead>
-            <TableHead>Duration</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Events Processed</TableHead>
+            <TableHead>{t('agentic.agenticHeartbeatLogs.runAt')}</TableHead>
+            <TableHead>{t('agentic.agenticHeartbeatLogs.agentsInvoked')}</TableHead>
+            <TableHead>{t('agentic.agenticHeartbeatLogs.duration')}</TableHead>
+            <TableHead>{t('common:fields.status')}</TableHead>
+            <TableHead>{t('agentic.agenticHeartbeatLogs.eventsProcessed')}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>

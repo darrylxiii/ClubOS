@@ -2,6 +2,7 @@
  * @deprecated This component has been replaced by PresenterHUD
  * Kept for backward compatibility only
  */
+import { useTranslation } from 'react-i18next';
 import { Monitor } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -10,6 +11,7 @@ interface ScreenShareOverlayProps {
 }
 
 export function ScreenShareOverlay({ participantName }: ScreenShareOverlayProps) {
+  const { t } = useTranslation('common');
   // Simple black screen with icon - actual presenter HUD is now in PresenterHUD component
   return (
     <div className={cn(
@@ -22,10 +24,10 @@ export function ScreenShareOverlay({ participantName }: ScreenShareOverlayProps)
         </div>
         <div className="space-y-2">
           <h3 className="text-xl font-semibold text-white">
-            You're Presenting
+            {t('meetings.yourePresenting', "You're Presenting")}
           </h3>
           <p className="text-sm text-white/60 max-w-md">
-            Your screen is being shared with all participants
+            {t('meetings.screenBeingShared', 'Your screen is being shared with all participants')}
           </p>
         </div>
       </div>

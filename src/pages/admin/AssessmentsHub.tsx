@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { lazy, Suspense } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
@@ -31,6 +32,7 @@ const TAB_MAP: Record<string, string> = {
 };
 
 export default function AssessmentsHub() {
+  const { t } = useTranslation('common');
   const [searchParams, setSearchParams] = useSearchParams();
   const activeTab = TAB_MAP[searchParams.get('tab') || ''] || 'overview';
 
@@ -45,7 +47,7 @@ export default function AssessmentsHub() {
           <div className="space-y-1">
             <div className="flex items-center gap-3">
               <ClipboardCheck className="h-8 w-8 text-primary" />
-              <h1 className="text-3xl font-bold tracking-tight">ASSESSMENTS HUB</h1>
+              <h1 className="text-3xl font-bold tracking-tight">{t("assessments_hub", "ASSESSMENTS HUB")}</h1>
             </div>
             <p className="text-muted-foreground">
               Manage, send, and analyze assessments and games across your talent pool
@@ -54,16 +56,16 @@ export default function AssessmentsHub() {
 
           <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
             <TabsList className="h-auto flex-wrap bg-card/50 backdrop-blur-sm rounded-lg p-1">
-              <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="send">Send</TabsTrigger>
-              <TabsTrigger value="results">Results</TabsTrigger>
-              <TabsTrigger value="custom">Custom</TabsTrigger>
-              <TabsTrigger value="tracking">Tracking</TabsTrigger>
-              <TabsTrigger value="values-poker">Values Poker</TabsTrigger>
-              <TabsTrigger value="swipe-game">Swipe Game</TabsTrigger>
-              <TabsTrigger value="pressure-cooker">Pressure Cooker</TabsTrigger>
-              <TabsTrigger value="blind-spot">Blind Spot</TabsTrigger>
-              <TabsTrigger value="miljoenenjacht">Miljoenenjacht</TabsTrigger>
+              <TabsTrigger value="overview">{t("overview", "Overview")}</TabsTrigger>
+              <TabsTrigger value="send">{t("send", "Send")}</TabsTrigger>
+              <TabsTrigger value="results">{t("results", "Results")}</TabsTrigger>
+              <TabsTrigger value="custom">{t("custom", "Custom")}</TabsTrigger>
+              <TabsTrigger value="tracking">{t("tracking", "Tracking")}</TabsTrigger>
+              <TabsTrigger value="values-poker">{t("values_poker", "Values Poker")}</TabsTrigger>
+              <TabsTrigger value="swipe-game">{t("swipe_game", "Swipe Game")}</TabsTrigger>
+              <TabsTrigger value="pressure-cooker">{t("pressure_cooker", "Pressure Cooker")}</TabsTrigger>
+              <TabsTrigger value="blind-spot">{t("blind_spot", "Blind Spot")}</TabsTrigger>
+              <TabsTrigger value="miljoenenjacht">{t("miljoenenjacht", "Miljoenenjacht")}</TabsTrigger>
             </TabsList>
 
             <Suspense fallback={<PageLoader />}>

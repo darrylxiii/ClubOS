@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, HelpCircle } from "lucide-react";
@@ -17,6 +18,7 @@ export function MinimalHeader({
   showHelpLink = true,
   className = "",
 }: MinimalHeaderProps) {
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
 
   const handleBack = () => {
@@ -40,14 +42,14 @@ export function MinimalHeader({
               className="gap-2 text-muted-foreground hover:text-foreground"
             >
               <ArrowLeft className="h-4 w-4" />
-              <span className="hidden sm:inline">Back</span>
+              <span className="hidden sm:inline">{t("back", "Back")}</span>
             </Button>
           )}
           
           {/* TQC Logo/Brand */}
           <div className="flex items-center">
-            <img src={logoLight} alt="The Quantum Club" className="h-8 w-auto dark:hidden" />
-            <img src={logoDark} alt="The Quantum Club" className="h-8 w-auto hidden dark:block" />
+            <img src={logoLight} alt={t("the_quantum_club", "The Quantum Club")} className="h-8 w-auto dark:hidden" />
+            <img src={logoDark} alt={t("the_quantum_club", "The Quantum Club")} className="h-8 w-auto hidden dark:block" />
           </div>
         </div>
 
@@ -60,7 +62,7 @@ export function MinimalHeader({
             className="gap-2 text-muted-foreground hover:text-foreground"
           >
             <HelpCircle className="h-4 w-4" />
-            <span className="hidden sm:inline">Help</span>
+            <span className="hidden sm:inline">{t("help", "Help")}</span>
           </Button>
         )}
       </div>

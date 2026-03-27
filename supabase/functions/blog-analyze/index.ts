@@ -30,8 +30,8 @@ serve(async (req) => {
     }
 
     const results = [];
-    const winningPosts: any[] = [];
-    const losingPosts: any[] = [];
+    const winningPosts: typeof posts = [];
+    const losingPosts: typeof posts = [];
 
     for (const post of posts) {
       // Get last 30 days analytics
@@ -43,13 +43,13 @@ serve(async (req) => {
         .gte('date', thirtyDaysAgo);
 
       const rows = analytics || [];
-      const totalViews = rows.reduce((sum: number, a: any) => sum + (a.page_views || 0), 0);
+      const totalViews = rows.reduce((sum: number, a: Record<string, unknown>) => sum + ((a.page_views as number) || 0), 0);
       const avgScroll = rows.length > 0
-        ? rows.reduce((sum: number, a: any) => sum + (a.scroll_depth || 0), 0) / rows.length
+        ? rows.reduce((sum: number, a: Record<string, unknown>) => sum + ((a.scroll_depth as number) || 0), 0) / rows.length
         : 0;
-      const totalClicks = rows.reduce((sum: number, a: any) => sum + (a.cta_clicks || 0), 0);
+      const totalClicks = rows.reduce((sum: number, a: Record<string, unknown>) => sum + ((a.cta_clicks as number) || 0), 0);
       const avgBounceRate = rows.length > 0
-        ? rows.reduce((sum: number, a: any) => sum + (a.bounce_rate || 0), 0) / rows.length
+        ? rows.reduce((sum: number, a: Record<string, unknown>) => sum + ((a.bounce_rate as number) || 0), 0) / rows.length
         : 1;
 
       // Performance score
@@ -109,7 +109,7 @@ serve(async (req) => {
           learning_type: 'winning_pattern',
           insight: winInsight,
           confidence: Math.min(0.95, winningPosts.length / posts.length + 0.3),
-          source_posts: winningPosts.map((p: any) => p.id).slice(0, 20),
+          source_posts: winningPosts.map((p) => p.id).slice(0, 20),
           is_active: true,
           applied_count: 0,
           updated_at: new Date().toISOString(),
@@ -139,7 +139,7 @@ serve(async (req) => {
           learning_type: 'underperforming',
           insight: loseInsight,
           confidence: Math.min(0.9, losingPosts.length / posts.length + 0.2),
-          source_posts: losingPosts.map((p: any) => p.id).slice(0, 20),
+          source_posts: losingPosts.map((p) => p.id).slice(0, 20),
           is_active: true,
           applied_count: 0,
           updated_at: new Date().toISOString(),
@@ -157,7 +157,7 @@ serve(async (req) => {
     });
   } catch (error) {
     console.error('Blog analyze error:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

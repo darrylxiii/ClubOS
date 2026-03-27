@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Slider } from '@/components/ui/slider';
 import { Textarea } from '@/components/ui/textarea';
@@ -14,6 +15,7 @@ interface OverallAssessmentEditorProps {
 }
 
 export function OverallAssessmentEditor({ candidate, onChange }: OverallAssessmentEditorProps) {
+  const { t } = useTranslation('common');
   const [fitScore, setFitScore] = useState(candidate.fit_score || 5);
   const [engagementScore, setEngagementScore] = useState(candidate.engagement_score || 5);
   const [internalRating, setInternalRating] = useState(candidate.internal_rating || 5);
@@ -126,11 +128,11 @@ export function OverallAssessmentEditor({ candidate, onChange }: OverallAssessme
 
       {/* AI Summary */}
       <div className="space-y-2">
-        <Label>Executive Summary</Label>
+        <Label>{t("executive_summary", "Executive Summary")}</Label>
         <Textarea
           value={aiSummary}
           onChange={(e) => setAiSummary(e.target.value)}
-          placeholder="Write a brief executive summary of this candidate..."
+          placeholder={t("write_a_brief_executive", "Write a brief executive summary of this candidate...")}
           rows={4}
           maxLength={500}
           className="resize-none"
@@ -144,16 +146,16 @@ export function OverallAssessmentEditor({ candidate, onChange }: OverallAssessme
 
       {/* Key Strengths */}
       <div className="space-y-3">
-        <Label>Key Strengths</Label>
+        <Label>{t("key_strengths", "Key Strengths")}</Label>
         <div className="flex gap-2">
           <Input
             value={newStrength}
             onChange={(e) => setNewStrength(e.target.value)}
-            placeholder="Add a strength..."
+            placeholder={t("add_a_strength", "Add a strength...")}
             onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddStrength())}
           />
           <Button onClick={handleAddStrength} variant="secondary" type="button">
-            Add
+            {t('common:add')}
           </Button>
         </div>
         {strengths.length > 0 && (
@@ -177,16 +179,16 @@ export function OverallAssessmentEditor({ candidate, onChange }: OverallAssessme
 
       {/* Potential Concerns */}
       <div className="space-y-3">
-        <Label>Potential Concerns</Label>
+        <Label>{t("potential_concerns", "Potential Concerns")}</Label>
         <div className="flex gap-2">
           <Input
             value={newConcern}
             onChange={(e) => setNewConcern(e.target.value)}
-            placeholder="Add a concern..."
+            placeholder={t("add_a_concern", "Add a concern...")}
             onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddConcern())}
           />
           <Button onClick={handleAddConcern} variant="secondary" type="button">
-            Add
+            {t('common:add')}
           </Button>
         </div>
         {concerns.length > 0 && (
@@ -216,7 +218,7 @@ export function OverallAssessmentEditor({ candidate, onChange }: OverallAssessme
         <Textarea
           value={changeReason}
           onChange={(e) => setChangeReason(e.target.value)}
-          placeholder="Explain why you're making these changes..."
+          placeholder={t("explain_why_youre_making", "Explain why you're making these changes...")}
           rows={2}
           required
         />

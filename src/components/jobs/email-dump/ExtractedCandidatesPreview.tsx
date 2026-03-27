@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -71,6 +72,7 @@ export function ExtractedCandidatesPreview({
   onReset,
   onImportComplete,
 }: ExtractedCandidatesPreviewProps) {
+  const { t } = useTranslation('common');
   const [importing, setImporting] = useState(false);
   const [importedCandidateIds, setImportedCandidateIds] = useState<string[]>([]);
   const [enrichResults, setEnrichResults] = useState<EnrichmentResult[]>([]);
@@ -104,7 +106,7 @@ export function ExtractedCandidatesPreview({
   const handleImport = async () => {
     const toImport = candidates.filter((c) => c.selected);
     if (toImport.length === 0) {
-      toast.error("Select at least one candidate");
+      toast.error(t("select_at_least_one", "Select at least one candidate"));
       return;
     }
 
@@ -396,7 +398,7 @@ export function ExtractedCandidatesPreview({
 
   const handleEnrichClick = () => {
     if (importedCandidateIds.length > 25) {
-      toast.warning("Maximum 25 candidates per enrichment run. Only the first 25 will be processed.");
+      toast.warning(t("maximum_25_candidates_per", "Maximum 25 candidates per enrichment run. Only the first 25 will be processed."));
     }
     setShowEnrichConfirm(true);
   };
@@ -484,11 +486,11 @@ export function ExtractedCandidatesPreview({
                 onCheckedChange={(checked) => toggleAll(!!checked)}
               />
             </div>
-            <div>Name</div>
-            <div>Email / Phone</div>
-            <div>Title / Company</div>
-            <div>LinkedIn</div>
-            <div>Confidence</div>
+            <div>{t("name", "Name")}</div>
+            <div>{t("email_phone", "Email / Phone")}</div>
+            <div>{t("title_company", "Title / Company")}</div>
+            <div>{t("linkedin", "LinkedIn")}</div>
+            <div>{t("confidence", "Confidence")}</div>
           </div>
 
           {/* Rows */}
@@ -586,7 +588,7 @@ export function ExtractedCandidatesPreview({
           <div className="mt-4 flex items-center justify-between border border-border/30 rounded-lg p-3 bg-card/50">
             <div className="text-sm">
               <span className="font-medium">{importedCandidateIds.length} candidate{importedCandidateIds.length !== 1 ? 's' : ''}</span>
-              <span className="text-muted-foreground"> imported. Enrich profiles from LinkedIn?</span>
+              <span className="text-muted-foreground">{t("imported_enrich_profiles_from", "imported. Enrich profiles from LinkedIn?")}</span>
             </div>
             <Button
               variant="outline"
@@ -616,7 +618,7 @@ export function ExtractedCandidatesPreview({
       <ConfirmDialog
         open={showEnrichConfirm}
         onOpenChange={setShowEnrichConfirm}
-        title="Enrich profiles from LinkedIn"
+        title={t("enrich_profiles_from_linkedin", "Enrich profiles from LinkedIn")}
         description={`This will scrape LinkedIn data for ${Math.min(importedCandidateIds.length, 25)} candidate${importedCandidateIds.length !== 1 ? 's' : ''} using Apify (~€0.01/profile). Profiles enriched in the last 24h will be skipped. Continue?`}
         confirmText="Enrich"
         onConfirm={handleEnrichConfirm}

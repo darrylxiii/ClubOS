@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
@@ -29,13 +30,14 @@ interface CompanyEnrichButtonProps {
 }
 
 export function CompanyEnrichButton({ prospect, onEnriched }: CompanyEnrichButtonProps) {
+  const { t } = useTranslation('common');
   const [loading, setLoading] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [enrichedData, setEnrichedData] = useState<EnrichedData | null>(null);
 
   const handleEnrich = async () => {
     if (!prospect.email && !prospect.company_domain) {
-      toast.error('No email or domain to enrich from');
+      toast.error(t("no_email_or_domain", "No email or domain to enrich from"));
       return;
     }
 
@@ -60,11 +62,11 @@ export function CompanyEnrichButton({ prospect, onEnriched }: CompanyEnrichButto
         setEnrichedData(data.enriched);
         setShowPreview(true);
       } else {
-        toast.info('No additional data found for this company');
+        toast.info(t("no_additional_data_found", "No additional data found for this company"));
       }
     } catch (err) {
       console.error('Enrichment error:', err);
-      toast.error('Failed to enrich company data');
+      toast.error(t("failed_to_enrich_company", "Failed to enrich company data"));
     } finally {
       setLoading(false);
     }
@@ -122,14 +124,14 @@ export function CompanyEnrichButton({ prospect, onEnriched }: CompanyEnrichButto
 
         if (error) throw error;
 
-        toast.success('Company data enriched');
+        toast.success(t("company_data_enriched", "Company data enriched"));
         onEnriched?.(enrichedData);
       }
 
       setShowPreview(false);
     } catch (err) {
       console.error('Apply enrichment error:', err);
-      toast.error('Failed to apply enrichment');
+      toast.error(t("failed_to_apply_enrichment", "Failed to apply enrichment"));
     }
   };
 
@@ -187,31 +189,31 @@ export function CompanyEnrichButton({ prospect, onEnriched }: CompanyEnrichButto
 
           <div className="space-y-1 divide-y divide-border/30">
             <EnrichmentField 
-              label="Company Name" 
+              label={t("company_name", "Company Name")} 
               current={prospect.company_name} 
               enriched={enrichedData?.company_name}
               icon={Building}
             />
             <EnrichmentField 
-              label="Domain" 
+              label={t("domain", "Domain")} 
               current={prospect.company_domain} 
               enriched={enrichedData?.company_domain}
               icon={Globe}
             />
             <EnrichmentField 
-              label="Industry" 
+              label={t("industry", "Industry")} 
               current={prospect.industry} 
               enriched={enrichedData?.industry}
               icon={Briefcase}
             />
             <EnrichmentField 
-              label="Company Size" 
+              label={t("company_size", "Company Size")} 
               current={prospect.company_size} 
               enriched={enrichedData?.company_size}
               icon={Users}
             />
             <EnrichmentField 
-              label="Location" 
+              label={t("location", "Location")} 
               current={prospect.location} 
               enriched={enrichedData?.location}
               icon={MapPin}
@@ -219,7 +221,7 @@ export function CompanyEnrichButton({ prospect, onEnriched }: CompanyEnrichButto
             
             {enrichedData?.technologies && enrichedData.technologies.length > 0 && (
               <div className="py-2">
-                <p className="text-xs text-muted-foreground mb-2">Technologies</p>
+                <p className="text-xs text-muted-foreground mb-2">{t("technologies", "Technologies")}</p>
                 <div className="flex flex-wrap gap-1">
                   {enrichedData.technologies.slice(0, 8).map((tech) => (
                     <Badge key={tech} variant="secondary" className="text-xs">
@@ -232,7 +234,7 @@ export function CompanyEnrichButton({ prospect, onEnriched }: CompanyEnrichButto
 
             {enrichedData?.description && (
               <div className="py-2">
-                <p className="text-xs text-muted-foreground mb-1">Description</p>
+                <p className="text-xs text-muted-foreground mb-1">{t("description", "Description")}</p>
                 <p className="text-sm text-muted-foreground line-clamp-3">
                   {enrichedData.description}
                 </p>

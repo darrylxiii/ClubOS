@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -53,6 +54,7 @@ export function BookingForm({
   onComplete,
   hasGoogleCalendar = false,
 }: BookingFormProps) {
+  const { t } = useTranslation('common');
   const { executeRecaptcha } = useGoogleReCaptcha();
   const { trackStep } = useBookingAnalytics(bookingLink.id);
   const [loading, setLoading] = useState(false);
@@ -100,13 +102,13 @@ export function BookingForm({
           fieldErrors[field] = error.message;
         });
         setErrors(fieldErrors);
-        toast.error("Please fix the errors in the form");
+        toast.error(t("please_fix_the_errors", "Please fix the errors in the form"));
         return;
       }
     }
 
     if (!selectedDate || !selectedSlot?.start || !selectedSlot?.end) {
-      toast.error("Please select a date and time");
+      toast.error(t("please_select_a_date", "Please select a date and time"));
       return;
     }
 
@@ -136,7 +138,7 @@ export function BookingForm({
             componentName: 'BookingForm',
             slotStart: selectedSlot.start,
           });
-          toast.error("This time slot was just booked. Please select another time.");
+          toast.error(t("this_time_slot_was", "This time slot was just booked. Please select another time."));
           setLoading(false);
           return;
         }
@@ -154,14 +156,14 @@ export function BookingForm({
       if (RECAPTCHA_ENABLED) {
         setLoadingStage("Security verification...");
         if (!executeRecaptcha) {
-          toast.error("reCAPTCHA not ready. Please refresh the page.");
+          toast.error(t("recaptcha_not_ready_please", "reCAPTCHA not ready. Please refresh the page."));
           setLoading(false);
           return;
         }
         recaptchaToken = await executeRecaptcha("create_booking");
 
         if (!recaptchaToken) {
-          toast.error("Security verification failed. Please try again.");
+          toast.error(t("security_verification_failed_please", "Security verification failed. Please try again."));
           setLoading(false);
           return;
         }
@@ -201,7 +203,7 @@ export function BookingForm({
 
       setLoadingStage("Confirmed!");
       trackStep("confirmation"); // Phase 7: Track successful booking
-      toast.success("Booking confirmed! Check your email for details.");
+      toast.success(t("booking_confirmed_check_your", "Booking confirmed! Check your email for details."));
       onComplete(data.booking.id);
     } catch (error: unknown) {
       console.error("Booking error:", error);
@@ -229,17 +231,17 @@ export function BookingForm({
           errorLower.includes("microsoft") ? "Microsoft Calendar" : "your calendar";
         toast.error(`This time conflicts with an event in ${provider}. Please select another time.`);
       } else if (errorLower.includes("no longer available") || errorLower.includes("already booked") || errorLower.includes("just booked")) {
-        toast.error("This time slot was just booked by someone else. Please select another time.");
+        toast.error(t("this_time_slot_was", "This time slot was just booked by someone else. Please select another time."));
       } else if (errorLower.includes("rate limit") || errorLower.includes("too many")) {
-        toast.error("Too many booking attempts. Please wait a few minutes before trying again.");
+        toast.error(t("too_many_booking_attempts", "Too many booking attempts. Please wait a few minutes before trying again."));
       } else if (errorLower.includes("calendar") && (errorLower.includes("unavailable") || errorLower.includes("timeout"))) {
-        toast.error("Unable to verify calendar availability. Please try again or contact support.");
+        toast.error(t("unable_to_verify_calendar", "Unable to verify calendar availability. Please try again or contact support."));
       } else if (errorLower.includes("validation") || errorLower.includes("invalid")) {
-        toast.error("Please check your booking details and try again.");
+        toast.error(t("please_check_your_booking", "Please check your booking details and try again."));
       } else if (errorLower.includes("not found") || errorLower.includes("not active")) {
-        toast.error("This booking link is no longer active.");
+        toast.error(t("this_booking_link_is", "This booking link is no longer active."));
       } else if (errorLower.includes("recaptcha")) {
-        toast.error("Verification failed. Please refresh and try again.");
+        toast.error(t("verification_failed_please_refresh", "Verification failed. Please refresh and try again."));
       } else {
         toast.error(`Unable to complete booking: ${errorMsg}`);
       }
@@ -262,7 +264,7 @@ export function BookingForm({
       />
 
       <div className="text-center pb-4 border-b">
-        <h3 className="text-lg font-semibold mb-3">Enter Your Details</h3>
+        <h3 className="text-lg font-semibold mb-3">{t("enter_your_details", "Enter Your Details")}</h3>
         <div className="flex items-center justify-center gap-6 text-sm text-muted-foreground">
           <span className="flex items-center gap-2">
             <Calendar className="h-4 w-4" />
@@ -297,7 +299,7 @@ export function BookingForm({
               setFormData({ ...formData, name: e.target.value });
               setErrors({ ...errors, name: undefined });
             }}
-            placeholder="Your full name"
+            placeholder={t("your_full_name", "Your full name")}
             required
             className={errors.name ? "border-destructive" : ""}
           />
@@ -318,7 +320,7 @@ export function BookingForm({
               setFormData({ ...formData, email: e.target.value });
               setErrors({ ...errors, email: undefined });
             }}
-            placeholder="you@example.com"
+            placeholder={t("youexamplecom", "you@example.com")}
             required
             className={errors.email ? "border-destructive" : ""}
           />
@@ -374,7 +376,7 @@ export function BookingForm({
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="guests">Additional Guests (optional)</Label>
+          <Label htmlFor="guests">{t("additional_guests_optional", "Additional Guests (optional)")}</Label>
           <GuestEmailInput
             guests={guests}
             onChange={setGuests}
@@ -396,7 +398,7 @@ export function BookingForm({
         <RecurringBookingToggle value={recurrence} onChange={setRecurrence} />
 
         <div className="space-y-2">
-          <Label htmlFor="notes">Additional Notes (optional)</Label>
+          <Label htmlFor="notes">{t("additional_notes_optional", "Additional Notes (optional)")}</Label>
           <Textarea
             id="notes"
             value={formData.notes}
@@ -404,7 +406,7 @@ export function BookingForm({
               setFormData({ ...formData, notes: e.target.value });
               setErrors({ ...errors, notes: undefined });
             }}
-            placeholder="Anything else you'd like to share..."
+            placeholder={t("anything_else_youd_like", "Anything else you'd like to share...")}
             rows={3}
             className={errors.notes ? "border-destructive" : ""}
           />
@@ -420,7 +422,7 @@ export function BookingForm({
               <div className="flex items-center gap-2">
                 <Loader2 className="h-4 w-4 animate-spin" />
                 <div className="flex flex-col items-start">
-                  <span className="text-sm font-medium">Processing...</span>
+                  <span className="text-sm font-medium">{t("processing", "Processing...")}</span>
                   {loadingStage && (
                     <span className="text-xs opacity-80">{loadingStage}</span>
                   )}

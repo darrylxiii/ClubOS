@@ -1,4 +1,5 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useTranslation } from 'react-i18next';
 import { LeadScoringRulesBuilder } from '@/components/crm/LeadScoringRulesBuilder';
 import { LeadScoreHistory } from '@/components/crm/LeadScoreHistory';
 import { ProspectScoreCard } from '@/components/crm/ProspectScoreCard';
@@ -7,6 +8,7 @@ import { Zap, History, BarChart3 } from 'lucide-react';
 import { RoleGate } from '@/components/RoleGate';
 
 export default function LeadScoringConfig() {
+  const { t } = useTranslation('common');
   return (
     <RoleGate allowedRoles={['admin', 'strategist']}>
       <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
@@ -18,9 +20,7 @@ export default function LeadScoringConfig() {
           <Zap className="h-8 w-8 text-primary" />
           Lead Scoring Configuration
         </h1>
-        <p className="text-muted-foreground mt-2">
-          Configure scoring rules and view score history for your prospects
-        </p>
+        <p className="text-muted-foreground mt-2">{t('leadScoringConfig.desc')}</p>
       </motion.div>
 
       <Tabs defaultValue="rules" className="space-y-6">

@@ -10,6 +10,7 @@ import {
   ChevronLeft, ChevronRight,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 
 interface Briefing {
   id: string;
@@ -49,7 +50,7 @@ export default function BriefingDocumentView() {
     try {
       const { error } = await supabase.functions.invoke('generate-daily-briefing', {});
       if (error) throw error;
-      toast.success('Briefing generated');
+      toast.success(t('agentic.briefingDocumentView.briefingGenerated'));
       // Refetch
       const { data } = await supabase
         .from('daily_briefings')
@@ -61,13 +62,14 @@ export default function BriefingDocumentView() {
         if (data.length > 0) setSelectedBriefing(data[0]);
       }
     } catch (err) {
-      toast.error('Failed to generate briefing');
+      toast.error(t('agentic.briefingDocumentView.failedToGenerateBriefing'));
     } finally {
       setGenerating(false);
     }
   };
 
   const navigateDate = (dir: number) => {
+  const { t } = useTranslation('admin');
     const newDate = dir > 0 ? subDays(selectedDate, -1) : subDays(selectedDate, 1);
     setSelectedDate(newDate);
     const dateStr = format(newDate, 'yyyy-MM-dd');
@@ -205,7 +207,7 @@ export default function BriefingDocumentView() {
                     {section.items.map(section.render)}
                   </div>
                 ) : (
-                  <p className="text-sm text-muted-foreground pl-6">No data for this section.</p>
+                  <p className="text-sm text-muted-foreground pl-6">{t('agentic.briefingDocumentView.noDataForThisSection')}</p>
                 )}
               </div>
             ))}
@@ -214,7 +216,7 @@ export default function BriefingDocumentView() {
       ) : (
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <FileText className="h-16 w-16 text-muted-foreground/30 mb-4" />
-          <h3 className="text-lg font-semibold mb-2">No Briefing for This Date</h3>
+          <h3 className="text-lg font-semibold mb-2">{t('agentic.briefingDocumentView.noBriefingForThisDate')}</h3>
           <p className="text-sm text-muted-foreground mb-4">
             No intelligence briefing was generated for this day.
           </p>

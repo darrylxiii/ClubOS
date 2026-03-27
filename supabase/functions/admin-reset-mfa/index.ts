@@ -1,45 +1,15 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { createAuthenticatedHandler } from '../_shared/handler.ts';
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
-import { getAuthCorsHeaders, authCorsPreFlight } from "../_shared/auth-cors.ts";
 
 const requestSchema = z.object({
   target_user_id: z.string().uuid(),
   reason: z.string().min(5).max(500),
 });
 
-Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") return authCorsPreFlight(req);
-
-  const corsHeaders = getAuthCorsHeaders(req);
-
-  try {
-    const authHeader = req.headers.get('authorization');
-    if (!authHeader) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    const supabaseAdmin = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
-    );
-
-    // Verify calling user
-    const userClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
-      { global: { headers: { Authorization: authHeader } } }
-    );
-
-    const { data: { user: callingUser }, error: authError } = await userClient.auth.getUser();
-    if (authError || !callingUser) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
+Deno.serve(createAuthenticatedHandler(async (req, ctx) => {
+  const corsHeaders = ctx.corsHeaders;
+  const supabaseAdmin = ctx.supabase;
+  const callingUser = ctx.user;
 
     // Verify admin role
     const { data: roles } = await supabaseAdmin
@@ -109,18 +79,4 @@ Deno.serve(async (req) => {
       }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
-  } catch (error: any) {
-    console.error('[admin-reset-mfa] Error:', error);
-    const h = getAuthCorsHeaders(req);
-    if (error.name === 'ZodError') {
-      return new Response(JSON.stringify({ error: 'Invalid request' }), {
-        status: 400,
-        headers: { ...h, 'Content-Type': 'application/json' },
-      });
-    }
-    return new Response(JSON.stringify({ error: 'Internal error' }), {
-      status: 500,
-      headers: { ...h, 'Content-Type': 'application/json' },
-    });
-  }
-});
+}));

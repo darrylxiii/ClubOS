@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Video, Sparkles, Zap, Briefcase, Users, Clock } from 'lucide-react';
@@ -32,6 +33,7 @@ export function InstantMeetingButton({
   showTemplates = true,
   conversationId,
 }: InstantMeetingButtonProps) {
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
   const { user } = useAuth();
   const { createMeetingMessage } = useMeetingMessages();
@@ -71,7 +73,7 @@ export function InstantMeetingButton({
 
   const createInstantMeeting = async (templateId?: string, pmrCode?: string) => {
     if (!user) {
-      toast.error('Please sign in to create a meeting');
+      toast.error(t("please_sign_in_to", "Please sign in to create a meeting"));
       return;
     }
 
@@ -84,7 +86,7 @@ export function InstantMeetingButton({
       if (error) throw error;
 
       if (data?.success) {
-        toast.success('Meeting created! Redirecting...', {
+        toast.success(t("meeting_created_redirecting", "Meeting created! Redirecting..."), {
           description: `Code: ${data.meeting.meeting_code}`,
         });
 
@@ -110,7 +112,7 @@ export function InstantMeetingButton({
       }
     } catch (error: unknown) {
       console.error('Error creating meeting:', error);
-      toast.error('Failed to create meeting', {
+      toast.error(t("failed_to_create_meeting", "Failed to create meeting"), {
         description: error instanceof Error ? error.message : undefined,
       });
     } finally {
@@ -126,7 +128,7 @@ export function InstantMeetingButton({
         onClick={() => createInstantMeeting()}
         disabled={loading}
         className={className}
-        title="Create instant meeting"
+        title={t("create_instant_meeting", "Create instant meeting")}
       >
         {loading ? (
           <Clock className="h-4 w-4 animate-spin" />
@@ -181,7 +183,7 @@ export function InstantMeetingButton({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
-        <DropdownMenuLabel>Quick Actions</DropdownMenuLabel>
+        <DropdownMenuLabel>{t("quick_actions", "Quick Actions")}</DropdownMenuLabel>
         
         <DropdownMenuItem onClick={() => createInstantMeeting()}>
           <Zap className="h-4 w-4 mr-2 text-primary" />
@@ -198,7 +200,7 @@ export function InstantMeetingButton({
         {templates.length > 0 && (
           <>
             <DropdownMenuSeparator />
-            <DropdownMenuLabel>From Template</DropdownMenuLabel>
+            <DropdownMenuLabel>{t("from_template", "From Template")}</DropdownMenuLabel>
             {templates.map((template) => (
               <DropdownMenuItem
                 key={template.id}

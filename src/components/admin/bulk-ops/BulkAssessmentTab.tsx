@@ -9,6 +9,7 @@ import { Send, Loader2, ClipboardCheck } from "lucide-react";
 import { CandidateSelectorTable } from "./CandidateSelectorTable";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
+import { useTranslation } from 'react-i18next';
 
 const ASSESSMENT_TYPES = [
   { id: "values-poker", name: "Values Poker", description: "Discover work values alignment" },
@@ -19,6 +20,7 @@ const ASSESSMENT_TYPES = [
 ];
 
 export const BulkAssessmentTab = () => {
+  const { t } = useTranslation('admin');
   const [selectedCandidates, setSelectedCandidates] = useState<string[]>([]);
   const [assessmentType, setAssessmentType] = useState<string>("");
   const [customMessage, setCustomMessage] = useState("");
@@ -121,7 +123,7 @@ export const BulkAssessmentTab = () => {
     <div className="space-y-6">
       {/* Candidate Selection */}
       <div>
-        <Label className="mb-2 block">Select Candidates</Label>
+        <Label className="mb-2 block">{t('bulk-ops.bulkAssessmentTab.selectCandidates')}</Label>
         <CandidateSelectorTable
           selectedCandidates={selectedCandidates}
           onSelectionChange={setSelectedCandidates}
@@ -132,10 +134,10 @@ export const BulkAssessmentTab = () => {
       {/* Assessment Configuration */}
       <div className="space-y-4 border-t pt-6">
         <div>
-          <Label htmlFor="assessment">Assessment Type</Label>
+          <Label htmlFor="assessment">{t('bulk-ops.bulkAssessmentTab.assessmentType')}</Label>
           <Select value={assessmentType} onValueChange={setAssessmentType}>
             <SelectTrigger className="mt-1.5">
-              <SelectValue placeholder="Select an assessment" />
+              <SelectValue placeholder={t('bulk-ops.bulkAssessmentTab.selectAnAssessment')} />
             </SelectTrigger>
             <SelectContent>
               {ASSESSMENT_TYPES.map((assessment) => (
@@ -153,10 +155,10 @@ export const BulkAssessmentTab = () => {
         </div>
 
         <div>
-          <Label htmlFor="job">Related Job (Optional)</Label>
+          <Label htmlFor="job">{t('bulk-ops.bulkAssessmentTab.relatedJobOptional')}</Label>
           <Select value={selectedJob} onValueChange={setSelectedJob}>
             <SelectTrigger className="mt-1.5">
-              <SelectValue placeholder="Link to a job..." />
+              <SelectValue placeholder={t('bulk-ops.bulkAssessmentTab.linkToAJob')} />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="">No job linked</SelectItem>
@@ -170,7 +172,7 @@ export const BulkAssessmentTab = () => {
         </div>
 
         <div>
-          <Label htmlFor="dueDate">Due Date (Optional)</Label>
+          <Label htmlFor="dueDate">{t('bulk-ops.bulkAssessmentTab.dueDateOptional')}</Label>
           <Input
             id="dueDate"
             type="date"
@@ -181,12 +183,12 @@ export const BulkAssessmentTab = () => {
         </div>
 
         <div>
-          <Label htmlFor="message">Custom Message (Optional)</Label>
+          <Label htmlFor="message">{t('bulk-ops.bulkAssessmentTab.customMessageOptional')}</Label>
           <Textarea
             id="message"
             value={customMessage}
             onChange={(e) => setCustomMessage(e.target.value)}
-            placeholder="Add a note for the candidate..."
+            placeholder={t('bulk-ops.bulkAssessmentTab.addANoteForTheCandidate')}
             rows={3}
             className="mt-1.5"
           />

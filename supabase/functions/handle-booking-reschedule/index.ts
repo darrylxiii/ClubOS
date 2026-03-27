@@ -1,20 +1,13 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createHandler } from '../_shared/handler.ts';
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
 import { Card, Heading, Paragraph, Spacer, InfoRow } from "../_shared/email-templates/components.ts";
+import { EMAIL_SENDERS } from "../_shared/email-config.ts";
+import { sendEmail } from '../_shared/resend-client.ts';
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+Deno.serve(createHandler(async (req, ctx) => {
+    const { supabase: supabaseClient, corsHeaders } = ctx;
 
-serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  try {
     const rescheduleSchema = z.object({
       bookingId: z.string().uuid(),
       newStart: z.string().datetime(),
@@ -23,11 +16,6 @@ serve(async (req) => {
     });
 
     const { bookingId, newStart, newEnd, reason } = rescheduleSchema.parse(await req.json());
-
-    const supabaseClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
-    );
 
     // Get booking details
     const { data: booking, error: bookingError } = await supabaseClient
@@ -180,22 +168,17 @@ serve(async (req) => {
       showFooter: true
     });
 
-    const resendApiKey = Deno.env.get("RESEND_API_KEY");
-    
     // Send email to guest
-    await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${resendApiKey}`,
-      },
-      body: JSON.stringify({
-        from: "The Quantum Club <bookings@thequantumclub.com>",
+    try {
+      await sendEmail({
+        from: EMAIL_SENDERS.bookings,
         to: [booking.guest_email],
         subject: `Rescheduled: ${booking.booking_links?.title}`,
         html: guestEmailHtml,
-      }),
-    });
+      });
+    } catch (emailError) {
+      console.error('[Reschedule] Failed to send guest email:', emailError);
+    }
 
     // Email to host
     if (booking.profiles?.email) {
@@ -226,30 +209,20 @@ serve(async (req) => {
         showFooter: true
       });
 
-      await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${resendApiKey}`,
-        },
-        body: JSON.stringify({
-          from: "The Quantum Club <bookings@thequantumclub.com>",
+      try {
+        await sendEmail({
+          from: EMAIL_SENDERS.bookings,
           to: [booking.profiles.email],
           subject: `Booking Rescheduled: ${booking.guest_name}`,
           html: hostEmailHtml,
-        }),
-      });
+        });
+      } catch (emailError) {
+        console.error('[Reschedule] Failed to send host email:', emailError);
+      }
     }
 
     return new Response(
       JSON.stringify({ success: true }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
-  } catch (error: any) {
-    console.error("[Reschedule] Error:", error);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
-  }
-});
+}));

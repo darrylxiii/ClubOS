@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -26,6 +27,7 @@ export function BulkActionsToolbar({
   onExportSelected,
   onClearSelection,
 }: BulkActionsToolbarProps) {
+  const { t } = useTranslation('common');
   if (selectedCount === 0) return null;
 
   return (
@@ -40,7 +42,7 @@ export function BulkActionsToolbar({
         <div className="flex items-center gap-2">
           <Select onValueChange={onAssignStrategist}>
             <SelectTrigger className="w-[200px]">
-              <SelectValue placeholder="Assign Strategist" />
+              <SelectValue placeholder={t("assign_strategist", "Assign Strategist")} />
             </SelectTrigger>
             <SelectContent>
               {strategists.map((strategist) => (

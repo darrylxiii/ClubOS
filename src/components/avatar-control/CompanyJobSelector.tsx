@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useMemo } from 'react';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Badge } from '@/components/ui/badge';
@@ -13,6 +14,7 @@ interface CompanyJobSelectorProps {
 }
 
 export function CompanyJobSelector({ selectedJobId, onSelect }: CompanyJobSelectorProps) {
+  const { t } = useTranslation('common');
   const { data: jobs = [] } = useAvailableJobs();
   const companies = useCompaniesWithJobCounts();
   const [selectedCompanyId, setSelectedCompanyId] = useState<string | null>(null);
@@ -41,9 +43,9 @@ export function CompanyJobSelector({ selectedJobId, onSelect }: CompanyJobSelect
             <span className="text-xs font-medium truncate">{selectedCompany.name}</span>
           )}
         </div>
-        <CommandInput placeholder="Search jobs…" />
+        <CommandInput placeholder={t("search_jobs", "Search jobs…")} />
         <CommandList>
-          <CommandEmpty>No jobs found.</CommandEmpty>
+          <CommandEmpty>{t("no_jobs_found", "No jobs found.")}</CommandEmpty>
           <CommandGroup>
             {filteredJobs.map(job => {
               const isCurrent = job.id === selectedJobId;
@@ -72,9 +74,9 @@ export function CompanyJobSelector({ selectedJobId, onSelect }: CompanyJobSelect
 
   return (
     <Command>
-      <CommandInput placeholder="Search companies…" />
+      <CommandInput placeholder={t("search_companies", "Search companies…")} />
       <CommandList>
-        <CommandEmpty>No companies with open jobs.</CommandEmpty>
+        <CommandEmpty>{t("no_companies_with_open", "No companies with open jobs.")}</CommandEmpty>
         <CommandGroup heading="Select a company">
           {companies.map(company => (
             <CommandItem

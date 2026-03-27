@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Checkbox } from "@/components/ui/checkbox";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -36,6 +37,7 @@ export function CandidatesTable({
   onSelectAll,
   activityThresholds,
 }: CandidatesTableProps) {
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
 
   const getActivityBgColor = (color: string) => {
@@ -75,14 +77,14 @@ export function CandidatesTable({
                 onCheckedChange={onSelectAll}
               />
             </TableHead>
-            <TableHead>Candidate</TableHead>
-            <TableHead>Contact</TableHead>
-            <TableHead>Title</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Activity</TableHead>
-            <TableHead>Metrics</TableHead>
-            <TableHead>Experience</TableHead>
-            <TableHead>Completeness</TableHead>
+            <TableHead>{t("candidate", "Candidate")}</TableHead>
+            <TableHead>{t("contact", "Contact")}</TableHead>
+            <TableHead>{t("title", "Title")}</TableHead>
+            <TableHead>{t("status", "Status")}</TableHead>
+            <TableHead>{t("activity", "Activity")}</TableHead>
+            <TableHead>{t("metrics", "Metrics")}</TableHead>
+            <TableHead>{t("experience", "Experience")}</TableHead>
+            <TableHead>{t("completeness", "Completeness")}</TableHead>
             <TableHead className="w-12"></TableHead>
           </TableRow>
         </TableHeader>

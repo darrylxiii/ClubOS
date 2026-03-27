@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -19,6 +20,7 @@ interface BatchJob {
 }
 
 export function BatchProcessingPanel() {
+  const { t } = useTranslation('common');
   const [jobs, setJobs] = useState<BatchJob[]>([
     { id: 'enrich', label: 'AI Enrich Profiles', icon: <Sparkles className="w-4 h-4" />, description: 'Generate AI summaries, talent tiers, and move probability', status: 'idle', processed: 0, total: 0 },
     { id: 'autotag', label: 'Auto-Tag Candidates', icon: <Tags className="w-4 h-4" />, description: 'Assign structured tags based on title, company, and history', status: 'idle', processed: 0, total: 0 },
@@ -62,15 +64,15 @@ export function BatchProcessingPanel() {
 
   const runAll = async () => {
     setIsRunning(true);
-    toast.info('Starting batch processing pipeline...');
+    toast.info(t("starting_batch_processing_pipeline", "Starting batch processing pipeline..."));
 
     try {
       await runBatchJob('enrich', 'enrich-candidate-profile');
       await runBatchJob('autotag', 'auto-tag-candidate');
       await runBatchJob('embedding', 'generate-candidate-embedding');
-      toast.success('Batch processing complete.');
+      toast.success(t("batch_processing_complete", "Batch processing complete."));
     } catch (e) {
-      toast.error('Batch processing encountered errors.');
+      toast.error(t("batch_processing_encountered_errors", "Batch processing encountered errors."));
     } finally {
       setIsRunning(false);
     }

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -27,11 +28,11 @@ interface TeamOverviewDashboardProps {
   isLoading?: boolean;
 }
 
-export function TeamOverviewDashboard({ 
-  directReports, 
+export function TeamOverviewDashboard({  directReports, 
   teamMetrics = {},
   isLoading 
 }: TeamOverviewDashboardProps) {
+const { t } = useTranslation('common');
   const navigate = useNavigate();
 
   const totalRevenue = Object.values(teamMetrics).reduce((sum, m) => sum + m.revenue, 0);
@@ -48,7 +49,7 @@ export function TeamOverviewDashboard({
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Team Overview</CardTitle>
+          <CardTitle>{t("team_overview", "Team Overview")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="h-64 bg-muted/50 animate-pulse rounded-lg" />
@@ -74,17 +75,17 @@ export function TeamOverviewDashboard({
           <div className="p-4 bg-muted/30 rounded-lg text-center">
             <DollarSign className="h-5 w-5 text-green-500 mx-auto mb-1" />
             <p className="text-2xl font-bold">{formatCurrency(totalRevenue)}</p>
-            <p className="text-xs text-muted-foreground">Team Revenue YTD</p>
+            <p className="text-xs text-muted-foreground">{t("team_revenue_ytd", "Team Revenue YTD")}</p>
           </div>
           <div className="p-4 bg-muted/30 rounded-lg text-center">
             <Award className="h-5 w-5 text-blue-500 mx-auto mb-1" />
             <p className="text-2xl font-bold">{totalPlacements}</p>
-            <p className="text-xs text-muted-foreground">Total Placements</p>
+            <p className="text-xs text-muted-foreground">{t("total_placements", "Total Placements")}</p>
           </div>
           <div className="p-4 bg-muted/30 rounded-lg text-center">
             <TrendingUp className="h-5 w-5 text-primary mx-auto mb-1" />
             <p className="text-2xl font-bold">{Math.round(avgProgress)}%</p>
-            <p className="text-xs text-muted-foreground">Avg Target Progress</p>
+            <p className="text-xs text-muted-foreground">{t("avg_target_progress", "Avg Target Progress")}</p>
           </div>
         </div>
 
@@ -93,7 +94,7 @@ export function TeamOverviewDashboard({
           <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg flex items-center gap-3">
             <AlertTriangle className="h-5 w-5 text-amber-500" />
             <div>
-              <p className="text-sm font-medium">Attention Required</p>
+              <p className="text-sm font-medium">{t("attention_required", "Attention Required")}</p>
               <p className="text-xs text-muted-foreground">
                 {behindTarget.length} team member{behindTarget.length > 1 ? 's' : ''} behind target
               </p>
@@ -117,7 +118,7 @@ export function TeamOverviewDashboard({
         {directReports.length === 0 && (
           <div className="flex flex-col items-center justify-center h-32 text-muted-foreground">
             <Users className="h-8 w-8 mb-2 opacity-50" />
-            <p>No direct reports</p>
+            <p>{t("no_direct_reports", "No direct reports")}</p>
           </div>
         )}
       </CardContent>

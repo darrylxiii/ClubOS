@@ -8,8 +8,8 @@ import {
 
 describe('oauthCsrfProtection', () => {
   beforeEach(() => {
-    // Clear sessionStorage before each test
-    sessionStorage.clear();
+    // Clear localStorage before each test
+    localStorage.clear();
     vi.spyOn(console, 'log').mockImplementation(() => {});
     vi.spyOn(console, 'warn').mockImplementation(() => {});
     vi.spyOn(console, 'error').mockImplementation(() => {});
@@ -26,14 +26,14 @@ describe('oauthCsrfProtection', () => {
       expect(/^[0-9a-f]+$/i.test(state)).toBe(true);
     });
 
-    it('should store state in sessionStorage', () => {
+    it('should store state in localStorage', () => {
       const state = generateOAuthState();
-      expect(sessionStorage.getItem('oauth_state')).toBe(state);
+      expect(localStorage.getItem('oauth_state')).toBe(state);
     });
 
-    it('should store expiry time in sessionStorage', () => {
+    it('should store expiry time in localStorage', () => {
       generateOAuthState();
-      const expiry = sessionStorage.getItem('oauth_state_expiry');
+      const expiry = localStorage.getItem('oauth_state_expiry');
       expect(expiry).not.toBeNull();
       expect(parseInt(expiry!, 10)).toBeGreaterThan(Date.now());
     });
@@ -67,24 +67,24 @@ describe('oauthCsrfProtection', () => {
     it('should clear stored state after validation', () => {
       const state = generateOAuthState();
       validateOAuthState(state);
-      expect(sessionStorage.getItem('oauth_state')).toBeNull();
-      expect(sessionStorage.getItem('oauth_state_expiry')).toBeNull();
+      expect(localStorage.getItem('oauth_state')).toBeNull();
+      expect(localStorage.getItem('oauth_state_expiry')).toBeNull();
     });
 
     it('should return false for expired state', () => {
       const state = generateOAuthState();
       // Manually set expiry to past
-      sessionStorage.setItem('oauth_state_expiry', String(Date.now() - 1000));
+      localStorage.setItem('oauth_state_expiry', String(Date.now() - 1000));
       expect(validateOAuthState(state)).toBe(false);
     });
   });
 
   describe('clearOAuthState', () => {
-    it('should remove state and expiry from sessionStorage', () => {
+    it('should remove state and expiry from localStorage', () => {
       generateOAuthState();
       clearOAuthState();
-      expect(sessionStorage.getItem('oauth_state')).toBeNull();
-      expect(sessionStorage.getItem('oauth_state_expiry')).toBeNull();
+      expect(localStorage.getItem('oauth_state')).toBeNull();
+      expect(localStorage.getItem('oauth_state_expiry')).toBeNull();
     });
 
     it('should not throw when storage is empty', () => {
@@ -110,7 +110,7 @@ describe('oauthCsrfProtection', () => {
 
     it('should return false for expired state', () => {
       generateOAuthState();
-      sessionStorage.setItem('oauth_state_expiry', String(Date.now() - 1000));
+      localStorage.setItem('oauth_state_expiry', String(Date.now() - 1000));
       expect(hasPendingOAuthFlow()).toBe(false);
     });
   });

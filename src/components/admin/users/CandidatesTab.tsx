@@ -13,6 +13,7 @@ import { useGodMode } from "@/hooks/useGodMode";
 import { toast } from "sonner";
 import { UserEditDrawer } from "./UserEditDrawer";
 import { formatDistanceToNow } from "date-fns";
+import { useTranslation } from 'react-i18next';
 
 interface CandidateUser {
   id: string;
@@ -31,6 +32,7 @@ interface CandidateUser {
 }
 
 const CandidatesTab = () => {
+  const { t } = useTranslation('admin');
   const navigate = useNavigate();
   const { suspendUser, unsuspendUser } = useGodMode();
   const [search, setSearch] = useState("");
@@ -131,7 +133,7 @@ const CandidatesTab = () => {
     a.href = url;
     a.download = `candidates-${new Date().toISOString().split("T")[0]}.csv`;
     a.click();
-    toast.success("Candidates exported");
+    toast.success(t('users.candidatesTab.candidatesExported'));
   };
 
   return (
@@ -139,7 +141,7 @@ const CandidatesTab = () => {
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle>Candidates</CardTitle>
+            <CardTitle>{t('users.candidatesTab.candidates')}</CardTitle>
             <CardDescription>
               {filtered.length} candidate{filtered.length !== 1 ? "s" : ""}
             </CardDescription>
@@ -155,7 +157,7 @@ const CandidatesTab = () => {
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
-              placeholder="Search by name, email, or location..."
+              placeholder={t('users.candidatesTab.searchByNameEmailOrLocation')}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="pl-10"
@@ -163,7 +165,7 @@ const CandidatesTab = () => {
           </div>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger className="w-40">
-              <SelectValue placeholder="Status" />
+              <SelectValue placeholder={t('common:fields.status')} />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Statuses</SelectItem>
@@ -178,16 +180,16 @@ const CandidatesTab = () => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Location</TableHead>
-              <TableHead>Salary Range</TableHead>
-              <TableHead>Resume</TableHead>
-              <TableHead>Stealth</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Last Login</TableHead>
-              <TableHead>Joined</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead>{t('common:fields.name')}</TableHead>
+              <TableHead>{t('common:fields.email')}</TableHead>
+              <TableHead>{t('users.candidatesTab.location')}</TableHead>
+              <TableHead>{t('users.candidatesTab.salaryRange')}</TableHead>
+              <TableHead>{t('users.candidatesTab.resume')}</TableHead>
+              <TableHead>{t('users.candidatesTab.stealth')}</TableHead>
+              <TableHead>{t('common:fields.status')}</TableHead>
+              <TableHead>{t('users.candidatesTab.lastLogin')}</TableHead>
+              <TableHead>{t('users.candidatesTab.joined')}</TableHead>
+              <TableHead className="text-right">{t('common:fields.actions')}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -225,7 +227,7 @@ const CandidatesTab = () => {
                     {user.stealth_mode_enabled ? (
                       <Badge variant="secondary" className="text-xs">On</Badge>
                     ) : (
-                      <span className="text-muted-foreground text-xs">Off</span>
+                      <span className="text-muted-foreground text-xs">{t('users.candidatesTab.off')}</span>
                     )}
                   </TableCell>
                   <TableCell>
@@ -243,18 +245,18 @@ const CandidatesTab = () => {
                   <TableCell className="text-sm text-muted-foreground">
                     {user.last_login_at
                       ? formatDistanceToNow(new Date(user.last_login_at), { addSuffix: true })
-                      : <span className="text-muted-foreground/60">Never</span>}
+                      : <span className="text-muted-foreground/60">{t('users.candidatesTab.never')}</span>}
                   </TableCell>
                   <TableCell className="text-sm text-muted-foreground">
                     {formatDistanceToNow(new Date(user.created_at), { addSuffix: true })}
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-1">
-                      <Button variant="ghost" size="icon" onClick={() => navigate(`/profile/${user.id}`)} title="View Profile">
+                      <Button variant="ghost" size="icon" onClick={() => navigate(`/profile/${user.id}`)} title={t('users.candidatesTab.viewProfile')}>
                         <Eye className="w-4 h-4" />
                       </Button>
                       {user.candidate_id && (
-                        <Button variant="ghost" size="icon" onClick={() => navigate(`/candidate/${user.candidate_id}`)} title="View as Candidate">
+                        <Button variant="ghost" size="icon" onClick={() => navigate(`/candidate/${user.candidate_id}`)} title={t('users.candidatesTab.viewAsCandidate')}>
                           <ExternalLink className="w-4 h-4" />
                         </Button>
                       )}
@@ -262,7 +264,7 @@ const CandidatesTab = () => {
                         variant="ghost"
                         size="icon"
                         onClick={() => setEditingUser({ id: user.id, email: user.email, full_name: user.full_name })}
-                        title="Edit User"
+                        title={t('users.candidatesTab.editUser')}
                       >
                         <Eye className="w-4 h-4" />
                       </Button>
@@ -276,7 +278,7 @@ const CandidatesTab = () => {
                               refetch();
                             }
                           }}
-                          title="Suspend"
+                          title={t('users.candidatesTab.suspend')}
                         >
                           <Ban className="w-4 h-4 text-destructive" />
                         </Button>
@@ -288,7 +290,7 @@ const CandidatesTab = () => {
                             await unsuspendUser(user.id);
                             refetch();
                           }}
-                          title="Unsuspend"
+                          title={t('users.candidatesTab.unsuspend')}
                         >
                           <Ban className="w-4 h-4 text-emerald-500" />
                         </Button>

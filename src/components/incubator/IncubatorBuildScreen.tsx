@@ -1,4 +1,5 @@
 import { memo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { IncubatorPlanCanvas } from './IncubatorPlanCanvas';
@@ -24,6 +25,7 @@ export const IncubatorBuildScreen = memo(({
   onComplete,
   logAction,
 }: IncubatorBuildScreenProps) => {
+  const { t } = useTranslation('common');
   const canProceed = totalWordCount >= 300 && totalWordCount <= 450;
 
   return (
@@ -33,10 +35,8 @@ export const IncubatorBuildScreen = memo(({
         {/* LEFT: AI Console */}
         <div className="border-r bg-muted/10 overflow-hidden flex flex-col">
           <div className="p-4 border-b bg-background/95 backdrop-blur-sm">
-            <h2 className="text-lg font-bold font-serif">Club AI Assistant</h2>
-            <p className="text-sm text-muted-foreground">
-              Ask questions, run calculations, and get strategic feedback
-            </p>
+            <h2 className="text-lg font-bold font-serif">{t('incubator.clubAIAssistant')}</h2>
+            <p className="text-sm text-muted-foreground">{t('incubator.askQuestionsRunCalculationsAndGetStrateg')}</p>
           </div>
           <div className="flex-1 overflow-hidden">
             <IncubatorAIChat
@@ -79,9 +79,7 @@ export const IncubatorBuildScreen = memo(({
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
               {!canProceed && (
-                <p className="text-xs text-muted-foreground mt-2 text-right">
-                  Need 300-450 words total to proceed
-                </p>
+                <p className="text-xs text-muted-foreground mt-2 text-right">{t('incubator.need300450WordsTotalToProceed')}</p>
               )}
             </div>
           </div>

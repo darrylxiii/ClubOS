@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import { formatDistanceToNow, isPast, parseISO } from "date-fns";
+import { useTranslation } from 'react-i18next';
 
 interface TaskSummary {
   pending: number;
@@ -23,6 +24,7 @@ interface TaskSummary {
 }
 
 export const TaskQueueWidget = () => {
+  const { t } = useTranslation('common');
   const { data: taskSummary, isLoading } = useQuery({
     queryKey: ['task-queue-summary'],
     queryFn: async (): Promise<TaskSummary> => {
@@ -105,7 +107,7 @@ export const TaskQueueWidget = () => {
         <CardContent>
           <div className="flex flex-col items-center justify-center py-4 text-center">
             <Info className="h-6 w-6 text-muted-foreground mb-2" />
-            <p className="text-sm text-muted-foreground mb-3">No pending tasks</p>
+            <p className="text-sm text-muted-foreground mb-3">{t('taskQueueWidget.noPendingTasks')}</p>
             <Button asChild variant="outline" size="sm">
               <Link to="/club-pilot">
                 Club Pilot
@@ -138,7 +140,7 @@ export const TaskQueueWidget = () => {
             </div>
             <Button variant="ghost" size="sm" asChild className="text-xs">
               <Link to="/club-pilot">
-                View All
+                {t('common:viewAll')}
                 <ArrowRight className="h-3 w-3 ml-1" />
               </Link>
             </Button>
@@ -149,17 +151,17 @@ export const TaskQueueWidget = () => {
           <div className="grid grid-cols-3 gap-2">
             <div className="p-2 rounded-lg bg-muted/50 text-center">
               <div className="text-lg font-bold">{taskSummary.pending}</div>
-              <div className="text-xs text-muted-foreground">Pending</div>
+              <div className="text-xs text-muted-foreground">{t('taskQueueWidget.pending')}</div>
             </div>
             <div className="p-2 rounded-lg bg-yellow-500/10 text-center">
               <div className="text-lg font-bold text-yellow-500">{taskSummary.dueToday}</div>
-              <div className="text-xs text-muted-foreground">Due Today</div>
+              <div className="text-xs text-muted-foreground">{t('taskQueueWidget.dueToday')}</div>
             </div>
             <div className={`p-2 rounded-lg text-center ${taskSummary.overdue > 0 ? 'bg-red-500/10' : 'bg-muted/50'}`}>
               <div className={`text-lg font-bold ${taskSummary.overdue > 0 ? 'text-red-500' : ''}`}>
                 {taskSummary.overdue}
               </div>
-              <div className="text-xs text-muted-foreground">Overdue</div>
+              <div className="text-xs text-muted-foreground">{t('taskQueueWidget.overdue')}</div>
             </div>
           </div>
 

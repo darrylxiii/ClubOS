@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
@@ -33,6 +34,7 @@ export function MilestoneCommentsDrawer({
   onOpenChange,
   milestoneId,
 }: MilestoneCommentsDrawerProps) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState("");
@@ -96,7 +98,7 @@ export function MilestoneCommentsDrawer({
       setComments(data && Array.isArray(data) ? data as unknown as Comment[] : []);
     } catch (error: unknown) {
       console.error("Error loading comments:", error);
-      toast.error("Failed to load comments");
+      toast.error(t("failed_to_load_comments", "Failed to load comments"));
     } finally {
       setIsLoading(false);
     }
@@ -121,10 +123,10 @@ export function MilestoneCommentsDrawer({
 
       setNewComment("");
       // Comments will be added via real-time subscription
-      toast.success("Comment added");
+      toast.success(t("comment_added", "Comment added"));
     } catch (error: unknown) {
       console.error("Error adding comment:", error);
-      toast.error("Failed to add comment");
+      toast.error(t("failed_to_add_comment", "Failed to add comment"));
     } finally {
       setIsSubmitting(false);
     }
@@ -147,9 +149,9 @@ export function MilestoneCommentsDrawer({
           {/* Comments List */}
           <div className="space-y-4 max-h-[60vh] overflow-y-auto">
             {isLoading ? (
-              <p className="text-sm text-muted-foreground text-center py-8">Loading comments...</p>
+              <p className="text-sm text-muted-foreground text-center py-8">{t("loading_comments", "Loading comments...")}</p>
             ) : comments.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-8">No comments yet. Start the conversation!</p>
+              <p className="text-sm text-muted-foreground text-center py-8">{t("no_comments_yet_start", "No comments yet. Start the conversation!")}</p>
             ) : (
               comments.map((comment) => (
                 <div key={comment.id} className="flex gap-3">
@@ -179,7 +181,7 @@ export function MilestoneCommentsDrawer({
           {user && (
             <div className="border-t pt-4 space-y-2">
               <Textarea
-                placeholder="Add a comment..."
+                placeholder={t("add_a_comment", "Add a comment...")}
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
                 rows={3}

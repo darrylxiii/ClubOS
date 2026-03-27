@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -5,6 +6,7 @@ import { useSubscriptionMetrics, useVendorSubscriptions } from '@/hooks/useVendo
 import { Loader2, TrendingUp, TrendingDown, AlertTriangle, CreditCard, Calendar, Users } from 'lucide-react';
 
 export function SaaSStackOverviewCard() {
+  const { t } = useTranslation('common');
   const { data: subscriptions, isLoading } = useVendorSubscriptions('active');
   const metrics = useSubscriptionMetrics();
 
@@ -41,21 +43,21 @@ export function SaaSStackOverviewCard() {
             <CreditCard className="h-5 w-5" />
             SaaS Stack Overview
           </CardTitle>
-          <CardDescription>Monthly recurring operational costs</CardDescription>
+          <CardDescription>{t("monthly_recurring_operational_costs", "Monthly recurring operational costs")}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Key Metrics */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div>
-              <p className="text-sm text-muted-foreground">Monthly Recurring</p>
+              <p className="text-sm text-muted-foreground">{t("monthly_recurring", "Monthly Recurring")}</p>
               <p className="text-2xl font-bold">{formatCurrency(metrics.totalMRC)}</p>
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Annual Cost</p>
+              <p className="text-sm text-muted-foreground">{t("annual_cost", "Annual Cost")}</p>
               <p className="text-2xl font-bold">{formatCurrency(metrics.totalARC)}</p>
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Active Subscriptions</p>
+              <p className="text-sm text-muted-foreground">{t("active_subscriptions", "Active Subscriptions")}</p>
               <p className="text-2xl font-bold">{metrics.activeCount}</p>
             </div>
             <div>
@@ -74,7 +76,7 @@ export function SaaSStackOverviewCard() {
 
           {/* Top Vendors */}
           <div>
-            <h4 className="text-sm font-medium mb-3">Top Vendors by Cost</h4>
+            <h4 className="text-sm font-medium mb-3">{t("top_vendors_by_cost", "Top Vendors by Cost")}</h4>
             <div className="space-y-2">
               {topVendors?.map((vendor) => {
                 const percentage = (vendor.monthly_cost / metrics.totalMRC) * 100;
@@ -110,7 +112,7 @@ export function SaaSStackOverviewCard() {
       {/* Category Breakdown */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Spend by Category</CardTitle>
+          <CardTitle className="text-base">{t("spend_by_category", "Spend by Category")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">

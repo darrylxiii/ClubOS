@@ -69,14 +69,14 @@ Return ONLY a JSON object with this structure:
 }`;
 
   try {
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    const response = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-3-flash-preview',
+        model: 'gemini-3-flash-preview',
         messages: [
           { role: 'system', content: 'You generate search query variations. Return only valid JSON.' },
           { role: 'user', content: prompt }
@@ -124,16 +124,16 @@ async function generateEmbedding(
   text: string,
   apiKey: string
 ): Promise<number[]> {
-  // Use Lovable AI to generate a pseudo-embedding via semantic hashing
+  // Use Google Gemini to generate a pseudo-embedding via semantic hashing
   // In production, you'd call your generate-embeddings function
-  const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+  const response = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${apiKey}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'google/gemini-3-flash-preview',
+      model: 'gemini-3-flash-preview',
       messages: [
         { 
           role: 'system', 
@@ -274,9 +274,9 @@ serve(async (req) => {
   const startTime = Date.now();
 
   try {
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY not configured');
+    const GOOGLE_API_KEY = Deno.env.get('GOOGLE_API_KEY');
+    if (!GOOGLE_API_KEY) {
+      throw new Error('GOOGLE_API_KEY not configured');
     }
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -303,7 +303,7 @@ serve(async (req) => {
       query,
       context,
       numVariations,
-      LOVABLE_API_KEY
+      GOOGLE_API_KEY
     );
 
     const allQueries = [query, ...variations];
@@ -313,7 +313,7 @@ serve(async (req) => {
 
     // Step 2: Generate embeddings for all queries in parallel
     const embeddings = await Promise.all(
-      allQueries.map(q => generateEmbedding(q, LOVABLE_API_KEY))
+      allQueries.map(q => generateEmbedding(q, GOOGLE_API_KEY))
     );
 
     // Step 3: Search with all queries in parallel

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -16,6 +17,7 @@ interface ShareDialogProps {
 }
 
 export function ShareDialog({ open, onOpenChange, shareUrl, shareText, onShare }: ShareDialogProps) {
+  const { t } = useTranslation('common');
   const [copied, setCopied] = useState(false);
   const [showQR, setShowQR] = useState(false);
   const [qrCodeUrl, setQrCodeUrl] = useState('');
@@ -79,13 +81,13 @@ export function ShareDialog({ open, onOpenChange, shareUrl, shareText, onShare }
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Share this post</DialogTitle>
+          <DialogTitle>{t("share_this_post", "Share this post")}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
           {/* Copy Link */}
           <div className="space-y-2">
-            <label className="text-sm font-medium">Link</label>
+            <label className="text-sm font-medium">{t("link", "Link")}</label>
             <div className="flex gap-2">
               <Input value={shareUrl} readOnly className="flex-1" />
               <Button 
@@ -103,7 +105,7 @@ export function ShareDialog({ open, onOpenChange, shareUrl, shareText, onShare }
 
           {/* Social Platforms */}
           <div className="space-y-2">
-            <label className="text-sm font-medium">Share to</label>
+            <label className="text-sm font-medium">{t("share_to", "Share to")}</label>
             <div className="grid grid-cols-3 gap-2">
               <Button
                 variant="outline"
@@ -111,7 +113,7 @@ export function ShareDialog({ open, onOpenChange, shareUrl, shareText, onShare }
                 onClick={() => handleSocialShare('twitter')}
               >
                 <Twitter className="h-5 w-5" />
-                <span className="text-xs">Twitter</span>
+                <span className="text-xs">{t("twitter", "Twitter")}</span>
               </Button>
               <Button
                 variant="outline"
@@ -119,7 +121,7 @@ export function ShareDialog({ open, onOpenChange, shareUrl, shareText, onShare }
                 onClick={() => handleSocialShare('linkedin')}
               >
                 <Linkedin className="h-5 w-5" />
-                <span className="text-xs">LinkedIn</span>
+                <span className="text-xs">{t("linkedin", "LinkedIn")}</span>
               </Button>
               <Button
                 variant="outline"
@@ -127,7 +129,7 @@ export function ShareDialog({ open, onOpenChange, shareUrl, shareText, onShare }
                 onClick={() => handleSocialShare('whatsapp')}
               >
                 <Send className="h-5 w-5" />
-                <span className="text-xs">WhatsApp</span>
+                <span className="text-xs">{t("whatsapp", "WhatsApp")}</span>
               </Button>
             </div>
           </div>
@@ -136,7 +138,7 @@ export function ShareDialog({ open, onOpenChange, shareUrl, shareText, onShare }
 
           {/* QR Code */}
           <div className="space-y-2">
-            <label className="text-sm font-medium">QR Code</label>
+            <label className="text-sm font-medium">{t("qr_code", "QR Code")}</label>
             {!showQR ? (
               <Button
                 variant="outline"
@@ -148,7 +150,7 @@ export function ShareDialog({ open, onOpenChange, shareUrl, shareText, onShare }
               </Button>
             ) : qrCodeUrl ? (
               <div className="flex flex-col items-center gap-3 p-4 border rounded-lg">
-                <img src={qrCodeUrl} alt="QR Code" className="w-48 h-48" />
+                <img src={qrCodeUrl} alt={t("qr_code", "QR Code")} className="w-48 h-48" />
                 <Button size="sm" onClick={downloadQR}>
                   Download QR Code
                 </Button>

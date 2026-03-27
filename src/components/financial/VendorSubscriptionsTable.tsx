@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { useVendorSubscriptions, useUpdateVendorSubscription, useDeleteVendorSubscription, VendorSubscription } from '@/hooks/useVendorSubscriptions';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -46,6 +47,7 @@ const statusColors: Record<string, string> = {
 };
 
 export function VendorSubscriptionsTable() {
+  const { t } = useTranslation('common');
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -98,36 +100,36 @@ export function VendorSubscriptionsTable() {
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-4">
         <Input
-          placeholder="Search vendors..."
+          placeholder={t("search_vendors", "Search vendors...")}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="max-w-xs"
         />
         <Select value={categoryFilter} onValueChange={setCategoryFilter}>
           <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Category" />
+            <SelectValue placeholder={t("category", "Category")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Categories</SelectItem>
-            <SelectItem value="Software & SaaS">Software & SaaS</SelectItem>
-            <SelectItem value="Infrastructure">Infrastructure</SelectItem>
-            <SelectItem value="Professional Services">Professional Services</SelectItem>
-            <SelectItem value="Office & Facilities">Office & Facilities</SelectItem>
-            <SelectItem value="Marketing & Sales">Marketing & Sales</SelectItem>
-            <SelectItem value="HR & Benefits">HR & Benefits</SelectItem>
-            <SelectItem value="Other">Other</SelectItem>
+            <SelectItem value="all">{t("all_categories", "All Categories")}</SelectItem>
+            <SelectItem value="Software & SaaS">{t("software_saas", "Software & SaaS")}</SelectItem>
+            <SelectItem value="Infrastructure">{t("infrastructure", "Infrastructure")}</SelectItem>
+            <SelectItem value="Professional Services">{t("professional_services", "Professional Services")}</SelectItem>
+            <SelectItem value="Office & Facilities">{t("office_facilities", "Office & Facilities")}</SelectItem>
+            <SelectItem value="Marketing & Sales">{t("marketing_sales", "Marketing & Sales")}</SelectItem>
+            <SelectItem value="HR & Benefits">{t("hr_benefits", "HR & Benefits")}</SelectItem>
+            <SelectItem value="Other">{t("other", "Other")}</SelectItem>
           </SelectContent>
         </Select>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger className="w-[140px]">
-            <SelectValue placeholder="Status" />
+            <SelectValue placeholder={t("status", "Status")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Status</SelectItem>
-            <SelectItem value="active">Active</SelectItem>
-            <SelectItem value="trial">Trial</SelectItem>
-            <SelectItem value="paused">Paused</SelectItem>
-            <SelectItem value="cancelled">Cancelled</SelectItem>
+            <SelectItem value="all">{t("all_status", "All Status")}</SelectItem>
+            <SelectItem value="active">{t("active", "Active")}</SelectItem>
+            <SelectItem value="trial">{t("trial", "Trial")}</SelectItem>
+            <SelectItem value="paused">{t("paused", "Paused")}</SelectItem>
+            <SelectItem value="cancelled">{t("cancelled", "Cancelled")}</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -137,13 +139,13 @@ export function VendorSubscriptionsTable() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Vendor</TableHead>
-              <TableHead>Category</TableHead>
-              <TableHead className="text-right">Monthly Cost</TableHead>
-              <TableHead>Billing</TableHead>
-              <TableHead>Next Renewal</TableHead>
-              <TableHead>Criticality</TableHead>
-              <TableHead>Status</TableHead>
+              <TableHead>{t("vendor", "Vendor")}</TableHead>
+              <TableHead>{t("category", "Category")}</TableHead>
+              <TableHead className="text-right">{t("monthly_cost", "Monthly Cost")}</TableHead>
+              <TableHead>{t("billing", "Billing")}</TableHead>
+              <TableHead>{t("next_renewal", "Next Renewal")}</TableHead>
+              <TableHead>{t("criticality", "Criticality")}</TableHead>
+              <TableHead>{t("status", "Status")}</TableHead>
               <TableHead className="w-[50px]"></TableHead>
             </TableRow>
           </TableHeader>
@@ -257,13 +259,13 @@ export function VendorSubscriptionsTable() {
       <AlertDialog open={!!deleteSubscription} onOpenChange={(open) => !open && setDeleteSubscription(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Subscription</AlertDialogTitle>
+            <AlertDialogTitle>{t("delete_subscription", "Delete Subscription")}</AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to delete the subscription for "{deleteSubscription?.vendor_name}"? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t("cancel", "Cancel")}</AlertDialogCancel>
             <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground">
               Delete
             </AlertDialogAction>

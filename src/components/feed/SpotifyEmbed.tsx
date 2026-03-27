@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { ExternalLink, Loader2, Music } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { SpotifyType, getSpotifyEmbedUrl } from '@/lib/spotifyEmbedUtils';
+import { useTranslation } from 'react-i18next';
 
 interface SpotifyEmbedProps {
   type: SpotifyType;
@@ -13,6 +14,7 @@ interface SpotifyEmbedProps {
 }
 
 export function SpotifyEmbed({ type, spotifyId, url, className }: SpotifyEmbedProps) {
+  const { t } = useTranslation('common');
   const [isLoading, setIsLoading] = useState(true);
   const [embedUrl, setEmbedUrl] = useState<string>('');
   const [hasError, setHasError] = useState(false);
@@ -32,15 +34,15 @@ export function SpotifyEmbed({ type, spotifyId, url, className }: SpotifyEmbedPr
   const getTypeName = () => {
     switch (type) {
       case 'track':
-        return 'Song';
+        return t('feed.spotify.song', 'Song');
       case 'album':
-        return 'Album';
+        return t('feed.spotify.album', 'Album');
       case 'playlist':
-        return 'Playlist';
+        return t('feed.spotify.playlist', 'Playlist');
       case 'episode':
-        return 'Podcast Episode';
+        return t('feed.spotify.episode', 'Podcast Episode');
       case 'show':
-        return 'Podcast';
+        return t('feed.spotify.show', 'Podcast');
       default:
         return type;
     }
@@ -67,7 +69,7 @@ export function SpotifyEmbed({ type, spotifyId, url, className }: SpotifyEmbedPr
         <div className="flex flex-col items-center justify-center py-12 px-4">
           <Music className="w-8 h-8 text-muted-foreground mb-2" />
           <p className="text-sm text-muted-foreground text-center">
-            Unable to load Spotify embed. Click below to listen.
+            {t('feed.spotify.loadError', 'Unable to load Spotify embed. Click below to listen.')}
           </p>
           <Button
             variant="outline"
@@ -76,7 +78,7 @@ export function SpotifyEmbed({ type, spotifyId, url, className }: SpotifyEmbedPr
             className="mt-4"
           >
             <a href={url} target="_blank" rel="noopener noreferrer">
-              Open in Spotify
+              {t('feed.spotify.openInSpotify', 'Open in Spotify')}
               <ExternalLink className="w-3 h-3 ml-2" />
             </a>
           </Button>

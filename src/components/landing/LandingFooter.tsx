@@ -1,7 +1,9 @@
 import { Link } from "react-router-dom";
+import { useTranslation } from 'react-i18next';
 import { Linkedin, Twitter, Mail } from "lucide-react";
 
 export const LandingFooter = () => {
+  const { t } = useTranslation('common');
   return (
     <footer className="border-t-2 border-foreground/10 px-6 py-12">
       <div className="max-w-7xl mx-auto">

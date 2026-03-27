@@ -50,6 +50,7 @@ export function JobDetailCard({
   onShare,
   metrics = { applicants: 0, views: 0, timeToHire: "~2 weeks" }
 }: JobDetailCardProps) {
+  const { t } = useTranslation('common');
   const [isOpen, setIsOpen] = useState(false);
   
   const daysOpen = job.created_at
@@ -118,7 +119,7 @@ export function JobDetailCard({
                     </div>
                     <div>
                       <span className="text-2xl font-black text-foreground">{daysOpen}</span>
-                      <span className="text-muted-foreground ml-2">days open</span>
+                      <span className="text-muted-foreground ml-2">{t("days_open", "days open")}</span>
                     </div>
                   </div>
                 </div>
@@ -142,29 +143,29 @@ export function JobDetailCard({
               <div className="text-center p-4 rounded-lg border-2 border-primary/20 bg-primary/5">
                 <Eye className="w-6 h-6 mx-auto mb-2 text-primary" />
                 <div className="text-xl font-bold mb-1">{metrics?.views || 156}</div>
-                <div className="text-xs text-muted-foreground uppercase tracking-wide">Profile Views</div>
+                <div className="text-xs text-muted-foreground uppercase tracking-wide">{t("profile_views", "Profile Views")}</div>
               </div>
               <div className="text-center p-4 rounded-lg border-2 border-accent/20 bg-accent/5">
                 <Users className="w-6 h-6 mx-auto mb-2 text-accent" />
                 <div className="text-xl font-bold mb-1">{metrics?.applicants || 0}</div>
-                <div className="text-xs text-muted-foreground uppercase tracking-wide">Applications</div>
+                <div className="text-xs text-muted-foreground uppercase tracking-wide">{t("applications", "Applications")}</div>
               </div>
               <div className="text-center p-4 rounded-lg border-2 border-chart-2/20 bg-chart-2/5">
                 <Calendar className="w-6 h-6 mx-auto mb-2 text-chart-2" />
                 <div className="text-xl font-bold mb-1">{daysOpen}</div>
-                <div className="text-xs text-muted-foreground uppercase tracking-wide">Days Open</div>
+                <div className="text-xs text-muted-foreground uppercase tracking-wide">{t("days_open", "Days Open")}</div>
               </div>
               <div className="text-center p-4 rounded-lg border-2 border-muted/20 bg-muted/5">
                 <Clock className="w-6 h-6 mx-auto mb-2 text-muted-foreground" />
                 <div className="text-xl font-bold mb-1">{metrics.timeToHire || '~2 wks'}</div>
-                <div className="text-xs text-muted-foreground uppercase tracking-wide">Time to Hire</div>
+                <div className="text-xs text-muted-foreground uppercase tracking-wide">{t("time_to_hire", "Time to Hire")}</div>
               </div>
             </div>
 
             {/* Full Description */}
             {job.description && (
               <div>
-                <h3 className="text-xl font-bold mb-3">About the Role</h3>
+                <h3 className="text-xl font-bold mb-3">{t("about_the_role", "About the Role")}</h3>
                 <p className="text-foreground/90 leading-relaxed">
                   {job.description.split('\n').map((paragraph, index) => (
                     <span key={index}>

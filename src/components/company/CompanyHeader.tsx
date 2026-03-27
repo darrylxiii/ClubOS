@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ImageIcon, Settings, Eye, Share2, Star } from "lucide-react";
@@ -32,6 +33,7 @@ export function CompanyHeader({
   onUploadCover,
   onShare,
 }: CompanyHeaderProps) {
+  const { t } = useTranslation('common');
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -71,7 +73,7 @@ export function CompanyHeader({
                 accept="image/*"
                 className="hidden"
                 onChange={handleFileChange}
-                aria-label="Upload cover image"
+                aria-label={t("upload_cover_image", "Upload cover image")}
               />
             </label>
           </div>
@@ -93,7 +95,7 @@ export function CompanyHeader({
               variant="secondary"
               className="absolute bottom-0 right-0 rounded-full h-10 w-10 p-0 shadow-lg"
               onClick={onEditClick}
-              aria-label="Edit company"
+              aria-label={t("edit_company", "Edit company")}
             >
               <Settings className="w-4 h-4" />
             </Button>
@@ -117,11 +119,11 @@ export function CompanyHeader({
             <p className="text-muted-foreground">{company.tagline || 'Building the future'}</p>
           </div>
           <div className="flex flex-col gap-2">
-            <Button variant="outline" size="sm" className="gap-2" aria-label="Preview company page">
+            <Button variant="outline" size="sm" className="gap-2" aria-label={t("preview_company_page", "Preview company page")}>
               <Eye className="w-4 h-4" />
               Preview
             </Button>
-            <Button variant="outline" size="sm" className="gap-2" onClick={onShare} aria-label="Share company page">
+            <Button variant="outline" size="sm" className="gap-2" onClick={onShare} aria-label={t("share_company_page", "Share company page")}>
               <Share2 className="w-4 h-4" />
               Share
             </Button>

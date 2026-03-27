@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +22,7 @@ export const AISchedulingSettings = ({
   onOpenChange,
   onSettingsUpdated,
 }: AISchedulingSettingsProps) => {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [settings, setSettings] = useState({
@@ -79,12 +81,12 @@ export const AISchedulingSettings = ({
 
       if (error) throw error;
 
-      toast.success("AI scheduling settings updated");
+      toast.success(t('tasks.aiSchedulingUpdated', 'AI scheduling settings updated'));
       onSettingsUpdated();
       onOpenChange(false);
     } catch (error) {
       console.error("Error saving settings:", error);
-      toast.error("Failed to update settings");
+      toast.error(t('tasks.failedToUpdateSettings', 'Failed to update settings'));
     } finally {
       setLoading(false);
     }
@@ -115,7 +117,7 @@ export const AISchedulingSettings = ({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-primary" />
-            AI Scheduling Settings
+            {t('tasks.aiSchedulingSettings', 'AI Scheduling Settings')}
           </DialogTitle>
         </DialogHeader>
 
@@ -123,9 +125,9 @@ export const AISchedulingSettings = ({
           {/* Enable AI Scheduling */}
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label>Enable AI Scheduling</Label>
+              <Label>{t('tasks.enableAIScheduling', 'Enable AI Scheduling')}</Label>
               <p className="text-sm text-muted-foreground">
-                Let AI automatically schedule your tasks
+                {t('tasks.letAISchedule', 'Let AI automatically schedule your tasks')}
               </p>
             </div>
             <Switch
@@ -140,11 +142,11 @@ export const AISchedulingSettings = ({
           <div className="space-y-3">
             <Label className="flex items-center gap-2">
               <Clock className="h-4 w-4" />
-              Working Hours
+              {t('tasks.workingHours', 'Working Hours')}
             </Label>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="start">Start</Label>
+                <Label htmlFor="start">{t('tasks.start', 'Start')}</Label>
                 <Input
                   id="start"
                   type="time"
@@ -155,7 +157,7 @@ export const AISchedulingSettings = ({
                 />
               </div>
               <div>
-                <Label htmlFor="end">End</Label>
+                <Label htmlFor="end">{t('tasks.end', 'End')}</Label>
                 <Input
                   id="end"
                   type="time"
@@ -172,7 +174,7 @@ export const AISchedulingSettings = ({
           <div className="space-y-3">
             <Label className="flex items-center gap-2">
               <Calendar className="h-4 w-4" />
-              Working Days
+              {t('tasks.workingDays', 'Working Days')}
             </Label>
             <div className="flex gap-2">
               {weekDays.map((day) => (
@@ -192,7 +194,7 @@ export const AISchedulingSettings = ({
 
           {/* Max Tasks Per Day */}
           <div className="space-y-2">
-            <Label htmlFor="max_tasks">Max Tasks Per Day</Label>
+            <Label htmlFor="max_tasks">{t('tasks.maxTasksPerDay', 'Max Tasks Per Day')}</Label>
             <Input
               id="max_tasks"
               type="number"
@@ -207,7 +209,7 @@ export const AISchedulingSettings = ({
 
           {/* Buffer Between Tasks */}
           <div className="space-y-2">
-            <Label htmlFor="buffer">Buffer Between Tasks (minutes)</Label>
+            <Label htmlFor="buffer">{t('tasks.bufferBetweenTasks', 'Buffer Between Tasks (minutes)')}</Label>
             <Select
               value={settings.buffer_between_tasks_minutes.toString()}
               onValueChange={(value) =>
@@ -218,11 +220,11 @@ export const AISchedulingSettings = ({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="0">No buffer</SelectItem>
-                <SelectItem value="5">5 minutes</SelectItem>
-                <SelectItem value="10">10 minutes</SelectItem>
-                <SelectItem value="15">15 minutes</SelectItem>
-                <SelectItem value="30">30 minutes</SelectItem>
+                <SelectItem value="0">{t('tasks.noBuffer', 'No buffer')}</SelectItem>
+                <SelectItem value="5">{t('tasks.fiveMinutes', '5 minutes')}</SelectItem>
+                <SelectItem value="10">{t('tasks.tenMinutes', '10 minutes')}</SelectItem>
+                <SelectItem value="15">{t('tasks.fifteenMinutes', '15 minutes')}</SelectItem>
+                <SelectItem value="30">{t('tasks.thirtyMinutes', '30 minutes')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -230,10 +232,10 @@ export const AISchedulingSettings = ({
 
         <div className="flex justify-end gap-2">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+            {t('tasks.cancel', 'Cancel')}
           </Button>
           <Button onClick={handleSave} disabled={loading}>
-            {loading ? "Saving..." : "Save Settings"}
+            {loading ? t('tasks.saving', 'Saving...') : t('tasks.saveSettings', 'Save Settings')}
           </Button>
         </div>
       </DialogContent>

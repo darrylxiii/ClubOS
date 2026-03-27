@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { AlertTriangle, Power, Clock } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -20,6 +21,7 @@ import {
 } from '@/components/ui/alert-dialog';
 
 export function MaintenanceModeToggle() {
+  const { t } = useTranslation('common');
   const { config, isMaintenanceMode, toggleMaintenanceMode, isLoading } = useMaintenanceMode();
   const [message, setMessage] = useState(config.message || '');
   const [eta, setEta] = useState('');
@@ -48,7 +50,7 @@ export function MaintenanceModeToggle() {
               <Power className={`h-5 w-5 ${isMaintenanceMode ? 'text-orange-500' : 'text-muted-foreground'}`} />
             </div>
             <div>
-              <CardTitle className="text-lg">Maintenance Mode</CardTitle>
+              <CardTitle className="text-lg">{t("maintenance_mode", "Maintenance Mode")}</CardTitle>
               <CardDescription>
                 Block all user access except admins
               </CardDescription>
@@ -68,7 +70,7 @@ export function MaintenanceModeToggle() {
             <div className="flex gap-3">
               <AlertTriangle className="h-5 w-5 text-orange-500 flex-shrink-0" />
               <div className="text-sm">
-                <p className="font-medium text-orange-500">Platform is in maintenance mode</p>
+                <p className="font-medium text-orange-500">{t("platform_is_in_maintenance", "Platform is in maintenance mode")}</p>
                 <p className="text-muted-foreground mt-1">
                   Regular users will see a maintenance page. Only admins can access the platform.
                 </p>
@@ -78,7 +80,7 @@ export function MaintenanceModeToggle() {
 
           <div className="grid gap-4">
             <div className="space-y-2">
-              <Label>Current Message</Label>
+              <Label>{t("current_message", "Current Message")}</Label>
               <p className="text-sm text-muted-foreground">
                 {config.message || 'No message set'}
               </p>
@@ -86,7 +88,7 @@ export function MaintenanceModeToggle() {
 
             {config.eta && (
               <div className="space-y-2">
-                <Label>Estimated Completion</Label>
+                <Label>{t("estimated_completion", "Estimated Completion")}</Label>
                 <p className="text-sm text-muted-foreground">
                   {new Date(config.eta).toLocaleString()}
                 </p>
@@ -110,17 +112,17 @@ export function MaintenanceModeToggle() {
 
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="message">Status Message (shown to users)</Label>
+              <Label htmlFor="message">{t("status_message_shown_to", "Status Message (shown to users)")}</Label>
               <Textarea
                 id="message"
-                placeholder="We're performing scheduled maintenance. Please check back soon."
+                placeholder={t("were_performing_scheduled_maintenance", "We're performing scheduled maintenance. Please check back soon.")}
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="eta">Estimated Completion Time (optional)</Label>
+              <Label htmlFor="eta">{t("estimated_completion_time_optional", "Estimated Completion Time (optional)")}</Label>
               <Input
                 id="eta"
                 type="datetime-local"
@@ -131,7 +133,7 @@ export function MaintenanceModeToggle() {
           </div>
 
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t("cancel", "Cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmEnable}
               className="bg-orange-500 hover:bg-orange-600"

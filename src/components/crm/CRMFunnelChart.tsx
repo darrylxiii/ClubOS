@@ -4,6 +4,7 @@ import { motion } from '@/lib/motion';
 import { Filter, TrendingDown } from 'lucide-react';
 import { useCRMAnalytics } from '@/hooks/useCRMAnalytics';
 import { formatCurrency } from '@/lib/revenueCalculations';
+import { useTranslation } from 'react-i18next';
 
 const STAGE_COLORS: Record<string, string> = {
   new: 'bg-gray-500',
@@ -36,6 +37,7 @@ interface CRMFunnelChartProps {
 }
 
 export function CRMFunnelChart({ dateRange = 'month' }: CRMFunnelChartProps) {
+  const { t } = useTranslation('common');
   const { data, loading } = useCRMAnalytics({ dateRange });
 
   if (loading) {

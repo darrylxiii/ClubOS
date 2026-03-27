@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -47,6 +48,7 @@ interface PostProjectWizardProps {
 }
 
 export function PostProjectWizard({ companyId, onSuccess }: PostProjectWizardProps) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -118,12 +120,12 @@ export function PostProjectWizard({ companyId, onSuccess }: PostProjectWizardPro
     },
     onSuccess: (project) => {
       queryClient.invalidateQueries({ queryKey: ["marketplace-projects"] });
-      toast.success("Project posted successfully!");
+      toast.success(t("project_posted_successfully", "Project posted successfully!"));
       onSuccess?.(project.id);
       navigate(`/projects/${project.id}`);
     },
     onError: (error) => {
-      toast.error("Failed to post project: " + error.message);
+      toast.error(t("failed_to_post_project", "Failed to post project:") + error.message);
     },
   });
 
@@ -217,9 +219,9 @@ export function PostProjectWizard({ companyId, onSuccess }: PostProjectWizardPro
         {currentStep === 0 && (
           <div className="space-y-4">
             <div>
-              <Label>Project Title *</Label>
+              <Label>{t("project_title", "Project Title *")}</Label>
               <Input
-                placeholder="e.g., Build a React Native Mobile App for E-commerce"
+                placeholder={t("eg_build_a_react", "e.g., Build a React Native Mobile App for E-commerce")}
                 value={formData.title}
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
               />
@@ -229,7 +231,7 @@ export function PostProjectWizard({ companyId, onSuccess }: PostProjectWizardPro
             </div>
 
             <div>
-              <Label>Project Description *</Label>
+              <Label>{t("project_description", "Project Description *")}</Label>
               <Textarea
                 placeholder="Describe your project in detail. Include goals, deliverables, and any specific requirements..."
                 rows={8}
@@ -243,29 +245,29 @@ export function PostProjectWizard({ companyId, onSuccess }: PostProjectWizardPro
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label>Category</Label>
+                <Label>{t("category", "Category")}</Label>
                 <Select
                   value={formData.category}
                   onValueChange={(value) => setFormData({ ...formData, category: value })}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select category" />
+                    <SelectValue placeholder={t("select_category", "Select category")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="web_development">Web Development</SelectItem>
-                    <SelectItem value="mobile_development">Mobile Development</SelectItem>
-                    <SelectItem value="design">Design</SelectItem>
-                    <SelectItem value="data_science">Data Science</SelectItem>
-                    <SelectItem value="marketing">Marketing</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
+                    <SelectItem value="web_development">{t("web_development", "Web Development")}</SelectItem>
+                    <SelectItem value="mobile_development">{t("mobile_development", "Mobile Development")}</SelectItem>
+                    <SelectItem value="design">{t("design", "Design")}</SelectItem>
+                    <SelectItem value="data_science">{t("data_science", "Data Science")}</SelectItem>
+                    <SelectItem value="marketing">{t("marketing", "Marketing")}</SelectItem>
+                    <SelectItem value="other">{t("other", "Other")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div>
-                <Label>Subcategory</Label>
+                <Label>{t("subcategory", "Subcategory")}</Label>
                 <Input
-                  placeholder="e.g., React, iOS, UI/UX"
+                  placeholder={t("eg_react_ios_uiux", "e.g., React, iOS, UI/UX")}
                   value={formData.subcategory}
                   onChange={(e) => setFormData({ ...formData, subcategory: e.target.value })}
                 />
@@ -278,7 +280,7 @@ export function PostProjectWizard({ companyId, onSuccess }: PostProjectWizardPro
                 <div className="flex items-start gap-3">
                   <Sparkles className="h-5 w-5 text-primary mt-0.5" />
                   <div>
-                    <p className="font-medium text-sm">Club AI Tip</p>
+                    <p className="font-medium text-sm">{t("club_ai_tip", "Club AI Tip")}</p>
                     <p className="text-sm text-muted-foreground">
                       Include specific deliverables, tech stack requirements, and success criteria 
                       for better freelancer matches.
@@ -294,7 +296,7 @@ export function PostProjectWizard({ companyId, onSuccess }: PostProjectWizardPro
         {currentStep === 1 && (
           <div className="space-y-6">
             <div>
-              <Label>Required Skills *</Label>
+              <Label>{t("required_skills", "Required Skills *")}</Label>
               <p className="text-sm text-muted-foreground mb-3">
                 Select skills that are essential for this project
               </p>
@@ -326,7 +328,7 @@ export function PostProjectWizard({ companyId, onSuccess }: PostProjectWizardPro
             </div>
 
             <div>
-              <Label>Nice-to-Have Skills</Label>
+              <Label>{t("nicetohave_skills", "Nice-to-Have Skills")}</Label>
               <p className="text-sm text-muted-foreground mb-3">
                 Skills that would be a bonus but aren't required
               </p>
@@ -360,7 +362,7 @@ export function PostProjectWizard({ companyId, onSuccess }: PostProjectWizardPro
             </div>
 
             <div>
-              <Label>Experience Level Required</Label>
+              <Label>{t("experience_level_required", "Experience Level Required")}</Label>
               <RadioGroup
                 value={formData.experience_level}
                 onValueChange={(value) => setFormData({ ...formData, experience_level: value })}
@@ -391,7 +393,7 @@ export function PostProjectWizard({ companyId, onSuccess }: PostProjectWizardPro
         {currentStep === 2 && (
           <div className="space-y-6">
             <div>
-              <Label>Engagement Type</Label>
+              <Label>{t("engagement_type", "Engagement Type")}</Label>
               <RadioGroup
                 value={formData.engagement_type}
                 onValueChange={(value) => setFormData({ ...formData, engagement_type: value })}
@@ -404,8 +406,8 @@ export function PostProjectWizard({ companyId, onSuccess }: PostProjectWizardPro
                     className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary cursor-pointer"
                   >
                     <Clock className="h-6 w-6 mb-2" />
-                    <span className="font-semibold">Hourly</span>
-                    <span className="text-xs text-muted-foreground">Pay per hour worked</span>
+                    <span className="font-semibold">{t("hourly", "Hourly")}</span>
+                    <span className="text-xs text-muted-foreground">{t("pay_per_hour_worked", "Pay per hour worked")}</span>
                   </Label>
                 </div>
                 <div>
@@ -415,8 +417,8 @@ export function PostProjectWizard({ companyId, onSuccess }: PostProjectWizardPro
                     className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary cursor-pointer"
                   >
                     <DollarSign className="h-6 w-6 mb-2" />
-                    <span className="font-semibold">Fixed Price</span>
-                    <span className="text-xs text-muted-foreground">One-time payment</span>
+                    <span className="font-semibold">{t("fixed_price", "Fixed Price")}</span>
+                    <span className="text-xs text-muted-foreground">{t("onetime_payment", "One-time payment")}</span>
                   </Label>
                 </div>
                 <div>
@@ -426,8 +428,8 @@ export function PostProjectWizard({ companyId, onSuccess }: PostProjectWizardPro
                     className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary cursor-pointer"
                   >
                     <Target className="h-6 w-6 mb-2" />
-                    <span className="font-semibold">Milestone</span>
-                    <span className="text-xs text-muted-foreground">Pay per deliverable</span>
+                    <span className="font-semibold">{t("milestone", "Milestone")}</span>
+                    <span className="text-xs text-muted-foreground">{t("pay_per_deliverable", "Pay per deliverable")}</span>
                   </Label>
                 </div>
               </RadioGroup>
@@ -435,7 +437,7 @@ export function PostProjectWizard({ companyId, onSuccess }: PostProjectWizardPro
 
             {formData.engagement_type === "hourly" && (
               <div>
-                <Label>Hourly Rate Range (€)</Label>
+                <Label>{t("hourly_rate_range", "Hourly Rate Range (€)")}</Label>
                 <div className="flex items-center gap-4 mt-2">
                   <Input
                     type="number"
@@ -450,14 +452,14 @@ export function PostProjectWizard({ companyId, onSuccess }: PostProjectWizardPro
                     onChange={(e) => setFormData({ ...formData, budget_max: parseInt(e.target.value) || 0 })}
                     className="w-24"
                   />
-                  <span className="text-muted-foreground">per hour</span>
+                  <span className="text-muted-foreground">{t("per_hour", "per hour")}</span>
                 </div>
               </div>
             )}
 
             {formData.engagement_type === "fixed" && (
               <div>
-                <Label>Project Budget (€)</Label>
+                <Label>{t("project_budget", "Project Budget (€)")}</Label>
                 <div className="flex items-center gap-4 mt-2">
                   <Input
                     type="number"
@@ -487,8 +489,8 @@ export function PostProjectWizard({ companyId, onSuccess }: PostProjectWizardPro
                 className="mt-3"
               />
               <div className="flex justify-between text-xs text-muted-foreground mt-1">
-                <span>1 week</span>
-                <span>1 year</span>
+                <span>{t("1_week", "1 week")}</span>
+                <span>{t("1_year", "1 year")}</span>
               </div>
             </div>
 
@@ -507,7 +509,7 @@ export function PostProjectWizard({ companyId, onSuccess }: PostProjectWizardPro
             )}
 
             <div>
-              <Label>Target Start Date</Label>
+              <Label>{t("target_start_date", "Target Start Date")}</Label>
               <Input
                 type="date"
                 value={formData.start_date_target}
@@ -522,7 +524,7 @@ export function PostProjectWizard({ companyId, onSuccess }: PostProjectWizardPro
         {currentStep === 3 && (
           <div className="space-y-6">
             <div>
-              <Label>Project Visibility</Label>
+              <Label>{t("project_visibility", "Project Visibility")}</Label>
               <RadioGroup
                 value={formData.visibility}
                 onValueChange={(value) => setFormData({ ...formData, visibility: value })}
@@ -531,7 +533,7 @@ export function PostProjectWizard({ companyId, onSuccess }: PostProjectWizardPro
                 <div className="flex items-center space-x-3">
                   <RadioGroupItem value="public" id="public" />
                   <Label htmlFor="public" className="cursor-pointer">
-                    <span className="font-medium">Public</span>
+                    <span className="font-medium">{t("public", "Public")}</span>
                     <p className="text-sm text-muted-foreground">
                       Any freelancer can view and apply
                     </p>
@@ -540,7 +542,7 @@ export function PostProjectWizard({ companyId, onSuccess }: PostProjectWizardPro
                 <div className="flex items-center space-x-3">
                   <RadioGroupItem value="invite_only" id="invite_only" />
                   <Label htmlFor="invite_only" className="cursor-pointer">
-                    <span className="font-medium">Invite Only</span>
+                    <span className="font-medium">{t("invite_only", "Invite Only")}</span>
                     <p className="text-sm text-muted-foreground">
                       Only invited freelancers can apply
                     </p>
@@ -550,7 +552,7 @@ export function PostProjectWizard({ companyId, onSuccess }: PostProjectWizardPro
             </div>
 
             <div>
-              <Label>Work Location</Label>
+              <Label>{t("work_location", "Work Location")}</Label>
               <Select
                 value={formData.remote_policy}
                 onValueChange={(value) => setFormData({ ...formData, remote_policy: value })}
@@ -559,9 +561,9 @@ export function PostProjectWizard({ companyId, onSuccess }: PostProjectWizardPro
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="remote">Fully Remote</SelectItem>
-                  <SelectItem value="hybrid">Hybrid</SelectItem>
-                  <SelectItem value="onsite">On-site Required</SelectItem>
+                  <SelectItem value="remote">{t("fully_remote", "Fully Remote")}</SelectItem>
+                  <SelectItem value="hybrid">{t("hybrid", "Hybrid")}</SelectItem>
+                  <SelectItem value="onsite">{t("onsite_required", "On-site Required")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -569,7 +571,7 @@ export function PostProjectWizard({ companyId, onSuccess }: PostProjectWizardPro
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <Label>Require NDA</Label>
+                  <Label>{t("require_nda", "Require NDA")}</Label>
                   <p className="text-sm text-muted-foreground">
                     Freelancers must sign an NDA before viewing details
                   </p>
@@ -582,7 +584,7 @@ export function PostProjectWizard({ companyId, onSuccess }: PostProjectWizardPro
 
               <div className="flex items-center justify-between">
                 <div>
-                  <Label>Require Interview</Label>
+                  <Label>{t("require_interview", "Require Interview")}</Label>
                   <p className="text-sm text-muted-foreground">
                     Schedule an interview before hiring
                   </p>
@@ -595,7 +597,7 @@ export function PostProjectWizard({ companyId, onSuccess }: PostProjectWizardPro
 
               <div className="flex items-center justify-between">
                 <div>
-                  <Label>Club AI Matching</Label>
+                  <Label>{t("club_ai_matching", "Club AI Matching")}</Label>
                   <p className="text-sm text-muted-foreground">
                     Let AI recommend the best freelancers
                   </p>
@@ -627,15 +629,15 @@ export function PostProjectWizard({ companyId, onSuccess }: PostProjectWizardPro
             <div className="grid grid-cols-2 gap-6">
               <Card>
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm">Project Details</CardTitle>
+                  <CardTitle className="text-sm">{t("project_details", "Project Details")}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2">
                   <div>
-                    <p className="text-xs text-muted-foreground">Title</p>
+                    <p className="text-xs text-muted-foreground">{t("title", "Title")}</p>
                     <p className="font-medium">{formData.title}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-muted-foreground">Category</p>
+                    <p className="text-xs text-muted-foreground">{t("category", "Category")}</p>
                     <p>{formData.category || "Not specified"}</p>
                   </div>
                 </CardContent>
@@ -643,19 +645,19 @@ export function PostProjectWizard({ companyId, onSuccess }: PostProjectWizardPro
 
               <Card>
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm">Budget & Timeline</CardTitle>
+                  <CardTitle className="text-sm">{t("budget_timeline", "Budget & Timeline")}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2">
                   <div>
-                    <p className="text-xs text-muted-foreground">Type</p>
+                    <p className="text-xs text-muted-foreground">{t("type", "Type")}</p>
                     <p className="capitalize">{formData.engagement_type}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-muted-foreground">Budget</p>
+                    <p className="text-xs text-muted-foreground">{t("budget", "Budget")}</p>
                     <p>€{formData.budget_min} - €{formData.budget_max}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-muted-foreground">Duration</p>
+                    <p className="text-xs text-muted-foreground">{t("duration", "Duration")}</p>
                     <p>{formData.timeline_weeks} weeks</p>
                   </div>
                 </CardContent>
@@ -663,7 +665,7 @@ export function PostProjectWizard({ companyId, onSuccess }: PostProjectWizardPro
             </div>
 
             <div>
-              <p className="text-sm font-medium mb-2">Required Skills</p>
+              <p className="text-sm font-medium mb-2">{t("required_skills", "Required Skills")}</p>
               <div className="flex flex-wrap gap-2">
                 {formData.required_skills.map((skill) => (
                   <Badge key={skill}>{skill}</Badge>
@@ -672,7 +674,7 @@ export function PostProjectWizard({ companyId, onSuccess }: PostProjectWizardPro
             </div>
 
             <div>
-              <p className="text-sm font-medium mb-2">Description</p>
+              <p className="text-sm font-medium mb-2">{t("description", "Description")}</p>
               <p className="text-muted-foreground whitespace-pre-wrap">
                 {formData.description}
               </p>
@@ -683,7 +685,7 @@ export function PostProjectWizard({ companyId, onSuccess }: PostProjectWizardPro
                 <div className="flex items-center gap-3">
                   <Sparkles className="h-5 w-5 text-primary" />
                   <div>
-                    <p className="font-medium">Ready to Post</p>
+                    <p className="font-medium">{t("ready_to_post", "Ready to Post")}</p>
                     <p className="text-sm text-muted-foreground">
                       Your project will be visible to freelancers immediately after posting
                     </p>

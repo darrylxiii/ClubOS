@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,6 +12,7 @@ import { DynamicChart } from '@/components/charts/DynamicChart';
 const COLORS = ['hsl(var(--primary))', 'hsl(var(--secondary))', 'hsl(142, 76%, 36%)', 'hsl(var(--accent))'];
 
 export default function JobAnalyticsDashboard() {
+  const { t } = useTranslation('common');
   const { jobId } = useParams<{ jobId: string }>();
   const { data, loading, error } = useJobAnalytics(jobId);
 
@@ -31,7 +33,7 @@ export default function JobAnalyticsDashboard() {
       <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
           <Card>
             <CardContent className="py-12 text-center">
-              <p className="text-muted-foreground">Failed to load analytics</p>
+              <p className="text-muted-foreground">{t("failed_to_load_analytics", "Failed to load analytics")}</p>
             </CardContent>
           </Card>
       </div>
@@ -60,8 +62,8 @@ export default function JobAnalyticsDashboard() {
   return (
     <div className="w-full px-4 sm:px-6 lg:px-8 py-8 space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Job Analytics</h1>
-        <p className="text-muted-foreground">Detailed performance metrics for this role</p>
+        <h1 className="text-3xl font-bold">{t("job_analytics", "Job Analytics")}</h1>
+        <p className="text-muted-foreground">{t("detailed_performance_metrics_for", "Detailed performance metrics for this role")}</p>
       </div>
 
       {/* Key Metrics */}
@@ -72,7 +74,7 @@ export default function JobAnalyticsDashboard() {
                 <div className="p-3 bg-primary/10 rounded-lg"><Users className="h-6 w-6" /></div>
                 <div>
                   <p className="text-2xl font-bold">{data.totalApplications}</p>
-                  <p className="text-sm text-muted-foreground">Total Applications</p>
+                  <p className="text-sm text-muted-foreground">{t("total_applications", "Total Applications")}</p>
                 </div>
               </div>
             </CardContent>
@@ -84,7 +86,7 @@ export default function JobAnalyticsDashboard() {
                 <div className="p-3 bg-primary/10 rounded-lg"><TrendingUp className="h-6 w-6" /></div>
                 <div>
                   <p className="text-2xl font-bold">{data.activeApplications}</p>
-                  <p className="text-sm text-muted-foreground">Active</p>
+                  <p className="text-sm text-muted-foreground">{t("active", "Active")}</p>
                 </div>
               </div>
             </CardContent>
@@ -96,7 +98,7 @@ export default function JobAnalyticsDashboard() {
                 <div className="p-3 bg-primary/10 rounded-lg"><Target className="h-6 w-6" /></div>
                 <div>
                   <p className="text-2xl font-bold">{data.totalHires}</p>
-                  <p className="text-sm text-muted-foreground">Hires</p>
+                  <p className="text-sm text-muted-foreground">{t("hires", "Hires")}</p>
                 </div>
               </div>
             </CardContent>
@@ -108,7 +110,7 @@ export default function JobAnalyticsDashboard() {
                 <div className="p-3 bg-primary/10 rounded-lg"><Clock className="h-6 w-6" /></div>
                 <div>
                   <p className="text-2xl font-bold">{data.timeMetrics.totalTimeToHire}d</p>
-                  <p className="text-sm text-muted-foreground">Avg Time to Hire</p>
+                  <p className="text-sm text-muted-foreground">{t("avg_time_to_hire", "Avg Time to Hire")}</p>
                 </div>
               </div>
             </CardContent>
@@ -118,16 +120,16 @@ export default function JobAnalyticsDashboard() {
         {/* Charts */}
         <Tabs defaultValue="sourcing" className="space-y-4">
           <TabsList>
-            <TabsTrigger value="sourcing"><PieChartIcon className="h-4 w-4 mr-2" />Sourcing</TabsTrigger>
-            <TabsTrigger value="funnel"><BarChart3 className="h-4 w-4 mr-2" />Pipeline</TabsTrigger>
-            <TabsTrigger value="time"><Clock className="h-4 w-4 mr-2" />Time in Stage</TabsTrigger>
+            <TabsTrigger value="sourcing"><PieChartIcon className="h-4 w-4 mr-2" />{t("sourcing", "Sourcing")}</TabsTrigger>
+            <TabsTrigger value="funnel"><BarChart3 className="h-4 w-4 mr-2" />{t("pipeline", "Pipeline")}</TabsTrigger>
+            <TabsTrigger value="time"><Clock className="h-4 w-4 mr-2" />{t("time_in_stage", "Time in Stage")}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="sourcing">
             <Card>
               <CardHeader>
-                <CardTitle>Sourcing Breakdown</CardTitle>
-                <CardDescription>Where candidates are coming from</CardDescription>
+                <CardTitle>{t("sourcing_breakdown", "Sourcing Breakdown")}</CardTitle>
+                <CardDescription>{t("where_candidates_are_coming", "Where candidates are coming from")}</CardDescription>
               </CardHeader>
               <CardContent>
                 <DynamicChart
@@ -152,8 +154,8 @@ export default function JobAnalyticsDashboard() {
           <TabsContent value="funnel">
             <Card>
               <CardHeader>
-                <CardTitle>Pipeline Conversion Funnel</CardTitle>
-                <CardDescription>Candidates progressing through stages</CardDescription>
+                <CardTitle>{t("pipeline_conversion_funnel", "Pipeline Conversion Funnel")}</CardTitle>
+                <CardDescription>{t("candidates_progressing_through_stages", "Candidates progressing through stages")}</CardDescription>
               </CardHeader>
               <CardContent>
                 <DynamicChart
@@ -174,8 +176,8 @@ export default function JobAnalyticsDashboard() {
           <TabsContent value="time">
             <Card>
               <CardHeader>
-                <CardTitle>Time in Stage</CardTitle>
-                <CardDescription>Average days spent in each pipeline stage</CardDescription>
+                <CardTitle>{t("time_in_stage", "Time in Stage")}</CardTitle>
+                <CardDescription>{t("average_days_spent_in", "Average days spent in each pipeline stage")}</CardDescription>
               </CardHeader>
               <CardContent>
                 <DynamicChart

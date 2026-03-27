@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -25,6 +26,7 @@ interface PersonalMeetingRoom {
 }
 
 export default function PersonalMeetingRoom() {
+  const { t } = useTranslation('meetings');
   const { user } = useAuth();
   const navigate = useNavigate();
   const [pmr, setPmr] = useState<PersonalMeetingRoom | null>(null);
@@ -57,7 +59,7 @@ export default function PersonalMeetingRoom() {
       }
     } catch (error) {
       console.error('Error loading PMR:', error);
-      toast.error('Failed to load personal meeting room');
+      toast.error(t('text.personalmeetingroom.failedToLoadPersonalMeetingRoom', 'Failed to load personal meeting room'));
     } finally {
       setLoading(false);
     }
@@ -78,7 +80,7 @@ export default function PersonalMeetingRoom() {
       setQrCodeUrl(qrCodeDataUrl);
     } catch (error) {
       console.error('Error generating QR code:', error);
-      toast.error('Failed to generate QR code');
+      toast.error(t('text.personalmeetingroom.failedToGenerateQrCode', 'Failed to generate QR code'));
     }
   }, [pmr]);
 
@@ -111,11 +113,11 @@ export default function PersonalMeetingRoom() {
         .single();
 
       if (error) throw error;
-      toast.success('Personal meeting room created');
+      toast.success(t('text.personalmeetingroom.personalMeetingRoomCreated', 'Personal meeting room created'));
       loadPMR();
     } catch (error: unknown) {
       console.error('Error creating PMR:', error);
-      toast.error('Failed to create personal meeting room');
+      toast.error(t('text.personalmeetingroom.failedToCreatePersonalMeetingRoom', 'Failed to create personal meeting room'));
     }
   };
 
@@ -133,11 +135,11 @@ export default function PersonalMeetingRoom() {
         .eq('id', pmr.id);
 
       if (error) throw error;
-      toast.success('Settings updated');
+      toast.success(t('text.personalmeetingroom.settingsUpdated', 'Settings updated'));
       loadPMR();
     } catch (error: unknown) {
       console.error('Error updating PMR:', error);
-      toast.error('Failed to update settings');
+      toast.error(t('text.personalmeetingroom.failedToUpdateSettings', 'Failed to update settings'));
     }
   };
 
@@ -151,23 +153,23 @@ export default function PersonalMeetingRoom() {
         .eq('id', pmr.id);
 
       if (error) throw error;
-      toast.success(pmr.is_active ? 'PMR deactivated' : 'PMR activated');
+      toast.success(pmr.is_active ? t('text.personalmeetingroom.pmrDeactivated', 'PMR deactivated') : t('text.personalmeetingroom.pmrActivated', 'PMR activated'));
       loadPMR();
     } catch (error: unknown) {
       console.error('Error toggling PMR:', error);
-      toast.error('Failed to toggle PMR');
+      toast.error(t('text.personalmeetingroom.failedToTogglePmr', 'Failed to toggle PMR'));
     }
   };
 
   const copyLink = () => {
     const url = `${window.location.origin}/meetings/${pmr?.room_code}`;
     navigator.clipboard.writeText(url);
-    toast.success('Link copied to clipboard');
+    toast.success(t('text.personalmeetingroom.linkCopiedToClipboard', 'Link copied to clipboard'));
   };
 
   const copyCode = () => {
     navigator.clipboard.writeText(pmr?.room_code || '');
-    toast.success('Code copied to clipboard');
+    toast.success(t('text.personalmeetingroom.codeCopiedToClipboard', 'Code copied to clipboard'));
   };
 
   const shareViaEmail = () => {
@@ -192,7 +194,7 @@ export default function PersonalMeetingRoom() {
       }
     } catch (error: unknown) {
       console.error('Error starting meeting:', error);
-      toast.error('Failed to start meeting');
+      toast.error(t('text.personalmeetingroom.failedToStartMeeting', 'Failed to start meeting'));
     }
   };
 
@@ -213,27 +215,25 @@ export default function PersonalMeetingRoom() {
             <div className="space-y-4">
               <Video className="h-16 w-16 mx-auto text-muted-foreground" />
               <div>
-                <h2 className="text-2xl font-bold mb-2">Create Your Personal Meeting Room</h2>
-                <p className="text-muted-foreground">
-                  Get a permanent meeting link that's always available
-                </p>
+                <h2 className="text-2xl font-bold mb-2">{t('personalMeetingRoom.text6')}</h2>
+                <p className="text-muted-foreground">{t('personalMeetingRoom.desc')}</p>
               </div>
             </div>
 
             <div className="space-y-4 max-w-md mx-auto text-left">
               <div className="space-y-2">
-                <Label htmlFor="display_name">Room Name</Label>
+                <Label htmlFor="display_name">{t('personalMeetingRoom.text7')}</Label>
                 <Input
                   id="display_name"
                   value={customName}
                   onChange={(e) => setCustomName(e.target.value)}
-                  placeholder="My Meeting Room"
+                  placeholder={t('personalMeetingRoom.text8')}
                 />
               </div>
 
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="allow_guests">Allow Guests</Label>
+                  <Label htmlFor="allow_guests">{t('personalMeetingRoom.text9')}</Label>
                   <Switch
                     id="allow_guests"
                     checked={settings.allow_guests}
@@ -241,7 +241,7 @@ export default function PersonalMeetingRoom() {
                   />
                 </div>
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="require_approval">Require Approval</Label>
+                  <Label htmlFor="require_approval">{t('personalMeetingRoom.text10')}</Label>
                   <Switch
                     id="require_approval"
                     checked={settings.require_approval}
@@ -267,14 +267,12 @@ export default function PersonalMeetingRoom() {
     <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Personal Meeting Room</h1>
-          <p className="text-muted-foreground mt-1">
-            Your always-available meeting space
-          </p>
+          <h1 className="text-3xl font-bold">{t('personalMeetingRoom.text11')}</h1>
+          <p className="text-muted-foreground mt-1">{t('personalMeetingRoom.desc2')}</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={togglePMR}>
-            {pmr.is_active ? 'Deactivate' : 'Activate'}
+            {pmr.is_active ? t('text.personalmeetingroom.deactivate', 'Deactivate') : t('text.personalmeetingroom.activate', 'Activate')}
           </Button>
           <Button onClick={startMeeting}>
             <Video className="h-4 w-4 mr-2" />
@@ -303,12 +301,12 @@ export default function PersonalMeetingRoom() {
           <div className="grid md:grid-cols-2 gap-4">
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Meeting Code</CardTitle>
-                <CardDescription>Share this code with participants</CardDescription>
+                <CardTitle className="text-lg">{t('personalMeetingRoom.text12')}</CardTitle>
+                <CardDescription>{t('personalMeetingRoom.text13')}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="text-center p-6 bg-gradient-to-br from-primary/10 to-primary/5 rounded-lg">
-                  <p className="text-sm text-muted-foreground mb-2">Meeting Code:</p>
+                  <p className="text-sm text-muted-foreground mb-2">{t('personalMeetingRoom.text14')}</p>
                   <h2 className="text-4xl font-bold font-mono tracking-wider">
                     {pmr.room_code}
                   </h2>
@@ -322,8 +320,8 @@ export default function PersonalMeetingRoom() {
 
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Meeting Link</CardTitle>
-                <CardDescription>Direct link to your room</CardDescription>
+                <CardTitle className="text-lg">{t('personalMeetingRoom.text15')}</CardTitle>
+                <CardDescription>{t('personalMeetingRoom.text16')}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="p-4 bg-muted rounded-lg break-all text-sm font-mono">
@@ -345,13 +343,13 @@ export default function PersonalMeetingRoom() {
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">QR Code</CardTitle>
-              <CardDescription>Scan to join instantly</CardDescription>
+              <CardTitle className="text-lg">{t('personalMeetingRoom.text17')}</CardTitle>
+              <CardDescription>{t('personalMeetingRoom.text18')}</CardDescription>
             </CardHeader>
             <CardContent className="flex justify-center">
               {qrCodeUrl && (
                 <div className="p-4 bg-white rounded-lg">
-                  <img src={qrCodeUrl} alt="QR Code" className="w-64 h-64" />
+                  <img src={qrCodeUrl} alt={t('personalMeetingRoom.text19')} className="w-64 h-64" />
                 </div>
               )}
             </CardContent>
@@ -361,11 +359,11 @@ export default function PersonalMeetingRoom() {
         <TabsContent value="settings" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Room Settings</CardTitle>
+              <CardTitle>{t('personalMeetingRoom.text20')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="room_name">Room Name</Label>
+                <Label htmlFor="room_name">{t('personalMeetingRoom.text21')}</Label>
                 <Input
                   id="room_name"
                   value={customName}
@@ -376,10 +374,8 @@ export default function PersonalMeetingRoom() {
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <div>
-                    <Label htmlFor="guests">Allow Guests</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Anyone with the link can join
-                    </p>
+                    <Label htmlFor="guests">{t('personalMeetingRoom.text22')}</Label>
+                    <p className="text-sm text-muted-foreground">{t('personalMeetingRoom.desc3')}</p>
                   </div>
                   <Switch
                     id="guests"
@@ -390,10 +386,8 @@ export default function PersonalMeetingRoom() {
 
                 <div className="flex items-center justify-between">
                   <div>
-                    <Label htmlFor="approval">Require Approval</Label>
-                    <p className="text-sm text-muted-foreground">
-                      You must approve each participant
-                    </p>
+                    <Label htmlFor="approval">{t('personalMeetingRoom.text23')}</Label>
+                    <p className="text-sm text-muted-foreground">{t('personalMeetingRoom.desc4')}</p>
                   </div>
                   <Switch
                     id="approval"
@@ -403,9 +397,7 @@ export default function PersonalMeetingRoom() {
                 </div>
               </div>
 
-              <Button onClick={updatePMR}>
-                Save Settings
-              </Button>
+              <Button onClick={updatePMR}>{t('personalMeetingRoom.btn5')}</Button>
             </CardContent>
           </Card>
         </TabsContent>
@@ -413,30 +405,30 @@ export default function PersonalMeetingRoom() {
         <TabsContent value="analytics">
           <Card>
             <CardHeader>
-              <CardTitle>Usage Statistics</CardTitle>
+              <CardTitle>{t('personalMeetingRoom.text24')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid md:grid-cols-3 gap-4">
                 <div className="p-4 border rounded-lg">
                   <div className="flex items-center gap-2 text-muted-foreground mb-1">
                     <Users className="h-4 w-4" />
-                    <span className="text-sm">Total Meetings</span>
+                    <span className="text-sm">{t('personalMeetingRoom.text25')}</span>
                   </div>
                   <p className="text-3xl font-bold">{pmr.total_meetings}</p>
                 </div>
                 <div className="p-4 border rounded-lg">
                   <div className="flex items-center gap-2 text-muted-foreground mb-1">
                     <Link2 className="h-4 w-4" />
-                    <span className="text-sm">Status</span>
+                    <span className="text-sm">{t('personalMeetingRoom.text26')}</span>
                   </div>
                   <Badge variant={pmr.is_active ? 'default' : 'secondary'} className="text-lg">
-                    {pmr.is_active ? 'Active' : 'Inactive'}
+                    {pmr.is_active ? t('text.personalmeetingroom.active', 'Active') : t('text.personalmeetingroom.inactive', 'Inactive')}
                   </Badge>
                 </div>
                 <div className="p-4 border rounded-lg">
                   <div className="flex items-center gap-2 text-muted-foreground mb-1">
                     <Clock className="h-4 w-4" />
-                    <span className="text-sm">Average Duration</span>
+                    <span className="text-sm">{t('personalMeetingRoom.text27')}</span>
                   </div>
                   <p className="text-3xl font-bold">45m</p>
                 </div>

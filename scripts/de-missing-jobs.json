@@ -1,0 +1,48 @@
+{
+  "companyJobsDashboard": {
+    "desc": "Manage your jobs and customize hiring pipeline",
+    "desc2": "These stages will be used as the template for all new jobs",
+    "desc3": "New Application",
+    "desc4": "Get notified when a candidate applies",
+    "desc5": "Stage Changes",
+    "desc6": "Get notified when candidates move between stages",
+    "desc7": "Rejections",
+    "desc8": "Get notified when candidates are rejected",
+    "desc9": "Configure how candidates are scored for this role"
+  },
+  "jobDetail": {
+    "text1": "Job not found",
+    "text2": "Back to Jobs",
+    "text3": "Overview",
+    "text4": "Details",
+    "text5": "Matches",
+    "text6": "Company",
+    "text7": "Activity",
+    "text8": "Generate a Cover Letter",
+    "text9": "Create an AI-powered cover letter for this role",
+    "text10": "Cover Letter Builder",
+    "text11": "Key Responsibilities",
+    "text12": "Main areas you'll be working on",
+    "text13": "Top Benefits",
+    "text14": "What we offer",
+    "text15": "Job Analytics",
+    "text16": "Performance metrics and insights",
+    "text17": "Total Applications",
+    "text18": "Total Views",
+    "text19": "Conversion Rate",
+    "text20": "Days Active"
+  },
+  "jobs": {
+    "title": "No saved jobs yet",
+    "desc": "Curated roles for The Quantum Club members",
+    "desc2": "Browse opportunities and save roles that interest you"
+  },
+  "sharedPipelineView": {
+    "desc": "This pipeline is protected. Enter the password to view it.",
+    "text2": "Link unavailable",
+    "text3": "Password required",
+    "text4": "Enter password",
+    "text5": "No candidates in this pipeline yet.",
+    "text6": "The Quantum Club"
+  }
+}

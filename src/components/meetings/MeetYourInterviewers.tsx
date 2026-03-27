@@ -3,6 +3,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Linkedin, MessageSquare } from "lucide-react";
 import { getInitials } from "@/lib/format";
+import { useTranslation } from "react-i18next";
 
 interface Interviewer {
   id: string;
@@ -20,6 +21,7 @@ interface MeetYourInterviewersProps {
 }
 
 export function MeetYourInterviewers({ interviewers }: MeetYourInterviewersProps) {
+  const { t } = useTranslation("meetings");
   if (interviewers.length === 0) {
     return null;
   }
@@ -29,7 +31,7 @@ export function MeetYourInterviewers({ interviewers }: MeetYourInterviewersProps
       <CardHeader className="pb-3">
         <CardTitle className="text-lg flex items-center gap-2">
           <MessageSquare className="h-5 w-5 text-primary" />
-          Meet Your Interviewers
+          {t('interviewers.meetYour')}
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -76,7 +78,7 @@ export function MeetYourInterviewers({ interviewers }: MeetYourInterviewersProps
               {interviewer.talkingPoints.length > 0 && (
                 <div className="space-y-1">
                   <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                    Suggested Topics
+                    {t('interviewers.suggestedTopics')}
                   </p>
                   <ul className="space-y-1">
                     {interviewer.talkingPoints.slice(0, 3).map((point, idx) => (

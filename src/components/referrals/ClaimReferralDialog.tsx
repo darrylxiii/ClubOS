@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -17,6 +18,7 @@ interface ClaimReferralDialogProps {
 }
 
 export function ClaimReferralDialog({ open, onOpenChange }: ClaimReferralDialogProps) {
+  const { t } = useTranslation('common');
   const [activeTab, setActiveTab] = useState<'company' | 'job' | 'member'>('company');
   const [selectedCompanyId, setSelectedCompanyId] = useState<string>('');
   const [selectedJobId, setSelectedJobId] = useState<string>('');
@@ -85,7 +87,7 @@ export function ClaimReferralDialog({ open, onOpenChange }: ClaimReferralDialogP
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Claim Referral</DialogTitle>
+          <DialogTitle>{t("claim_referral", "Claim Referral")}</DialogTitle>
           <DialogDescription>
             Track your contributions and earn a share of placement fees
           </DialogDescription>
@@ -110,10 +112,10 @@ export function ClaimReferralDialog({ open, onOpenChange }: ClaimReferralDialogP
           <div className="mt-6 space-y-4">
             <TabsContent value="company" className="mt-0 space-y-4">
               <div className="space-y-2">
-                <Label>Select Company</Label>
+                <Label>{t("select_company", "Select Company")}</Label>
                 <Select value={selectedCompanyId} onValueChange={setSelectedCompanyId}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Choose a company you brought in" />
+                    <SelectValue placeholder={t("choose_a_company_you", "Choose a company you brought in")} />
                   </SelectTrigger>
                   <SelectContent>
                     {companies.map((company) => (
@@ -131,10 +133,10 @@ export function ClaimReferralDialog({ open, onOpenChange }: ClaimReferralDialogP
 
             <TabsContent value="job" className="mt-0 space-y-4">
               <div className="space-y-2">
-                <Label>Select Job</Label>
+                <Label>{t("select_job", "Select Job")}</Label>
                 <Select value={selectedJobId} onValueChange={setSelectedJobId}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Choose a job you sourced" />
+                    <SelectValue placeholder={t("choose_a_job_you", "Choose a job you sourced")} />
                   </SelectTrigger>
                   <SelectContent>
                     {jobs.map((job) => (
@@ -152,10 +154,10 @@ export function ClaimReferralDialog({ open, onOpenChange }: ClaimReferralDialogP
 
             <TabsContent value="member" className="mt-0 space-y-4">
               <div className="space-y-2">
-                <Label>Member Email</Label>
+                <Label>{t("member_email", "Member Email")}</Label>
                 <Input
                   type="email"
-                  placeholder="colleague@company.com"
+                  placeholder={t("colleaguecompanycom", "colleague@company.com")}
                   value={memberEmail}
                   onChange={(e) => setMemberEmail(e.target.value)}
                 />
@@ -166,9 +168,9 @@ export function ClaimReferralDialog({ open, onOpenChange }: ClaimReferralDialogP
             </TabsContent>
 
             <div className="space-y-2">
-              <Label>Notes (optional)</Label>
+              <Label>{t("notes_optional", "Notes (optional)")}</Label>
               <Textarea
-                placeholder="How did you bring in this referral?"
+                placeholder={t("how_did_you_bring", "How did you bring in this referral?")}
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 rows={3}

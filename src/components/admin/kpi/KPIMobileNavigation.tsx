@@ -4,6 +4,7 @@ import {
   ClipboardList, BarChart3, Settings
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 
 type ViewMode = 'overview' | 'executive' | 'team' | 'department' | 'okr' | 'lineage' | 'audit' | 'goals' | 'governance';
 
@@ -28,6 +29,7 @@ export function KPIMobileNavigation({
   onViewChange,
   className 
 }: KPIMobileNavigationProps) {
+  const { t } = useTranslation('admin');
   return (
     <nav className={cn(
       "fixed bottom-0 left-0 right-0 z-40 lg:hidden",

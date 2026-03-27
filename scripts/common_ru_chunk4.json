@@ -1,0 +1,284 @@
+{
+  "campaignDashboard": {
+    "desc": "Управляйте кампаниями холодной рассылки",
+    "text2": "Кампании",
+    "text3": "Поиск кампаний...",
+    "text4": "Все кампании",
+    "text5": "Кампании не найдены",
+    "text6": "Процент открытий",
+    "text7": "Процент ответов",
+    "text8": "Отклонения",
+    "text9": "Прогресс кампании"
+  },
+  "focusView": {
+    "desc": "У Вас нет запланированных активностей на сегодня. Отличная работа!",
+    "text2": "Режим фокусировки",
+    "text3": "Ваши активности на сегодня",
+    "text4": "Прогресс за сегодня",
+    "text5": "Всё выполнено!"
+  },
+  "importHistory": {
+    "desc": "Просмотр и управление импортами CSV",
+    "text2": "Ошибка импорта"
+  },
+  "leadScoringConfig": {
+    "desc": "Настройте правила оценки и просматривайте историю оценок для потенциальных клиентов"
+  },
+  "prospectAuditTrail": {
+    "desc": "Полная история всех изменений записей о потенциальных клиентах",
+    "desc2": "Выберите потенциального клиента для просмотра детальной активности",
+    "text3": "Поиск по имени...",
+    "text4": "Фильтр",
+    "text5": "Все действия",
+    "text6": "Этап изменён",
+    "text7": "Поле обновлено",
+    "text8": "Email отправлен",
+    "text9": "Владелец изменён",
+    "text10": "Заметка добавлена"
+  },
+  "prospectDetail": {
+    "desc": "Точки контакта ещё не записаны",
+    "text2": "Потенциальный клиент не найден",
+    "text3": "Назад к воронке",
+    "text4": "Удалить потенциального клиента?",
+    "text5": "Отмена",
+    "text6": "Удалить",
+    "text7": "Контактная информация",
+    "text8": "Email",
+    "text9": "Телефон",
+    "text10": "LinkedIn",
+    "text11": "Компания",
+    "text12": "Местоположение",
+    "text13": "Заметки",
+    "text14": "Добавьте заметки об этом потенциальном клиенте...",
+    "text15": "Единая активность",
+    "text16": "Кампания",
+    "text17": "Быстрые действия"
+  },
+  "suppressionList": {
+    "desc": "Синхронизируйте список блокировки с чёрным списком Instantly",
+    "text2": "Домен",
+    "text3": "Email",
+    "text4": "Instantly",
+    "text5": "Отклонён",
+    "text6": "Отписан",
+    "text7": "Вручную",
+    "text8": "Поиск...",
+    "text9": "Всего записей",
+    "text10": "Заблокированные email",
+    "text11": "Заблокированные домены",
+    "text12": "Из Instantly",
+    "text13": "Ожидает синхронизации",
+    "text14": "Интеграция с Instantly",
+    "text15": "Добавить в список блокировки",
+    "text16": "Тип",
+    "text17": "Адрес email",
+    "text18": "Домен",
+    "text19": "Причина",
+    "text20": "Почему блокируется?"
+  },
+  "activeMeetingsWidget": {
+    "badge": {
+      "live": "В эфире"
+    }
+  },
+  "agentActivityWidget": {
+    "badge": {
+      "needsApproval": "Требует одобрения"
+    }
+  },
+  "careerProgressWidget": {
+    "badge": {
+      "justGettingStarted": "Только начинаем",
+      "onTrack": "По плану"
+    }
+  },
+  "clubPilotTasksWidget": {
+    "badge": {
+      "aiSuggested": "Предложено ИИ"
+    },
+    "allCaughtUpNoPendingTasks": "Всё выполнено. Нет ожидающих задач."
+  },
+  "dailyBriefingBanner": {
+    "badge": {
+      "poweredByQuin": "На основе QUIN"
+    }
+  },
+  "partnerHome": {
+    "welcomeToTheQuantumClub": "Добро пожаловать в The Quantum Club",
+    "companySetupInProgress": "Настройка компании в процессе",
+    "completeYourAccountSetupToGetStartedWith": "Завершите настройку аккаунта, чтобы начать работу с партнёрским порталом",
+    "yourStrategistIsFinalisingYourCompanyPro": "Ваш стратегист завершает профиль компании. Вскоре Вы увидите свою панель."
+  },
+  "skillDemandWidget": {
+    "badge": {
+      "stable": "Стабильный",
+      "youHaveThis": "У Вас есть этот навык"
+    },
+    "noSkillDataAvailableYet": "Данные о навыках пока недоступны"
+  },
+  "partnerStrategistStrip": {
+    "badge": {
+      "strategist": "Стратегист"
+    },
+    "yourDedicatedTalentPartnerAtTheQuantumCl": "Ваш выделенный талант-партнёр в The Quantum Club"
+  },
+  "adminReferralWidget": {
+    "totalReferrals": "Всего рефералов",
+    "successful": "Успешных",
+    "paidOut": "Выплачено",
+    "referralNetwork": "Реферальная сеть"
+  },
+  "auditLogSummaryWidget": {
+    "sensitive": "Конфиденциальные",
+    "recentActivity": "Последняя активность",
+    "noAuditEventsToday": "Нет событий аудита сегодня",
+    "failed": "Неудачные",
+    "today": "Сегодня"
+  },
+  "cRMProspectsWidget": {
+    "noProspectsYet": "Пока нет потенциальных клиентов",
+    "avgDeal": "Средняя сделка",
+    "active": "Активные"
+  },
+  "clubAIAnalyticsWidget": {
+    "totalInteractions": "Всего взаимодействий",
+    "recommendations": "Рекомендации",
+    "actedUpon": "Принятые",
+    "userSatisfaction": "Удовлетворённость пользователей",
+    "clubAiAnalytics": "Аналитика Club AI"
+  },
+  "dealPipelineSummaryWidget": {
+    "noActiveDealsInPipeline": "Нет активных сделок в воронке",
+    "weightedValuesUseStageProbabilityFromCrm": "Взвешенные значения используют вероятность этапа из настроек CRM",
+    "activeDeals": "Активные сделки",
+    "totalValue": "Общая стоимость",
+    "weighted": "Взвешенная"
+  },
+  "edgeFunctionHealthWidget": {
+    "avgResponse": "Среднее время ответа",
+    "backendHealth": "Состояние бэкенда"
+  },
+  "hiringPipelineOverview": {
+    "yourHiringPipelineStartsHere": "Ваша воронка найма начинается здесь",
+    "description": "Разбивка по текущим этапам"
+  },
+  "interviewCommandWidget": {
+    "noInterviewsScheduledForToday": "На сегодня нет запланированных собеседований",
+    "allScorecardsSubmitted": "Все оценочные карты отправлены!"
+  },
+  "interviewCountdownWidget": {
+    "noUpcomingInterviewsScheduled": "Нет запланированных собеседований"
+  },
+  "kPISummaryWidget": {
+    "noKpiDataAvailableYet": "Данные KPI пока недоступны",
+    "critical": "Критический",
+    "warning": "Предупреждение",
+    "onTarget": "По плану",
+    "pending": "Ожидает",
+    "healthScore": "Оценка состояния",
+    "awaitingData": "Ожидание данных"
+  },
+  "liveOperationsWidget": {
+    "teamOnline": "Команда онлайн",
+    "accountsActive": "Активных аккаунтов"
+  },
+  "messagesPreviewWidget": {
+    "noMessagesYet": "Пока нет сообщений"
+  },
+  "nPSPulseWidget": {
+    "promoters": "Промоутеры",
+    "passives": "Нейтральные",
+    "detractors": "Критики"
+  },
+  "partnerActivityFeed": {
+    "noRecentActivity": "Нет недавней активности",
+    "description": "Последняя активность на платформе"
+  },
+  "partnerEngagementWidget": {
+    "total": "Всего",
+    "active": "Активные",
+    "atRisk": "Под угрозой",
+    "partnerEngagement": "Вовлечённость партнёров",
+    "placementSuccessRate": "Процент успешных трудоустройств"
+  },
+  "pendingMemberApprovalsWidget": {
+    "noPendingApprovals": "Нет ожидающих одобрений",
+    "allMemberRequestsHaveBeenProcessed": "Все заявки участников обработаны",
+    "pendingApprovals": "Ожидающие одобрения",
+    "approvals": "Одобрения",
+    "description": "Новые участники ожидают проверки"
+  },
+  "recentApplicationsList": {
+    "noApplicationsYet": "Пока нет заявок",
+    "applicationsWillAppearHereAsCandidatesAp": "Заявки появятся здесь по мере их подачи кандидатами",
+    "description": "Последние заявки кандидатов"
+  },
+  "recruiterTeamWidget": {
+    "sourced": "Найдено",
+    "placements": "Трудоустройства",
+    "topPerformers": "Лучшие исполнители",
+    "noRecruiterActivityYet": "Пока нет активности рекрутеров",
+    "rate": "Процент"
+  },
+  "referralStatsWidget": {
+    "active": "Активные",
+    "projected": "Прогнозируемые",
+    "earned": "Заработано"
+  },
+  "revenueGrowthWidget": {
+    "weightedPipeline": "Взвешенная воронка",
+    "expectedClosings": "Ожидаемые закрытия",
+    "projectedMonthend": "Прогноз на конец месяца",
+    "pipeline": "Воронка"
+  },
+  "revenueSparkline": {
+    "pipelineValue": "Стоимость воронки",
+    "title": {
+      "revenue": "Выручка и"
+    }
+  },
+  "salaryInsightsWidget": {
+    "addYourRoleToSeeMarketBenchmarks": "Добавьте Вашу роль, чтобы увидеть рыночные ориентиры"
+  },
+  "savedJobsWidget": {
+    "noSavedJobsYet": "Пока нет сохранённых вакансий"
+  },
+  "securityAlertsWidget": {
+    "blockedIps": "Заблокированные IP"
+  },
+  "strategistContactCard": {
+    "aDedicatedStrategistWillBeAssignedToYouS": "Выделенный стратегист будет назначен Вам в ближайшее время",
+    "theyllHelpGuideYourCareerJourney": "Он поможет направлять Ваш карьерный путь"
+  },
+  "systemErrorsWidget": {
+    "critical": "Критические",
+    "errors": "Ошибки",
+    "warnings": "Предупреждения"
+  },
+  "talentRecommendations": {
+    "noRecommendationsYet": "Пока нет рекомендаций",
+    "recommendationsWillAppearWhenYouHaveActi": "Рекомендации появятся, когда у Вас будут активные вакансии",
+    "description": "Лучшие кандидаты для Ваших открытых ролей"
+  },
+  "taskQueueWidget": {
+    "noPendingTasks": "Нет ожидающих задач",
+    "pending": "Ожидает",
+    "dueToday": "Срок сегодня",
+    "overdue": "Просрочено"
+  },
+  "teamCapacityWidget": {
+    "title": {
+      "teamCapacity": "Загруженность команды"
+    }
+  },
+  "topClientsWidget": {
+    "noActiveClientsYet": "Пока нет активных клиентов"
+  },
+  "partnerActivityFeedUnified": {
+    "postARoleToSeeApplicationsInterviewsAndU": "Опубликуйте роль, чтобы видеть заявки, собеседования и обновления здесь"
+  },
+  "upcomingScheduleWidget": {
+    "interviewsAreAutomaticallyScheduledOnceC": "Собеседования автоматически планируются после включения кандидатов в шорт-лист для Ваших ролей"
+  }
+}

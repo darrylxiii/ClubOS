@@ -1,11 +1,8 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
-};
+import { createHandler } from '../_shared/handler.ts';
+import { sendEmail as sendEmailViaResend } from '../_shared/resend-client.ts';
+import { EMAIL_SENDERS } from "../_shared/email-config.ts";
+import { sendWhatsAppMessage } from '../_shared/whatsapp-client.ts';
+import { sendSMS as sendSMSViaTwilio } from '../_shared/twilio-client.ts';
 
 /**
  * Central notification orchestrator for candidate communications.
@@ -28,15 +25,8 @@ interface NotificationRequest {
   force_channels?: string[];
 }
 
-serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  try {
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, serviceRoleKey);
+Deno.serve(createHandler(async (req, ctx) => {
+    const supabase = ctx.supabase;
 
     const body: NotificationRequest = await req.json();
     const { user_id, event_type, event_id, payload, force_channels } = body;
@@ -44,7 +34,7 @@ serve(async (req) => {
     if (!user_id || !event_type || !event_id) {
       return new Response(
         JSON.stringify({ error: "user_id, event_type, and event_id are required" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 400, headers: { ...ctx.corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -61,7 +51,7 @@ serve(async (req) => {
       console.log(`[orchestrator] Already delivered ${event_type}:${event_id} to ${user_id}`);
       return new Response(
         JSON.stringify({ success: true, skipped: true, reason: "already_delivered" }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { headers: { ...ctx.corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -108,7 +98,7 @@ serve(async (req) => {
 
           case "sms":
             if (phoneNumber) {
-              results.sms = await sendSMS({
+              results.sms = await sendNotificationSMS({
                 phone: phoneNumber,
                 message: `${payload.title}: ${payload.body}`,
               });
@@ -157,16 +147,9 @@ serve(async (req) => {
 
     return new Response(
       JSON.stringify({ success: true, channels: results }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      { headers: { ...ctx.corsHeaders, "Content-Type": "application/json" } }
     );
-  } catch (error) {
-    console.error("[orchestrator] Error:", error);
-    return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
-  }
-});
+}));
 
 // --- Channel determination logic ---
 
@@ -314,114 +297,58 @@ async function sendEmail(
   _serviceRoleKey: string,
   options: { to: string; subject: string; body: string; html?: string }
 ): Promise<{ success: boolean; error?: string }> {
-  const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
-  if (!RESEND_API_KEY) return { success: false, error: "Resend not configured" };
-
-  const response = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${RESEND_API_KEY}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      from: "The Quantum Club <notifications@thequantumclub.nl>",
+  try {
+    await sendEmailViaResend({
+      from: EMAIL_SENDERS.notifications,
       to: options.to,
       subject: options.subject,
-      text: options.body,
       html: options.html || options.body,
-    }),
-  });
-
-  if (!response.ok) {
-    const err = await response.text();
-    return { success: false, error: `Resend ${response.status}: ${err}` };
+      text: options.body,
+    });
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
   }
-  return { success: true };
 }
 
-async function sendSMS(options: { phone: string; message: string }): Promise<{ success: boolean; error?: string }> {
-  const TWILIO_ACCOUNT_SID = Deno.env.get("TWILIO_ACCOUNT_SID");
-  const TWILIO_AUTH_TOKEN = Deno.env.get("TWILIO_AUTH_TOKEN");
-  const TWILIO_PHONE_NUMBER = Deno.env.get("TWILIO_PHONE_NUMBER");
-
-  if (!TWILIO_ACCOUNT_SID || !TWILIO_AUTH_TOKEN || !TWILIO_PHONE_NUMBER) {
-    return { success: false, error: "Twilio not configured" };
+async function sendNotificationSMS(options: { phone: string; message: string }): Promise<{ success: boolean; error?: string }> {
+  try {
+    await sendSMSViaTwilio({ to: options.phone, body: options.message });
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown Twilio error' };
   }
-
-  const auth = btoa(`${TWILIO_ACCOUNT_SID}:${TWILIO_AUTH_TOKEN}`);
-  const response = await fetch(
-    `https://api.twilio.com/2010-04-01/Accounts/${TWILIO_ACCOUNT_SID}/Messages.json`,
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Basic ${auth}`,
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: new URLSearchParams({
-        To: options.phone,
-        From: TWILIO_PHONE_NUMBER,
-        Body: options.message,
-      }),
-    }
-  );
-
-  if (!response.ok) {
-    const err = await response.text();
-    return { success: false, error: `Twilio ${response.status}: ${err}` };
-  }
-  return { success: true };
 }
 
 async function sendWhatsApp(
   supabase: any,
   options: { phone: string; message: string; userId: string }
 ): Promise<{ success: boolean; error?: string }> {
-  const WHATSAPP_ACCESS_TOKEN = Deno.env.get("WHATSAPP_ACCESS_TOKEN");
-  const WHATSAPP_PHONE_NUMBER_ID = Deno.env.get("WHATSAPP_PHONE_NUMBER_ID");
+  try {
+    const { messageId } = await sendWhatsAppMessage({
+      type: 'text',
+      to: options.phone,
+      text: { body: options.message },
+    });
 
-  if (!WHATSAPP_ACCESS_TOKEN || !WHATSAPP_PHONE_NUMBER_ID) {
-    return { success: false, error: "WhatsApp not configured" };
+    const WHATSAPP_PHONE_NUMBER_ID = Deno.env.get("WHATSAPP_PHONE_NUMBER_ID");
+    const cleanPhone = options.phone.replace(/[^0-9]/g, "");
+
+    // Log to whatsapp_messages table
+    await supabase.from("whatsapp_messages").insert({
+      whatsapp_message_id: messageId,
+      from_number: WHATSAPP_PHONE_NUMBER_ID,
+      to_number: cleanPhone,
+      message_body: options.message,
+      direction: "outbound",
+      status: "sent",
+      message_type: "text",
+    }).then(() => {});
+
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown WhatsApp error' };
   }
-
-  const cleanPhone = options.phone.replace(/^\+/, "");
-
-  const response = await fetch(
-    `https://graph.facebook.com/v18.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`,
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${WHATSAPP_ACCESS_TOKEN}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        messaging_product: "whatsapp",
-        to: cleanPhone,
-        type: "text",
-        text: { body: options.message },
-      }),
-    }
-  );
-
-  if (!response.ok) {
-    const err = await response.text();
-    return { success: false, error: `WhatsApp ${response.status}: ${err}` };
-  }
-
-  const result = await response.json();
-  const messageId = result.messages?.[0]?.id;
-
-  // Log to whatsapp_messages table
-  await supabase.from("whatsapp_messages").insert({
-    whatsapp_message_id: messageId,
-    from_number: WHATSAPP_PHONE_NUMBER_ID,
-    to_number: cleanPhone,
-    message_body: options.message,
-    direction: "outbound",
-    status: "sent",
-    message_type: "text",
-  }).then(() => {});
-
-  return { success: true };
 }
 
 async function createInAppNotification(

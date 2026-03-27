@@ -1,5 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle, Ban, Archive } from "lucide-react";
+import { useTranslation } from 'react-i18next';
 
 interface CompanyStatusBadgeProps {
   isActive: boolean;
@@ -7,6 +8,7 @@ interface CompanyStatusBadgeProps {
 }
 
 export function CompanyStatusBadge({ isActive, isArchived }: CompanyStatusBadgeProps) {
+  const { t } = useTranslation('admin');
   if (isArchived) {
     return (
       <Badge variant="outline" className="gap-1 text-muted-foreground border-muted">

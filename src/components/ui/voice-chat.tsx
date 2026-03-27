@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ChevronDown, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -102,6 +103,7 @@ export function VoiceChat({
   isConnected = false,
   className,
 }: VoiceChatProps) {
+  const { t } = useTranslation('common');
   const [isExpanded, setIsExpanded] = useState(false);
   const hiddenCount = Math.max(0, participants.length - 4);
 
@@ -232,7 +234,7 @@ export function VoiceChat({
             isExpanded ? "opacity-100 bottom-16" : "opacity-0 bottom-0 pointer-events-none"
           )}
         >
-          {isConnected ? "Connected" : "Join Now"}
+          {isConnected ? t("voiceChat.connected", "Connected") : t("voiceChat.joinNow", "Join Now")}
         </button>
 
         {/* Helper Text */}
@@ -242,7 +244,7 @@ export function VoiceChat({
             isExpanded ? "opacity-100" : "opacity-0"
           )}
         >
-          Mic will be muted initially.
+          {t("voiceChat.micMutedInitially", "Mic will be muted initially.")}
         </p>
       </div>
     </>

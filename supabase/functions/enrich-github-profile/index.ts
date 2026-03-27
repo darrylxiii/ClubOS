@@ -1,24 +1,13 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createHandler } from '../_shared/handler.ts';
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
-};
+Deno.serve(createHandler(async (req, ctx) => {
+  const { candidateId } = await req.json();
+  if (!candidateId) throw new Error('candidateId is required');
 
-serve(async (req) => {
-  if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
+  const APIFY_API_KEY = Deno.env.get('APIFY_API_KEY');
+  if (!APIFY_API_KEY) throw new Error('APIFY_API_KEY not configured');
 
-  try {
-    const { candidateId } = await req.json();
-    if (!candidateId) throw new Error('candidateId is required');
-
-    const APIFY_API_KEY = Deno.env.get('APIFY_API_KEY');
-    if (!APIFY_API_KEY) throw new Error('APIFY_API_KEY not configured');
-
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+  const supabase = ctx.supabase;
 
     // Fetch candidate
     const { data: candidate, error: fetchErr } = await supabase
@@ -52,7 +41,7 @@ serve(async (req) => {
         success: true,
         skipped: true,
         reason: 'No GitHub username found',
-      }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }), { headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } });
     }
 
     console.log(`[enrich-github] Scraping GitHub for username: ${username}`);
@@ -99,7 +88,7 @@ serve(async (req) => {
         success: true,
         found: false,
         username,
-      }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }), { headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } });
     }
 
     // Structure the data
@@ -150,13 +139,7 @@ serve(async (req) => {
       success: true,
       found: true,
       data: githubData,
-    }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }), { headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } });
 
   } catch (error) {
-    console.error('[enrich-github] Error:', error);
-    return new Response(JSON.stringify({
-      success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
-    }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-  }
-});
+}));

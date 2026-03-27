@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +13,7 @@ interface PipelineLinkedInSyncProps {
 }
 
 export function PipelineLinkedInSync({ jobId, onComplete }: PipelineLinkedInSyncProps) {
+  const { t } = useTranslation('common');
   const [syncing, setSyncing] = useState(false);
   const [phase, setPhase] = useState<'idle' | 'enriching' | 'scoring' | 'done'>('idle');
   const [enrichResults, setEnrichResults] = useState<EnrichmentResult[]>([]);
@@ -41,7 +43,7 @@ export function PipelineLinkedInSync({ jobId, onComplete }: PipelineLinkedInSync
       const candidateIds = [...new Set((apps || []).map(a => a.candidate_id).filter(Boolean))] as string[];
 
       if (candidateIds.length === 0) {
-        toast.info('No candidates in pipeline to sync');
+        toast.info(t("no_candidates_in_pipeline", "No candidates in pipeline to sync"));
         setSyncing(false);
         setPhase('idle');
         return;
@@ -117,7 +119,7 @@ export function PipelineLinkedInSync({ jobId, onComplete }: PipelineLinkedInSync
 
       // Phase 2: Calculate skill match for ALL candidates
       setPhase('scoring');
-      toast.info('Calculating skill match scores...');
+      toast.info(t("calculating_skill_match_scores", "Calculating skill match scores..."));
 
       try {
         const scoreRes = await fetch(`${baseUrl}/functions/v1/calculate-skill-match`, {
@@ -143,7 +145,7 @@ export function PipelineLinkedInSync({ jobId, onComplete }: PipelineLinkedInSync
       onComplete();
     } catch (error) {
       console.error('[PipelineLinkedInSync] Error:', error);
-      toast.error('Sync failed');
+      toast.error(t("sync_failed", "Sync failed"));
     } finally {
       setSyncing(false);
     }

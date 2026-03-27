@@ -22,6 +22,7 @@ import { useCRMEmailReplies } from '@/hooks/useCRMEmailReplies';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useRecharts } from '@/hooks/useRecharts';
+import { useTranslation } from 'react-i18next';
 
 interface KPI {
   label: string;
@@ -34,6 +35,7 @@ interface KPI {
 }
 
 export function OutreachKPIGrid() {
+  const { t } = useTranslation('common');
   const { recharts, isLoading: chartsLoading } = useRecharts();
   const { campaigns, loading: campaignsLoading } = useCRMCampaigns({ limit: 100 });
   const { prospects, loading: prospectsLoading } = useCRMProspects({ limit: 100 });

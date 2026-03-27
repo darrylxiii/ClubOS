@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { motion } from '@/lib/motion';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -20,6 +21,7 @@ import { logger } from '@/lib/logger';
  * an authenticated session and checks force_password_change metadata.
  */
 const ChangePassword = () => {
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
   const { user, loading } = useAuth();
   const [password, setPassword] = useState('');
@@ -59,7 +61,7 @@ const ChangePassword = () => {
     }
 
     if (password !== confirmPassword) {
-      toast.error('Passwords do not match');
+      toast.error("Passwords do not match");
       return;
     }
 
@@ -77,7 +79,7 @@ const ChangePassword = () => {
       // Refresh session so ProtectedRoute sees updated metadata
       await supabase.auth.refreshSession();
 
-      toast.success('Password updated successfully');
+      toast.success("Password updated successfully");
       navigate('/home');
     } catch (error) {
       logger.error('[ChangePassword] Password update failed', error instanceof Error ? error : new Error(String(error)));
@@ -109,10 +111,10 @@ const ChangePassword = () => {
               <ShieldCheck className="w-8 h-8 text-primary" />
             </div>
             <CardTitle className="text-2xl font-black uppercase tracking-tight">
-              Set New Password
+              {t('changePassword.title')}
             </CardTitle>
             <CardDescription>
-              Your administrator has required you to change your password before continuing.
+              {t('changePassword.description')}
             </CardDescription>
           </CardHeader>
 
@@ -135,12 +137,12 @@ const ChangePassword = () => {
                 {isSubmitting ? (
                   <>
                     <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                    Updating...
+                    {t('changePassword.updating')}
                   </>
                 ) : (
                   <>
                     <Lock className="w-5 h-5 mr-2" />
-                    Update Password
+                    {t('changePassword.updatePassword')}
                   </>
                 )}
               </Button>

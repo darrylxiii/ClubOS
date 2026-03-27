@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Plus } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 
 const COMMON_EMOJIS = ['👍', '👎', '❤️', '😂', '🎉', '🤔', '🔥', '💯'];
 
@@ -20,6 +21,7 @@ interface MessageReactionsProps {
 }
 
 const MessageReactions = ({ messageId }: MessageReactionsProps) => {
+  const { t } = useTranslation('meetings');
   const { user } = useAuth();
   const [reactions, setReactions] = useState<Reaction[]>([]);
   const [isPickerOpen, setIsPickerOpen] = useState(false);
@@ -97,7 +99,7 @@ const MessageReactions = ({ messageId }: MessageReactionsProps) => {
 
       if (error) {
         console.error('Error removing reaction:', error);
-        toast.error('Failed to remove reaction');
+        toast.error(t('reactions.removeFailed', 'Failed to remove reaction'));
       }
     } else {
       // Add reaction
@@ -111,7 +113,7 @@ const MessageReactions = ({ messageId }: MessageReactionsProps) => {
 
       if (error) {
         console.error('Error adding reaction:', error);
-        toast.error('Failed to add reaction');
+        toast.error(t('reactions.addFailed', 'Failed to add reaction'));
       }
     }
 
@@ -125,7 +127,7 @@ const MessageReactions = ({ messageId }: MessageReactionsProps) => {
           <PopoverTrigger asChild>
             <Button variant="ghost" size="sm" className="h-6 px-2 text-xs opacity-0 group-hover:opacity-100">
               <Plus className="w-3 h-3 mr-1" />
-              Add reaction
+              {t('reactions.addReaction', 'Add reaction')}
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-2">

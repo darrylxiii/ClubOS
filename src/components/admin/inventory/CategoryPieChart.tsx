@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -22,6 +23,7 @@ const COLORS = [
 const formatCurrency = (v: number) => new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(v);
 
 export function CategoryPieChart({ stats, onCategoryClick }: CategoryPieChartProps) {
+  const { t } = useTranslation('common');
   const [viewMode, setViewMode] = useState<'count' | 'value'>('count');
 
   const countData = Object.entries(stats.assetsByCategory).map(([key, count]) => ({
@@ -50,11 +52,11 @@ export function CategoryPieChart({ stats, onCategoryClick }: CategoryPieChartPro
     <Card>
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
-          <CardTitle>Assets by Category</CardTitle>
+          <CardTitle>{t("assets_by_category", "Assets by Category")}</CardTitle>
           <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as 'count' | 'value')}>
             <TabsList className="h-8">
-              <TabsTrigger value="count" className="text-xs px-3">Count</TabsTrigger>
-              <TabsTrigger value="value" className="text-xs px-3">Value</TabsTrigger>
+              <TabsTrigger value="count" className="text-xs px-3">{t("count", "Count")}</TabsTrigger>
+              <TabsTrigger value="value" className="text-xs px-3">{t("value", "Value")}</TabsTrigger>
             </TabsList>
           </Tabs>
         </div>
@@ -109,7 +111,7 @@ export function CategoryPieChart({ stats, onCategoryClick }: CategoryPieChartPro
 
         {/* Total */}
         <div className="mt-4 pt-4 border-t flex justify-between text-sm">
-          <span className="font-medium">Total</span>
+          <span className="font-medium">{t("total", "Total")}</span>
           <span className="font-medium">
             {viewMode === 'count' ? `${total} assets` : formatCurrency(total)}
           </span>

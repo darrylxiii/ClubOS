@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -7,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
 export const AudienceInsights = () => {
+  const { t } = useTranslation('analytics');
   const { user } = useAuth();
   const [insights, setInsights] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -88,7 +90,7 @@ export const AudienceInsights = () => {
     return (
       <Card>
         <CardContent className="py-8">
-          <p className="text-center text-muted-foreground">Loading audience insights...</p>
+          <p className="text-center text-muted-foreground">{t('loadingAudienceInsights')}</p>
         </CardContent>
       </Card>
     );
@@ -98,12 +100,12 @@ export const AudienceInsights = () => {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Audience Insights</CardTitle>
-          <CardDescription>Understand who's viewing your content</CardDescription>
+          <CardTitle>{t('audienceInsights')}</CardTitle>
+          <CardDescription>{t('audienceInsightsDesc')}</CardDescription>
         </CardHeader>
         <CardContent>
           <p className="text-center text-muted-foreground py-8">
-            Not enough data yet. Keep posting to build insights!
+            {t('notEnoughData')}
           </p>
         </CardContent>
       </Card>
@@ -120,22 +122,22 @@ export const AudienceInsights = () => {
     <Card>
       <CardHeader>
         <CardTitle>Audience Insights</CardTitle>
-        <CardDescription>Deep dive into your audience demographics</CardDescription>
+        <CardDescription>{t('audienceDemographicsDesc')}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Viewer Stats */}
         <div className="grid grid-cols-3 gap-4">
           <div className="text-center">
             <p className="text-2xl font-bold">{insights.uniqueViewers}</p>
-            <p className="text-xs text-muted-foreground">Unique Viewers</p>
+            <p className="text-xs text-muted-foreground">{t('uniqueViewers')}</p>
           </div>
           <div className="text-center">
             <p className="text-2xl font-bold">{insights.newViewers}</p>
-            <p className="text-xs text-muted-foreground">New Viewers</p>
+            <p className="text-xs text-muted-foreground">{t('newViewers')}</p>
           </div>
           <div className="text-center">
             <p className="text-2xl font-bold">{insights.returningRate}%</p>
-            <p className="text-xs text-muted-foreground">Returning Rate</p>
+            <p className="text-xs text-muted-foreground">{t('returningRate')}</p>
           </div>
         </div>
 
@@ -143,7 +145,7 @@ export const AudienceInsights = () => {
         <div>
           <h4 className="font-semibold mb-3 flex items-center gap-2">
             <MapPin className="h-4 w-4" />
-            Top Locations
+            {t('topLocations')}
           </h4>
           <div className="space-y-3">
             {topCountries.map(([country, count]: any) => (
@@ -164,7 +166,7 @@ export const AudienceInsights = () => {
         <div>
           <h4 className="font-semibold mb-3 flex items-center gap-2">
             <Smartphone className="h-4 w-4" />
-            Device Types
+            {t('deviceTypes')}
           </h4>
           <div className="flex gap-2 flex-wrap">
             {Object.entries(insights.devices).map(([device, count]: any) => (
@@ -179,10 +181,10 @@ export const AudienceInsights = () => {
         <div className="bg-accent/50 rounded-lg p-4">
           <h4 className="font-semibold mb-2 flex items-center gap-2">
             <Clock className="h-4 w-4" />
-            Peak Activity Time
+            {t('peakActivityTime')}
           </h4>
           <p className="text-2xl font-bold text-primary">{insights.peakHour}</p>
-          <p className="text-sm text-muted-foreground">Best time to post for maximum reach</p>
+          <p className="text-sm text-muted-foreground">{t('bestTimeToPost')}</p>
         </div>
       </CardContent>
     </Card>

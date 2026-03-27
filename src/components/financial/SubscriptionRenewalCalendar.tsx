@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -24,6 +25,7 @@ interface SubscriptionRenewalCalendarProps {
 }
 
 export function SubscriptionRenewalCalendar({ onSelectSubscription }: SubscriptionRenewalCalendarProps) {
+  const { t } = useTranslation('common');
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const { data: subscriptions, isLoading } = useVendorSubscriptions('active');
 
@@ -185,23 +187,23 @@ export function SubscriptionRenewalCalendar({ onSelectSubscription }: Subscripti
 
         {/* Legend */}
         <div className="flex items-center gap-4 mt-4 pt-4 border-t">
-          <span className="text-xs text-muted-foreground">Criticality:</span>
+          <span className="text-xs text-muted-foreground">{t("criticality", "Criticality:")}</span>
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-1">
               <div className="w-2 h-2 rounded-full bg-destructive" />
-              <span className="text-xs">Critical</span>
+              <span className="text-xs">{t("critical", "Critical")}</span>
             </div>
             <div className="flex items-center gap-1">
               <div className="w-2 h-2 rounded-full bg-warning" />
-              <span className="text-xs">High</span>
+              <span className="text-xs">{t("high", "High")}</span>
             </div>
             <div className="flex items-center gap-1">
               <div className="w-2 h-2 rounded-full bg-primary" />
-              <span className="text-xs">Medium</span>
+              <span className="text-xs">{t("medium", "Medium")}</span>
             </div>
             <div className="flex items-center gap-1">
               <div className="w-2 h-2 rounded-full bg-muted-foreground" />
-              <span className="text-xs">Low</span>
+              <span className="text-xs">{t("low", "Low")}</span>
             </div>
           </div>
         </div>

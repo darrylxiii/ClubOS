@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -25,6 +26,7 @@ interface ConvertToPartnerDialogProps {
 }
 
 export function ConvertToPartnerDialog({ open, onClose, prospect, onConvert }: ConvertToPartnerDialogProps) {
+  const { t } = useTranslation('common');
   const [companyName, setCompanyName] = useState(prospect.company_name || '');
   const [phone, setPhone] = useState(prospect.phone || '');
   const [markEmailVerified, setMarkEmailVerified] = useState(false);
@@ -36,7 +38,7 @@ export function ConvertToPartnerDialog({ open, onClose, prospect, onConvert }: C
 
   const handleConvert = async () => {
     if (!companyName.trim()) {
-      toast.error('Company name is required');
+      toast.error(t("company_name_is_required", "Company name is required"));
       return;
     }
 
@@ -60,17 +62,17 @@ export function ConvertToPartnerDialog({ open, onClose, prospect, onConvert }: C
           throw new Error(result.error || 'Provisioning failed');
         }
 
-        toast.success('Partner account provisioned successfully!');
+        toast.success(t("partner_account_provisioned_successfully", "Partner account provisioned successfully!"));
       } else {
         // Use legacy conversion
         await onConvert({ companyName, notes });
-        toast.success('Prospect converted to partner successfully!');
+        toast.success(t("prospect_converted_to_partner", "Prospect converted to partner successfully!"));
       }
 
       onClose();
     } catch (error) {
       console.error('Error converting prospect:', error);
-      toast.error('Failed to convert prospect');
+      toast.error(t("failed_to_convert_prospect", "Failed to convert prospect"));
     } finally {
       setLoading(false);
     }
@@ -103,7 +105,7 @@ export function ConvertToPartnerDialog({ open, onClose, prospect, onConvert }: C
                 </span>
               </div>
               <p className="text-sm font-medium">{prospect.full_name}</p>
-              <p className="text-xs text-muted-foreground">Prospect</p>
+              <p className="text-xs text-muted-foreground">{t("prospect", "Prospect")}</p>
             </div>
             <ArrowRight className="w-6 h-6 text-primary" />
             <div className="text-center">
@@ -111,24 +113,24 @@ export function ConvertToPartnerDialog({ open, onClose, prospect, onConvert }: C
                 <Building className="w-6 h-6 text-primary" />
               </div>
               <p className="text-sm font-medium">{companyName || 'New Company'}</p>
-              <p className="text-xs text-muted-foreground">Partner</p>
+              <p className="text-xs text-muted-foreground">{t("partner", "Partner")}</p>
             </div>
           </motion.div>
 
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="company-name">Company Name *</Label>
+              <Label htmlFor="company-name">{t("company_name", "Company Name *")}</Label>
               <Input
                 id="company-name"
                 value={companyName}
                 onChange={(e) => setCompanyName(e.target.value)}
-                placeholder="Enter company name"
+                placeholder={t("enter_company_name", "Enter company name")}
                 className="bg-muted/20"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="phone">Phone Number</Label>
+              <Label htmlFor="phone">{t("phone_number", "Phone Number")}</Label>
               <PhoneInput
                 international
                 countryCallingCodeEditable={false}
@@ -140,7 +142,7 @@ export function ConvertToPartnerDialog({ open, onClose, prospect, onConvert }: C
             </div>
 
             <div className="bg-muted/20 rounded-lg p-3 space-y-2">
-              <p className="text-sm font-medium">Pre-Verify Contact Information</p>
+              <p className="text-sm font-medium">{t("preverify_contact_information", "Pre-Verify Contact Information")}</p>
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
@@ -148,7 +150,7 @@ export function ConvertToPartnerDialog({ open, onClose, prospect, onConvert }: C
                   onChange={(e) => setMarkEmailVerified(e.target.checked)}
                   className="w-4 h-4"
                 />
-                <span className="text-sm">Mark email as verified</span>
+                <span className="text-sm">{t("mark_email_as_verified", "Mark email as verified")}</span>
               </label>
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
@@ -158,17 +160,17 @@ export function ConvertToPartnerDialog({ open, onClose, prospect, onConvert }: C
                   disabled={!phone}
                   className="w-4 h-4"
                 />
-                <span className="text-sm">Mark phone as verified</span>
+                <span className="text-sm">{t("mark_phone_as_verified", "Mark phone as verified")}</span>
               </label>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="notes">Onboarding Notes</Label>
+              <Label htmlFor="notes">{t("onboarding_notes", "Onboarding Notes")}</Label>
               <Textarea
                 id="notes"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder="Add any notes for the onboarding process..."
+                placeholder={t("add_any_notes_for", "Add any notes for the onboarding process...")}
                 className="bg-muted/20 min-h-[80px]"
               />
             </div>

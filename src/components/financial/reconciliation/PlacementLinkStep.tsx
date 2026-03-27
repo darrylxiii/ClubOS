@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -23,6 +24,7 @@ export function PlacementLinkStep({
   onSelect,
   isLoading 
 }: PlacementLinkStepProps) {
+  const { t } = useTranslation('common');
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR' }).format(amount);
   };
@@ -52,7 +54,7 @@ export function PlacementLinkStep({
       <Card className="bg-muted/50">
         <CardContent className="py-3">
           <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">Invoice amount:</span>
+            <span className="text-sm text-muted-foreground">{t("invoice_amount", "Invoice amount:")}</span>
             <span className="font-bold text-lg">{formatCurrency(invoice.total_amount)}</span>
           </div>
         </CardContent>
@@ -72,7 +74,7 @@ export function PlacementLinkStep({
               <XCircle className="h-5 w-5 text-muted-foreground" />
             </div>
             <div className="flex-1">
-              <p className="font-medium">Not a placement fee</p>
+              <p className="font-medium">{t("not_a_placement_fee", "Not a placement fee")}</p>
               <p className="text-sm text-muted-foreground">
                 This invoice is for retainer, consulting, or other services
               </p>
@@ -89,7 +91,7 @@ export function PlacementLinkStep({
         <Card>
           <CardContent className="py-8 text-center text-muted-foreground">
             <Briefcase className="h-8 w-8 mx-auto mb-2 opacity-50" />
-            <p>No unlinked placement fees found for this company</p>
+            <p>{t("no_unlinked_placement_fees", "No unlinked placement fees found for this company")}</p>
             <p className="text-sm mt-1">
               You can still reconcile this invoice without linking to a placement
             </p>
@@ -98,7 +100,7 @@ export function PlacementLinkStep({
       ) : (
         <>
           <div className="flex items-center justify-between">
-            <p className="text-sm font-medium">Available Placements</p>
+            <p className="text-sm font-medium">{t("available_placements", "Available Placements")}</p>
             <Badge variant="outline">{placementFees.length} unlinked</Badge>
           </div>
 
@@ -184,7 +186,7 @@ export function PlacementLinkStep({
       {selectedPlacement && (
         <Card className="bg-primary/5 border-primary/20">
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Linked Placement</CardTitle>
+            <CardTitle className="text-base">{t("linked_placement", "Linked Placement")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center justify-between">

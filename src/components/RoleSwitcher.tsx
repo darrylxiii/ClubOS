@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -14,6 +15,7 @@ interface UserRoleOption {
 }
 
 export function RoleSwitcher() {
+  const { t } = useTranslation('common');
   const { currentRole, availableRoles, switchRole, loading } = useRole();
 
   const roleOptions: Record<UserRole, UserRoleOption> = {
@@ -63,7 +65,7 @@ export function RoleSwitcher() {
       });
     } catch (error: unknown) {
       console.error('[RoleSwitcher] Role switch error:', error);
-      toast.error("Failed to switch roles", {
+      toast.error(t("failed_to_switch_roles", "Failed to switch roles"), {
         description: error instanceof Error ? error.message : "Please try again or contact support if the issue persists"
       });
     }
@@ -77,7 +79,7 @@ export function RoleSwitcher() {
             <Sparkles className="w-5 h-5 text-primary" />
             Active Role
           </CardTitle>
-          <CardDescription>Loading your roles...</CardDescription>
+          <CardDescription>{t("loading_your_roles", "Loading your roles...")}</CardDescription>
         </CardHeader>
       </Card>
     );

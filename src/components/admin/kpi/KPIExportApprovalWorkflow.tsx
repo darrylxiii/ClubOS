@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -34,6 +35,7 @@ interface ExportRequest {
 }
 
 export function KPIExportApprovalWorkflow() {
+  const { t } = useTranslation('common');
   const queryClient = useQueryClient();
   const [selectedRequest, setSelectedRequest] = useState<ExportRequest | null>(null);
   const [reviewNotes, setReviewNotes] = useState('');
@@ -87,7 +89,7 @@ export function KPIExportApprovalWorkflow() {
       toast.success(`Export request ${variables.status}`);
     },
     onError: (error) => {
-      toast.error('Failed to process request: ' + error.message);
+      toast.error(t("failed_to_process_request", "Failed to process request:") + error.message);
     }
   });
 
@@ -248,7 +250,7 @@ export function KPIExportApprovalWorkflow() {
       <Dialog open={!!selectedRequest} onOpenChange={() => setSelectedRequest(null)}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Review Export Request</DialogTitle>
+            <DialogTitle>{t("review_export_request", "Review Export Request")}</DialogTitle>
           </DialogHeader>
           
           {selectedRequest && (
@@ -265,7 +267,7 @@ export function KPIExportApprovalWorkflow() {
               </div>
 
               <div className="space-y-2">
-                <h4 className="text-sm font-medium">Requested KPIs</h4>
+                <h4 className="text-sm font-medium">{t("requested_kpis", "Requested KPIs")}</h4>
                 <div className="flex flex-wrap gap-1">
                   {selectedRequest.kpi_names.map(name => (
                     <Badge key={name} variant="secondary" className="text-xs">
@@ -293,9 +295,9 @@ export function KPIExportApprovalWorkflow() {
               )}
 
               <div className="space-y-2">
-                <h4 className="text-sm font-medium">Review Notes (optional)</h4>
+                <h4 className="text-sm font-medium">{t("review_notes_optional", "Review Notes (optional)")}</h4>
                 <Textarea
-                  placeholder="Add notes about your decision..."
+                  placeholder={t("add_notes_about_your", "Add notes about your decision...")}
                   value={reviewNotes}
                   onChange={(e) => setReviewNotes(e.target.value)}
                   rows={2}

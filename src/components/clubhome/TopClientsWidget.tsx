@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion } from "framer-motion";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useTranslation } from 'react-i18next';
 
 interface TopClient {
   id: string;
@@ -16,6 +17,7 @@ interface TopClient {
 }
 
 export const TopClientsWidget = () => {
+  const { t } = useTranslation('common');
   const { data: topClients, isLoading } = useQuery({
     queryKey: ['top-clients-by-jobs'],
     queryFn: async (): Promise<TopClient[]> => {
@@ -83,7 +85,7 @@ export const TopClientsWidget = () => {
         <CardContent className="flex-1">
           <div className="flex flex-col items-center justify-center py-4 text-center">
             <Info className="h-6 w-6 text-muted-foreground mb-2" />
-            <p className="text-sm text-muted-foreground mb-3">No active clients yet</p>
+            <p className="text-sm text-muted-foreground mb-3">{t('topClientsWidget.noActiveClientsYet')}</p>
             <Button asChild variant="outline" size="sm">
               <Link to="/admin?tab=companies">
                 Manage Companies
@@ -112,7 +114,7 @@ export const TopClientsWidget = () => {
             </div>
             <Button variant="ghost" size="sm" asChild className="text-xs">
               <Link to="/admin?tab=companies">
-                View All
+                {t('common:viewAll')}
                 <ArrowRight className="h-3 w-3 ml-1" />
               </Link>
             </Button>

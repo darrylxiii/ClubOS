@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useCallback } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -19,6 +20,7 @@ interface ResumeUploadModalProps {
 }
 
 export function ResumeUploadModal({ open, onOpenChange, onUploadComplete }: ResumeUploadModalProps) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [file, setFile] = useState<File | null>(null);
   const [dragActive, setDragActive] = useState(false);
@@ -117,7 +119,7 @@ export function ResumeUploadModal({ open, onOpenChange, onUploadComplete }: Resu
 
       if (dbError) throw dbError;
 
-      toast.success('Document uploaded successfully!');
+      toast.success(t("document_uploaded_successfully", "Document uploaded successfully!"));
       
       if (onUploadComplete && document) {
         onUploadComplete(document.id);
@@ -130,7 +132,7 @@ export function ResumeUploadModal({ open, onOpenChange, onUploadComplete }: Resu
 
     } catch (error) {
       console.error('Error processing upload:', error);
-      toast.error('Failed to save document metadata.');
+      toast.error(t("failed_to_save_document", "Failed to save document metadata."));
     }
   };
 
@@ -167,19 +169,19 @@ export function ResumeUploadModal({ open, onOpenChange, onUploadComplete }: Resu
           {/* Document Type Selection */}
           {!file && (
             <div className="space-y-2">
-              <Label>Document Type</Label>
+              <Label>{t("document_type", "Document Type")}</Label>
               <RadioGroup value={documentType} onValueChange={(value) => setDocumentType(value as 'resume' | 'cover_letter' | 'certificate')}>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="resume" id="resume" />
-                  <Label htmlFor="resume" className="cursor-pointer">Resume/CV</Label>
+                  <Label htmlFor="resume" className="cursor-pointer">{t("resumecv", "Resume/CV")}</Label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="cover_letter" id="cover_letter" />
-                  <Label htmlFor="cover_letter" className="cursor-pointer">Cover Letter</Label>
+                  <Label htmlFor="cover_letter" className="cursor-pointer">{t("cover_letter", "Cover Letter")}</Label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="certificate" id="certificate" />
-                  <Label htmlFor="certificate" className="cursor-pointer">Certificate</Label>
+                  <Label htmlFor="certificate" className="cursor-pointer">{t("certificate", "Certificate")}</Label>
                 </div>
               </RadioGroup>
             </div>
@@ -216,7 +218,7 @@ export function ResumeUploadModal({ open, onOpenChange, onUploadComplete }: Resu
                 <p className="text-sm text-muted-foreground mb-4">
                   or click to browse
                 </p>
-                <Badge variant="outline">PDF, DOC, DOCX • Max 10MB</Badge>
+                <Badge variant="outline">{t("pdf_doc_docx_max", "PDF, DOC, DOCX • Max 10MB")}</Badge>
               </label>
             </div>
           ) : (
@@ -286,7 +288,7 @@ export function ResumeUploadModal({ open, onOpenChange, onUploadComplete }: Resu
               {uploading && (
                 <div className="space-y-2">
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Uploading...</span>
+                    <span className="text-muted-foreground">{t("uploading", "Uploading...")}</span>
                     <span className="font-semibold">{uploadProgress}%</span>
                   </div>
                   <Progress value={uploadProgress} className="h-2" />

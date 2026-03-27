@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Brain, Activity, Workflow, RefreshCw, Filter, TrendingUp, AlertTriangle, Users, MessageSquare } from 'lucide-react';
 import { PageTitle } from '@/components/ui/typography';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,6 +17,7 @@ import { UnifiedImportDialog } from '@/components/communication/UnifiedImportDia
 import { useCrossChannelPatterns } from '@/hooks/useCrossChannelPatterns';
 
 export default function CommunicationIntelligence() {
+  const { t } = useTranslation('messages');
   const [entityFilter, setEntityFilter] = useState<string>('all');
   const { communications, loading: commsLoading, refetch: refetchComms } = useUnifiedCommunications();
   const { relationships, stats, loading: healthLoading, refetch: refetchHealth } = useRelationshipHealth(
@@ -38,10 +40,8 @@ export default function CommunicationIntelligence() {
                 <Brain className="h-6 w-6 text-primary" />
               </div>
               <div>
-                <PageTitle>Communication Intelligence</PageTitle>
-                <p className="text-sm text-muted-foreground">
-                  Unified view of all communications with AI-powered insights
-                </p>
+                <PageTitle>{t('communicationIntelligence.text2')}</PageTitle>
+                <p className="text-sm text-muted-foreground">{t('communicationIntelligence.desc')}</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -51,10 +51,10 @@ export default function CommunicationIntelligence() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Entities</SelectItem>
-                  <SelectItem value="candidate">Candidates</SelectItem>
-                  <SelectItem value="prospect">Prospects</SelectItem>
-                  <SelectItem value="partner">Partners</SelectItem>
+                  <SelectItem value="all">{t('communicationIntelligence.text3')}</SelectItem>
+                  <SelectItem value="candidate">{t('communicationIntelligence.text4')}</SelectItem>
+                  <SelectItem value="prospect">{t('communicationIntelligence.text5')}</SelectItem>
+                  <SelectItem value="partner">{t('communicationIntelligence.text6')}</SelectItem>
                 </SelectContent>
               </Select>
               <Button variant="outline" onClick={handleRefreshAll}>
@@ -74,7 +74,7 @@ export default function CommunicationIntelligence() {
                 </div>
                 <div>
                   <p className="text-2xl font-bold">{stats.healthy}</p>
-                  <p className="text-xs text-muted-foreground">Healthy</p>
+                  <p className="text-xs text-muted-foreground">{t('communicationIntelligence.text7')}</p>
                 </div>
               </CardContent>
             </Card>
@@ -85,7 +85,7 @@ export default function CommunicationIntelligence() {
                 </div>
                 <div>
                   <p className="text-2xl font-bold">{stats.needsAttention}</p>
-                  <p className="text-xs text-muted-foreground">Needs Attention</p>
+                  <p className="text-xs text-muted-foreground">{t('communicationIntelligence.text8')}</p>
                 </div>
               </CardContent>
             </Card>
@@ -96,7 +96,7 @@ export default function CommunicationIntelligence() {
                 </div>
                 <div>
                   <p className="text-2xl font-bold">{stats.atRisk}</p>
-                  <p className="text-xs text-muted-foreground">At Risk</p>
+                  <p className="text-xs text-muted-foreground">{t('communicationIntelligence.text9')}</p>
                 </div>
               </CardContent>
             </Card>
@@ -107,7 +107,7 @@ export default function CommunicationIntelligence() {
                 </div>
                 <div>
                   <p className="text-2xl font-bold">{stats.critical}</p>
-                  <p className="text-xs text-muted-foreground">Critical</p>
+                  <p className="text-xs text-muted-foreground">{t('communicationIntelligence.text10')}</p>
                 </div>
               </CardContent>
             </Card>
@@ -155,7 +155,7 @@ export default function CommunicationIntelligence() {
             <TabsContent value="timeline">
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base">Communication Timeline</CardTitle>
+                  <CardTitle className="text-base">{t('communicationIntelligence.text11')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <UnifiedCommunicationTimeline
@@ -177,7 +177,7 @@ export default function CommunicationIntelligence() {
                   <Card className="col-span-full border-dashed">
                     <CardContent className="py-12 text-center">
                       <Users className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
-                      <p className="text-muted-foreground">No relationships tracked yet</p>
+                      <p className="text-muted-foreground">{t('communicationIntelligence.text12')}</p>
                     </CardContent>
                   </Card>
                 ) : (
@@ -191,7 +191,7 @@ export default function CommunicationIntelligence() {
             <TabsContent value="patterns">
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
-                  <CardTitle className="text-base">Detected Patterns</CardTitle>
+                  <CardTitle className="text-base">{t('communicationIntelligence.text13')}</CardTitle>
                   <Button variant="outline" size="sm" onClick={() => analyzePatterns()}>
                     <RefreshCw className="h-4 w-4 mr-2" />
                     Analyze Now
@@ -203,7 +203,7 @@ export default function CommunicationIntelligence() {
                   ) : activeAlerts.length === 0 ? (
                     <div className="py-8 text-center">
                       <Workflow className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
-                      <p className="text-muted-foreground">No patterns detected</p>
+                      <p className="text-muted-foreground">{t('communicationIntelligence.text14')}</p>
                     </div>
                   ) : (
                     activeAlerts.map(pattern => (

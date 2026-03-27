@@ -5,6 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useRecharts } from "@/hooks/useRecharts";
 import { TrendingUp, Clock, Users, Target, Zap, AlertCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { useTranslation } from 'react-i18next';
 
 interface JobAnalyticsProps {
   jobId: string;
@@ -13,6 +14,7 @@ interface JobAnalyticsProps {
 const COLORS = ['hsl(var(--primary))', 'hsl(var(--accent))', 'hsl(var(--muted))', 'hsl(var(--secondary))'];
 
 export const JobAnalytics = ({ jobId }: JobAnalyticsProps) => {
+  const { t } = useTranslation('partner');
   const { data, loading, error } = useJobAnalytics(jobId);
   const { recharts, isLoading: rechartsLoading } = useRecharts();
 
@@ -40,7 +42,7 @@ export const JobAnalytics = ({ jobId }: JobAnalyticsProps) => {
     return (
       <Card>
         <CardContent className="py-12 text-center">
-          <p className="text-muted-foreground">No analytics data available</p>
+          <p className="text-muted-foreground">{t('jobAnalytics.noAnalyticsDataAvailable')}</p>
         </CardContent>
       </Card>
     );
@@ -68,7 +70,7 @@ export const JobAnalytics = ({ jobId }: JobAnalyticsProps) => {
               </div>
               <div>
                 <p className="text-2xl font-bold">{data.totalApplications}</p>
-                <p className="text-sm text-muted-foreground">Total Applications</p>
+                <p className="text-sm text-muted-foreground">{t('jobAnalytics.totalApplications')}</p>
               </div>
             </div>
           </CardContent>
@@ -82,7 +84,7 @@ export const JobAnalytics = ({ jobId }: JobAnalyticsProps) => {
               </div>
               <div>
                 <p className="text-2xl font-bold">{data.activeApplications}</p>
-                <p className="text-sm text-muted-foreground">Active</p>
+                <p className="text-sm text-muted-foreground">{t('jobAnalytics.active')}</p>
               </div>
             </div>
           </CardContent>
@@ -96,7 +98,7 @@ export const JobAnalytics = ({ jobId }: JobAnalyticsProps) => {
               </div>
               <div>
                 <p className="text-2xl font-bold">{data.totalHires}</p>
-                <p className="text-sm text-muted-foreground">Hires</p>
+                <p className="text-sm text-muted-foreground">{t('jobAnalytics.hires')}</p>
               </div>
             </div>
           </CardContent>
@@ -110,7 +112,7 @@ export const JobAnalytics = ({ jobId }: JobAnalyticsProps) => {
               </div>
               <div>
                 <p className="text-2xl font-bold">{data.timeMetrics.totalTimeToHire}d</p>
-                <p className="text-sm text-muted-foreground">Avg Time to Hire</p>
+                <p className="text-sm text-muted-foreground">{t('jobAnalytics.avgTimeToHire')}</p>
               </div>
             </div>
           </CardContent>
@@ -124,7 +126,7 @@ export const JobAnalytics = ({ jobId }: JobAnalyticsProps) => {
             <Zap className="h-5 w-5" />
             Sourcing Breakdown
           </CardTitle>
-          <CardDescription>Where candidates are coming from</CardDescription>
+          <CardDescription>{t('jobAnalytics.description')}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -150,15 +152,15 @@ export const JobAnalytics = ({ jobId }: JobAnalyticsProps) => {
 
             <div className="space-y-4">
               <div className="flex items-center justify-between p-4 border rounded-lg">
-                <span className="font-medium">Club Sync</span>
+                <span className="font-medium">{t('jobAnalytics.clubSync')}</span>
                 <Badge>{data.sourcing.clubSync}</Badge>
               </div>
               <div className="flex items-center justify-between p-4 border rounded-lg">
-                <span className="font-medium">Direct Apply</span>
+                <span className="font-medium">{t('jobAnalytics.directApply')}</span>
                 <Badge>{data.sourcing.directApply}</Badge>
               </div>
               <div className="flex items-center justify-between p-4 border rounded-lg">
-                <span className="font-medium">Referrals</span>
+                <span className="font-medium">{t('jobAnalytics.referrals')}</span>
                 <Badge>{data.sourcing.referrals}</Badge>
               </div>
             </div>
@@ -169,8 +171,8 @@ export const JobAnalytics = ({ jobId }: JobAnalyticsProps) => {
       {/* Pipeline Performance */}
       <Card>
         <CardHeader>
-          <CardTitle>Stage Conversion Rates</CardTitle>
-          <CardDescription>How candidates progress through your pipeline</CardDescription>
+          <CardTitle>{t('jobAnalytics.title')}</CardTitle>
+          <CardDescription>{t('jobAnalytics.description')}</CardDescription>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
@@ -189,8 +191,8 @@ export const JobAnalytics = ({ jobId }: JobAnalyticsProps) => {
       {/* Time Metrics */}
       <Card>
         <CardHeader>
-          <CardTitle>Average Time per Stage</CardTitle>
-          <CardDescription>Days candidates spend in each stage</CardDescription>
+          <CardTitle>{t('jobAnalytics.title')}</CardTitle>
+          <CardDescription>{t('jobAnalytics.description')}</CardDescription>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
@@ -206,15 +208,15 @@ export const JobAnalytics = ({ jobId }: JobAnalyticsProps) => {
 
           <div className="grid grid-cols-3 gap-4 mt-6">
             <div className="p-4 border rounded-lg">
-              <p className="text-sm text-muted-foreground">Fastest Hire</p>
+              <p className="text-sm text-muted-foreground">{t('jobAnalytics.fastestHire')}</p>
               <p className="text-2xl font-bold">{data.timeMetrics.fastestHire}d</p>
             </div>
             <div className="p-4 border rounded-lg">
-              <p className="text-sm text-muted-foreground">Average</p>
+              <p className="text-sm text-muted-foreground">{t('jobAnalytics.average')}</p>
               <p className="text-2xl font-bold">{data.timeMetrics.totalTimeToHire}d</p>
             </div>
             <div className="p-4 border rounded-lg">
-              <p className="text-sm text-muted-foreground">Slowest Hire</p>
+              <p className="text-sm text-muted-foreground">{t('jobAnalytics.slowestHire')}</p>
               <p className="text-2xl font-bold">{data.timeMetrics.slowestHire}d</p>
             </div>
           </div>
@@ -224,8 +226,8 @@ export const JobAnalytics = ({ jobId }: JobAnalyticsProps) => {
       {/* Hiring Velocity */}
       <Card>
         <CardHeader>
-          <CardTitle>Applications Over Time</CardTitle>
-          <CardDescription>Application volume trends</CardDescription>
+          <CardTitle>{t('jobAnalytics.title')}</CardTitle>
+          <CardDescription>{t('jobAnalytics.description')}</CardDescription>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
@@ -250,25 +252,25 @@ export const JobAnalytics = ({ jobId }: JobAnalyticsProps) => {
       {/* Candidate Quality */}
       <Card>
         <CardHeader>
-          <CardTitle>Candidate Quality Metrics</CardTitle>
-          <CardDescription>Quality indicators for this role</CardDescription>
+          <CardTitle>{t('jobAnalytics.title')}</CardTitle>
+          <CardDescription>{t('jobAnalytics.description')}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="p-4 border rounded-lg">
-              <p className="text-sm text-muted-foreground mb-2">Avg Fit Score</p>
+              <p className="text-sm text-muted-foreground mb-2">{t('jobAnalytics.avgFitScore')}</p>
               <p className="text-3xl font-bold">{data.candidateQuality.avgFitScore}%</p>
             </div>
             <div className="p-4 border rounded-lg">
-              <p className="text-sm text-muted-foreground mb-2">Engagement Rate</p>
+              <p className="text-sm text-muted-foreground mb-2">{t('jobAnalytics.engagementRate')}</p>
               <p className="text-3xl font-bold">{data.candidateQuality.avgEngagementRate}%</p>
             </div>
             <div className="p-4 border rounded-lg">
-              <p className="text-sm text-muted-foreground mb-2">Interview Pass</p>
+              <p className="text-sm text-muted-foreground mb-2">{t('jobAnalytics.interviewPass')}</p>
               <p className="text-3xl font-bold">{data.candidateQuality.interviewPassRate}%</p>
             </div>
             <div className="p-4 border rounded-lg">
-              <p className="text-sm text-muted-foreground mb-2">Offer Acceptance</p>
+              <p className="text-sm text-muted-foreground mb-2">{t('jobAnalytics.offerAcceptance')}</p>
               <p className="text-3xl font-bold">{data.candidateQuality.offerAcceptanceRate}%</p>
             </div>
           </div>

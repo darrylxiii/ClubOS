@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -11,6 +12,7 @@ interface ReconciliationAlertProps {
 }
 
 export function ReconciliationAlert({ year }: ReconciliationAlertProps) {
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
   const startOfYear = `${year}-01-01`;
   const endOfYear = `${year}-12-31`;
@@ -80,7 +82,7 @@ export function ReconciliationAlert({ year }: ReconciliationAlertProps) {
       {hasUnmatchedInvoices && (
         <Alert variant="destructive" className="border-warning/50 bg-warning/10">
           <AlertTriangle className="h-4 w-4 text-warning" />
-          <AlertTitle className="text-warning">Invoice Reconciliation Required</AlertTitle>
+          <AlertTitle className="text-warning">{t("invoice_reconciliation_required", "Invoice Reconciliation Required")}</AlertTitle>
           <AlertDescription className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mt-2">
             <div>
               <span className="font-semibold">{data.unmatched}</span> of {data.total} invoices
@@ -104,7 +106,7 @@ export function ReconciliationAlert({ year }: ReconciliationAlertProps) {
       {hasReconciliationGap && (
         <Alert variant="destructive" className="border-orange-500/50 bg-orange-500/10">
           <Scale className="h-4 w-4 text-orange-500" />
-          <AlertTitle className="text-orange-500">Fee ↔ Invoice Cross-Reference Gap</AlertTitle>
+          <AlertTitle className="text-orange-500">{t("fee_invoice_crossreference_gap", "Fee ↔ Invoice Cross-Reference Gap")}</AlertTitle>
           <AlertDescription className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mt-2">
             <div>
               {data.unmatchedFeeCount > 0 && (

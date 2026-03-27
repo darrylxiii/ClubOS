@@ -3,20 +3,12 @@
  * Triggered when a job is published — finds top matching candidates
  * using vector similarity + rule-based filters, inserts into talent_matches.
  */
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { createHandler } from '../_shared/handler.ts';
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
-};
+Deno.serve(createHandler(async (req, ctx) => {
+    const corsHeaders = ctx.corsHeaders;
+    const supabase = ctx.supabase;
 
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  try {
     const { job_id, limit = 25, threshold = 0.5 } = await req.json();
 
     if (!job_id) {
@@ -26,13 +18,10 @@ serve(async (req) => {
       );
     }
 
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const GOOGLE_API_KEY = Deno.env.get('GOOGLE_API_KEY');
 
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY not configured');
+    if (!GOOGLE_API_KEY) {
+      throw new Error('GOOGLE_API_KEY not configured');
     }
 
     console.log(`Auto-matching candidates for job: ${job_id}`);
@@ -60,10 +49,10 @@ serve(async (req) => {
         Array.isArray(job.requirements) ? `Requirements: ${job.requirements.join(', ')}` : (job.requirements || ''),
       ].filter(Boolean).join('. ');
 
-      const embResponse = await fetch('https://ai.gateway.lovable.dev/v1/embeddings', {
+      const embResponse = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/embeddings', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+          'Authorization': `Bearer ${GOOGLE_API_KEY}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -254,11 +243,4 @@ serve(async (req) => {
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
-  } catch (error) {
-    console.error('Auto-match error:', error);
-    return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-  }
-});
+}));

@@ -30,6 +30,7 @@ import {
   Brain,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from 'react-i18next';
 
 interface AdminBoardToolsProps {
   companyId: string | null;
@@ -37,58 +38,50 @@ interface AdminBoardToolsProps {
 }
 
 export const AdminBoardTools = ({ companyId, onRefresh }: AdminBoardToolsProps) => {
+  const { t } = useTranslation('partner');
   const handleGlobalAnalytics = () => {
-    toast.info("Global Analytics", {
-      description: "Cross-company insights and platform-wide metrics",
+    toast.info(t('adminBoardTools.toast.globalAnalytics'), { description: t('adminBoardTools.toast.globalAnalyticsDesc'),
       duration: 3000,
     });
   };
 
   const handleTalentPoolAccess = () => {
-    toast.success("Talent Pool Access Granted", {
-      description: "Full access to 12,847 candidate profiles",
+    toast.success(t('adminBoardTools.toast.talentPoolAccessGranted'), { description: t('adminBoardTools.toast.talentPoolAccessGrantedDesc'),
     });
   };
 
   const handleCompanyManagement = () => {
-    toast.info("Company Management", {
-      description: "Manage all partner companies and their access levels",
+    toast.info(t('adminBoardTools.toast.companyManagement'), { description: t('adminBoardTools.toast.companyManagementDesc'),
     });
   };
 
   const handleBulkOperations = () => {
-    toast.info("Bulk Operations", {
-      description: "Perform bulk actions across multiple jobs and candidates",
+    toast.info(t('adminBoardTools.toast.bulkOperations'), { description: t('adminBoardTools.toast.bulkOperationsDesc'),
     });
   };
 
   const handlePlatformSettings = () => {
-    toast.info("Platform Settings", {
-      description: "Configure global platform rules, AI models, and workflows",
+    toast.info(t('adminBoardTools.toast.platformSettings'), { description: t('adminBoardTools.toast.platformSettingsDesc'),
     });
   };
 
   const handleAIModelConfig = () => {
-    toast.info("AI Configuration", {
-      description: "Adjust matching algorithms, scoring weights, and ML models",
+    toast.info(t('adminBoardTools.toast.aiConfiguration'), { description: t('adminBoardTools.toast.aiConfigurationDesc'),
     });
   };
 
   const handleSystemHealth = () => {
-    toast.success("System Health: Optimal", {
-      description: "All services running normally. 99.97% uptime",
+    toast.success(t('adminBoardTools.toast.systemHealthOptimal'), { description: t('adminBoardTools.toast.systemHealthOptimalDesc'),
     });
   };
 
   const handleDataExport = () => {
-    toast.info("Global Data Export", {
-      description: "Exporting anonymized platform analytics...",
+    toast.info(t('adminBoardTools.toast.globalDataExport'), { description: t('adminBoardTools.toast.globalDataExportDesc'),
     });
   };
 
   const handleAccessControl = () => {
-    toast.info("Access Control", {
-      description: "Manage roles, permissions, and security policies",
+    toast.info(t('adminBoardTools.toast.accessControl'), { description: t('adminBoardTools.toast.accessControlDesc'),
     });
   };
 
@@ -99,12 +92,8 @@ export const AdminBoardTools = ({ companyId, onRefresh }: AdminBoardToolsProps) 
           <Shield className="w-6 h-6 text-white" />
         </div>
         <div>
-          <Badge variant="outline" className="border-accent text-accent font-bold mb-1">
-            QUANTUM CLUB ADMIN
-          </Badge>
-          <p className="text-xs text-muted-foreground">
-            Platform-wide management & analytics
-          </p>
+          <Badge variant="outline" className="border-accent text-accent font-bold mb-1">{t('adminBoardTools.badge.quantumClubAdmin')}</Badge>
+          <p className="text-xs text-muted-foreground">{t('adminBoardTools.platformwideManagementAnalytics')}</p>
         </div>
       </div>
       
@@ -144,24 +133,24 @@ export const AdminBoardTools = ({ companyId, onRefresh }: AdminBoardToolsProps) 
           <DropdownMenuItem onClick={handleCompanyManagement} className="gap-2">
             <Building2 className="w-4 h-4" />
             <div className="flex-1">
-              <p className="font-medium">Company Management</p>
-              <p className="text-xs text-muted-foreground">View & manage all partners</p>
+              <p className="font-medium">{t('adminBoardTools.companyManagement')}</p>
+              <p className="text-xs text-muted-foreground">{t('adminBoardTools.viewManageAllPartners')}</p>
             </div>
           </DropdownMenuItem>
           
           <DropdownMenuItem onClick={handleBulkOperations} className="gap-2">
             <Globe className="w-4 h-4" />
             <div className="flex-1">
-              <p className="font-medium">Bulk Operations</p>
-              <p className="text-xs text-muted-foreground">Cross-job actions at scale</p>
+              <p className="font-medium">{t('adminBoardTools.bulkOperations')}</p>
+              <p className="text-xs text-muted-foreground">{t('adminBoardTools.crossjobActionsAtScale')}</p>
             </div>
           </DropdownMenuItem>
           
           <DropdownMenuItem onClick={handleAIModelConfig} className="gap-2">
             <Brain className="w-4 h-4" />
             <div className="flex-1">
-              <p className="font-medium">AI Model Config</p>
-              <p className="text-xs text-muted-foreground">Tune matching algorithms</p>
+              <p className="font-medium">{t('adminBoardTools.aiModelConfig')}</p>
+              <p className="text-xs text-muted-foreground">{t('adminBoardTools.tuneMatchingAlgorithms')}</p>
             </div>
           </DropdownMenuItem>
           
@@ -170,24 +159,24 @@ export const AdminBoardTools = ({ companyId, onRefresh }: AdminBoardToolsProps) 
           <DropdownMenuItem onClick={handleSystemHealth} className="gap-2">
             <Activity className="w-4 h-4" />
             <div className="flex-1">
-              <p className="font-medium">System Health</p>
-              <p className="text-xs text-muted-foreground">Platform status & uptime</p>
+              <p className="font-medium">{t('adminBoardTools.systemHealth')}</p>
+              <p className="text-xs text-muted-foreground">{t('adminBoardTools.platformStatusUptime')}</p>
             </div>
           </DropdownMenuItem>
           
           <DropdownMenuItem onClick={handleAccessControl} className="gap-2">
             <Lock className="w-4 h-4" />
             <div className="flex-1">
-              <p className="font-medium">Access Control</p>
-              <p className="text-xs text-muted-foreground">Roles & permissions</p>
+              <p className="font-medium">{t('adminBoardTools.accessControl')}</p>
+              <p className="text-xs text-muted-foreground">{t('adminBoardTools.rolesPermissions')}</p>
             </div>
           </DropdownMenuItem>
           
           <DropdownMenuItem onClick={handlePlatformSettings} className="gap-2">
             <Settings className="w-4 h-4" />
             <div className="flex-1">
-              <p className="font-medium">Platform Settings</p>
-              <p className="text-xs text-muted-foreground">Global configurations</p>
+              <p className="font-medium">{t('adminBoardTools.platformSettings')}</p>
+              <p className="text-xs text-muted-foreground">{t('adminBoardTools.globalConfigurations')}</p>
             </div>
           </DropdownMenuItem>
           
@@ -196,16 +185,16 @@ export const AdminBoardTools = ({ companyId, onRefresh }: AdminBoardToolsProps) 
           <DropdownMenuItem onClick={handleDataExport} className="gap-2">
             <FileDown className="w-4 h-4" />
             <div className="flex-1">
-              <p className="font-medium">Export Global Data</p>
-              <p className="text-xs text-muted-foreground">Platform-wide analytics</p>
+              <p className="font-medium">{t('adminBoardTools.exportGlobalData')}</p>
+              <p className="text-xs text-muted-foreground">{t('adminBoardTools.platformwideAnalytics')}</p>
             </div>
           </DropdownMenuItem>
           
           <DropdownMenuItem onClick={onRefresh} className="gap-2 text-accent">
             <RefreshCw className="w-4 h-4" />
             <div className="flex-1">
-              <p className="font-medium">Refresh All Metrics</p>
-              <p className="text-xs text-muted-foreground">Recalculate everything</p>
+              <p className="font-medium">{t('adminBoardTools.refreshAllMetrics')}</p>
+              <p className="text-xs text-muted-foreground">{t('adminBoardTools.recalculateEverything')}</p>
             </div>
           </DropdownMenuItem>
         </DropdownMenuContent>

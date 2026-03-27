@@ -1,5 +1,6 @@
 
 import { RoleGate } from "@/components/RoleGate";
+import { useTranslation } from 'react-i18next';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -31,6 +32,7 @@ import { TrainingRecordsPanel } from "@/components/employees/TrainingRecordsPane
 import { OnboardingChecklist } from "@/components/employees/OnboardingChecklist";
 
 export default function EmployeeManagement() {
+  const { t } = useTranslation('admin');
   const { data: employees } = useAllEmployees();
 
   const { data: stats } = useQuery({
@@ -66,10 +68,8 @@ export default function EmployeeManagement() {
         <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
           {/* Header */}
           <div>
-            <h1 className="text-3xl font-bold">Employee Management</h1>
-            <p className="text-muted-foreground">
-              Comprehensive HR, performance, and commission management
-            </p>
+            <h1 className="text-3xl font-bold">{t('employeeManagement.text2')}</h1>
+            <p className="text-muted-foreground">{t('employeeManagement.desc')}</p>
           </div>
 
           {/* Stats Overview */}
@@ -82,7 +82,7 @@ export default function EmployeeManagement() {
                   </div>
                   <div>
                     <p className="text-2xl font-bold">{employees?.length || 0}</p>
-                    <p className="text-sm text-muted-foreground">Employees</p>
+                    <p className="text-sm text-muted-foreground">{t('employeeManagement.text3')}</p>
                   </div>
                 </div>
               </CardContent>
@@ -95,7 +95,7 @@ export default function EmployeeManagement() {
                   </div>
                   <div>
                     <p className="text-2xl font-bold">{formatCurrency(stats?.pending || 0)}</p>
-                    <p className="text-sm text-muted-foreground">Pending</p>
+                    <p className="text-sm text-muted-foreground">{t('employeeManagement.text4')}</p>
                   </div>
                 </div>
               </CardContent>
@@ -108,7 +108,7 @@ export default function EmployeeManagement() {
                   </div>
                   <div>
                     <p className="text-2xl font-bold">{formatCurrency(stats?.approved || 0)}</p>
-                    <p className="text-sm text-muted-foreground">Approved</p>
+                    <p className="text-sm text-muted-foreground">{t('employeeManagement.text5')}</p>
                   </div>
                 </div>
               </CardContent>
@@ -121,7 +121,7 @@ export default function EmployeeManagement() {
                   </div>
                   <div>
                     <p className="text-2xl font-bold">{formatCurrency(stats?.paid || 0)}</p>
-                    <p className="text-sm text-muted-foreground">Paid YTD</p>
+                    <p className="text-sm text-muted-foreground">{t('employeeManagement.text6')}</p>
                   </div>
                 </div>
               </CardContent>
@@ -134,7 +134,7 @@ export default function EmployeeManagement() {
                   </div>
                   <div>
                     <p className="text-2xl font-bold">{stats?.pendingReviews || 0}</p>
-                    <p className="text-sm text-muted-foreground">Pending Reviews</p>
+                    <p className="text-sm text-muted-foreground">{t('employeeManagement.text7')}</p>
                   </div>
                 </div>
               </CardContent>
@@ -146,35 +146,35 @@ export default function EmployeeManagement() {
             <TabsList className="grid w-full grid-cols-8">
               <TabsTrigger value="leaderboard" className="gap-1.5 text-xs">
                 <Trophy className="h-4 w-4" />
-                <span className="hidden md:inline">Leaderboard</span>
+                <span className="hidden md:inline">{t('employeeManagement.text8')}</span>
               </TabsTrigger>
               <TabsTrigger value="employees" className="gap-1.5 text-xs">
                 <Users className="h-4 w-4" />
-                <span className="hidden md:inline">Profiles</span>
+                <span className="hidden md:inline">{t('employeeManagement.text9')}</span>
               </TabsTrigger>
               <TabsTrigger value="targets" className="gap-1.5 text-xs">
                 <Target className="h-4 w-4" />
-                <span className="hidden md:inline">Targets</span>
+                <span className="hidden md:inline">{t('employeeManagement.text10')}</span>
               </TabsTrigger>
               <TabsTrigger value="commissions" className="gap-1.5 text-xs">
                 <Layers className="h-4 w-4" />
-                <span className="hidden md:inline">Commissions</span>
+                <span className="hidden md:inline">{t('employeeManagement.text11')}</span>
               </TabsTrigger>
               <TabsTrigger value="payouts" className="gap-1.5 text-xs">
                 <CreditCard className="h-4 w-4" />
-                <span className="hidden md:inline">Payouts</span>
+                <span className="hidden md:inline">{t('employeeManagement.text12')}</span>
               </TabsTrigger>
               <TabsTrigger value="reviews" className="gap-1.5 text-xs">
                 <ClipboardCheck className="h-4 w-4" />
-                <span className="hidden md:inline">Reviews</span>
+                <span className="hidden md:inline">{t('employeeManagement.text13')}</span>
               </TabsTrigger>
               <TabsTrigger value="training" className="gap-1.5 text-xs">
                 <GraduationCap className="h-4 w-4" />
-                <span className="hidden md:inline">Training</span>
+                <span className="hidden md:inline">{t('employeeManagement.text14')}</span>
               </TabsTrigger>
               <TabsTrigger value="onboarding" className="gap-1.5 text-xs">
                 <ClipboardList className="h-4 w-4" />
-                <span className="hidden md:inline">Onboarding</span>
+                <span className="hidden md:inline">{t('employeeManagement.text15')}</span>
               </TabsTrigger>
             </TabsList>
 

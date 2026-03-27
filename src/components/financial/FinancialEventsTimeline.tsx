@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -28,6 +29,7 @@ interface FinancialEvent {
 }
 
 export function FinancialEventsTimeline() {
+  const { t } = useTranslation('common');
   const { data: events, isLoading } = useQuery({
     queryKey: ['financial-events-timeline'],
     queryFn: async () => {
@@ -214,15 +216,15 @@ export function FinancialEventsTimeline() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Recent Financial Activity</CardTitle>
-        <CardDescription>Latest transactions and events</CardDescription>
+        <CardTitle>{t("recent_financial_activity", "Recent Financial Activity")}</CardTitle>
+        <CardDescription>{t("latest_transactions_and_events", "Latest transactions and events")}</CardDescription>
       </CardHeader>
       <CardContent>
         <ScrollArea className="h-[400px] pr-4">
           {events?.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
               <AlertCircle className="h-8 w-8 mb-2" />
-              <p>No recent financial activity</p>
+              <p>{t("no_recent_financial_activity", "No recent financial activity")}</p>
             </div>
           ) : (
             <div className="space-y-4">

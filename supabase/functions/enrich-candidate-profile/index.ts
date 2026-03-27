@@ -3,35 +3,23 @@
  * Generates AI summary, calculates talent tier, move probability,
  * and generates embedding — all in one call.
  */
-import { createClient } from "npm:@supabase/supabase-js@2";
+import { createHandler } from '../_shared/handler.ts';
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
-};
+Deno.serve(createHandler(async (req, ctx) => {
+  const { candidate_id, batch_ids } = await req.json();
 
-Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+  const ids = batch_ids || (candidate_id ? [candidate_id] : []);
+  if (ids.length === 0) {
+    return new Response(
+      JSON.stringify({ error: 'candidate_id or batch_ids required' }),
+      { status: 400, headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } }
+    );
   }
 
-  try {
-    const { candidate_id, batch_ids } = await req.json();
+  const GOOGLE_API_KEY = Deno.env.get('GOOGLE_API_KEY')!;
+  const supabase = ctx.supabase;
 
-    const ids = batch_ids || (candidate_id ? [candidate_id] : []);
-    if (ids.length === 0) {
-      return new Response(
-        JSON.stringify({ error: 'candidate_id or batch_ids required' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
-    const results: any[] = [];
+    const results: Record<string, unknown>[] = [];
 
     for (const cid of ids) {
       try {
@@ -72,21 +60,21 @@ Deno.serve(async (req) => {
         const skills = skillsRes.data || [];
         const experience = experienceRes.data || [];
         const education = educationRes.data || [];
-        const tags = (tagsRes.data || []).map((t: any) => t.tag);
+        const tags = (tagsRes.data || []).map((t: Record<string, unknown>) => t.tag);
         const applications = applicationsRes.data || [];
 
         // 2. Build profile text for AI summary
         const profileText = buildProfileText(candidate, skills, experience, education, tags);
 
-        // 3. Generate AI summary using Lovable AI
-        const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+        // 3. Generate AI summary using Google Gemini
+        const aiResponse = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+            'Authorization': `Bearer ${GOOGLE_API_KEY}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: 'google/gemini-2.5-flash-lite',
+            model: 'gemini-2.5-flash-lite',
             messages: [
               {
                 role: 'system',
@@ -130,7 +118,7 @@ Tier criteria:
         const aiContent = aiData.choices?.[0]?.message?.content || '';
 
         // Parse AI response
-        let enrichment: any = {};
+        let enrichment: Record<string, unknown> = {};
         try {
           // Extract JSON from possible markdown code blocks
           const jsonMatch = aiContent.match(/\{[\s\S]*\}/);
@@ -167,17 +155,17 @@ Tier criteria:
           candidate.current_title,
           candidate.current_company ? `at ${candidate.current_company}` : '',
           enrichment.summary || '',
-          skills.map((s: any) => s.skill_name).join(', '),
+          skills.map((s: Record<string, unknown>) => s.skill_name).join(', '),
           candidate.location || '',
           enrichment.key_strengths?.join(', ') || '',
         ].filter(Boolean).join('. ');
 
         let embeddingVector: number[] | null = null;
         try {
-          const embResponse = await fetch('https://ai.gateway.lovable.dev/v1/embeddings', {
+          const embResponse = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/embeddings', {
             method: 'POST',
             headers: {
-              'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+              'Authorization': `Bearer ${GOOGLE_API_KEY}`,
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
@@ -196,7 +184,7 @@ Tier criteria:
         }
 
         // 6. Update candidate profile
-        const updateData: Record<string, any> = {
+        const updateData: Record<string, unknown> = {
           ai_summary: enrichment.summary || null,
           talent_tier: enrichment.talent_tier || 'pool',
           move_probability: finalMoveProbability,
@@ -204,7 +192,7 @@ Tier criteria:
             key_strengths: enrichment.key_strengths || [],
             recommended_roles: enrichment.recommended_roles || [],
             enriched_at: new Date().toISOString(),
-            model: 'google/gemini-2.5-flash-lite',
+            model: 'gemini-2.5-flash-lite',
           },
           updated_at: new Date().toISOString(),
         };
@@ -256,24 +244,17 @@ Tier criteria:
         errors: errorCount,
         results,
       }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } }
     );
 
-  } catch (error) {
-    console.error('Enrichment error:', error);
-    return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-  }
-});
+}));
 
 function buildProfileText(
-  candidate: any,
-  skills: any[],
-  experience: any[],
-  education: any[],
-  tags: any[]
+  candidate: Record<string, unknown>,
+  skills: Record<string, unknown>[],
+  experience: Record<string, unknown>[],
+  education: Record<string, unknown>[],
+  tags: Record<string, unknown>[]
 ): string {
   const parts: string[] = [];
 
@@ -303,11 +284,11 @@ function buildProfileText(
   }
 
   if (tags.length > 0) {
-    const tagsByCategory = tags.reduce((acc: any, t: any) => {
+    const tagsByCategory = tags.reduce((acc: Record<string, string[]>, t: Record<string, unknown>) => {
       if (!t) return acc;
-      const cat = t.category || 'other';
+      const cat = (t.category as string) || 'other';
       if (!acc[cat]) acc[cat] = [];
-      acc[cat].push(t.name);
+      acc[cat].push(t.name as string);
       return acc;
     }, {});
     Object.entries(tagsByCategory).forEach(([cat, names]) => {
@@ -325,7 +306,7 @@ function buildProfileText(
   return parts.join('\n');
 }
 
-function calculateMoveProbability(candidate: any, applications: any[]): number {
+function calculateMoveProbability(candidate: Record<string, unknown>, applications: Record<string, unknown>[]): number {
   let probability = 0.3; // base
 
   // Actively looking is the strongest signal
@@ -333,7 +314,7 @@ function calculateMoveProbability(candidate: any, applications: any[]): number {
 
   // Notice period signals
   if (candidate.notice_period) {
-    const notice = candidate.notice_period.toLowerCase();
+    const notice = (candidate.notice_period as string).toLowerCase();
     if (notice.includes('immediate') || notice.includes('0')) probability += 0.2;
     else if (notice.includes('1 month') || notice.includes('2 week')) probability += 0.1;
     else if (notice.includes('3 month')) probability -= 0.05;
@@ -341,7 +322,7 @@ function calculateMoveProbability(candidate: any, applications: any[]): number {
 
   // Recent activity
   if (candidate.last_activity_at) {
-    const daysSince = (Date.now() - new Date(candidate.last_activity_at).getTime()) / (1000 * 60 * 60 * 24);
+    const daysSince = (Date.now() - new Date(candidate.last_activity_at as string).getTime()) / (1000 * 60 * 60 * 24);
     if (daysSince < 7) probability += 0.1;
     else if (daysSince < 30) probability += 0.05;
     else if (daysSince > 90) probability -= 0.1;
@@ -349,7 +330,7 @@ function calculateMoveProbability(candidate: any, applications: any[]): number {
 
   // Recent applications suggest interest
   const recentApps = applications.filter(a => {
-    const daysAgo = (Date.now() - new Date(a.created_at).getTime()) / (1000 * 60 * 60 * 24);
+    const daysAgo = (Date.now() - new Date(a.created_at as string).getTime()) / (1000 * 60 * 60 * 24);
     return daysAgo < 30;
   });
   if (recentApps.length > 0) probability += 0.1;

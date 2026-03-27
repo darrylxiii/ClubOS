@@ -1,10 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.58.0";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { createHandler } from '../_shared/handler.ts';
+import { SupabaseClient } from "npm:@supabase/supabase-js@2";
 
 interface UserBehaviorFeatures {
   userId: string;
@@ -19,48 +15,39 @@ interface UserBehaviorFeatures {
   topFeaturesUsed: string[];
 }
 
-Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY')!;
-    
-    const supabase = createClient(supabaseUrl, supabaseKey);
+Deno.serve(createHandler(async (_req, ctx) => {
+    const googleApiKey = Deno.env.get('GOOGLE_API_KEY')!;
 
     console.log('Starting behavior embedding pipeline...');
 
     // Step 1: Collect user behavior features
-    const userFeatures = await collectUserFeatures(supabase);
+    const userFeatures = await collectUserFeatures(ctx.supabase);
     console.log(`Collected features for ${userFeatures.length} users`);
 
     // Step 2: Generate embeddings for each user
     const embeddingsGenerated = await generateEmbeddings(
-      supabase,
-      lovableApiKey,
+      ctx.supabase,
+      googleApiKey,
       userFeatures
     );
     console.log(`Generated ${embeddingsGenerated} embeddings`);
 
     // Step 3: Perform clustering
-    const clusters = await performClustering(supabase);
+    const clusters = await performClustering(ctx.supabase);
     console.log(`Created ${clusters.length} user segments`);
 
     // Step 4: Generate segment labels using Club AI
     const labeledSegments = await generateSegmentLabels(
-      lovableApiKey,
+      googleApiKey,
       clusters
     );
     console.log('Segment labels generated');
 
     // Step 5: Update segment descriptions
-    await updateSegmentDescriptions(supabase, labeledSegments);
+    await updateSegmentDescriptions(ctx.supabase, labeledSegments);
 
     // Refresh materialized view
-    await supabase.rpc('refresh_user_segments_summary');
+    await ctx.supabase.rpc('refresh_user_segments_summary');
 
     return new Response(
       JSON.stringify({
@@ -70,20 +57,11 @@ Deno.serve(async (req) => {
         segmentsCreated: clusters.length,
         segments: labeledSegments,
       }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } }
     );
+}));
 
-  } catch (error) {
-    console.error('Error in generate-user-embeddings:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    return new Response(
-      JSON.stringify({ error: errorMessage }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-  }
-});
-
-async function collectUserFeatures(supabase: any): Promise<UserBehaviorFeatures[]> {
+async function collectUserFeatures(supabase: SupabaseClient): Promise<UserBehaviorFeatures[]> {
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
@@ -96,7 +74,7 @@ async function collectUserFeatures(supabase: any): Promise<UserBehaviorFeatures[
 
   if (!activeUsers) return [];
 
-  const uniqueUsers = [...new Set(activeUsers.map((u: any) => u.user_id))];
+  const uniqueUsers = [...new Set(activeUsers.map((u: Record<string, unknown>) => u.user_id))];
   const features: UserBehaviorFeatures[] = [];
 
   for (const userId of uniqueUsers.slice(0, 1000)) {
@@ -108,7 +86,7 @@ async function collectUserFeatures(supabase: any): Promise<UserBehaviorFeatures[
 }
 
 async function calculateUserFeatures(
-  supabase: any,
+  supabase: SupabaseClient,
   userId: string,
   sinceDate: Date
 ): Promise<UserBehaviorFeatures | null> {
@@ -118,19 +96,19 @@ async function calculateUserFeatures(
       .select('event_data, created_at')
       .eq('user_id', userId)
       .gte('created_at', sinceDate.toISOString()),
-    
+
     supabase
       .from('user_page_analytics')
       .select('*')
       .eq('user_id', userId)
       .gte('entry_time', sinceDate.toISOString()),
-    
+
     supabase
       .from('user_session_events')
       .select('event_type')
       .eq('user_id', userId)
       .gte('created_at', sinceDate.toISOString()),
-    
+
     supabase
       .from('applications')
       .select('status')
@@ -141,8 +119,8 @@ async function calculateUserFeatures(
   if (!sessions.data || sessions.data.length === 0) return null;
 
   const sessionDurations = sessions.data
-    .filter((s: any) => s.event_data?.duration)
-    .map((s: any) => s.event_data.duration);
+    .filter((s: Record<string, unknown>) => (s.event_data as Record<string, unknown> | null)?.duration)
+    .map((s: Record<string, unknown>) => (s.event_data as Record<string, unknown>).duration as number);
 
   const avgSessionDuration = sessionDurations.length > 0
     ? sessionDurations.reduce((a: number, b: number) => a + b, 0) / sessionDurations.length
@@ -151,20 +129,20 @@ async function calculateUserFeatures(
   const pagesPerSession = pages.data ? pages.data.length / sessions.data.length : 0;
 
   const scrollDepths = pages.data
-    ?.filter((p: any) => p.max_scroll_depth)
-    .map((p: any) => p.max_scroll_depth) || [];
+    ?.filter((p: Record<string, unknown>) => p.max_scroll_depth)
+    .map((p: Record<string, unknown>) => p.max_scroll_depth as number) || [];
   const scrollDepthAvg = scrollDepths.length > 0
     ? scrollDepths.reduce((a: number, b: number) => a + b, 0) / scrollDepths.length
     : 0;
 
-  const clickEvents = events.data?.filter((e: any) => e.event_type === 'click').length || 0;
+  const clickEvents = events.data?.filter((e: Record<string, unknown>) => e.event_type === 'click').length || 0;
   const clickRate = pages.data ? clickEvents / pages.data.length : 0;
 
   const applicationsSubmitted = applications.data?.length || 0;
-  const completedApps = applications.data?.filter((a: any) => a.status === 'submitted').length || 0;
+  const completedApps = applications.data?.filter((a: Record<string, unknown>) => a.status === 'submitted').length || 0;
   const completionRate = applicationsSubmitted > 0 ? completedApps / applicationsSubmitted : 0;
 
-  const eventTypes = new Set(events.data?.map((e: any) => e.event_type) || []);
+  const eventTypes = new Set(events.data?.map((e: Record<string, unknown>) => e.event_type) || []);
   const featureDiversityScore = eventTypes.size / 10;
 
   return {
@@ -182,7 +160,7 @@ async function calculateUserFeatures(
 }
 
 async function generateEmbeddings(
-  supabase: any,
+  supabase: SupabaseClient,
   apiKey: string,
   features: UserBehaviorFeatures[]
 ): Promise<number> {
@@ -192,7 +170,7 @@ async function generateEmbeddings(
     const featureText = `User behavior: ${feature.sessionsPerWeek} sessions/week, ${feature.avgSessionDuration}s avg session, ${feature.pagesPerSession} pages/session, ${feature.scrollDepthAvg}% scroll depth, ${feature.clickRate} click rate, ${feature.applicationsSubmitted} applications, ${feature.completionRate * 100}% completion, features: ${feature.topFeaturesUsed.join(', ')}`;
 
     try {
-      const response = await fetch('https://api.lovable.app/v1/embeddings', {
+      const response = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/embeddings', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${apiKey}`,
@@ -200,7 +178,7 @@ async function generateEmbeddings(
         },
         body: JSON.stringify({
           input: featureText,
-          model: 'text-embedding-3-small',
+          model: 'text-embedding-004',
         }),
       });
 
@@ -231,7 +209,7 @@ async function generateEmbeddings(
   return generated;
 }
 
-async function performClustering(supabase: any) {
+async function performClustering(supabase: SupabaseClient) {
   const { data: embeddings } = await supabase
     .from('user_behavior_embeddings')
     .select('*')
@@ -262,9 +240,9 @@ async function performClustering(supabase: any) {
   return Array.from(new Set(Object.values(clusters)));
 }
 
-function simpleKMeans(data: any[], k: number): Record<string, number> {
+function simpleKMeans(data: Record<string, unknown>[], k: number): Record<string, number> {
   const assignments: Record<string, number> = {};
-  
+
   // Simple random assignment for MVP
   data.forEach((item, index) => {
     assignments[item.user_id] = index % k;
@@ -279,14 +257,14 @@ async function generateSegmentLabels(apiKey: string, clusterIds: number[]) {
   const prompt = `You are analyzing ${clusterIds.length} user segments from a talent platform. Generate a descriptive label (3-5 words) for each segment based on typical behavior patterns. Return JSON format: {"0": "Power Users - High Engagement", "1": "At-Risk - Declining Activity", ...}`;
 
   try {
-    const response = await fetch('https://api.lovable.app/v1/chat/completions', {
+    const response = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash-lite',
+        model: 'gemini-2.5-flash-lite',
         messages: [{ role: 'user', content: prompt }],
         temperature: 0.7,
       }),
@@ -306,7 +284,7 @@ async function generateSegmentLabels(apiKey: string, clusterIds: number[]) {
   }
 }
 
-async function updateSegmentDescriptions(supabase: any, labels: Record<number, string>) {
+async function updateSegmentDescriptions(supabase: SupabaseClient, labels: Record<number, string>) {
   for (const [clusterId, label] of Object.entries(labels)) {
     await supabase
       .from('user_behavior_embeddings')

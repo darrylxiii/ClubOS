@@ -6,6 +6,7 @@ import { useAdminKPIScorecard, type KPIPillarMetric, type KPIRange } from "@/hoo
 import { Zap, DollarSign, Settings2, MessageSquare, AlertTriangle, Clock, ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
+import { useTranslation } from 'react-i18next';
 
 const rangeOptions: { value: KPIRange; label: string }[] = [
   { value: '30d', label: '30d' },
@@ -92,6 +93,7 @@ function MetricCell({ metric }: { metric: KPIPillarMetric }) {
 }
 
 export const KPIScorecard = () => {
+  const { t } = useTranslation('common');
   const [range, setRange] = useState<KPIRange>('30d');
   const { data, isLoading } = useAdminKPIScorecard(range);
 
@@ -197,7 +199,7 @@ export const KPIScorecard = () => {
               {pipeline.bottleneck && (
                 <div className="flex items-center gap-1 px-2 py-1 rounded-md bg-amber-500/10 border border-amber-500/20 text-[10px]">
                   <AlertTriangle className="h-2.5 w-2.5 text-amber-500" />
-                  <span className="text-muted-foreground">Bottleneck:</span>
+                  <span className="text-muted-foreground">{"Bottleneck:"}</span>
                   <span className="font-medium capitalize">{pipeline.bottleneck}</span>
                 </div>
               )}

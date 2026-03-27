@@ -1,10 +1,4 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { createAuthenticatedHandler } from '../_shared/handler.ts';
 
 interface EnrichmentData {
   name?: string;
@@ -21,26 +15,9 @@ interface EnrichmentData {
   technologies?: string[];
 }
 
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
-    // Get authorization header
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      return new Response(
-        JSON.stringify({ error: 'Missing authorization header' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    const { prospect_id, company_domain, company_name } = await req.json();
+Deno.serve(createAuthenticatedHandler(async (req, ctx) => {
+  const { prospect_id, company_domain, company_name } = await req.json();
+  const supabase = ctx.supabase;
 
     if (!prospect_id) {
       return new Response(
@@ -188,17 +165,10 @@ serve(async (req) => {
         enrichment_data: enrichmentData,
         fields_updated: Object.keys(updateData),
       }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } }
     );
 
-  } catch (error: any) {
-    console.error('[enrich-prospect-company] Error:', error);
-    return new Response(
-      JSON.stringify({ error: error?.message || 'Unknown error' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-  }
-});
+}));
 
 // Simulated enrichment function - replace with real API calls in production
 async function simulateEnrichment(domain?: string, name?: string): Promise<EnrichmentData | null> {

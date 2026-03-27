@@ -10,6 +10,7 @@ import { Search, Eye, ExternalLink } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { UserEditDrawer } from "./UserEditDrawer";
 import { formatDistanceToNow } from "date-fns";
+import { useTranslation } from 'react-i18next';
 
 const STAFF_ROLES = ["admin", "strategist", "recruiter", "company_admin"] as const;
 type StaffRoleType = "admin" | "company_admin" | "hiring_manager" | "moderator" | "partner" | "recruiter" | "strategist" | "super_admin" | "user";
@@ -25,6 +26,7 @@ interface StaffUser {
 }
 
 const StaffTab = () => {
+  const { t } = useTranslation('admin');
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [editingUser, setEditingUser] = useState<{ id: string; email: string; full_name: string | null } | null>(null);
@@ -96,7 +98,7 @@ const StaffTab = () => {
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle>Staff</CardTitle>
+            <CardTitle>{t('users.staffTab.staff')}</CardTitle>
             <CardDescription>
               {filtered.length} staff member{filtered.length !== 1 ? "s" : ""} — admins, strategists, recruiters
             </CardDescription>
@@ -111,7 +113,7 @@ const StaffTab = () => {
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
-            placeholder="Search by name, email, or role..."
+            placeholder={t('users.staffTab.searchByNameEmailOrRole')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-10"
@@ -121,13 +123,13 @@ const StaffTab = () => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Roles</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Last Login</TableHead>
-              <TableHead>Joined</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead>{t('common:fields.name')}</TableHead>
+              <TableHead>{t('common:fields.email')}</TableHead>
+              <TableHead>{t('users.staffTab.roles')}</TableHead>
+              <TableHead>{t('common:fields.status')}</TableHead>
+              <TableHead>{t('users.staffTab.lastLogin')}</TableHead>
+              <TableHead>{t('users.staffTab.joined')}</TableHead>
+              <TableHead className="text-right">{t('common:fields.actions')}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -164,21 +166,21 @@ const StaffTab = () => {
                   <TableCell className="text-sm text-muted-foreground">
                     {user.last_login_at
                       ? formatDistanceToNow(new Date(user.last_login_at), { addSuffix: true })
-                      : <span className="text-muted-foreground/60">Never</span>}
+                      : <span className="text-muted-foreground/60">{t('users.staffTab.never')}</span>}
                   </TableCell>
                   <TableCell className="text-sm text-muted-foreground">
                     {formatDistanceToNow(new Date(user.created_at), { addSuffix: true })}
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-1">
-                      <Button variant="ghost" size="icon" onClick={() => navigate(`/profile/${user.id}`)} title="View Profile">
+                      <Button variant="ghost" size="icon" onClick={() => navigate(`/profile/${user.id}`)} title={t('users.staffTab.viewProfile')}>
                         <Eye className="w-4 h-4" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="icon"
                         onClick={() => setEditingUser({ id: user.id, email: user.email, full_name: user.full_name })}
-                        title="Edit"
+                        title={t('common:actions.edit')}
                       >
                         <Eye className="w-4 h-4" />
                       </Button>

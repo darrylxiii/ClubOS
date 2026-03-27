@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
@@ -38,6 +39,7 @@ const STATUS_COLORS = {
 };
 
 export const TaskAnalyticsDashboard = ({ objectiveId }: TaskAnalyticsDashboardProps) => {
+  const { t } = useTranslation('common');
   const [stats, setStats] = useState<TaskStats | null>(null);
   const [priorityData, setPriorityData] = useState<any[]>([]);
   const [statusData, setStatusData] = useState<any[]>([]);
@@ -141,7 +143,7 @@ export const TaskAnalyticsDashboard = ({ objectiveId }: TaskAnalyticsDashboardPr
               </div>
               <div>
                 <p className="text-2xl font-bold">{stats?.total || 0}</p>
-                <p className="text-xs text-muted-foreground">Total Tasks</p>
+                <p className="text-xs text-muted-foreground">{t('tasks.totalTasks', 'Total Tasks')}</p>
               </div>
             </div>
           </CardContent>
@@ -155,7 +157,7 @@ export const TaskAnalyticsDashboard = ({ objectiveId }: TaskAnalyticsDashboardPr
               </div>
               <div>
                 <p className="text-2xl font-bold">{stats?.completed || 0}</p>
-                <p className="text-xs text-muted-foreground">Completed</p>
+                <p className="text-xs text-muted-foreground">{t('tasks.completed', 'Completed')}</p>
               </div>
             </div>
           </CardContent>
@@ -169,7 +171,7 @@ export const TaskAnalyticsDashboard = ({ objectiveId }: TaskAnalyticsDashboardPr
               </div>
               <div>
                 <p className="text-2xl font-bold">{stats?.overdue || 0}</p>
-                <p className="text-xs text-muted-foreground">Overdue</p>
+                <p className="text-xs text-muted-foreground">{t('tasks.overdue', 'Overdue')}</p>
               </div>
             </div>
           </CardContent>
@@ -183,7 +185,7 @@ export const TaskAnalyticsDashboard = ({ objectiveId }: TaskAnalyticsDashboardPr
               </div>
               <div>
                 <p className="text-2xl font-bold">{stats?.avgCompletionTime || 0}d</p>
-                <p className="text-xs text-muted-foreground">Avg. Time</p>
+                <p className="text-xs text-muted-foreground">{t('tasks.avgTime', 'Avg. Time')}</p>
               </div>
             </div>
           </CardContent>
@@ -193,10 +195,10 @@ export const TaskAnalyticsDashboard = ({ objectiveId }: TaskAnalyticsDashboardPr
       {/* Charts */}
       <Tabs defaultValue="burndown" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="burndown">Burndown</TabsTrigger>
-          <TabsTrigger value="workload">Team Workload</TabsTrigger>
-          <TabsTrigger value="estimation">Est. vs Actual</TabsTrigger>
-          <TabsTrigger value="breakdown">Breakdown</TabsTrigger>
+          <TabsTrigger value="burndown">{t('tasks.burndown', 'Burndown')}</TabsTrigger>
+          <TabsTrigger value="workload">{t('tasks.teamWorkload', 'Team Workload')}</TabsTrigger>
+          <TabsTrigger value="estimation">{t('tasks.estVsActual', 'Est. vs Actual')}</TabsTrigger>
+          <TabsTrigger value="breakdown">{t('tasks.breakdown', 'Breakdown')}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="burndown">
@@ -215,7 +217,7 @@ export const TaskAnalyticsDashboard = ({ objectiveId }: TaskAnalyticsDashboardPr
           <div className="grid md:grid-cols-2 gap-4">
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">Status Distribution</CardTitle>
+                <CardTitle className="text-base">{t('tasks.statusDistribution', 'Status Distribution')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={200}>
@@ -242,7 +244,7 @@ export const TaskAnalyticsDashboard = ({ objectiveId }: TaskAnalyticsDashboardPr
 
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">Priority Distribution</CardTitle>
+                <CardTitle className="text-base">{t('tasks.priorityDistribution', 'Priority Distribution')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={200}>

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { Button } from '@/components/ui/button';
@@ -29,6 +30,7 @@ interface VideoCallInterfaceProps {
 }
 
 export function VideoCallInterface({ conversationId, participantName, participantAvatar, onEnd, invitationId, onCancel }: VideoCallInterfaceProps) {
+  const { t } = useTranslation('common');
   const [showDiagnostics, setShowDiagnostics] = useState(true);
   const [permissionDenied, setPermissionDenied] = useState(false);
   const [isCalling, setIsCalling] = useState(true);
@@ -79,7 +81,7 @@ export function VideoCallInterface({ conversationId, participantName, participan
       }
       
       console.log('Session started successfully:', newSession.id);
-      toast.success('Joined meeting room');
+      toast.success(t("joined_meeting_room", "Joined meeting room"));
       setCallStartTime(Date.now());
 
       // Try to initialize media, but don't fail if it doesn't work
@@ -91,10 +93,10 @@ export function VideoCallInterface({ conversationId, participantName, participan
           localVideoRef.current.srcObject = localStream;
         }
         console.log('Media initialized successfully');
-        toast.success('Camera and microphone connected');
+        toast.success(t("camera_and_microphone_connected", "Camera and microphone connected"));
       } catch (mediaError: any) {
         console.error('Media initialization failed (non-fatal):', mediaError);
-        toast.warning('Joined without camera/microphone. You can try reconnecting from settings.');
+        toast.warning(t("joined_without_cameramicrophone_you", "Joined without camera/microphone. You can try reconnecting from settings."));
       }
 
     } catch (error: unknown) {
@@ -102,7 +104,7 @@ export function VideoCallInterface({ conversationId, participantName, participan
       
       const err = error as { code?: string; message?: string };
       if (err.code === '42P17') {
-        toast.error('Database error. Retrying...');
+        toast.error(t("database_error_retrying", "Database error. Retrying..."));
         // Auto-retry once for database errors
         setTimeout(() => {
           handleDiagnosticsComplete();
@@ -113,9 +115,9 @@ export function VideoCallInterface({ conversationId, participantName, participan
       setPermissionDenied(true);
       
       if (err.message?.includes('Failed to create session')) {
-        toast.error('Could not connect to meeting room. Please try again.');
+        toast.error(t("could_not_connect_to", "Could not connect to meeting room. Please try again."));
       } else {
-        toast.error('Failed to join call. Please try again.');
+        toast.error(t("failed_to_join_call", "Failed to join call. Please try again."));
       }
     }
   };
@@ -131,10 +133,10 @@ export function VideoCallInterface({ conversationId, participantName, participan
       if (localVideoRef.current && localStream) {
         localVideoRef.current.srcObject = localStream;
       }
-      toast.success('Camera and microphone reconnected');
+      toast.success(t("camera_and_microphone_reconnected", "Camera and microphone reconnected"));
     } catch (error: unknown) {
       console.error('Media retry failed:', error);
-      toast.error('Failed to connect media. Please check your permissions.');
+      toast.error(t("failed_to_connect_media", "Failed to connect media. Please check your permissions."));
     }
   };
 
@@ -147,10 +149,10 @@ export function VideoCallInterface({ conversationId, participantName, participan
       } else {
         await startScreenShare();
         setIsScreenSharing(true);
-        toast.success('Screen sharing started');
+        toast.success(t("screen_sharing_started", "Screen sharing started"));
       }
     } catch (error) {
-      toast.error('Failed to start screen sharing');
+      toast.error(t("failed_to_start_screen", "Failed to start screen sharing"));
     }
   };
 
@@ -201,16 +203,16 @@ export function VideoCallInterface({ conversationId, participantName, participan
           <VideoOff className="h-10 w-10 text-destructive" />
         </div>
         <div>
-          <h3 className="text-xl font-bold mb-2">Camera/Microphone Access Required</h3>
+          <h3 className="text-xl font-bold mb-2">{t("cameramicrophone_access_required", "Camera/Microphone Access Required")}</h3>
           <p className="text-muted-foreground mb-4">
             Please enable camera and microphone permissions in your browser to start a video call.
           </p>
           <div className="text-sm text-muted-foreground space-y-2 text-left bg-muted/50 rounded-lg p-4">
-            <p className="font-semibold">How to enable permissions:</p>
+            <p className="font-semibold">{t("how_to_enable_permissions", "How to enable permissions:")}</p>
             <ol className="list-decimal list-inside space-y-1">
-              <li>Click the camera icon in your browser's address bar</li>
-              <li>Select "Allow" for both camera and microphone</li>
-              <li>Click the "Try Again" button below</li>
+              <li>{t("click_the_camera_icon", "Click the camera icon in your browser's address bar")}</li>
+              <li>{t("select_allow_for_both", "Select ')Allow' for both camera and microphone")}</li>
+              <li>{t("click_the_try_again", "Click the ')Try Again' button below")}</li>
             </ol>
           </div>
         </div>
@@ -284,7 +286,7 @@ export function VideoCallInterface({ conversationId, participantName, participan
             </div>
             
             <div className="space-y-2">
-              <h3 className="text-2xl font-bold text-white">Waiting for others to join</h3>
+              <h3 className="text-2xl font-bold text-white">{t("waiting_for_others_to", "Waiting for others to join")}</h3>
               <p className="text-muted-foreground">
                 Share the meeting link or wait for other participants
               </p>
@@ -306,7 +308,7 @@ export function VideoCallInterface({ conversationId, participantName, participan
             <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
               <div className="flex items-center gap-1">
                 <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                <span>Connected</span>
+                <span>{t("connected", "Connected")}</span>
               </div>
               <span>•</span>
               <span>{participants.length} participant{participants.length !== 1 ? 's' : ''}</span>

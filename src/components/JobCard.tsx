@@ -198,7 +198,7 @@ export const JobCard = ({
               {matchScore >= 90 && (
                 <div className="mt-3 flex items-center gap-1.5 text-xs text-foreground font-medium">
                   <Zap className="w-3.5 h-3.5" />
-                  <span>Elite Match - Auto-apply eligible</span>
+                  <span>{t("elite_match_autoapply_eligible", "Elite Match - Auto-apply eligible")}</span>
                 </div>
               )}
               <p className="mt-2 text-xs text-muted-foreground/60">

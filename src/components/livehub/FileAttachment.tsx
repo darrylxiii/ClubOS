@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Download, FileText, Image as ImageIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -13,6 +14,7 @@ interface FileAttachmentProps {
 }
 
 const FileAttachment = ({ attachment }: FileAttachmentProps) => {
+  const { t } = useTranslation('meetings');
   const isImage = attachment.type.startsWith('image/');
 
   const formatFileSize = (bytes?: number) => {
@@ -59,7 +61,7 @@ const FileAttachment = ({ attachment }: FileAttachmentProps) => {
             {attachment.size && formatFileSize(attachment.size)}
           </div>
         </div>
-        <Button variant="ghost" size="icon" className="flex-shrink-0" aria-label={`Download ${attachment.name}`}>
+        <Button variant="ghost" size="icon" className="flex-shrink-0" aria-label={t('livehub.downloadFile', { name: attachment.name })}>
           <Download className="w-4 h-4" aria-hidden="true" />
         </Button>
       </a>

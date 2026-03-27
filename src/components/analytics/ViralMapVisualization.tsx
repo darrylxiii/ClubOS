@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Share2, TrendingUp, Users } from "lucide-react";
@@ -15,6 +16,7 @@ interface ShareNode {
 }
 
 export const ViralMapVisualization = () => {
+  const { t } = useTranslation('analytics');
   const { user } = useAuth();
   const [viralPosts, setViralPosts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -88,7 +90,7 @@ export const ViralMapVisualization = () => {
     return (
       <Card>
         <CardContent className="py-8">
-          <p className="text-center text-muted-foreground">Loading viral analytics...</p>
+          <p className="text-center text-muted-foreground">{t('loadingViralAnalytics')}</p>
         </CardContent>
       </Card>
     );
@@ -100,13 +102,13 @@ export const ViralMapVisualization = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Share2 className="h-5 w-5" />
-            Viral Spread Map
+            {t('viralSpreadMap')}
           </CardTitle>
-          <CardDescription>Track how your content spreads across the network</CardDescription>
+          <CardDescription>{t('viralSpreadMapDesc')}</CardDescription>
         </CardHeader>
         <CardContent>
           <p className="text-center text-muted-foreground py-8">
-            No viral activity yet. Share your posts to see the spread!
+            {t('noViralActivity')}
           </p>
         </CardContent>
       </Card>
@@ -120,7 +122,7 @@ export const ViralMapVisualization = () => {
           <Share2 className="h-5 w-5" />
           Viral Spread Map
         </CardTitle>
-        <CardDescription>Your most shared content and engagement flow</CardDescription>
+        <CardDescription>{t('mostSharedContent')}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         {viralPosts.slice(0, 3).map((post) => (
@@ -164,7 +166,7 @@ export const ViralMapVisualization = () => {
             {/* Share tree visualization (simplified) */}
             {post.shareTree && post.shareTree.length > 0 && (
               <div className="space-y-2 border-l-2 border-primary/20 pl-4">
-                <p className="text-sm font-medium">Recent Share Flow:</p>
+                <p className="text-sm font-medium">{t('recentShareFlow')}</p>
                 {post.shareTree.map((share: ShareNode, idx: number) => (
                   <div
                     key={share.id}

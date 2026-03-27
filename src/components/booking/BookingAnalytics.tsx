@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Calendar, Users, TrendingUp, Clock } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface BookingStats {
   total_bookings: number;
@@ -18,6 +19,7 @@ interface BookingAnalyticsProps {
 }
 
 export function BookingAnalytics({ bookingLinkId, dateRange }: BookingAnalyticsProps) {
+  const { t } = useTranslation('common');
   const [stats, setStats] = useState<BookingStats | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -89,25 +91,25 @@ export function BookingAnalytics({ bookingLinkId, dateRange }: BookingAnalyticsP
   const statCards = [
     {
       icon: Calendar,
-      label: "Total Bookings",
+      label: t('booking.analytics.totalBookings', 'Total Bookings'),
       value: stats.total_bookings,
       color: "text-blue-600",
     },
     {
       icon: Users,
-      label: "Completed",
+      label: t('booking.analytics.completed', 'Completed'),
       value: stats.completed_bookings,
       color: "text-green-600",
     },
     {
       icon: TrendingUp,
-      label: "Completion Rate",
+      label: t('booking.analytics.completionRate', 'Completion Rate'),
       value: `${stats.completion_rate}%`,
       color: "text-amber-600",
     },
     {
       icon: Clock,
-      label: "Avg Duration",
+      label: t('booking.analytics.avgDuration', 'Avg Duration'),
       value: `${stats.avg_duration}m`,
       color: "text-purple-600",
     },

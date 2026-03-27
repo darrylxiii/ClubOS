@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -36,6 +37,7 @@ export function AISmartReplyPanel({
   onSelectReply,
   onSendReply
 }: AISmartReplyPanelProps) {
+  const { t } = useTranslation('common');
   const [replies, setReplies] = useState<SmartReply[]>([]);
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState<string | null>(null);
@@ -118,7 +120,7 @@ export function AISmartReplyPanel({
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <Sparkles className="w-4 h-4 text-primary" />
-          <h4 className="font-semibold text-sm">Smart Replies</h4>
+          <h4 className="font-semibold text-sm">{t("smart_replies", "Smart Replies")}</h4>
         </div>
         <Button
           variant="ghost"
@@ -208,7 +210,7 @@ export function AISmartReplyPanel({
 
       {/* Feedback */}
       <div className="flex items-center justify-center gap-4 mt-4 pt-3 border-t border-border/50">
-        <span className="text-xs text-muted-foreground">Were these helpful?</span>
+        <span className="text-xs text-muted-foreground">{t("were_these_helpful", "Were these helpful?")}</span>
         <div className="flex items-center gap-1">
           <Button variant="ghost" size="icon" className="h-7 w-7">
             <ThumbsUp className="w-3.5 h-3.5" />

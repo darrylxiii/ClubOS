@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -74,6 +75,7 @@ export function KPIReportBuilder({
   onOpenChange,
   allKPIs
 }: KPIReportBuilderProps) {
+  const { t } = useTranslation('common');
   const [isSaving, setIsSaving] = useState(false);
   const [newRecipient, setNewRecipient] = useState('');
   
@@ -154,15 +156,15 @@ export function KPIReportBuilder({
 
   const handleSave = async () => {
     if (!config.name) {
-      toast.error('Please enter a report name');
+      toast.error(t("please_enter_a_report", "Please enter a report name"));
       return;
     }
     if (config.selectedKPIs.length === 0) {
-      toast.error('Please select at least one KPI');
+      toast.error(t("please_select_at_least", "Please select at least one KPI"));
       return;
     }
     if (config.recipients.length === 0) {
-      toast.error('Please add at least one recipient');
+      toast.error(t("please_add_at_least", "Please add at least one recipient"));
       return;
     }
 
@@ -189,11 +191,11 @@ export function KPIReportBuilder({
 
       if (templateError) throw templateError;
 
-      toast.success('Report template saved successfully');
+      toast.success(t("report_template_saved_successfully", "Report template saved successfully"));
       onOpenChange(false);
     } catch (error) {
       console.error('Failed to save report:', error);
-      toast.error('Failed to save report configuration');
+      toast.error(t("failed_to_save_report", "Failed to save report configuration"));
     } finally {
       setIsSaving(false);
     }
@@ -218,19 +220,19 @@ export function KPIReportBuilder({
               {/* Basic Info */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Report Name</Label>
+                  <Label>{t("report_name", "Report Name")}</Label>
                   <Input
                     value={config.name}
                     onChange={(e) => setConfig(prev => ({ ...prev, name: e.target.value }))}
-                    placeholder="Weekly Executive Summary"
+                    placeholder={t("weekly_executive_summary", "Weekly Executive Summary")}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Description</Label>
+                  <Label>{t("description", "Description")}</Label>
                   <Input
                     value={config.description}
                     onChange={(e) => setConfig(prev => ({ ...prev, description: e.target.value }))}
-                    placeholder="Key metrics for leadership review"
+                    placeholder={t("key_metrics_for_leadership", "Key metrics for leadership review")}
                   />
                 </div>
               </div>
@@ -240,7 +242,7 @@ export function KPIReportBuilder({
               {/* KPI Selection */}
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <Label>Select KPIs</Label>
+                  <Label>{t("select_kpis", "Select KPIs")}</Label>
                   <Badge variant="outline">{config.selectedKPIs.length} selected</Badge>
                 </div>
                 
@@ -294,7 +296,7 @@ export function KPIReportBuilder({
               {/* Format & Delivery */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Report Format</Label>
+                  <Label>{t("report_format", "Report Format")}</Label>
                   <Select 
                     value={config.format} 
                     onValueChange={(v) => setConfig(prev => ({ ...prev, format: v as ReportFormat }))}
@@ -303,15 +305,15 @@ export function KPIReportBuilder({
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="pdf">PDF Document</SelectItem>
-                      <SelectItem value="csv">CSV Spreadsheet</SelectItem>
-                      <SelectItem value="html">HTML Email</SelectItem>
+                      <SelectItem value="pdf">{t("pdf_document", "PDF Document")}</SelectItem>
+                      <SelectItem value="csv">{t("csv_spreadsheet", "CSV Spreadsheet")}</SelectItem>
+                      <SelectItem value="html">{t("html_email", "HTML Email")}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 
                 <div className="space-y-2">
-                  <Label>Delivery Channel</Label>
+                  <Label>{t("delivery_channel", "Delivery Channel")}</Label>
                   <Select 
                     value={config.deliveryChannel} 
                     onValueChange={(v) => setConfig(prev => ({ ...prev, deliveryChannel: v as DeliveryChannel }))}
@@ -339,7 +341,7 @@ export function KPIReportBuilder({
 
               {/* Recipients */}
               <div className="space-y-2">
-                <Label>Recipients</Label>
+                <Label>{t("recipients", "Recipients")}</Label>
                 <div className="flex gap-2">
                   <Input
                     value={newRecipient}
@@ -375,7 +377,7 @@ export function KPIReportBuilder({
                 </Label>
                 <div className="grid grid-cols-3 gap-4">
                   <div className="space-y-2">
-                    <Label className="text-xs text-muted-foreground">Frequency</Label>
+                    <Label className="text-xs text-muted-foreground">{t("frequency", "Frequency")}</Label>
                     <Select 
                       value={config.schedule.frequency} 
                       onValueChange={(v) => setConfig(prev => ({ 
@@ -387,16 +389,16 @@ export function KPIReportBuilder({
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="daily">Daily</SelectItem>
-                        <SelectItem value="weekly">Weekly</SelectItem>
-                        <SelectItem value="monthly">Monthly</SelectItem>
+                        <SelectItem value="daily">{t("daily", "Daily")}</SelectItem>
+                        <SelectItem value="weekly">{t("weekly", "Weekly")}</SelectItem>
+                        <SelectItem value="monthly">{t("monthly", "Monthly")}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   
                   {config.schedule.frequency === 'weekly' && (
                     <div className="space-y-2">
-                      <Label className="text-xs text-muted-foreground">Day of Week</Label>
+                      <Label className="text-xs text-muted-foreground">{t("day_of_week", "Day of Week")}</Label>
                       <Select 
                         value={config.schedule.dayOfWeek?.toString()} 
                         onValueChange={(v) => setConfig(prev => ({ 
@@ -408,11 +410,11 @@ export function KPIReportBuilder({
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="1">Monday</SelectItem>
-                          <SelectItem value="2">Tuesday</SelectItem>
-                          <SelectItem value="3">Wednesday</SelectItem>
-                          <SelectItem value="4">Thursday</SelectItem>
-                          <SelectItem value="5">Friday</SelectItem>
+                          <SelectItem value="1">{t("monday", "Monday")}</SelectItem>
+                          <SelectItem value="2">{t("tuesday", "Tuesday")}</SelectItem>
+                          <SelectItem value="3">{t("wednesday", "Wednesday")}</SelectItem>
+                          <SelectItem value="4">{t("thursday", "Thursday")}</SelectItem>
+                          <SelectItem value="5">{t("friday", "Friday")}</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -420,7 +422,7 @@ export function KPIReportBuilder({
                   
                   {config.schedule.frequency === 'monthly' && (
                     <div className="space-y-2">
-                      <Label className="text-xs text-muted-foreground">Day of Month</Label>
+                      <Label className="text-xs text-muted-foreground">{t("day_of_month", "Day of Month")}</Label>
                       <Select 
                         value={config.schedule.dayOfMonth?.toString()} 
                         onValueChange={(v) => setConfig(prev => ({ 
@@ -441,7 +443,7 @@ export function KPIReportBuilder({
                   )}
                   
                   <div className="space-y-2">
-                    <Label className="text-xs text-muted-foreground">Time (CET)</Label>
+                    <Label className="text-xs text-muted-foreground">{t("time_cet", "Time (CET)")}</Label>
                     <Select 
                       value={config.schedule.time} 
                       onValueChange={(v) => setConfig(prev => ({ 
@@ -467,7 +469,7 @@ export function KPIReportBuilder({
 
               {/* Options */}
               <div className="space-y-3">
-                <Label>Options</Label>
+                <Label>{t("options", "Options")}</Label>
                 <div className="flex flex-col gap-2">
                   <div className="flex items-center gap-2">
                     <Checkbox

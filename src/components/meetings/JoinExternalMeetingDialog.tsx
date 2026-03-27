@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -19,6 +20,7 @@ interface JoinExternalMeetingDialogProps {
 type Platform = 'zoom' | 'teams' | 'meet' | 'other';
 
 export function JoinExternalMeetingDialog({ trigger, onSuccess }: JoinExternalMeetingDialogProps) {
+  const { t } = useTranslation('common');
   const [open, setOpen] = useState(false);
   const [meetingTitle, setMeetingTitle] = useState('');
   const [platform, setPlatform] = useState<Platform>('other');
@@ -52,13 +54,13 @@ export function JoinExternalMeetingDialog({ trigger, onSuccess }: JoinExternalMe
   const getPlatformBadge = () => {
     switch (platform) {
       case 'zoom':
-        return <Badge variant="secondary" className="bg-blue-500/10 text-blue-500">Zoom</Badge>;
+        return <Badge variant="secondary" className="bg-blue-500/10 text-blue-500">{t("zoom", "Zoom")}</Badge>;
       case 'teams':
-        return <Badge variant="secondary" className="bg-purple-500/10 text-purple-500">Microsoft Teams</Badge>;
+        return <Badge variant="secondary" className="bg-purple-500/10 text-purple-500">{t("microsoft_teams", "Microsoft Teams")}</Badge>;
       case 'meet':
-        return <Badge variant="secondary" className="bg-green-500/10 text-green-500">Google Meet</Badge>;
+        return <Badge variant="secondary" className="bg-green-500/10 text-green-500">{t("google_meet", "Google Meet")}</Badge>;
       default:
-        return <Badge variant="secondary" className="bg-muted">Other</Badge>;
+        return <Badge variant="secondary" className="bg-muted">{t("other", "Other")}</Badge>;
     }
   };
 
@@ -81,7 +83,7 @@ export function JoinExternalMeetingDialog({ trigger, onSuccess }: JoinExternalMe
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        toast.error('Please sign in to use this feature');
+        toast.error(t("please_sign_in_to", "Please sign in to use this feature"));
         return;
       }
 
@@ -119,7 +121,7 @@ export function JoinExternalMeetingDialog({ trigger, onSuccess }: JoinExternalMe
     } catch (error) {
       console.error('Error starting capture:', error);
       if ((error as Error).name !== 'NotAllowedError') {
-        toast.error('Failed to start screen capture');
+        toast.error(t("failed_to_start_screen", "Failed to start screen capture"));
       }
     } finally {
       setLoading(false);
@@ -186,17 +188,17 @@ export function JoinExternalMeetingDialog({ trigger, onSuccess }: JoinExternalMe
         ) : (
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="meeting-title">Meeting Title</Label>
+              <Label htmlFor="meeting-title">{t("meeting_title", "Meeting Title")}</Label>
               <Input
                 id="meeting-title"
                 value={meetingTitle}
                 onChange={e => setMeetingTitle(e.target.value)}
-                placeholder="Weekly Sync, Interview with John, etc."
+                placeholder={t("weekly_sync_interview_with", "Weekly Sync, Interview with John, etc.")}
               />
             </div>
 
             <div className="space-y-2">
-              <Label>Platform</Label>
+              <Label>{t("platform", "Platform")}</Label>
               <div className="flex flex-wrap gap-2">
                 {(['zoom', 'teams', 'meet', 'other'] as Platform[]).map((p) => (
                   <Button
@@ -216,12 +218,12 @@ export function JoinExternalMeetingDialog({ trigger, onSuccess }: JoinExternalMe
             <Alert className="bg-primary/5 border-primary/20">
               <Monitor className="h-4 w-4 text-primary" />
               <AlertDescription>
-                <strong>How it works:</strong>
+                <strong>{t("how_it_works", "How it works:")}</strong>
                 <ol className="list-decimal list-inside mt-2 space-y-1 text-sm text-muted-foreground">
-                  <li>Open your meeting in another browser window or tab</li>
-                  <li>Click "Start Capture" below</li>
-                  <li>Select your meeting window and check "Share audio"</li>
-                  <li>Click "Stop Recording" when the meeting ends</li>
+                  <li>{t("open_your_meeting_in", "Open your meeting in another browser window or tab")}</li>
+                  <li>{t("click_start_capture_below", "Click ')Start Capture' below")}</li>
+                  <li>{t("select_your_meeting_window", "Select your meeting window and check ')Share audio'")}</li>
+                  <li>{t("click_stop_recording_when", "Click ')Stop Recording' when the meeting ends")}</li>
                 </ol>
               </AlertDescription>
             </Alert>
@@ -229,7 +231,7 @@ export function JoinExternalMeetingDialog({ trigger, onSuccess }: JoinExternalMe
             <Alert variant="default" className="bg-muted/50">
               <Info className="h-4 w-4 text-muted-foreground" />
               <AlertDescription className="text-muted-foreground text-sm">
-                <strong>Privacy:</strong> Your recording stays in-house. Make sure all participants consent to recording.
+                <strong>{t("privacy", "Privacy:")}</strong> Your recording stays in-house. Make sure all participants consent to recording.
               </AlertDescription>
             </Alert>
           </div>

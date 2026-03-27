@@ -1,0 +1,134 @@
+{
+  "title": "Onboarding",
+  "subtitle": "Iniziamo il Suo percorso",
+  "steps": {
+    "contact": {
+      "title": "Informazioni di contatto",
+      "subtitle": "Iniziamo con le basi",
+      "firstName": "Nome",
+      "lastName": "Cognome",
+      "email": "Indirizzo email",
+      "phone": "Numero di telefono",
+      "location": "Sede"
+    },
+    "professional": {
+      "title": "Esperienza professionale",
+      "subtitle": "Ci parli del Suo percorso professionale",
+      "currentTitle": "Titolo attuale",
+      "company": "Azienda attuale",
+      "yearsExperience": "Anni di esperienza",
+      "industry": "Settore",
+      "linkedin": "Profilo LinkedIn",
+      "portfolio": "Sito web / Portfolio"
+    },
+    "career": {
+      "title": "Obiettivi di carriera",
+      "subtitle": "Ci parli di cio che sta cercando",
+      "desiredRole": "Ruolo desiderato",
+      "desiredIndustry": "Settore desiderato",
+      "workMode": "Modalita di lavoro preferita",
+      "relocation": "Disponibilita al trasferimento",
+      "startDate": "Disponibilita",
+      "skills": "Competenze chiave"
+    },
+    "compensation": {
+      "title": "Aspettative retributive",
+      "subtitle": "Ci aiuti a trovare la giusta corrispondenza",
+      "currentSalary": "Retribuzione attuale",
+      "desiredSalary": "Retribuzione desiderata",
+      "currency": "Valuta",
+      "benefits": "Benefit importanti",
+      "equity": "Interesse in equity"
+    },
+    "preferences": {
+      "title": "Preferenze",
+      "subtitle": "Personalizzazione della Sua esperienza",
+      "notifications": "Preferenze di notifica",
+      "language": "Lingua preferita",
+      "timezone": "Fuso orario",
+      "privacy": "Impostazioni privacy"
+    },
+    "password": {
+      "title": "Sicurezza",
+      "subtitle": "Crei una password sicura",
+      "password": "Password",
+      "confirm": "Confermi la password",
+      "requirements": "Requisiti della password"
+    },
+    "complete": {
+      "title": "Tutto pronto!",
+      "subtitle": "Il Suo profilo e stato configurato con successo",
+      "dashboard": "Vada alla dashboard",
+      "explore": "Esplori le funzionalita"
+    }
+  },
+  "validation": {
+    "required": "Questo campo e obbligatorio",
+    "invalidEmail": "Inserisca un indirizzo email valido",
+    "invalidPhone": "Inserisca un numero di telefono valido",
+    "invalidUrl": "Inserisca un URL valido",
+    "passwordMismatch": "Le password non coincidono",
+    "passwordTooShort": "La password deve contenere almeno {{min}} caratteri",
+    "selectAtLeastOne": "Selezioni almeno un'opzione"
+  },
+  "messages": {
+    "welcome": "Benvenuto su The Quantum Club!",
+    "stepComplete": "Passo completato!",
+    "allComplete": "Onboarding completato!",
+    "savingProgress": "Salvataggio in corso...",
+    "progressSaved": "Progressi salvati",
+    "skipForNow": "Salti per ora"
+  },
+  "navigation": {
+    "next": "Avanti",
+    "previous": "Indietro",
+    "skip": "Salti questo passo",
+    "finish": "Completa configurazione",
+    "saveAndContinue": "Salva e continua",
+    "step": "Passo {{current}} di {{total}}"
+  },
+  "header": {
+    "title": "Benvenuto su The Quantum Club",
+    "subtitle": "Configuri il Suo profilo in pochi minuti",
+    "progress": "{{percent}}% completato"
+  },
+  "paused": {
+    "title": "Onboarding in pausa",
+    "subtitle": "Potra continuare in qualsiasi momento",
+    "resume": "Riprenda l'onboarding",
+    "restart": "Ricominci da capo"
+  },
+  "dialog": {
+    "skipTitle": "Saltare questo passo?",
+    "skipMessage": "Potra completare queste informazioni in seguito dalle impostazioni.",
+    "skipConfirm": "Si, salta",
+    "skipCancel": "No, completa adesso"
+  },
+  "trustBadges": {
+    "encrypted": "Crittografia end-to-end",
+    "gdpr": "Conforme al GDPR",
+    "noSpam": "Nessuno spam, mai",
+    "dataControl": "Pieno controllo sui dati"
+  },
+  "socialProof": {
+    "joined": "{{count}} professionisti si sono uniti questa settimana",
+    "companies": "Scelto da {{count}}+ aziende",
+    "rating": "Valutazione {{rating}}/5 su Trustpilot"
+  },
+  "keyboard": {
+    "enterToContinue": "Premi Invio per continuare",
+    "tabToSwitch": "Premi Tab per cambiare campo",
+    "escToGoBack": "Premi Esc per tornare indietro"
+  },
+  "offline": {
+    "title": "Sembra che sia offline",
+    "message": "I Suoi progressi sono salvati localmente. Si riconnetta per continuare.",
+    "retry": "Riprova connessione"
+  },
+  "sessionRecovery": {
+    "title": "Bentornato!",
+    "message": "Abbiamo trovato i Suoi progressi precedenti. Desidera continuare da dove ha interrotto?",
+    "continue": "Continua",
+    "startOver": "Ricomincia da capo"
+  }
+}

@@ -1,65 +1,48 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import Stripe from "https://esm.sh/stripe@18.5.0";
-import { createClient } from "npm:@supabase/supabase-js@2.57.2";
+import { createHandler } from '../_shared/handler.ts';
+import { createStripeClient, withStripeResilience, generateIdempotencyKey } from '../_shared/stripe-client.ts';
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-};
+Deno.serve(createHandler(async (req, { supabase, user, corsHeaders }) => {
+  const stripe = createStripeClient();
 
-serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+  const { bookingLinkSlug, guestEmail, guestName, scheduledStart, scheduledEnd, timezone, notes } = await req.json();
+
+  if (!bookingLinkSlug || !guestEmail) {
+    throw new Error("Missing required fields: bookingLinkSlug, guestEmail");
   }
 
-  try {
-    const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
-    if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
+  // Get booking link with payment config
+  const { data: bookingLink, error: linkError } = await supabase
+    .from("booking_links")
+    .select("id, user_id, title, payment_required, payment_amount, payment_currency, duration_minutes")
+    .eq("slug", bookingLinkSlug)
+    .eq("is_active", true)
+    .single();
 
-    const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
+  if (linkError || !bookingLink) {
+    throw new Error("Booking link not found or inactive");
+  }
 
-    const { bookingLinkSlug, guestEmail, guestName, scheduledStart, scheduledEnd, timezone, notes } = await req.json();
+  if (!bookingLink.payment_required || !bookingLink.payment_amount) {
+    throw new Error("Payment not required for this booking link");
+  }
 
-    if (!bookingLinkSlug || !guestEmail) {
-      throw new Error("Missing required fields: bookingLinkSlug, guestEmail");
-    }
+  const amountInCents = Math.round(bookingLink.payment_amount * 100);
+  const currency = bookingLink.payment_currency || "eur";
+  const origin = req.headers.get("origin") || "https://os.thequantumclub.com";
 
-    const supabaseClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
-      { auth: { persistSession: false } }
-    );
+  // Check existing Stripe customer
+  const customers = await withStripeResilience(
+    () => stripe.customers.list({ email: guestEmail, limit: 1 }),
+    { operation: 'list-customers' },
+  );
+  let customerId: string | undefined;
+  if (customers.data.length > 0) {
+    customerId = customers.data[0].id;
+  }
 
-    // Get booking link with payment config
-    const { data: bookingLink, error: linkError } = await supabaseClient
-      .from("booking_links")
-      .select("id, user_id, title, payment_required, payment_amount, payment_currency, duration_minutes")
-      .eq("slug", bookingLinkSlug)
-      .eq("is_active", true)
-      .single();
-
-    if (linkError || !bookingLink) {
-      throw new Error("Booking link not found or inactive");
-    }
-
-    if (!bookingLink.payment_required || !bookingLink.payment_amount) {
-      throw new Error("Payment not required for this booking link");
-    }
-
-    const amountInCents = Math.round(bookingLink.payment_amount * 100);
-    const currency = bookingLink.payment_currency || "eur";
-    const origin = req.headers.get("origin") || "https://os.thequantumclub.com";
-
-    // Check existing Stripe customer
-    const customers = await stripe.customers.list({ email: guestEmail, limit: 1 });
-    let customerId: string | undefined;
-    if (customers.data.length > 0) {
-      customerId = customers.data[0].id;
-    }
-
-    // Create Stripe Checkout session
-    const session = await stripe.checkout.sessions.create({
+  // Create Stripe Checkout session
+  const session = await withStripeResilience(
+    () => stripe.checkout.sessions.create({
       customer: customerId,
       customer_email: customerId ? undefined : guestEmail,
       line_items: [
@@ -87,17 +70,12 @@ serve(async (req) => {
         timezone: timezone || "",
         notes: notes || "",
       },
-    });
+    }),
+    { operation: 'create-booking-checkout', idempotencyKey: generateIdempotencyKey(guestEmail, 'booking-checkout', bookingLinkSlug, scheduledStart || '') },
+  );
 
-    return new Response(JSON.stringify({ url: session.url, sessionId: session.id }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 200,
-    });
-  } catch (error) {
-    console.error("[process-booking-payment] Error:", error);
-    return new Response(JSON.stringify({ error: error.message }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 500,
-    });
-  }
-});
+  return new Response(JSON.stringify({ url: session.url, sessionId: session.id }), {
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+    status: 200,
+  });
+}));

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Eye, Bell, TrendingUp, Users } from "lucide-react";
 import { ProbationTracker } from "@/components/probation/ProbationTracker";
@@ -7,6 +8,7 @@ interface ObserverDashboardProps {
 }
 
 export function ObserverDashboard({ jobId }: ObserverDashboardProps) {
+  const { t } = useTranslation('common');
   return (
     <div className="space-y-6">
       {/* Read-only pipeline view */}
@@ -16,12 +18,10 @@ export function ObserverDashboard({ jobId }: ObserverDashboardProps) {
             <Eye className="h-5 w-5" />
             Pipeline Overview
           </CardTitle>
-          <CardDescription>Read-only view for stakeholders</CardDescription>
+          <CardDescription>{t("readonly_view_for_stakeholders", "Read-only view for stakeholders")}</CardDescription>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-muted-foreground">
-            You have observer access to this role. View pipeline in the Pipeline tab above.
-          </p>
+          <p className="text-sm text-muted-foreground">{t('observerDashboard.youHaveObserverAccessToThisRoleViewPipel')}</p>
         </CardContent>
       </Card>
 
@@ -34,7 +34,7 @@ export function ObserverDashboard({ jobId }: ObserverDashboardProps) {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-sm">You'll receive a digest every Monday with key updates</p>
+          <p className="text-sm">{t("youll_receive_a_digest", "You'll receive a digest every Monday with key updates")}</p>
         </CardContent>
       </Card>
 
@@ -45,7 +45,7 @@ export function ObserverDashboard({ jobId }: ObserverDashboardProps) {
             <TrendingUp className="h-5 w-5" />
             Placement Tracking
           </CardTitle>
-          <CardDescription>Monitor probation periods and guarantees</CardDescription>
+          <CardDescription>{t("monitor_probation_periods_and", "Monitor probation periods and guarantees")}</CardDescription>
         </CardHeader>
         <CardContent>
           <ProbationTracker />

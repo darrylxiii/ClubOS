@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -16,6 +17,7 @@ interface PredictionData {
 }
 
 export function ConversionPredictionChart() {
+  const { t } = useTranslation('common');
   const { recharts, isLoading: chartsLoading } = useRecharts();
   const { data: predictions, isLoading } = useQuery({
     queryKey: ['conversion-predictions'],
@@ -217,7 +219,7 @@ export function ConversionPredictionChart() {
               <TrendingUp className="w-5 h-5 text-primary" />
               Conversion Forecast
             </CardTitle>
-            <Badge variant="secondary">30-Day Prediction</Badge>
+            <Badge variant="secondary">{t("30day_prediction", "30-Day Prediction")}</Badge>
           </div>
         </CardHeader>
         <CardContent>

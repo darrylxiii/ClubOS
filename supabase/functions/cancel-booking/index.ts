@@ -2,14 +2,12 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
 import { EMAIL_SENDERS } from "../_shared/email-config.ts";
+import { sendEmail } from '../_shared/resend-client.ts';
 import { checkUserRateLimit, createRateLimitResponse } from "../_shared/rate-limiter.ts";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+import { getCorsHeaders } from '../_shared/cors.ts';
 
 serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -123,7 +121,6 @@ serve(async (req) => {
     }
 
     // Send cancellation emails
-    const resendApiKey = Deno.env.get("RESEND_API_KEY");
     const formattedDate = new Date(booking.scheduled_start).toLocaleDateString("en-US", {
       weekday: "long",
       year: "numeric",
@@ -175,25 +172,16 @@ serve(async (req) => {
       </p>
     `;
 
-    const guestEmailResponse = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${resendApiKey}`,
-      },
-      body: JSON.stringify({
+    try {
+      await sendEmail({
         from: EMAIL_SENDERS.bookings,
         to: [booking.guest_email],
         subject: `Booking Cancelled - ${booking.booking_links.title}`,
         html: baseEmailTemplate({ content: guestContent }),
-      }),
-    });
-
-    if (!guestEmailResponse.ok) {
-      const errorData = await guestEmailResponse.json();
-      console.error("[Cancel] Guest email send failed:", errorData);
-    } else {
+      });
       console.log("[Cancel] Guest cancellation email sent to:", booking.guest_email);
+    } catch (emailErr) {
+      console.error("[Cancel] Guest email send failed:", emailErr);
     }
 
     // Email to owner
@@ -234,25 +222,16 @@ serve(async (req) => {
         </div>
       `;
 
-      const ownerEmailResponse = await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${resendApiKey}`,
-        },
-        body: JSON.stringify({
+      try {
+        await sendEmail({
           from: EMAIL_SENDERS.bookings,
           to: [ownerEmail],
           subject: `Booking Cancelled - ${booking.guest_name}`,
           html: baseEmailTemplate({ content: ownerContent }),
-        }),
-      });
-
-      if (!ownerEmailResponse.ok) {
-        const errorData = await ownerEmailResponse.json();
-        console.error("[Cancel] Owner email send failed:", errorData);
-      } else {
+        });
         console.log("[Cancel] Owner cancellation email sent to:", ownerEmail);
+      } catch (emailErr) {
+        console.error("[Cancel] Owner email send failed:", emailErr);
       }
     } else {
       console.warn("[Cancel] No owner email found, skipping owner notification");

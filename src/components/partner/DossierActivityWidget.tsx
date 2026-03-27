@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -33,6 +34,7 @@ interface TopViewed {
 }
 
 export function DossierActivityWidget({ companyId }: { companyId: string }) {
+  const { t } = useTranslation('common');
   const { data: recentViews, isLoading } = useQuery({
     queryKey: ['dossier-activity', companyId],
     queryFn: async () => {
@@ -171,16 +173,14 @@ export function DossierActivityWidget({ companyId }: { companyId: string }) {
               <Users className="h-5 w-5 text-muted-foreground" />
             </div>
             <div>
-              <p className="font-medium text-foreground">No Recent Activity</p>
-              <p className="text-sm text-muted-foreground">
-                Browse candidates to see their profiles here
-              </p>
+              <p className="font-medium text-foreground">{t("no_recent_activity", "No Recent Activity")}</p>
+              <p className="text-sm text-muted-foreground">{t('dossierActivityWidget.browseCandidatesToSeeTheirProfilesHere')}</p>
             </div>
           </motion.div>
         ) : (
           <>
             <div className="space-y-2">
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Recent Views</p>
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t("recent_views", "Recent Views")}</p>
               {recentViews.slice(0, 3).map((view, index) => (
                 <motion.div
                   key={view.id}

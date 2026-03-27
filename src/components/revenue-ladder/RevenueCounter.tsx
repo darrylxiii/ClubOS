@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState, useRef } from 'react';
 import { motion, useSpring, useTransform } from '@/lib/motion';
 import { TrendingUp, Sparkles } from 'lucide-react';
@@ -14,6 +15,7 @@ interface RevenueCounterProps {
 }
 
 function AnimatedNumber({ value }: { value: number }) {
+  const { t } = useTranslation('common');
   const spring = useSpring(0, { stiffness: 50, damping: 15 });
   const display = useTransform(spring, (current) =>
     new Intl.NumberFormat('nl-NL', {
@@ -151,7 +153,7 @@ export function RevenueCounter({
         {target && (
           <div className="space-y-1.5 pt-2">
             <div className="flex items-center justify-between text-label-sm">
-              <span className="text-muted-foreground">Target</span>
+              <span className="text-muted-foreground">{t("target", "Target")}</span>
               <span className="font-medium">
                 {new Intl.NumberFormat('nl-NL', {
                   style: 'currency',

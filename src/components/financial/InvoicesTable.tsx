@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +13,7 @@ interface InvoicesTableProps {
 }
 
 export function InvoicesTable({ invoices }: InvoicesTableProps) {
+  const { t } = useTranslation('common');
   const [search, setSearch] = useState("");
 
   const filteredInvoices = invoices.filter((invoice) =>
@@ -43,7 +45,7 @@ export function InvoicesTable({ invoices }: InvoicesTableProps) {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search by invoice number..."
+            placeholder={t("search_by_invoice_number", "Search by invoice number...")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-9"
@@ -55,12 +57,12 @@ export function InvoicesTable({ invoices }: InvoicesTableProps) {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Invoice #</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead>Due Date</TableHead>
-              <TableHead>Amount</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Actions</TableHead>
+              <TableHead>{t("invoice", "Invoice #")}</TableHead>
+              <TableHead>{t("date", "Date")}</TableHead>
+              <TableHead>{t("due_date", "Due Date")}</TableHead>
+              <TableHead>{t("amount", "Amount")}</TableHead>
+              <TableHead>{t("status", "Status")}</TableHead>
+              <TableHead>{t("actions", "Actions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

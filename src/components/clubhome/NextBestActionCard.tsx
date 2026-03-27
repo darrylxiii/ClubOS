@@ -15,6 +15,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { T } from "@/components/T";
+import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 
 interface SimpleBooking {
@@ -33,6 +34,7 @@ interface NextAction {
 }
 
 export const NextBestActionCard = () => {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
 
   const { data: nextAction, isLoading } = useQuery({
@@ -68,8 +70,8 @@ export const NextBestActionCard = () => {
       if (!profileComplete) {
         return {
           id: 'complete-profile',
-          title: 'Complete Your Profile',
-          description: 'A complete profile gets 3x more views from recruiters',
+          title: t('nextAction.completeProfile', 'Complete Your Profile'),
+          description: t('nextAction.completeProfileDesc', 'A complete profile gets 3x more views from recruiters'),
           icon: UserCircle,
           link: '/settings?tab=profile',
           priority: 'high',
@@ -85,14 +87,14 @@ export const NextBestActionCard = () => {
         .gte('scheduled_start', new Date().toISOString())
         .order('scheduled_start', { ascending: true })
         .limit(1);
-      
+
       const upcomingMeetings = data as SimpleBooking[] | null;
 
       if (upcomingMeetings && upcomingMeetings.length > 0) {
         return {
           id: 'prepare-interview',
-          title: 'Prepare for Your Interview',
-          description: 'Review the job details and practice with QUIN',
+          title: t('nextAction.prepareInterview', 'Prepare for Your Interview'),
+          description: t('nextAction.prepareInterviewDesc', 'Review the job details and practice with QUIN'),
           icon: Calendar,
           link: '/meetings',
           priority: 'high',
@@ -119,8 +121,8 @@ export const NextBestActionCard = () => {
       if (!applicationCount || applicationCount === 0) {
         return {
           id: 'browse-jobs',
-          title: 'Explore Matching Jobs',
-          description: 'QUIN has found roles that match your skills',
+          title: t('nextAction.exploreJobs', 'Explore Matching Jobs'),
+          description: t('nextAction.exploreJobsDesc', 'QUIN has found roles that match your skills'),
           icon: Search,
           link: '/jobs',
           priority: 'medium',
@@ -138,8 +140,8 @@ export const NextBestActionCard = () => {
       if (!candidateProfile?.resume_url) {
         return {
           id: 'upload-cv',
-          title: 'Upload Your CV',
-          description: 'Let QUIN analyze and enhance your profile',
+          title: t('nextAction.uploadCV', 'Upload Your CV'),
+          description: t('nextAction.uploadCVDesc', 'Let QUIN analyze and enhance your profile'),
           icon: FileText,
           link: '/settings?tab=documents',
           priority: 'medium',
@@ -150,8 +152,8 @@ export const NextBestActionCard = () => {
       // All good - user has done the basics
       return {
         id: 'all-set',
-        title: 'You\'re All Set!',
-        description: 'Your profile is optimized. Keep exploring opportunities.',
+        title: t('nextAction.allSet', "You're All Set!"),
+        description: t('nextAction.allSetDesc', 'Your profile is optimized. Keep exploring opportunities.'),
         icon: CheckCircle2,
         link: '/jobs',
         priority: 'low',

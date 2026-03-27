@@ -1,4 +1,5 @@
 import { memo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -13,6 +14,7 @@ interface ValuesPokerResultsProps {
 }
 
 export const ValuesPokerResults = memo(({ results, onBack }: ValuesPokerResultsProps) => {
+  const { t } = useTranslation('common');
   const getValueEmoji = (valueId: string) => {
     return WORK_VALUES.find(v => v.id === valueId)?.emoji || '⭐';
   };
@@ -22,7 +24,7 @@ export const ValuesPokerResults = memo(({ results, onBack }: ValuesPokerResultsP
       <Card>
         <CardHeader>
           <div className="text-6xl mb-4 text-center">🎲</div>
-          <CardTitle className="text-3xl text-center">Your Values Profile</CardTitle>
+          <CardTitle className="text-3xl text-center">{t('valuesPoker.yourValuesProfile')}</CardTitle>
           <p className="text-center text-muted-foreground">
             {results.archetype}
           </p>
@@ -31,9 +33,7 @@ export const ValuesPokerResults = memo(({ results, onBack }: ValuesPokerResultsP
           <div className="text-center p-4 rounded-lg bg-muted">
             <div className="text-4xl font-bold">{Math.round(results.consistencyScore)}%</div>
             <div className="text-sm text-muted-foreground">Consistency Score</div>
-            <p className="text-xs text-muted-foreground mt-2">
-              How well your stated values match your choices
-            </p>
+            <p className="text-xs text-muted-foreground mt-2">{t('valuesPoker.howWellYourStatedValuesMatchYourChoices')}</p>
           </div>
         </CardContent>
       </Card>
@@ -42,7 +42,7 @@ export const ValuesPokerResults = memo(({ results, onBack }: ValuesPokerResultsP
         <CardHeader>
           <div className="flex items-center gap-2">
             <Award className="h-5 w-5" />
-            <CardTitle>Your Top Values</CardTitle>
+            <CardTitle>{t('valuesPoker.yourTopValues')}</CardTitle>
           </div>
         </CardHeader>
         <CardContent>
@@ -86,7 +86,7 @@ export const ValuesPokerResults = memo(({ results, onBack }: ValuesPokerResultsP
         <CardHeader>
           <div className="flex items-center gap-2">
             <Building className="h-5 w-5" />
-            <CardTitle>Culture Fit Scores</CardTitle>
+            <CardTitle>{t('valuesPoker.cultureFitScores')}</CardTitle>
           </div>
         </CardHeader>
         <CardContent>
@@ -111,7 +111,7 @@ export const ValuesPokerResults = memo(({ results, onBack }: ValuesPokerResultsP
           <CardHeader>
             <div className="flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-orange-500" />
-              <CardTitle>Inconsistencies Worth Noting</CardTitle>
+              <CardTitle>{t('valuesPoker.inconsistenciesWorthNoting')}</CardTitle>
             </div>
           </CardHeader>
           <CardContent>
@@ -127,9 +127,7 @@ export const ValuesPokerResults = memo(({ results, onBack }: ValuesPokerResultsP
         </Card>
       )}
 
-      <Button onClick={onBack} className="w-full" size="lg">
-        Back to Assessments
-      </Button>
+      <Button onClick={onBack} className="w-full" size="lg">{t('valuesPoker.backToAssessments')}</Button>
     </div>
   );
 });

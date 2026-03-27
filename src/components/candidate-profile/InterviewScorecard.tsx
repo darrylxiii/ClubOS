@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 /**
  * Interview Scorecard Component
  * 
@@ -32,6 +33,7 @@ interface InterviewScorecardProps {
 }
 
 export function InterviewScorecard({ candidateId }: InterviewScorecardProps) {
+  const { t } = useTranslation('common');
   const { data: candidate, isLoading } = useQuery({
     queryKey: ['candidate-interview-data', candidateId],
     queryFn: async () => {
@@ -73,8 +75,8 @@ export function InterviewScorecard({ candidateId }: InterviewScorecardProps) {
       <Card className="bg-muted/30">
         <CardContent className="flex flex-col items-center justify-center py-8 text-center">
           <Video className="h-10 w-10 text-muted-foreground mb-3" />
-          <p className="text-muted-foreground">No interviews recorded yet</p>
-          <p className="text-sm text-muted-foreground/70">Interview data will appear here after meetings</p>
+          <p className="text-muted-foreground">{t("no_interviews_recorded_yet", "No interviews recorded yet")}</p>
+          <p className="text-sm text-muted-foreground/70">{t("interview_data_will_appear", "Interview data will appear here after meetings")}</p>
         </CardContent>
       </Card>
     );
@@ -135,7 +137,7 @@ export function InterviewScorecard({ candidateId }: InterviewScorecardProps) {
             <p className={`text-3xl font-bold ${scoreColor()}`}>
               {interviewScoreAvg?.toFixed(0) || '--'}
             </p>
-            <p className="text-xs text-muted-foreground mt-1">Interview Score</p>
+            <p className="text-xs text-muted-foreground mt-1">{t("interview_score", "Interview Score")}</p>
             <Progress 
               value={interviewScoreAvg || 0} 
               className="mt-2 h-1.5" 
@@ -148,7 +150,7 @@ export function InterviewScorecard({ candidateId }: InterviewScorecardProps) {
                 {aiRecommendation || 'Pending'}
               </p>
             </div>
-            <p className="text-xs mt-1 opacity-70">AI Recommendation</p>
+            <p className="text-xs mt-1 opacity-70">{t("ai_recommendation", "AI Recommendation")}</p>
           </div>
         </div>
 

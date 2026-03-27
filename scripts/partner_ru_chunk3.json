@@ -1,0 +1,248 @@
+{
+  "candidateDetailDialog": {
+    "title": "Информация о кандидате",
+    "toast": {
+      "failedToAddComment": "Не удалось добавить комментарий",
+      "commentAdded": "Комментарий добавлен",
+      "failedToSubmitScorecard": "Не удалось отправить оценочный лист",
+      "scorecardSubmitted": "Оценочный лист отправлен",
+      "failedToMoveCandidate": "Не удалось переместить кандидата",
+      "candidateMoved": "Кандидат перемещён"
+    },
+    "placeholder": {
+      "moveToStage": "Перевести на этап...",
+      "whatAreTheirStrengths": "Каковы их сильные стороны?",
+      "anyConcerns": "Есть ли опасения?",
+      "additionalNotes": "Дополнительные заметки..."
+    },
+    "tab": {
+      "overview": "Обзор",
+      "scorecard": "Оценочный лист",
+      "comments": "Комментарии",
+      "activity": "Активность"
+    },
+    "activityTimelineComingSoon": "Хронология активности скоро появится",
+    "pipelineStage": "Этап воронки",
+    "option": {
+      "strongYes": "Определённо да",
+      "yes": "Да",
+      "neutral": "Нейтрально",
+      "strongNo": "Определённо нет"
+    }
+  },
+  "candidateDocumentsViewer": {
+    "dialogTitle": "Выберите тип документа",
+    "toast": {
+      "failedToLoadDocuments": "Не удалось загрузить документы",
+      "failedToUpdateDocument": "Не удалось обновить документ",
+      "documentDeleted": "Документ удалён",
+      "failedToDeleteDocument": "Не удалось удалить документ"
+    },
+    "label": {
+      "documentType": "Тип документа",
+      "expiryDateOptional": "Срок действия (необязательно)"
+    },
+    "loadingDocuments": "Загрузка документов",
+    "releaseToUpload": "Отпустите для загрузки",
+    "noDocumentsYet": "Документов пока нет",
+    "uploadTheFirstDocumentToGetStarted": "Загрузите первый документ для начала",
+    "documentsWillBeAutomaticallyArchivedAfte": "Документы будут автоматически архивированы после этой даты для соблюдения GDPR",
+    "verified": "Проверено",
+    "title": {
+      "documentPreview": "Предпросмотр документа"
+    }
+  },
+  "candidateInteractionLog": {
+    "title": "Хронология взаимодействий",
+    "toast": {
+      "pleaseEnterNoteContent": "Пожалуйста, введите содержание заметки",
+      "noteAddedSuccessfully": "Заметка успешно добавлена",
+      "failedToAddNote": "Не удалось добавить заметку"
+    },
+    "label": {
+      "logNewInteraction": "Записать новое взаимодействие"
+    },
+    "placeholder": {
+      "enterInteractionDetails": "Введите детали взаимодействия..."
+    },
+    "noInteractionsLoggedYet": "Взаимодействий пока не зарегистрировано",
+    "description": "Загрузка взаимодействий с кандидатом...",
+    "option": {
+      "note": "Заметка",
+      "phoneCall": "Телефонный звонок",
+      "email": "Электронная почта",
+      "message": "Сообщение",
+      "meeting": "Встреча"
+    }
+  },
+  "candidateInternalRatingCard": {
+    "title": "История оценок",
+    "toast": {
+      "ratingsUpdatedSuccessfully": "Оценки успешно обновлены",
+      "failedToUpdateRatings": "Не удалось обновить оценки"
+    },
+    "placeholder": {
+      "addContextForTheseRatings": "Добавьте контекст для этих оценок..."
+    },
+    "overallTeamAssessmentOfCandidateQuality": "Общая оценка качества кандидата командой",
+    "candidateResponsivenessAndInterestLevel": "Отзывчивость кандидата и уровень заинтересованности",
+    "skillsAndExperienceAlignmentWithOpportun": "Соответствие навыков и опыта возможностям",
+    "viewAllRatingChangesAndTeamMemberAssessm": "Просмотрите все изменения оценок и оценки участников команды с течением времени",
+    "description": "Метрики оценки командой (не видны кандидату)"
+  },
+  "candidateInvitationDialog": {
+    "toast": {
+      "invitationSentSuccessfully": "Приглашение успешно отправлено!",
+      "failedToSendInvitation": "Не удалось отправить приглашение"
+    },
+    "label": {
+      "emailAddress": "Адрес электронной почты",
+      "linkToSpecificJobsOptional": "Привязать к конкретным вакансиям (необязательно)",
+      "personalMessage": "Личное сообщение"
+    },
+    "selectedJobsWillBeMentionedInTheInvitati": "Выбранные вакансии будут упомянуты в письме-приглашении",
+    "thisMessageWillBeIncludedInTheInvitation": "Это сообщение будет включено в письмо-приглашение",
+    "whatHappensNext": "Что происходит дальше?"
+  },
+  "candidateLinkedJobs": {
+    "toast": {
+      "failedToLoadLinkedJobs": "Не удалось загрузить связанные вакансии"
+    },
+    "applied": "Подано",
+    "lastUpdated": "Последнее обновление",
+    "salaryRange": "Диапазон зарплаты",
+    "stageProgress": "Прогресс по этапам",
+    "description": "Заявки на вакансии не найдены"
+  },
+  "candidateNotesManager": {
+    "toast": {
+      "noteContentIsRequired": "Содержание заметки обязательно",
+      "youMustBeLoggedInToCreateNotes": "Для создания заметок необходимо войти в систему",
+      "noteSaved": "Заметка сохранена",
+      "failedToDeleteNote": "Не удалось удалить заметку",
+      "noteDeleted": "Заметка удалена",
+      "failedToUpdateNote": "Не удалось обновить заметку"
+    },
+    "placeholder": {
+      "noteTitle": "Заголовок заметки...",
+      "addYourNotesHere": "Добавьте Ваши заметки здесь..."
+    },
+    "tab": {
+      "allNotes": "Все заметки",
+      "tqcInternal": "Внутренние TQC",
+      "partnerShared": "Доступные партнёру",
+      "general": "Общие"
+    },
+    "loadingNotes": "Загрузка заметок...",
+    "tqcInternal": "Внутренние TQC",
+    "visibleOnlyToTqcTeam": "Видны только команде TQC",
+    "general": "Общие",
+    "visibleToEveryone": "Видны всем"
+  },
+  "candidatePipelineStatus": {
+    "toast": {
+      "failedToLoadPipelineStatus": "Не удалось загрузить статус воронки",
+      "pipelineStageUpdated": "Этап воронки обновлён",
+      "failedToUpdateStage": "Не удалось обновить этап"
+    },
+    "currentStage": "Текущий этап",
+    "progress": "Прогресс",
+    "description": "Активные заявки не найдены"
+  },
+  "candidateQuickActions": {
+    "dialogTitle": "Импорт из LinkedIn",
+    "toast": {
+      "pleaseEnterALinkedinUrl": "Пожалуйста, введите URL LinkedIn",
+      "linkedinProfileImportedSuccessfully": "Профиль LinkedIn успешно импортирован.",
+      "failedToImportLinkedinProfile": "Не удалось импортировать профиль LinkedIn",
+      "profileExportedSuccessfully": "Профиль успешно экспортирован",
+      "failedToExportProfile": "Не удалось экспортировать профиль"
+    },
+    "label": {
+      "linkedinProfileUrl": "URL профиля LinkedIn"
+    },
+    "dialogDescription": "Введите URL профиля LinkedIn для автоматического обогащения профиля кандидата"
+  },
+  "companyAchievements": {
+    "title": "Пользовательские достижения",
+    "basicInformation": "Основная информация",
+    "unlockCriteria": "Критерии разблокировки",
+    "noCustomAchievementsYet": "Пользовательских достижений пока нет",
+    "label": {
+      "achievementName": "Название достижения *",
+      "description": "Описание *",
+      "icon": "Иконка",
+      "interactionType": "Тип взаимодействия *",
+      "requiredAmount": "Необходимое количество *",
+      "timeboundChallenge": "Ограниченное по времени задание",
+      "daysToComplete": "Дней на выполнение *"
+    },
+    "placeholder": {
+      "describeWhatThisAchievementRepresentsAnd": "Опишите, что представляет это достижение и как его заработать"
+    },
+    "requireCompletionWithinASpecificTimefram": "Требовать выполнения в определённый срок",
+    "createYourFirstCustomAchievementToRecogn": "Создайте Ваше первое пользовательское достижение для признания и поощрения выдающихся вкладов команды.",
+    "noPlatformAchievementsEarnedByTeamMember": "Участники команды пока не заработали достижений платформы",
+    "analytics": "Аналитика",
+    "description": "Стандартные достижения, заработанные участниками Вашей команды на платформе",
+    "dialogDescription": "Определите критерии и награды за выдающиеся вклады команды",
+    "created": "Создано",
+    "totalAwarded": "Всего выдано",
+    "avgPerAchievement": "Среднее на достижение",
+    "active": "Активное"
+  },
+  "companyAnalyticsChart": {
+    "toast": {
+      "failedToLoadAnalytics": "Не удалось загрузить аналитику"
+    },
+    "desc": {
+      "last30Days": "Последние 30 дней",
+      "currentFollowers": "Текущие подписчики",
+      "reactionsComments": "Реакции и комментарии"
+    }
+  },
+  "companyBranding": {
+    "brandColors": "Цвета бренда",
+    "typography": "Типографика",
+    "logosAssets": "Логотипы и материалы",
+    "brandPreview": "Предпросмотр бренда",
+    "toast": {
+      "failedToLoadBranding": "Не удалось загрузить брендинг",
+      "brandingUpdatedSuccessfully": "Брендинг успешно обновлён",
+      "failedToUpdateBranding": "Не удалось обновить брендинг"
+    },
+    "label": {
+      "primaryColor": "Основной цвет",
+      "secondaryColor": "Дополнительный цвет",
+      "accentColor": "Акцентный цвет",
+      "headingFont": "Шрифт заголовков",
+      "bodyFont": "Шрифт основного текста",
+      "lightLogoUrl": "URL светлого логотипа",
+      "darkLogoUrl": "URL тёмного логотипа",
+      "faviconUrl": "URL фавикона",
+      "socialPreviewImage": "Изображение для социальных сетей"
+    },
+    "description": "Настройте визуальную идентичность Вашей компании"
+  },
+  "companyBrandingEditor": {
+    "preview": "Предпросмотр",
+    "headingExample": "Пример заголовка",
+    "toast": {
+      "failedToLoadBrandingSettings": "Не удалось загрузить настройки брендинга",
+      "brandingUpdatedSuccessfully": "Брендинг успешно обновлён",
+      "failedToUpdateBranding": "Не удалось обновить брендинг"
+    },
+    "label": {
+      "primaryColor": "Основной цвет",
+      "secondaryColor": "Дополнительный цвет",
+      "accentColor": "Акцентный цвет",
+      "headingFont": "Шрифт заголовков",
+      "bodyFont": "Шрифт основного текста"
+    },
+    "placeholder": {
+      "interRobotoEtc": "Inter, Roboto и т.д."
+    },
+    "bodyTextExampleWithYourSelectedFontAndCo": "Пример основного текста с выбранным шрифтом и цветами.",
+    "description": "Настройте визуальную идентичность Вашей компании"
+  }
+}

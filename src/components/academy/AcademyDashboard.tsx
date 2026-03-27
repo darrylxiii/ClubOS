@@ -1,7 +1,9 @@
+import { useTranslation } from 'react-i18next';
 import { Card } from "@/components/ui/card";
 import { BookOpen, CheckCircle2, Award, Clock } from "lucide-react";
 
 export function AcademyDashboard() {
+  const { t } = useTranslation('common');
   const stats = [
     { label: "Ongoing", value: "5", icon: BookOpen, color: "text-blue-500 bg-blue-500/10" },
     { label: "Completed", value: "37", icon: CheckCircle2, color: "text-success bg-success/10" },
@@ -33,7 +35,7 @@ export function AcademyDashboard() {
 
       {/* Course Topic Chart */}
       <Card className="p-6 squircle">
-        <h3 className="text-lg font-semibold mb-6">Course Topic</h3>
+        <h3 className="text-lg font-semibold mb-6">{t("course_topic", "Course Topic")}</h3>
         <div className="flex flex-col items-center">
           {/* Donut Chart */}
           <div className="relative w-48 h-48 mb-6">
@@ -99,7 +101,7 @@ export function AcademyDashboard() {
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center">
               <div className="text-4xl font-bold">42</div>
-              <div className="text-sm text-muted-foreground">Total Course</div>
+              <div className="text-sm text-muted-foreground">{t("total_course", "Total Course")}</div>
             </div>
           </div>
 

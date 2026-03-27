@@ -1,0 +1,576 @@
+{
+  "enhancedAnalytics": {
+    "title": "Всего заявок",
+    "enhancedAnalytics": "Расширенная аналитика"
+  },
+  "internalReviewPanel": {
+    "toast": {
+      "selectAtLeastOneCandidate": "Выберите хотя бы одного кандидата.",
+      "rejectionNoteIsRequired": "Заметка об отклонении обязательна.",
+      "undoIsNotYetAvailableForThisAction": "Отмена пока недоступна для этого действия."
+    },
+    "placeholder": {
+      "searchByNameTitleOrSkill": "Поиск по имени, должности или навыку...",
+      "rejectionReason": "Причина отклонения..."
+    },
+    "allClear": "Все готово",
+    "noCandidatesAwaitingInternalReview": "Нет кандидатов, ожидающих внутренней проверки.",
+    "dialogDescription": "Укажите причину отклонения кандидата из воронки."
+  },
+  "interviewFeedbackDialog": {
+    "dialogTitle": "Обратная связь по собеседованию",
+    "toast": {
+      "pleaseSelectARecommendation": "Пожалуйста, выберите рекомендацию",
+      "feedbackSubmittedSuccessfully": "Обратная связь успешно отправлена"
+    },
+    "label": {
+      "recommendation": "Рекомендация *",
+      "keyStrengths": "Ключевые сильные стороны",
+      "concernsAreasForImprovement": "Опасения / области для улучшения",
+      "keyObservations": "Ключевые наблюдения",
+      "detailedNotes": "Подробные заметки"
+    },
+    "placeholder": {
+      "egStrongProblemsolvingSkills": "Напр., сильные навыки решения проблем",
+      "egLimitedExperienceWithXTechnology": "Напр., ограниченный опыт с технологией X",
+      "egHandledPressureWellDuringTechnicalChal": "Напр., хорошо справлялся с давлением во время технического задания",
+      "provideComprehensiveNotesAboutTheIntervi": "Предоставьте подробные заметки о собеседовании..."
+    },
+    "strongYesExceptionalCandidate": "Определённо да - исключительный кандидат",
+    "yesGoodFitRecommendToProceed": "Да - хорошее соответствие, рекомендую продолжить",
+    "maybeHasPotentialButConcernsExist": "Возможно - есть потенциал, но есть опасения",
+    "noNotTheRightFit": "Нет - не подходит",
+    "strongNoDefinitelyNotSuitable": "Определённо нет - однозначно не подходит"
+  },
+  "jobAnalytics": {
+    "title": "Конверсия по этапам",
+    "noAnalyticsDataAvailable": "Данные аналитики недоступны",
+    "totalApplications": "Всего заявок",
+    "active": "Активные",
+    "hires": "Нанято",
+    "avgTimeToHire": "Среднее время до найма",
+    "fastestHire": "Быстрейший найм",
+    "average": "Среднее",
+    "slowestHire": "Самый долгий найм",
+    "avgFitScore": "Средняя оценка соответствия",
+    "engagementRate": "Уровень вовлечённости",
+    "interviewPass": "Прохождение собеседования",
+    "offerAcceptance": "Принятие предложения",
+    "clubSync": "Club Sync",
+    "directApply": "Прямое обращение",
+    "referrals": "Рекомендации",
+    "description": "Откуда приходят кандидаты"
+  },
+  "jobCard": {
+    "toast": {
+      "headhunterAgentActivatedAnalyzingJobRequ": "Агент-хедхантер активирован... анализ требований вакансии.",
+      "agentFinishedSearchButFoundNoNewStrongMa": "Агент завершил поиск, но не нашёл новых сильных совпадений."
+    },
+    "viewOriginalPosting": "Просмотреть оригинал объявления"
+  },
+  "jobDashboardCandidates": {
+    "noApplicationsYet": "Заявок пока нет",
+    "toast": {
+      "failedToLoadCandidates": "Не удалось загрузить кандидатов"
+    },
+    "applicationsWillAppearHereOnceCandidates": "Заявки появятся здесь, когда кандидаты начнут откликаться",
+    "reviewAndAdvancePremiumCandidatesFasterW": "Просматривайте и продвигайте премиум-кандидатов быстрее с нашей эксклюзивной проверкой",
+    "noCandidatesInThisStage": "На этом этапе нет кандидатов"
+  },
+  "jobDocuments": {
+    "toast": {
+      "failedToLoadDocuments": "Не удалось загрузить документы",
+      "jobDescriptionUploadedSuccessfully": "Описание вакансии успешно загружено",
+      "documentRemovedSuccessfully": "Документ успешно удалён",
+      "failedToRemoveDocument": "Не удалось удалить документ",
+      "downloadStarted": "Скачивание начато",
+      "failedToDownloadDocument": "Не удалось скачать документ",
+      "failedToOpenDocumentViewer": "Не удалось открыть просмотрщик документов"
+    },
+    "label": {
+      "existingDocuments": "Существующие документы",
+      "addMoreDocuments": "Добавить ещё документы"
+    },
+    "currentJobDescription": "Текущее описание вакансии",
+    "uploadedDocumentReadyToView": "Загруженный документ готов к просмотру",
+    "noJobDescriptionUploadedYet": "Описание вакансии ещё не загружено",
+    "fileWillBeUploadedAutomaticallyWhenSelec": "Файл будет загружен автоматически при выборе",
+    "noSupportingDocumentsUploadedYet": "Сопроводительные документы ещё не загружены",
+    "filesWillBeUploadedAutomaticallyWhenSele": "Файлы будут загружены автоматически при выборе",
+    "poweredByGoogleDocsViewer": "На базе Google Docs Viewer",
+    "previewNotAvailableForThisFileType": "Предпросмотр недоступен для этого типа файла",
+    "uploadInProgress": "Загрузка в процессе"
+  },
+  "jobManagement": {
+    "jobPostings": "Объявления о вакансиях",
+    "noJobsYet": "Вакансий пока нет",
+    "toast": {
+      "failedToLoadJobs": "Не удалось загрузить вакансии",
+      "jobArchived": "Вакансия архивирована",
+      "jobDeleted": "Вакансия удалена",
+      "failedToUpdateJobStatus": "Не удалось обновить статус вакансии"
+    },
+    "createYourFirstJobPostingToStartReceivin": "Создайте Ваше первое объявление о вакансии, чтобы начать получать заявки"
+  },
+  "jobTeamPanel": {
+    "toast": {
+      "failedToLoadTeamMembers": "Не удалось загрузить участников команды",
+      "teamMemberRemoved": "Участник команды удалён",
+      "failedToRemoveTeamMember": "Не удалось удалить участника команды"
+    },
+    "badge": {
+      "primary": "Основной"
+    },
+    "noTeamMembersYet": "Участников команды пока нет",
+    "menu": {
+      "removeFromTeam": "Удалить из команды"
+    },
+    "teamMemberOptions": "Параметры участника команды"
+  },
+  "offerPipelineWidget": {
+    "badge": {
+      "urgent": "Срочно"
+    }
+  },
+  "partnerAnalytics": {
+    "title": "Всего кандидатов",
+    "tab": {
+      "pipelineHealth": "Состояние воронки",
+      "conversionRates": "Конверсия"
+    },
+    "description": "Текущее распределение по этапам воронки"
+  },
+  "partnerConciergeCard": {
+    "badge": {
+      "inProgress": "В процессе"
+    },
+    "yourDedicatedConcierge": "Ваш персональный консьерж",
+    "directContact": "Прямой контакт"
+  },
+  "partnerDomainSettings": {
+    "toast": {
+      "pleaseEnterAValidDomainEgExamplecom": "Пожалуйста, введите корректный домен (напр., example.com)",
+      "thisDomainIsAlreadyConfigured": "Этот домен уже настроен",
+      "domainRequestSubmittedForAdminApproval": "Запрос домена отправлен на утверждение администратору",
+      "failedToSubmitDomainRequest": "Не удалось отправить запрос домена"
+    },
+    "label": {
+      "requestNewDomain": "Запросить новый домен"
+    },
+    "noDomainsConfiguredYet": "Домены пока не настроены",
+    "contactYourAdministratorToSetUpAuthorize": "Свяжитесь с Вашим администратором для настройки авторизованных доменов",
+    "domainRequestsRequireAdminApprovalBefore": "Запросы доменов требуют утверждения администратором до активации",
+    "description": "Участники команды могут быть приглашены только с этих email-доменов",
+    "loadingDomainSettings": "Загрузка настроек домена..."
+  },
+  "partnerFirstReviewPanel": {
+    "toast": {
+      "selectARejectionReason": "Выберите причину отклонения.",
+      "rejectionNotesAreRequired": "Заметки об отклонении обязательны."
+    }
+  },
+  "partnerJobsHome": {
+    "noJobsFound": "Вакансии не найдены",
+    "toast": {
+      "failedToLoadJobs": "Не удалось загрузить вакансии",
+      "noDraftJobsSelectedToPublish": "Не выбраны черновики вакансий для публикации",
+      "failedToPublishSelectedJobs": "Не удалось опубликовать выбранные вакансии",
+      "noPublishedJobsSelectedToClose": "Не выбраны опубликованные вакансии для закрытия",
+      "failedToCloseSelectedJobs": "Не удалось закрыть выбранные вакансии",
+      "noJobsSelectedToArchive": "Не выбраны вакансии для архивации",
+      "failedToArchiveSelectedJobs": "Не удалось архивировать выбранные вакансии",
+      "failedToPublishJob": "Не удалось опубликовать вакансию",
+      "failedToUnpublishJob": "Не удалось снять вакансию с публикации",
+      "failedToCloseJob": "Не удалось закрыть вакансию",
+      "failedToReopenJob": "Не удалось повторно открыть вакансию",
+      "failedToArchiveJob": "Не удалось архивировать вакансию",
+      "failedToRestoreJob": "Не удалось восстановить вакансию"
+    },
+    "yourPremiumHiringAccelerator": "Ваш премиальный ускоритель найма.",
+    "getVettedCandidatesInDaysNotWeeks": "Получайте проверенных кандидатов за дни, а не недели",
+    "prevettedTalent": "Предварительно проверенные таланты",
+    "everyCandidateIsClubverifiedForQuality": "Каждый кандидат проверен Club на качество",
+    "dedicatedSupport": "Выделенная поддержка",
+    "personalRecruiterAssistanceIncluded": "Персональная помощь рекрутера включена",
+    "liveUpdatesEnabled": "Обновления в реальном времени включены",
+    "desc": {
+      "candidatesCanNowSeeAndApplyToThisJob": "Кандидаты теперь могут видеть и откликаться на эту вакансию"
+    }
+  },
+  "pipelineAuditLog": {
+    "title": "Журнал аудита вакансии",
+    "badge": {
+      "overrideDuplicate": "Перезапись дубликата"
+    },
+    "description": "Полное отслеживание всех взаимодействий и изменений вакансии"
+  },
+  "pipelineCustomizer": {
+    "title": "Премиальный редактор воронки",
+    "toast": {
+      "stageRemoved": "Этап удалён",
+      "selectAReviewerFirst": "Сначала выберите ревьюера.",
+      "reviewerAssigned": "Ревьюер назначен",
+      "failedToAssignReviewer": "Не удалось назначить ревьюера",
+      "failedToRemoveReviewer": "Не удалось удалить ревьюера",
+      "reviewerRemoved": "Ревьюер удалён",
+      "pipelineSaved": "Воронка сохранена",
+      "signatureSecure": "Подпись защищена"
+    },
+    "label": {
+      "stageOwner": "Владелец этапа",
+      "format": "Формат",
+      "description": "Описание",
+      "primary": "Основной"
+    },
+    "placeholder": {
+      "describeWhatHappensInThisStage": "Опишите, что происходит на этом этапе..."
+    },
+    "reviewGateAssignments": "Назначения на проверку",
+    "onlyAdminAndStrategistRolesCanChangeRevi": "Только роли администратора и стратега могут изменять назначения ревьюеров.",
+    "primary": "Основной",
+    "description": "Настройте этапы Вашей эксклюзивной воронки найма",
+    "option": {
+      "online": "Онлайн",
+      "inperson": "Очно",
+      "hybrid": "Гибрид",
+      "noReviewersAvailable": "Нет доступных ревьюеров"
+    }
+  },
+  "pipelineDisplaySettings": {
+    "label": {
+      "showOwnershipIcons": "Показывать иконки владельцев",
+      "showFormatDetails": "Показывать детали формата",
+      "showTeamAssignments": "Показывать назначения команды",
+      "showLocationmeetingInfo": "Показывать информацию о месте/встрече",
+      "showEvaluationSetup": "Показывать настройку оценки",
+      "showSchedulingDetails": "Показывать детали планирования",
+      "showAdvancedMetadata": "Показывать расширенные метаданные"
+    },
+    "customizeWhatInformationIsShownInThePipe": "Настройте, какая информация отображается в воронке"
+  },
+  "pipelineMeetingCard": {
+    "badge": {
+      "scheduled": "Запланировано"
+    },
+    "prepSent": "Подготовка отправлена",
+    "prepPending": "Подготовка ожидает"
+  },
+  "scheduleInterviewButton": {
+    "toast": {
+      "interviewScheduledSuccessfully": "Собеседование успешно запланировано"
+    }
+  },
+  "smartSchedulingPanel": {
+    "badge": {
+      "excellent": "Отлично",
+      "good": "Хорошо",
+      "fair": "Удовлетворительно",
+      "limited": "Ограничено",
+      "googleCalendar": "Google Calendar",
+      "bestMatch": "Лучшее совпадение"
+    },
+    "noAvailableSlotsFound": "Свободные слоты не найдены",
+    "tryAdjustingTheDurationOrSelectingDiffer": "Попробуйте изменить продолжительность или выбрать других интервьюеров"
+  },
+  "teamActivityCard": {
+    "title": "Активность команды",
+    "noTeamActivityYet": "Активности команды пока нет"
+  },
+  "teamInviteWidget": {
+    "label": {
+      "recentInvitations": "Недавние приглашения",
+      "allInvitations": "Все приглашения"
+    },
+    "dialogDescription": "Отправьте приглашение для присоединения к Вашей организации"
+  },
+  "teamManagement": {
+    "teamMembers": "Участники команды",
+    "noTeamMembersYet": "Участников команды пока нет",
+    "toast": {
+      "failedToLoadTeamMembers": "Не удалось загрузить участников команды",
+      "teamMemberRemoved": "Участник команды удалён",
+      "failedToRemoveTeamMember": "Не удалось удалить участника команды"
+    },
+    "inviteTeamMembersToCollaborateOnJobPosti": "Пригласите участников команды для совместной работы над вакансиями"
+  },
+  "textDocumentCreator": {
+    "toast": {
+      "pleaseEnterSomeContent": "Пожалуйста, введите содержание",
+      "pleaseEnterADocumentTitle": "Пожалуйста, введите название документа"
+    },
+    "label": {
+      "documentTitle": "Название документа *",
+      "documentContent": "Содержание документа *"
+    },
+    "placeholder": {
+      "typeOrPasteYourContentHere1010youCanIncl": "Введите или вставьте содержание здесь...&#10;&#10;Вы можете включить:&#10;- Вопросы для собеседования&#10;- Информацию о компании&#10;- Детали преимуществ&#10;- Технические требования&#10;- Любой другой релевантный текст"
+    },
+    "giveYourDocumentADescriptiveName": "Дайте документу описательное название",
+    "plainTextFormatPerfectForQuickReferenceD": "Текстовый формат - идеален для справочных документов"
+  },
+  "upcomingInterviewsWidget": {
+    "dialogTitle": "Документ подготовки к собеседованию",
+    "today": "Сегодня",
+    "thisWeek": "На этой неделе",
+    "upcoming": "Предстоящие",
+    "toast": {
+      "pleaseEnterFeedback": "Пожалуйста, введите обратную связь",
+      "feedbackSubmittedSuccessfully": "Обратная связь успешно отправлена"
+    },
+    "label": {
+      "currentDocument": "Текущий документ",
+      "feedback": "Обратная связь"
+    },
+    "placeholder": {
+      "enterYourFeedbackAboutTheCandidateAndInt": "Введите Вашу обратную связь о кандидате и собеседовании..."
+    },
+    "loadingInterviews": "Загрузка собеседований...",
+    "pleaseSubmitFeedbackToKeepThePipelineMov": "Пожалуйста, отправьте обратную связь, чтобы воронка продвигалась",
+    "noPrepDocumentUploadedYetUseTheManualEnt": "Документ подготовки ещё не загружен. Используйте ручной ввод или привязку календаря."
+  },
+  "bulkEmailDialog": {
+    "dialogDescription": "Отправить email всем выбранным кандидатам"
+  },
+  "candidateReviewCard": {
+    "internalReviewNotes": "Внутренние заметки проверки"
+  },
+  "candidateShortlistWidget": {
+    "starCandidatesFromApplicationsToAccessTh": "Отметьте кандидатов из заявок для быстрого доступа"
+  },
+  "candidateWorkAuthCard": {
+    "noWorkAuthorizationDataAvailable": "Данные о разрешении на работу недоступны",
+    "requiresSponsorship": "Требуется спонсорство",
+    "noSponsorshipRequired": "Спонсорство не требуется"
+  },
+  "changeOrdersPanel": {
+    "noChangeOrdersYet": "Изменений заказов пока нет",
+    "noProcessedChangeOrdersYet": "Обработанных изменений заказов пока нет"
+  },
+  "contractBudgetDashboard": {
+    "awaitingYourApproval": "Ожидает Вашего утверждения",
+    "activeMilestoneWork": "Активная работа по вехам"
+  },
+  "dailyBriefing": {
+    "letQuinAnalyzeYourHiringActivity": "Позвольте QUIN проанализировать Вашу деятельность по найму"
+  },
+  "dossierActivityWidget": {
+    "browseCandidatesToSeeTheirProfilesHere": "Просматривайте кандидатов для отображения их профилей здесь"
+  },
+  "editCandidateDialog": {
+    "dialogDescription": "Обновите информацию о кандидате. Все изменения будут зафиксированы."
+  },
+  "enhancedCandidateActionDialog": {
+    "selectWhichStageToMoveThisCandidateTo": "Выберите, на какой этап перевести кандидата",
+    "selectWhichPreviousStageToMoveThisCandid": "Выберите, на какой предыдущий этап вернуть кандидата",
+    "aReasonIsRequiredForAccountability": "Причина обязательна для подотчётности"
+  },
+  "enhancedCandidateDetails": {
+    "alert": {
+      "limitedCandidateInformationAvailableFullDesc": "Ограниченная информация о кандидате. Полные данные станут доступны, когда кандидат откликнется на Ваши вакансии."
+    }
+  },
+  "interviewSuccessWidget": {
+    "noApplicationsYetPostAJobToStartHiring": "Заявок пока нет. Опубликуйте вакансию, чтобы начать найм."
+  },
+  "linkedInJobImport": {
+    "byConnectingYouAuthorizeTheQuantumClubTo": "Подключаясь, Вы предоставляете The Quantum Club доступ к объявлениям о вакансиях Вашей компании на LinkedIn.",
+    "dialogDescription": "Подключите Ваш аккаунт LinkedIn для автоматического импорта объявлений о вакансиях.",
+    "alert": {
+      "thisWillImportAllActiveJobPostingsFromYoDesc": "Это импортирует все активные объявления о вакансиях с Вашей страницы компании в LinkedIn. Убедитесь, что у Вас есть доступ администратора к странице компании в LinkedIn."
+    }
+  },
+  "manualInterviewEntryDialog": {
+    "dialogDescription": "Добавьте собеседование, которое уже запланировано, но ещё не в системе"
+  },
+  "partnerInterviewHub": {
+    "noUpcomingInterviewsScheduled": "Нет запланированных собеседований",
+    "noCompletedInterviewsYet": "Завершённых собеседований пока нет",
+    "noCandidatesReadyForDecision": "Нет кандидатов, готовых к решению",
+    "interviewsNeedScorecardsBeforeDecisions": "Для принятия решений необходимы оценочные листы собеседований",
+    "description": "Отслеживайте собеседования, просматривайте аналитику и принимайте решения о найме",
+    "allEvaluatorsHaveSubmittedScorecards": "Все оценщики отправили оценочные листы"
+  },
+  "positionFillCountdown": {
+    "allPositionsFilledGreatWork": "Все позиции заполнены! Отличная работа."
+  },
+  "reviewShortcutOverlay": {
+    "dialogDescription": "Ускорьте процесс проверки с помощью этих горячих клавиш."
+  },
+  "targetCompanies": {
+    "beheerBedrijvenVoorHeadhuntingKandidaten": "Управление компаниями для хедхантинга кандидатов"
+  },
+  "targetCompanyDetailDialog": {
+    "nogGeenComments": "Комментариев пока нет"
+  },
+  "targetCompanyDialog": {
+    "zoekBestaandeBedrijvenNaamEnWebsiteWorde": "Поиск существующих компаний - название и сайт заполнятся автоматически",
+    "selecteerDeJobWaarvoorDitBedrijfGetarget": "Выберите вакансию, для которой таргетируется компания, или оставьте пустым для всех вакансий"
+  },
+  "targetCompanyTable": {
+    "laden": "Загрузка...",
+    "geenBedrijvenGevonden": "Компании не найдены"
+  },
+  "executiveDashboard": {
+    "noCandidatesInFinalStageYet": "На финальном этапе пока нет кандидатов"
+  },
+  "hiringManagerDashboard": {
+    "feedbackManagementComingSoon": "Управление обратной связью скоро появится"
+  },
+  "observerDashboard": {
+    "youHaveObserverAccessToThisRoleViewPipel": "У Вас есть доступ наблюдателя к этой роли. Просмотрите воронку на вкладке \"Воронка\" выше."
+  },
+  "adminNotesEditor": {
+    "theseNotesAreForInternalUseOnlyAndWillNo": "Эти заметки предназначены только для внутреннего использования и не будут видны кандидату или партнёрам."
+  },
+  "jobBulkActionBar": {
+    "menu": {
+      "bulkActions": "Массовые действия"
+    },
+    "publish": "Опубликовать"
+  },
+  "jobTableView": {
+    "menu": {
+      "visibleColumns": "Видимые столбцы"
+    },
+    "tooltip": {
+      "confidential": "Конфиденциально"
+    },
+    "noJobsFound": "Вакансии не найдены"
+  },
+  "jobsAIInsightsWidget": {
+    "title": "Аналитика QUIN",
+    "noInsightsAvailableYet": "Аналитика пока недоступна",
+    "addMoreJobsToGenerateAiPredictions": "Добавьте больше вакансий для генерации ИИ-прогнозов",
+    "quinInsightsTemporarilyUnavailable": "Аналитика QUIN временно недоступна",
+    "hiringForecast": "Прогноз найма",
+    "strategicRecommendations": "Стратегические рекомендации"
+  },
+  "keyboardShortcutsDialog": {
+    "dialogTitle": "Горячие клавиши",
+    "dialogDescription": "Навигация и управление вакансиями с помощью этих сочетаний клавиш"
+  },
+  "savedFilterPresets": {
+    "dialogTitle": "Сохранить набор фильтров",
+    "toast": {
+      "pleaseEnterANameForYourPreset": "Пожалуйста, введите название для набора"
+    },
+    "noSavedPresets": "Нет сохранённых наборов",
+    "saveYourCurrentFiltersForQuickAccess": "Сохраните текущие фильтры для быстрого доступа",
+    "presets": "Наборы",
+    "savedViews": "Сохранённые представления",
+    "dialogDescription": "Сохраните текущие фильтры для быстрого доступа."
+  },
+  "jobsCompactHeader": {
+    "placeholder": {
+      "searchJobs": "Поиск вакансий..."
+    },
+    "menu": {
+      "navigation": "Навигация",
+      "adminTools": "Инструменты администратора"
+    },
+    "newJob": "Новая вакансия",
+    "jobs": "Вакансии"
+  },
+  "jobsUnifiedFilterBar": {
+    "menu": {
+      "company": "Компания",
+      "createdDate": "Дата создания",
+      "layout": "Макет",
+      "savedViews": "Сохранённые представления"
+    },
+    "advancedFilters": "Расширенные фильтры",
+    "views": "Представления"
+  },
+  "jobListView": {
+    "noActivity": "Нет активности",
+    "dashboard": "Панель управления",
+    "tooltip": {
+      "confidential": "Конфиденциально"
+    },
+    "noJobsFound": "Вакансии не найдены"
+  },
+  "jobStatusSummaryBar": {
+    "publishedJobsWillAppearInSearchResultsAn": "Опубликованные вакансии будут отображаться в результатах поиска, и кандидаты смогут на них откликнуться."
+  },
+  "jobsAnalyticsWidget": {
+    "openJobs": "Открытые вакансии",
+    "avgDaysOpen": "Среднее дней открыто",
+    "fillRate": "Процент заполнения",
+    "activePipeline": "Активная воронка"
+  },
+  "jobCardHeader": {
+    "viewOriginalPosting": "Просмотреть оригинал объявления",
+    "thisJobIsOnlyVisibleToSelectedUsers": "Эта вакансия видна только выбранным пользователям"
+  },
+  "jobCardLastActivity": {
+    "lastActivity": "Последняя активность"
+  },
+  "jobCardMetrics": {
+    "hiringProgress": "Прогресс найма",
+    "conversion": "Конверсия",
+    "interviews": "Собеседования"
+  },
+  "compactJobCard": {
+    "tooltip": {
+      "confidential": "Конфиденциально"
+    }
+  },
+  "jobsInlineStats": {
+    "clubSync": "Club Sync"
+  },
+  "liveInterview": {
+    "title": "Интервью-сентинел",
+    "subtitle": "Проверка фактов и ИИ-помощник в реальном времени",
+    "micDenied": "Доступ к микрофону запрещён.",
+    "noSpeechSupport": "Браузер не поддерживает распознавание речи.",
+    "listening": "Сентинел слушает...",
+    "stop": "Стоп",
+    "start": "Старт",
+    "liveTranscript": "Прямая расшифровка",
+    "speechToText": "Преобразование речи в текст в реальном времени",
+    "waitingForSpeech": "Ожидание речи...",
+    "sentinelHud": "Интерфейс сентинела",
+    "liveAiInsights": "ИИ-аналитика в реальном времени",
+    "noAlerts": "Пока нет предупреждений. Система мониторит..."
+  },
+  "billing": {
+    "title": "Биллинг и счета",
+    "description": "Управляйте платёжными данными и просматривайте счета",
+    "tabDetails": "Платёжные данные",
+    "tabInvoices": "Счета",
+    "billingInfo": "Платёжная информация",
+    "billingInfoDesc": "Обновите платёжные данные Вашей компании для выставления счетов",
+    "yourInvoices": "Ваши счета",
+    "yourInvoicesDesc": "Просматривайте и скачивайте счета за комиссии за трудоустройство"
+  },
+  "sla": {
+    "responseTime": "Время ответа",
+    "responseTimeDesc": "Время до первого ответа",
+    "shortlistDelivery": "Доставка шорт-листа",
+    "shortlistDeliveryDesc": "Доставка шорт-листа кандидатов",
+    "interviewScheduling": "Планирование собеседований",
+    "interviewSchedulingDesc": "Время настройки собеседования",
+    "replacementGuarantee": "Гарантия замены",
+    "replacementGuaranteeDesc": "Период замены кандидата",
+    "target": "Цель",
+    "belowTarget": "Ниже целевого уровня. Пересмотрите процессы для улучшения показателей.",
+    "recentPerformance": "Недавние показатели SLA",
+    "last30Days": "Отслеживание SLA за последние 30 дней",
+    "noMetrics": "Метрики SLA ещё не зафиксированы"
+  },
+  "billingDashboard": {
+    "recentInvoices": "Недавние счета",
+    "viewDownload": "Просмотр и скачивание Ваших счетов",
+    "download": "Скачать",
+    "noInvoices": "Счета не найдены"
+  },
+  "auditLog": {
+    "searchPlaceholder": "Поиск по пользователю или действию...",
+    "allActions": "Все действия",
+    "candidateMoved": "Кандидат перемещён",
+    "jobCreated": "Вакансия создана",
+    "teamInvited": "Команда приглашена",
+    "applicationRejected": "Заявка отклонена",
+    "noEntries": "Записи журнала аудита не найдены"
+  }
+}

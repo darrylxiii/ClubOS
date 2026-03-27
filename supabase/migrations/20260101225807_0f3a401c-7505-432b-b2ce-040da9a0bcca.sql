@@ -88,6 +88,7 @@ CREATE TABLE IF NOT EXISTS public.success_patterns (
 );
 
 -- 5. Intelligence Embeddings
+DROP TABLE IF EXISTS public.intelligence_embeddings CASCADE;
 CREATE TABLE IF NOT EXISTS public.intelligence_embeddings (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   entity_type TEXT NOT NULL,

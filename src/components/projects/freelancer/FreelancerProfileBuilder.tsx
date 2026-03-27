@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -46,6 +47,7 @@ interface FreelancerProfileBuilderProps {
 }
 
 export function FreelancerProfileBuilder({ onComplete }: FreelancerProfileBuilderProps) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [currentStep, setCurrentStep] = useState(0);
@@ -123,13 +125,13 @@ export function FreelancerProfileBuilder({ onComplete }: FreelancerProfileBuilde
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["freelance-profile"] });
-      toast.success("Profile saved successfully!");
+      toast.success(t("profile_saved_successfully", "Profile saved successfully!"));
       if (currentStep === STEPS.length - 1) {
         onComplete?.();
       }
     },
     onError: (error) => {
-      toast.error("Failed to save profile: " + error.message);
+      toast.error(t("failed_to_save_profile", "Failed to save profile:") + error.message);
     },
   });
 
@@ -218,7 +220,7 @@ export function FreelancerProfileBuilder({ onComplete }: FreelancerProfileBuilde
             </CardDescription>
           </div>
           <div className="text-right">
-            <p className="text-sm text-muted-foreground mb-1">Profile Completeness</p>
+            <p className="text-sm text-muted-foreground mb-1">{t("profile_completeness", "Profile Completeness")}</p>
             <div className="flex items-center gap-2">
               <Progress value={completeness} className="w-24" />
               <span className="font-semibold text-sm">{completeness}%</span>
@@ -258,18 +260,18 @@ export function FreelancerProfileBuilder({ onComplete }: FreelancerProfileBuilde
         {currentStep === 0 && (
           <div className="space-y-4">
             <div>
-              <Label>Professional Title</Label>
+              <Label>{t("professional_title", "Professional Title")}</Label>
               <Input
-                placeholder="e.g., Senior Full-Stack Developer"
+                placeholder={t("eg_senior_fullstack_developer", "e.g., Senior Full-Stack Developer")}
                 value={formData.professional_title}
                 onChange={(e) => setFormData({ ...formData, professional_title: e.target.value })}
               />
             </div>
 
             <div>
-              <Label>Professional Bio</Label>
+              <Label>{t("professional_bio", "Professional Bio")}</Label>
               <Textarea
-                placeholder="Describe your experience, expertise, and what makes you unique..."
+                placeholder={t("describe_your_experience_expertise", "Describe your experience, expertise, and what makes you unique...")}
                 rows={5}
                 value={formData.bio}
                 onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
@@ -280,7 +282,7 @@ export function FreelancerProfileBuilder({ onComplete }: FreelancerProfileBuilde
             </div>
 
             <div>
-              <Label>Experience Level</Label>
+              <Label>{t("experience_level", "Experience Level")}</Label>
               <Select
                 value={formData.experience_level}
                 onValueChange={(value) => setFormData({ ...formData, experience_level: value })}
@@ -304,7 +306,7 @@ export function FreelancerProfileBuilder({ onComplete }: FreelancerProfileBuilde
         {currentStep === 1 && (
           <div className="space-y-4">
             <div>
-              <Label>Your Skills & Expertise</Label>
+              <Label>{t("your_skills_expertise", "Your Skills & Expertise")}</Label>
               <p className="text-sm text-muted-foreground mb-3">
                 Select at least 3 skills that best describe your expertise
               </p>
@@ -342,13 +344,13 @@ export function FreelancerProfileBuilder({ onComplete }: FreelancerProfileBuilde
         {currentStep === 2 && (
           <div className="space-y-6">
             <div>
-              <Label>Hourly Rate Range (€)</Label>
+              <Label>{t("hourly_rate_range", "Hourly Rate Range (€)")}</Label>
               <p className="text-sm text-muted-foreground mb-3">
                 Set your minimum and maximum hourly rates
               </p>
               <div className="flex items-center gap-4">
                 <div className="flex-1">
-                  <Label className="text-xs">Minimum</Label>
+                  <Label className="text-xs">{t("minimum", "Minimum")}</Label>
                   <Input
                     type="number"
                     value={formData.hourly_rate_min}
@@ -357,7 +359,7 @@ export function FreelancerProfileBuilder({ onComplete }: FreelancerProfileBuilde
                 </div>
                 <span className="text-muted-foreground mt-5">to</span>
                 <div className="flex-1">
-                  <Label className="text-xs">Maximum</Label>
+                  <Label className="text-xs">{t("maximum", "Maximum")}</Label>
                   <Input
                     type="number"
                     value={formData.hourly_rate_max}
@@ -378,13 +380,13 @@ export function FreelancerProfileBuilder({ onComplete }: FreelancerProfileBuilde
                 className="mt-3"
               />
               <div className="flex justify-between text-xs text-muted-foreground mt-1">
-                <span>5 hrs</span>
-                <span>60 hrs</span>
+                <span>{t("5_hrs", "5 hrs")}</span>
+                <span>{t("60_hrs", "60 hrs")}</span>
               </div>
             </div>
 
             <div>
-              <Label>Minimum Project Value (€)</Label>
+              <Label>{t("minimum_project_value", "Minimum Project Value (€)")}</Label>
               <Input
                 type="number"
                 value={formData.min_project_value}
@@ -397,7 +399,7 @@ export function FreelancerProfileBuilder({ onComplete }: FreelancerProfileBuilde
 
             <div className="flex items-center justify-between">
               <div>
-                <Label>Open to Retainers</Label>
+                <Label>{t("open_to_retainers", "Open to Retainers")}</Label>
                 <p className="text-sm text-muted-foreground">
                   Long-term ongoing work arrangements
                 </p>
@@ -415,7 +417,7 @@ export function FreelancerProfileBuilder({ onComplete }: FreelancerProfileBuilde
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <Label>Portfolio Items</Label>
+                <Label>{t("portfolio_items", "Portfolio Items")}</Label>
                 <p className="text-sm text-muted-foreground">
                   Showcase your best work
                 </p>
@@ -453,17 +455,17 @@ export function FreelancerProfileBuilder({ onComplete }: FreelancerProfileBuilde
                         </Button>
                       </div>
                       <Input
-                        placeholder="Project Title"
+                        placeholder={t("project_title", "Project Title")}
                         value={item.title}
                         onChange={(e) => updatePortfolioItem(index, "title", e.target.value)}
                       />
                       <Textarea
-                        placeholder="Brief description..."
+                        placeholder={t("brief_description", "Brief description...")}
                         value={item.description}
                         onChange={(e) => updatePortfolioItem(index, "description", e.target.value)}
                       />
                       <Input
-                        placeholder="Project URL (optional)"
+                        placeholder={t("project_url_optional", "Project URL (optional)")}
                         value={item.url}
                         onChange={(e) => updatePortfolioItem(index, "url", e.target.value)}
                       />
@@ -479,7 +481,7 @@ export function FreelancerProfileBuilder({ onComplete }: FreelancerProfileBuilde
         {currentStep === 4 && (
           <div className="space-y-4">
             <div>
-              <Label>Preferred Industries</Label>
+              <Label>{t("preferred_industries", "Preferred Industries")}</Label>
               <p className="text-sm text-muted-foreground mb-2">
                 Select industries you prefer to work in
               </p>
@@ -510,7 +512,7 @@ export function FreelancerProfileBuilder({ onComplete }: FreelancerProfileBuilde
             </div>
 
             <div>
-              <Label>Timezone</Label>
+              <Label>{t("timezone", "Timezone")}</Label>
               <Input
                 value={formData.timezone}
                 onChange={(e) => setFormData({ ...formData, timezone: e.target.value })}
@@ -518,7 +520,7 @@ export function FreelancerProfileBuilder({ onComplete }: FreelancerProfileBuilde
             </div>
 
             <div>
-              <Label>Languages</Label>
+              <Label>{t("languages", "Languages")}</Label>
               <div className="flex flex-wrap gap-2 mt-2">
                 {["English", "Dutch", "German", "French", "Spanish", "Portuguese", "Mandarin"].map((lang) => (
                   <Badge

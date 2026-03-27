@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { Send, Loader2, AlertCircle } from "lucide-react";
 import { CandidateSelectorTable } from "./CandidateSelectorTable";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useTranslation } from 'react-i18next';
 
 interface EmailTemplate {
   id: string;
@@ -19,6 +20,7 @@ interface EmailTemplate {
 }
 
 export const BulkEmailTab = () => {
+  const { t } = useTranslation('admin');
   const [selectedCandidates, setSelectedCandidates] = useState<string[]>([]);
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
@@ -142,7 +144,7 @@ export const BulkEmailTab = () => {
     <div className="space-y-6">
       {/* Candidate Selection */}
       <div>
-        <Label className="mb-2 block">Select Recipients</Label>
+        <Label className="mb-2 block">{t('bulk-ops.bulkEmailTab.selectRecipients')}</Label>
         <CandidateSelectorTable
           selectedCandidates={selectedCandidates}
           onSelectionChange={setSelectedCandidates}
@@ -152,10 +154,10 @@ export const BulkEmailTab = () => {
       {/* Email Composition */}
       <div className="space-y-4 border-t pt-6">
         <div>
-          <Label htmlFor="template">Email Template (Optional)</Label>
+          <Label htmlFor="template">{t('bulk-ops.bulkEmailTab.emailTemplateOptional')}</Label>
           <Select value={templateId} onValueChange={handleTemplateSelect}>
             <SelectTrigger className="mt-1.5">
-              <SelectValue placeholder="Select a template or write custom" />
+              <SelectValue placeholder={t('bulk-ops.bulkEmailTab.selectATemplateOrWriteCustom')} />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="custom">Custom Email</SelectItem>
@@ -169,18 +171,18 @@ export const BulkEmailTab = () => {
         </div>
 
         <div>
-          <Label htmlFor="subject">Subject</Label>
+          <Label htmlFor="subject">{t('bulk-ops.bulkEmailTab.subject')}</Label>
           <Input
             id="subject"
             value={subject}
             onChange={(e) => setSubject(e.target.value)}
-            placeholder="Email subject..."
+            placeholder={t('bulk-ops.bulkEmailTab.emailSubject')}
             className="mt-1.5"
           />
         </div>
 
         <div>
-          <Label htmlFor="message">Message</Label>
+          <Label htmlFor="message">{t('bulk-ops.bulkEmailTab.message')}</Label>
           <Textarea
             id="message"
             value={message}

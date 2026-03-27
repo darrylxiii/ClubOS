@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React, { useState, useRef, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -39,6 +40,7 @@ const SUGGESTED_PROMPTS = [
 ];
 
 export function OfferNegotiationChat({ offer, onClose }: OfferNegotiationChatProps) {
+  const { t } = useTranslation('common');
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -188,7 +190,7 @@ Guidelines:
               <Sparkles className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <CardTitle className="text-lg">QUIN Negotiation Advisor</CardTitle>
+              <CardTitle className="text-lg">{t("quin_negotiation_advisor", "QUIN Negotiation Advisor")}</CardTitle>
               <p className="text-xs text-muted-foreground">
                 AI-powered offer negotiation support
               </p>
@@ -284,7 +286,7 @@ Guidelines:
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Ask about negotiation strategies..."
+              placeholder={t("ask_about_negotiation_strategies", "Ask about negotiation strategies...")}
               disabled={isLoading}
               className="flex-1"
             />

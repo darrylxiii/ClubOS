@@ -1,10 +1,4 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { createHandler } from '../_shared/handler.ts';
 
 interface WorkflowTrigger {
   type: 'pattern_detected' | 'communication_received' | 'inactivity' | 'manual';
@@ -19,20 +13,11 @@ interface WorkflowAction {
   parameters: Record<string, unknown>;
 }
 
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
-    const { trigger, actions } = await req.json() as { 
-      trigger: WorkflowTrigger; 
-      actions?: WorkflowAction[];
-    };
+Deno.serve(createHandler(async (req, ctx) => {
+  const { trigger, actions } = await req.json() as {
+    trigger: WorkflowTrigger;
+    actions?: WorkflowAction[];
+  };
 
     console.log('Executing workflow', { trigger });
 
@@ -43,7 +28,7 @@ serve(async (req) => {
 
     for (const action of workflowActions) {
       try {
-        const result = await executeAction(supabase, action, trigger);
+        const result = await executeAction(ctx.supabase, action, trigger);
         results.push({ action: action.action_type, success: true, result });
       } catch (error: unknown) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -53,13 +38,13 @@ serve(async (req) => {
     }
 
     // Log workflow execution
-    await supabase.from('workflow_execution_logs').insert({
-      trigger_type: trigger.type,
-      trigger_pattern: trigger.pattern_type,
+    await ctx.supabase.from('workflow_executions').insert({
       entity_type: trigger.entity_type,
       entity_id: trigger.entity_id,
+      trigger_event: { type: trigger.type, pattern_type: trigger.pattern_type },
       actions_executed: results,
-      executed_at: new Date().toISOString()
+      status: results.every((r: any) => r.success) ? 'completed' : 'failed',
+      completed_at: new Date().toISOString()
     });
 
     return new Response(JSON.stringify({ 
@@ -67,18 +52,10 @@ serve(async (req) => {
       results,
       actions_executed: results.length 
     }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' },
     });
 
-  } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    console.error('Workflow execution error:', errorMessage);
-    return new Response(JSON.stringify({ error: errorMessage }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-  }
-});
+}));
 
 function getDefaultActions(trigger: WorkflowTrigger): WorkflowAction[] {
   const actions: WorkflowAction[] = [];
@@ -193,18 +170,20 @@ async function executeAction(
         ownerId = candidate?.assigned_strategist;
       }
 
-      const { data, error } = await supabase.from('pilot_tasks').insert({
+      const { data, error } = await supabase.from('unified_tasks').insert({
         title: params.title,
         description: params.description,
-        priority_score: getPriorityScore(params.priority as string),
+        priority: params.priority || 'medium',
         due_date: dueDate.toISOString(),
         status: 'pending',
-        task_type: 'communication_followup',
-        related_entity_type: trigger.entity_type,
-        related_entity_id: trigger.entity_id,
         user_id: ownerId,
-        auto_generated: true,
-        source: 'workflow_automation'
+        source: 'workflow_automation',
+        metadata: {
+          task_type: 'communication_followup',
+          related_entity_type: trigger.entity_type,
+          related_entity_id: trigger.entity_id,
+          auto_generated: true,
+        }
       }).select().single();
 
       if (error) throw error;

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useRef, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -27,6 +28,7 @@ export function VideoPlayerWithTranscript({
   transcript,
   title,
 }: VideoPlayerWithTranscriptProps) {
+  const { t } = useTranslation('common');
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -232,7 +234,7 @@ export function VideoPlayerWithTranscript({
       <div className="lg:col-span-1">
         <Card className="squircle p-4 h-[600px] flex flex-col">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold">Interactive Transcript</h3>
+            <h3 className="font-semibold">{t("interactive_transcript", "Interactive Transcript")}</h3>
             <Badge variant="outline" className="squircle-sm">
               AI Powered
             </Badge>

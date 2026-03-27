@@ -19,7 +19,7 @@ serve(async (req) => {
     
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY')!;
+    const googleApiKey = Deno.env.get('GOOGLE_API_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
     
     const { company_id, period_days = 90 } = await req.json();
@@ -92,7 +92,7 @@ serve(async (req) => {
 
     // Fetch insights
     const interactionIds = interactions?.map(i => i.id) || [];
-    let insights: any[] = [];
+    let insights: Record<string, unknown>[] = [];
     
     if (interactionIds.length > 0) {
       const { data: insightsData, error: insightsError } = await supabase
@@ -114,42 +114,44 @@ serve(async (req) => {
       .eq('status', 'open');
 
     // Calculate metrics
-    const interactionsByType = (interactions || []).reduce((acc: any, int: any) => {
-      acc[int.interaction_type] = (acc[int.interaction_type] || 0) + 1;
+    const interactionsByType = (interactions || []).reduce((acc: Record<string, number>, int: Record<string, unknown>) => {
+      const iType = String(int.interaction_type);
+      acc[iType] = (acc[iType] || 0) + 1;
       return acc;
     }, {});
 
     const avgResponseTime = interactions
-      ?.filter((i: any) => i.duration_minutes)
-      .reduce((sum: number, i: any) => sum + i.duration_minutes, 0) / 
-      (interactions?.filter((i: any) => i.duration_minutes).length || 1);
+      ?.filter((i: Record<string, unknown>) => i.duration_minutes)
+      .reduce((sum: number, i: Record<string, unknown>) => sum + (i.duration_minutes as number), 0) /
+      (interactions?.filter((i: Record<string, unknown>) => i.duration_minutes).length || 1);
 
     const avgSentiment = interactions
-      ?.filter((i: any) => i.sentiment_score !== null)
-      .reduce((sum: number, i: any) => sum + i.sentiment_score, 0) /
-      (interactions?.filter((i: any) => i.sentiment_score !== null).length || 1);
+      ?.filter((i: Record<string, unknown>) => i.sentiment_score !== null)
+      .reduce((sum: number, i: Record<string, unknown>) => sum + (i.sentiment_score as number), 0) /
+      (interactions?.filter((i: Record<string, unknown>) => i.sentiment_score !== null).length || 1);
 
     const avgUrgency = interactions
-      ?.filter((i: any) => i.urgency_score !== null)
-      .reduce((sum: number, i: any) => sum + i.urgency_score, 0) /
-      (interactions?.filter((i: any) => i.urgency_score !== null).length || 1);
+      ?.filter((i: Record<string, unknown>) => i.urgency_score !== null)
+      .reduce((sum: number, i: Record<string, unknown>) => sum + (i.urgency_score as number), 0) /
+      (interactions?.filter((i: Record<string, unknown>) => i.urgency_score !== null).length || 1);
 
     // Group insights by type
-    const insightsByType = insights.reduce((acc: any, insight: any) => {
-      if (!acc[insight.insight_type]) acc[insight.insight_type] = [];
-      acc[insight.insight_type].push(insight);
+    const insightsByType = insights.reduce((acc: Record<string, Record<string, unknown>[]>, insight: Record<string, unknown>) => {
+      const iType = String(insight.insight_type);
+      if (!acc[iType]) acc[iType] = [];
+      acc[iType].push(insight);
       return acc;
-    }, {});
+    }, {} as Record<string, Record<string, unknown>[]>);
 
     // Calculate interaction frequency trend (last 30 vs previous 30)
-    const last30Days = interactions?.filter((i: any) => {
+    const last30Days = interactions?.filter((i: Record<string, unknown>) => {
       const date = new Date(i.interaction_date);
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
       return date >= thirtyDaysAgo;
     }).length || 0;
 
-    const previous30Days = interactions?.filter((i: any) => {
+    const previous30Days = interactions?.filter((i: Record<string, unknown>) => {
       const date = new Date(i.interaction_date);
       const sixtyDaysAgo = new Date();
       sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
@@ -178,7 +180,7 @@ serve(async (req) => {
 - Average urgency: ${avgUrgency.toFixed(1)}/10
 
 **Stakeholders (${stakeholders?.length || 0} total):**
-${stakeholders?.slice(0, 5).map((s: any) => 
+${stakeholders?.slice(0, 5).map((s: Record<string, unknown>) =>
   `- ${s.full_name} (${s.job_title || 'Unknown'}) - ${s.role_type} - Engagement: ${s.engagement_score}/100`
 ).join('\n') || 'No stakeholders'}
 
@@ -208,18 +210,18 @@ Provide recommendations in JSON format:
 
 Return ONLY valid JSON.`;
 
-    logger.info('Calling Lovable AI for recommendations');
+    logger.info('Calling Google Gemini for recommendations');
 
-    // Call Lovable AI for recommendations
+    // Call Google Gemini for recommendations
     const aiStartTime = Date.now();
-    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    const aiResponse = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${lovableApiKey}`,
+        'Authorization': `Bearer ${googleApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash-lite',
+        model: 'gemini-2.5-flash-lite',
         messages: [
           {
             role: 'system',
@@ -234,7 +236,7 @@ Return ONLY valid JSON.`;
       }),
     });
 
-    logger.logExternalCall('lovable-ai', '/v1/chat/completions', aiResponse.status, Date.now() - aiStartTime);
+    logger.logExternalCall('google-gemini', '/v1/chat/completions', aiResponse.status, Date.now() - aiStartTime);
 
     let aiRecommendations = null;
     if (aiResponse.ok) {
@@ -284,10 +286,10 @@ Return ONLY valid JSON.`;
       },
       stakeholder_map: {
         total_stakeholders: stakeholders?.length || 0,
-        decision_makers: stakeholders?.filter((s: any) => s.role_type === 'decision_maker').length || 0,
-        influencers: stakeholders?.filter((s: any) => s.role_type === 'influencer').length || 0,
-        champions: stakeholders?.filter((s: any) => s.role_type === 'champion').length || 0,
-        top_stakeholders: stakeholders?.slice(0, 5).map((s: any) => ({
+        decision_makers: stakeholders?.filter((s: Record<string, unknown>) => s.role_type === 'decision_maker').length || 0,
+        influencers: stakeholders?.filter((s: Record<string, unknown>) => s.role_type === 'influencer').length || 0,
+        champions: stakeholders?.filter((s: Record<string, unknown>) => s.role_type === 'champion').length || 0,
+        top_stakeholders: stakeholders?.slice(0, 5).map((s: Record<string, unknown>) => ({
           id: s.id,
           name: s.full_name,
           title: s.job_title,
@@ -300,7 +302,7 @@ Return ONLY valid JSON.`;
       hiring_intelligence: {
         avg_urgency_score: Number(avgUrgency.toFixed(1)),
         active_jobs: jobs?.length || 0,
-        job_titles: jobs?.map((j: any) => j.title) || [],
+        job_titles: jobs?.map((j: Record<string, unknown>) => j.title) || [],
         budget_signals_detected: insightsByType.budget_signal?.length || 0,
         timeline_mentions: insightsByType.decision_timeline?.length || 0,
         pain_points_identified: insightsByType.pain_point?.length || 0,
@@ -311,9 +313,9 @@ Return ONLY valid JSON.`;
           type,
           count: insightsByType[type].length
         })),
-        red_flags: insightsByType.red_flag?.map((i: any) => i.insight_text) || [],
-        positive_signals: insightsByType.positive_signal?.map((i: any) => i.insight_text) || [],
-        competitors_mentioned: insightsByType.competitor_mention?.map((i: any) => i.insight_text) || [],
+        red_flags: insightsByType.red_flag?.map((i: Record<string, unknown>) => i.insight_text) || [],
+        positive_signals: insightsByType.positive_signal?.map((i: Record<string, unknown>) => i.insight_text) || [],
+        competitors_mentioned: insightsByType.competitor_mention?.map((i: Record<string, unknown>) => i.insight_text) || [],
       },
       ai_recommendations: aiRecommendations,
       generated_at: new Date().toISOString(),

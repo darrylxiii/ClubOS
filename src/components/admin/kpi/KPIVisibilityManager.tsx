@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -49,6 +50,7 @@ const ROLES = ['admin', 'strategist', 'partner', 'candidate'];
 const SENSITIVE_FIELD_OPTIONS = ['value', 'target', 'trend', 'historical_data', 'source_data'];
 
 export function KPIVisibilityManager({ availableKPIs = [] }: KPIVisibilityManagerProps) {
+  const { t } = useTranslation('common');
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRole, setFilterRole] = useState<string>('all');
@@ -99,10 +101,10 @@ export function KPIVisibilityManager({ availableKPIs = [] }: KPIVisibilityManage
       queryClient.invalidateQueries({ queryKey: ['kpi-visibility-rules'] });
       setIsDialogOpen(false);
       resetForm();
-      toast.success('Visibility rule saved');
+      toast.success(t("visibility_rule_saved", "Visibility rule saved"));
     },
     onError: (error) => {
-      toast.error('Failed to save rule: ' + error.message);
+      toast.error(t("failed_to_save_rule", "Failed to save rule:") + error.message);
     }
   });
 
@@ -117,7 +119,7 @@ export function KPIVisibilityManager({ availableKPIs = [] }: KPIVisibilityManage
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['kpi-visibility-rules'] });
-      toast.success('Rule deleted');
+      toast.success(t("rule_deleted", "Rule deleted"));
     }
   });
 
@@ -190,14 +192,14 @@ export function KPIVisibilityManager({ availableKPIs = [] }: KPIVisibilityManage
             </DialogTrigger>
             <DialogContent className="max-w-md">
               <DialogHeader>
-                <DialogTitle>Configure KPI Visibility</DialogTitle>
+                <DialogTitle>{t("configure_kpi_visibility", "Configure KPI Visibility")}</DialogTitle>
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4 mt-4">
                 <div className="space-y-2">
-                  <Label>Select KPI</Label>
+                  <Label>{t("select_kpi", "Select KPI")}</Label>
                   <Select value={selectedKPI} onValueChange={setSelectedKPI}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Choose a KPI..." />
+                      <SelectValue placeholder={t("choose_a_kpi", "Choose a KPI...")} />
                     </SelectTrigger>
                     <SelectContent>
                       {kpisWithoutRules.map(kpi => (
@@ -210,7 +212,7 @@ export function KPIVisibilityManager({ availableKPIs = [] }: KPIVisibilityManage
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Visible to Roles</Label>
+                  <Label>{t("visible_to_roles", "Visible to Roles")}</Label>
                   <div className="flex flex-wrap gap-2">
                     {ROLES.map(role => (
                       <Button
@@ -228,7 +230,7 @@ export function KPIVisibilityManager({ availableKPIs = [] }: KPIVisibilityManage
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Sensitive Fields</Label>
+                  <Label>{t("sensitive_fields", "Sensitive Fields")}</Label>
                   <p className="text-xs text-muted-foreground mb-2">
                     Select which fields contain sensitive data
                   </p>
@@ -251,7 +253,7 @@ export function KPIVisibilityManager({ availableKPIs = [] }: KPIVisibilityManage
                 <div className="space-y-4 pt-2">
                   <div className="flex items-center justify-between">
                     <div>
-                      <Label>Require Export Approval</Label>
+                      <Label>{t("require_export_approval", "Require Export Approval")}</Label>
                       <p className="text-xs text-muted-foreground">
                         Exports need admin approval
                       </p>
@@ -264,7 +266,7 @@ export function KPIVisibilityManager({ availableKPIs = [] }: KPIVisibilityManage
 
                   <div className="flex items-center justify-between">
                     <div>
-                      <Label>Mask for Unauthorized</Label>
+                      <Label>{t("mask_for_unauthorized", "Mask for Unauthorized")}</Label>
                       <p className="text-xs text-muted-foreground">
                         Show masked values to unauthorized users
                       </p>
@@ -304,7 +306,7 @@ export function KPIVisibilityManager({ availableKPIs = [] }: KPIVisibilityManage
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search KPIs..."
+              placeholder={t("search_kpis", "Search KPIs...")}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-9"
@@ -316,7 +318,7 @@ export function KPIVisibilityManager({ availableKPIs = [] }: KPIVisibilityManage
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Roles</SelectItem>
+              <SelectItem value="all">{t("all_roles", "All Roles")}</SelectItem>
               {ROLES.map(role => (
                 <SelectItem key={role} value={role} className="capitalize">
                   {role}

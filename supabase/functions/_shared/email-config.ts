@@ -69,7 +69,7 @@ export const PLATFORM_ICONS = {
 
 // GIF header for all outbound emails
 // NOTE: Must be an absolute public URL reachable by all email clients worldwide.
-// The published Lovable app URL serves the public/ folder reliably.
+// The published app URL serves the public/ folder reliably.
 export const EMAIL_HEADER_GIF = 'https://os.thequantumclub.com/email-header.gif';
 
 

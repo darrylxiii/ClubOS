@@ -1,4 +1,5 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useTranslation } from 'react-i18next';
 import { EdgeFunctionOverviewTab } from '@/components/admin/edge-functions/EdgeFunctionOverviewTab';
 import { EdgeFunctionRegistryTab } from '@/components/admin/edge-functions/EdgeFunctionRegistryTab';
 import { EdgeFunctionUsageTab } from '@/components/admin/edge-functions/EdgeFunctionUsageTab';
@@ -7,13 +8,12 @@ import { EdgeFunctionCostTab } from '@/components/admin/edge-functions/EdgeFunct
 import { LayoutDashboard, List, BarChart3, Timer, DollarSign } from 'lucide-react';
 
 export default function EdgeFunctionCommandCenter() {
+  const { t } = useTranslation('admin');
   return (
     <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Edge Function Command Center</h1>
-        <p className="text-muted-foreground mt-1">
-          Monitor, control, and optimize all backend functions across the platform.
-        </p>
+        <h1 className="text-2xl font-bold tracking-tight">{t('edgeFunctionCommandCenter.text2')}</h1>
+        <p className="text-muted-foreground mt-1">{t('edgeFunctionCommandCenter.desc')}</p>
       </div>
 
       <Tabs defaultValue="overview" className="space-y-6">

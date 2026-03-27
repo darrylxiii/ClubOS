@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { UnifiedKPI } from '@/hooks/useUnifiedKPIs';
+import { useTranslation } from 'react-i18next';
 
 interface KPIForecastPanelProps {
   kpi: UnifiedKPI;
@@ -105,6 +106,7 @@ export function KPIForecastPanel({ kpi, className }: KPIForecastPanelProps) {
   const explanation = getTrendExplanation(kpi, forecasts);
   
   const formatValue = (value: number) => {
+  const { t } = useTranslation('admin');
     const safeValue = typeof value === 'number' && isFinite(value) ? value : 0;
     switch (kpi.format) {
       case 'percent':
@@ -153,12 +155,12 @@ export function KPIForecastPanel({ kpi, className }: KPIForecastPanelProps) {
         {/* Current vs Predicted */}
         <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
           <div className="flex-1 text-center">
-            <p className="text-xs text-muted-foreground">Current</p>
+            <p className="text-xs text-muted-foreground">{t('kpi.kPIForecastPanel.current')}</p>
             <p className="text-lg font-bold">{formatValue(kpi.value)}</p>
           </div>
           <ArrowRight className="h-4 w-4 text-muted-foreground" />
           <div className="flex-1 text-center">
-            <p className="text-xs text-muted-foreground">30-day Forecast</p>
+            <p className="text-xs text-muted-foreground">{"30-day Forecast"}</p>
             <p className={cn(
               "text-lg font-bold",
               forecasts[1].predictedValue > kpi.value 
@@ -204,11 +206,11 @@ export function KPIForecastPanel({ kpi, className }: KPIForecastPanelProps) {
                   </TooltipTrigger>
                   <TooltipContent side="left" className="max-w-xs">
                     <div className="space-y-1 text-xs">
-                      <p><strong>Confidence Range:</strong></p>
+                      <p><strong>{"Confidence Range:"}</strong></p>
                       <p>{formatValue(forecast.confidenceLow)} – {formatValue(forecast.confidenceHigh)}</p>
                       {kpi.targetValue && (
                         <p className="mt-2">
-                          <strong>Goal Attainment:</strong> {forecast.goalAttainmentProbability}% likely to reach {formatValue(kpi.targetValue)}
+                          <strong>{"Goal Attainment:"}</strong> {forecast.goalAttainmentProbability}% likely to reach {formatValue(kpi.targetValue)}
                         </p>
                       )}
                     </div>

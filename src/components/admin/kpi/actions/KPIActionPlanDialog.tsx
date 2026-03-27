@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -70,6 +71,7 @@ const getActionSuggestions = (kpi: UnifiedKPI | null): string[] => {
 };
 
 export function KPIActionPlanDialog({ open, onOpenChange, kpi }: KPIActionPlanDialogProps) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const { createAction, isCreating } = useKPIActions();
   const { getOwnerForKPI } = useKPIOwnership();
@@ -137,7 +139,7 @@ export function KPIActionPlanDialog({ open, onOpenChange, kpi }: KPIActionPlanDi
               <CardContent className="pt-4">
                 <div className="flex items-center gap-2 mb-3">
                   <Lightbulb className="h-4 w-4 text-amber-500" />
-                  <span className="text-sm font-medium">Club AI Suggestions</span>
+                  <span className="text-sm font-medium">{t("club_ai_suggestions", "Club AI Suggestions")}</span>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {suggestions.slice(0, 4).map((suggestion, i) => (
@@ -158,9 +160,9 @@ export function KPIActionPlanDialog({ open, onOpenChange, kpi }: KPIActionPlanDi
 
           {/* Action Description */}
           <div className="space-y-2">
-            <Label>Action Description *</Label>
+            <Label>{t("action_description", "Action Description *")}</Label>
             <Textarea
-              placeholder="What specific action will you take to improve this KPI?"
+              placeholder={t("what_specific_action_will", "What specific action will you take to improve this KPI?")}
               value={actionDescription}
               onChange={(e) => setActionDescription(e.target.value)}
               rows={3}
@@ -171,7 +173,7 @@ export function KPIActionPlanDialog({ open, onOpenChange, kpi }: KPIActionPlanDi
           {/* Action Type & Due Date */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Priority</Label>
+              <Label>{t("priority", "Priority")}</Label>
               <Select value={actionType} onValueChange={setActionType}>
                 <SelectTrigger>
                   <SelectValue />
@@ -200,7 +202,7 @@ export function KPIActionPlanDialog({ open, onOpenChange, kpi }: KPIActionPlanDi
             </div>
 
             <div className="space-y-2">
-              <Label>Due Date</Label>
+              <Label>{t("due_date", "Due Date")}</Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
@@ -230,7 +232,7 @@ export function KPIActionPlanDialog({ open, onOpenChange, kpi }: KPIActionPlanDi
           {/* Owner Info */}
           {ownership?.owner_profile && (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <span>Owner:</span>
+              <span>{t("owner", "Owner:")}</span>
               <span className="font-medium text-foreground">
                 {ownership.owner_profile.full_name || ownership.owner_profile.email}
               </span>

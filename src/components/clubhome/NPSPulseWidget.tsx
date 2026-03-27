@@ -4,8 +4,10 @@ import { motion } from "framer-motion";
 import { useNPSSurveys } from "@/hooks/useQuantumKPIs";
 import { useMemo } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useTranslation } from 'react-i18next';
 
 export const NPSPulseWidget = () => {
+  const { t } = useTranslation('common');
   const { data: surveys, isLoading } = useNPSSurveys();
 
   const npsMetrics = useMemo(() => {
@@ -110,17 +112,17 @@ export const NPSPulseWidget = () => {
             <div className="text-center p-2 rounded-lg bg-emerald-500/10">
               <ThumbsUp className="h-3 w-3 mx-auto text-emerald-500 mb-1" />
               <div className="text-sm font-bold text-emerald-500">{npsMetrics.promoters}</div>
-              <div className="text-[9px] text-muted-foreground">Promoters</div>
+              <div className="text-[9px] text-muted-foreground">{t('nPSPulseWidget.promoters')}</div>
             </div>
             <div className="text-center p-2 rounded-lg bg-amber-500/10">
               <Meh className="h-3 w-3 mx-auto text-amber-500 mb-1" />
               <div className="text-sm font-bold text-amber-500">{npsMetrics.passives}</div>
-              <div className="text-[9px] text-muted-foreground">Passives</div>
+              <div className="text-[9px] text-muted-foreground">{t('nPSPulseWidget.passives')}</div>
             </div>
             <div className="text-center p-2 rounded-lg bg-rose-500/10">
               <ThumbsDown className="h-3 w-3 mx-auto text-rose-500 mb-1" />
               <div className="text-sm font-bold text-rose-500">{npsMetrics.detractors}</div>
-              <div className="text-[9px] text-muted-foreground">Detractors</div>
+              <div className="text-[9px] text-muted-foreground">{t('nPSPulseWidget.detractors')}</div>
             </div>
           </div>
         </CardContent>

@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { useTranslation } from 'react-i18next';
 
 interface KPIStats {
   healthScore: number | null;
@@ -17,6 +18,7 @@ interface KPIStats {
 }
 
 export const KPISummaryWidget = () => {
+  const { t } = useTranslation('common');
   const { data: stats, isLoading } = useQuery({
     queryKey: ['kpi-summary-stats'],
     queryFn: async (): Promise<KPIStats> => {
@@ -107,7 +109,7 @@ export const KPISummaryWidget = () => {
         <CardContent className="flex-1">
           <div className="flex flex-col items-center justify-center py-6 text-center">
             <Info className="h-8 w-8 text-muted-foreground mb-2" />
-            <p className="text-sm text-muted-foreground mb-4">No KPI data available yet</p>
+            <p className="text-sm text-muted-foreground mb-4">{t('kPISummaryWidget.noKpiDataAvailableYet')}</p>
             <Button asChild variant="outline" size="sm">
               <Link to="/admin/kpi-command-center">
                 <TrendingUp className="h-4 w-4 mr-2" />
@@ -144,12 +146,12 @@ export const KPISummaryWidget = () => {
                 <div className={`text-4xl font-bold ${getHealthColor(stats.healthScore)}`}>
                   {stats.healthScore}%
                 </div>
-                <div className="text-xs text-muted-foreground text-center">Health Score</div>
+                <div className="text-xs text-muted-foreground text-center">{t('kPISummaryWidget.healthScore')}</div>
               </>
             ) : (
               <>
                 <div className="text-2xl font-bold text-muted-foreground">—</div>
-                <div className="text-xs text-muted-foreground text-center">Awaiting Data</div>
+                <div className="text-xs text-muted-foreground text-center">{t('kPISummaryWidget.awaitingData')}</div>
               </>
             )}
           </div>
@@ -159,22 +161,22 @@ export const KPISummaryWidget = () => {
           <div className="flex flex-col items-center p-2 rounded-lg bg-red-500/10">
             <AlertTriangle className="h-4 w-4 text-red-500 mb-1" />
             <span className="text-lg font-bold text-red-500">{stats.criticalAlerts}</span>
-            <span className="text-xs text-muted-foreground">Critical</span>
+            <span className="text-xs text-muted-foreground">{t('kPISummaryWidget.critical')}</span>
           </div>
           <div className="flex flex-col items-center p-2 rounded-lg bg-yellow-500/10">
             <AlertTriangle className="h-4 w-4 text-yellow-500 mb-1" />
             <span className="text-lg font-bold text-yellow-500">{stats.warningAlerts}</span>
-            <span className="text-xs text-muted-foreground">Warning</span>
+            <span className="text-xs text-muted-foreground">{t('kPISummaryWidget.warning')}</span>
           </div>
           <div className="flex flex-col items-center p-2 rounded-lg bg-green-500/10">
             <CheckCircle className="h-4 w-4 text-green-500 mb-1" />
             <span className="text-lg font-bold text-green-500">{stats.onTargetCount}</span>
-            <span className="text-xs text-muted-foreground">On Target</span>
+            <span className="text-xs text-muted-foreground">{t('kPISummaryWidget.onTarget')}</span>
           </div>
           <div className="flex flex-col items-center p-2 rounded-lg bg-muted/50">
             <Info className="h-4 w-4 text-muted-foreground mb-1" />
             <span className="text-lg font-bold text-muted-foreground">{stats.pendingCount}</span>
-            <span className="text-xs text-muted-foreground">Pending</span>
+            <span className="text-xs text-muted-foreground">{t('kPISummaryWidget.pending')}</span>
           </div>
         </div>
 

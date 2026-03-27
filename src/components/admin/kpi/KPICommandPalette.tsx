@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React, { useState, useEffect, useMemo } from 'react';
 import { CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator } from '@/components/ui/command';
 import { Badge } from '@/components/ui/badge';
@@ -34,6 +35,7 @@ export function KPICommandPalette({
   onExport,
   onRefresh,
 }: KPICommandPaletteProps) {
+  const { t } = useTranslation('common');
   const [search, setSearch] = useState('');
 
   // Reset search when closed
@@ -62,23 +64,23 @@ export function KPICommandPalette({
   return (
     <CommandDialog open={open} onOpenChange={onOpenChange}>
       <CommandInput 
-        placeholder="Search KPIs, run commands..." 
+        placeholder={t("search_kpis_run_commands", "Search KPIs, run commands...")} 
         value={search}
         onValueChange={setSearch}
       />
       <CommandList>
-        <CommandEmpty>No KPIs found.</CommandEmpty>
+        <CommandEmpty>{t("no_kpis_found", "No KPIs found.")}</CommandEmpty>
         
         {/* Quick Actions */}
         <CommandGroup heading="Quick Actions">
           <CommandItem onSelect={onRefresh}>
             <RefreshCw className="mr-2 h-4 w-4" />
-            <span>Refresh All KPIs</span>
+            <span>{t("refresh_all_kpis", "Refresh All KPIs")}</span>
             <kbd className="ml-auto text-xs bg-muted px-1.5 py-0.5 rounded">⌘R</kbd>
           </CommandItem>
           <CommandItem onSelect={onExport}>
             <Download className="mr-2 h-4 w-4" />
-            <span>Export KPI Report</span>
+            <span>{t("export_kpi_report", "Export KPI Report")}</span>
             <kbd className="ml-auto text-xs bg-muted px-1.5 py-0.5 rounded">⌘E</kbd>
           </CommandItem>
         </CommandGroup>

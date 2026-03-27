@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React, { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -40,19 +41,20 @@ interface Company {
 }
 
 const AVAILABLE_ROLES = [
-  { value: 'admin', label: 'Admin', description: 'Full system access' },
-  { value: 'strategist', label: 'Talent Strategist', description: 'Manage candidates and placements' },
-  { value: 'partner', label: 'Partner', description: 'Company partner with full hiring pipeline control' },
-  { value: 'user', label: 'Candidate', description: 'Standard user access' },
+  { value: 'admin', label: t('unifiedusermanagementtsx.unifiedusermanagement.admin', 'Admin'), description: t('unifiedusermanagementtsx.unifiedusermanagement.fullSystemAccess', 'Full system access') },
+  { value: 'strategist', label: t('unifiedusermanagementtsx.unifiedusermanagement.talentStrategist', 'Talent Strategist'), description: t('unifiedusermanagementtsx.unifiedusermanagement.manageCandidatesAndPlacements', 'Manage candidates and placements') },
+  { value: 'partner', label: t('unifiedusermanagementtsx.unifiedusermanagement.partner', 'Partner'), description: t('unifiedusermanagementtsx.unifiedusermanagement.companyPartnerWithFullHiringPipeline', 'Company partner with full hiring pipeline control') },
+  { value: 'user', label: t('unifiedusermanagementtsx.unifiedusermanagement.candidate', 'Candidate'), description: t('unifiedusermanagementtsx.unifiedusermanagement.standardUserAccess', 'Standard user access') },
 ];
 
 const COMPANY_ROLES = [
-  { value: 'owner', label: 'Owner' },
-  { value: 'admin', label: 'Admin' },
-  { value: 'recruiter', label: 'Recruiter' },
+  { value: 'owner', label: t('unifiedusermanagementtsx.unifiedusermanagement.owner', 'Owner') },
+  { value: 'admin', label: t('unifiedusermanagementtsx.unifiedusermanagement.admin', 'Admin') },
+  { value: 'recruiter', label: t('unifiedusermanagementtsx.unifiedusermanagement.recruiter', 'Recruiter') },
 ];
 
 export function UnifiedUserManagement() {
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
   const [users, setUsers] = useState<UserWithRoles[]>([]);
   const [companies, setCompanies] = useState<Company[]>([]);
@@ -179,7 +181,7 @@ export function UnifiedUserManagement() {
       }
     } catch (error) {
       console.error('Error fetching data:', error);
-      toast.error("Failed to load users");
+      toast.error(t("failed_to_load_users", "Failed to load users"));
     } finally {
       setLoading(false);
     }
@@ -284,14 +286,14 @@ export function UnifiedUserManagement() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         console.error('[UnifiedUserManagement] No authenticated user');
-        toast.error("Authentication required");
+        toast.error(t("authentication_required", "Authentication required"));
         return;
       }
 
       if (selectedRoles.length === 0) {
         console.error('[UnifiedUserManagement] No roles selected');
-        toast.error("User must have at least one role", {
-          description: "Please select at least one role before saving"
+        toast.error(t("user_must_have_at", "User must have at least one role"), {
+          description: t('unifiedusermanagementtsx.unifiedusermanagement.pleaseSelectAtLeastOneRole', 'Please select at least one role before saving')
         });
         return;
       }
@@ -391,8 +393,8 @@ export function UnifiedUserManagement() {
       await fetchData();
     } catch (error) {
       console.error('[UnifiedUserManagement] Error updating user:', error);
-      toast.error("Failed to update user", {
-        description: error instanceof Error ? error.message : "Please check the console for details"
+      toast.error(t("failed_to_update_user", "Failed to update user"), {
+        description: error instanceof Error ? error.message : t('unifiedusermanagementtsx.unifiedusermanagement.pleaseCheckTheConsoleForDetails', 'Please check the console for details')
       });
     } finally {
       setSaving(false);
@@ -448,10 +450,10 @@ export function UnifiedUserManagement() {
 
       const inviteUrl = `${window.location.origin}/auth?invite=${data.code}`;
       await navigator.clipboard.writeText(inviteUrl);
-      toast.success("Invite link copied to clipboard!");
+      toast.success(t("invite_link_copied_to", "Invite link copied to clipboard!"));
     } catch (error) {
       console.error('Error generating invite:', error);
-      toast.error("Failed to generate invite link");
+      toast.error(t("failed_to_generate_invite", "Failed to generate invite link"));
     }
   };
 
@@ -475,11 +477,11 @@ export function UnifiedUserManagement() {
     a.href = url;
     a.download = `users-${new Date().toISOString().split('T')[0]}.csv`;
     a.click();
-    toast.success("User list exported");
+    toast.success(t("user_list_exported", "User list exported"));
   };
 
   if (loading) {
-    return <div>Loading users...</div>;
+    return <div>{t("loading_users", "Loading users...")}</div>;
   }
 
   return (
@@ -487,8 +489,8 @@ export function UnifiedUserManagement() {
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle>User, Role & Company Management</CardTitle>
-            <CardDescription>Manage users, assign roles, and link to companies</CardDescription>
+            <CardTitle>{t("user_role_company_management", "User, Role & Company Management")}</CardTitle>
+            <CardDescription>{t("manage_users_assign_roles", "Manage users, assign roles, and link to companies")}</CardDescription>
           </div>
           <div className="flex gap-2">
             <Button variant="outline" onClick={generateInviteLink}>
@@ -509,7 +511,7 @@ export function UnifiedUserManagement() {
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
-                placeholder="Search by name, email, or company..."
+                placeholder={t("search_by_name_email", "Search by name, email, or company...")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10"
@@ -517,10 +519,10 @@ export function UnifiedUserManagement() {
             </div>
             <Select value={roleFilter} onValueChange={setRoleFilter}>
               <SelectTrigger className="w-48">
-                <SelectValue placeholder="Filter by role" />
+                <SelectValue placeholder={t("filter_by_role", "Filter by role")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Roles</SelectItem>
+                <SelectItem value="all">{t("all_roles", "All Roles")}</SelectItem>
                 {AVAILABLE_ROLES.map(role => (
                   <SelectItem key={role.value} value={role.value}>
                     {role.label}
@@ -534,51 +536,51 @@ export function UnifiedUserManagement() {
           <Collapsible open={showAdvancedFilters} onOpenChange={setShowAdvancedFilters}>
             <CollapsibleTrigger asChild>
               <Button variant="ghost" className="w-full justify-between">
-                <span>Advanced Filters (Settings-based)</span>
+                <span>{t("advanced_filters_settingsbased", "Advanced Filters (Settings-based)")}</span>
                 {showAdvancedFilters ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
               </Button>
             </CollapsibleTrigger>
             <CollapsibleContent className="space-y-4 pt-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <Label>Work Preference</Label>
+                  <Label>{t("work_preference", "Work Preference")}</Label>
                   <Select value={workPreferenceFilter} onValueChange={setWorkPreferenceFilter}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All Types</SelectItem>
-                      <SelectItem value="remote">Remote</SelectItem>
-                      <SelectItem value="hybrid">Hybrid</SelectItem>
-                      <SelectItem value="onsite">On-site</SelectItem>
+                      <SelectItem value="all">{t("all_types", "All Types")}</SelectItem>
+                      <SelectItem value="remote">{t("remote", "Remote")}</SelectItem>
+                      <SelectItem value="hybrid">{t("hybrid", "Hybrid")}</SelectItem>
+                      <SelectItem value="onsite">{t("onsite", "On-site")}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Document Status</Label>
+                  <Label>{t("document_status", "Document Status")}</Label>
                   <Select value={documentFilter} onValueChange={setDocumentFilter}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All</SelectItem>
-                      <SelectItem value="uploaded">Resume Uploaded</SelectItem>
-                      <SelectItem value="missing">No Resume</SelectItem>
+                      <SelectItem value="all">{t("all", "All")}</SelectItem>
+                      <SelectItem value="uploaded">{t("resume_uploaded", "Resume Uploaded")}</SelectItem>
+                      <SelectItem value="missing">{t("no_resume", "No Resume")}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Privacy Mode</Label>
+                  <Label>{t("privacy_mode", "Privacy Mode")}</Label>
                   <Select value={privacyFilter} onValueChange={setPrivacyFilter}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All</SelectItem>
-                      <SelectItem value="stealth">Stealth Mode ON</SelectItem>
-                      <SelectItem value="public">Stealth Mode OFF</SelectItem>
+                      <SelectItem value="all">{t("all", "All")}</SelectItem>
+                      <SelectItem value="stealth">{t("stealth_mode_on", "Stealth Mode ON")}</SelectItem>
+                      <SelectItem value="public">{t("stealth_mode_off", "Stealth Mode OFF")}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -606,7 +608,7 @@ export function UnifiedUserManagement() {
                   setPrivacyFilter("all");
                 }}
               >
-                Reset Filters
+                {t('unifiedusermanagementtsx.unifiedusermanagement.resetFilters', 'Reset Filters')}
               </Button>
             </CollapsibleContent>
           </Collapsible>
@@ -616,22 +618,20 @@ export function UnifiedUserManagement() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>User</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Roles</TableHead>
-              <TableHead>Company</TableHead>
-              <TableHead>Company Role</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Joined</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead>{t("user", "User")}</TableHead>
+              <TableHead>{t("email", "Email")}</TableHead>
+              <TableHead>{t("roles", "Roles")}</TableHead>
+              <TableHead>{t("company", "Company")}</TableHead>
+              <TableHead>{t("company_role", "Company Role")}</TableHead>
+              <TableHead>{t("status", "Status")}</TableHead>
+              <TableHead>{t("joined", "Joined")}</TableHead>
+              <TableHead className="text-right">{t("actions", "Actions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
               {filteredUsers.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center text-muted-foreground">
-                    No users found
-                  </TableCell>
+                  <TableCell colSpan={8} className="text-center text-muted-foreground">{t('unifiedusermanagementtsx.unifiedusermanagement.noUsersFound', 'No users found')}</TableCell>
                 </TableRow>
               ) : (
                 filteredUsers.map((user) => (
@@ -655,9 +655,7 @@ export function UnifiedUserManagement() {
                           )}
                           <span>{user.full_name || 'No name'}</span>
                           {integrityIssues.has(user.id) && (
-                            <Badge variant="destructive" className="text-xs">
-                              Data Mismatch
-                            </Badge>
+                            <Badge variant="destructive" className="text-xs">{t('unifiedusermanagementtsx.unifiedusermanagement.dataMismatch', 'Data Mismatch')}</Badge>
                           )}
                         </div>
                       </TableCell>
@@ -665,7 +663,7 @@ export function UnifiedUserManagement() {
                       <TableCell>
                         <div className="flex gap-1 flex-wrap">
                           {!Array.isArray(user.roles) || user.roles.length === 0 ? (
-                            <Badge variant="outline">No roles</Badge>
+                            <Badge variant="outline">{t("no_roles", "No roles")}</Badge>
                           ) : (
                             user.roles.map((role, idx) => {
                               // 🔒 Defensive: Ensure role is a string
@@ -687,7 +685,7 @@ export function UnifiedUserManagement() {
                             <span>{user.company_name}</span>
                           </div>
                         ) : (
-                          <span className="text-muted-foreground text-sm">No company</span>
+                          <span className="text-muted-foreground text-sm">{t("no_company", "No company")}</span>
                         )}
                       </TableCell>
                       <TableCell>
@@ -701,9 +699,9 @@ export function UnifiedUserManagement() {
                       </TableCell>
                       <TableCell>
                         {user.email_verified ? (
-                          <Badge variant="default">Verified</Badge>
+                          <Badge variant="default">{t("verified", "Verified")}</Badge>
                         ) : (
-                          <Badge variant="outline">Unverified</Badge>
+                          <Badge variant="outline">{t("unverified", "Unverified")}</Badge>
                         )}
                       </TableCell>
                       <TableCell>
@@ -715,7 +713,7 @@ export function UnifiedUserManagement() {
                             variant="ghost"
                             size="icon"
                             onClick={() => navigate(`/profile/${user.id}`)}
-                            title="View Full Profile & Settings"
+                            title={t("view_full_profile_settings", "View Full Profile & Settings")}
                           >
                             <Eye className="w-4 h-4" />
                           </Button>
@@ -724,7 +722,7 @@ export function UnifiedUserManagement() {
                               variant="ghost"
                               size="icon"
                               onClick={() => navigate(`/candidate/${user.candidate_id}`)}
-                              title="View as Candidate"
+                              title={t("view_as_candidate", "View as Candidate")}
                             >
                               <ExternalLink className="w-4 h-4" />
                             </Button>
@@ -733,7 +731,7 @@ export function UnifiedUserManagement() {
                             variant="ghost"
                             size="icon"
                             onClick={() => openEditDialog(user)}
-                            title="Edit User"
+                            title={t("edit_user", "Edit User")}
                           >
                             <Pencil className="w-4 h-4" />
                           </Button>
@@ -771,7 +769,7 @@ export function UnifiedUserManagement() {
         }}>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Manage User</DialogTitle>
+              <DialogTitle>{t("manage_user", "Manage User")}</DialogTitle>
               <DialogDescription>
                 Update roles and company assignment for {editingUser?.full_name || editingUser?.email}
               </DialogDescription>
@@ -779,10 +777,8 @@ export function UnifiedUserManagement() {
             <div className="space-y-6 py-4">
               {/* Roles Section */}
               <div className="space-y-3">
-                <Label className="text-base font-semibold">System Roles</Label>
-                <p className="text-sm text-muted-foreground">
-                  Select exactly which roles this user should have. Each role must be explicitly chosen - no automatic assignments.
-                </p>
+                <Label className="text-base font-semibold">{t("system_roles", "System Roles")}</Label>
+                <p className="text-sm text-muted-foreground">{t('unifiedusermanagementtsx.unifiedusermanagement.selectExactlyWhichRolesThisUser', 'Select exactly which roles this user should have. Each role must be explicitly chosen - no automatic assignments.')}</p>
                 {AVAILABLE_ROLES.map((role) => (
                   <div key={role.value} className="flex items-start space-x-3">
                     <Checkbox
@@ -807,18 +803,18 @@ export function UnifiedUserManagement() {
 
               {/* Company Assignment Section */}
               <div className="space-y-3 pt-4 border-t">
-                <Label className="text-base font-semibold">Company Assignment</Label>
+                <Label className="text-base font-semibold">{t("company_assignment", "Company Assignment")}</Label>
                 <div className="space-y-2">
-                  <Label htmlFor="company">Company</Label>
+                  <Label htmlFor="company">{t("company", "Company")}</Label>
                   <Select
                     value={selectedCompany}
                     onValueChange={setSelectedCompany}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="No company" />
+                      <SelectValue placeholder={t("no_company", "No company")} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="none">No company</SelectItem>
+                      <SelectItem value="none">{t("no_company", "No company")}</SelectItem>
                       {companies.map((company) => (
                         <SelectItem key={company.id} value={company.id}>
                           {company.name}
@@ -829,7 +825,7 @@ export function UnifiedUserManagement() {
                 </div>
                 {selectedCompany && selectedCompany !== "none" && (
                   <div className="space-y-2">
-                    <Label htmlFor="companyRole">Company Role</Label>
+                    <Label htmlFor="companyRole">{t("company_role", "Company Role")}</Label>
                     <Select
                       value={selectedCompanyRole}
                       onValueChange={setSelectedCompanyRole}
@@ -851,11 +847,11 @@ export function UnifiedUserManagement() {
 
               {/* MFA Reset Section */}
               <div className="space-y-3 pt-4 border-t">
-                <Label className="text-base font-semibold">Security</Label>
+                <Label className="text-base font-semibold">{t("security", "Security")}</Label>
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium">Reset MFA</p>
-                    <p className="text-xs text-muted-foreground">Remove all authenticator factors so the user can set up MFA again.</p>
+                    <p className="text-sm font-medium">{t("reset_mfa", "Reset MFA")}</p>
+                    <p className="text-xs text-muted-foreground">{t("remove_all_authenticator_factors", "Remove all authenticator factors so the user can set up MFA again.")}</p>
                   </div>
                   <Button
                     variant="destructive"
@@ -875,7 +871,7 @@ export function UnifiedUserManagement() {
                         toast.success(`MFA reset for ${editingUser.full_name || editingUser.email}`);
                       } catch (err) {
                         console.error('[UnifiedUserManagement] MFA reset error:', err);
-                        toast.error('Failed to reset MFA');
+                        toast.error(t("failed_to_reset_mfa", "Failed to reset MFA"));
                       }
                     }}
                   >
@@ -887,7 +883,7 @@ export function UnifiedUserManagement() {
             </div>
             <DialogFooter>
               <Button onClick={handleUpdateUser} disabled={saving}>
-                {saving ? "Saving..." : "Save Changes"}
+                {saving ? t('unifiedusermanagementtsx.unifiedusermanagement.saving', 'Saving...') : t('unifiedusermanagementtsx.unifiedusermanagement.saveChanges', 'Save Changes')}
               </Button>
             </DialogFooter>
           </DialogContent>

@@ -14,7 +14,7 @@ serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const lovableApiKey = Deno.env.get("LOVABLE_API_KEY");
+    const googleApiKey = Deno.env.get("GOOGLE_API_KEY");
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     const { projectId, freelancerId } = await req.json();
@@ -69,18 +69,20 @@ serve(async (req) => {
       .order("created_at", { ascending: false })
       .limit(3);
 
-    // Call Lovable AI to generate proposal
+    // Call Google Gemini to generate proposal
     const aiPrompt = buildProposalPrompt(project, freelancer, pastProposals || []);
 
-    const aiResponse = await fetch("https://api.lovable.app/v1/ai/analyze", {
+    const aiResponse = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${lovableApiKey}`,
+        "Authorization": `Bearer ${googleApiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "openai/gpt-5-mini",
-        prompt: aiPrompt,
+        model: "gemini-2.5-flash",
+        messages: [
+          { role: "user", content: aiPrompt },
+        ],
         max_tokens: 1500,
       }),
     });
@@ -90,7 +92,7 @@ serve(async (req) => {
     }
 
     const aiResult = await aiResponse.json();
-    const generatedProposal = parseAIProposal(aiResult.response);
+    const generatedProposal = parseAIProposal(aiResult.choices?.[0]?.message?.content || "");
 
     // Calculate smart rate recommendation
     const suggestedRate = calculateSmartRate(
@@ -125,10 +127,10 @@ serve(async (req) => {
       }
     );
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error generating proposal:", error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 500
@@ -137,7 +139,7 @@ serve(async (req) => {
   }
 });
 
-function buildProposalPrompt(project: any, freelancer: any, pastProposals: any[]): string {
+function buildProposalPrompt(project: Record<string, unknown>, freelancer: Record<string, unknown>, pastProposals: Record<string, unknown>[]): string {
   return `You are an expert freelance proposal writer for The Quantum Club, a premium talent platform.
 
 Write a compelling, professional proposal for this project:
@@ -183,7 +185,7 @@ Return as JSON:
 Be professional but warm. Show personality. Avoid generic phrases.`;
 }
 
-function parseAIProposal(aiResponse: string): any {
+function parseAIProposal(aiResponse: string): { coverLetter: string; questions: string[]; confidence: number } {
   try {
     // Extract JSON from response
     const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
@@ -206,7 +208,7 @@ function parseAIProposal(aiResponse: string): any {
   };
 }
 
-function calculateSmartRate(freelancer: any, project: any, engagementType: string): number {
+function calculateSmartRate(freelancer: Record<string, unknown>, project: Record<string, unknown>, engagementType: string): number {
   const baseRate = (freelancer.hourly_rate_min + freelancer.hourly_rate_max) / 2 || 100;
 
   // Adjust based on project complexity and budget
@@ -233,7 +235,7 @@ function calculateSmartRate(freelancer: any, project: any, engagementType: strin
   return Math.round(adjustedRate);
 }
 
-function estimateTimeline(project: any, freelancer: any): number {
+function estimateTimeline(project: Record<string, unknown>, freelancer: Record<string, unknown>): number {
   // Base estimate from project
   const weeks = project.timeline_weeks || 4;
 
@@ -247,7 +249,7 @@ function estimateTimeline(project: any, freelancer: any): number {
   return Math.max(weeks, calculatedWeeks);
 }
 
-function selectRelevantPortfolio(portfolioItems: any[], requiredSkills: string[]): any[] {
+function selectRelevantPortfolio(portfolioItems: Record<string, unknown>[], requiredSkills: string[]): Record<string, unknown>[] {
   if (!portfolioItems.length) return [];
 
   // Score each portfolio item by skill relevance
@@ -264,7 +266,7 @@ function selectRelevantPortfolio(portfolioItems: any[], requiredSkills: string[]
   return scored.slice(0, 3).map(({ relevanceScore, ...item }) => item);
 }
 
-function generateAvailabilityStatement(freelancer: any): string {
+function generateAvailabilityStatement(freelancer: Record<string, unknown>): string {
   const hoursPerWeek = freelancer.availability_hours_per_week || 20;
   const availableFrom = freelancer.available_from_date 
     ? new Date(freelancer.available_from_date)

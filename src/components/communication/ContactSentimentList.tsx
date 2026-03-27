@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React from 'react';
 import { motion } from '@/lib/motion';
 import { 
@@ -18,6 +19,7 @@ interface ContactSentimentListProps {
 }
 
 export function ContactSentimentList({ companyId, onViewEmails }: ContactSentimentListProps) {
+  const { t } = useTranslation('common');
   const { data: sentiments = [], isLoading } = useContactEmailSentiment(companyId);
   const { data: contacts = [] } = useCompanyContacts(companyId);
 
@@ -67,8 +69,8 @@ export function ContactSentimentList({ companyId, onViewEmails }: ContactSentime
       <Card>
         <CardContent className="p-6 text-center text-muted-foreground">
           <User className="h-8 w-8 mx-auto mb-2 opacity-50" />
-          <p>No contacts for this company</p>
-          <p className="text-sm">Add contacts to track individual sentiment</p>
+          <p>{t("no_contacts_for_this", "No contacts for this company")}</p>
+          <p className="text-sm">{t("add_contacts_to_track", "Add contacts to track individual sentiment")}</p>
         </CardContent>
       </Card>
     );
@@ -110,7 +112,7 @@ export function ContactSentimentList({ companyId, onViewEmails }: ContactSentime
                           {contact.full_name || 'Unknown'}
                         </span>
                         {contact.is_primary && (
-                          <Badge variant="secondary" className="text-xs">Primary</Badge>
+                          <Badge variant="secondary" className="text-xs">{t("primary", "Primary")}</Badge>
                         )}
                         {contact.sentiment && getTrendIcon(contact.sentiment.sentiment_trend)}
                       </div>
@@ -153,7 +155,7 @@ export function ContactSentimentList({ companyId, onViewEmails }: ContactSentime
                     </div>
                   ) : (
                     <div className="text-right text-xs text-muted-foreground">
-                      <span>No emails tracked</span>
+                      <span>{t("no_emails_tracked", "No emails tracked")}</span>
                     </div>
                   )}
                 </div>
@@ -161,7 +163,7 @@ export function ContactSentimentList({ companyId, onViewEmails }: ContactSentime
                 {contact.sentiment && (
                   <div className="mt-3 pt-3 border-t">
                     <div className="flex items-center justify-between text-xs mb-1">
-                      <span className="text-muted-foreground">Sentiment Score</span>
+                      <span className="text-muted-foreground">{t("sentiment_score", "Sentiment Score")}</span>
                       <span className="font-medium">
                         {contact.sentiment.avg_sentiment_score.toFixed(2)}
                       </span>

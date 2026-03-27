@@ -4,6 +4,7 @@ import { MatchScoreBreakdown } from "./MatchScoreBreakdown";
 import { supabase } from "@/integrations/supabase/client";
 import { notify } from "@/lib/notify";
 import { Loader2 } from "lucide-react";
+import { useTranslation } from 'react-i18next';
 
 interface MatchScoreDialogProps {
   open: boolean;
@@ -24,6 +25,7 @@ export const MatchScoreDialog = ({
   tags,
   matchScore,
 }: MatchScoreDialogProps) => {
+  const { t } = useTranslation('common');
   const [loading, setLoading] = useState(false);
   const [breakdown, setBreakdown] = useState<any>(null);
 

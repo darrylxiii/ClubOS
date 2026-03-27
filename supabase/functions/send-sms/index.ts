@@ -1,12 +1,11 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.7";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+import { sendSMS } from '../_shared/twilio-client.ts';
+import { getCorsHeaders } from '../_shared/cors.ts';
 
 serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
+
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -22,15 +21,8 @@ serve(async (req) => {
     
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const TWILIO_ACCOUNT_SID = Deno.env.get("TWILIO_ACCOUNT_SID");
-    const TWILIO_AUTH_TOKEN = Deno.env.get("TWILIO_AUTH_TOKEN");
-    const TWILIO_PHONE_NUMBER = Deno.env.get("TWILIO_PHONE_NUMBER");
-    
-    const supabase = createClient(supabaseUrl, supabaseKey);
 
-    if (!TWILIO_ACCOUNT_SID || !TWILIO_AUTH_TOKEN || !TWILIO_PHONE_NUMBER) {
-      throw new Error("Twilio credentials not configured");
-    }
+    const supabase = createClient(supabaseUrl, supabaseKey);
 
     if (!to || !message) {
       throw new Error("'to' and 'message' are required");
@@ -65,62 +57,45 @@ serve(async (req) => {
       throw insertError;
     }
 
-    // Send via Twilio
-    const twilioUrl = `https://api.twilio.com/2010-04-01/Accounts/${TWILIO_ACCOUNT_SID}/Messages.json`;
-    const auth = btoa(`${TWILIO_ACCOUNT_SID}:${TWILIO_AUTH_TOKEN}`);
+    // Send via Twilio (shared client handles auth, timeout, retry)
+    try {
+      const twilioResult = await sendSMS({ to, body: message });
 
-    const formData = new URLSearchParams();
-    formData.append("To", to);
-    formData.append("From", TWILIO_PHONE_NUMBER);
-    formData.append("Body", message);
+      // Update record with Twilio SID and sent status
+      await supabase
+        .from("sms_messages")
+        .update({
+          twilio_sid: twilioResult.sid,
+          status: "sent",
+          sent_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", smsRecord.id);
 
-    const twilioResponse = await fetch(twilioUrl, {
-      method: "POST",
-      headers: {
-        "Authorization": `Basic ${auth}`,
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: formData.toString(),
-    });
+      console.log("SMS sent successfully:", twilioResult.sid);
 
-    const twilioData = await twilioResponse.json();
+      return new Response(
+        JSON.stringify({
+          success: true,
+          sms_id: smsRecord.id,
+          twilio_sid: twilioResult.sid,
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    } catch (smsError) {
+      console.error("Twilio error:", smsError);
 
-    if (!twilioResponse.ok) {
-      console.error("Twilio error:", twilioData);
-      
       // Update record as failed
       await supabase
         .from("sms_messages")
-        .update({ 
+        .update({
           status: "failed",
           updated_at: new Date().toISOString(),
         })
         .eq("id", smsRecord.id);
 
-      throw new Error(twilioData.message || "Failed to send SMS");
+      throw new Error(smsError instanceof Error ? smsError.message : "Failed to send SMS");
     }
-
-    // Update record with Twilio SID and sent status
-    await supabase
-      .from("sms_messages")
-      .update({
-        twilio_sid: twilioData.sid,
-        status: "sent",
-        sent_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", smsRecord.id);
-
-    console.log("SMS sent successfully:", twilioData.sid);
-
-    return new Response(
-      JSON.stringify({ 
-        success: true, 
-        sms_id: smsRecord.id,
-        twilio_sid: twilioData.sid,
-      }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
   } catch (error) {
     console.error("send-sms error:", error);
     return new Response(

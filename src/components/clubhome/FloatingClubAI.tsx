@@ -3,8 +3,10 @@ import { Sparkles, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { ClubAIHomeChatWidget } from "./ClubAIHomeChatWidget";
+import { useTranslation } from "react-i18next";
 
 export function FloatingClubAI() {
+  const { t } = useTranslation('common');
   const [open, setOpen] = useState(false);
 
   return (
@@ -19,7 +21,7 @@ export function FloatingClubAI() {
           "hover:shadow-xl hover:scale-105 active:scale-95 transition-all",
           "bottom-20 right-4 md:bottom-6 md:right-6"
         )}
-        aria-label={open ? "Close Club AI" : "Open Club AI"}
+        aria-label={open ? t('clubAI.close', 'Close Club AI') : t('clubAI.open', 'Open Club AI')}
       >
         <AnimatePresence mode="wait">
           {open ? (

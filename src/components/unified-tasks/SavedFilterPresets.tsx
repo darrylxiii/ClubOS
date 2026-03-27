@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -58,6 +59,7 @@ export function SavedFilterPresets({
   currentSearchQuery,
   onApplyPreset,
 }: SavedFilterPresetsProps) {
+  const { t } = useTranslation('common');
   const [presets, setPresets] = useState<SavedPreset[]>(loadPresets);
   const [newName, setNewName] = useState("");
   const [open, setOpen] = useState(false);
@@ -70,7 +72,7 @@ export function SavedFilterPresets({
   const savePreset = () => {
     if (!newName.trim()) return;
     if (presets.length >= MAX_PRESETS) {
-      toast.error(`Maximum ${MAX_PRESETS} presets reached`);
+      toast.error(t('tasks.maxPresetsReached', 'Maximum {{max}} presets reached', { max: MAX_PRESETS }));
       return;
     }
 
@@ -85,7 +87,7 @@ export function SavedFilterPresets({
     setPresets(updated);
     persistPresets(updated);
     setNewName("");
-    toast.success("Filter preset saved");
+    toast.success(t('tasks.filterPresetSaved', 'Filter preset saved'));
   };
 
   const deletePreset = (id: string) => {
@@ -116,17 +118,17 @@ export function SavedFilterPresets({
               </Button>
             </PopoverTrigger>
           </TooltipTrigger>
-          <TooltipContent>Saved Filters</TooltipContent>
+          <TooltipContent>{t('tasks.savedFilters', 'Saved Filters')}</TooltipContent>
         </Tooltip>
       </TooltipProvider>
 
       <PopoverContent className="w-72 p-3" align="end">
         <div className="space-y-3">
-          <h4 className="text-sm font-semibold">Saved Filter Presets</h4>
+          <h4 className="text-sm font-semibold">{t('tasks.savedFilterPresets', 'Saved Filter Presets')}</h4>
 
           {/* Preset list */}
           {presets.length === 0 ? (
-            <p className="text-xs text-muted-foreground py-2">No saved presets yet. Apply filters and save them here.</p>
+            <p className="text-xs text-muted-foreground py-2">{t('tasks.noSavedPresets', 'No saved presets yet. Apply filters and save them here.')}</p>
           ) : (
             <div className="space-y-1.5 max-h-48 overflow-y-auto">
               {presets.map((preset) => (
@@ -156,10 +158,10 @@ export function SavedFilterPresets({
           {/* Save current */}
           {hasActiveFilters && (
             <div className="border-t pt-2 space-y-2">
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Save current filters</p>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">{t('tasks.saveCurrentFilters', 'Save current filters')}</p>
               <div className="flex gap-1.5">
                 <Input
-                  placeholder="Preset name..."
+                  placeholder={t('tasks.presetName', 'Preset name...')}
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
                   className="h-8 text-xs"

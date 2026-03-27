@@ -17,12 +17,14 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { AddJobTeamMemberDialog } from './AddJobTeamMemberDialog';
 import { resolveTeamMember, getAssignmentTypeBadge, ResolvedTeamMember } from '@/utils/jobTeamUtils';
 import { ListSkeleton } from '@/components/LoadingSkeletons';
+import { useTranslation } from 'react-i18next';
 
 interface JobTeamPanelProps {
   jobId: string;
 }
 
 export const JobTeamPanel = ({ jobId }: JobTeamPanelProps) => {
+  const { t } = useTranslation('partner');
   const [teamMembers, setTeamMembers] = useState<ResolvedTeamMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddDialog, setShowAddDialog] = useState(false);
@@ -67,7 +69,7 @@ export const JobTeamPanel = ({ jobId }: JobTeamPanelProps) => {
       if (error) {
         console.error('Error fetching team members:', error);
         if (error.code !== 'PGRST116') {
-          toast.error('Failed to load team members');
+          toast.error(t('jobTeamPanel.toast.failedToLoadTeamMembers'));
         }
         setTeamMembers([]);
         setLoading(false);
@@ -160,11 +162,11 @@ export const JobTeamPanel = ({ jobId }: JobTeamPanelProps) => {
         .eq('id', assignmentId);
 
       if (error) throw error;
-      toast.success('Team member removed');
+      toast.success(t('jobTeamPanel.toast.teamMemberRemoved'));
       fetchTeamMembers();
     } catch (error: unknown) {
       console.error('Error removing member:', error);
-      toast.error('Failed to remove team member');
+      toast.error(t('jobTeamPanel.toast.failedToRemoveTeamMember'));
     }
   };
 
@@ -253,13 +255,13 @@ export const JobTeamPanel = ({ jobId }: JobTeamPanelProps) => {
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="opacity-0 group-hover:opacity-100" aria-label="Team member options">
+            <Button variant="ghost" size="icon" className="opacity-0 group-hover:opacity-100" aria-label={t('jobTeamPanel.teamMemberOptions')}>
               <MoreVertical className="w-4 h-4" aria-hidden="true" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={() => handleRemoveMember(member.id)} className="text-destructive">
-              Remove
+              {t('common:remove')}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -305,7 +307,7 @@ export const JobTeamPanel = ({ jobId }: JobTeamPanelProps) => {
           {teamMembers.length === 0 ? (
             <div className="text-center py-6 text-muted-foreground">
               <Users className="w-12 h-12 mx-auto mb-2 opacity-20" />
-              <p>No team members yet</p>
+              <p>{t('jobTeamPanel.noTeamMembersYet')}</p>
             </div>
           ) : (
             <div className="space-y-2">
@@ -353,11 +355,11 @@ const TeamMemberCard = ({ member, onRemove }: { member: any; onRemove: () => voi
         .eq('id', member.id);
 
       if (error) throw error;
-      toast.success('Team member removed');
+      toast.success(t('jobTeamPanel.toast.teamMemberRemoved'));
       onRemove();
     } catch (error) {
       console.error('Error removing team member:', error);
-      toast.error('Failed to remove team member');
+      toast.error(t('jobTeamPanel.toast.failedToRemoveTeamMember'));
     }
   };
 
@@ -377,9 +379,7 @@ const TeamMemberCard = ({ member, onRemove }: { member: any; onRemove: () => voi
         <div className="flex items-center gap-2 mb-1">
           <p className="font-medium text-sm truncate">{user?.full_name}</p>
           {member.is_primary_contact && (
-            <Badge variant="secondary" className="text-xs">
-              Primary
-            </Badge>
+            <Badge variant="secondary" className="text-xs">{t('jobTeamPanel.badge.primary')}</Badge>
           )}
         </div>
         <p className="text-xs text-muted-foreground truncate mb-2">
@@ -403,14 +403,12 @@ const TeamMemberCard = ({ member, onRemove }: { member: any; onRemove: () => voi
       </div>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="sm" className="h-8 w-8 p-0" aria-label="Team member options">
+          <Button variant="ghost" size="sm" className="h-8 w-8 p-0" aria-label={t('jobTeamPanel.teamMemberOptions')}>
             <MoreVertical className="w-4 h-4" aria-hidden="true" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={handleRemove} className="text-destructive">
-            Remove from team
-          </DropdownMenuItem>
+          <DropdownMenuItem onClick={handleRemove} className="text-destructive">{t('jobTeamPanel.menu.removeFromTeam')}</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     </div>

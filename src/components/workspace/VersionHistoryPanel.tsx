@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { format, formatDistanceToNow } from 'date-fns';
 import { usePageVersions, PageVersion } from '@/hooks/usePageVersions';
@@ -38,6 +39,7 @@ export function VersionHistoryPanel({
   onOpenChange,
   onPreviewVersion,
 }: VersionHistoryPanelProps) {
+  const { t } = useTranslation('common');
   const { versions, isLoading, restoreVersion } = usePageVersions(pageId);
   const [selectedVersion, setSelectedVersion] = useState<PageVersion | null>(null);
   const [showRestoreConfirm, setShowRestoreConfirm] = useState(false);
@@ -87,7 +89,7 @@ export function VersionHistoryPanel({
             ) : versions.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 text-center">
                 <History className="h-12 w-12 text-muted-foreground mb-4" />
-                <h3 className="font-medium text-lg mb-2">No version history yet</h3>
+                <h3 className="font-medium text-lg mb-2">{t("no_version_history_yet", "No version history yet")}</h3>
                 <p className="text-sm text-muted-foreground max-w-xs">
                   As you edit this page, previous versions will be saved here automatically.
                 </p>
@@ -112,7 +114,7 @@ export function VersionHistoryPanel({
       <AlertDialog open={showRestoreConfirm} onOpenChange={setShowRestoreConfirm}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Restore this version?</AlertDialogTitle>
+            <AlertDialogTitle>{t("restore_this_version", "Restore this version?")}</AlertDialogTitle>
             <AlertDialogDescription>
               This will replace the current content with the version from{' '}
               {selectedVersion && format(new Date(selectedVersion.created_at), 'PPpp')}.
@@ -120,7 +122,7 @@ export function VersionHistoryPanel({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t("cancel", "Cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmRestore}
               disabled={restoreVersion.isPending}

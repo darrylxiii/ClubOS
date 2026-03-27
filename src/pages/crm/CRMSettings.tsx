@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Settings, Keyboard, Bell, Upload, ShieldX, Zap, Activity, Plug } from "lucide-react";
 import { useState, lazy, Suspense } from "react";
+import { useTranslation } from 'react-i18next';
 import { useSearchParams } from "react-router-dom";
 import { CRMKeyboardShortcutsHelp } from "@/components/crm/CRMKeyboardShortcutsHelp";
 import { StageCustomizationPanel } from "@/components/crm/StageCustomizationPanel";
@@ -20,6 +21,7 @@ const CRMIntegrations = lazy(() => import("@/pages/crm/CRMIntegrations"));
 const CRMAutomations = lazy(() => import("@/pages/crm/CRMAutomations"));
 
 export default function CRMSettings() {
+  const { t } = useTranslation('common');
   const [searchParams, setSearchParams] = useSearchParams();
   const activeTab = searchParams.get('tab') || 'general';
   const [showShortcuts, setShowShortcuts] = useState(false);
@@ -36,9 +38,7 @@ export default function CRMSettings() {
             <Settings className="h-6 w-6 text-primary" />
             CRM Settings
           </h1>
-          <p className="text-muted-foreground">
-            Configure your CRM preferences and manage data
-          </p>
+          <p className="text-muted-foreground">{t('cRMSettings.desc')}</p>
         </div>
 
         <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">

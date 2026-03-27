@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -33,6 +34,7 @@ interface AccountHealth {
 }
 
 export function AccountHealthDashboard() {
+  const { t } = useTranslation('common');
   const queryClient = useQueryClient();
   const [syncing, setSyncing] = useState(false);
 
@@ -91,13 +93,13 @@ export function AccountHealthDashboard() {
   const getWarmupBadge = (status: string) => {
     switch (status) {
       case 'completed':
-        return <Badge className="bg-green-500/10 text-green-500 border-green-500/30">Warmed Up</Badge>;
+        return <Badge className="bg-green-500/10 text-green-500 border-green-500/30">{t("warmed_up", "Warmed Up")}</Badge>;
       case 'in_progress':
-        return <Badge className="bg-yellow-500/10 text-yellow-500 border-yellow-500/30">Warming</Badge>;
+        return <Badge className="bg-yellow-500/10 text-yellow-500 border-yellow-500/30">{t("warming", "Warming")}</Badge>;
       case 'paused':
-        return <Badge className="bg-orange-500/10 text-orange-500 border-orange-500/30">Paused</Badge>;
+        return <Badge className="bg-orange-500/10 text-orange-500 border-orange-500/30">{t("paused", "Paused")}</Badge>;
       default:
-        return <Badge variant="outline">Unknown</Badge>;
+        return <Badge variant="outline">{t("unknown", "Unknown")}</Badge>;
     }
   };
 
@@ -121,7 +123,7 @@ export function AccountHealthDashboard() {
               </div>
               <div>
                 <p className={`text-2xl font-bold ${getHealthColor(overallHealth)}`}>{overallHealth}%</p>
-                <p className="text-xs text-muted-foreground">Overall Health</p>
+                <p className="text-xs text-muted-foreground">{t("overall_health", "Overall Health")}</p>
               </div>
             </div>
           </CardContent>
@@ -135,7 +137,7 @@ export function AccountHealthDashboard() {
               </div>
               <div>
                 <p className="text-2xl font-bold text-green-500">{healthyAccounts}</p>
-                <p className="text-xs text-muted-foreground">Healthy</p>
+                <p className="text-xs text-muted-foreground">{t("healthy", "Healthy")}</p>
               </div>
             </div>
           </CardContent>
@@ -149,7 +151,7 @@ export function AccountHealthDashboard() {
               </div>
               <div>
                 <p className="text-2xl font-bold text-yellow-500">{warningAccounts}</p>
-                <p className="text-xs text-muted-foreground">Warning</p>
+                <p className="text-xs text-muted-foreground">{t("warning", "Warning")}</p>
               </div>
             </div>
           </CardContent>
@@ -163,7 +165,7 @@ export function AccountHealthDashboard() {
               </div>
               <div>
                 <p className="text-2xl font-bold text-red-500">{criticalAccounts}</p>
-                <p className="text-xs text-muted-foreground">Critical</p>
+                <p className="text-xs text-muted-foreground">{t("critical", "Critical")}</p>
               </div>
             </div>
           </CardContent>
@@ -222,7 +224,7 @@ export function AccountHealthDashboard() {
                         {/* Health Score */}
                         <div className="mb-4">
                           <div className="flex items-center justify-between mb-1">
-                            <span className="text-sm text-muted-foreground">Health Score</span>
+                            <span className="text-sm text-muted-foreground">{t("health_score", "Health Score")}</span>
                             <span className={`text-lg font-bold ${getHealthColor(account.health_score)}`}>
                               {account.health_score}%
                             </span>
@@ -236,25 +238,25 @@ export function AccountHealthDashboard() {
                         {/* Metrics */}
                         <div className="grid grid-cols-2 gap-2 text-sm">
                           <div className="flex items-center justify-between p-2 rounded bg-muted/20">
-                            <span className="text-muted-foreground">Inbox</span>
+                            <span className="text-muted-foreground">{t("inbox", "Inbox")}</span>
                             <span className={account.inbox_placement_rate && account.inbox_placement_rate >= 90 ? 'text-green-500' : 'text-yellow-500'}>
                               {account.inbox_placement_rate?.toFixed(1) || 0}%
                             </span>
                           </div>
                           <div className="flex items-center justify-between p-2 rounded bg-muted/20">
-                            <span className="text-muted-foreground">Spam</span>
+                            <span className="text-muted-foreground">{t("spam", "Spam")}</span>
                             <span className={account.spam_rate && account.spam_rate > 2 ? 'text-red-500' : 'text-green-500'}>
                               {account.spam_rate?.toFixed(1) || 0}%
                             </span>
                           </div>
                           <div className="flex items-center justify-between p-2 rounded bg-muted/20">
-                            <span className="text-muted-foreground">Bounce</span>
+                            <span className="text-muted-foreground">{t("bounce", "Bounce")}</span>
                             <span className={account.bounce_rate && account.bounce_rate > 5 ? 'text-red-500' : 'text-green-500'}>
                               {account.bounce_rate?.toFixed(1) || 0}%
                             </span>
                           </div>
                           <div className="flex items-center justify-between p-2 rounded bg-muted/20">
-                            <span className="text-muted-foreground">Sent</span>
+                            <span className="text-muted-foreground">{t("sent", "Sent")}</span>
                             <span>
                               {account.emails_sent_today || 0}/{account.daily_limit || 50}
                             </span>
@@ -274,7 +276,7 @@ export function AccountHealthDashboard() {
           ) : (
             <div className="text-center py-8">
               <Mail className="w-12 h-12 mx-auto text-muted-foreground/50 mb-3" />
-              <p className="text-muted-foreground">No email accounts found</p>
+              <p className="text-muted-foreground">{t("no_email_accounts_found", "No email accounts found")}</p>
               <Button 
                 variant="outline" 
                 size="sm" 

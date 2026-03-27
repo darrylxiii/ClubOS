@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { sendEmail } from '../_shared/resend-client.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -54,17 +55,6 @@ serve(async (req) => {
       ? post.hero_image.url
       : null;
 
-    const resendKey = Deno.env.get('RESEND_API_KEY');
-    if (!resendKey) {
-      return new Response(JSON.stringify({
-        error: 'No email provider configured. Add RESEND_API_KEY secret to enable newsletter sending.',
-        subscriberCount: subscribers.length,
-      }), {
-        status: 422,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
     let sentCount = 0;
     const errors: string[] = [];
 
@@ -73,8 +63,7 @@ serve(async (req) => {
     for (let i = 0; i < subscribers.length; i += batchSize) {
       const batch = subscribers.slice(i, i + batchSize);
 
-      // For batch sending via BCC, use a generic unsubscribe link
-      // But per RFC 8058, we need per-subscriber tokens — send individually for compliance
+      // Per RFC 8058, we need per-subscriber tokens — send individually for compliance
       for (const subscriber of batch) {
         const unsubscribeUrl = `${PRODUCTION_DOMAIN}/blog?unsubscribe=${subscriber.unsubscribe_token}`;
         const emailHtml = buildEmailHtml({
@@ -94,34 +83,21 @@ serve(async (req) => {
         });
 
         try {
-          const res = await fetch('https://api.resend.com/emails', {
-            method: 'POST',
+          await sendEmail({
+            from: 'The Quantum Club <insights@thequantumclub.nl>',
+            to: subscriber.email,
+            subject: `New Insight: ${post.title}`,
+            html: emailHtml,
+            text: plainText,
             headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${resendKey}`,
+              'List-Unsubscribe': `<${unsubscribeUrl}>`,
+              'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
             },
-            body: JSON.stringify({
-              from: 'The Quantum Club <insights@thequantumclub.nl>',
-              to: subscriber.email,
-              subject: `New Insight: ${post.title}`,
-              html: emailHtml,
-              text: plainText,
-              headers: {
-                'List-Unsubscribe': `<${unsubscribeUrl}>`,
-                'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
-              },
-              tags: [{ name: 'category', value: 'blog-newsletter' }],
-            }),
+            tags: [{ name: 'category', value: 'blog-newsletter' }],
           });
-
-          if (res.ok) {
-            sentCount++;
-          } else {
-            const resBody = await res.text();
-            errors.push(`${subscriber.email}: ${resBody}`);
-          }
+          sentCount++;
         } catch (e) {
-          errors.push(`${subscriber.email}: ${e.message}`);
+          errors.push(`${subscriber.email}: ${e instanceof Error ? e.message : 'Unknown error'}`);
         }
       }
     }

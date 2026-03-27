@@ -16,6 +16,7 @@ import {
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
+import { useTranslation } from 'react-i18next';
 
 interface ClosedJobInsightsProps {
   companyId: string;
@@ -28,6 +29,7 @@ export const ClosedJobInsights = memo(({
   jobTitle,
   className 
 }: ClosedJobInsightsProps) => {
+  const { t } = useTranslation('jobs');
   const [isExpanded, setIsExpanded] = useState(false);
 
   const { data: insights, isLoading } = useQuery({
@@ -132,7 +134,7 @@ export const ClosedJobInsights = memo(({
         <CardTitle className="flex items-center justify-between text-sm font-medium">
           <div className="flex items-center gap-2">
             <Lightbulb className="w-4 h-4 text-amber-500" />
-            <span>Insights from {insights.totalClosures} Past Role{insights.totalClosures !== 1 ? "s" : ""}</span>
+            <span>{t('closedInsights.title', 'Insights from {{count}} Past Roles', { count: insights.totalClosures })}</span>
           </div>
           <ChevronRight 
             className={cn(
@@ -156,15 +158,15 @@ export const ClosedJobInsights = memo(({
               <div className="grid grid-cols-3 gap-3 text-center">
                 <div className="p-2 rounded-lg bg-background/50">
                   <div className="text-lg font-bold text-green-600">{insights.successRate}%</div>
-                  <div className="text-xs text-muted-foreground">Success Rate</div>
+                  <div className="text-xs text-muted-foreground">{t('closedInsights.successRate', 'Success Rate')}</div>
                 </div>
                 <div className="p-2 rounded-lg bg-background/50">
                   <div className="text-lg font-bold">{insights.avgTimeToFill}</div>
-                  <div className="text-xs text-muted-foreground">Avg Days</div>
+                  <div className="text-xs text-muted-foreground">{t('closedInsights.avgDays', 'Avg Days')}</div>
                 </div>
                 <div className="p-2 rounded-lg bg-background/50">
                   <div className="text-lg font-bold">{insights.hiredCount}</div>
-                  <div className="text-xs text-muted-foreground">Placements</div>
+                  <div className="text-xs text-muted-foreground">{t('closedInsights.placements', 'Placements')}</div>
                 </div>
               </div>
 
@@ -172,7 +174,7 @@ export const ClosedJobInsights = memo(({
               {insights.topLearnings.length > 0 && (
                 <div className="space-y-2">
                   <p className="text-xs font-medium text-muted-foreground uppercase">
-                    Key Learnings
+                    {t('closedInsights.keyLearnings', 'Key Learnings')}
                   </p>
                   <div className="flex flex-wrap gap-1.5">
                     {insights.topLearnings.map((learning, i) => (
@@ -192,7 +194,7 @@ export const ClosedJobInsights = memo(({
               {insights.recommendations.length > 0 && (
                 <div className="space-y-2">
                   <p className="text-xs font-medium text-muted-foreground uppercase">
-                    Recent Recommendations
+                    {t('closedInsights.recentRecommendations', 'Recent Recommendations')}
                   </p>
                   <div className="space-y-1.5">
                     {insights.recommendations.map((rec, i) => (
@@ -213,7 +215,7 @@ export const ClosedJobInsights = memo(({
                 insights.avgRatings.marketDifficulty > 0) && (
                 <div className="space-y-2">
                   <p className="text-xs font-medium text-muted-foreground uppercase">
-                    Avg Ratings
+                    {t('closedInsights.avgRatings', 'Avg Ratings')}
                   </p>
                   <div className="flex gap-4 text-xs">
                     {insights.avgRatings.candidateQuality > 0 && (

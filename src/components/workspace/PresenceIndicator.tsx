@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { usePagePresence } from "@/hooks/usePagePresence";
@@ -8,6 +9,7 @@ interface PresenceIndicatorProps {
 }
 
 export function PresenceIndicator({ maxVisible = 3 }: PresenceIndicatorProps) {
+  const { t } = useTranslation('common');
   const { viewers } = usePagePresence();
 
   if (viewers.length === 0) return null;
@@ -41,7 +43,7 @@ export function PresenceIndicator({ maxVisible = 3 }: PresenceIndicatorProps) {
           <TooltipContent side="bottom">
             <p className="text-sm">
               {viewer.user_name}
-              {viewer.is_editing && <span className="text-muted-foreground ml-1">(editing)</span>}
+              {viewer.is_editing && <span className="text-muted-foreground ml-1">{t("editing", "(editing)")}</span>}
             </p>
           </TooltipContent>
         </Tooltip>

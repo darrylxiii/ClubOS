@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -35,6 +36,7 @@ interface Payout {
 }
 
 export function ReferralAnalytics() {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
 
   const { data: analytics, isLoading } = useQuery({
@@ -216,7 +218,7 @@ export function ReferralAnalytics() {
                 <DollarSign className="h-6 w-6 text-green-500" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Realized Earnings</p>
+                <p className="text-sm text-muted-foreground">{t("realized_earnings", "Realized Earnings")}</p>
                 <p className="text-2xl font-bold text-green-500">
                   {formatCurrency(analytics.earnings.realized)}
                 </p>
@@ -232,7 +234,7 @@ export function ReferralAnalytics() {
                 <DollarSign className="h-6 w-6 text-yellow-500" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Pending Payout</p>
+                <p className="text-sm text-muted-foreground">{t("pending_payout", "Pending Payout")}</p>
                 <p className="text-2xl font-bold text-yellow-500">
                   {formatCurrency(analytics.earnings.pending)}
                 </p>
@@ -248,7 +250,7 @@ export function ReferralAnalytics() {
                 <DollarSign className="h-6 w-6 text-blue-500" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Projected Total</p>
+                <p className="text-sm text-muted-foreground">{t("projected_total", "Projected Total")}</p>
                 <p className="text-2xl font-bold text-blue-500">
                   {formatCurrency(analytics.earnings.projected)}
                 </p>
@@ -261,7 +263,7 @@ export function ReferralAnalytics() {
       {/* Monthly Trend */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Monthly Referral Trend</CardTitle>
+          <CardTitle className="text-base">{t("monthly_referral_trend", "Monthly Referral Trend")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex items-end gap-2 h-32">

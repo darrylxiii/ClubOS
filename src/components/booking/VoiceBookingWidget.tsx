@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 /**
  * Voice Booking Widget Component
  * 
@@ -33,6 +34,7 @@ export function VoiceBookingWidget({
   onBookingComplete,
   className 
 }: VoiceBookingWidgetProps) {
+  const { t } = useTranslation('common');
   const [isOpen, setIsOpen] = useState(false);
   const {
     session,
@@ -107,7 +109,7 @@ export function VoiceBookingWidget({
               onClick={handleStart}
             >
               <Phone className="h-6 w-6" />
-              <span className="sr-only">Start voice booking</span>
+              <span className="sr-only">{t("start_voice_booking", "Start voice booking")}</span>
             </Button>
           </motion.div>
         )}
@@ -174,7 +176,7 @@ export function VoiceBookingWidget({
                 {/* Extracted Data Display */}
                 {Object.keys(session.extractedData).length > 0 && (
                   <div className="text-xs space-y-1 p-2 rounded-lg bg-muted">
-                    <p className="font-medium text-muted-foreground">Booking details:</p>
+                    <p className="font-medium text-muted-foreground">{t("booking_details", "Booking details:")}</p>
                     {session.extractedData.date && (
                       <p>📅 {session.extractedData.date}</p>
                     )}

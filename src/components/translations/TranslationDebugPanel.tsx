@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { ChevronDown, ChevronUp, Bug, Trash2, Copy, AlertCircle, Info, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -24,6 +25,7 @@ interface TranslationDebugPanelProps {
 }
 
 export function TranslationDebugPanel({ logs, onClear, className }: TranslationDebugPanelProps) {
+  const { t } = useTranslation('common');
   const [isExpanded, setIsExpanded] = useState(false);
   const [filter, setFilter] = useState<LogLevel | 'all'>('all');
 
@@ -36,7 +38,7 @@ export function TranslationDebugPanel({ logs, onClear, className }: TranslationD
       .map(l => `[${l.timestamp.toISOString()}] [${l.level.toUpperCase()}] ${l.message}${l.details ? `\n  ${l.details}` : ''}`)
       .join('\n');
     navigator.clipboard.writeText(logText);
-    toast.success('Logs copied to clipboard');
+    toast.success(t("logs_copied_to_clipboard", "Logs copied to clipboard"));
   };
 
   return (
@@ -47,7 +49,7 @@ export function TranslationDebugPanel({ logs, onClear, className }: TranslationD
       >
         <div className="flex items-center gap-2">
           <Bug className="h-4 w-4 text-muted-foreground" />
-          <span className="font-medium text-sm">Debug Console</span>
+          <span className="font-medium text-sm">{t("debug_console", "Debug Console")}</span>
           {errorCount > 0 && (
             <Badge variant="destructive" className="h-5 text-xs">{errorCount} errors</Badge>
           )}
@@ -62,10 +64,10 @@ export function TranslationDebugPanel({ logs, onClear, className }: TranslationD
         <div className="border-t">
           <div className="flex items-center justify-between p-2 border-b bg-muted/30">
             <div className="flex gap-1">
-              <FilterButton active={filter === 'all'} onClick={() => setFilter('all')}>All</FilterButton>
-              <FilterButton active={filter === 'info'} onClick={() => setFilter('info')}>Info</FilterButton>
-              <FilterButton active={filter === 'warn'} onClick={() => setFilter('warn')}>Warn</FilterButton>
-              <FilterButton active={filter === 'error'} onClick={() => setFilter('error')}>Error</FilterButton>
+              <FilterButton active={filter === 'all'} onClick={() => setFilter('all')}>{t("all", "All")}</FilterButton>
+              <FilterButton active={filter === 'info'} onClick={() => setFilter('info')}>{t("info", "Info")}</FilterButton>
+              <FilterButton active={filter === 'warn'} onClick={() => setFilter('warn')}>{t("warn", "Warn")}</FilterButton>
+              <FilterButton active={filter === 'error'} onClick={() => setFilter('error')}>{t("error", "Error")}</FilterButton>
             </div>
             <div className="flex gap-1">
               <Button variant="ghost" size="sm" onClick={copyLogs} className="h-7 px-2">

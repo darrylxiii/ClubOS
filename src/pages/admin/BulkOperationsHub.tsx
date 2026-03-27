@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from 'react-i18next';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { RoleGate } from "@/components/RoleGate";
@@ -11,16 +12,15 @@ import { BulkInvitationTab } from "@/components/admin/bulk-ops/BulkInvitationTab
 import { BulkOperationHistory } from "@/components/admin/bulk-ops/BulkOperationHistory";
 
 const BulkOperationsHub = () => {
+  const { t } = useTranslation('admin');
   const [activeTab, setActiveTab] = useState("email");
 
   return (
     <RoleGate allowedRoles={["admin"]} showLoading>
       <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold mb-2">Bulk Operations Hub</h1>
-            <p className="text-muted-foreground">
-              Perform bulk actions on candidates and pipeline data
-            </p>
+            <h1 className="text-3xl font-bold mb-2">{t('bulkOperationsHub.title')}</h1>
+            <p className="text-muted-foreground">{t('bulkOperationsHub.desc')}</p>
           </div>
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">

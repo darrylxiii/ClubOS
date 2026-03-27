@@ -1,4 +1,5 @@
 import { motion } from '@/lib/motion';
+import { useTranslation } from 'react-i18next';
 import { 
   Download, 
   Smartphone, 
@@ -18,6 +19,7 @@ import quantumLogoLight from "@/assets/quantum-logo-dark.png";
 import quantumLogoDark from "@/assets/quantum-club-logo.png";
 
 export default function Install() {
+  const { t } = useTranslation('common');
   const { isInstallable, isIOS, isInstalled, isStandalone, promptInstall } = useInstallPrompt();
 
   const handleInstall = async () => {
@@ -58,14 +60,10 @@ export default function Install() {
           <div className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
             <Check className="w-10 h-10 text-green-500" />
           </div>
-          <h1 className="text-2xl font-bold text-foreground mb-2">
-            App Installed!
-          </h1>
-          <p className="text-muted-foreground mb-6">
-            The Quantum Club is now installed on your device. Enjoy the full app experience!
-          </p>
+          <h1 className="text-2xl font-bold text-foreground mb-2">{t('install.title')}</h1>
+          <p className="text-muted-foreground mb-6">{t('install.desc')}</p>
           <Button asChild>
-            <a href="/home">Go to Dashboard</a>
+            <a href="/home">{t('install.text11')}</a>
           </Button>
         </motion.div>
       </div>
@@ -86,22 +84,17 @@ export default function Install() {
             <div className="bg-gradient-to-br from-primary/20 to-primary/10 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-xl p-6">
               <img 
                 src={quantumLogoDark} 
-                alt="The Quantum Club" 
+                alt={t('install.text12')} 
                 className="h-16 w-auto dark:hidden"
               />
               <img 
                 src={quantumLogoLight} 
-                alt="The Quantum Club" 
+                alt={t('install.text13')} 
                 className="h-16 w-auto hidden dark:block"
               />
             </div>
-            <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-              Install The Quantum Club
-            </h1>
-            <p className="text-lg text-muted-foreground mb-8">
-              Get the app for faster access, offline support, and push notifications. 
-              No app store required.
-            </p>
+            <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-4">{t('install.title')}</h1>
+            <p className="text-lg text-muted-foreground mb-8">{t('install.desc2')}</p>
 
             {isInstallable && !isIOS && (
               <Button
@@ -155,9 +148,7 @@ export default function Install() {
           transition={{ delay: 0.4 }}
           className="max-w-2xl mx-auto"
         >
-          <h2 className="text-xl font-bold text-foreground text-center mb-8">
-            How to Install
-          </h2>
+          <h2 className="text-xl font-bold text-foreground text-center mb-8">{t('install.title')}</h2>
 
           {isIOS ? (
             <Card className="bg-card/50 backdrop-blur-sm border-border/50">
@@ -172,9 +163,7 @@ export default function Install() {
                       1
                     </div>
                     <div>
-                      <p className="font-medium text-foreground">
-                        Tap the Share button
-                      </p>
+                      <p className="font-medium text-foreground">{t('install.desc3')}</p>
                       <p className="text-sm text-muted-foreground">
                         Look for the <Share className="w-4 h-4 inline" /> icon at the bottom of Safari
                       </p>
@@ -188,9 +177,7 @@ export default function Install() {
                       <p className="font-medium text-foreground">
                         Find "Add to Home Screen"
                       </p>
-                      <p className="text-sm text-muted-foreground">
-                        Scroll down in the share menu to find this option
-                      </p>
+                      <p className="text-sm text-muted-foreground">{t('install.desc4')}</p>
                     </div>
                   </li>
                   <li className="flex items-start gap-4">
@@ -201,9 +188,7 @@ export default function Install() {
                       <p className="font-medium text-foreground">
                         Tap "Add"
                       </p>
-                      <p className="text-sm text-muted-foreground">
-                        Confirm to add the app to your home screen
-                      </p>
+                      <p className="text-sm text-muted-foreground">{t('install.desc5')}</p>
                     </div>
                   </li>
                 </ol>
@@ -223,9 +208,7 @@ export default function Install() {
                         1
                       </div>
                       <div>
-                        <p className="font-medium text-foreground">
-                          Look for the install icon
-                        </p>
+                        <p className="font-medium text-foreground">{t('install.desc6')}</p>
                         <p className="text-sm text-muted-foreground">
                           Check the address bar for a <Plus className="w-4 h-4 inline" /> or install button
                         </p>
@@ -239,9 +222,7 @@ export default function Install() {
                         <p className="font-medium text-foreground">
                           Click "Install"
                         </p>
-                        <p className="text-sm text-muted-foreground">
-                          Or use the button above to trigger the installation
-                        </p>
+                        <p className="text-sm text-muted-foreground">{t('install.desc7')}</p>
                       </div>
                     </li>
                     <li className="flex items-start gap-4">
@@ -249,12 +230,8 @@ export default function Install() {
                         3
                       </div>
                       <div>
-                        <p className="font-medium text-foreground">
-                          Launch from desktop or app drawer
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          Find The Quantum Club in your apps
-                        </p>
+                        <p className="font-medium text-foreground">{t('install.desc8')}</p>
+                        <p className="text-sm text-muted-foreground">{t('install.desc9')}</p>
                       </div>
                     </li>
                   </ol>
@@ -273,9 +250,7 @@ export default function Install() {
           transition={{ delay: 0.6 }}
           className="text-center"
         >
-          <p className="text-muted-foreground mb-4">
-            Prefer to continue in the browser?
-          </p>
+          <p className="text-muted-foreground mb-4">{t('install.desc10')}</p>
           <Button variant="outline" asChild>
             <a href="/auth" className="gap-2">
               Continue to Sign In

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 /**
  * NPS Survey Component
  * Net Promoter Score survey for measuring user satisfaction
@@ -35,6 +36,7 @@ const NPS_LABELS: Record<number, string> = {
 };
 
 export function NPSSurvey({ isOpen, onClose, context }: NPSSurveyProps) {
+  const { t } = useTranslation('common');
   const [score, setScore] = useState<number | null>(null);
   const [feedback, setFeedback] = useState('');
   const [step, setStep] = useState<'score' | 'feedback' | 'thanks'>('score');
@@ -102,7 +104,7 @@ export function NPSSurvey({ isOpen, onClose, context }: NPSSurveyProps) {
             <div className="flex items-center justify-between p-4 border-b border-border bg-muted/30">
               <div className="flex items-center gap-2">
                 <MessageSquare className="h-5 w-5 text-primary" />
-                <span className="font-medium text-foreground">Quick Feedback</span>
+                <span className="font-medium text-foreground">{t("quick_feedback", "Quick Feedback")}</span>
               </div>
               <Button
                 variant="ghost"
@@ -177,7 +179,7 @@ export function NPSSurvey({ isOpen, onClose, context }: NPSSurveyProps) {
                     <Textarea
                       value={feedback}
                       onChange={(e) => setFeedback(e.target.value)}
-                      placeholder="Your feedback helps us improve..."
+                      placeholder={t("your_feedback_helps_us", "Your feedback helps us improve...")}
                       className="min-h-[100px] mb-4"
                     />
                     <div className="flex gap-2">

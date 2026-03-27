@@ -5,6 +5,7 @@ import { fireConfetti } from '@/utils/fireConfetti';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { RevenueMilestone } from '@/hooks/useRevenueLadder';
+import { useTranslation } from 'react-i18next';
 
 interface MilestoneUnlockCelebrationProps {
   milestone: RevenueMilestone | null;
@@ -12,6 +13,7 @@ interface MilestoneUnlockCelebrationProps {
 }
 
 export function MilestoneUnlockCelebration({ milestone, onClose }: MilestoneUnlockCelebrationProps) {
+  const { t } = useTranslation('common');
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {

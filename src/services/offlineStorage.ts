@@ -6,7 +6,7 @@ interface TQCOfflineDB extends DBSchema {
     key: string;
     value: {
       id: string;
-      data: any;
+      data: Record<string, unknown>;
       syncedAt: number;
     };
   };
@@ -14,7 +14,7 @@ interface TQCOfflineDB extends DBSchema {
     key: string;
     value: {
       id: string;
-      data: any;
+      data: Record<string, unknown>;
       syncedAt: number;
     };
     indexes: { 'by-synced': number };
@@ -23,7 +23,7 @@ interface TQCOfflineDB extends DBSchema {
     key: string;
     value: {
       id: string;
-      data: any;
+      data: Record<string, unknown>;
       syncedAt: number;
     };
     indexes: { 'by-synced': number };
@@ -33,7 +33,7 @@ interface TQCOfflineDB extends DBSchema {
     value: {
       id: string;
       conversationId: string;
-      data: any;
+      data: Record<string, unknown>;
       syncedAt: number;
     };
     indexes: { 'by-conversation': string; 'by-synced': number };
@@ -44,7 +44,7 @@ interface TQCOfflineDB extends DBSchema {
       id: string;
       type: 'create' | 'update' | 'delete';
       entity: string;
-      payload: any;
+      payload: Record<string, unknown>;
       createdAt: number;
       retryCount: number;
     };
@@ -111,7 +111,7 @@ async function getDB(): Promise<IDBPDatabase<TQCOfflineDB>> {
 }
 
 // User Profile
-export async function saveUserProfile(userId: string, data: any): Promise<void> {
+export async function saveUserProfile(userId: string, data: Record<string, unknown>): Promise<void> {
   const db = await getDB();
   await db.put('userProfile', {
     id: userId,
@@ -120,14 +120,14 @@ export async function saveUserProfile(userId: string, data: any): Promise<void> 
   });
 }
 
-export async function getUserProfile(userId: string): Promise<any | null> {
+export async function getUserProfile(userId: string): Promise<Record<string, unknown> | null> {
   const db = await getDB();
   const record = await db.get('userProfile', userId);
   return record?.data || null;
 }
 
 // Jobs
-export async function saveJobs(jobs: any[]): Promise<void> {
+export async function saveJobs(jobs: Record<string, unknown>[]): Promise<void> {
   const db = await getDB();
   const tx = db.transaction('jobs', 'readwrite');
   const now = Date.now();
@@ -142,20 +142,20 @@ export async function saveJobs(jobs: any[]): Promise<void> {
   ]);
 }
 
-export async function getJobs(): Promise<any[]> {
+export async function getJobs(): Promise<Record<string, unknown>[]> {
   const db = await getDB();
   const records = await db.getAll('jobs');
   return records.map(r => r.data);
 }
 
-export async function getJob(id: string): Promise<any | null> {
+export async function getJob(id: string): Promise<Record<string, unknown> | null> {
   const db = await getDB();
   const record = await db.get('jobs', id);
   return record?.data || null;
 }
 
 // Applications
-export async function saveApplications(applications: any[]): Promise<void> {
+export async function saveApplications(applications: Record<string, unknown>[]): Promise<void> {
   const db = await getDB();
   const tx = db.transaction('applications', 'readwrite');
   const now = Date.now();
@@ -170,20 +170,20 @@ export async function saveApplications(applications: any[]): Promise<void> {
   ]);
 }
 
-export async function getApplications(): Promise<any[]> {
+export async function getApplications(): Promise<Record<string, unknown>[]> {
   const db = await getDB();
   const records = await db.getAll('applications');
   return records.map(r => r.data);
 }
 
-export async function getApplication(id: string): Promise<any | null> {
+export async function getApplication(id: string): Promise<Record<string, unknown> | null> {
   const db = await getDB();
   const record = await db.get('applications', id);
   return record?.data || null;
 }
 
 // Messages
-export async function saveMessages(messages: any[]): Promise<void> {
+export async function saveMessages(messages: Record<string, unknown>[]): Promise<void> {
   const db = await getDB();
   const tx = db.transaction('messages', 'readwrite');
   const now = Date.now();
@@ -199,7 +199,7 @@ export async function saveMessages(messages: any[]): Promise<void> {
   ]);
 }
 
-export async function getMessagesByConversation(conversationId: string): Promise<any[]> {
+export async function getMessagesByConversation(conversationId: string): Promise<Record<string, unknown>[]> {
   const db = await getDB();
   const records = await db.getAllFromIndex('messages', 'by-conversation', conversationId);
   return records.map(r => r.data);
@@ -209,7 +209,7 @@ export async function getMessagesByConversation(conversationId: string): Promise
 export async function queueOfflineAction(
   type: 'create' | 'update' | 'delete',
   entity: string,
-  payload: any
+  payload: Record<string, unknown>
 ): Promise<string> {
   const db = await getDB();
   const id = `${entity}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -226,7 +226,7 @@ export async function queueOfflineAction(
   return id;
 }
 
-export async function getOfflineActions(): Promise<any[]> {
+export async function getOfflineActions(): Promise<TQCOfflineDB['offlineActions']['value'][]> {
   const db = await getDB();
   return db.getAllFromIndex('offlineActions', 'by-created');
 }
@@ -260,7 +260,7 @@ export async function updateSyncStatus(
   });
 }
 
-export async function getSyncStatus(entity: string): Promise<any | null> {
+export async function getSyncStatus(entity: string): Promise<TQCOfflineDB['syncStatus']['value'] | undefined> {
   const db = await getDB();
   return db.get('syncStatus', entity);
 }

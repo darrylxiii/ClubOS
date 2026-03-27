@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -26,6 +27,7 @@ interface WhatsAppTemplateAnalyticsProps {
 }
 
 export function WhatsAppTemplateAnalytics({ periodDays = 30, compact = false }: WhatsAppTemplateAnalyticsProps) {
+  const { t } = useTranslation('common');
   const { templates, topPerformer, needsAttention, averageResponseRate, isLoading, refetch } = useWhatsAppTemplateAnalytics(periodDays);
 
   if (isLoading) {
@@ -59,7 +61,7 @@ export function WhatsAppTemplateAnalytics({ periodDays = 30, compact = false }: 
         <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
           <div className="flex items-center gap-2">
             <BarChart3 className="w-4 h-4 text-primary" />
-            <span className="text-sm font-medium">Template Performance</span>
+            <span className="text-sm font-medium">{t("template_performance", "Template Performance")}</span>
           </div>
           <Badge variant="outline" className="gap-1">
             <MessageSquare className="w-3 h-3" />
@@ -73,7 +75,7 @@ export function WhatsAppTemplateAnalytics({ periodDays = 30, compact = false }: 
             <Trophy className="w-5 h-5 text-amber-500" />
             <div className="flex-1 min-w-0">
               <p className="font-medium truncate">{topPerformer.templateName}</p>
-              <p className="text-xs text-muted-foreground">Best response rate</p>
+              <p className="text-xs text-muted-foreground">{t("best_response_rate", "Best response rate")}</p>
             </div>
             <Badge className="bg-emerald-500 text-white">{topPerformer.responseRate}%</Badge>
           </div>
@@ -85,7 +87,7 @@ export function WhatsAppTemplateAnalytics({ periodDays = 30, compact = false }: 
             <AlertTriangle className="w-5 h-5 text-amber-500" />
             <div className="flex-1">
               <p className="text-sm font-medium">{needsAttention.length} templates need attention</p>
-              <p className="text-xs text-muted-foreground">Response rate below 10%</p>
+              <p className="text-xs text-muted-foreground">{t("response_rate_below_10", "Response rate below 10%")}</p>
             </div>
           </div>
         )}
@@ -115,8 +117,8 @@ export function WhatsAppTemplateAnalytics({ periodDays = 30, compact = false }: 
         {templates.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
             <BarChart3 className="w-12 h-12 mx-auto mb-4 opacity-50" />
-            <p>No template data yet</p>
-            <p className="text-sm">Send messages using templates to see analytics</p>
+            <p>{t("no_template_data_yet", "No template data yet")}</p>
+            <p className="text-sm">{t("send_messages_using_templates", "Send messages using templates to see analytics")}</p>
           </div>
         ) : (
           <ScrollArea className="h-[400px] pr-4">
@@ -154,26 +156,26 @@ export function WhatsAppTemplateAnalytics({ periodDays = 30, compact = false }: 
                   <div className="grid grid-cols-4 gap-3 mb-3">
                     <div className="text-center p-2 rounded bg-muted/50">
                       <p className="text-lg font-semibold">{template.sentCount}</p>
-                      <p className="text-xs text-muted-foreground">Sent</p>
+                      <p className="text-xs text-muted-foreground">{t("sent", "Sent")}</p>
                     </div>
                     <div className="text-center p-2 rounded bg-muted/50">
                       <p className="text-lg font-semibold">{template.deliveryRate}%</p>
-                      <p className="text-xs text-muted-foreground">Delivered</p>
+                      <p className="text-xs text-muted-foreground">{t("delivered", "Delivered")}</p>
                     </div>
                     <div className="text-center p-2 rounded bg-muted/50">
                       <p className="text-lg font-semibold">{template.readRate}%</p>
-                      <p className="text-xs text-muted-foreground">Read</p>
+                      <p className="text-xs text-muted-foreground">{t("read", "Read")}</p>
                     </div>
                     <div className="text-center p-2 rounded bg-muted/50">
                       <p className="text-lg font-semibold">{template.repliedCount}</p>
-                      <p className="text-xs text-muted-foreground">Replies</p>
+                      <p className="text-xs text-muted-foreground">{t("replies", "Replies")}</p>
                     </div>
                   </div>
 
                   {/* Response Rate Progress */}
                   <div className="space-y-1">
                     <div className="flex justify-between text-xs">
-                      <span className="text-muted-foreground">Response Rate</span>
+                      <span className="text-muted-foreground">{t("response_rate", "Response Rate")}</span>
                       <span className="font-medium">{template.responseRate}%</span>
                     </div>
                     <Progress value={template.responseRate} className="h-1.5" />

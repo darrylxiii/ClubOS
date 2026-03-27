@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from 'react-i18next';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,6 +37,7 @@ export const CreateClubTaskDialog = ({
   children, 
   onTaskCreated 
 }: CreateClubTaskDialogProps) => {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -139,7 +141,7 @@ export const CreateClubTaskDialog = ({
         if (blockersError) throw blockersError;
       }
 
-      toast.success("Task created successfully");
+      toast.success(t('clubTasks.taskCreatedSuccessfully'));
       setOpen(false);
       setFormData({
         title: "",
@@ -153,7 +155,7 @@ export const CreateClubTaskDialog = ({
       onTaskCreated();
     } catch (error) {
       console.error("Error creating task:", error);
-      toast.error("Failed to create task");
+      toast.error(t('clubTasks.failedToCreateTask'));
     } finally {
       setLoading(false);
     }
@@ -176,34 +178,33 @@ export const CreateClubTaskDialog = ({
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Create New Task</DialogTitle>
+          <DialogTitle>{t('clubTasks.createNewTask')}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="title">Task Title *</Label>
+            <Label htmlFor="title">{t('clubTasks.taskTitle ')}</Label>
             <Input
               id="title"
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              placeholder="e.g., Website Revamp"
-              required
+              placeholder="e.g., Website Revamp required"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
+            <Label htmlFor="description">{t('clubTasks.description')}</Label>
             <Textarea
               id="description"
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              placeholder="Describe the task..."
+              placeholder={t('clubTasks.describeTheTask')}
               rows={3}
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="status">Status</Label>
+              <Label htmlFor="status">{t('clubTasks.status')}</Label>
               <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value })}>
                 <SelectTrigger>
                   <SelectValue />
@@ -220,23 +221,23 @@ export const CreateClubTaskDialog = ({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="priority">Priority</Label>
+              <Label htmlFor="priority">{t('clubTasks.priority')}</Label>
               <Select value={formData.priority} onValueChange={(value) => setFormData({ ...formData, priority: value })}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="low">Low</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="high">High</SelectItem>
-                  <SelectItem value="urgent">Urgent</SelectItem>
+                  <SelectItem value="low">{t('clubTasks.createclubtaskdialog.low', 'Low')}</SelectItem>
+                  <SelectItem value="medium">{t('clubTasks.createclubtaskdialog.medium', 'Medium')}</SelectItem>
+                  <SelectItem value="high">{t('clubTasks.createclubtaskdialog.high', 'High')}</SelectItem>
+                  <SelectItem value="urgent">{t('clubTasks.createclubtaskdialog.urgent', 'Urgent')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="due_date">Due Date</Label>
+            <Label htmlFor="due_date">{t('clubTasks.dueDate')}</Label>
             <Input
               id="due_date"
               type="date"
@@ -246,7 +247,7 @@ export const CreateClubTaskDialog = ({
           </div>
 
           <div className="space-y-2">
-            <Label>Assign To</Label>
+            <Label>{t('clubTasks.assignTo')}</Label>
             <div className="border rounded-md p-3 max-h-40 overflow-y-auto space-y-2">
               {profiles.map(profile => (
                 <div key={profile.id} className="flex items-center gap-2">
@@ -266,7 +267,7 @@ export const CreateClubTaskDialog = ({
 
           {existingTasks.length > 0 && (
             <div className="space-y-2">
-              <Label>Blocked By (Select blocking tasks)</Label>
+              <Label>{t('clubTasks.blockedBySelectBlockingTasks')}</Label>
               <div className="border rounded-md p-3 max-h-40 overflow-y-auto space-y-2">
                 {existingTasks.map(task => (
                   <div key={task.id} className="flex items-center gap-2">
@@ -284,10 +285,10 @@ export const CreateClubTaskDialog = ({
 
           <div className="flex justify-end gap-2 pt-4">
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
-              Cancel
+              {t('clubTasks.createclubtaskdialog.cancel', 'Cancel')}
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? "Creating..." : "Create Task"}
+              {loading ? t('clubTasks.createclubtaskdialog.creating', 'Creating...') : t('clubTasks.createclubtaskdialog.createTask', 'Create Task')}
             </Button>
           </div>
         </form>

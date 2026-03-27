@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Eraser, Pen, Trash2, Undo, Redo, Download, Save, Upload, Loader2 } from 'lucide-react';
@@ -15,6 +16,7 @@ interface WhiteboardProps {
 }
 
 export const Whiteboard = ({ channelId, onSendEvent }: WhiteboardProps) => {
+    const { t } = useTranslation('meetings');
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const fabricCanvasRef = useRef<FabricCanvas | null>(null);
     const [color, setColor] = useState('#000000');
@@ -246,7 +248,7 @@ export const Whiteboard = ({ channelId, onSendEvent }: WhiteboardProps) => {
         if (canvas) {
             const state = canvas.toJSON();
             await persistence.saveWhiteboardState(state);
-            toast.success('Whiteboard saved');
+            toast.success(t('livehub.whiteboardSaved'));
         }
     };
 
@@ -273,7 +275,7 @@ export const Whiteboard = ({ channelId, onSendEvent }: WhiteboardProps) => {
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-            toast.success('Whiteboard exported');
+            toast.success(t('livehub.whiteboardExported'));
         }
     };
 
@@ -307,7 +309,7 @@ export const Whiteboard = ({ channelId, onSendEvent }: WhiteboardProps) => {
             <div className="flex items-center justify-center h-full w-full bg-muted">
                 <div className="text-center">
                     <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto mb-4" />
-                    <p className="text-sm text-muted-foreground">Loading whiteboard...</p>
+                    <p className="text-sm text-muted-foreground">{t('livehub.loadingWhiteboard')}</p>
                 </div>
             </div>
         );
@@ -386,7 +388,7 @@ export const Whiteboard = ({ channelId, onSendEvent }: WhiteboardProps) => {
 
                 <div className="w-px h-6 bg-gray-200 mx-1" />
 
-                <Button variant="ghost" size="icon" onClick={handleManualSave} title="Save Now">
+                <Button variant="ghost" size="icon" onClick={handleManualSave} title={t('livehub.saveNow')}>
                     <Save className="w-4 h-4" />
                 </Button>
 
@@ -394,7 +396,7 @@ export const Whiteboard = ({ channelId, onSendEvent }: WhiteboardProps) => {
                     <Trash2 className="w-4 h-4 text-red-500" />
                 </Button>
 
-                <Button variant="ghost" size="icon" onClick={downloadCanvas} title="Download PNG">
+                <Button variant="ghost" size="icon" onClick={downloadCanvas} title={t('livehub.downloadPNG')}>
                     <Download className="w-4 h-4" />
                 </Button>
 
@@ -407,10 +409,10 @@ export const Whiteboard = ({ channelId, onSendEvent }: WhiteboardProps) => {
                     <PopoverContent className="w-48">
                         <div className="space-y-2">
                             <Button variant="outline" size="sm" className="w-full" onClick={handleExport}>
-                                Export JSON
+                                {t('livehub.exportJSON')}
                             </Button>
                             <Button variant="outline" size="sm" className="w-full" onClick={handleImport}>
-                                Import JSON
+                                {t('livehub.importJSON')}
                             </Button>
                         </div>
                     </PopoverContent>

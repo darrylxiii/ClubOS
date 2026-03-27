@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,6 +14,7 @@ interface VideoIntroUploadProps {
 }
 
 export function VideoIntroUpload({ currentVideoUrl, onVideoUploaded }: VideoIntroUploadProps) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -61,7 +63,7 @@ export function VideoIntroUpload({ currentVideoUrl, onVideoUploaded }: VideoIntr
       return publicUrl;
     },
     onSuccess: (url) => {
-      toast.success("Video uploaded successfully");
+      toast.success(t("video_uploaded_successfully", "Video uploaded successfully"));
       queryClient.invalidateQueries({ queryKey: ["freelance-profile"] });
       onVideoUploaded?.(url);
     },
@@ -90,7 +92,7 @@ export function VideoIntroUpload({ currentVideoUrl, onVideoUploaded }: VideoIntr
       if (updateError) throw updateError;
     },
     onSuccess: () => {
-      toast.success("Video removed");
+      toast.success(t("video_removed", "Video removed"));
       queryClient.invalidateQueries({ queryKey: ["freelance-profile"] });
     },
     onError: (error: Error) => {
@@ -178,7 +180,7 @@ export function VideoIntroUpload({ currentVideoUrl, onVideoUploaded }: VideoIntr
             onClick={() => fileInputRef.current?.click()}
           >
             <Video className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <p className="font-medium mb-1">Upload your video introduction</p>
+            <p className="font-medium mb-1">{t("upload_your_video_introduction", "Upload your video introduction")}</p>
             <p className="text-sm text-muted-foreground mb-4">
               Max 60 seconds • MP4, WebM, or MOV • Up to 50MB
             </p>

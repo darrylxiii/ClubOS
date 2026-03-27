@@ -2,6 +2,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { CheckCircle2, XCircle, Clock, Loader2, RotateCcw, Sparkles } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export type EnrichmentResult = {
   id: string;
@@ -18,20 +19,21 @@ interface LinkedInEnrichmentProgressProps {
   onDismiss: () => void;
 }
 
-const STATUS_CONFIG = {
-  enriched: { icon: CheckCircle2, label: 'Enriched', className: 'text-emerald-500' },
-  failed: { icon: XCircle, label: 'Failed', className: 'text-red-500' },
-  skipped: { icon: Clock, label: 'Skipped', className: 'text-muted-foreground' },
-  pending: { icon: Clock, label: 'Pending', className: 'text-muted-foreground' },
-  enriching: { icon: Loader2, label: 'Enriching...', className: 'text-primary animate-spin' },
-};
-
 export function LinkedInEnrichmentProgress({
   results,
   isRunning,
   onRetryFailed,
   onDismiss,
 }: LinkedInEnrichmentProgressProps) {
+  const { t } = useTranslation('jobs');
+
+  const STATUS_CONFIG = {
+    enriched: { icon: CheckCircle2, label: t('enrichment.enriched', 'Enriched'), className: 'text-emerald-500' },
+    failed: { icon: XCircle, label: t('enrichment.failed', 'Failed'), className: 'text-red-500' },
+    skipped: { icon: Clock, label: t('enrichment.skipped', 'Skipped'), className: 'text-muted-foreground' },
+    pending: { icon: Clock, label: t('enrichment.pending', 'Pending'), className: 'text-muted-foreground' },
+    enriching: { icon: Loader2, label: t('enrichment.enriching', 'Enriching...'), className: 'text-primary animate-spin' },
+  };
   const total = results.length;
   const completed = results.filter(r => ['enriched', 'failed', 'skipped'].includes(r.status)).length;
   const enrichedCount = results.filter(r => r.status === 'enriched').length;
@@ -43,18 +45,18 @@ export function LinkedInEnrichmentProgress({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 text-sm font-medium">
           <Sparkles className="h-4 w-4 text-primary" />
-          LinkedIn Enrichment
+          {t('enrichment.title', 'LinkedIn Enrichment')}
         </div>
         <div className="flex items-center gap-2">
           {!isRunning && failedCount > 0 && (
             <Button variant="ghost" size="sm" onClick={onRetryFailed} className="h-7 gap-1 text-xs">
               <RotateCcw className="h-3 w-3" />
-              Retry {failedCount} failed
+              {t('enrichment.retryFailed', 'Retry {{count}} failed', { count: failedCount })}
             </Button>
           )}
           {!isRunning && (
             <Button variant="ghost" size="sm" onClick={onDismiss} className="h-7 text-xs">
-              Dismiss
+              {t('enrichment.dismiss', 'Dismiss')}
             </Button>
           )}
         </div>
@@ -63,9 +65,9 @@ export function LinkedInEnrichmentProgress({
       <Progress value={progressPercent} className="h-1.5" />
 
       <div className="flex items-center gap-3 text-xs text-muted-foreground">
-        <span>{completed}/{total} processed</span>
-        {enrichedCount > 0 && <span className="text-emerald-500">{enrichedCount} enriched</span>}
-        {failedCount > 0 && <span className="text-red-500">{failedCount} failed</span>}
+        <span>{t('enrichment.processed', '{{completed}}/{{total}} processed', { completed, total })}</span>
+        {enrichedCount > 0 && <span className="text-emerald-500">{t('enrichment.enrichedCount', '{{count}} enriched', { count: enrichedCount })}</span>}
+        {failedCount > 0 && <span className="text-red-500">{t('enrichment.failedCount', '{{count}} failed', { count: failedCount })}</span>}
       </div>
 
       <div className="max-h-[200px] overflow-y-auto space-y-1">
@@ -82,7 +84,7 @@ export function LinkedInEnrichmentProgress({
               <div className="flex items-center gap-2 flex-shrink-0">
                 {r.fields_updated && r.fields_updated.length > 0 && (
                   <span className="text-muted-foreground">
-                    {r.fields_updated.length} field{r.fields_updated.length !== 1 ? 's' : ''}
+                    {t('enrichment.fieldsUpdated', '{{count}} field', { count: r.fields_updated.length })}
                   </span>
                 )}
                 {r.reason && r.status !== 'enriched' && (

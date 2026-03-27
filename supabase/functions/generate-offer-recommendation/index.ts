@@ -1,17 +1,12 @@
 /**
  * Generate Offer Recommendation Edge Function
- * 
+ *
  * AI-powered offer builder that integrates salary benchmarks
  * to generate optimal compensation packages with market positioning.
  * Round 4: Added 12h in-memory cache + downgraded model to flash-lite.
  */
 
-import { createClient } from 'npm:@supabase/supabase-js@2';
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { createHandler } from '../_shared/handler.ts';
 
 interface OfferRequest {
   candidate_id: string;
@@ -32,23 +27,15 @@ interface SalaryBenchmark {
 const offerCache = new Map<string, { recommendation: any; ts: number }>();
 const OFFER_CACHE_TTL_MS = 12 * 60 * 60 * 1000;
 
-Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
-  }
-
-  try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+Deno.serve(createHandler(async (req, ctx) => {
+    const googleApiKey = Deno.env.get('GOOGLE_API_KEY');
 
     const { candidate_id, job_id, application_id }: OfferRequest = await req.json();
 
     if (!candidate_id || !job_id) {
       return new Response(
         JSON.stringify({ error: 'candidate_id and job_id are required' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 400, headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -59,14 +46,14 @@ Deno.serve(async (req) => {
       console.log(`[Offer Recommendation] Cache HIT for ${cacheKey}`);
       return new Response(
         JSON.stringify({ ...cached.recommendation, cached: true }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     console.log(`[Offer Recommendation] Generating for candidate: ${candidate_id}, job: ${job_id}`);
 
     // Fetch candidate data
-    const { data: candidate, error: candidateError } = await supabase
+    const { data: candidate, error: candidateError } = await ctx.supabase
       .from('candidate_profiles')
       .select(`
         *,
@@ -80,8 +67,8 @@ Deno.serve(async (req) => {
 
     // Fetch job and benchmarks in parallel
     const [{ data: job, error: jobError }, { data: benchmarks }] = await Promise.all([
-      supabase.from('jobs').select('*, companies(name, industry)').eq('id', job_id).single(),
-      supabase.from('salary_benchmarks').select('*').ilike('role_title', `%${candidate_id}%`).limit(5),
+      ctx.supabase.from('jobs').select('*, companies(name, industry)').eq('id', job_id).single(),
+      ctx.supabase.from('salary_benchmarks').select('*').ilike('role_title', `%${candidate_id}%`).limit(5),
     ]);
 
     if (jobError) throw jobError;
@@ -153,7 +140,7 @@ Deno.serve(async (req) => {
       else competitiveness = 40;
     }
 
-    // Build AI recommendation — downgraded to flash-lite (short text generation)
+    // Build AI recommendation -- downgraded to flash-lite (short text generation)
     let aiInsights = {
       summary: '',
       risk_factors: [] as string[],
@@ -161,7 +148,7 @@ Deno.serve(async (req) => {
       counter_offer_preparation: '',
     };
 
-    if (lovableApiKey) {
+    if (googleApiKey) {
       try {
         const prompt = `You are a compensation expert for a premium executive recruiting platform.
 
@@ -191,14 +178,14 @@ Provide a JSON response with:
   "counter_offer_preparation": "How to respond if candidate counters"
 }`;
 
-        const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+        const aiResponse = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${lovableApiKey}`,
+            'Authorization': `Bearer ${googleApiKey}`,
           },
           body: JSON.stringify({
-            model: 'google/gemini-2.5-flash-lite',
+            model: 'gemini-2.5-flash-lite',
             messages: [{ role: 'user', content: prompt }],
             response_format: { type: 'json_object' },
           }),
@@ -247,15 +234,6 @@ Provide a JSON response with:
 
     return new Response(
       JSON.stringify(recommendation),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } }
     );
-
-  } catch (error) {
-    console.error('[Offer Recommendation] Error:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    return new Response(
-      JSON.stringify({ error: errorMessage }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-  }
-});
+}));

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from 'react-i18next';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,6 +23,7 @@ export default function EditProfileSlugDialog({
   userId,
   onSuccess,
 }: EditProfileSlugDialogProps) {
+  const { t } = useTranslation('common');
   const [slug, setSlug] = useState(currentSlug);
   const [saving, setSaving] = useState(false);
 
@@ -95,17 +97,17 @@ export default function EditProfileSlugDialog({
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Edit Profile URL</DialogTitle>
+          <DialogTitle>{t('profile.editProfileUrl')}</DialogTitle>
           <DialogDescription>
-            Choose a custom URL for your profile. Use lowercase letters, numbers, and hyphens only.
+            {t('profile.editProfileUrlDesc')}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
           <div className="space-y-2">
-            <Label htmlFor="slug">Profile URL</Label>
+            <Label htmlFor="slug">{t('profile.profileUrl')}</Label>
             <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">os.thequantumclub.com/profile/</span>
+              <span className="text-sm text-muted-foreground">{"os.thequantumclub.com/profile/"}</span>
               <Input
                 id="slug"
                 value={slug}
@@ -116,18 +118,18 @@ export default function EditProfileSlugDialog({
             </div>
             {slug && !validateSlug(slug) && (
               <p className="text-sm text-destructive">
-                Only lowercase letters, numbers, and hyphens allowed
+                {t('profile.slugValidation')}
               </p>
             )}
           </div>
 
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={onClose} disabled={saving}>
-              Cancel
+              {t('common:actions.cancel')}
             </Button>
             <Button onClick={handleSave} disabled={saving || !validateSlug(slug)}>
               {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Save Changes
+              {t('common:actions.saveChanges')}
             </Button>
           </div>
         </div>

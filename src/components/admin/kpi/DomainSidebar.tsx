@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React from 'react';
 import { cn } from '@/lib/utils';
 import { 
@@ -122,6 +123,7 @@ export function DomainSidebar({
   onSelectCategory,
   onSelectOverview,
 }: DomainSidebarProps) {
+  const { t } = useTranslation('common');
   const [openDomains, setOpenDomains] = React.useState<Record<KPIDomain, boolean>>({
     operations: true,
     website: true,
@@ -226,19 +228,19 @@ export function DomainSidebar({
 
       {/* Legend */}
       <div className="p-4 border-t border-border/50 space-y-2">
-        <p className="text-xs text-muted-foreground font-medium">Status</p>
+        <p className="text-xs text-muted-foreground font-medium">{t("status", "Status")}</p>
         <div className="flex items-center gap-3 text-xs">
           <div className="flex items-center gap-1.5">
             <div className="w-2 h-2 rounded-full bg-emerald-500" />
-            <span className="text-muted-foreground">Good</span>
+            <span className="text-muted-foreground">{t("good", "Good")}</span>
           </div>
           <div className="flex items-center gap-1.5">
             <div className="w-2 h-2 rounded-full bg-amber-500" />
-            <span className="text-muted-foreground">Warning</span>
+            <span className="text-muted-foreground">{t("warning", "Warning")}</span>
           </div>
           <div className="flex items-center gap-1.5">
             <div className="w-2 h-2 rounded-full bg-rose-500" />
-            <span className="text-muted-foreground">Critical</span>
+            <span className="text-muted-foreground">{t("critical", "Critical")}</span>
           </div>
         </div>
       </div>

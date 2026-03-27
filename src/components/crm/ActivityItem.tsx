@@ -32,6 +32,7 @@ import { format, isToday, isPast, isTomorrow } from 'date-fns';
 import type { CRMActivity, ActivityType } from '@/types/crm-activities';
 import { useCRMActivities } from '@/hooks/useCRMActivities';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 const iconMap: Record<ActivityType, React.ReactNode> = {
   call: <Phone className="w-4 h-4" />,
@@ -65,6 +66,7 @@ interface ActivityItemProps {
 }
 
 export function ActivityItem({ activity, onEdit, showProspect = true, compact = false }: ActivityItemProps) {
+  const { t } = useTranslation('common');
   const [completing, setCompleting] = useState(false);
   const { completeActivity, deleteActivity } = useCRMActivities();
 

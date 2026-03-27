@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { DatabaseColumn, DatabaseRow, ColumnType } from '@/hooks/useWorkspaceDatabase';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
@@ -23,6 +24,7 @@ export function DatabaseBoardView({
   onAddRow,
   onUpdateRow,
 }: DatabaseBoardViewProps) {
+  const { t } = useTranslation('common');
   // Find the select column to group by (first select column if not specified)
   const groupColumn = useMemo(() => {
     if (groupByColumnId) {
@@ -36,9 +38,9 @@ export function DatabaseBoardView({
 
   // Get options from the group column
   const options = useMemo(() => {
-    if (!groupColumn) return [{ value: 'No Status', color: 'gray' }];
+    if (!groupColumn) return [{ value: t('workspace.noStatus', 'No Status'), color: 'gray' }];
     const opts = (groupColumn.options?.options as Array<{ value: string; color: string }>) || [];
-    return [{ value: 'No Status', color: 'gray' }, ...opts];
+    return [{ value: t('workspace.noStatus', 'No Status'), color: 'gray' }, ...opts];
   }, [groupColumn]);
 
   // Group rows by the select value
@@ -50,7 +52,7 @@ export function DatabaseBoardView({
 
     rows.forEach(row => {
       const value = groupColumn ? (row.data[groupColumn.id] as string) : null;
-      const groupKey = value || 'No Status';
+      const groupKey = value || t('workspace.noStatus', 'No Status');
       if (!groups[groupKey]) {
         groups[groupKey] = [];
       }
@@ -62,7 +64,7 @@ export function DatabaseBoardView({
 
   const handleAddCard = async (groupValue: string) => {
     const data: Record<string, unknown> = {};
-    if (groupColumn && groupValue !== 'No Status') {
+    if (groupColumn && groupValue !== t('workspace.noStatus', 'No Status')) {
       data[groupColumn.id] = groupValue;
     }
     await onAddRow(data);
@@ -76,7 +78,7 @@ export function DatabaseBoardView({
     e.preventDefault();
     const rowId = e.dataTransfer.getData('rowId');
     if (rowId && groupColumn) {
-      await onUpdateRow(rowId, { [groupColumn.id]: groupValue === 'No Status' ? null : groupValue });
+      await onUpdateRow(rowId, { [groupColumn.id]: groupValue === t('workspace.noStatus', 'No Status') ? null : groupValue });
     }
   };
 
@@ -127,7 +129,7 @@ export function DatabaseBoardView({
                   className="bg-card border border-border rounded-lg p-3 shadow-sm cursor-move hover:shadow-md transition-shadow"
                 >
                   <p className="text-sm font-medium">
-                    {primaryColumn ? (row.data[primaryColumn.id] as string) || 'Untitled' : 'Untitled'}
+                    {primaryColumn ? (row.data[primaryColumn.id] as string) || t('workspace.untitled', 'Untitled') : t('workspace.untitled', 'Untitled')}
                   </p>
                   {/* Show other visible fields */}
                   <div className="mt-2 space-y-1">
@@ -155,7 +157,7 @@ export function DatabaseBoardView({
                 onClick={() => handleAddCard(option.value)}
               >
                 <Plus className="h-4 w-4 mr-2" />
-                Add card
+                {t('workspace.addCard', 'Add card')}
               </Button>
             </div>
           </div>

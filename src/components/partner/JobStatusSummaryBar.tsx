@@ -20,6 +20,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { useTranslation } from 'react-i18next';
 
 export type JobStatusFilter = 'all' | 'draft' | 'published' | 'closed' | 'archived';
 
@@ -58,6 +59,7 @@ export const JobStatusSummaryBar = memo(({
   onPublishAllDrafts,
   isPublishingAll = false
 }: JobStatusSummaryBarProps) => {
+  const { t } = useTranslation('partner');
   const statuses: JobStatusFilter[] = ['all', 'published', 'draft', 'closed', 'archived'];
   
   return (
@@ -124,13 +126,11 @@ export const JobStatusSummaryBar = memo(({
                 <p>
                   This will publish <strong>{counts.draft} draft job{counts.draft !== 1 ? 's' : ''}</strong> and make them visible to candidates.
                 </p>
-                <p className="text-sm text-muted-foreground">
-                  Published jobs will appear in search results and candidates can apply to them.
-                </p>
+                <p className="text-sm text-muted-foreground">{t('jobStatusSummaryBar.publishedJobsWillAppearInSearchResultsAn')}</p>
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogCancel>{t('common:cancel')}</AlertDialogCancel>
               <AlertDialogAction 
                 onClick={onPublishAllDrafts}
                 className="bg-success hover:bg-success/90"

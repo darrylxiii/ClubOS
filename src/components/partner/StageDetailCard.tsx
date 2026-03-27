@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -80,6 +81,7 @@ export function StageDetailCard({
   isExpandable = false,
   isExpanded = false,
 }: StageDetailCardProps) {
+  const { t } = useTranslation('common');
   const [isEditingInline, setIsEditingInline] = useState(false);
   const [editedStage, setEditedStage] = useState(stage);
   const [internalExpanded, setInternalExpanded] = useState(false);
@@ -265,18 +267,18 @@ export function StageDetailCard({
           <div className="flex items-center gap-4">
             <div className="text-center">
               <div className="text-2xl font-black">{candidateCount}</div>
-              <div className="text-[10px] uppercase font-bold text-muted-foreground">Candidates</div>
+              <div className="text-[10px] uppercase font-bold text-muted-foreground">{t("candidates", "Candidates")}</div>
             </div>
             
             <div className="text-center">
               <div className="text-2xl font-black">{avgDays.toFixed(1)}</div>
-              <div className="text-[10px] uppercase font-bold text-muted-foreground">Avg Days</div>
+              <div className="text-[10px] uppercase font-bold text-muted-foreground">{t("avg_days", "Avg Days")}</div>
             </div>
 
             {conversionRate !== undefined && (
               <div className="text-center">
                 <div className="text-2xl font-black text-primary">{conversionRate.toFixed(0)}%</div>
-                <div className="text-[10px] uppercase font-bold text-muted-foreground">Convert</div>
+                <div className="text-[10px] uppercase font-bold text-muted-foreground">{t("convert", "Convert")}</div>
               </div>
             )}
           </div>
@@ -395,7 +397,7 @@ export function StageDetailCard({
           <div className="border-t border-accent/20 pt-4 space-y-4 bg-accent/5 p-4 rounded-lg animate-fade-in">
             <div className="space-y-3">
               <div>
-                <label className="text-xs font-medium text-muted-foreground mb-1 block">Stage Name</label>
+                <label className="text-xs font-medium text-muted-foreground mb-1 block">{t("stage_name", "Stage Name")}</label>
                 <input
                   type="text"
                   value={editedStage.name}
@@ -404,7 +406,7 @@ export function StageDetailCard({
                 />
               </div>
               <div>
-                <label className="text-xs font-medium text-muted-foreground mb-1 block">Description</label>
+                <label className="text-xs font-medium text-muted-foreground mb-1 block">{t("description", "Description")}</label>
                 <textarea
                   value={editedStage.description || ''}
                   onChange={(e) => setEditedStage({ ...editedStage, description: e.target.value })}
@@ -413,20 +415,20 @@ export function StageDetailCard({
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-medium text-muted-foreground mb-1 block">Format</label>
+                  <label className="text-xs font-medium text-muted-foreground mb-1 block">{t("format", "Format")}</label>
                   <select
                     value={editedStage.format}
                     onChange={(e) => setEditedStage({ ...editedStage, format: e.target.value as any })}
                     className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm"
                   >
-                    <option value="online">Online</option>
-                    <option value="in_person">In Person</option>
-                    <option value="hybrid">Hybrid</option>
-                    <option value="assessment">Assessment</option>
+                    <option value="online">{t("online", "Online")}</option>
+                    <option value="in_person">{t("in_person", "In Person")}</option>
+                    <option value="hybrid">{t("hybrid", "Hybrid")}</option>
+                    <option value="assessment">{t("assessment", "Assessment")}</option>
                   </select>
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-muted-foreground mb-1 block">Duration (min)</label>
+                  <label className="text-xs font-medium text-muted-foreground mb-1 block">{t("duration_min", "Duration (min)")}</label>
                   <input
                     type="number"
                     value={editedStage.duration_minutes || 60}
@@ -437,7 +439,7 @@ export function StageDetailCard({
               </div>
               {editedStage.format === 'online' && (
                 <div>
-                  <label className="text-xs font-medium text-muted-foreground mb-1 block">Meeting Link</label>
+                  <label className="text-xs font-medium text-muted-foreground mb-1 block">{t("meeting_link", "Meeting Link")}</label>
                   <input
                     type="text"
                     value={editedStage.meeting_link || ''}
@@ -448,7 +450,7 @@ export function StageDetailCard({
               )}
               {editedStage.format === 'in_person' && (
                 <div>
-                  <label className="text-xs font-medium text-muted-foreground mb-1 block">Location</label>
+                  <label className="text-xs font-medium text-muted-foreground mb-1 block">{t("location", "Location")}</label>
                   <input
                     type="text"
                     value={editedStage.location || ''}
@@ -460,11 +462,11 @@ export function StageDetailCard({
             </div>
             <div className="flex gap-2 justify-end pt-2">
               <Button variant="ghost" size="sm" onClick={handleCancelEdit}>
-                Cancel
+                {t('common:cancel')}
               </Button>
               <Button size="sm" onClick={handleSaveInline}>
                 <Save className="w-3 h-3 mr-1" />
-                Save Changes
+                {t('common:saveChanges')}
               </Button>
             </div>
           </div>
@@ -582,16 +584,16 @@ export function StageDetailCard({
             {/* Metadata */}
             {displaySettings.showMetadata && (
               <div className="space-y-2">
-                <h4 className="text-sm font-bold">Metadata</h4>
+                <h4 className="text-sm font-bold">{t("metadata", "Metadata")}</h4>
                 <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
                   {stage.created_at && (
                     <div>
-                      <span className="font-medium">Created:</span> {new Date(stage.created_at).toLocaleDateString()}
+                      <span className="font-medium">{t("created", "Created:")}</span> {new Date(stage.created_at).toLocaleDateString()}
                     </div>
                   )}
                   {stage.updated_at && (
                     <div>
-                      <span className="font-medium">Updated:</span> {new Date(stage.updated_at).toLocaleDateString()}
+                      <span className="font-medium">{t("updated", "Updated:")}</span> {new Date(stage.updated_at).toLocaleDateString()}
                     </div>
                   )}
                 </div>

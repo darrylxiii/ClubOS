@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,6 +10,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAudioManager } from "@/hooks/useAudioManager";
 
 export function DJMixer() {
+  const { t } = useTranslation('common');
   const queryClient = useQueryClient();
   const audioRef = useRef<HTMLAudioElement>(null);
   const { play: managedPlay, pause: managedPause } = useAudioManager('dj');
@@ -180,7 +182,7 @@ export function DJMixer() {
     const handlePause = () => setIsPlaying(false);
     const handleError = (e: Event) => {
       console.error('Audio error:', e);
-      toast.error('Failed to load audio track');
+      toast.error(t("failed_to_load_audio", "Failed to load audio track"));
       setIsPlaying(false);
     };
 
@@ -204,7 +206,7 @@ export function DJMixer() {
       if (isPlaying) {
         managedPlay(audio).catch(err => {
           console.error('Play error:', err);
-          toast.error('Failed to play track');
+          toast.error(t("failed_to_play_track", "Failed to play track"));
           setIsPlaying(false);
         });
       }
@@ -224,7 +226,7 @@ export function DJMixer() {
           await managedPlay(audioRef.current);
         } catch (err) {
           console.error('Play error:', err);
-          toast.error('Failed to play track');
+          toast.error(t("failed_to_play_track", "Failed to play track"));
         }
       }
     }
@@ -249,7 +251,7 @@ export function DJMixer() {
               <div className="flex items-center gap-3">
                 <div className="h-3 w-3 rounded-full bg-red-500 animate-pulse" />
                 <div>
-                  <h3 className="text-xl font-bold">DJ Now Live!</h3>
+                  <h3 className="text-xl font-bold">{t("dj_now_live", "DJ Now Live!")}</h3>
                   <p className="text-sm text-muted-foreground">
                     Broadcasting to The Quantum Club Radio
                   </p>
@@ -297,7 +299,7 @@ export function DJMixer() {
         ) : (
           <div className="text-center py-8">
             <Radio className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-            <p className="text-muted-foreground">No track selected</p>
+            <p className="text-muted-foreground">{t("no_track_selected", "No track selected")}</p>
           </div>
         )}
 
@@ -366,7 +368,7 @@ export function DJMixer() {
       <div className="rounded-3xl bg-black/20 backdrop-blur-xl border border-white/10 p-6 space-y-4">
         <div className="flex items-center gap-2">
           <List className="h-5 w-5 text-primary" />
-          <h3 className="font-bold text-lg">Queue</h3>
+          <h3 className="font-bold text-lg">{t("queue", "Queue")}</h3>
           <span className="text-sm text-muted-foreground ml-auto">
             {queue?.length || 0} tracks
           </span>
@@ -401,8 +403,8 @@ export function DJMixer() {
             ))
           ) : (
             <div className="text-center py-8 text-muted-foreground">
-              <p>Queue is empty</p>
-              <p className="text-sm mt-1">Add tracks to playlists to populate the queue</p>
+              <p>{t("queue_is_empty", "Queue is empty")}</p>
+              <p className="text-sm mt-1">{t("add_tracks_to_playlists", "Add tracks to playlists to populate the queue")}</p>
             </div>
           )}
         </div>

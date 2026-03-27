@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
@@ -18,23 +19,24 @@ export const GhostModeSettings = ({
   onGhostModeChange,
   onActivelyLookingChange,
 }: GhostModeSettingsProps) => {
+  const { t } = useTranslation('settings');
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           {ghostModeEnabled ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-          Ghost Mode
+          {t('privacy.ghostMode')}
         </CardTitle>
         <CardDescription>
-          Control your visibility and search presence
+          {t('privacy.ghostModeDesc')}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="flex items-center justify-between">
           <div className="space-y-0.5">
-            <Label>Enable Ghost Mode</Label>
+            <Label>{t('privacy.enableGhostMode')}</Label>
             <p className="text-sm text-muted-foreground">
-              Hide your profile from searches and recommendations
+              {t('privacy.hideFromSearches')}
             </p>
           </div>
           <Switch
@@ -46,14 +48,13 @@ export const GhostModeSettings = ({
         {ghostModeEnabled && (
           <Alert>
             <AlertDescription>
-              Your profile is hidden from partner searches. You can still apply to jobs,
-              but recruiters won't find you through matching algorithms.
+              {t('privacy.ghostModeAlert')}
             </AlertDescription>
           </Alert>
         )}
 
         <div className="space-y-4 pt-4 border-t">
-          <Label>Job Search Status</Label>
+          <Label>{t('privacy.jobSearchStatus')}</Label>
           <RadioGroup
             value={activelyLooking ? "active" : "passive"}
             onValueChange={(value) => onActivelyLookingChange(value === "active")}
@@ -61,13 +62,13 @@ export const GhostModeSettings = ({
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="active" id="active" />
               <Label htmlFor="active" className="font-normal cursor-pointer">
-                Actively Looking - Show me all opportunities
+                {t('privacy.activelyLooking')}
               </Label>
             </div>
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="passive" id="passive" />
               <Label htmlFor="passive" className="font-normal cursor-pointer">
-                Open to Opportunities - Only show exceptional matches
+                {t('privacy.openToOpportunities')}
               </Label>
             </div>
           </RadioGroup>

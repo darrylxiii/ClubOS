@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -38,6 +39,7 @@ export function ProposeTimeDialog({
   durationMinutes = 30,
   title = "Meeting",
 }: ProposeTimeDialogProps) {
+  const { t } = useTranslation('common');
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedTime, setSelectedTime] = useState<string>("");
   const [message, setMessage] = useState("");
@@ -56,7 +58,7 @@ export function ProposeTimeDialog({
 
   const handleSubmit = async () => {
     if (!selectedDate || !selectedTime) {
-      toast.error("Please select a date and time");
+      toast.error(t("please_select_a_date", "Please select a date and time"));
       return;
     }
 
@@ -65,7 +67,7 @@ export function ProposeTimeDialog({
     const proposedEnd = new Date(proposedStart.getTime() + durationMinutes * 60 * 1000);
 
     if (proposedStart <= new Date()) {
-      toast.error("Please select a time in the future");
+      toast.error(t("please_select_a_time", "Please select a time in the future"));
       return;
     }
 
@@ -104,7 +106,7 @@ export function ProposeTimeDialog({
       if (onProposed) {
         onProposed();
       } else {
-        toast.success("Time proposal submitted! The host will be notified.");
+        toast.success(t("time_proposal_submitted_the", "Time proposal submitted! The host will be notified."));
       }
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : "Failed to submit proposal";
@@ -125,7 +127,7 @@ export function ProposeTimeDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Propose Different Time</DialogTitle>
+          <DialogTitle>{t("propose_different_time", "Propose Different Time")}</DialogTitle>
           <DialogDescription>
             Suggest an alternative time for "{title}". The host will review your proposal.
           </DialogDescription>
@@ -155,7 +157,7 @@ export function ProposeTimeDialog({
             </Label>
             <Select value={selectedTime} onValueChange={setSelectedTime}>
               <SelectTrigger>
-                <SelectValue placeholder="Choose a time" />
+                <SelectValue placeholder={t("choose_a_time", "Choose a time")} />
               </SelectTrigger>
               <SelectContent>
                 {timeSlots.map((time) => (
@@ -170,7 +172,7 @@ export function ProposeTimeDialog({
           {/* Preview */}
           {selectedDate && selectedTime && (
             <div className="p-3 bg-muted rounded-md text-sm">
-              <p className="font-medium">Your proposed time:</p>
+              <p className="font-medium">{t("your_proposed_time", "Your proposed time:")}</p>
               <p className="text-muted-foreground">
                 {format(selectedDate, "EEEE, MMMM d, yyyy")} at {formatTimeDisplay(selectedTime)}
               </p>
@@ -182,12 +184,12 @@ export function ProposeTimeDialog({
 
           {/* Message */}
           <div className="space-y-2">
-            <Label htmlFor="proposal-message">Message (optional)</Label>
+            <Label htmlFor="proposal-message">{t("message_optional", "Message (optional)")}</Label>
             <Textarea
               id="proposal-message"
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              placeholder="Let the host know why this time works better for you..."
+              placeholder={t("let_the_host_know", "Let the host know why this time works better for you...")}
               rows={3}
             />
           </div>

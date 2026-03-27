@@ -1,4 +1,5 @@
 import { memo, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -33,6 +34,7 @@ export const CourseCompletionModal = memo<CourseCompletionModalProps>(({
       const end = Date.now() + duration;
 
       const frame = () => {
+  const { t } = useTranslation('common');
         fireConfetti({
           particleCount: 2,
           angle: 60,
@@ -104,9 +106,7 @@ export const CourseCompletionModal = memo<CourseCompletionModalProps>(({
                       )}
                       <div>
                         <p className="font-medium text-sm">{course.title}</p>
-                        <Button variant="link" className="h-auto p-0 text-xs">
-                          Start Learning →
-                        </Button>
+                        <Button variant="link" className="h-auto p-0 text-xs">{t('academy.startLearning ')}</Button>
                       </div>
                     </div>
                   </Card>

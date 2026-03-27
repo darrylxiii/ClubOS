@@ -6,6 +6,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Badge } from "@/components/ui/badge";
 import { AlertCircle, Eye, EyeOff, Shield } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useTranslation } from 'react-i18next';
 
 interface StealthModeToggleProps {
   stealthModeEnabled: boolean;
@@ -24,6 +25,7 @@ export const StealthModeToggle = ({
   onStealthLevelChange,
   onColdOutreachChange,
 }: StealthModeToggleProps) => {
+  const { t } = useTranslation('common');
   return (
     <Card>
       <CardHeader>

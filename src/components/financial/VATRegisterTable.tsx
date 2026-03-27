@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -8,6 +9,7 @@ interface VATRegisterTableProps {
 }
 
 export function VATRegisterTable({ year }: VATRegisterTableProps) {
+  const { t } = useTranslation('common');
   const { data: quarters, isLoading } = useVATByQuarter(year);
 
   const formatCurrency = (amount: number) => {
@@ -25,12 +27,12 @@ export function VATRegisterTable({ year }: VATRegisterTableProps) {
     const selectedYear = year || currentYear;
     
     if (selectedYear < currentYear || (selectedYear === currentYear && quarter < currentQuarter)) {
-      return <Badge variant="outline" className="bg-amber-500/10 text-amber-600 border-amber-500/20">Pending Filing</Badge>;
+      return <Badge variant="outline" className="bg-amber-500/10 text-amber-600 border-amber-500/20">{t("pending_filing", "Pending Filing")}</Badge>;
     }
     if (selectedYear === currentYear && quarter === currentQuarter) {
-      return <Badge variant="outline" className="bg-blue-500/10 text-blue-600 border-blue-500/20">Current</Badge>;
+      return <Badge variant="outline" className="bg-blue-500/10 text-blue-600 border-blue-500/20">{t("current", "Current")}</Badge>;
     }
-    return <Badge variant="outline" className="text-muted-foreground">Future</Badge>;
+    return <Badge variant="outline" className="text-muted-foreground">{t("future", "Future")}</Badge>;
   };
 
   if (isLoading) {
@@ -54,12 +56,12 @@ export function VATRegisterTable({ year }: VATRegisterTableProps) {
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>Period</TableHead>
-          <TableHead className="text-right">Net Revenue</TableHead>
-          <TableHead className="text-right">Gross Revenue</TableHead>
-          <TableHead className="text-right">VAT (21%)</TableHead>
-          <TableHead className="text-right">Invoices</TableHead>
-          <TableHead>Status</TableHead>
+          <TableHead>{t("period", "Period")}</TableHead>
+          <TableHead className="text-right">{t("net_revenue", "Net Revenue")}</TableHead>
+          <TableHead className="text-right">{t("gross_revenue", "Gross Revenue")}</TableHead>
+          <TableHead className="text-right">{t("vat_21", "VAT (21%)")}</TableHead>
+          <TableHead className="text-right">{t("invoices", "Invoices")}</TableHead>
+          <TableHead>{t("status", "Status")}</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -77,7 +79,7 @@ export function VATRegisterTable({ year }: VATRegisterTableProps) {
         ))}
         {/* Year Total Row */}
         <TableRow className="bg-muted/50 font-bold">
-          <TableCell>Year Total</TableCell>
+          <TableCell>{t("year_total", "Year Total")}</TableCell>
           <TableCell className="text-right">{formatCurrency(yearTotal?.netRevenue || 0)}</TableCell>
           <TableCell className="text-right text-muted-foreground">{formatCurrency(yearTotal?.grossRevenue || 0)}</TableCell>
           <TableCell className="text-right text-destructive">{formatCurrency(yearTotal?.vatCollected || 0)}</TableCell>

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -28,6 +29,7 @@ interface WeeklyStats {
 }
 
 export function EmployeeTimeTab({ userId }: EmployeeTimeTabProps) {
+  const { t } = useTranslation('common');
   const [weekOffset, setWeekOffset] = useState(0);
   
   const currentWeekStart = startOfWeek(subWeeks(new Date(), -weekOffset), { weekStartsOn: 1 });
@@ -104,7 +106,7 @@ export function EmployeeTimeTab({ userId }: EmployeeTimeTabProps) {
                 <Clock className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">This Month</p>
+                <p className="text-sm text-muted-foreground">{t("this_month", "This Month")}</p>
                 <p className="text-2xl font-bold">{monthStats?.totalHours.toFixed(1) || 0}h</p>
               </div>
             </div>
@@ -117,7 +119,7 @@ export function EmployeeTimeTab({ userId }: EmployeeTimeTabProps) {
                 <TrendingUp className="h-5 w-5 text-green-500" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Billable Hours</p>
+                <p className="text-sm text-muted-foreground">{t("billable_hours", "Billable Hours")}</p>
                 <p className="text-2xl font-bold">{monthStats?.billableHours.toFixed(1) || 0}h</p>
               </div>
             </div>
@@ -130,7 +132,7 @@ export function EmployeeTimeTab({ userId }: EmployeeTimeTabProps) {
                 <Calendar className="h-5 w-5 text-blue-500" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Time Entries</p>
+                <p className="text-sm text-muted-foreground">{t("time_entries", "Time Entries")}</p>
                 <p className="text-2xl font-bold">{monthStats?.entriesCount || 0}</p>
               </div>
             </div>
@@ -143,7 +145,7 @@ export function EmployeeTimeTab({ userId }: EmployeeTimeTabProps) {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>Weekly Time Entries</CardTitle>
+              <CardTitle>{t("weekly_time_entries", "Weekly Time Entries")}</CardTitle>
               <CardDescription>
                 {format(currentWeekStart, 'MMM d')} - {format(currentWeekEnd, 'MMM d, yyyy')}
               </CardDescription>
@@ -206,10 +208,10 @@ export function EmployeeTimeTab({ userId }: EmployeeTimeTabProps) {
                   </div>
                   <div className="flex items-center gap-3">
                     {entry.is_billable && (
-                      <Badge variant="secondary" className="text-xs">Billable</Badge>
+                      <Badge variant="secondary" className="text-xs">{t("billable", "Billable")}</Badge>
                     )}
                     {entry.is_running && (
-                      <Badge variant="default" className="text-xs animate-pulse">Running</Badge>
+                      <Badge variant="default" className="text-xs animate-pulse">{t("running", "Running")}</Badge>
                     )}
                     <span className="font-mono text-sm font-medium">
                       {entry.duration_seconds 

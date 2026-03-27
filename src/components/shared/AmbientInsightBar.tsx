@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { X, ChevronLeft, ChevronRight, AlertTriangle, Clock, Users, Target, Calendar } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { useTranslation } from 'react-i18next';
 
 const iconMap = {
   alert: AlertTriangle,
@@ -17,6 +18,7 @@ const iconMap = {
 };
 
 export function AmbientInsightBar() {
+  const { t } = useTranslation('common');
   const { insights, loading, dismiss } = useAmbientInsights();
   const [currentIndex, setCurrentIndex] = useState(0);
   const navigate = useNavigate();

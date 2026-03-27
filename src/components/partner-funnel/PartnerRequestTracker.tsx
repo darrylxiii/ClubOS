@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -46,6 +47,7 @@ const TRACKER_STEPS = [
 ];
 
 export function PartnerRequestTracker() {
+  const { t } = useTranslation('common');
   const [strategist, setStrategist] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -131,11 +133,11 @@ export function PartnerRequestTracker() {
             </Avatar>
             <div className="flex-1">
               <h4 className="font-semibold text-lg">{strategist.full_name}</h4>
-              <p className="text-sm text-muted-foreground mb-3">Founder & CEO</p>
+              <p className="text-sm text-muted-foreground mb-3">{t("founder_ceo", "Founder & CEO")}</p>
               <div className="flex items-center gap-2 text-sm">
                 <Clock className="w-4 h-4 text-primary" />
                 <span className="text-muted-foreground">
-                  Avg. response time: <span className="font-semibold text-foreground">19 minutes</span>
+                  Avg. response time: <span className="font-semibold text-foreground">{t("19_minutes", "19 minutes")}</span>
                 </span>
               </div>
             </div>
@@ -147,7 +149,7 @@ export function PartnerRequestTracker() {
       <Card className="p-6 glass border-primary/20">
         <div className="flex items-center gap-4 mb-4">
           <div className="flex-1">
-            <h3 className="text-lg font-semibold mb-2">Partnership Journey</h3>
+            <h3 className="text-lg font-semibold mb-2">{t("partnership_journey", "Partnership Journey")}</h3>
             <p className="text-sm text-muted-foreground">
               Step {completedSteps + 1} of {TRACKER_STEPS.length}
             </p>
@@ -161,7 +163,7 @@ export function PartnerRequestTracker() {
 
       {/* Steps Tracker */}
       <Card className="p-6 glass-effect">
-        <h3 className="text-lg font-semibold mb-6">Next Steps</h3>
+        <h3 className="text-lg font-semibold mb-6">{t("next_steps", "Next Steps")}</h3>
         <div className="space-y-6">
           {TRACKER_STEPS.map((step, index) => (
             <div key={step.id} className="flex gap-4">
@@ -189,7 +191,7 @@ export function PartnerRequestTracker() {
                 <div className="flex items-center gap-2 mb-1">
                   <h4 className="font-semibold">{step.name}</h4>
                   {step.status === "in_progress" && (
-                    <Badge variant="outline" className="text-xs">In Progress</Badge>
+                    <Badge variant="outline" className="text-xs">{t("in_progress", "In Progress")}</Badge>
                   )}
                 </div>
                 <p className="text-sm text-muted-foreground">{step.description}</p>

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -36,6 +37,7 @@ export function CreateCampaignDialog({
   onOpenChange,
   onSuccess,
 }: CreateCampaignDialogProps) {
+  const { t } = useTranslation('common');
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState<CampaignStep>('details');
   const [formData, setFormData] = useState({
@@ -75,7 +77,7 @@ export function CreateCampaignDialog({
 
   const handleSubmit = async () => {
     if (!formData.name) {
-      toast.error('Campaign name is required');
+      toast.error(t("campaign_name_is_required", "Campaign name is required"));
       return;
     }
 
@@ -104,7 +106,7 @@ export function CreateCampaignDialog({
 
       if (error) throw error;
 
-      toast.success('Campaign created successfully');
+      toast.success(t("campaign_created_successfully", "Campaign created successfully"));
       setFormData({
         name: '',
         description: '',
@@ -121,7 +123,7 @@ export function CreateCampaignDialog({
       onSuccess?.();
     } catch (error) {
       console.error('Error creating campaign:', error);
-      toast.error('Failed to create campaign');
+      toast.error(t("failed_to_create_campaign", "Failed to create campaign"));
     } finally {
       setLoading(false);
     }
@@ -177,27 +179,27 @@ export function CreateCampaignDialog({
             {step === 'details' && (
               <>
                 <div>
-                  <Label htmlFor="name">Campaign Name *</Label>
+                  <Label htmlFor="name">{t("campaign_name", "Campaign Name *")}</Label>
                   <Input
                     id="name"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    placeholder="Q1 Enterprise Outreach"
+                    placeholder={t("q1_enterprise_outreach", "Q1 Enterprise Outreach")}
                     className="bg-muted/20 border-border/30"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="description">Description</Label>
+                  <Label htmlFor="description">{t("description", "Description")}</Label>
                   <Textarea
                     id="description"
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    placeholder="Describe the campaign goals..."
+                    placeholder={t("describe_the_campaign_goals", "Describe the campaign goals...")}
                     className="bg-muted/20 border-border/30"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="campaign_type">Campaign Type</Label>
+                  <Label htmlFor="campaign_type">{t("campaign_type", "Campaign Type")}</Label>
                   <Select
                     value={formData.campaign_type}
                     onValueChange={(value) => setFormData({ ...formData, campaign_type: value })}
@@ -206,10 +208,10 @@ export function CreateCampaignDialog({
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="cold">Cold Outreach</SelectItem>
-                      <SelectItem value="warm">Warm Follow-up</SelectItem>
-                      <SelectItem value="nurture">Nurture Sequence</SelectItem>
-                      <SelectItem value="reactivation">Re-activation</SelectItem>
+                      <SelectItem value="cold">{t("cold_outreach", "Cold Outreach")}</SelectItem>
+                      <SelectItem value="warm">{t("warm_followup", "Warm Follow-up")}</SelectItem>
+                      <SelectItem value="nurture">{t("nurture_sequence", "Nurture Sequence")}</SelectItem>
+                      <SelectItem value="reactivation">{t("reactivation", "Re-activation")}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -219,59 +221,59 @@ export function CreateCampaignDialog({
             {step === 'targeting' && (
               <>
                 <div>
-                  <Label htmlFor="target_industry">Target Industry</Label>
+                  <Label htmlFor="target_industry">{t("target_industry", "Target Industry")}</Label>
                   <Select
                     value={formData.target_industry}
                     onValueChange={(value) => setFormData({ ...formData, target_industry: value })}
                   >
                     <SelectTrigger className="bg-muted/20 border-border/30">
-                      <SelectValue placeholder="Select industry" />
+                      <SelectValue placeholder={t("select_industry", "Select industry")} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All Industries</SelectItem>
-                      <SelectItem value="technology">Technology</SelectItem>
-                      <SelectItem value="finance">Finance</SelectItem>
-                      <SelectItem value="healthcare">Healthcare</SelectItem>
-                      <SelectItem value="manufacturing">Manufacturing</SelectItem>
-                      <SelectItem value="retail">Retail</SelectItem>
-                      <SelectItem value="consulting">Consulting</SelectItem>
+                      <SelectItem value="">{t("all_industries", "All Industries")}</SelectItem>
+                      <SelectItem value="technology">{t("technology", "Technology")}</SelectItem>
+                      <SelectItem value="finance">{t("finance", "Finance")}</SelectItem>
+                      <SelectItem value="healthcare">{t("healthcare", "Healthcare")}</SelectItem>
+                      <SelectItem value="manufacturing">{t("manufacturing", "Manufacturing")}</SelectItem>
+                      <SelectItem value="retail">{t("retail", "Retail")}</SelectItem>
+                      <SelectItem value="consulting">{t("consulting", "Consulting")}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div>
-                  <Label htmlFor="target_company_size">Company Size</Label>
+                  <Label htmlFor="target_company_size">{t("company_size", "Company Size")}</Label>
                   <Select
                     value={formData.target_company_size}
                     onValueChange={(value) => setFormData({ ...formData, target_company_size: value })}
                   >
                     <SelectTrigger className="bg-muted/20 border-border/30">
-                      <SelectValue placeholder="Select size" />
+                      <SelectValue placeholder={t("select_size", "Select size")} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All Sizes</SelectItem>
-                      <SelectItem value="startup">Startup (1-50)</SelectItem>
-                      <SelectItem value="smb">SMB (51-200)</SelectItem>
-                      <SelectItem value="mid-market">Mid-Market (201-1000)</SelectItem>
-                      <SelectItem value="enterprise">Enterprise (1000+)</SelectItem>
+                      <SelectItem value="">{t("all_sizes", "All Sizes")}</SelectItem>
+                      <SelectItem value="startup">{t("startup_150", "Startup (1-50)")}</SelectItem>
+                      <SelectItem value="smb">{t("smb_51200", "SMB (51-200)")}</SelectItem>
+                      <SelectItem value="mid-market">{t("midmarket_2011000", "Mid-Market (201-1000)")}</SelectItem>
+                      <SelectItem value="enterprise">{t("enterprise_1000", "Enterprise (1000+)")}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div>
-                  <Label htmlFor="target_region">Target Region</Label>
+                  <Label htmlFor="target_region">{t("target_region", "Target Region")}</Label>
                   <Select
                     value={formData.target_region}
                     onValueChange={(value) => setFormData({ ...formData, target_region: value })}
                   >
                     <SelectTrigger className="bg-muted/20 border-border/30">
-                      <SelectValue placeholder="Select region" />
+                      <SelectValue placeholder={t("select_region", "Select region")} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All Regions</SelectItem>
-                      <SelectItem value="europe">Europe</SelectItem>
-                      <SelectItem value="north-america">North America</SelectItem>
-                      <SelectItem value="uk">United Kingdom</SelectItem>
+                      <SelectItem value="">{t("all_regions", "All Regions")}</SelectItem>
+                      <SelectItem value="europe">{t("europe", "Europe")}</SelectItem>
+                      <SelectItem value="north-america">{t("north_america", "North America")}</SelectItem>
+                      <SelectItem value="uk">{t("united_kingdom", "United Kingdom")}</SelectItem>
                       <SelectItem value="dach">DACH</SelectItem>
-                      <SelectItem value="benelux">Benelux</SelectItem>
+                      <SelectItem value="benelux">{t("benelux", "Benelux")}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -281,7 +283,7 @@ export function CreateCampaignDialog({
             {step === 'schedule' && (
               <>
                 <div>
-                  <Label htmlFor="sequence_steps">Number of Email Steps</Label>
+                  <Label htmlFor="sequence_steps">{t("number_of_email_steps", "Number of Email Steps")}</Label>
                   <Input
                     id="sequence_steps"
                     type="number"
@@ -293,7 +295,7 @@ export function CreateCampaignDialog({
                   />
                 </div>
                 <div>
-                  <Label htmlFor="daily_limit">Daily Send Limit</Label>
+                  <Label htmlFor="daily_limit">{t("daily_send_limit", "Daily Send Limit")}</Label>
                   <Input
                     id="daily_limit"
                     type="number"
@@ -305,7 +307,7 @@ export function CreateCampaignDialog({
                   />
                 </div>
                 <div>
-                  <Label htmlFor="start_date">Start Date</Label>
+                  <Label htmlFor="start_date">{t("start_date", "Start Date")}</Label>
                   <Input
                     id="start_date"
                     type="date"
@@ -319,21 +321,21 @@ export function CreateCampaignDialog({
 
             {step === 'review' && (
               <div className="space-y-3 p-4 rounded-lg bg-muted/10 border border-border/30">
-                <h4 className="font-medium">Campaign Summary</h4>
+                <h4 className="font-medium">{t("campaign_summary", "Campaign Summary")}</h4>
                 <div className="grid grid-cols-2 gap-2 text-sm">
-                  <span className="text-muted-foreground">Name:</span>
+                  <span className="text-muted-foreground">{t("name", "Name:")}</span>
                   <span>{formData.name || '-'}</span>
-                  <span className="text-muted-foreground">Type:</span>
+                  <span className="text-muted-foreground">{t("type", "Type:")}</span>
                   <span className="capitalize">{formData.campaign_type}</span>
-                  <span className="text-muted-foreground">Target Industry:</span>
+                  <span className="text-muted-foreground">{t("target_industry", "Target Industry:")}</span>
                   <span className="capitalize">{formData.target_industry || 'All'}</span>
-                  <span className="text-muted-foreground">Company Size:</span>
+                  <span className="text-muted-foreground">{t("company_size", "Company Size:")}</span>
                   <span className="capitalize">{formData.target_company_size || 'All'}</span>
-                  <span className="text-muted-foreground">Region:</span>
+                  <span className="text-muted-foreground">{t("region", "Region:")}</span>
                   <span className="capitalize">{formData.target_region || 'All'}</span>
-                  <span className="text-muted-foreground">Email Steps:</span>
+                  <span className="text-muted-foreground">{t("email_steps", "Email Steps:")}</span>
                   <span>{formData.sequence_steps}</span>
-                  <span className="text-muted-foreground">Daily Limit:</span>
+                  <span className="text-muted-foreground">{t("daily_limit", "Daily Limit:")}</span>
                   <span>{formData.daily_limit}</span>
                 </div>
               </div>

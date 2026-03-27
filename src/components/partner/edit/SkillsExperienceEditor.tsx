@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,6 +12,7 @@ interface SkillsExperienceEditorProps {
 }
 
 export function SkillsExperienceEditor({ candidate, onChange }: SkillsExperienceEditorProps) {
+  const { t } = useTranslation('common');
   const [yearsExperience, setYearsExperience] = useState(candidate.years_of_experience || 0);
   const [skills, setSkills] = useState<string[]>(
     Array.isArray(candidate.skills) ? candidate.skills.map((s: any) => typeof s === 'string' ? s : s.name || s) : []
@@ -72,14 +74,14 @@ export function SkillsExperienceEditor({ candidate, onChange }: SkillsExperience
     <div className="space-y-6">
       {/* Years of Experience */}
       <div className="space-y-2">
-        <Label htmlFor="years_experience">Years of Experience</Label>
+        <Label htmlFor="years_experience">{t("years_of_experience", "Years of Experience")}</Label>
         <Input
           id="years_experience"
           type="number"
           min="0"
           value={yearsExperience}
           onChange={(e) => setYearsExperience(parseInt(e.target.value) || 0)}
-          placeholder="e.g., 5"
+          placeholder={t("eg_5", "e.g., 5")}
         />
       </div>
 
@@ -93,11 +95,11 @@ export function SkillsExperienceEditor({ candidate, onChange }: SkillsExperience
           <Input
             value={newSkill}
             onChange={(e) => setNewSkill(e.target.value)}
-            placeholder="e.g., React, Python, Project Management"
+            placeholder={t("eg_react_python_project", "e.g., React, Python, Project Management")}
             onKeyDown={(e) => e.key === 'Enter' && handleAddSkill()}
           />
           <Button onClick={handleAddSkill} variant="outline">
-            Add
+            {t('common:add')}
           </Button>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -123,11 +125,11 @@ export function SkillsExperienceEditor({ candidate, onChange }: SkillsExperience
           <Input
             value={newCert}
             onChange={(e) => setNewCert(e.target.value)}
-            placeholder="e.g., PMP, AWS Certified, Scrum Master"
+            placeholder={t("eg_pmp_aws_certified", "e.g., PMP, AWS Certified, Scrum Master")}
             onKeyDown={(e) => e.key === 'Enter' && handleAddCert()}
           />
           <Button onClick={handleAddCert} variant="outline">
-            Add
+            {t('common:add')}
           </Button>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -153,11 +155,11 @@ export function SkillsExperienceEditor({ candidate, onChange }: SkillsExperience
           <Input
             value={newLanguage}
             onChange={(e) => setNewLanguage(e.target.value)}
-            placeholder="e.g., English (Native), Spanish (Fluent)"
+            placeholder={t("eg_english_native_spanish", "e.g., English (Native), Spanish (Fluent)")}
             onKeyDown={(e) => e.key === 'Enter' && handleAddLanguage()}
           />
           <Button onClick={handleAddLanguage} variant="outline">
-            Add
+            {t('common:add')}
           </Button>
         </div>
         <div className="flex flex-wrap gap-2">

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -41,6 +42,7 @@ export function BulkTaskActions({
   onClearSelection,
   onRefresh,
 }: BulkTaskActionsProps) {
+  const { t } = useTranslation('common');
   const [loading, setLoading] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
@@ -62,7 +64,7 @@ export function BulkTaskActions({
       onRefresh();
     } catch (error) {
       console.error("Bulk update error:", error);
-      toast.error("Failed to update tasks");
+      toast.error(t("failed_to_update_tasks", "Failed to update tasks"));
     } finally {
       setLoading(false);
     }
@@ -83,7 +85,7 @@ export function BulkTaskActions({
       onRefresh();
     } catch (error) {
       console.error("Bulk priority update error:", error);
-      toast.error("Failed to update tasks");
+      toast.error(t("failed_to_update_tasks", "Failed to update tasks"));
     } finally {
       setLoading(false);
     }
@@ -105,7 +107,7 @@ export function BulkTaskActions({
       setDeleteDialogOpen(false);
     } catch (error) {
       console.error("Bulk delete error:", error);
-      toast.error("Failed to delete tasks");
+      toast.error(t("failed_to_delete_tasks", "Failed to delete tasks"));
     } finally {
       setLoading(false);
     }
@@ -201,7 +203,7 @@ export function BulkTaskActions({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t("cancel", "Cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleBulkDelete}
               className="bg-red-600 text-white hover:bg-red-700"

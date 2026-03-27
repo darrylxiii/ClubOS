@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -24,6 +25,7 @@ interface EditorToolbarProps {
 }
 
 export function EditorToolbar({ editor, className }: EditorToolbarProps) {
+  const { t } = useTranslation('common');
   const insertBlock = (type: string, props?: Record<string, any>) => {
     const currentBlock = editor.getTextCursorPosition().block;
     editor.insertBlocks(
@@ -107,7 +109,7 @@ export function EditorToolbar({ editor, className }: EditorToolbarProps) {
         variant="ghost"
         size="sm"
         onClick={() => insertBlock('callout', { variant: 'info' })}
-        title="Insert Callout"
+        title={t("insert_callout", "Insert Callout")}
       >
         <AlertCircle className="h-4 w-4 text-blue-500" />
       </Button>
@@ -115,7 +117,7 @@ export function EditorToolbar({ editor, className }: EditorToolbarProps) {
         variant="ghost"
         size="sm"
         onClick={() => insertBlock('toggle', { isOpen: false })}
-        title="Insert Toggle"
+        title={t("insert_toggle", "Insert Toggle")}
       >
         <ChevronRight className="h-4 w-4" />
       </Button>
@@ -123,7 +125,7 @@ export function EditorToolbar({ editor, className }: EditorToolbarProps) {
         variant="ghost"
         size="sm"
         onClick={() => insertBlock('divider', { style: 'solid' })}
-        title="Insert Divider"
+        title={t("insert_divider", "Insert Divider")}
       >
         <Minus className="h-4 w-4" />
       </Button>
@@ -131,7 +133,7 @@ export function EditorToolbar({ editor, className }: EditorToolbarProps) {
         variant="ghost"
         size="sm"
         onClick={() => insertBlock('columns', { columnCount: 2 })}
-        title="Insert Columns"
+        title={t("insert_columns", "Insert Columns")}
       >
         <Columns2 className="h-4 w-4" />
       </Button>

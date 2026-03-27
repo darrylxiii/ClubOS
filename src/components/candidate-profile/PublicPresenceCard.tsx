@@ -1,12 +1,14 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Globe, FileText, Mic, Newspaper, ExternalLink } from "lucide-react";
+import { useTranslation } from 'react-i18next';
 
 interface Props {
   publicMentions: any;
 }
 
 export const PublicPresenceCard = ({ publicMentions }: Props) => {
+  const { t } = useTranslation('candidates');
   if (!publicMentions) {
     return (
       <Card className="bg-card/90 backdrop-blur-xl border border-border/50">
@@ -84,8 +86,8 @@ export const PublicPresenceCard = ({ publicMentions }: Props) => {
       </CardHeader>
       <CardContent className="space-y-4">
         <Section icon={FileText} title="Articles" items={articles} />
-        <Section icon={Mic} title="Talks & Appearances" items={talks} />
-        <Section icon={Newspaper} title="Other Mentions" items={mentions} />
+        <Section icon={Mic} title="Talks &" Appearances items={talks} />
+        <Section icon={Newspaper} title="Other" Mentions items={mentions} />
       </CardContent>
     </Card>
   );

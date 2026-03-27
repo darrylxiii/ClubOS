@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useMemo, useCallback, memo } from "react";
 import { useDealPipeline, useDealStages, useUpdateDealStage, Deal } from "@/hooks/useDealPipeline";
 import { MissingFeeWarning } from "./MissingFeeWarning";
@@ -46,11 +47,11 @@ const StageColumn = memo(function StageColumn({
         </div>
         <div className="text-xs text-muted-foreground mb-1">{stage.description}</div>
         <div className="flex items-center justify-between text-xs">
-          <span className="text-muted-foreground">Weighted Value</span>
+          <span className="text-muted-foreground">{t("weighted_value", "Weighted Value")}</span>
           <span className="font-semibold text-foreground">{formatCurrency(stageValue)}</span>
         </div>
         <div className="flex items-center justify-between text-xs mt-1">
-          <span className="text-muted-foreground">Probability</span>
+          <span className="text-muted-foreground">{t("probability", "Probability")}</span>
           <span className="font-medium text-primary">{stage.probability_weight}%</span>
         </div>
       </Card>
@@ -61,7 +62,7 @@ const StageColumn = memo(function StageColumn({
         ))}
         {deals.length === 0 && (
           <Card className="p-8 text-center border-dashed border-border/50 bg-muted/20">
-            <p className="text-sm text-muted-foreground">No deals in this stage</p>
+            <p className="text-sm text-muted-foreground">{t("no_deals_in_this", "No deals in this stage")}</p>
           </Card>
         )}
       </div>
@@ -70,6 +71,7 @@ const StageColumn = memo(function StageColumn({
 });
 
 export function DealPipelineKanban({ companyFilter }: { companyFilter?: string | null }) {
+  const { t } = useTranslation('common');
   const { data: stages, isLoading: stagesLoading } = useDealStages();
   const { data: deals, isLoading: dealsLoading } = useDealPipeline();
   const updateDealStage = useUpdateDealStage();
@@ -113,7 +115,7 @@ export function DealPipelineKanban({ companyFilter }: { companyFilter?: string |
         queryClient.invalidateQueries({ queryKey: ['deal-pipeline'] });
       } catch (error) {
         console.error('Error activating job:', error);
-        toast.error('Failed to update deal');
+        toast.error(t("failed_to_update_deal", "Failed to update deal"));
       } finally {
         setDraggedDeal(null);
       }
@@ -126,7 +128,7 @@ export function DealPipelineKanban({ companyFilter }: { companyFilter?: string |
             setDraggedDeal(null);
           },
           onError: () => {
-            toast.error('Failed to update deal stage');
+            toast.error(t("failed_to_update_deal", "Failed to update deal stage"));
             setDraggedDeal(null);
           },
         }
@@ -147,7 +149,7 @@ export function DealPipelineKanban({ companyFilter }: { companyFilter?: string |
 
       if (error) throw error;
 
-      toast.success('Job activated and published!', {
+      toast.success(t("job_activated_and_published", "Job activated and published!"), {
         description: 'Candidates can now discover and apply to this opportunity'
       });
       
@@ -155,7 +157,7 @@ export function DealPipelineKanban({ companyFilter }: { companyFilter?: string |
       queryClient.invalidateQueries({ queryKey: ['deal-pipeline'] });
     } catch (error) {
       console.error('Error publishing deal:', error);
-      toast.error('Failed to activate job');
+      toast.error(t("failed_to_activate_job", "Failed to activate job"));
     }
   }, [queryClient]);
 

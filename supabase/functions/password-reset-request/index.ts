@@ -1,6 +1,6 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { createHandler } from '../_shared/handler.ts';
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
-import { getAuthCorsHeaders, authCorsPreFlight } from "../_shared/auth-cors.ts";
+import { checkUserRateLimit, createRateLimitResponse } from '../_shared/rate-limiter.ts';
 
 const requestSchema = z.object({
   email: z.string().email(),
@@ -51,20 +51,19 @@ async function verifyRecaptcha(token: string): Promise<{ success: boolean; score
   }
 }
 
-Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return authCorsPreFlight(req);
-  }
-
-  const corsHeaders = getAuthCorsHeaders(req);
+Deno.serve(createHandler(async (req, ctx) => {
   const correlationId = crypto.randomUUID();
 
-  try {
-    const supabaseAdmin = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
-    );
+  // Rate limiting: 5 requests per hour per IP
+  const clientIpForRL = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+                        req.headers.get('x-real-ip') ||
+                        'unknown';
+  const rateLimitResult = await checkUserRateLimit(clientIpForRL, 'password-reset-request', 5, 3600000);
+  if (!rateLimitResult.allowed) {
+    return createRateLimitResponse(rateLimitResult.retryAfter || 3600, ctx.corsHeaders);
+  }
 
+  try {
     const body = await req.json();
     const { email, recaptchaToken, deviceFingerprint } = requestSchema.parse(body);
     const clientIp = req.headers.get("x-forwarded-for") || "unknown";
@@ -77,29 +76,29 @@ Deno.serve(async (req) => {
       if (!captchaResult.success || captchaResult.score < 0.5) {
         return new Response(
           JSON.stringify({ error: "Security verification failed. Please try again." }),
-          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          { status: 400, headers: { ...ctx.corsHeaders, "Content-Type": "application/json" } }
         );
       }
     }
 
-    const { data: rateLimitData } = await supabaseAdmin.rpc('check_password_reset_rate_limit', {
+    const { data: rateLimitData } = await ctx.supabase.rpc('check_password_reset_rate_limit', {
       p_email: email.toLowerCase(),
       p_ip_address: clientIp,
       p_device_fingerprint: deviceFingerprint || null,
     });
 
     if (rateLimitData && !rateLimitData.allowed) {
-      await supabaseAdmin.from('password_reset_attempts').insert({
+      await ctx.supabase.from('password_reset_attempts').insert({
         email: email.toLowerCase(), ip_address: clientIp, success: false,
         attempt_type: 'request', correlation_id: correlationId, device_fingerprint: deviceFingerprint || null,
       });
       return new Response(
         JSON.stringify({ rate_limited: true, message: rateLimitData.message }),
-        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 429, headers: { ...ctx.corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const { data: authMatch, error: authLookupError } = await supabaseAdmin
+    const { data: authMatch, error: authLookupError } = await ctx.supabase
       .rpc('get_user_id_by_auth_email', { lookup_email: email.toLowerCase() })
       .maybeSingle();
 
@@ -112,10 +111,10 @@ Deno.serve(async (req) => {
     if (authMatch) {
       userId = authMatch.user_id;
       userEmail = email;
-      const { data: profileById } = await supabaseAdmin.from('profiles').select('full_name').eq('id', authMatch.user_id).maybeSingle();
+      const { data: profileById } = await ctx.supabase.from('profiles').select('full_name').eq('id', authMatch.user_id).maybeSingle();
       userName = profileById?.full_name || email.split('@')[0];
     } else {
-      const { data: profile } = await supabaseAdmin.from('profiles').select('id, email, full_name').eq('email', email.toLowerCase()).maybeSingle();
+      const { data: profile } = await ctx.supabase.from('profiles').select('id, email, full_name').eq('email', email.toLowerCase()).maybeSingle();
       if (profile) {
         userId = profile.id;
         userName = profile.full_name;
@@ -124,7 +123,7 @@ Deno.serve(async (req) => {
     }
 
     if (userId && userEmail) {
-      await supabaseAdmin.from('password_reset_tokens')
+      await ctx.supabase.from('password_reset_tokens')
         .update({ is_used: true, used_at: new Date().toISOString(), validated_by: 'invalidated' })
         .eq('email', email.toLowerCase()).eq('is_used', false);
 
@@ -133,7 +132,7 @@ Deno.serve(async (req) => {
       const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
       const otpHash = await hashValue(otpCode);
 
-      const { error: insertError } = await supabaseAdmin.from('password_reset_tokens').insert({
+      const { error: insertError } = await ctx.supabase.from('password_reset_tokens').insert({
         user_id: userId, email: email.toLowerCase(), magic_token: magicToken,
         otp_code: otpHash, expires_at: expiresAt.toISOString(),
         ip_address: clientIp, user_agent: userAgent, correlation_id: correlationId,
@@ -146,7 +145,7 @@ Deno.serve(async (req) => {
 
       let emailSent = false;
       for (let attempt = 1; attempt <= 3; attempt++) {
-        const { error } = await supabaseAdmin.functions.invoke('send-password-reset-email', {
+        const { error } = await ctx.supabase.functions.invoke('send-password-reset-email', {
           body: {
             email: userEmail, userName: userName || userEmail.split('@')[0],
             otpCode, magicLink, expiresInMinutes: 10,
@@ -160,20 +159,20 @@ Deno.serve(async (req) => {
       if (!emailSent) console.error(`[PasswordReset][${correlationId}] All email attempts failed`);
     }
 
-    await supabaseAdmin.from('password_reset_attempts').insert({
+    await ctx.supabase.from('password_reset_attempts').insert({
       email: email.toLowerCase(), ip_address: clientIp, success: true,
       attempt_type: 'request', correlation_id: correlationId, device_fingerprint: deviceFingerprint || null,
     });
 
     return new Response(
       JSON.stringify({ success: true, message: "If an account exists, you will receive reset instructions" }),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      { status: 200, headers: { ...ctx.corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error: any) {
     console.error(`[PasswordReset][${correlationId}] Error:`, error);
     return new Response(
       JSON.stringify({ error: "An error occurred while processing your request" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      { status: 500, headers: { ...ctx.corsHeaders, "Content-Type": "application/json" } }
     );
   }
-});
+}));

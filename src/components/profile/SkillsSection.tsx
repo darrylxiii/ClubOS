@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -28,6 +29,7 @@ interface SkillsSectionProps {
 }
 
 export const SkillsSection = ({ userId, isReadOnly = false }: SkillsSectionProps = {}) => {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const targetUserId = userId || user?.id;
   const [skills, setSkills] = useState<Skill[]>([]);
@@ -78,20 +80,20 @@ export const SkillsSection = ({ userId, isReadOnly = false }: SkillsSectionProps
         .eq('id', editingId);
       
       if (error) {
-        toast.error('Failed to update skill');
+        toast.error("Failed to update skill");
         return;
       }
-      toast.success('Skill updated');
+      toast.success("Skill updated");
     } else {
       const { error } = await supabase
         .from('profile_skills')
         .insert(payload);
       
       if (error) {
-        toast.error('Failed to add skill');
+        toast.error("Failed to add skill");
         return;
       }
-      toast.success('Skill added');
+      toast.success("Skill added");
     }
 
     setIsDialogOpen(false);
@@ -106,10 +108,10 @@ export const SkillsSection = ({ userId, isReadOnly = false }: SkillsSectionProps
       .eq('id', id);
 
     if (error) {
-      toast.error('Failed to delete skill');
+      toast.error("Failed to delete skill");
       return;
     }
-    toast.success('Skill deleted');
+    toast.success("Skill deleted");
     loadSkills();
   };
 
@@ -146,7 +148,7 @@ export const SkillsSection = ({ userId, isReadOnly = false }: SkillsSectionProps
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-2">
             <Award className="w-5 h-5" />
-            <CardTitle>Skills & Expertise</CardTitle>
+            <CardTitle>{t('profile.skillsExpertise')}</CardTitle>
           </div>
           <Dialog open={isDialogOpen} onOpenChange={(open) => {
             setIsDialogOpen(open);
@@ -156,17 +158,17 @@ export const SkillsSection = ({ userId, isReadOnly = false }: SkillsSectionProps
               <DialogTrigger asChild>
                 <Button size="sm">
                   <Plus className="w-4 h-4 mr-2" />
-                  Add Skill
+                  {t('profile.addSkill')}
                 </Button>
               </DialogTrigger>
             )}
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>{editingId ? 'Edit' : 'Add'} Skill</DialogTitle>
+                <DialogTitle>{editingId ? t('common:actions.edit') : t('common:actions.add')} {t('profile.skill')}</DialogTitle>
               </DialogHeader>
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label>Skill Name *</Label>
+                  <Label>{t('profile.skillName')} *</Label>
                   <Input 
                     value={formData.skill_name}
                     onChange={(e) => setFormData({...formData, skill_name: e.target.value})}
@@ -175,23 +177,23 @@ export const SkillsSection = ({ userId, isReadOnly = false }: SkillsSectionProps
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Category</Label>
+                  <Label>{t('profile.category')}</Label>
                   <Select value={formData.category} onValueChange={(value) => setFormData({...formData, category: value})}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="technical">Technical</SelectItem>
-                      <SelectItem value="soft">Soft Skills</SelectItem>
-                      <SelectItem value="language">Language</SelectItem>
-                      <SelectItem value="tool">Tool</SelectItem>
-                      <SelectItem value="framework">Framework</SelectItem>
+                      <SelectItem value="technical">{t('profile.technical')}</SelectItem>
+                      <SelectItem value="soft">{t('profile.softSkills')}</SelectItem>
+                      <SelectItem value="language">{t('profile.language')}</SelectItem>
+                      <SelectItem value="tool">{t('profile.tool')}</SelectItem>
+                      <SelectItem value="framework">{t('profile.framework')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Proficiency Level (1-5)</Label>
+                  <Label>{t('profile.proficiencyLevel')}</Label>
                   <div className="flex items-center gap-4">
                     <Input 
                       type="number"
@@ -212,7 +214,7 @@ export const SkillsSection = ({ userId, isReadOnly = false }: SkillsSectionProps
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Years of Experience</Label>
+                  <Label>{t('profile.yearsOfExperience')}</Label>
                   <Input 
                     type="number"
                     min="0"
@@ -222,7 +224,7 @@ export const SkillsSection = ({ userId, isReadOnly = false }: SkillsSectionProps
                 </div>
 
                 <Button onClick={handleSave} className="w-full">
-                  {editingId ? 'Update' : 'Add'} Skill
+                  {editingId ? t('common:actions.update') : t('common:actions.add')} {t('profile.skill')}
                 </Button>
               </div>
             </DialogContent>
@@ -246,7 +248,7 @@ export const SkillsSection = ({ userId, isReadOnly = false }: SkillsSectionProps
 
           {filteredSkills.length === 0 ? (
             <p className="text-muted-foreground text-center py-8">
-              No skills added yet. Click "Add Skill" to get started.
+              {t('profile.noSkillsYet')}
             </p>
           ) : (
             <div className="grid gap-4">
@@ -258,12 +260,12 @@ export const SkillsSection = ({ userId, isReadOnly = false }: SkillsSectionProps
                         <h4 className="font-semibold">{skill.skill_name}</h4>
                         {skill.ai_verified && (
                           <Badge variant="default" className="text-xs">
-                            AI Verified
+                            {t('profile.aiVerified')}
                           </Badge>
                         )}
                       </div>
                       <p className="text-sm text-muted-foreground">
-                        {skill.category} • {skill.years_experience} {skill.years_experience === 1 ? 'year' : 'years'} experience
+                        {skill.category} • {t('profile.yearsExperience', { count: skill.years_experience })}
                       </p>
                     </div>
                     {!isReadOnly && (
@@ -280,7 +282,7 @@ export const SkillsSection = ({ userId, isReadOnly = false }: SkillsSectionProps
 
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
-                      <span>Proficiency</span>
+                      <span>{t('profile.proficiency')}</span>
                       <div className="flex gap-1">
                         {[1, 2, 3, 4, 5].map((level) => (
                           <Star 
@@ -296,7 +298,7 @@ export const SkillsSection = ({ userId, isReadOnly = false }: SkillsSectionProps
                   {skill.endorsement_count > 0 && (
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <ThumbsUp className="w-4 h-4" />
-                      {skill.endorsement_count} {skill.endorsement_count === 1 ? 'endorsement' : 'endorsements'}
+                      {t('profile.endorsements', { count: skill.endorsement_count })}
                     </div>
                   )}
                 </div>

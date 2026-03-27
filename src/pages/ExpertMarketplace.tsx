@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -64,6 +65,7 @@ interface ModuleExpert {
 }
 
 export default function ExpertMarketplace() {
+  const { t } = useTranslation('common');
   const queryClient = useQueryClient();
 
   const { data: userData } = useQuery({
@@ -161,11 +163,11 @@ export default function ExpertMarketplace() {
       });
 
     if (error) {
-      toast.error("Failed to create expert profile");
+      toast.error(t('text.expertmarketplace.failedToCreateExpertProfile', 'Failed to create expert profile'));
       return;
     }
 
-    toast.success("Expert profile created");
+    toast.success(t('text.expertmarketplace.expertProfileCreated', 'Expert profile created'));
     setProfileDialogOpen(false);
     resetProfileForm();
     invalidateAll();
@@ -173,7 +175,7 @@ export default function ExpertMarketplace() {
 
   const handleAssignExpert = async () => {
     if (!selectedModule || !selectedExpert) {
-      toast.error("Please select both module and expert");
+      toast.error(t('text.expertmarketplace.pleaseSelectBothModuleAndExpert', 'Please select both module and expert'));
       return;
     }
 
@@ -185,11 +187,11 @@ export default function ExpertMarketplace() {
       });
 
     if (error) {
-      toast.error("Failed to assign expert");
+      toast.error(t('text.expertmarketplace.failedToAssignExpert', 'Failed to assign expert'));
       return;
     }
 
-    toast.success("Expert assigned to module");
+    toast.success(t('text.expertmarketplace.expertAssignedToModule', 'Expert assigned to module'));
     setAssignDialogOpen(false);
     setSelectedModule("");
     setSelectedExpert("");
@@ -211,18 +213,18 @@ export default function ExpertMarketplace() {
 
     if (error) {
       logger.error('Unassign expert error:', error);
-      toast.error("Failed to unassign expert");
+      toast.error(t('text.expertmarketplace.failedToUnassignExpert', 'Failed to unassign expert'));
       return;
     }
 
-    toast.success("Expert unassigned");
+    toast.success(t('text.expertmarketplace.expertUnassigned', 'Expert unassigned'));
     setUnassignDialogOpen(false);
     invalidateAll();
   };
 
   const handleBookSession = async () => {
     if (!bookingExpert || !bookingForm.scheduled_at) {
-      toast.error("Please select a date and time");
+      toast.error(t('text.expertmarketplace.pleaseSelectADateAndTime', 'Please select a date and time'));
       return;
     }
 
@@ -239,11 +241,11 @@ export default function ExpertMarketplace() {
       });
 
     if (error) {
-      toast.error("Failed to book session");
+      toast.error(t('text.expertmarketplace.failedToBookSession', 'Failed to book session'));
       return;
     }
 
-    toast.success("Session booked successfully");
+    toast.success(t('text.expertmarketplace.sessionBookedSuccessfully', 'Session booked successfully'));
     setBookDialogOpen(false);
     setBookingExpert(null);
     setBookingForm({
@@ -294,8 +296,8 @@ export default function ExpertMarketplace() {
 
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Expert Marketplace</h1>
-          <p className="text-muted-foreground">Connect experts with learning modules</p>
+          <h1 className="text-3xl font-bold">{t('expertMarketplace.text4')}</h1>
+          <p className="text-muted-foreground">{t('expertMarketplace.text5')}</p>
         </div>
         <div className="flex gap-2">
           <Dialog open={profileDialogOpen} onOpenChange={setProfileDialogOpen}>
@@ -307,32 +309,30 @@ export default function ExpertMarketplace() {
             </DialogTrigger>
             <DialogContent className="max-w-2xl">
               <DialogHeader>
-                <DialogTitle>Create Expert Profile</DialogTitle>
-                <DialogDescription>
-                  Share your expertise and help others learn
-                </DialogDescription>
+                <DialogTitle>{t('expertMarketplace.text6')}</DialogTitle>
+                <DialogDescription>{t('text.expertmarketplace.shareYourExpertiseAndHelpOthers', 'Share your expertise and help others learn')}</DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
                 <div>
-                  <Label>Bio</Label>
+                  <Label>{t('expertMarketplace.text7')}</Label>
                   <Textarea
                     value={profileForm.bio}
                     onChange={(e) => setProfileForm({ ...profileForm, bio: e.target.value })}
-                    placeholder="Tell us about your expertise..."
+                    placeholder={t('expertMarketplace.text8')}
                     rows={4}
                   />
                 </div>
                 <div>
-                  <Label>Expertise Areas (comma-separated)</Label>
+                  <Label>{t('expertMarketplace.text9')}</Label>
                   <Input
                     value={profileForm.expertise_areas}
                     onChange={(e) => setProfileForm({ ...profileForm, expertise_areas: e.target.value })}
-                    placeholder="React, Node.js, TypeScript"
+                    placeholder={t('expertMarketplace.text10')}
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label>Hourly Rate ($)</Label>
+                    <Label>{"Hourly Rate ($)"}</Label>
                     <Input
                       type="number"
                       value={profileForm.hourly_rate}
@@ -341,7 +341,7 @@ export default function ExpertMarketplace() {
                     />
                   </div>
                   <div>
-                    <Label>Years of Experience</Label>
+                    <Label>{t('expertMarketplace.text11')}</Label>
                     <Input
                       type="number"
                       value={profileForm.years_experience}
@@ -351,7 +351,7 @@ export default function ExpertMarketplace() {
                   </div>
                 </div>
                 <div>
-                  <Label>Availability</Label>
+                  <Label>{t('expertMarketplace.text12')}</Label>
                   <Select
                     value={profileForm.availability}
                     onValueChange={(value) => setProfileForm({ ...profileForm, availability: value })}
@@ -360,20 +360,18 @@ export default function ExpertMarketplace() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="available">Available</SelectItem>
-                      <SelectItem value="limited">Limited Availability</SelectItem>
-                      <SelectItem value="unavailable">Currently Unavailable</SelectItem>
+                      <SelectItem value="available">{t('expertMarketplace.text13')}</SelectItem>
+                      <SelectItem value="limited">{t('expertMarketplace.text14')}</SelectItem>
+                      <SelectItem value="unavailable">{t('expertMarketplace.text15')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
               </div>
               <DialogFooter>
                 <Button variant="outline" onClick={() => setProfileDialogOpen(false)}>
-                  Cancel
+                  {t('text.expertmarketplace.cancel', 'Cancel')}
                 </Button>
-                <Button onClick={handleCreateProfile}>
-                  Create Profile
-                </Button>
+                <Button onClick={handleCreateProfile}>{t('expertMarketplace.btn')}</Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
@@ -387,17 +385,15 @@ export default function ExpertMarketplace() {
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Assign Expert to Module</DialogTitle>
-                <DialogDescription>
-                  Connect an expert with a learning module
-                </DialogDescription>
+                <DialogTitle>{t('expertMarketplace.text16')}</DialogTitle>
+                <DialogDescription>{t('text.expertmarketplace.connectAnExpertWithALearning', 'Connect an expert with a learning module')}</DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
                 <div>
-                  <Label>Module</Label>
+                  <Label>{t('expertMarketplace.text17')}</Label>
                   <Select value={selectedModule} onValueChange={setSelectedModule}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select module" />
+                      <SelectValue placeholder={t('expertMarketplace.text18')} />
                     </SelectTrigger>
                     <SelectContent>
                       {modules.map((module) => (
@@ -409,10 +405,10 @@ export default function ExpertMarketplace() {
                   </Select>
                 </div>
                 <div>
-                  <Label>Expert</Label>
+                  <Label>{t('expertMarketplace.text19')}</Label>
                   <Select value={selectedExpert} onValueChange={setSelectedExpert}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select expert" />
+                      <SelectValue placeholder={t('expertMarketplace.text20')} />
                     </SelectTrigger>
                     <SelectContent>
                       {experts.map((expert) => (
@@ -426,11 +422,9 @@ export default function ExpertMarketplace() {
               </div>
               <DialogFooter>
                 <Button variant="outline" onClick={() => setAssignDialogOpen(false)}>
-                  Cancel
+                  {t('text.expertmarketplace.cancel', 'Cancel')}
                 </Button>
-                <Button onClick={handleAssignExpert}>
-                  Assign
-                </Button>
+                <Button onClick={handleAssignExpert}>{t('expertMarketplace.btn2')}</Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
@@ -439,9 +433,9 @@ export default function ExpertMarketplace() {
 
       <Tabs defaultValue="experts" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="experts">Experts</TabsTrigger>
-          <TabsTrigger value="modules">Modules</TabsTrigger>
-          <TabsTrigger value="assignments">Assignments</TabsTrigger>
+          <TabsTrigger value="experts">{t('expertMarketplace.text21')}</TabsTrigger>
+          <TabsTrigger value="modules">{t('expertMarketplace.text22')}</TabsTrigger>
+          <TabsTrigger value="assignments">{t('expertMarketplace.text23')}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="experts" className="space-y-4">
@@ -449,7 +443,7 @@ export default function ExpertMarketplace() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search experts by name or expertise..."
+                placeholder={t('expertMarketplace.text24')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-9"
@@ -492,7 +486,7 @@ export default function ExpertMarketplace() {
                       <span className="font-bold">${expert.hourly_rate}</span>/hr
                     </div>
                     <Button size="sm" onClick={() => openBookingDialog(expert)}>
-                      Book Session
+                      {t('text.expertmarketplace.bookSession', 'Book Session')}
                     </Button>
                   </div>
                 </CardContent>
@@ -533,7 +527,7 @@ export default function ExpertMarketplace() {
                       <Badge variant="outline">{assignment.modules.courses?.title}</Badge>
                     </div>
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <span>Assigned to:</span>
+                      <span>{t('expertMarketplace.text25')}</span>
                       <Avatar className="h-6 w-6">
                         <AvatarImage src={assignment.expert_profiles.profiles.avatar_url || ""} />
                         <AvatarFallback>E</AvatarFallback>
@@ -549,7 +543,7 @@ export default function ExpertMarketplace() {
                     className="text-destructive hover:text-destructive hover:bg-destructive/10"
                     onClick={() => openUnassignDialog(assignment.id)}
                   >
-                    Unassign
+                    {t('text.expertmarketplace.unassign', 'Unassign')}
                   </Button>
                 </CardContent>
               </Card>
@@ -561,18 +555,14 @@ export default function ExpertMarketplace() {
       <AlertDialog open={unassignDialogOpen} onOpenChange={setUnassignDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Remove Assignment?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to remove this expert from the module? This action cannot be undone.
-            </AlertDialogDescription>
+            <AlertDialogTitle>{t('expertMarketplace.text26')}</AlertDialogTitle>
+            <AlertDialogDescription>{t('text.expertmarketplace.areYouSureYouWantTo', 'Are you sure you want to remove this expert from the module? This action cannot be undone.')}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={() => setAssignmentToRemove(null)}>
-              Cancel
+              {t('text.expertmarketplace.cancel', 'Cancel')}
             </AlertDialogCancel>
-            <AlertDialogAction onClick={handleUnassign} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              Remove
-            </AlertDialogAction>
+            <AlertDialogAction onClick={handleUnassign} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">{t('text.expertmarketplace.remove', 'Remove')}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -581,13 +571,11 @@ export default function ExpertMarketplace() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Book Session with {bookingExpert?.profiles.full_name}</DialogTitle>
-            <DialogDescription>
-              Schedule a 1-on-1 session to get help with your learning
-            </DialogDescription>
+            <DialogDescription>{t('text.expertmarketplace.scheduleA1on1SessionToGet', 'Schedule a 1-on-1 session to get help with your learning')}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label>Date & Time</Label>
+              <Label>{t('expertMarketplace.text27')}</Label>
               <Input
                 type="datetime-local"
                 value={bookingForm.scheduled_at}
@@ -595,7 +583,7 @@ export default function ExpertMarketplace() {
               />
             </div>
             <div>
-              <Label>Duration (minutes)</Label>
+              <Label>{t('expertMarketplace.text28')}</Label>
               <Select
                 value={bookingForm.duration_minutes}
                 onValueChange={(value) => setBookingForm({ ...bookingForm, duration_minutes: value })}
@@ -604,14 +592,14 @@ export default function ExpertMarketplace() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="30">30 minutes</SelectItem>
-                  <SelectItem value="60">60 minutes</SelectItem>
-                  <SelectItem value="90">90 minutes</SelectItem>
+                  <SelectItem value="30">{"30 minutes"}</SelectItem>
+                  <SelectItem value="60">{"60 minutes"}</SelectItem>
+                  <SelectItem value="90">{"90 minutes"}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div>
-              <Label>Session Type</Label>
+              <Label>{t('expertMarketplace.text29')}</Label>
               <Select
                 value={bookingForm.session_type}
                 onValueChange={(value) => setBookingForm({ ...bookingForm, session_type: value })}
@@ -620,29 +608,27 @@ export default function ExpertMarketplace() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="mentorship">Mentorship</SelectItem>
-                  <SelectItem value="code_review">Code Review</SelectItem>
-                  <SelectItem value="career_advice">Career Advice</SelectItem>
+                  <SelectItem value="mentorship">{t('expertMarketplace.text30')}</SelectItem>
+                  <SelectItem value="code_review">{t('expertMarketplace.text31')}</SelectItem>
+                  <SelectItem value="career_advice">{t('expertMarketplace.text32')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div>
-              <Label>Notes</Label>
+              <Label>{t('expertMarketplace.text33')}</Label>
               <Textarea
                 value={bookingForm.notes}
                 onChange={(e) => setBookingForm({ ...bookingForm, notes: e.target.value })}
-                placeholder="What would you like to discuss?"
+                placeholder={t('expertMarketplace.text34')}
                 rows={3}
               />
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setBookDialogOpen(false)}>
-              Cancel
+              {t('text.expertmarketplace.cancel', 'Cancel')}
             </Button>
-            <Button onClick={handleBookSession}>
-              Book Session
-            </Button>
+            <Button onClick={handleBookSession}>{t('expertMarketplace.btn3')}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

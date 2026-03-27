@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { Button } from "@/components/ui/button";
 import { Info, TrendingUp, Users, Clock, Star, Eye, ThumbsUp } from "lucide-react";
@@ -16,6 +17,7 @@ interface AlgorithmTransparencyProps {
 }
 
 export function AlgorithmTransparency({ postId, reasons }: AlgorithmTransparencyProps) {
+  const { t } = useTranslation('common');
   const getReasonIcon = (reason: string) => {
     switch (reason) {
       case 'engagement': return <ThumbsUp className="w-4 h-4" />;
@@ -53,14 +55,14 @@ export function AlgorithmTransparency({ postId, reasons }: AlgorithmTransparency
           className="h-8 gap-2 text-muted-foreground hover:text-foreground transition-colors"
         >
           <Info className="w-4 h-4" />
-          <span className="text-xs font-medium">Why am I seeing this?</span>
+          <span className="text-xs font-medium">{t("why_am_i_seeing", "Why am I seeing this?")}</span>
         </Button>
       </HoverCardTrigger>
       <HoverCardContent className="w-80 glass-card p-4" side="bottom" align="start">
         <div className="space-y-3">
           <div className="flex items-center gap-2 mb-3">
             <Info className="w-5 h-5 text-primary" />
-            <h4 className="font-semibold text-sm">Why you're seeing this post</h4>
+            <h4 className="font-semibold text-sm">{t("why_youre_seeing_this", "Why you're seeing this post")}</h4>
           </div>
           
           <div className="space-y-2">
@@ -75,7 +77,7 @@ export function AlgorithmTransparency({ postId, reasons }: AlgorithmTransparency
             
             {reasons.interests && reasons.interests.length > 0 && (
               <div className="p-2 rounded-lg glass-subtle">
-                <p className="text-sm text-foreground mb-2">Matches your interests:</p>
+                <p className="text-sm text-foreground mb-2">{t("matches_your_interests", "Matches your interests:")}</p>
                 <div className="flex flex-wrap gap-1">
                   {reasons.interests.map((interest) => (
                     <Badge key={interest} variant="secondary" className="text-xs">

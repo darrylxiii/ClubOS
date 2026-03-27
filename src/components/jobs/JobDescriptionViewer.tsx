@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { FileText, Download, Eye, Loader2 } from "lucide-react";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
@@ -17,6 +18,7 @@ export function JobDescriptionViewer({
   jobTitle, 
   companyName 
 }: JobDescriptionViewerProps) {
+  const { t } = useTranslation('common');
   const [isViewerOpen, setIsViewerOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [viewerUrl, setViewerUrl] = useState<string | null>(null);
@@ -92,7 +94,7 @@ export function JobDescriptionViewer({
               <FileText className="w-6 h-6 text-primary" />
             </div>
             <div>
-              <h3 className="text-xl font-black">Job Description</h3>
+              <h3 className="text-xl font-black">{t("job_description", "Job Description")}</h3>
               <p className="text-sm text-muted-foreground">
                 Complete role details & requirements
               </p>
@@ -152,7 +154,7 @@ export function JobDescriptionViewer({
               <iframe
                 src={viewerUrl}
                 className="w-full h-full border-0 rounded-lg"
-                title="Job Description Document"
+                title={t("job_description_document", "Job Description Document")}
               />
             )}
           </div>

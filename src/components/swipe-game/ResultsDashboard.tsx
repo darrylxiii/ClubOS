@@ -1,4 +1,5 @@
 import { memo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,18 +13,19 @@ interface ResultsDashboardProps {
 }
 
 export const ResultsDashboard = memo(({ result }: ResultsDashboardProps) => {
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
 
   const handleDownload = () => {
-    toast.success('Results downloaded!');
+    toast.success(t('swipeGame.resultsDownloaded'));
   };
 
   const handleShare = () => {
-    toast.success('Share link copied to clipboard!');
+    toast.success(t('swipeGame.shareLinkCopiedToClipboard'));
   };
 
   const handleEmail = () => {
-    toast.success('Results sent to your email!');
+    toast.success(t('swipeGame.resultsSentToYourEmail'));
   };
 
   const topTraits = Object.entries(result.traits)
@@ -37,10 +39,8 @@ export const ResultsDashboard = memo(({ result }: ResultsDashboardProps) => {
         <Card>
           <CardHeader className="text-center pb-4">
             <div className="text-6xl mb-4">🎯</div>
-            <CardTitle className="text-3xl">Your Personality Profile</CardTitle>
-            <CardDescription className="text-lg">
-              Based on your responses to 50 scenarios
-            </CardDescription>
+            <CardTitle className="text-3xl">{t('swipeGame.yourPersonalityProfile')}</CardTitle>
+            <CardDescription className="text-lg">{t('swipeGame.basedOnYourResponsesTo50Scenarios')}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Archetype Badge */}
@@ -55,7 +55,7 @@ export const ResultsDashboard = memo(({ result }: ResultsDashboardProps) => {
               <div className="text-5xl font-bold text-primary mb-2">
                 {result.score}
               </div>
-              <p className="text-muted-foreground">Overall Fit Score</p>
+              <p className="text-muted-foreground">{t('swipeGame.overallFitScore')}</p>
             </div>
 
             {/* Action Buttons */}
@@ -79,8 +79,8 @@ export const ResultsDashboard = memo(({ result }: ResultsDashboardProps) => {
         {/* Traits Radar/Spider Chart */}
         <Card>
           <CardHeader>
-            <CardTitle>Your Top Traits</CardTitle>
-            <CardDescription>Your strongest characteristics</CardDescription>
+            <CardTitle>{t('swipeGame.yourTopTraits')}</CardTitle>
+            <CardDescription>{t('swipeGame.yourStrongestCharacteristics')}</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
@@ -146,8 +146,8 @@ export const ResultsDashboard = memo(({ result }: ResultsDashboardProps) => {
         {/* Recommended Jobs */}
         <Card>
           <CardHeader>
-            <CardTitle>Recommended Roles</CardTitle>
-            <CardDescription>Jobs that match your personality</CardDescription>
+            <CardTitle>{t('swipeGame.recommendedRoles')}</CardTitle>
+            <CardDescription>{t('swipeGame.jobsThatMatchYourPersonality')}</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">

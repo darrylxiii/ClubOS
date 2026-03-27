@@ -1,4 +1,5 @@
 import { ChevronRight, Home } from "lucide-react";
+import { useTranslation } from 'react-i18next';
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
@@ -13,6 +14,7 @@ interface BreadcrumbProps {
 }
 
 export const Breadcrumb = ({ items, className }: BreadcrumbProps) => {
+  const { t } = useTranslation('common');
   const location = useLocation();
 
   // Auto-generate breadcrumbs from path if not provided
@@ -20,7 +22,7 @@ export const Breadcrumb = ({ items, className }: BreadcrumbProps) => {
     const pathSegments = location.pathname.split('/').filter(Boolean);
     
     const generatedItems: BreadcrumbItem[] = [
-      { label: 'Home', path: '/home' }
+      { label: t('nav.home', 'Home'), path: '/home' }
     ];
 
     let currentPath = '';

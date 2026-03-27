@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React, { useState } from 'react';
 import { useWorkspaceAutomations, TriggerType, ActionType } from '@/hooks/useWorkspaceAutomations';
 import { Button } from '@/components/ui/button';
@@ -48,6 +49,7 @@ const ACTION_OPTIONS: { value: ActionType; label: string; icon: React.ReactNode;
 ];
 
 export function AutomationBuilder({ workspaceId, databases = [] }: AutomationBuilderProps) {
+  const { t } = useTranslation('common');
   const { automations, isLoading, createAutomation, deleteAutomation, toggleAutomation } = useWorkspaceAutomations(workspaceId);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [formData, setFormData] = useState({
@@ -94,7 +96,7 @@ export function AutomationBuilder({ workspaceId, databases = [] }: AutomationBui
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-semibold">Automations</h2>
+          <h2 className="text-xl font-semibold">{t("automations", "Automations")}</h2>
           <p className="text-sm text-muted-foreground">
             Automate repetitive tasks when events occur
           </p>
@@ -108,26 +110,26 @@ export function AutomationBuilder({ workspaceId, databases = [] }: AutomationBui
           </DialogTrigger>
           <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Create Automation</DialogTitle>
+              <DialogTitle>{t("create_automation", "Create Automation")}</DialogTitle>
             </DialogHeader>
             
             <div className="space-y-6 py-4">
               {/* Name & Description */}
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label>Name</Label>
+                  <Label>{t("name", "Name")}</Label>
                   <Input
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    placeholder="My Automation"
+                    placeholder={t("my_automation", "My Automation")}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Description (optional)</Label>
+                  <Label>{t("description_optional", "Description (optional)")}</Label>
                   <Textarea
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    placeholder="What does this automation do?"
+                    placeholder={t("what_does_this_automation", "What does this automation do?")}
                     rows={2}
                   />
                 </div>
@@ -136,13 +138,13 @@ export function AutomationBuilder({ workspaceId, databases = [] }: AutomationBui
               {/* Database Selection */}
               {databases.length > 0 && (
                 <div className="space-y-2">
-                  <Label>Database (optional)</Label>
+                  <Label>{t("database_optional", "Database (optional)")}</Label>
                   <Select
                     value={formData.database_id}
                     onValueChange={(value) => setFormData({ ...formData, database_id: value })}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select a database..." />
+                      <SelectValue placeholder={t("select_a_database", "Select a database...")} />
                     </SelectTrigger>
                     <SelectContent>
                       {databases.map((db) => (
@@ -223,14 +225,14 @@ export function AutomationBuilder({ workspaceId, databases = [] }: AutomationBui
               {/* Action Config based on type */}
               {formData.action_type === 'send_notification' && (
                 <div className="space-y-2 p-4 rounded-lg bg-muted/30">
-                  <Label>Notification Message</Label>
+                  <Label>{t("notification_message", "Notification Message")}</Label>
                   <Input
                     value={(formData.action_config.message as string) || ''}
                     onChange={(e) => setFormData({
                       ...formData,
                       action_config: { ...formData.action_config, message: e.target.value }
                     })}
-                    placeholder="A new item was created"
+                    placeholder={t("a_new_item_was", "A new item was created")}
                   />
                 </div>
               )}
@@ -238,7 +240,7 @@ export function AutomationBuilder({ workspaceId, databases = [] }: AutomationBui
               {formData.action_type === 'call_webhook' && (
                 <div className="space-y-3 p-4 rounded-lg bg-muted/30">
                   <div className="space-y-2">
-                    <Label>Webhook URL</Label>
+                    <Label>{t("webhook_url", "Webhook URL")}</Label>
                     <Input
                       value={(formData.action_config.url as string) || ''}
                       onChange={(e) => setFormData({
@@ -249,7 +251,7 @@ export function AutomationBuilder({ workspaceId, databases = [] }: AutomationBui
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Method</Label>
+                    <Label>{t("method", "Method")}</Label>
                     <Select
                       value={(formData.action_config.method as string) || 'POST'}
                       onValueChange={(value) => setFormData({
@@ -274,25 +276,25 @@ export function AutomationBuilder({ workspaceId, databases = [] }: AutomationBui
               {formData.action_type === 'send_email' && (
                 <div className="space-y-3 p-4 rounded-lg bg-muted/30">
                   <div className="space-y-2">
-                    <Label>To Email</Label>
+                    <Label>{t("to_email", "To Email")}</Label>
                     <Input
                       value={(formData.action_config.to as string) || ''}
                       onChange={(e) => setFormData({
                         ...formData,
                         action_config: { ...formData.action_config, to: e.target.value }
                       })}
-                      placeholder="recipient@example.com"
+                      placeholder={t("recipientexamplecom", "recipient@example.com")}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Subject</Label>
+                    <Label>{t("subject", "Subject")}</Label>
                     <Input
                       value={(formData.action_config.subject as string) || ''}
                       onChange={(e) => setFormData({
                         ...formData,
                         action_config: { ...formData.action_config, subject: e.target.value }
                       })}
-                      placeholder="New item created"
+                      placeholder={t("new_item_created", "New item created")}
                     />
                   </div>
                 </div>
@@ -326,7 +328,7 @@ export function AutomationBuilder({ workspaceId, databases = [] }: AutomationBui
         <Card className="border-dashed">
           <CardContent className="flex flex-col items-center justify-center py-12 text-center">
             <Zap className="h-12 w-12 text-muted-foreground/50 mb-4" />
-            <h3 className="text-lg font-medium mb-2">No automations yet</h3>
+            <h3 className="text-lg font-medium mb-2">{t("no_automations_yet", "No automations yet")}</h3>
             <p className="text-sm text-muted-foreground mb-4">
               Create your first automation to streamline your workflow
             </p>

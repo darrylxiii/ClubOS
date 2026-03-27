@@ -1,22 +1,12 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createHandler } from '../_shared/handler.ts';
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
-
-serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  try {
+Deno.serve(createHandler(async (req, ctx) => {
+    const corsHeaders = ctx.corsHeaders;
     const { messages, bookingLink } = await req.json();
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    const GOOGLE_API_KEY = Deno.env.get("GOOGLE_API_KEY");
 
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY not configured");
+    if (!GOOGLE_API_KEY) {
+      throw new Error("GOOGLE_API_KEY not configured");
     }
 
     const systemPrompt = `You are an AI booking assistant for "${bookingLink.title}", a ${bookingLink.duration_minutes}-minute meeting. 
@@ -32,14 +22,14 @@ Current date/time: ${new Date().toISOString()}
 
 Be conversational but professional. Always confirm dates and times clearly before booking.`;
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const response = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        Authorization: `Bearer ${GOOGLE_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash-lite",
+        model: "gemini-2.5-flash-lite",
         messages: [
           { role: "system", content: systemPrompt },
           ...messages,
@@ -59,7 +49,7 @@ Be conversational but professional. Always confirm dates and times clearly befor
       }
       if (response.status === 402) {
         return new Response(
-          JSON.stringify({ error: "AI credits exhausted. Please add credits to continue." }),
+          JSON.stringify({ error: "AI quota exceeded. Please check your Google API billing." }),
           {
             status: 402,
             headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -86,11 +76,6 @@ Be conversational but professional. Always confirm dates and times clearly befor
     // PHASE 3: If AI confirmed a booking, call create-booking edge function
     if (booking?.date && booking?.time) {
       console.log("[AI Assistant] Booking confirmed, calling create-booking:", booking);
-      
-      const supabaseClient = createClient(
-        Deno.env.get("SUPABASE_URL") ?? "",
-        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
-      );
 
       // Store the AI booking intent for the client to complete with guest details
       // The actual booking will be created when the guest fills in their info
@@ -107,14 +92,4 @@ Be conversational but professional. Always confirm dates and times clearly befor
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       }
     );
-  } catch (error: any) {
-    console.error("AI booking assistant error:", error);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
-  }
-});
+}));

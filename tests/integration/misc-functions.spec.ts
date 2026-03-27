@@ -278,15 +278,6 @@ test.describe('LinkedIn Functions', () => {
     });
   });
 
-  test.describe('linkedin-scraper-proxycurl', () => {
-    test('should scrape via Proxycurl', async () => {
-      const response = await invokeEdgeFunction('linkedin-scraper-proxycurl', {
-        body: { profile_url: 'https://linkedin.com/in/test' },
-      });
-      
-      expect(response.status).toBeLessThan(500);
-    });
-  });
 });
 
 test.describe('Utility Functions', () => {

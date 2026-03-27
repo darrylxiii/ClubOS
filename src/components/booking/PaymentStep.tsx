@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -28,6 +29,7 @@ export function PaymentStep({
   timezone,
   notes,
 }: PaymentStepProps) {
+  const { t } = useTranslation('common');
   const [loading, setLoading] = useState(false);
 
   const formatCurrency = (amount: number, currency: string) => {
@@ -85,7 +87,7 @@ export function PaymentStep({
             <CreditCard className="h-5 w-5 text-primary" />
           </div>
           <div>
-            <h3 className="font-semibold">Payment required</h3>
+            <h3 className="font-semibold">{t("payment_required", "Payment required")}</h3>
             <p className="text-sm text-muted-foreground">
               Complete payment to confirm your booking
             </p>
@@ -93,7 +95,7 @@ export function PaymentStep({
         </div>
 
         <div className="flex items-center justify-between py-3 px-4 rounded-lg bg-muted/50 border border-border/30">
-          <span className="text-sm text-muted-foreground">Booking fee</span>
+          <span className="text-sm text-muted-foreground">{t("booking_fee", "Booking fee")}</span>
           <span className="text-lg font-bold">
             {formatCurrency(paymentAmount, paymentCurrency)}
           </span>

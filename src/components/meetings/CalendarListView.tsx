@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { UnifiedCalendarEvent } from "@/types/calendar";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -18,6 +19,7 @@ interface CalendarListViewProps {
 }
 
 export function CalendarListView({ events, onEventClick }: CalendarListViewProps) {
+  const { t } = useTranslation('common');
   const [searchQuery, setSearchQuery] = useState("");
   const [expandedEventId, setExpandedEventId] = useState<string | null>(null);
 
@@ -58,10 +60,10 @@ export function CalendarListView({ events, onEventClick }: CalendarListViewProps
       );
     }
     if (event.source === 'google') {
-      return <Badge variant="secondary" className="bg-blue-500/10 text-blue-600">Google</Badge>;
+      return <Badge variant="secondary" className="bg-blue-500/10 text-blue-600">{t("google", "Google")}</Badge>;
     }
     if (event.source === 'microsoft') {
-      return <Badge variant="secondary" className="bg-green-500/10 text-green-600">Microsoft</Badge>;
+      return <Badge variant="secondary" className="bg-green-500/10 text-green-600">{t("microsoft", "Microsoft")}</Badge>;
     }
   };
 
@@ -77,7 +79,7 @@ export function CalendarListView({ events, onEventClick }: CalendarListViewProps
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search events..."
+              placeholder={t("search_events", "Search events...")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-9"
@@ -112,7 +114,7 @@ export function CalendarListView({ events, onEventClick }: CalendarListViewProps
                 )}>
                   <h3 className="font-semibold flex items-center gap-2">
                     {format(date, 'EEEE, MMMM d, yyyy')}
-                    {isToday && <Badge variant="default">Today</Badge>}
+                    {isToday && <Badge variant="default">{t("today", "Today")}</Badge>}
                     <span className="text-sm text-muted-foreground font-normal ml-auto">
                       {dayEvents.length} event{dayEvents.length !== 1 ? 's' : ''}
                     </span>
@@ -202,7 +204,7 @@ export function CalendarListView({ events, onEventClick }: CalendarListViewProps
                             )}
                             {event.attendees && event.attendees.length > 0 && (
                               <div>
-                                <div className="text-sm font-medium mb-2">Attendees</div>
+                                <div className="text-sm font-medium mb-2">{t("attendees", "Attendees")}</div>
                                 <div className="flex flex-wrap gap-2">
                                   {event.attendees.slice(0, 10).map((email, idx) => (
                                     <Badge key={idx} variant="outline" className="text-xs">

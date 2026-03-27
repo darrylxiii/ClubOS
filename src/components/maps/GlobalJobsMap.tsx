@@ -18,6 +18,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Link } from "react-router-dom";
+import { useTranslation } from 'react-i18next';
 
 interface GlobalJobsMapProps {
   className?: string;
@@ -33,6 +34,7 @@ interface GlobalJobsMapProps {
 
 // Convert lat/lng to x/y position on a simple Mercator projection
 function latLngToPosition(lat: number, lng: number, width: number, height: number) {
+  const { t } = useTranslation('common');
   // Clamp latitude to avoid infinity at poles
   const clampedLat = Math.max(-85, Math.min(85, lat));
   
@@ -88,7 +90,7 @@ function JobDot({
           {isCluster && count > 1 ? (
             <div className="text-sm">
               <p className="font-medium">{count} jobs in this area</p>
-              <p className="text-muted-foreground text-xs">Click to explore</p>
+              <p className="text-muted-foreground text-xs">{"Click to explore"}</p>
             </div>
           ) : (
             <div className="space-y-1">
@@ -152,7 +154,7 @@ export function GlobalJobsMap({
   if (error) {
     return (
       <div className={cn("flex items-center justify-center bg-muted rounded-lg", className)} style={{ height }}>
-        <p className="text-muted-foreground">Failed to load job locations</p>
+        <p className="text-muted-foreground">{"Failed to load job locations"}</p>
       </div>
     );
   }
@@ -169,15 +171,15 @@ export function GlobalJobsMap({
             }
           >
             <SelectTrigger className="w-[150px]">
-              <SelectValue placeholder="Job Type" />
+              <SelectValue placeholder={"Job Type"} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Types</SelectItem>
-              <SelectItem value="fulltime">Full-time</SelectItem>
-              <SelectItem value="parttime">Part-time</SelectItem>
-              <SelectItem value="contract">Contract</SelectItem>
-              <SelectItem value="freelance">Freelance</SelectItem>
-              <SelectItem value="internship">Internship</SelectItem>
+              <SelectItem value="all">{"All Types"}</SelectItem>
+              <SelectItem value="fulltime">{"Full-time"}</SelectItem>
+              <SelectItem value="parttime">{"Part-time"}</SelectItem>
+              <SelectItem value="contract">{"Contract"}</SelectItem>
+              <SelectItem value="freelance">{"Freelance"}</SelectItem>
+              <SelectItem value="internship">{"Internship"}</SelectItem>
             </SelectContent>
           </Select>
 
@@ -250,7 +252,7 @@ export function GlobalJobsMap({
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="text-center">
                 <MapPin className="h-12 w-12 text-muted-foreground/50 mx-auto mb-2" />
-                <p className="text-muted-foreground">No jobs with location data</p>
+                <p className="text-muted-foreground">{"No jobs with location data"}</p>
               </div>
             </div>
           )}
@@ -260,7 +262,7 @@ export function GlobalJobsMap({
         {showSidebar && (
           <div className="w-1/3 border rounded-lg overflow-hidden flex flex-col" style={{ height }}>
             <div className="p-3 border-b bg-muted/50">
-              <h3 className="font-medium text-sm">Jobs on Map</h3>
+              <h3 className="font-medium text-sm">{"Jobs on Map"}</h3>
             </div>
             <div className="flex-1 overflow-y-auto">
               {data?.jobs.slice(0, 20).map((job) => (
@@ -314,7 +316,7 @@ export function GlobalJobsMap({
               </div>
             </div>
             <Link to={`/jobs/${selectedJob.id}`}>
-              <Button size="sm">View Job</Button>
+              <Button size="sm">{"View Job"}</Button>
             </Link>
           </div>
         </div>

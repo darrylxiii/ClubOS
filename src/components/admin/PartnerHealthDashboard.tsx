@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
@@ -18,6 +19,7 @@ interface PartnerHealth {
 }
 
 export function PartnerHealthDashboard() {
+  const { t } = useTranslation('common');
   const [partners, setPartners] = useState<PartnerHealth[]>([]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
@@ -94,59 +96,59 @@ export function PartnerHealthDashboard() {
   };
 
   const getRiskBadge = (risk: number) => {
-    if (risk > 70) return <Badge variant="destructive">High Risk</Badge>;
-    if (risk > 40) return <Badge variant="outline" className="border-yellow-500 text-yellow-500">Medium Risk</Badge>;
-    return <Badge variant="outline" className="border-green-500 text-green-500">Low Risk</Badge>;
+    if (risk > 70) return <Badge variant="destructive">{t("high_risk", "High Risk")}</Badge>;
+    if (risk > 40) return <Badge variant="outline" className="border-yellow-500 text-yellow-500">{t("medium_risk", "Medium Risk")}</Badge>;
+    return <Badge variant="outline" className="border-green-500 text-green-500">{t("low_risk", "Low Risk")}</Badge>;
   };
 
-  if (loading) return <div className="text-muted-foreground">Loading partner health data...</div>;
+  if (loading) return <div className="text-muted-foreground">{t("loading_partner_health_data", "Loading partner health data...")}</div>;
 
   return (
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Partners</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("active_partners", "Active Partners")}</CardTitle>
             <CheckCircle className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.activePartners}</div>
-            <p className="text-xs text-muted-foreground">Engagement &gt; 60%</p>
+            <p className="text-xs text-muted-foreground">{t("engagement_gt_60", "Engagement &gt; 60%")}</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">At Risk</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("at_risk", "At Risk")}</CardTitle>
             <AlertCircle className="h-4 w-4 text-yellow-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.atRiskPartners}</div>
-            <p className="text-xs text-muted-foreground">Churn risk &gt; 70%</p>
+            <p className="text-xs text-muted-foreground">{t("churn_risk_gt_70", "Churn risk &gt; 70%")}</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Avg Engagement</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("avg_engagement", "Avg Engagement")}</CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.avgEngagement}%</div>
-            <p className="text-xs text-muted-foreground">Last 7 days</p>
+            <p className="text-xs text-muted-foreground">{t("last_7_days", "Last 7 days")}</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Churned</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("churned", "Churned")}</CardTitle>
             <TrendingDown className="h-4 w-4 text-red-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalChurned}</div>
-            <p className="text-xs text-muted-foreground">Inactive partners</p>
+            <p className="text-xs text-muted-foreground">{t("inactive_partners", "Inactive partners")}</p>
           </CardContent>
         </Card>
       </div>
       <Card>
-        <CardHeader><CardTitle>Partner Health Overview</CardTitle></CardHeader>
+        <CardHeader><CardTitle>{t("partner_health_overview", "Partner Health Overview")}</CardTitle></CardHeader>
         <CardContent>
           <div className="space-y-4">
             {partners.slice(0, 10).map((partner) => (
@@ -164,7 +166,7 @@ export function PartnerHealthDashboard() {
                   </div>
                   <div className="mt-2">
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs text-muted-foreground">Engagement Score</span>
+                      <span className="text-xs text-muted-foreground">{t("engagement_score", "Engagement Score")}</span>
                       <span className="text-xs font-medium">{partner.engagementScore}%</span>
                     </div>
                     <Progress value={partner.engagementScore} className="h-2" />

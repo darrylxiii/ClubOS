@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { WorkspacePage, useWorkspacePages } from '@/hooks/useWorkspacePages';
@@ -53,8 +54,7 @@ interface SortablePageItemProps {
   onToggleExpand: () => void;
 }
 
-function SortablePageItem({
-  page,
+function SortablePageItem({  page,
   level,
   onSelect,
   onCreateSubpage,
@@ -65,6 +65,7 @@ function SortablePageItem({
   isExpanded,
   onToggleExpand,
 }: SortablePageItemProps) {
+const { t } = useTranslation('common');
   const {
     attributes,
     listeners,
@@ -309,7 +310,7 @@ export function DraggablePageTree({ selectedPageId }: DraggablePageTreeProps) {
     <div className="w-64 border-r bg-card/50 flex flex-col h-full">
       {/* Header */}
       <div className="p-3 border-b flex items-center justify-between">
-        <span className="font-semibold text-sm">Pages</span>
+        <span className="font-semibold text-sm">{t("pages", "Pages")}</span>
         <Button
           variant="ghost"
           size="icon"
@@ -357,7 +358,7 @@ export function DraggablePageTree({ selectedPageId }: DraggablePageTreeProps) {
             </div>
           ) : pageTree.length === 0 ? (
             <div className="p-4 text-center">
-              <p className="text-sm text-muted-foreground mb-2">No pages yet</p>
+              <p className="text-sm text-muted-foreground mb-2">{t("no_pages_yet", "No pages yet")}</p>
               <Button
                 variant="outline"
                 size="sm"

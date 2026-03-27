@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { cn } from "@/lib/utils";
 
 interface BurgerMenuProps {
@@ -7,6 +8,7 @@ interface BurgerMenuProps {
 }
 
 export function BurgerMenu({ isOpen, onClick, className }: BurgerMenuProps) {
+  const { t } = useTranslation('common');
   return (
     <button
       onClick={onClick}
@@ -14,7 +16,7 @@ export function BurgerMenu({ isOpen, onClick, className }: BurgerMenuProps) {
         "relative w-6 h-6 bg-transparent cursor-pointer flex flex-col justify-center items-center gap-0",
         className
       )}
-      aria-label="Toggle menu"
+      aria-label={t("toggle_menu", "Toggle menu")}
       aria-expanded={isOpen}
     >
       <span

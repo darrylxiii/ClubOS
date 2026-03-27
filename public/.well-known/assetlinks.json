@@ -5,7 +5,7 @@
     ],
     "target": {
       "namespace": "android_app",
-      "package_name": "app.lovable.ed1ccbeab8dd4007bcc4b3329d10bf67",
+      "package_name": "com.thequantumclub.os",
       "sha256_cert_fingerprints": [
         "SHA256_FINGERPRINT_PLACEHOLDER"
       ]
@@ -17,7 +17,7 @@
     ],
     "target": {
       "namespace": "android_app",
-      "package_name": "app.lovable.ed1ccbeab8dd4007bcc4b3329d10bf67",
+      "package_name": "com.thequantumclub.os",
       "sha256_cert_fingerprints": [
         "SHA256_FINGERPRINT_PLACEHOLDER"
       ]

@@ -1,10 +1,4 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.58.0";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { createHandler } from '../_shared/handler.ts';
 
 interface MemoryExtraction {
   stakeholder_id: string;
@@ -17,17 +11,8 @@ interface MemoryExtraction {
   tags: string[];
 }
 
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
-  }
-
-  try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
-    const { source_type, source_id, content, stakeholder_id } = await req.json();
+Deno.serve(createHandler(async (req, ctx) => {
+  const { source_type, source_id, content, stakeholder_id } = await req.json();
 
     if (!content) {
       throw new Error('content is required');
@@ -140,7 +125,7 @@ serve(async (req) => {
           created_at: new Date().toISOString()
         }));
 
-      const { error } = await supabase
+      const { error } = await ctx.supabase
         .from('stakeholder_memory')
         .insert(memoriesWithStakeholder);
 
@@ -153,7 +138,7 @@ serve(async (req) => {
 
     // Also try to find stakeholder from context if not provided
     if (!stakeholder_id && source_type === 'meeting' && source_id) {
-      const { data: meeting } = await supabase
+      const { data: meeting } = await ctx.supabase
         .from('meetings')
         .select(`
           company_id,
@@ -167,7 +152,7 @@ serve(async (req) => {
         const participants = meeting.meeting_participants || [];
         for (const participant of participants) {
           if (participant.external_email || participant.external_name) {
-            const { data: stakeholder } = await supabase
+            const { data: stakeholder } = await ctx.supabase
               .from('company_stakeholders')
               .select('id')
               .eq('company_id', meeting.company_id)
@@ -176,7 +161,7 @@ serve(async (req) => {
 
             if (stakeholder && memories.length > 0) {
               // Attribute memories to this stakeholder
-              const { error } = await supabase
+              const { error } = await ctx.supabase
                 .from('stakeholder_memory')
                 .insert(
                   memories.map(m => ({
@@ -206,17 +191,10 @@ serve(async (req) => {
           tags: m.tags
         }))
       }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } }
     );
 
-  } catch (error) {
-    console.error('[Memory Extraction] Error:', error);
-    return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-  }
-});
+}));
 
 function calculateConfidence(fullMatch: string, extracted: string): number {
   let confidence = 0.6;

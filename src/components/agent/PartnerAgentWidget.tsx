@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -32,6 +33,7 @@ interface PartnerAlert {
 }
 
 export function PartnerAgentWidget() {
+  const { t } = useTranslation('common');
   const { data: pipelineData, isLoading } = useQuery({
     queryKey: ["partner-pipeline-insights"],
     queryFn: async (): Promise<PipelineInsight[]> => {
@@ -112,21 +114,21 @@ export function PartnerAgentWidget() {
         {/* Health Score */}
         <div className="p-3 rounded-lg bg-muted/30">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium">Hiring Health Score</span>
+            <span className="text-sm font-medium">{t("hiring_health_score", "Hiring Health Score")}</span>
             <Badge variant="secondary">{healthScore?.overall}%</Badge>
           </div>
           <Progress value={healthScore?.overall || 0} className="h-2" />
           <div className="grid grid-cols-3 gap-2 mt-2 text-xs text-muted-foreground">
             <div>
-              <span>Velocity</span>
+              <span>{t("velocity", "Velocity")}</span>
               <p className="font-medium text-foreground">{healthScore?.pipelineVelocity}%</p>
             </div>
             <div>
-              <span>Quality</span>
+              <span>{t("quality", "Quality")}</span>
               <p className="font-medium text-foreground">{healthScore?.candidateQuality}%</p>
             </div>
             <div>
-              <span>Speed</span>
+              <span>{t("speed", "Speed")}</span>
               <p className="font-medium text-foreground">{healthScore?.timeToHire}%</p>
             </div>
           </div>

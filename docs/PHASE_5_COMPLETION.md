@@ -33,7 +33,7 @@ Phase 5 implements comprehensive analytics and AI-powered insights across the pl
 
 | Function | Purpose |
 |----------|---------|
-| `generate-career-insights` | AI-powered career analysis using Lovable AI gateway |
+| `generate-career-insights` | AI-powered career analysis using Google Gemini gateway |
 
 ### 4. Navigation Integration
 
@@ -74,13 +74,13 @@ Automated cleanup via `pg_cron`:
 
 1. **Caching Strategy**: Career insights cached for 7 days with automatic invalidation
 2. **Analytics Aggregation**: Daily aggregation for performance; real-time for security events
-3. **AI Integration**: Lovable AI gateway (gemini-2.5-flash) for career insights
+3. **AI Integration**: Google Gemini gateway (gemini-2.5-flash) for career insights
 4. **Security Events**: Real-time logging with severity levels for alert prioritization
 
 ## Dependencies
 
 - Existing `logger` utility from `@/lib/logger`
-- Lovable AI gateway integration
+- Google Gemini gateway integration
 - Supabase edge functions runtime
 - Recharts for data visualization
 

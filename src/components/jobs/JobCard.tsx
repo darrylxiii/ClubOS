@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -24,6 +25,7 @@ interface JobCardProps {
 }
 
 export function JobCard({ job }: JobCardProps) {
+  const { t } = useTranslation('common');
   const daysAgo = Math.floor(
     (Date.now() - new Date(job.created_at).getTime()) / (1000 * 60 * 60 * 24)
   );
@@ -56,7 +58,7 @@ export function JobCard({ job }: JobCardProps) {
                     </Badge>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>This job is only visible to selected users</p>
+                    <p>{t("this_job_is_only", "This job is only visible to selected users")}</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -89,7 +91,7 @@ export function JobCard({ job }: JobCardProps) {
         </div>
 
         <Button asChild className="w-full">
-          <Link to={`/jobs/${job.id}`}>View Details</Link>
+          <Link to={`/jobs/${job.id}`}>{t("view_details", "View Details")}</Link>
         </Button>
       </CardContent>
     </Card>

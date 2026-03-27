@@ -1,4 +1,5 @@
 import { Badge } from "@/components/ui/badge";
+import { useTranslation } from 'react-i18next';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
 import { AlertCircle, Calendar, CheckCircle, Clock, Flag, Target, TrendingUp, Users, Lock, Unlock } from "lucide-react";
@@ -40,6 +41,7 @@ interface ObjectiveCardProps {
 }
 
 export const ObjectiveCard = ({ objective, ownerProfiles }: ObjectiveCardProps) => {
+  const { t } = useTranslation('common');
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'completed': return 'bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/20';
@@ -170,7 +172,7 @@ export const ObjectiveCard = ({ objective, ownerProfiles }: ObjectiveCardProps) 
 
       <div className="space-y-2">
         <div className="flex items-center justify-between text-sm">
-          <span className="text-muted-foreground">Progress</span>
+          <span className="text-muted-foreground">{t('objectives.progress')}</span>
           <span className="font-medium">{objective.completion_percentage || 0}%</span>
         </div>
         <Progress value={objective.completion_percentage || 0} className="h-2" />
@@ -200,7 +202,7 @@ export const ObjectiveCard = ({ objective, ownerProfiles }: ObjectiveCardProps) 
                 </TooltipTrigger>
                 <TooltipContent className="max-w-xs bg-popover">
                   <div className="space-y-1">
-                    <p className="font-semibold text-xs">Tasks Blocked By This Objective:</p>
+                    <p className="font-semibold text-xs">{t('objectives.tasksBlockedByThisObjective')}</p>
                     {objective.blockingTasks?.slice(0, 5).map((dep: any) => (
                       <p key={dep.id} className="text-xs">• {dep.depends_on?.task_number} - {dep.depends_on?.title}</p>
                     ))}
@@ -222,7 +224,7 @@ export const ObjectiveCard = ({ objective, ownerProfiles }: ObjectiveCardProps) 
                 </TooltipTrigger>
                 <TooltipContent className="max-w-xs bg-popover">
                   <div className="space-y-1">
-                    <p className="font-semibold text-xs">Tasks Blocking This Objective:</p>
+                    <p className="font-semibold text-xs">{t('objectives.tasksBlockingThisObjective')}</p>
                     {objective.blockedByTasks?.slice(0, 5).map((dep: any) => (
                       <p key={dep.id} className="text-xs">• {dep.blocker?.task_number} - {dep.blocker?.title}</p>
                     ))}

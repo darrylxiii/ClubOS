@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
@@ -20,6 +21,7 @@ interface RecruiterKPIDashboardProps {
 }
 
 export const RecruiterKPIDashboard = ({ userId, days = 30 }: RecruiterKPIDashboardProps) => {
+  const { t } = useTranslation('common');
   const { aggregateStats, pipelineStats, isLoading } = useRecruiterMetrics(userId, days);
 
   if (isLoading) {
@@ -66,45 +68,45 @@ export const RecruiterKPIDashboard = ({ userId, days = 30 }: RecruiterKPIDashboa
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card className="bg-gradient-to-br from-primary/10 to-primary/5">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Candidates Sourced</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('employees.candidatesSourced')}</CardTitle>
             <Users className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.total_candidates_added}</div>
-            <p className="text-xs text-muted-foreground">Last {days} days</p>
+            <p className="text-xs text-muted-foreground">{t('employees.lastNDays', { days })}</p>
           </CardContent>
         </Card>
 
         <Card className="bg-gradient-to-br from-green-500/10 to-green-500/5">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Placements</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('employees.placements')}</CardTitle>
             <UserCheck className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">{stats.total_candidates_placed}</div>
-            <p className="text-xs text-muted-foreground">{stats.placement_rate}% conversion</p>
+            <p className="text-xs text-muted-foreground">{stats.placement_rate}% {t('employees.conversion')}</p>
           </CardContent>
         </Card>
 
         <Card className="bg-gradient-to-br from-blue-500/10 to-blue-500/5">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Interviews</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('employees.interviews')}</CardTitle>
             <Calendar className="h-4 w-4 text-blue-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.total_interviews_scheduled}</div>
-            <p className="text-xs text-muted-foreground">Candidates in interviews</p>
+            <p className="text-xs text-muted-foreground">{t('employees.candidatesInInterviews')}</p>
           </CardContent>
         </Card>
 
         <Card className="bg-gradient-to-br from-amber-500/10 to-amber-500/5">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Revenue</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('employees.revenue')}</CardTitle>
             <DollarSign className="h-4 w-4 text-amber-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">€{stats.total_placement_revenue.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">From placements</p>
+            <p className="text-xs text-muted-foreground">{t('employees.fromPlacements')}</p>
           </CardContent>
         </Card>
       </div>
@@ -114,39 +116,39 @@ export const RecruiterKPIDashboard = ({ userId, days = 30 }: RecruiterKPIDashboa
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Target className="h-5 w-5" />
-            Recruitment Funnel
+            {t('employees.recruitmentFunnel')}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <FunnelStep 
-              label="Sourced" 
-              value={pipeline.total_sourced} 
-              total={pipeline.total_sourced} 
+            <FunnelStep
+              label={t('employees.sourced')}
+              value={pipeline.total_sourced}
+              total={pipeline.total_sourced}
               color="bg-primary"
             />
-            <FunnelStep 
-              label="Screening" 
-              value={pipeline.in_screening} 
-              total={pipeline.total_sourced} 
+            <FunnelStep
+              label={t('employees.screening')}
+              value={pipeline.in_screening}
+              total={pipeline.total_sourced}
               color="bg-blue-500"
             />
-            <FunnelStep 
-              label="Interview" 
-              value={pipeline.in_interview} 
-              total={pipeline.total_sourced} 
+            <FunnelStep
+              label={t('employees.interview')}
+              value={pipeline.in_interview}
+              total={pipeline.total_sourced}
               color="bg-purple-500"
             />
-            <FunnelStep 
-              label="Offer" 
-              value={pipeline.in_offer} 
-              total={pipeline.total_sourced} 
+            <FunnelStep
+              label={t('employees.offer')}
+              value={pipeline.in_offer}
+              total={pipeline.total_sourced}
               color="bg-amber-500"
             />
-            <FunnelStep 
-              label="Hired" 
-              value={pipeline.hired} 
-              total={pipeline.total_sourced} 
+            <FunnelStep
+              label={t('employees.hired')}
+              value={pipeline.hired}
+              total={pipeline.total_sourced}
               color="bg-green-500"
             />
           </div>
@@ -157,38 +159,38 @@ export const RecruiterKPIDashboard = ({ userId, days = 30 }: RecruiterKPIDashboa
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Offers Made</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('employees.offersMade')}</CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.total_offers_made}</div>
             <p className="text-xs text-muted-foreground">
-              {pipeline.total_sourced > 0 
-                ? `${((stats.total_offers_made / pipeline.total_sourced) * 100).toFixed(0)}% offer rate`
-                : 'No candidates sourced'}
+              {pipeline.total_sourced > 0
+                ? `${((stats.total_offers_made / pipeline.total_sourced) * 100).toFixed(0)}% ${t('employees.offerRate')}`
+                : t('employees.noCandidatesSourced')}
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Time to Hire</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('employees.timeToHire')}</CardTitle>
             <Zap className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.avg_time_to_hire_days} days</div>
-            <p className="text-xs text-muted-foreground">Average per placement</p>
+            <div className="text-2xl font-bold">{t('employees.nDays', { count: stats.avg_time_to_hire_days })}</div>
+            <p className="text-xs text-muted-foreground">{t('employees.avgPerPlacement')}</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Sourcing Hours</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('employees.sourcingHours')}</CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.total_sourcing_hours}h</div>
-            <p className="text-xs text-muted-foreground">Tracked this period</p>
+            <p className="text-xs text-muted-foreground">{t('employees.trackedThisPeriod')}</p>
           </CardContent>
         </Card>
       </div>

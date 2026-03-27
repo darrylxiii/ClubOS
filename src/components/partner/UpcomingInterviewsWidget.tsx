@@ -13,6 +13,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { logger } from '@/lib/logger';
+import { useTranslation } from 'react-i18next';
 
 interface UpcomingInterviewsWidgetProps {
   jobId: string;
@@ -47,6 +48,7 @@ interface NormalizedInterview {
 }
 
 export const UpcomingInterviewsWidget = ({ jobId }: UpcomingInterviewsWidgetProps) => {
+  const { t } = useTranslation('partner');
   const [interviews, setInterviews] = useState<NormalizedInterview[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -306,7 +308,7 @@ export const UpcomingInterviewsWidget = ({ jobId }: UpcomingInterviewsWidgetProp
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-muted-foreground">Loading interviews...</p>
+          <p className="text-sm text-muted-foreground">{t('upcomingInterviewsWidget.loadingInterviews')}</p>
         </CardContent>
       </Card>
     );
@@ -356,9 +358,7 @@ export const UpcomingInterviewsWidget = ({ jobId }: UpcomingInterviewsWidgetProp
                 <p className="text-sm font-medium text-destructive">
                   {feedbackPending.length} interview{feedbackPending.length !== 1 ? 's' : ''} awaiting feedback
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Please submit feedback to keep the pipeline moving
-                </p>
+                <p className="text-xs text-muted-foreground mt-1">{t('upcomingInterviewsWidget.pleaseSubmitFeedbackToKeepThePipelineMov')}</p>
               </div>
             </div>
           </div>
@@ -367,7 +367,7 @@ export const UpcomingInterviewsWidget = ({ jobId }: UpcomingInterviewsWidgetProp
         {/* Today's Interviews */}
         {todayInterviews.length > 0 && (
           <div className="space-y-2">
-            <h4 className="text-sm font-semibold text-foreground">Today</h4>
+            <h4 className="text-sm font-semibold text-foreground">{t('upcomingInterviewsWidget.today')}</h4>
             {todayInterviews.map((interview) => (
               <InterviewCard key={interview.id} interview={interview} />
             ))}
@@ -377,7 +377,7 @@ export const UpcomingInterviewsWidget = ({ jobId }: UpcomingInterviewsWidgetProp
         {/* This Week's Interviews */}
         {thisWeekInterviews.length > 0 && (
           <div className="space-y-2">
-            <h4 className="text-sm font-semibold text-foreground">This Week</h4>
+            <h4 className="text-sm font-semibold text-foreground">{t('upcomingInterviewsWidget.thisWeek')}</h4>
             {thisWeekInterviews.slice(0, 3).map((interview) => (
               <InterviewCard key={interview.id} interview={interview} />
             ))}
@@ -392,7 +392,7 @@ export const UpcomingInterviewsWidget = ({ jobId }: UpcomingInterviewsWidgetProp
         {/* Later Interviews */}
         {laterInterviews.length > 0 && (
           <div className="space-y-2">
-            <h4 className="text-sm font-semibold text-foreground">Upcoming</h4>
+            <h4 className="text-sm font-semibold text-foreground">{t('upcomingInterviewsWidget.upcoming')}</h4>
             {laterInterviews.slice(0, 3).map((interview) => (
               <InterviewCard key={interview.id} interview={interview} />
             ))}
@@ -451,7 +451,7 @@ const InterviewCard = ({ interview }: { interview: NormalizedInterview }) => {
   
   const handleSubmitFeedback = async () => {
     if (!feedbackText.trim()) {
-      toast.error('Please enter feedback');
+      toast.error(t('upcomingInterviewsWidget.toast.pleaseEnterFeedback'));
       return;
     }
     
@@ -499,7 +499,7 @@ const InterviewCard = ({ interview }: { interview: NormalizedInterview }) => {
         }
       }
       
-      toast.success('Feedback submitted successfully');
+      toast.success(t('upcomingInterviewsWidget.toast.feedbackSubmittedSuccessfully'));
       setShowFeedback(false);
       setFeedbackText('');
       // Trigger refresh
@@ -661,7 +661,7 @@ const InterviewCard = ({ interview }: { interview: NormalizedInterview }) => {
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Interview Prep Document</DialogTitle>
+              <DialogTitle>{t('upcomingInterviewsWidget.dialogTitle')}</DialogTitle>
               <DialogDescription>
                 {prepDocUrl ? 'View or update the prep document for this interview' : 'Upload a prep document for this interview'}
               </DialogDescription>
@@ -669,7 +669,7 @@ const InterviewCard = ({ interview }: { interview: NormalizedInterview }) => {
             <div className="space-y-4">
               {prepDocUrl ? (
                 <div className="space-y-2">
-                  <Label>Current Document</Label>
+                  <Label>{t('upcomingInterviewsWidget.label.currentDocument')}</Label>
                   <Button asChild variant="outline" className="w-full">
                     <a href={prepDocUrl} target="_blank" rel="noopener noreferrer">
                       <FileText className="w-4 h-4 mr-2" />
@@ -678,9 +678,7 @@ const InterviewCard = ({ interview }: { interview: NormalizedInterview }) => {
                   </Button>
                 </div>
               ) : (
-                <p className="text-sm text-muted-foreground">
-                  No prep document uploaded yet. Use the manual entry or calendar linker to add one.
-                </p>
+                <p className="text-sm text-muted-foreground">{t('upcomingInterviewsWidget.noPrepDocumentUploadedYetUseTheManualEnt')}</p>
               )}
             </div>
           </DialogContent>
@@ -708,12 +706,12 @@ const InterviewCard = ({ interview }: { interview: NormalizedInterview }) => {
               </DialogHeader>
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="feedback">Feedback</Label>
+                  <Label htmlFor="feedback">{t('upcomingInterviewsWidget.label.feedback')}</Label>
                   <Textarea
                     id="feedback"
                     value={feedbackText}
                     onChange={(e) => setFeedbackText(e.target.value)}
-                    placeholder="Enter your feedback about the candidate and interview..."
+                    placeholder={t('upcomingInterviewsWidget.placeholder.enterYourFeedbackAboutTheCandidateAndInt')}
                     rows={6}
                     disabled={!!interview.feedback_submitted_at}
                   />

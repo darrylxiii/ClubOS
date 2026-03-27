@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -24,6 +25,7 @@ interface MeetingWithInsights {
 }
 
 export function MeetingIntelligenceTab() {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const navigate = useNavigate();
   const [meetings, setMeetings] = useState<MeetingWithInsights[]>([]);
@@ -162,7 +164,7 @@ export function MeetingIntelligenceTab() {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search meetings, transcripts, or topics..."
+            placeholder={t("search_meetings_transcripts_or", "Search meetings, transcripts, or topics...")}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10"
@@ -174,7 +176,7 @@ export function MeetingIntelligenceTab() {
         {filteredMeetings.length === 0 ? (
           <Card className="p-12 text-center">
             <MessageSquare className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-            <h3 className="text-lg font-semibold mb-2">No analyzed meetings found</h3>
+            <h3 className="text-lg font-semibold mb-2">{t("no_analyzed_meetings_found", "No analyzed meetings found")}</h3>
             <p className="text-muted-foreground">
               {searchQuery
                 ? "Try adjusting your search query"
@@ -201,7 +203,7 @@ export function MeetingIntelligenceTab() {
                     </div>
                   </div>
                 </div>
-                <Button size="sm" variant="outline">View Insights</Button>
+                <Button size="sm" variant="outline">{t("view_insights", "View Insights")}</Button>
               </div>
 
               {meeting.insights?.summary && (

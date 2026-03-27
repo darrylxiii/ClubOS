@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -81,6 +82,7 @@ export function EnhancedProspectCard({
   onDeleteProspect,
   onConvertToPartner
 }: EnhancedProspectCardProps) {
+  const { t } = useTranslation('common');
   const [showActions, setShowActions] = useState(false);
   const { data: stageProbabilities } = useStageProbabilities();
 
@@ -253,7 +255,7 @@ export function EnhancedProspectCard({
               <TooltipContent side="top">
                 <div className="text-xs">
                   <div>Annual Value: {formatCurrencyCompact(annualValue)}</div>
-                  <div className="text-muted-foreground">Estimated yearly revenue potential</div>
+                  <div className="text-muted-foreground">{t("estimated_yearly_revenue_potential", "Estimated yearly revenue potential")}</div>
                 </div>
               </TooltipContent>
             </Tooltip>
@@ -332,7 +334,7 @@ export function EnhancedProspectCard({
                 </Link>
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Send Email</TooltipContent>
+            <TooltipContent>{t("send_email", "Send Email")}</TooltipContent>
           </Tooltip>
           {/* View Prospect Details */}
           <Tooltip>
@@ -343,7 +345,7 @@ export function EnhancedProspectCard({
                 </Link>
               </Button>
             </TooltipTrigger>
-            <TooltipContent>View Details</TooltipContent>
+            <TooltipContent>{t("view_details", "View Details")}</TooltipContent>
           </Tooltip>
 
           {prospect.phone && (
@@ -355,7 +357,7 @@ export function EnhancedProspectCard({
                   </a>
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>Call</TooltipContent>
+              <TooltipContent>{t("call", "Call")}</TooltipContent>
             </Tooltip>
           )}
 
@@ -368,7 +370,7 @@ export function EnhancedProspectCard({
                   </a>
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>View LinkedIn</TooltipContent>
+              <TooltipContent>{t("view_linkedin", "View LinkedIn")}</TooltipContent>
             </Tooltip>
           )}
 
@@ -379,7 +381,7 @@ export function EnhancedProspectCard({
                   <Pencil className="w-4 h-4" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>Edit</TooltipContent>
+              <TooltipContent>{t("edit", "Edit")}</TooltipContent>
             </Tooltip>
           )}
 

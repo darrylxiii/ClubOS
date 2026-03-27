@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React, { useState } from 'react';
 import { DatabaseColumn, ColumnType } from '@/hooks/useWorkspaceDatabase';
 import { Button } from '@/components/ui/button';
@@ -77,6 +78,7 @@ interface DatabaseFilterBarProps {
 }
 
 export function DatabaseFilterBar({ columns, filters, onFiltersChange }: DatabaseFilterBarProps) {
+  const { t } = useTranslation('common');
   const [isOpen, setIsOpen] = useState(false);
 
   const addFilter = () => {
@@ -136,7 +138,7 @@ export function DatabaseFilterBar({ columns, filters, onFiltersChange }: Databas
         <PopoverContent align="start" className="w-[400px] p-3">
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Filters</span>
+              <span className="text-sm font-medium">{t("filters", "Filters")}</span>
               {filters.length > 0 && (
                 <Button
                   variant="ghost"
@@ -172,7 +174,7 @@ export function DatabaseFilterBar({ columns, filters, onFiltersChange }: Databas
                         onValueChange={(value) => updateFilter(filter.id, { columnId: value })}
                       >
                         <SelectTrigger className="w-[120px] h-8 text-xs">
-                          <SelectValue placeholder="Column" />
+                          <SelectValue placeholder={t("column", "Column")} />
                         </SelectTrigger>
                         <SelectContent>
                           {columns.map((col) => (
@@ -188,7 +190,7 @@ export function DatabaseFilterBar({ columns, filters, onFiltersChange }: Databas
                         onValueChange={(value) => updateFilter(filter.id, { operator: value as FilterOperator })}
                       >
                         <SelectTrigger className="w-[100px] h-8 text-xs">
-                          <SelectValue placeholder="Operator" />
+                          <SelectValue placeholder={t("operator", "Operator")} />
                         </SelectTrigger>
                         <SelectContent>
                           {availableOperators.map((op) => (
@@ -203,7 +205,7 @@ export function DatabaseFilterBar({ columns, filters, onFiltersChange }: Databas
                         <Input
                           value={filter.value}
                           onChange={(e) => updateFilter(filter.id, { value: e.target.value })}
-                          placeholder="Value..."
+                          placeholder={t("value", "Value...")}
                           className="h-8 text-xs flex-1"
                         />
                       )}

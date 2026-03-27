@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { motion, AnimatePresence } from '@/lib/motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -46,6 +47,7 @@ const ACTION_OPTIONS = [
 ];
 
 export function CRMAutomationBuilder() {
+  const { t } = useTranslation('common');
   const queryClient = useQueryClient();
   const [editingId, setEditingId] = useState<string | null>(null);
 
@@ -79,7 +81,7 @@ export function CRMAutomationBuilder() {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['crm-automations'] });
       setEditingId(data.id);
-      toast.success('Automation created');
+      toast.success(t("automation_created", "Automation created"));
     }
   });
 
@@ -102,7 +104,7 @@ export function CRMAutomationBuilder() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['crm-automations'] });
-      toast.success('Automation deleted');
+      toast.success(t("automation_deleted", "Automation deleted"));
     }
   });
 
@@ -135,7 +137,7 @@ export function CRMAutomationBuilder() {
             <Zap className="h-6 w-6 text-primary" />
             Automation Workflows
           </h2>
-          <p className="text-muted-foreground">Automate repetitive CRM tasks</p>
+          <p className="text-muted-foreground">{t("automate_repetitive_crm_tasks", "Automate repetitive CRM tasks")}</p>
         </div>
         <Button onClick={() => createMutation.mutate()} disabled={createMutation.isPending}>
           <Plus className="h-4 w-4 mr-2" />
@@ -224,7 +226,7 @@ export function CRMAutomationBuilder() {
                           {/* Config Inputs based on Trigger */}
                           {automation.trigger_type === 'stage_change' && (
                             <div className="flex items-center gap-2 text-sm">
-                              <span>To:</span>
+                              <span>{t("to", "To:")}</span>
                               <Input
                                 value={automation.trigger_config?.to || ''}
                                 onChange={(e) => updateMutation.mutate({
@@ -232,7 +234,7 @@ export function CRMAutomationBuilder() {
                                   updates: { trigger_config: { ...automation.trigger_config, to: e.target.value } }
                                 })}
                                 className="w-32 h-8"
-                                placeholder="Stage Name"
+                                placeholder={t("stage_name", "Stage Name")}
                               />
                             </div>
                           )}
@@ -279,7 +281,7 @@ export function CRMAutomationBuilder() {
                                   newActions[idx].config.subject = e.target.value;
                                   updateMutation.mutate({ id: automation.id, updates: { actions: newActions } });
                                 }}
-                                placeholder="Task Subject"
+                                placeholder={t("task_subject", "Task Subject")}
                                 className="w-48 h-8"
                               />
                             )}
@@ -291,7 +293,7 @@ export function CRMAutomationBuilder() {
                                   newActions[idx].config.message = e.target.value;
                                   updateMutation.mutate({ id: automation.id, updates: { actions: newActions } });
                                 }}
-                                placeholder="Message"
+                                placeholder={t("message", "Message")}
                                 className="w-48 h-8"
                               />
                             )}
@@ -309,7 +311,7 @@ export function CRMAutomationBuilder() {
         {automations.length === 0 && (
           <div className="text-center py-12 text-muted-foreground">
             <Zap className="mx-auto h-12 w-12 opacity-20 mb-4" />
-            <p>No automations yet. Create one to get started!</p>
+            <p>{t("no_automations_yet_create", "No automations yet. Create one to get started!")}</p>
           </div>
         )}
       </div>

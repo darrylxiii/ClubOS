@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -45,6 +46,7 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 export const ClubTasksByMember = ({ objectiveId, onRefresh }: ClubTasksByMemberProps) => {
+  const { t } = useTranslation('common');
   const [tasksByMember, setTasksByMember] = useState<Record<string, TaskWithAssignee[]>>({});
   const [loading, setLoading] = useState(true);
 
@@ -95,7 +97,7 @@ export const ClubTasksByMember = ({ objectiveId, onRefresh }: ClubTasksByMemberP
       setTasksByMember(grouped);
     } catch (error) {
       console.error("Error loading tasks by member:", error);
-      toast.error("Failed to load tasks by member");
+      toast.error(t('clubTasks.failedToLoadTasksByMember'));
     } finally {
       setLoading(false);
     }
@@ -176,7 +178,7 @@ export const ClubTasksByMember = ({ objectiveId, onRefresh }: ClubTasksByMemberP
                       </TableCell>
                       <TableCell>
                         {task.status === "blocked" && (
-                          <span className="text-xs text-muted-foreground">See details</span>
+                          <span className="text-xs text-muted-foreground">{t('clubTasks.seeDetails')}</span>
                         )}
                       </TableCell>
                     </TableRow>
@@ -191,7 +193,7 @@ export const ClubTasksByMember = ({ objectiveId, onRefresh }: ClubTasksByMemberP
       {Object.keys(tasksByMember).length === 0 && !loading && (
         <Card>
           <CardContent className="p-12 text-center">
-            <p className="text-muted-foreground">No tasks assigned yet</p>
+            <p className="text-muted-foreground">{t('clubTasks.noTasksAssignedYet')}</p>
           </CardContent>
         </Card>
       )}

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -43,6 +44,7 @@ interface OverallStats {
 }
 
 export function CompanyManagement() {
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
   const [companies, setCompanies] = useState<Company[]>([]);
   const [companyStats, setCompanyStats] = useState<Record<string, CompanyStats>>({});
@@ -72,7 +74,7 @@ export function CompanyManagement() {
       }
     } catch (error) {
       console.error('Error fetching companies:', error);
-      toast.error("Failed to load companies");
+      toast.error(t("failed_to_load_companies", "Failed to load companies"));
     } finally {
       setLoading(false);
     }
@@ -183,7 +185,7 @@ export function CompanyManagement() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="animate-pulse text-muted-foreground">Loading dashboard...</div>
+        <div className="animate-pulse text-muted-foreground">{t("loading_dashboard", "Loading dashboard...")}</div>
       </div>
     );
   }
@@ -195,7 +197,7 @@ export function CompanyManagement() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
           <Card>
             <CardHeader className="pb-3">
-              <CardDescription>Total Companies</CardDescription>
+              <CardDescription>{t("total_companies", "Total Companies")}</CardDescription>
               <CardTitle className="text-3xl">{overallStats.total_companies}</CardTitle>
             </CardHeader>
             <CardContent>
@@ -207,7 +209,7 @@ export function CompanyManagement() {
           
           <Card>
             <CardHeader className="pb-3">
-              <CardDescription>Total Jobs</CardDescription>
+              <CardDescription>{t("total_jobs", "Total Jobs")}</CardDescription>
               <CardTitle className="text-3xl flex items-center gap-2">
                 <Briefcase className="w-6 h-6 text-primary" />
                 {overallStats.total_jobs}
@@ -217,7 +219,7 @@ export function CompanyManagement() {
 
           <Card>
             <CardHeader className="pb-3">
-              <CardDescription>Applications</CardDescription>
+              <CardDescription>{t("applications", "Applications")}</CardDescription>
               <CardTitle className="text-3xl flex items-center gap-2">
                 <TrendingUp className="w-6 h-6 text-primary" />
                 {overallStats.total_applications}
@@ -227,7 +229,7 @@ export function CompanyManagement() {
 
           <Card>
             <CardHeader className="pb-3">
-              <CardDescription>Total Followers</CardDescription>
+              <CardDescription>{t("total_followers", "Total Followers")}</CardDescription>
               <CardTitle className="text-3xl flex items-center gap-2">
                 <Users className="w-6 h-6 text-primary" />
                 {overallStats.total_followers}
@@ -237,7 +239,7 @@ export function CompanyManagement() {
 
           <Card>
             <CardHeader className="pb-3">
-              <CardDescription>Avg per Company</CardDescription>
+              <CardDescription>{t("avg_per_company", "Avg per Company")}</CardDescription>
               <CardTitle className="text-3xl">
                 {overallStats.total_companies > 0 
                   ? Math.round(overallStats.total_jobs / overallStats.total_companies)
@@ -245,7 +247,7 @@ export function CompanyManagement() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-xs text-muted-foreground">jobs/company</div>
+              <div className="text-xs text-muted-foreground">{t("jobscompany", "jobs/company")}</div>
             </CardContent>
           </Card>
         </div>
@@ -256,8 +258,8 @@ export function CompanyManagement() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>Partner Companies</CardTitle>
-              <CardDescription>View company stats and manage from the Companies dashboard</CardDescription>
+              <CardTitle>{t("partner_companies", "Partner Companies")}</CardTitle>
+              <CardDescription>{t("view_company_stats_and", "View company stats and manage from the Companies dashboard")}</CardDescription>
             </div>
             <Button onClick={() => navigate('/companies')}>
               <ExternalLink className="w-4 h-4 mr-2" />
@@ -269,7 +271,7 @@ export function CompanyManagement() {
           {companies.length === 0 ? (
             <div className="text-center py-12">
               <Building2 className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-              <p className="text-muted-foreground mb-4">No companies yet. Use the Companies dashboard to add your first partner company!</p>
+              <p className="text-muted-foreground mb-4">{t("no_companies_yet_use", "No companies yet. Use the Companies dashboard to add your first partner company!")}</p>
               <Button onClick={() => navigate('/companies')}>
                 <ExternalLink className="w-4 h-4 mr-2" />
                 Go to Companies Dashboard
@@ -301,10 +303,10 @@ export function CompanyManagement() {
                               <div className="flex items-center gap-2 mb-1">
                                 <CardTitle className="text-xl">{company.name}</CardTitle>
                                 {!company.is_active && (
-                                  <Badge variant="outline">Inactive</Badge>
+                                  <Badge variant="outline">{t("inactive", "Inactive")}</Badge>
                                 )}
                                 {company.membership_tier === 'premium' && (
-                                  <Badge>Premium</Badge>
+                                  <Badge>{t("premium", "Premium")}</Badge>
                                 )}
                               </div>
                               {company.tagline && (
@@ -323,15 +325,15 @@ export function CompanyManagement() {
                             <div className="flex items-center gap-4 text-sm">
                               <div className="text-center">
                                 <div className="font-bold text-lg">{stats.total_jobs}</div>
-                                <div className="text-xs text-muted-foreground">Jobs</div>
+                                <div className="text-xs text-muted-foreground">{t("jobs", "Jobs")}</div>
                               </div>
                               <div className="text-center">
                                 <div className="font-bold text-lg">{stats.total_applications}</div>
-                                <div className="text-xs text-muted-foreground">Apps</div>
+                                <div className="text-xs text-muted-foreground">{t("apps", "Apps")}</div>
                               </div>
                               <div className="text-center">
                                 <div className="font-bold text-lg">{stats.total_followers}</div>
-                                <div className="text-xs text-muted-foreground">Followers</div>
+                                <div className="text-xs text-muted-foreground">{t("followers", "Followers")}</div>
                               </div>
                             </div>
                           )}
@@ -348,28 +350,28 @@ export function CompanyManagement() {
                           {stats && (
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pb-4 border-b">
                               <div>
-                                <div className="text-xs text-muted-foreground mb-1">Profile Views</div>
+                                <div className="text-xs text-muted-foreground mb-1">{t("profile_views", "Profile Views")}</div>
                                 <div className="flex items-center gap-2">
                                   <Eye className="w-4 h-4 text-primary" />
                                   <span className="font-semibold">{stats.profile_views.toLocaleString()}</span>
                                 </div>
                               </div>
                               <div>
-                                <div className="text-xs text-muted-foreground mb-1">Post Views</div>
+                                <div className="text-xs text-muted-foreground mb-1">{t("post_views", "Post Views")}</div>
                                 <div className="flex items-center gap-2">
                                   <Eye className="w-4 h-4 text-primary" />
                                   <span className="font-semibold">{stats.post_views.toLocaleString()}</span>
                                 </div>
                               </div>
                               <div>
-                                <div className="text-xs text-muted-foreground mb-1">Active Jobs</div>
+                                <div className="text-xs text-muted-foreground mb-1">{t("active_jobs", "Active Jobs")}</div>
                                 <div className="flex items-center gap-2">
                                   <Briefcase className="w-4 h-4 text-primary" />
                                   <span className="font-semibold">{stats.total_jobs}</span>
                                 </div>
                               </div>
                               <div>
-                                <div className="text-xs text-muted-foreground mb-1">Total Apps</div>
+                                <div className="text-xs text-muted-foreground mb-1">{t("total_apps", "Total Apps")}</div>
                                 <div className="flex items-center gap-2">
                                   <TrendingUp className="w-4 h-4 text-primary" />
                                   <span className="font-semibold">{stats.total_applications}</span>
@@ -382,19 +384,19 @@ export function CompanyManagement() {
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                             {company.headquarters_location && (
                               <div>
-                                <div className="text-xs text-muted-foreground mb-1">Location</div>
+                                <div className="text-xs text-muted-foreground mb-1">{t("location", "Location")}</div>
                                 <div>{company.headquarters_location}</div>
                               </div>
                             )}
                             {company.company_size && (
                               <div>
-                                <div className="text-xs text-muted-foreground mb-1">Company Size</div>
+                                <div className="text-xs text-muted-foreground mb-1">{t("company_size", "Company Size")}</div>
                                 <div>{company.company_size} employees</div>
                               </div>
                             )}
                             {company.website_url && (
                               <div>
-                                <div className="text-xs text-muted-foreground mb-1">Website</div>
+                                <div className="text-xs text-muted-foreground mb-1">{t("website", "Website")}</div>
                                 <a 
                                   href={company.website_url} 
                                   target="_blank" 

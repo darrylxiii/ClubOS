@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Calendar, Clock, ArrowLeft, Sparkles, RefreshCw, WifiOff, AlertCircle } from "lucide-react";
@@ -72,6 +73,7 @@ interface SelectedSlot {
 type ErrorType = 'network' | 'not_found' | 'inactive' | 'unknown';
 
 function classifyError(error: any): ErrorType {
+  const { t } = useTranslation('common');
   const message = String(error?.message || '').toLowerCase();
   if (message.includes('network') || message.includes('fetch') || message.includes('cors') || message.includes('timeout')) {
     return 'network';
@@ -86,23 +88,23 @@ function getErrorMessage(errorType: ErrorType): { title: string; description: st
   switch (errorType) {
     case 'network':
       return {
-        title: 'Connection error',
-        description: 'Unable to reach the scheduling service. Please check your internet connection and try again.',
+        title: t('text.bookingpage.connectionError', 'Connection error'),
+        description: t('text.bookingpage.unableToReachTheSchedulingService', 'Unable to reach the scheduling service. Please check your internet connection and try again.'),
       };
     case 'not_found':
       return {
-        title: 'Booking link not found',
-        description: 'This booking link doesn\'t exist or has been deactivated.',
+        title: t('text.bookingpage.bookingLinkNotFound', 'Booking link not found'),
+        description: t('text.bookingpage.thisBookingLinkDoesntExist', "This booking link doesn't exist or has been deactivated."),
       };
     case 'inactive':
       return {
-        title: 'Booking link inactive',
-        description: 'This booking link is currently not accepting new bookings.',
+        title: t('text.bookingpage.bookingLinkInactive', 'Booking link inactive'),
+        description: t('text.bookingpage.thisBookingLinkIsCurrentlyNot', 'This booking link is currently not accepting new bookings.'),
       };
     default:
       return {
-        title: 'Booking page unavailable',
-        description: 'Something went wrong loading this booking page. Please try again.',
+        title: t('text.bookingpage.bookingPageUnavailable', 'Booking page unavailable'),
+        description: t('text.bookingpage.somethingWentWrongLoadingThisBooking', 'Something went wrong loading this booking page. Please try again.'),
       };
   }
 }
@@ -243,8 +245,8 @@ export default function BookingPage() {
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <div className="animate-pulse mx-auto mb-6">
-            <img src={logoLight} alt="The Quantum Club" className="h-16 w-auto mx-auto dark:hidden" />
-            <img src={logoDark} alt="The Quantum Club" className="h-16 w-auto mx-auto hidden dark:block" />
+            <img src={logoLight} alt={t('bookingPage.text1')} className="h-16 w-auto mx-auto dark:hidden" />
+            <img src={logoDark} alt={t('bookingPage.text2')} className="h-16 w-auto mx-auto hidden dark:block" />
           </div>
           <p className="text-muted-foreground text-sm">
             {retryCount > 0 ? `Reconnecting... (attempt ${retryCount + 1})` : 'Loading booking page...'}
@@ -263,8 +265,8 @@ export default function BookingPage() {
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
             <div className="mx-auto mb-6">
-              <img src={logoLight} alt="The Quantum Club" className="h-12 w-auto mx-auto dark:hidden" />
-              <img src={logoDark} alt="The Quantum Club" className="h-12 w-auto mx-auto hidden dark:block" />
+              <img src={logoLight} alt={t('bookingPage.text3')} className="h-12 w-auto mx-auto dark:hidden" />
+              <img src={logoDark} alt={t('bookingPage.text4')} className="h-12 w-auto mx-auto hidden dark:block" />
             </div>
             <div className="mx-auto mb-4 h-12 w-12 rounded-full bg-muted flex items-center justify-center">
               {isNetworkError ? (
@@ -302,18 +304,18 @@ export default function BookingPage() {
             {bookingLink.custom_logo_url && (
               <img
                 src={bookingLink.custom_logo_url}
-                alt="Organization logo"
+                alt={t('bookingPage.text5')}
                 className="h-10 w-auto mx-auto mb-3 object-contain"
               />
             )}
             <div className="mx-auto mb-4">
-              <img src={logoLight} alt="The Quantum Club" className="h-16 w-auto mx-auto dark:hidden" />
-              <img src={logoDark} alt="The Quantum Club" className="h-16 w-auto mx-auto hidden dark:block" />
+              <img src={logoLight} alt={t('bookingPage.text6')} className="h-16 w-auto mx-auto dark:hidden" />
+              <img src={logoDark} alt={t('bookingPage.text7')} className="h-16 w-auto mx-auto hidden dark:block" />
             </div>
             {profile?.full_name && (
               <h1 className="text-2xl font-bold mb-1">{profile.full_name}</h1>
             )}
-            <p className="text-xs text-muted-foreground">Powered by The Quantum Club</p>
+            <p className="text-xs text-muted-foreground">{t('bookingPage.text8')}</p>
           </div>
 
           {/* Progress Stepper */}
@@ -378,7 +380,7 @@ export default function BookingPage() {
                         className="flex items-center gap-2"
                       >
                         <Sparkles className="h-4 w-4" />
-                        {showAIAssistant ? "Show Calendar" : "AI Assistant"}
+                        {showAIAssistant ? t('text.bookingpage.showCalendar', 'Show Calendar') : t('text.bookingpage.aiAssistant', 'AI Assistant')}
                       </Button>
                     </div>
 
@@ -389,7 +391,7 @@ export default function BookingPage() {
                           try {
                             const slot = await resolveSlotFromLabel(date, timeLabel);
                             if (!slot) {
-                              toast.error('That time is no longer available. Please choose again.');
+                              toast.error(t('text.bookingpage.thatTimeIsNoLongerAvailable', 'That time is no longer available. Please choose again.'));
                               return;
                             }
                             setSelectedDate(date);
@@ -397,7 +399,7 @@ export default function BookingPage() {
                             setStep('details');
                             setShowAIAssistant(false);
                           } catch {
-                            toast.error('Unable to confirm that time. Please pick from the calendar.');
+                            toast.error(t('text.bookingpage.unableToConfirmThatTimePlease', 'Unable to confirm that time. Please pick from the calendar.'));
                           }
                         }}
                       />
@@ -474,7 +476,7 @@ export default function BookingPage() {
           <div className="mt-8 text-center text-sm text-muted-foreground flex items-center justify-center gap-2">
             <img src={logoLight} alt="" className="h-4 w-auto dark:hidden opacity-50" />
             <img src={logoDark} alt="" className="h-4 w-auto hidden dark:block opacity-50" />
-            <p>Powered by The Quantum Club</p>
+            <p>{t('bookingPage.text9')}</p>
           </div>
       </div>
     </div>

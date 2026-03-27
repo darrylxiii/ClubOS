@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from 'react-i18next';
 import { VoiceChat, VoiceChatParticipant } from "@/components/ui/voice-chat";
 import { useActiveCall } from "@/contexts/ActiveCallContext";
 import { cn } from "@/lib/utils";
@@ -11,6 +12,7 @@ interface VoiceChatWidgetProps {
 }
 
 export function VoiceChatWidget({ className, onJoinChannel, demoMode = false }: VoiceChatWidgetProps) {
+  const { t } = useTranslation('meetings');
   const { activeChannelId, voice, joinCall } = useActiveCall();
   const [isVisible, setIsVisible] = useState(false);
   const [participants, setParticipants] = useState<VoiceChatParticipant[]>([]);
@@ -64,7 +66,7 @@ export function VoiceChatWidget({ className, onJoinChannel, demoMode = false }: 
     <div className={cn("fixed z-50", className)}>
       <VoiceChat
         participants={participants}
-        channelName={activeChannelId ? "Live Voice" : "Voice Lounge"}
+        channelName={activeChannelId ? t('livehub.liveVoice') : t('livehub.voiceLounge')}
         onJoin={handleJoin}
         onClose={handleClose}
         isConnected={!!activeChannelId}

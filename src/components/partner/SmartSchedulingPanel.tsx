@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Sparkles, Loader2, Calendar, Clock, Users, CheckCircle2 } from 'lucide-react';
 import { format, addDays, setHours, setMinutes } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
+import { useTranslation } from 'react-i18next';
 
 interface TimeSlot {
   date: Date;
@@ -29,6 +30,7 @@ export const SmartSchedulingPanel = ({
   calendarConnectionId,
   onSelectSlot,
 }: SmartSchedulingPanelProps) => {
+  const { t } = useTranslation('partner');
   const [loading, setLoading] = useState(false);
   const [suggestedSlots, setSuggestedSlots] = useState<TimeSlot[]>([]);
   const [usingGoogleCalendar, setUsingGoogleCalendar] = useState(false);
@@ -172,13 +174,13 @@ export const SmartSchedulingPanel = ({
   const getConfidenceBadge = (confidence: number) => {
     if (confidence >= 90)
       return (
-        <Badge className="bg-green-500/10 text-green-600 border-green-500/20">Excellent</Badge>
+        <Badge className="bg-green-500/10 text-green-600 border-green-500/20">{t('smartSchedulingPanel.badge.excellent')}</Badge>
       );
     if (confidence >= 70)
-      return <Badge className="bg-blue-500/10 text-blue-600 border-blue-500/20">Good</Badge>;
+      return <Badge className="bg-blue-500/10 text-blue-600 border-blue-500/20">{t('smartSchedulingPanel.badge.good')}</Badge>;
     if (confidence >= 50)
-      return <Badge className="bg-yellow-500/10 text-yellow-600 border-yellow-500/20">Fair</Badge>;
-    return <Badge className="bg-orange-500/10 text-orange-600 border-orange-500/20">Limited</Badge>;
+      return <Badge className="bg-yellow-500/10 text-yellow-600 border-yellow-500/20">{t('smartSchedulingPanel.badge.fair')}</Badge>;
+    return <Badge className="bg-orange-500/10 text-orange-600 border-orange-500/20">{t('smartSchedulingPanel.badge.limited')}</Badge>;
   };
 
   if (loading) {
@@ -211,9 +213,7 @@ export const SmartSchedulingPanel = ({
           <Sparkles className="w-5 h-5 text-primary" />
           Smart Scheduling Assistant
           {usingGoogleCalendar && (
-            <Badge variant="outline" className="ml-2 text-xs">
-              Google Calendar
-            </Badge>
+            <Badge variant="outline" className="ml-2 text-xs">{t('smartSchedulingPanel.badge.googleCalendar')}</Badge>
           )}
         </CardTitle>
         <p className="text-sm text-muted-foreground">
@@ -226,10 +226,8 @@ export const SmartSchedulingPanel = ({
         {suggestedSlots.length === 0 ? (
           <div className="text-center py-6">
             <Calendar className="w-12 h-12 mx-auto text-muted-foreground/50 mb-3" />
-            <p className="text-sm text-muted-foreground">No available slots found</p>
-            <p className="text-xs text-muted-foreground mt-1">
-              Try adjusting the duration or selecting different interviewers
-            </p>
+            <p className="text-sm text-muted-foreground">{t('smartSchedulingPanel.noAvailableSlotsFound')}</p>
+            <p className="text-xs text-muted-foreground mt-1">{t('smartSchedulingPanel.tryAdjustingTheDurationOrSelectingDiffer')}</p>
           </div>
         ) : (
           suggestedSlots.map((slot, index) => (
@@ -242,9 +240,7 @@ export const SmartSchedulingPanel = ({
                   <Calendar className="w-4 h-4 text-muted-foreground" />
                   <span className="font-medium">{format(slot.date, 'EEEE, MMM d')}</span>
                   {index === 0 && (
-                    <Badge variant="default" className="text-xs">
-                      Best Match
-                    </Badge>
+                    <Badge variant="default" className="text-xs">{t('smartSchedulingPanel.badge.bestMatch')}</Badge>
                   )}
                 </div>
                 <div className="flex items-center gap-3 text-sm text-muted-foreground">
@@ -263,7 +259,7 @@ export const SmartSchedulingPanel = ({
                 className="ml-3"
               >
                 <CheckCircle2 className="w-4 h-4 mr-1" />
-                Select
+                {t('common:select')}
               </Button>
             </div>
           ))

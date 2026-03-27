@@ -6,6 +6,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { Shield, ShieldCheck, Copy, Check } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -59,6 +60,7 @@ export function E2ESafetyNumberDialog({
   peerId,
   meetingId,
 }: E2ESafetyNumberDialogProps) {
+  const { t } = useTranslation("meetings");
   const [copied, setCopied] = useState(false);
 
   const safetyGroups = useMemo(
@@ -86,10 +88,10 @@ export function E2ESafetyNumberDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <ShieldCheck className="h-5 w-5 text-emerald-500" />
-            Verify Encryption
+            {t('e2e.verifyEncryption')}
           </DialogTitle>
           <DialogDescription>
-            Compare this safety number with <span className="font-medium text-foreground">{peerName}</span> to verify your connection is end-to-end encrypted.
+            {t('e2e.compareDescription', { name: peerName })}
           </DialogDescription>
         </DialogHeader>
 
@@ -112,19 +114,19 @@ export function E2ESafetyNumberDialog({
               {copied ? (
                 <>
                   <Check className="h-3.5 w-3.5 mr-1 text-emerald-500" />
-                  <span className="text-emerald-500">Copied</span>
+                  <span className="text-emerald-500">{t('common:actions.copied')}</span>
                 </>
               ) : (
                 <>
                   <Copy className="h-3.5 w-3.5 mr-1" />
-                  Copy
+                  {t('common:actions.copy')}
                 </>
               )}
             </Button>
           </div>
 
           <p className="text-xs text-muted-foreground leading-relaxed">
-            If these numbers match on both devices, your call is secure. If they differ, a third party may be intercepting your communication.
+            {t('e2e.securityNote')}
           </p>
         </div>
       </DialogContent>

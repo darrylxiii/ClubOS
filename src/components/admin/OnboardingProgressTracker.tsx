@@ -4,6 +4,7 @@ import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { formatDistanceToNow } from "date-fns";
 import { cn } from "@/lib/utils";
+import { useTranslation } from 'react-i18next';
 
 interface OnboardingProgressTrackerProps {
   request: {
@@ -19,40 +20,41 @@ interface OnboardingProgressTrackerProps {
 }
 
 export function OnboardingProgressTracker({ request }: OnboardingProgressTrackerProps) {
+  const { t } = useTranslation('admin');
   const steps = [
     { 
       id: 1, 
-      name: 'Contact', 
+      name: t('onboardingProgressTracker.contact'),
       icon: User,
       fields: ['full_name', 'email', 'phone', 'location', 'email_verified', 'phone_verified'] 
     },
     { 
       id: 2, 
-      name: 'Professional', 
+      name: t('onboardingProgressTracker.professional'),
       icon: Briefcase,
       fields: ['current_title', 'linkedin_url', 'bio', 'resume_url'] 
     },
     { 
       id: 3, 
-      name: 'Career', 
+      name: t('onboardingProgressTracker.career'),
       icon: Target,
       fields: ['dream_job_title', 'employment_type', 'notice_period', 'preferred_work_locations'] 
     },
     { 
       id: 4, 
-      name: 'Compensation', 
+      name: t('onboardingProgressTracker.compensation'),
       icon: DollarSign,
       fields: ['current_salary_min', 'desired_salary_min', 'freelance_hourly_rate_min'] 
     },
     { 
       id: 5, 
-      name: 'Preferences', 
+      name: t('onboardingProgressTracker.preferences'),
       icon: Settings,
       fields: ['remote_work_preference'] 
     },
     { 
       id: 6, 
-      name: 'Password', 
+      name: t('onboardingProgressTracker.password'),
       icon: Lock,
       fields: [] 
     },
@@ -77,7 +79,7 @@ export function OnboardingProgressTracker({ request }: OnboardingProgressTracker
       <div className="flex items-center justify-between">
         <h4 className="font-semibold text-sm flex items-center gap-2">
           <Activity className="w-4 h-4" />
-          Onboarding Progress
+          {t('onboardingProgressTracker.onboardingProgress')}
         </h4>
         {lastActivity && !isComplete && (
           <span className="text-xs text-muted-foreground">
@@ -96,12 +98,12 @@ export function OnboardingProgressTracker({ request }: OnboardingProgressTracker
         {isComplete ? (
           <Badge className="bg-green-600">
             <CheckCircle2 className="w-3 h-3 mr-1" />
-            Completed
+            {t('onboardingProgressTracker.completed')}
           </Badge>
         ) : currentStep === 0 ? (
           <Badge variant="outline" className="border-amber-500 text-amber-600">
             <Clock className="w-3 h-3 mr-1" />
-            Not Started
+            {t('onboardingProgressTracker.notStarted')}
           </Badge>
         ) : (
           <Badge variant="outline" className="border-blue-500 text-blue-600">
@@ -199,7 +201,7 @@ export function OnboardingProgressTracker({ request }: OnboardingProgressTracker
       {currentStep > 0 && !isComplete && (
         <div className="pt-3 border-t space-y-2">
           <h5 className="text-xs font-semibold text-muted-foreground uppercase">
-            Data Collected So Far
+            {t('onboardingProgressTracker.dataCollectedSoFar')}
           </h5>
           <div className="grid grid-cols-2 gap-2 text-xs">
             {partialData.full_name && (

@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { formatDistanceToNow } from "date-fns";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { useTranslation } from 'react-i18next';
 
 interface ActivityRow {
   id: string;
@@ -51,6 +52,7 @@ const getStageFromStatus = (status: string) => {
 };
 
 export const ApplicationActivityFeed = () => {
+  const { t } = useTranslation('common');
   const { data: activities, isLoading } = useQuery({
     queryKey: ["application-activity-feed"],
     queryFn: async () => {

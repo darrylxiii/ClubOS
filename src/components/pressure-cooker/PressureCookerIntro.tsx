@@ -1,4 +1,5 @@
 import { memo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -13,12 +14,13 @@ interface PressureCookerIntroProps {
 }
 
 export const PressureCookerIntro = memo(({ scenario, onStart }: PressureCookerIntroProps) => {
+  const { t } = useTranslation('common');
   return (
     <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
       <Card>
         <CardHeader>
           <div className="text-6xl mb-4 text-center">🔥</div>
-          <CardTitle className="text-3xl text-center">Pressure Cooker Assessment</CardTitle>
+          <CardTitle className="text-3xl text-center">{t('pressureCooker.pressureCookerAssessment')}</CardTitle>
           <p className="text-center text-muted-foreground mt-2">
             {scenario.name}
           </p>
@@ -69,9 +71,7 @@ export const PressureCookerIntro = memo(({ scenario, onStart }: PressureCookerIn
             </div>
           </div>
 
-          <Button onClick={onStart} className="w-full" size="lg">
-            Start Assessment
-          </Button>
+          <Button onClick={onStart} className="w-full" size="lg">{t('pressureCooker.startAssessment')}</Button>
         </CardContent>
       </Card>
     </div>

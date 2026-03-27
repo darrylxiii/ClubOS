@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -29,6 +30,7 @@ const getStatusColor = (status: string | undefined) => {
 };
 
 export function PinnedKPIsSection({ pinnedKPIs, onUnpin, onKPIClick }: PinnedKPIsSectionProps) {
+  const { t } = useTranslation('common');
   if (!pinnedKPIs || pinnedKPIs.length === 0) return null;
 
   const formatValue = (kpi: UnifiedKPI | null | undefined) => {
@@ -57,7 +59,7 @@ export function PinnedKPIsSection({ pinnedKPIs, onUnpin, onKPIClick }: PinnedKPI
       <CardHeader className="pb-3">
         <div className="flex items-center gap-2">
           <Pin className="h-4 w-4 text-amber-500 fill-amber-500" />
-          <CardTitle className="text-base">Pinned KPIs</CardTitle>
+          <CardTitle className="text-base">{t("pinned_kpis", "Pinned KPIs")}</CardTitle>
           <Badge variant="outline" className="ml-auto text-xs">
             {pinnedKPIs.length} pinned
           </Badge>

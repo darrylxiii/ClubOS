@@ -1,6 +1,7 @@
 -- Restore missing INSERT policy for applications table
 -- This was accidentally dropped in migration 20260110012210
 
+DROP POLICY IF EXISTS "Admins and company members can insert applications" ON public.applications;
 CREATE POLICY "Admins and company members can insert applications"
 ON public.applications
 FOR INSERT

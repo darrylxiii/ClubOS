@@ -28,10 +28,24 @@ export const usePublishJob = () => {
     mutationFn: async ({ jobId }: StatusChangeParams) => {
       return updateJobStatus(jobId, "published");
     },
-    onSuccess: (_, { jobTitle }) => {
+    onSuccess: (result, { jobTitle }) => {
       toast.success(`"${jobTitle || 'Job'}" is now live and accepting applications`);
       queryClient.invalidateQueries({ queryKey: ["jobs"] });
       queryClient.invalidateQueries({ queryKey: ["partner-jobs"] });
+
+      // Auto-match: find top candidates for this job (fire-and-forget)
+      supabase.functions.invoke('auto-match-candidates', {
+        body: { job_id: result.jobId },
+      }).then(({ data, error }) => {
+        if (error) {
+          console.warn('[Auto-Match] Failed:', error);
+        } else if (data?.matches_found > 0) {
+          toast.info(`QUIN found ${data.matches_found} potential candidate matches`);
+          queryClient.invalidateQueries({ queryKey: ["talent-matches"] });
+        }
+      }).catch(err => {
+        console.warn('[Auto-Match] Error:', err);
+      });
     },
     onError: (error) => {
       console.error("Error publishing job:", error);
@@ -88,10 +102,24 @@ export const useReopenJob = () => {
     mutationFn: async ({ jobId }: StatusChangeParams) => {
       return updateJobStatus(jobId, "published");
     },
-    onSuccess: (_, { jobTitle }) => {
+    onSuccess: (result, { jobTitle }) => {
       toast.success(`"${jobTitle || 'Job'}" has been reopened and is now active`);
       queryClient.invalidateQueries({ queryKey: ["jobs"] });
       queryClient.invalidateQueries({ queryKey: ["partner-jobs"] });
+
+      // Auto-match: find top candidates for reopened job (fire-and-forget)
+      supabase.functions.invoke('auto-match-candidates', {
+        body: { job_id: result.jobId },
+      }).then(({ data, error }) => {
+        if (error) {
+          console.warn('[Auto-Match] Failed:', error);
+        } else if (data?.matches_found > 0) {
+          toast.info(`QUIN found ${data.matches_found} potential candidate matches`);
+          queryClient.invalidateQueries({ queryKey: ["talent-matches"] });
+        }
+      }).catch(err => {
+        console.warn('[Auto-Match] Error:', err);
+      });
     },
     onError: (error) => {
       console.error("Error reopening job:", error);

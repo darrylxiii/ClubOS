@@ -1,18 +1,12 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-/**
- * Unified CORS headers (for app-initiated calls, not Meta webhooks)
- */
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-api-key, x-supabase-api-version',
-  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
-  'Access-Control-Max-Age': '86400',
-};
+import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { verifyWhatsAppWebhook } from '../_shared/webhook-verifier.ts';
+import { getCorsHeaders } from '../_shared/cors.ts';
 
 serve(async (req) => {
   const requestId = crypto.randomUUID().slice(0, 8);
+
+  const corsHeaders = getCorsHeaders(req);
 
   // Handle CORS preflight (for app-initiated calls)
   if (req.method === 'OPTIONS') {
@@ -50,7 +44,23 @@ serve(async (req) => {
   // Handle incoming webhook events (POST request from Meta)
   if (req.method === 'POST') {
     try {
-      const body = await req.json();
+      const rawBody = await req.text();
+
+      // Verify Meta webhook signature (X-Hub-Signature-256)
+      const appSecret = Deno.env.get('WHATSAPP_APP_SECRET');
+      const hubSignature = req.headers.get('X-Hub-Signature-256');
+      if (appSecret && hubSignature) {
+        const isValid = await verifyWhatsAppWebhook(rawBody, hubSignature, appSecret);
+        if (!isValid) {
+          console.error(`[${requestId}] WhatsApp webhook signature verification failed`);
+          return new Response('Invalid signature', { status: 403 });
+        }
+        console.log(`[${requestId}] WhatsApp webhook signature verified`);
+      } else if (Deno.env.get('DENO_ENV') !== 'development') {
+        console.warn(`[${requestId}] WhatsApp webhook signature verification skipped — missing WHATSAPP_APP_SECRET`);
+      }
+
+      const body = JSON.parse(rawBody);
       console.log(`[${requestId}] Received webhook payload`);
 
       const entry = body.entry?.[0];
@@ -107,16 +117,18 @@ serve(async (req) => {
 });
 
 async function handleIncomingMessage(
-  supabase: any,
-  account: any,
-  message: any,
-  contact: any,
+  supabase: SupabaseClient,
+  account: Record<string, unknown>,
+  message: Record<string, unknown>,
+  contact: Record<string, unknown> | undefined,
   requestId: string
 ) {
-  console.log(`[${requestId}] Processing incoming message:`, { messageId: message.id, from: message.from });
+  const msg = message as Record<string, Record<string, unknown> & { body?: string; id?: string; caption?: string; mime_type?: string; filename?: string; emoji?: string; message_id?: string; latitude?: number; longitude?: number; name?: string; text?: string; title?: string; button_reply?: Record<string, unknown>; list_reply?: Record<string, unknown> }>;
+  console.log(`[${requestId}] Processing incoming message:`, { messageId: msg.id, from: msg.from });
 
-  const senderPhone = message.from;
-  const senderName = contact?.profile?.name || contact?.wa_id;
+  const senderPhone = msg.from as unknown as string;
+  const contactProfile = (contact as Record<string, unknown>)?.profile as Record<string, unknown> | undefined;
+  const senderName = contactProfile?.name || (contact as Record<string, unknown>)?.wa_id;
 
   // Find or create conversation
   let { data: conversation } = await supabase
@@ -173,51 +185,51 @@ async function handleIncomingMessage(
   let reactionEmoji = null;
   let reactionMessageId = null;
 
-  switch (message.type) {
+  switch (msg.type as unknown as string) {
     case 'text':
-      content = message.text?.body || '';
+      content = msg.text?.body || '';
       break;
     case 'image':
-      mediaId = message.image?.id;
-      content = message.image?.caption || '';
-      mediaMimeType = message.image?.mime_type;
+      mediaId = msg.image?.id;
+      content = msg.image?.caption || '';
+      mediaMimeType = msg.image?.mime_type;
       break;
     case 'document':
-      mediaId = message.document?.id;
-      content = message.document?.caption || '';
-      mediaMimeType = message.document?.mime_type;
-      mediaFilename = message.document?.filename;
+      mediaId = msg.document?.id;
+      content = msg.document?.caption || '';
+      mediaMimeType = msg.document?.mime_type;
+      mediaFilename = msg.document?.filename;
       break;
     case 'audio':
-      mediaId = message.audio?.id;
-      mediaMimeType = message.audio?.mime_type;
+      mediaId = msg.audio?.id;
+      mediaMimeType = msg.audio?.mime_type;
       break;
     case 'video':
-      mediaId = message.video?.id;
-      content = message.video?.caption || '';
-      mediaMimeType = message.video?.mime_type;
+      mediaId = msg.video?.id;
+      content = msg.video?.caption || '';
+      mediaMimeType = msg.video?.mime_type;
       break;
     case 'sticker':
-      mediaId = message.sticker?.id;
-      mediaMimeType = message.sticker?.mime_type;
+      mediaId = msg.sticker?.id;
+      mediaMimeType = msg.sticker?.mime_type;
       break;
     case 'location':
-      content = `Location: ${message.location?.latitude}, ${message.location?.longitude}`;
-      if (message.location?.name) content += ` - ${message.location.name}`;
+      content = `Location: ${msg.location?.latitude}, ${msg.location?.longitude}`;
+      if (msg.location?.name) content += ` - ${msg.location.name}`;
       break;
     case 'reaction':
-      reactionEmoji = message.reaction?.emoji;
-      reactionMessageId = message.reaction?.message_id;
+      reactionEmoji = msg.reaction?.emoji;
+      reactionMessageId = msg.reaction?.message_id;
       messageType = 'reaction';
       break;
     case 'button':
-      content = message.button?.text || '';
+      content = msg.button?.text || '';
       break;
     case 'interactive':
-      if (message.interactive?.button_reply) {
-        content = message.interactive.button_reply.title;
-      } else if (message.interactive?.list_reply) {
-        content = message.interactive.list_reply.title;
+      if (msg.interactive?.button_reply) {
+        content = msg.interactive.button_reply.title;
+      } else if (msg.interactive?.list_reply) {
+        content = msg.interactive.list_reply.title;
       }
       break;
     default:
@@ -233,16 +245,16 @@ async function handleIncomingMessage(
       candidate_id: conversation.candidate_id,
       direction: 'inbound',
       message_type: messageType,
-      wa_message_id: message.id,
+      wa_message_id: message.id as string,
       content,
       media_id: mediaId,
       media_mime_type: mediaMimeType,
       media_filename: mediaFilename,
       reaction_emoji: reactionEmoji,
       reaction_message_id: reactionMessageId,
-      context_message_id: message.context?.id,
+      context_message_id: (message.context as Record<string, unknown> | undefined)?.id,
       status: 'received',
-      created_at: new Date(parseInt(message.timestamp) * 1000).toISOString()
+      created_at: new Date(parseInt(message.timestamp as string) * 1000).toISOString()
     })
     .select('*')
     .single();
@@ -266,7 +278,7 @@ async function handleIncomingMessage(
   }
 }
 
-async function handleStatusUpdate(supabase: any, status: any, requestId: string) {
+async function handleStatusUpdate(supabase: SupabaseClient, status: Record<string, unknown>, requestId: string) {
   console.log(`[${requestId}] Processing status update:`, { messageId: status.id, status: status.status });
 
   const statusMap: Record<string, string> = {
@@ -276,22 +288,23 @@ async function handleStatusUpdate(supabase: any, status: any, requestId: string)
     'failed': 'failed'
   };
 
-  const mappedStatus = statusMap[status.status] || status.status;
+  const mappedStatus = statusMap[status.status as string] || (status.status as string);
 
-  const updateData: any = {
+  const updateData: Record<string, unknown> = {
     status: mappedStatus,
-    status_timestamp: new Date(parseInt(status.timestamp) * 1000).toISOString()
+    status_timestamp: new Date(parseInt(status.timestamp as string) * 1000).toISOString()
   };
 
-  if (status.errors?.length > 0) {
-    updateData.error_code = status.errors[0].code?.toString();
-    updateData.error_message = status.errors[0].title || status.errors[0].message;
+  const errors = status.errors as Array<Record<string, unknown>> | undefined;
+  if (errors && errors.length > 0) {
+    updateData.error_code = errors[0].code?.toString();
+    updateData.error_message = errors[0].title || errors[0].message;
   }
 
   const { error } = await supabase
     .from('whatsapp_messages')
     .update(updateData)
-    .eq('wa_message_id', status.id);
+    .eq('wa_message_id', status.id as string);
 
   if (error) {
     console.error(`[${requestId}] Error updating message status:`, error);

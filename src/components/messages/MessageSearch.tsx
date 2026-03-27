@@ -12,6 +12,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
 
 interface MessageSearchProps {
@@ -19,6 +20,7 @@ interface MessageSearchProps {
 }
 
 export const MessageSearch = ({ onSelectMessage }: MessageSearchProps) => {
+  const { t } = useTranslation('messages');
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [results, setResults] = useState<any[]>([]);
@@ -119,7 +121,7 @@ export const MessageSearch = ({ onSelectMessage }: MessageSearchProps) => {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search messages..."
+            placeholder={t('search.placeholder')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
@@ -134,14 +136,14 @@ export const MessageSearch = ({ onSelectMessage }: MessageSearchProps) => {
           </PopoverTrigger>
           <PopoverContent className="w-80" align="end">
             <div className="space-y-4">
-              <h4 className="font-semibold">Filters</h4>
+              <h4 className="font-semibold">{t('search.filters')}</h4>
               
               <div className="space-y-2">
-                <label className="text-sm font-medium">Sender</label>
+                <label className="text-sm font-medium">{t('search.sender')}</label>
                 <div className="relative">
                   <User className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder="Search by sender"
+                    placeholder={t('search.searchBySender')}
                     value={filters.sender}
                     onChange={(e) => setFilters({ ...filters, sender: e.target.value })}
                     className="pl-8"
@@ -150,13 +152,13 @@ export const MessageSearch = ({ onSelectMessage }: MessageSearchProps) => {
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium">Date Range</label>
+                <label className="text-sm font-medium">{t('search.dateRange')}</label>
                 <div className="flex gap-2">
                   <Popover>
                     <PopoverTrigger asChild>
                       <Button variant="outline" size="sm" className="w-full justify-start text-left font-normal">
                         <Calendar className="mr-2 h-4 w-4" />
-                        {filters.dateFrom ? format(filters.dateFrom, 'PP') : 'From'}
+                        {filters.dateFrom ? format(filters.dateFrom, 'PP') : t('search.from')}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">
@@ -171,7 +173,7 @@ export const MessageSearch = ({ onSelectMessage }: MessageSearchProps) => {
                     <PopoverTrigger asChild>
                       <Button variant="outline" size="sm" className="w-full justify-start text-left font-normal">
                         <Calendar className="mr-2 h-4 w-4" />
-                        {filters.dateTo ? format(filters.dateTo, 'PP') : 'To'}
+                        {filters.dateTo ? format(filters.dateTo, 'PP') : t('search.to')}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">
@@ -187,28 +189,28 @@ export const MessageSearch = ({ onSelectMessage }: MessageSearchProps) => {
 
               <div className="flex gap-2">
                 <Button onClick={clearFilters} variant="outline" size="sm" className="flex-1">
-                  Clear
+                  {t('common:actions.clear')}
                 </Button>
                 <Button onClick={handleSearch} size="sm" className="flex-1">
-                  Apply
+                  {t('common:actions.apply')}
                 </Button>
               </div>
             </div>
           </PopoverContent>
         </Popover>
         <Button onClick={handleSearch} disabled={loading}>
-          Search
+          {t('common:actions.search')}
         </Button>
       </div>
 
       <ScrollArea className="h-[400px]">
         {loading ? (
           <div className="flex items-center justify-center h-32">
-            <p className="text-muted-foreground">Searching...</p>
+            <p className="text-muted-foreground">{t('search.searching')}</p>
           </div>
         ) : results.length === 0 ? (
           <div className="flex items-center justify-center h-32">
-            <p className="text-muted-foreground">No results found</p>
+            <p className="text-muted-foreground">{t('search.noResults')}</p>
           </div>
         ) : (
           <div className="space-y-2">
@@ -234,10 +236,10 @@ export const MessageSearch = ({ onSelectMessage }: MessageSearchProps) => {
                     {result.sender?.full_name || 'Unknown'}
                   </span>
                   {result.is_urgent && (
-                    <Badge variant="destructive" className="text-xs">Urgent</Badge>
+                    <Badge variant="destructive" className="text-xs">{t('search.urgent')}</Badge>
                   )}
                   {result.priority === 'high' && (
-                    <Badge variant="default" className="text-xs">High Priority</Badge>
+                    <Badge variant="default" className="text-xs">{t('search.highPriority')}</Badge>
                   )}
                 </div>
               </button>

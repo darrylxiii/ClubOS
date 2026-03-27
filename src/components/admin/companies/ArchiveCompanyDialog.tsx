@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import {
   AlertDialog,
@@ -29,6 +30,7 @@ export function ArchiveCompanyDialog({
   companyName,
   onSuccess,
 }: ArchiveCompanyDialogProps) {
+  const { t } = useTranslation('common');
   const [reason, setReason] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -55,7 +57,7 @@ export function ArchiveCompanyDialog({
       setReason("");
     } catch (error) {
       console.error("Error archiving company:", error);
-      toast.error("Failed to archive company");
+      toast.error(t("failed_to_archive_company", "Failed to archive company"));
     } finally {
       setLoading(false);
     }
@@ -77,12 +79,12 @@ export function ArchiveCompanyDialog({
         </AlertDialogHeader>
 
         <div className="space-y-2 py-4">
-          <Label htmlFor="archive-reason">Reason (optional)</Label>
+          <Label htmlFor="archive-reason">{t("reason_optional", "Reason (optional)")}</Label>
           <Textarea
             id="archive-reason"
             value={reason}
             onChange={(e) => setReason(e.target.value)}
-            placeholder="e.g., Contract ended, Company requested removal..."
+            placeholder={t("eg_contract_ended_company", "e.g., Contract ended, Company requested removal...")}
             rows={2}
           />
         </div>

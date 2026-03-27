@@ -13,7 +13,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { notify } from "@/lib/notify";
 import { useState, useEffect } from "react";
 
+import { useTranslation } from 'react-i18next';
 const MergeDashboard = () => {
+  const { t } = useTranslation('admin');
   const [autoMergeEnabled, setAutoMergeEnabled] = useState(false);
   const [loadingSettings, setLoadingSettings] = useState(true);
 

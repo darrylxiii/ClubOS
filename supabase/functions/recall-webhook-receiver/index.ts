@@ -3,23 +3,11 @@
  * Handles callbacks from Recall.ai for meeting bot status updates,
  * transcriptions, and recording completion
  */
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createHandler } from '../_shared/handler.ts';
+import { SupabaseClient } from 'npm:@supabase/supabase-js@2';
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-recall-signature',
-};
-
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+Deno.serve(createHandler(async (req, ctx) => {
+    const supabase = ctx.supabase;
 
     const payload = await req.json();
     console.log('[Recall Webhook] Received:', JSON.stringify(payload, null, 2));
@@ -32,7 +20,7 @@ serve(async (req) => {
     if (!sessionId && !botId) {
       console.log('[Recall Webhook] No session or bot ID found, skipping');
       return new Response(JSON.stringify({ received: true }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' }
       });
     }
 
@@ -53,7 +41,7 @@ serve(async (req) => {
     if (!targetSessionId) {
       console.log('[Recall Webhook] Could not find session for bot:', botId);
       return new Response(JSON.stringify({ received: true, warning: 'Session not found' }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' }
       });
     }
 
@@ -80,22 +68,13 @@ serve(async (req) => {
     }
 
     return new Response(JSON.stringify({ received: true, event }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' }
     });
+}));
 
-  } catch (error) {
-    console.error('[Recall Webhook] Error:', error);
-    return new Response(JSON.stringify({ 
-      error: 'Webhook processing failed'
-    }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    });
-  }
-});
-
-async function handleBotStatusChange(supabase: any, sessionId: string, data: any) {
-  const rawStatus = data.status?.code || data.status;
+async function handleBotStatusChange(supabase: SupabaseClient, sessionId: string, data: Record<string, unknown>) {
+  const statusObj = data.status as Record<string, unknown> | string | undefined;
+  const rawStatus = (typeof statusObj === 'object' && statusObj !== null ? statusObj.code : statusObj) as string;
   
   // Validate status against strict allowlist
   const statusMap: Record<string, string> = {
@@ -137,9 +116,9 @@ async function handleBotStatusChange(supabase: any, sessionId: string, data: any
   console.log(`[Recall Webhook] Updated session ${sessionId} status to: ${mappedStatus}`);
 }
 
-async function handleTranscription(supabase: any, sessionId: string, data: any) {
-  const transcript = data.transcript || data.text;
-  const words = data.words || [];
+async function handleTranscription(supabase: SupabaseClient, sessionId: string, data: Record<string, unknown>) {
+  const transcript = (data.transcript || data.text) as string;
+  const words = (data.words || []) as unknown[];
   
   // Append to session transcript
   const { data: session } = await supabase
@@ -152,8 +131,8 @@ async function handleTranscription(supabase: any, sessionId: string, data: any) 
   existingChunks.push({
     text: transcript,
     words,
-    speaker: data.speaker,
-    timestamp: data.timestamp || new Date().toISOString(),
+    speaker: data.speaker as string | undefined,
+    timestamp: (data.timestamp as string) || new Date().toISOString(),
   });
 
   await supabase
@@ -167,8 +146,8 @@ async function handleTranscription(supabase: any, sessionId: string, data: any) 
   console.log(`[Recall Webhook] Added transcript chunk to session ${sessionId}`);
 }
 
-async function handleMediaReady(supabase: any, sessionId: string, data: any) {
-  const recordingUrl = data.url || data.download_url;
+async function handleMediaReady(supabase: SupabaseClient, sessionId: string, data: Record<string, unknown>) {
+  const recordingUrl = (data.url || data.download_url) as string | undefined;
   
   if (!recordingUrl) {
     console.log('[Recall Webhook] No recording URL in media_output_ready');
@@ -187,11 +166,11 @@ async function handleMediaReady(supabase: any, sessionId: string, data: any) {
   // Compile transcript from chunks
   const transcriptChunks = session.transcript_chunks || [];
   const fullTranscript = transcriptChunks
-    .map((chunk: any) => `[${chunk.speaker || 'Speaker'}]: ${chunk.text}`)
+    .map((chunk: { speaker?: string; text: string }) => `[${chunk.speaker || 'Speaker'}]: ${chunk.text}`)
     .join('\n');
 
   // Calculate duration
-  const durationSeconds = data.duration_seconds || 
+  const durationSeconds = (data.duration_seconds as number) ||
     (session.bot_leave_time && session.bot_join_time 
       ? Math.round((new Date(session.bot_leave_time).getTime() - new Date(session.bot_join_time).getTime()) / 1000)
       : 0);
@@ -246,7 +225,7 @@ async function handleMediaReady(supabase: any, sessionId: string, data: any) {
   console.log(`[Recall Webhook] Created recording ${recording.id} from session ${sessionId}`);
 }
 
-async function handleCallEnded(supabase: any, sessionId: string, data: any) {
+async function handleCallEnded(supabase: SupabaseClient, sessionId: string, _data: Record<string, unknown>) {
   await supabase
     .from('external_meeting_sessions')
     .update({
@@ -259,7 +238,7 @@ async function handleCallEnded(supabase: any, sessionId: string, data: any) {
   console.log(`[Recall Webhook] Call ended for session ${sessionId}`);
 }
 
-function extractParticipants(chunks: any[]): string[] {
+function extractParticipants(chunks: Array<{ speaker?: string }>): string[] {
   const speakers = new Set<string>();
   chunks.forEach(chunk => {
     if (chunk.speaker) {

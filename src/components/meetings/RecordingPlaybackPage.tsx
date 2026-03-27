@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+import { useTranslation } from 'react-i18next';
 
 import { TimestampedTranscript } from './TimestampedTranscript';
 import { SpeakingMetricsPanel } from './SpeakingMetricsPanel';
@@ -27,6 +28,7 @@ import { AIHighlightClips } from './AIHighlightClips';
 import { ShareRecordingDialog } from './ShareRecordingDialog';
 
 export default function RecordingPlaybackPage() {
+  const { t } = useTranslation("meetings");
   const { recordingId } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -72,7 +74,7 @@ export default function RecordingPlaybackPage() {
           // Show appropriate toast based on status
           const newStatus = (payload.new as any).processing_status;
           if (newStatus === 'completed') {
-            toast.success('Analysis completed!');
+            toast.success(t('playback.analysisCompleted'));
           } else if (newStatus === 'failed') {
             toast.error(`Processing failed: ${(payload.new as any).processing_error || 'Unknown error'}`);
           }
@@ -126,7 +128,7 @@ export default function RecordingPlaybackPage() {
       }
     } catch (error) {
       console.error('Error loading recording:', error);
-      toast.error('Failed to load recording');
+      toast.error(t('playback.failedLoad'));
     } finally {
       setLoading(false);
     }
@@ -143,14 +145,14 @@ export default function RecordingPlaybackPage() {
 
       if (error) throw error;
       
-      toast.success('Transcription started - this may take a few minutes');
+      toast.success(t('playback.transcriptionStarted'));
       setRecording((prev: any) => ({ ...prev, processing_status: 'transcribing' }));
       
       // Poll for updates
       setTimeout(() => loadRecording(), 10000);
     } catch (error) {
       console.error('Failed to trigger transcription:', error);
-      toast.error('Failed to start transcription');
+      toast.error(t('playback.failedTranscription'));
     } finally {
       setTriggeringTranscription(false);
     }
@@ -163,7 +165,7 @@ export default function RecordingPlaybackPage() {
     try {
       // First ensure transcript exists
       if (!recording.transcript || recording.transcript.length < 50) {
-        toast.info('Starting transcription first...');
+        toast.info(t('playback.startingTranscriptionFirst'));
         await triggerTranscription();
         return;
       }
@@ -174,14 +176,14 @@ export default function RecordingPlaybackPage() {
 
       if (error) throw error;
       
-      toast.success('Analysis started - refresh in a few minutes');
+      toast.success(t('playback.analysisStarted'));
       setRecording((prev: any) => ({ ...prev, processing_status: 'analyzing' }));
       
       // Poll for updates
       setTimeout(() => loadRecording(), 15000);
     } catch (error) {
       console.error('Failed to retrigger analysis:', error);
-      toast.error('Failed to start analysis');
+      toast.error(t('playback.failedAnalysis'));
     } finally {
       setRetriggeringAnalysis(false);
     }
@@ -197,10 +199,10 @@ export default function RecordingPlaybackPage() {
       });
 
       if (error) throw error;
-      toast.success('Summary email sent successfully');
+      toast.success(t('playback.summaryEmailSent'));
     } catch (error) {
       console.error('Failed to send email:', error);
-      toast.error('Failed to send summary email');
+      toast.error(t('playback.failedSummaryEmail'));
     } finally {
       setSendingEmail(false);
     }
@@ -239,7 +241,7 @@ export default function RecordingPlaybackPage() {
 
   const exportTranscript = () => {
     if (!recording?.transcript) {
-      toast.error('No transcript available');
+      toast.error(t('playback.noTranscriptAvailable'));
       return;
     }
     
@@ -252,7 +254,7 @@ export default function RecordingPlaybackPage() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    toast.success('Transcript downloaded');
+    toast.success(t('playback.transcriptDownloaded'));
   };
 
   const handleExportPDF = async () => {
@@ -268,13 +270,13 @@ export default function RecordingPlaybackPage() {
 
       if (data?.downloadUrl) {
         window.open(data.downloadUrl, '_blank');
-        toast.success('PDF report generated');
+        toast.success(t('playback.pdfGenerated'));
       } else {
-        toast.error('Failed to generate PDF');
+        toast.error(t('playback.failedPdf'));
       }
     } catch (error) {
       console.error('PDF export error:', error);
-      toast.error('Failed to export PDF');
+      toast.error(t('playback.failedExportPdf'));
     } finally {
       setExportingPDF(false);
     }
@@ -286,7 +288,7 @@ export default function RecordingPlaybackPage() {
         <div className="container mx-auto px-4 py-6 max-w-7xl">
           <Button variant="ghost" onClick={() => navigate('/meetings?tab=history')} className="mb-4">
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Recordings
+            {t('playback.backToRecordings')}
           </Button>
           <Skeleton className="h-8 w-64 mb-6" />
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -304,13 +306,13 @@ export default function RecordingPlaybackPage() {
         <div className="container mx-auto px-4 py-6 max-w-7xl">
           <Button variant="ghost" onClick={() => navigate('/meetings?tab=history')} className="mb-4">
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Recordings
+            {t('playback.backToRecordings')}
           </Button>
           <Alert>
             <AlertTriangle className="h-4 w-4" />
-            <AlertTitle>Recording Not Found</AlertTitle>
+            <AlertTitle>{t('playback.recordingNotFound')}</AlertTitle>
             <AlertDescription>
-              This recording could not be found or you don't have access to it.
+              {t('playback.recordingNotFoundDescription')}
             </AlertDescription>
           </Alert>
         </div>
@@ -351,13 +353,13 @@ export default function RecordingPlaybackPage() {
               {recording.processing_status === 'transcribing' && (
                 <Badge variant="outline" className="animate-pulse border-blue-500/50 text-blue-500">
                   <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
-                  Transcribing...
+                  {t('playback.transcribing')}
                 </Badge>
               )}
               {recording.processing_status === 'analyzing' && (
                 <Badge variant="outline" className="animate-pulse border-purple-500/50 text-purple-500">
                   <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
-                  Analyzing...
+                  {t('playback.analyzing')}
                 </Badge>
               )}
             </div>
@@ -368,19 +370,19 @@ export default function RecordingPlaybackPage() {
               />
               <Button onClick={sendSummaryEmail} variant="outline" size="sm" disabled={sendingEmail || !recording.ai_analysis}>
                 <Mail className="h-4 w-4 mr-2" />
-                {sendingEmail ? 'Sending...' : 'Email Summary'}
+                {sendingEmail ? t('playback.sending') : t('playback.emailSummary')}
               </Button>
               <Button onClick={exportTranscript} variant="outline" size="sm" disabled={!recording.transcript}>
                 <FileText className="h-4 w-4 mr-2" />
-                Export Transcript
+                {t('playback.exportTranscript')}
               </Button>
               <Button onClick={handleExportPDF} variant="outline" size="sm" disabled={exportingPDF}>
                 <Download className={`h-4 w-4 mr-2 ${exportingPDF ? 'animate-spin' : ''}`} />
-                {exportingPDF ? 'Exporting...' : 'Export PDF'}
+                {exportingPDF ? t('playback.exporting') : t('playback.exportPdf')}
               </Button>
               <Button onClick={() => setShareDialogOpen(true)} variant="outline" size="sm">
                 <Share2 className="h-4 w-4 mr-2" />
-                Share
+                {t('common:actions.share')}
               </Button>
             </div>
           </div>
@@ -415,7 +417,7 @@ export default function RecordingPlaybackPage() {
                     <div className="aspect-video bg-muted rounded-lg flex flex-col items-center justify-center gap-4 p-6">
                       <AlertTriangle className="h-12 w-12 text-muted-foreground" />
                       <p className="text-muted-foreground text-center">
-                        Video playback failed. The file may be corrupted or in an unsupported format.
+                        {t('playback.videoPlaybackFailed')}
                       </p>
                       <Button 
                         variant="outline" 
@@ -427,7 +429,7 @@ export default function RecordingPlaybackPage() {
                         }}
                       >
                         <Download className="h-4 w-4 mr-2" />
-                        Download & Play Locally
+                        {t('playback.downloadAndPlay')}
                       </Button>
                     </div>
                   ) : (
@@ -442,7 +444,7 @@ export default function RecordingPlaybackPage() {
                   )
                 ) : (
                   <div className="aspect-video bg-muted rounded-lg flex items-center justify-center">
-                    <p className="text-muted-foreground">Recording not available</p>
+                    <p className="text-muted-foreground">{t('playback.recordingNotAvailable')}</p>
                   </div>
                 )}
               </CardContent>
@@ -452,9 +454,9 @@ export default function RecordingPlaybackPage() {
             {recording.processing_status === 'pending' && !recording.transcript && (
               <Alert className="border-amber-500/50 bg-amber-500/10">
                 <AlertTriangle className="h-4 w-4 text-amber-500" />
-                <AlertTitle>Transcript Required</AlertTitle>
+                <AlertTitle>{t('playback.transcriptRequired')}</AlertTitle>
                 <AlertDescription className="flex items-center justify-between">
-                  <span>This recording needs to be transcribed before AI analysis can begin.</span>
+                  <span>{t('playback.transcriptRequiredDescription')}</span>
                   <Button 
                     size="sm" 
                     onClick={triggerTranscription}
@@ -466,7 +468,7 @@ export default function RecordingPlaybackPage() {
                     ) : (
                       <Mic className="h-4 w-4 mr-2" />
                     )}
-                    Generate Transcript
+                    {t('playback.generateTranscript')}
                   </Button>
                 </AlertDescription>
               </Alert>
@@ -475,9 +477,9 @@ export default function RecordingPlaybackPage() {
             {recording.processing_status === 'pending' && recording.transcript && (
               <Alert>
                 <AlertTriangle className="h-4 w-4" />
-                <AlertTitle>Analysis Pending</AlertTitle>
+                <AlertTitle>{t('playback.analysisPending')}</AlertTitle>
                 <AlertDescription className="flex items-center justify-between">
-                  <span>Transcript available. Ready for AI analysis.</span>
+                  <span>{t('playback.analysisPendingDescription')}</span>
                   <Button 
                     size="sm" 
                     onClick={retriggerAnalysis}
@@ -489,7 +491,7 @@ export default function RecordingPlaybackPage() {
                     ) : (
                       <Play className="h-4 w-4 mr-2" />
                     )}
-                    Start Analysis
+                    {t('playback.startAnalysis')}
                   </Button>
                 </AlertDescription>
               </Alert>
@@ -498,9 +500,9 @@ export default function RecordingPlaybackPage() {
             {recording.processing_status === 'transcribing' && (
               <Alert className="border-blue-500/50 bg-blue-500/10">
                 <RefreshCw className="h-4 w-4 text-blue-500 animate-spin" />
-                <AlertTitle>Transcribing Audio</AlertTitle>
+                <AlertTitle>{t('playback.transcribingAudio')}</AlertTitle>
                 <AlertDescription>
-                  Converting speech to text using OpenAI Whisper. This typically takes 1-3 minutes...
+                  {t('playback.transcribingDescription')}
                 </AlertDescription>
               </Alert>
             )}
@@ -508,9 +510,9 @@ export default function RecordingPlaybackPage() {
             {(recording.processing_status === 'analyzing' || recording.processing_status === 'processing') && (
               <Alert className="border-purple-500/50 bg-purple-500/10">
                 <Sparkles className="h-4 w-4 text-purple-500 animate-pulse" />
-                <AlertTitle>AI Analysis in Progress</AlertTitle>
+                <AlertTitle>{t('playback.aiAnalysisInProgress')}</AlertTitle>
                 <AlertDescription>
-                  Generating summary, action items, key moments, and skills assessment...
+                  {t('playback.aiAnalysisDescription')}
                 </AlertDescription>
               </Alert>
             )}
@@ -518,7 +520,7 @@ export default function RecordingPlaybackPage() {
             {recording.processing_status === 'failed' && (
               <Alert variant="destructive">
                 <AlertTriangle className="h-4 w-4" />
-                <AlertTitle>Processing Failed</AlertTitle>
+                <AlertTitle>{t('playback.processingFailed')}</AlertTitle>
                 <AlertDescription className="flex items-center justify-between">
                   <span>{recording.processing_error || 'An error occurred during processing.'}</span>
                   <Button 
@@ -533,7 +535,7 @@ export default function RecordingPlaybackPage() {
                     ) : (
                       <RefreshCw className="h-4 w-4 mr-2" />
                     )}
-                    Retry
+                    {t('common:actions.retry')}
                   </Button>
                 </AlertDescription>
               </Alert>
@@ -542,16 +544,16 @@ export default function RecordingPlaybackPage() {
             {/* Tabs */}
             <Tabs defaultValue="transcript" className="w-full">
               <TabsList className="w-full grid grid-cols-7">
-                <TabsTrigger value="transcript">Transcript</TabsTrigger>
-                <TabsTrigger value="summary">Summary</TabsTrigger>
+                <TabsTrigger value="transcript">{t('playback.tabs.transcript')}</TabsTrigger>
+                <TabsTrigger value="summary">{t('playback.tabs.summary')}</TabsTrigger>
                 <TabsTrigger value="highlights" className="gap-1">
                   <Sparkles className="h-3 w-3" />
-                  AI Highlights
+                  {t('playback.tabs.aiHighlights')}
                 </TabsTrigger>
-                <TabsTrigger value="actions">Actions</TabsTrigger>
-                <TabsTrigger value="moments">Key Moments</TabsTrigger>
-                <TabsTrigger value="skills">Skills</TabsTrigger>
-                <TabsTrigger value="metrics">Metrics</TabsTrigger>
+                <TabsTrigger value="actions">{t('playback.tabs.actions')}</TabsTrigger>
+                <TabsTrigger value="moments">{t('playback.tabs.keyMoments')}</TabsTrigger>
+                <TabsTrigger value="skills">{t('playback.tabs.skills')}</TabsTrigger>
+                <TabsTrigger value="metrics">{t('playback.tabs.metrics')}</TabsTrigger>
               </TabsList>
 
               {/* AI Highlights Tab - NEW */}
@@ -565,7 +567,7 @@ export default function RecordingPlaybackPage() {
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <Mic className="h-5 w-5" />
-                      Synced Transcript
+                      {t('playback.syncedTranscript')}
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
@@ -587,12 +589,12 @@ export default function RecordingPlaybackPage() {
                         <Mic className="h-12 w-12 mx-auto text-muted-foreground/50" />
                         <div>
                           <p className="text-muted-foreground mb-2">
-                            No transcript available yet.
+                            {t('playback.noTranscriptYet')}
                           </p>
                           <p className="text-sm text-muted-foreground/70 mb-4">
-                            {recording.processing_status === 'transcribing' 
-                              ? 'Transcription is in progress...' 
-                              : 'Click below to generate a transcript using AI.'}
+                            {recording.processing_status === 'transcribing'
+                              ? t('playback.transcriptionInProgress')
+                              : t('playback.clickToGenerate')}
                           </p>
                         </div>
                         {recording.processing_status !== 'transcribing' && recording.recording_url && (
@@ -605,13 +607,13 @@ export default function RecordingPlaybackPage() {
                             ) : (
                               <Mic className="h-4 w-4 mr-2" />
                             )}
-                            Generate Transcript
+                            {t('playback.generateTranscript')}
                           </Button>
                         )}
                         {recording.processing_status === 'transcribing' && (
                           <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
                             <RefreshCw className="h-4 w-4 animate-spin" />
-                            <span>Processing audio...</span>
+                            <span>{t('playback.processingAudio')}</span>
                           </div>
                         )}
                       </div>
@@ -624,7 +626,7 @@ export default function RecordingPlaybackPage() {
               <TabsContent value="summary" className="space-y-4">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Executive Summary</CardTitle>
+                    <CardTitle>{t('playback.executiveSummary')}</CardTitle>
                   </CardHeader>
                   <CardContent>
                     {(analysis.executiveSummary || recording.executive_summary) ? (
@@ -658,11 +660,11 @@ export default function RecordingPlaybackPage() {
                     {(candidateEval.overallFit || decisionGuidance.recommendation) && (
                       <div className="mt-6 grid grid-cols-2 gap-4">
                         <div className={`p-4 rounded-lg ${getFitColor(candidateEval.overallFit)}`}>
-                          <p className="text-xs font-medium mb-1">Overall Fit</p>
+                          <p className="text-xs font-medium mb-1">{t('playback.overallFit')}</p>
                           <p className="text-2xl font-bold capitalize">{candidateEval.overallFit || 'N/A'}</p>
                         </div>
                         <div className={`p-4 rounded-lg ${getFitColor(decisionGuidance.recommendation)}`}>
-                          <p className="text-xs font-medium mb-1">Recommendation</p>
+                          <p className="text-xs font-medium mb-1">{t('playback.recommendation')}</p>
                           <p className="text-2xl font-bold capitalize">
                             {decisionGuidance.recommendation?.replace('_', ' ') || 'N/A'}
                           </p>
@@ -672,7 +674,7 @@ export default function RecordingPlaybackPage() {
 
                     {candidateEval.strengths?.length > 0 && (
                       <div className="mt-6">
-                        <h4 className="font-semibold mb-2">Strengths</h4>
+                        <h4 className="font-semibold mb-2">{t('playback.strengths')}</h4>
                         <ul className="space-y-1">
                           {candidateEval.strengths.map((strength: string, idx: number) => (
                             <li key={idx} className="flex items-start gap-2 text-sm">
@@ -686,7 +688,7 @@ export default function RecordingPlaybackPage() {
 
                     {candidateEval.weaknesses?.length > 0 && (
                       <div className="mt-4">
-                        <h4 className="font-semibold mb-2">Areas for Concern</h4>
+                        <h4 className="font-semibold mb-2">{t('playback.areasForConcern')}</h4>
                         <ul className="space-y-1">
                           {candidateEval.weaknesses.map((weakness: string, idx: number) => (
                             <li key={idx} className="flex items-start gap-2 text-sm">
@@ -705,7 +707,7 @@ export default function RecordingPlaybackPage() {
               <TabsContent value="actions" className="space-y-4">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Action Items</CardTitle>
+                    <CardTitle>{t('playback.actionItems')}</CardTitle>
                   </CardHeader>
                   <CardContent>
                     {(analysis.actionItems || recording.action_items)?.length > 0 ? (
@@ -726,7 +728,7 @@ export default function RecordingPlaybackPage() {
                         ))}
                       </div>
                     ) : (
-                      <p className="text-muted-foreground text-center py-8">No action items identified</p>
+                      <p className="text-muted-foreground text-center py-8">{t('playback.noActionItems')}</p>
                     )}
                   </CardContent>
                 </Card>
@@ -736,7 +738,7 @@ export default function RecordingPlaybackPage() {
               <TabsContent value="moments" className="space-y-4">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Key Moments</CardTitle>
+                    <CardTitle>{t('playback.keyMoments')}</CardTitle>
                   </CardHeader>
                   <CardContent>
                     {(analysis.keyMoments || recording.key_moments)?.length > 0 ? (
@@ -777,7 +779,7 @@ export default function RecordingPlaybackPage() {
                         </div>
                       </ScrollArea>
                     ) : (
-                      <p className="text-muted-foreground text-center py-8">No key moments identified</p>
+                      <p className="text-muted-foreground text-center py-8">{t('playback.noKeyMoments')}</p>
                     )}
                   </CardContent>
                 </Card>
@@ -787,7 +789,7 @@ export default function RecordingPlaybackPage() {
               <TabsContent value="skills" className="space-y-4">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Skills Assessment</CardTitle>
+                    <CardTitle>{t('playback.skillsAssessment')}</CardTitle>
                   </CardHeader>
                   <CardContent>
                     {candidateEval.skillsAssessment?.length > 0 ? (
@@ -817,7 +819,7 @@ export default function RecordingPlaybackPage() {
                         ))}
                       </div>
                     ) : (
-                      <p className="text-muted-foreground text-center py-8">No skills assessment available</p>
+                      <p className="text-muted-foreground text-center py-8">{t('playback.noSkillsAssessment')}</p>
                     )}
                   </CardContent>
                 </Card>
@@ -839,7 +841,7 @@ export default function RecordingPlaybackPage() {
             {decisionGuidance.nextSteps?.length > 0 && (
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base">Next Steps</CardTitle>
+                  <CardTitle className="text-base">{t('playback.nextSteps')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <ul className="space-y-2">
@@ -858,7 +860,7 @@ export default function RecordingPlaybackPage() {
             {recording.participants?.length > 0 && (
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base">Participants</CardTitle>
+                  <CardTitle className="text-base">{t('playback.participants')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
@@ -876,23 +878,23 @@ export default function RecordingPlaybackPage() {
             {/* Recording Info */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">Recording Info</CardTitle>
+                <CardTitle className="text-base">{t('playback.recordingInfo')}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Duration</span>
+                  <span className="text-muted-foreground">{t('playback.duration')}</span>
                   <span>{Math.round((recording.duration_seconds || 0) / 60)} min</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">File Size</span>
+                  <span className="text-muted-foreground">{t('playback.fileSize')}</span>
                   <span>{Math.round((recording.file_size_bytes || 0) / 1024 / 1024)} MB</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Source</span>
+                  <span className="text-muted-foreground">{t('playback.source')}</span>
                   <span>{sourceType}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Status</span>
+                  <span className="text-muted-foreground">{t('playback.status')}</span>
                   <Badge variant="outline" className="capitalize">
                     {recording.processing_status}
                   </Badge>
@@ -903,7 +905,7 @@ export default function RecordingPlaybackPage() {
             {/* Quick Actions */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">Quick Actions</CardTitle>
+                <CardTitle className="text-base">{t('playback.quickActions')}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
                 <Button 
@@ -913,7 +915,7 @@ export default function RecordingPlaybackPage() {
                   onClick={() => setClipDialogOpen(true)}
                 >
                   <Scissors className="h-4 w-4 mr-2" />
-                  Create Clip
+                  {t('playback.createClip')}
                 </Button>
                 <Button 
                   variant="outline" 
@@ -923,16 +925,16 @@ export default function RecordingPlaybackPage() {
                   disabled={sendingEmail || !recording.ai_summary}
                 >
                   <Mail className="h-4 w-4 mr-2" />
-                  Email Summary
+                  {t('playback.emailSummary')}
                 </Button>
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start" 
+                <Button
+                  variant="outline"
+                  className="w-full justify-start"
                   size="sm"
                   onClick={() => setShareDialogOpen(true)}
                 >
                   <Share2 className="h-4 w-4 mr-2" />
-                  Share Recording
+                  {t('playback.shareRecording')}
                 </Button>
               </CardContent>
             </Card>

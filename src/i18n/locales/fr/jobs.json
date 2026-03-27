@@ -1,0 +1,223 @@
+{
+  "title": "Emplois",
+  "subtitle": "Gérez les offres d'emploi et les candidatures",
+  "create": {
+    "title": "Créer une offre",
+    "fromTemplate": "Créer à partir d'un modèle",
+    "fromScratch": "Créer de zéro",
+    "duplicate": "Dupliquer l'offre"
+  },
+  "edit": {
+    "title": "Modifier l'offre",
+    "save": "Enregistrer les modifications",
+    "publish": "Publier l'offre",
+    "unpublish": "Dépublier l'offre"
+  },
+  "apply": {
+    "title": "Postuler maintenant",
+    "button": "Postuler à ce poste",
+    "submitted": "Candidature soumise",
+    "alreadyApplied": "Déjà postulé",
+    "requiresLogin": "Connectez-vous pour postuler"
+  },
+  "details": {
+    "title": "Détails de l'offre",
+    "description": "Description",
+    "requirements": "Prérequis",
+    "responsibilities": "Responsabilités",
+    "benefits": "Avantages",
+    "salary": "Fourchette salariale",
+    "location": "Localisation",
+    "department": "Département",
+    "reportingTo": "Rattachement hiérarchique",
+    "startDate": "Date de début",
+    "deadline": "Date limite de candidature"
+  },
+  "status": {
+    "draft": "Brouillon",
+    "published": "Publié",
+    "closed": "Clôturé",
+    "paused": "En pause",
+    "archived": "Archivé",
+    "filled": "Poste pourvu"
+  },
+  "types": {
+    "fullTime": "Temps plein",
+    "partTime": "Temps partiel",
+    "contract": "Contrat",
+    "freelance": "Freelance",
+    "internship": "Stage",
+    "temporary": "Temporaire"
+  },
+  "workMode": {
+    "remote": "Télétravail",
+    "hybrid": "Hybride",
+    "onsite": "Sur site",
+    "flexible": "Flexible"
+  },
+  "experience": {
+    "entry": "Débutant",
+    "junior": "Junior (1-2 ans)",
+    "mid": "Intermédiaire (3-5 ans)",
+    "senior": "Senior (5-8 ans)",
+    "lead": "Responsable (8+ ans)",
+    "executive": "Dirigeant"
+  },
+  "pipeline": {
+    "title": "Pipeline",
+    "applied": "Postulé",
+    "screening": "Présélection",
+    "interview": "Entretien",
+    "assessment": "Évaluation",
+    "offer": "Offre",
+    "hired": "Embauché",
+    "rejected": "Refusé",
+    "candidatesInStage": "Candidats à cette étape"
+  },
+  "filters": {
+    "title": "Filtres",
+    "all": "Toutes les offres",
+    "location": "Localisation",
+    "department": "Département",
+    "type": "Type de poste",
+    "experience": "Niveau d'expérience",
+    "salary": "Fourchette salariale",
+    "posted": "Date de publication",
+    "remote": "Télétravail uniquement",
+    "clearAll": "Effacer tous les filtres"
+  },
+  "search": {
+    "placeholder": "Rechercher des offres par intitulé, entreprise ou compétences...",
+    "noResults": "Aucune offre trouvée",
+    "results": "offres trouvées",
+    "savedSearches": "Recherches enregistrées"
+  },
+  "actions": {
+    "view": "Voir l'offre",
+    "edit": "Modifier l'offre",
+    "delete": "Supprimer l'offre",
+    "duplicate": "Dupliquer l'offre",
+    "share": "Partager l'offre",
+    "bookmark": "Sauvegarder l'offre",
+    "removeBookmark": "Retirer des offres sauvegardées",
+    "publish": "Publier",
+    "unpublish": "Dépublier",
+    "close": "Clôturer le poste",
+    "reopen": "Rouvrir le poste"
+  },
+  "applicants": {
+    "title": "Candidats",
+    "new": "Nouveaux candidats",
+    "total": "Total des candidats",
+    "qualified": "Qualifiés",
+    "shortlisted": "Présélectionnés",
+    "viewAll": "Voir tous les candidats"
+  },
+  "posting": {
+    "title": "Publication de l'offre",
+    "preview": "Aperçu de la publication",
+    "visibility": "Visibilité",
+    "public": "Publique",
+    "private": "Privée",
+    "internal": "Interne uniquement",
+    "expiry": "Expiration de la publication",
+    "boost": "Promouvoir cette offre"
+  },
+  "analytics": {
+    "title": "Analytique de l'offre",
+    "views": "Vues de l'offre",
+    "applications": "Candidatures",
+    "conversionRate": "Taux de conversion",
+    "avgTimeToApply": "Temps moyen pour postuler",
+    "topSources": "Principales sources"
+  },
+  "recommendations": {
+    "title": "Recommandé pour vous",
+    "basedOn": "Basé sur votre profil",
+    "similar": "Offres similaires",
+    "trending": "Offres populaires"
+  },
+  "alerts": {
+    "title": "Alertes emploi",
+    "create": "Créer une alerte",
+    "manage": "Gérer les alertes",
+    "frequency": "Fréquence des alertes",
+    "daily": "Quotidienne",
+    "weekly": "Hebdomadaire",
+    "instant": "Instantanée"
+  },
+  "company": {
+    "about": "À propos de l'entreprise",
+    "culture": "Culture d'entreprise",
+    "size": "Taille de l'entreprise",
+    "industry": "Secteur d'activité",
+    "website": "Site web",
+    "otherJobs": "Autres offres de cette entreprise"
+  },
+  "application": {
+    "resume": "CV",
+    "coverLetter": "Lettre de motivation",
+    "questions": "Questions de candidature",
+    "attachments": "Pièces jointes",
+    "submit": "Soumettre la candidature",
+    "withdraw": "Retirer la candidature"
+  },
+  "empty": {
+    "noJobs": "Aucune offre disponible",
+    "noSavedJobs": "Aucune offre sauvegardée",
+    "noApplications": "Aucune candidature pour le moment",
+    "createFirst": "Publiez votre première offre"
+  },
+  "notifications": {
+    "published": "Offre publiée avec succès",
+    "updated": "Offre mise à jour avec succès",
+    "closed": "Offre clôturée",
+    "applicationReceived": "Nouvelle candidature reçue"
+  },
+  "companyJobsDashboard": {
+    "desc": "Gérez vos offres et personnalisez le pipeline de recrutement",
+    "desc2": "Ces étapes seront utilisées comme modèle pour toutes les nouvelles offres",
+    "desc3": "Nouvelle candidature",
+    "desc4": "Soyez notifié lorsqu'un candidat postule",
+    "desc5": "Changements d'étape",
+    "desc6": "Soyez notifié lorsque des candidats changent d'étape",
+    "desc7": "Refus",
+    "desc8": "Soyez notifié lorsque des candidats sont refusés",
+    "desc9": "Configurez la notation des candidats pour ce poste"
+  },
+  "jobDetail": {
+    "text1": "Offre introuvable",
+    "text2": "Retour aux offres",
+    "text3": "Aperçu",
+    "text4": "Détails",
+    "text5": "Correspondances",
+    "text6": "Entreprise",
+    "text7": "Activité",
+    "text8": "Générer une lettre de motivation",
+    "text9": "Créez une lettre de motivation assistée par l'IA pour ce poste",
+    "text10": "Créateur de lettre de motivation",
+    "text11": "Responsabilités clés",
+    "text12": "Principaux domaines d'intervention",
+    "text13": "Principaux avantages",
+    "text14": "Ce que nous offrons",
+    "text15": "Analytique de l'offre",
+    "text16": "Métriques de performance et informations",
+    "text17": "Total des candidatures",
+    "text18": "Total des vues",
+    "text19": "Taux de conversion",
+    "text20": "Jours actifs"
+  },
+  "jobs": {
+    "title": "Aucune offre enregistrée pour le moment",
+    "desc": "Postes sélectionnés pour les membres de The Quantum Club",
+    "desc2": "Parcourez les opportunités et enregistrez les postes qui vous intéressent"
+  },
+  "sharedPipelineView": {
+    "desc": "Ce pipeline est protégé. Saisissez le mot de passe pour le consulter.",
+    "text2": "Lien indisponible",
+    "text3": "Mot de passe requis",
+    "text4": "Saisissez le mot de passe",
+    "text5": "Aucun candidat dans ce pipeline pour le moment.",
+    "text6": "The Quantum Club"
+  }
+}

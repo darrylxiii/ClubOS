@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -20,13 +21,14 @@ export function MilestoneRevisionModal({
   milestoneId,
   onRevisionRequested,
 }: MilestoneRevisionModalProps) {
+  const { t } = useTranslation('common');
   const [feedback, setFeedback] = useState("");
   const [priority, setPriority] = useState<"low" | "medium" | "high">("medium");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async () => {
     if (!feedback.trim()) {
-      toast.error("Please provide revision feedback");
+      toast.error(t("please_provide_revision_feedback", "Please provide revision feedback"));
       return;
     }
 
@@ -51,7 +53,7 @@ export function MilestoneRevisionModal({
 
       if (error) throw error;
 
-      toast.success("Revision requested successfully");
+      toast.success(t("revision_requested_successfully", "Revision requested successfully"));
       setFeedback("");
       setPriority("medium");
       onOpenChange(false);
@@ -68,7 +70,7 @@ export function MilestoneRevisionModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Request Milestone Revision</DialogTitle>
+          <DialogTitle>{t("request_milestone_revision", "Request Milestone Revision")}</DialogTitle>
           <DialogDescription>
             Provide feedback on what needs to be changed or improved in this milestone.
           </DialogDescription>
@@ -76,24 +78,24 @@ export function MilestoneRevisionModal({
 
         <div className="space-y-4">
           <div>
-            <Label htmlFor="priority">Priority</Label>
+            <Label htmlFor="priority">{t("priority", "Priority")}</Label>
             <Select value={priority} onValueChange={(value: any) => setPriority(value)}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="low">Low - Minor changes</SelectItem>
-                <SelectItem value="medium">Medium - Some adjustments needed</SelectItem>
-                <SelectItem value="high">High - Significant changes required</SelectItem>
+                <SelectItem value="low">{t("low_minor_changes", "Low - Minor changes")}</SelectItem>
+                <SelectItem value="medium">{t("medium_some_adjustments_needed", "Medium - Some adjustments needed")}</SelectItem>
+                <SelectItem value="high">{t("high_significant_changes_required", "High - Significant changes required")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <div>
-            <Label htmlFor="feedback">Revision Feedback *</Label>
+            <Label htmlFor="feedback">{t("revision_feedback", "Revision Feedback *")}</Label>
             <Textarea
               id="feedback"
-              placeholder="Describe what needs to be changed, improved, or clarified..."
+              placeholder={t("describe_what_needs_to", "Describe what needs to be changed, improved, or clarified...")}
               value={feedback}
               onChange={(e) => setFeedback(e.target.value)}
               rows={6}

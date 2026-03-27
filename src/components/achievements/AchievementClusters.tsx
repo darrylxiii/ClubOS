@@ -1,18 +1,19 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { BadgeCard } from "./BadgeCard";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { 
-  Sparkles, 
-  Zap, 
-  Users, 
-  Brain, 
-  Crown, 
-  Calendar, 
-  Rocket 
+import {
+  Sparkles,
+  Zap,
+  Users,
+  Brain,
+  Crown,
+  Calendar,
+  Rocket
 } from "lucide-react";
 
 interface ClusterProps {
@@ -36,15 +37,15 @@ interface Achievement {
   progress?: any;
 }
 
-const categories = [
-  { value: "all", label: "All", icon: Sparkles },
-  { value: "influence", label: "Influence", icon: Zap },
-  { value: "innovation", label: "Innovation", icon: Rocket },
-  { value: "social", label: "Social", icon: Users },
-  { value: "learning", label: "Learning", icon: Brain },
-  { value: "prestige", label: "Prestige", icon: Crown },
-  { value: "event", label: "Event", icon: Calendar },
-  { value: "pioneer", label: "Pioneer", icon: Sparkles },
+const getCategoryLabels = (t: (key: string) => string) => [
+  { value: "all", label: t('achievements.categories.all'), icon: Sparkles },
+  { value: "influence", label: t('achievements.categories.influence'), icon: Zap },
+  { value: "innovation", label: t('achievements.categories.innovation'), icon: Rocket },
+  { value: "social", label: t('achievements.categories.social'), icon: Users },
+  { value: "learning", label: t('achievements.categories.learning'), icon: Brain },
+  { value: "prestige", label: t('achievements.categories.prestige'), icon: Crown },
+  { value: "event", label: t('achievements.categories.event'), icon: Calendar },
+  { value: "pioneer", label: t('achievements.categories.pioneer'), icon: Sparkles },
 ];
 
 export const AchievementClusters = ({
@@ -52,6 +53,7 @@ export const AchievementClusters = ({
   selectedCategory,
   selectedRarity,
 }: ClusterProps) => {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [loading, setLoading] = useState(true);
@@ -151,7 +153,7 @@ export const AchievementClusters = ({
         ))}
         {achievements.length === 0 && (
           <p className="text-muted-foreground col-span-full text-center py-8">
-            No achievements found
+            {t('achievements.noAchievementsFound')}
           </p>
         )}
       </div>
@@ -163,20 +165,20 @@ export const AchievementClusters = ({
       <TabsList className="glass mb-6">
         <TabsTrigger value="earned" className="gap-2">
           <Crown className="h-4 w-4" />
-          Earned ({earned.length})
+          {t('achievements.earned')} ({earned.length})
         </TabsTrigger>
         <TabsTrigger value="locked" className="gap-2">
           <Sparkles className="h-4 w-4" />
-          Locked ({locked.length})
+          {t('achievements.locked')} ({locked.length})
         </TabsTrigger>
       </TabsList>
 
       <TabsContent value="earned" className="space-y-6">
-        {renderCluster("Earned Achievements", earned, "earned")}
+        {renderCluster(t('achievements.earnedAchievements'), earned, "earned")}
       </TabsContent>
 
       <TabsContent value="locked" className="space-y-6">
-        {renderCluster("Locked Achievements", locked, "locked")}
+        {renderCluster(t('achievements.lockedAchievements'), locked, "locked")}
       </TabsContent>
     </Tabs>
   );

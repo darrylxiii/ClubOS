@@ -1,4 +1,5 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useTranslation } from 'react-i18next';
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -21,6 +22,7 @@ export const ClubTaskDetailDialog = ({
   onTaskUpdated,
   onStatusChange 
 }: ClubTaskDetailDialogProps) => {
+  const { t } = useTranslation('common');
   if (!task) return null;
 
   return (
@@ -33,7 +35,7 @@ export const ClubTaskDetailDialog = ({
               {task.status === "blocked" && (
                 <Badge variant="destructive">
                   <Hand className="h-3 w-3 mr-1" />
-                  Blocked
+                  {t('clubTasks.blocked')}
                 </Badge>
               )}
             </div>
@@ -44,13 +46,13 @@ export const ClubTaskDetailDialog = ({
         <div className="space-y-4">
           {task.description && (
             <div>
-              <h4 className="font-medium mb-2">Description</h4>
+              <h4 className="font-medium mb-2">{t('clubTasks.description')}</h4>
               <p className="text-sm text-muted-foreground">{task.description}</p>
             </div>
           )}
 
           <div>
-            <h4 className="font-medium mb-2">Status</h4>
+            <h4 className="font-medium mb-2">{t('clubTasks.status')}</h4>
             <Select 
               value={task.status} 
               onValueChange={(value) => {
@@ -62,20 +64,20 @@ export const ClubTaskDetailDialog = ({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="blocked">🚫 Blocked</SelectItem>
-                <SelectItem value="parking_lot">🅿️ Parking Lot</SelectItem>
-                <SelectItem value="to_do">📋 To Do</SelectItem>
-                <SelectItem value="in_progress">🚀 In Progress</SelectItem>
-                <SelectItem value="on_hold">⏸️ On Hold</SelectItem>
-                <SelectItem value="completed">✅ Completed</SelectItem>
+                <SelectItem value="pending">{t('clubTasks.statusPending')}</SelectItem>
+                <SelectItem value="blocked">{t('clubTasks.statusBlocked')}</SelectItem>
+                <SelectItem value="parking_lot">{t('clubTasks.statusParkingLot')}</SelectItem>
+                <SelectItem value="to_do">{t('clubTasks.statusToDo')}</SelectItem>
+                <SelectItem value="in_progress">{t('clubTasks.statusInProgress')}</SelectItem>
+                <SelectItem value="on_hold">{t('clubTasks.statusOnHold')}</SelectItem>
+                <SelectItem value="completed">{t('clubTasks.statusCompleted')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           {task.assignees && task.assignees.length > 0 && (
             <div>
-              <h4 className="font-medium mb-2">Assigned To</h4>
+              <h4 className="font-medium mb-2">{t('clubTasks.assignedTo')}</h4>
               <div className="flex flex-wrap gap-2">
                 {task.assignees.map((assignee: any, idx: number) => (
                   <div key={idx} className="flex items-center gap-2 px-3 py-2 rounded-md bg-muted">
@@ -94,7 +96,7 @@ export const ClubTaskDetailDialog = ({
 
           {task.blockers && task.blockers.length > 0 && (
             <div>
-              <h4 className="font-medium mb-2 text-destructive">Blocked By</h4>
+              <h4 className="font-medium mb-2 text-destructive">{t('clubTasks.blockedBy')}</h4>
               <div className="space-y-2">
                 {task.blockers.map((blocker: any, idx: number) => (
                   <div key={idx} className="p-3 rounded-md bg-destructive/10 border border-destructive/20">
@@ -110,7 +112,7 @@ export const ClubTaskDetailDialog = ({
 
           {task.due_date && (
             <div>
-              <h4 className="font-medium mb-2">Due Date</h4>
+              <h4 className="font-medium mb-2">{t('clubTasks.dueDate')}</h4>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Calendar className="h-4 w-4" />
                 {format(new Date(task.due_date), "MMMM d, yyyy")}
@@ -120,9 +122,7 @@ export const ClubTaskDetailDialog = ({
         </div>
 
         <div className="flex justify-end pt-4">
-          <Button variant="outline" onClick={onClose}>
-            Close
-          </Button>
+          <Button variant="outline" onClick={onClose}>{t('clubTasks.close')}</Button>
         </div>
       </DialogContent>
     </Dialog>

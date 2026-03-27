@@ -1,4 +1,5 @@
 import { X, Mic, MicOff, MessageSquare, Sparkles } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
@@ -36,6 +37,7 @@ export const ClubAIVoiceDialog = ({
   onEndSession,
   error,
 }: ClubAIVoiceDialogProps) => {
+  const { t } = useTranslation('common');
   const formatTime = (date: Date) => {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
@@ -81,7 +83,7 @@ export const ClubAIVoiceDialog = ({
                 )}
               </div>
               <div>
-                <h3 className="font-semibold text-foreground">ClubAI Voice</h3>
+                <h3 className="font-semibold text-foreground">{t('voice.clubAIVoice')}</h3>
                 <p className={cn('text-xs', getStatusColor())}>{getStatusText()}</p>
               </div>
             </div>
@@ -121,7 +123,7 @@ export const ClubAIVoiceDialog = ({
             {transcript.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground">
                 <MessageSquare className="w-8 h-8 mb-2 opacity-50" />
-                <p className="text-sm">Start speaking to interact with ClubAI</p>
+                <p className="text-sm">{t('voice.startSpeakingToInteractWithClubAI')}</p>
               </div>
             ) : (
               <div className="space-y-3 py-2">
@@ -162,7 +164,7 @@ export const ClubAIVoiceDialog = ({
                   'w-2 h-2 rounded-full',
                   isListening ? 'bg-green-500' : 'bg-muted-foreground/30'
                 )} />
-                <span className="text-xs text-muted-foreground">Mic</span>
+                <span className="text-xs text-muted-foreground">{t('voice.mic')}</span>
               </div>
             </div>
             <Button
@@ -170,9 +172,7 @@ export const ClubAIVoiceDialog = ({
               size="sm"
               onClick={onEndSession}
               className="h-8 text-destructive border-destructive/50 hover:bg-destructive/10"
-            >
-              End Session
-            </Button>
+            >{t('voice.endSession')}</Button>
           </div>
 
           {/* Error Display */}

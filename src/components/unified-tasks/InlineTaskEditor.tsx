@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
@@ -20,6 +21,7 @@ export const InlineTaskEditor = ({
   onSave, 
   onCancel 
 }: InlineTaskEditorProps) => {
+  const { t } = useTranslation('common');
   const [value, setValue] = useState(initialValue);
   const [saving, setSaving] = useState(false);
   const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement>(null);
@@ -46,11 +48,11 @@ export const InlineTaskEditor = ({
 
       if (error) throw error;
       
-      toast.success(`${field.charAt(0).toUpperCase() + field.slice(1)} updated`);
+      toast.success(t('tasks.fieldUpdated', '{{field}} updated', { field: field.charAt(0).toUpperCase() + field.slice(1) }));
       onSave();
     } catch (error) {
       console.error("Error updating task:", error);
-      toast.error("Failed to update task");
+      toast.error(t('tasks.failedToUpdateTask', 'Failed to update task'));
     } finally {
       setSaving(false);
     }
@@ -76,7 +78,7 @@ export const InlineTaskEditor = ({
           onBlur={handleSave}
           disabled={saving}
           className="min-h-[80px] pr-16"
-          placeholder="Add description..."
+          placeholder={t('tasks.addDescription', 'Add description...')}
         />
         <div className="absolute top-2 right-2 flex gap-1">
           <button

@@ -17,6 +17,7 @@ import { toast } from "sonner";
 import confetti from "canvas-confetti";
 import { Sparkles, CheckCircle2 } from "lucide-react";
 import { trackCandidateInteraction } from "@/services/sessionTracking";
+import { useTranslation } from 'react-i18next';
 
 interface CandidateActionDialogProps {
   open: boolean;
@@ -35,6 +36,7 @@ export const CandidateActionDialog = ({
   stages,
   onComplete,
 }: CandidateActionDialogProps) => {
+  const { t } = useTranslation('partner');
   const [feedback, setFeedback] = useState("");
   const [loading, setLoading] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
@@ -50,7 +52,7 @@ export const CandidateActionDialog = ({
 
       if (action === 'advance') {
         if (!nextStage) {
-          toast.error("No next stage available");
+          toast.error(t('candidateActionDialog.toast.noNextStageAvailable'));
           return;
         }
 
@@ -90,7 +92,7 @@ export const CandidateActionDialog = ({
         });
 
         toast.success(`${candidateName} advanced to ${nextStage.name}`, {
-          description: "Club Check completed successfully",
+          description: t('candidateActionDialog.desc.clubCheckCompletedSuccessfully'),
           duration: 4000
         });
         if (userData.user?.id) {
@@ -98,7 +100,7 @@ export const CandidateActionDialog = ({
         }
       } else if (action === 'reject') {
         if (!rejectionReason && !feedback.trim()) {
-          toast.error("Please provide a rejection reason");
+          toast.error(t('candidateActionDialog.toast.pleaseProvideARejectionReason'));
           setLoading(false);
           return;
         }
@@ -132,7 +134,7 @@ export const CandidateActionDialog = ({
         }
 
         toast.success(`${candidateName} has been rejected`, {
-          description: "Feedback recorded and candidate notified",
+          description: t('candidateActionDialog.desc.feedbackRecordedAndCandidateNotified'),
           duration: 4000
         });
 
@@ -145,7 +147,7 @@ export const CandidateActionDialog = ({
       onComplete();
     } catch (error) {
       console.error('Error processing action:', error);
-      toast.error("Failed to process action");
+      toast.error(t('candidateActionDialog.toast.failedToProcessAction'));
     } finally {
       setLoading(false);
     }
@@ -159,9 +161,7 @@ export const CandidateActionDialog = ({
             {action === 'advance' ? (
               <>
                 <CheckCircle2 className="w-6 h-6 text-green-500" />
-                <span className="text-foreground font-semibold">
-                  Club Check - Advance Candidate
-                </span>
+                <span className="text-foreground font-semibold">{t('candidateActionDialog.clubCheckAdvanceCandidate')}</span>
               </>
             ) : (
               'Reject Candidate'
@@ -177,12 +177,12 @@ export const CandidateActionDialog = ({
                 </p>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground bg-accent/10 p-3 rounded-lg">
                   <Sparkles className="w-4 h-4 text-accent" />
-                  <span>This candidate has passed Club vetting standards</span>
+                  <span>{t('candidateActionDialog.thisCandidateHasPassedClubVettingStandar')}</span>
                 </div>
               </div>
             ) : (
               <p>
-                Reject <strong className="text-foreground">{candidateName}</strong>. This action will
+                {t('common:reject')} <strong className="text-foreground">{candidateName}</strong>. This action will
                 notify the candidate with your feedback.
               </p>
             )}
@@ -192,19 +192,19 @@ export const CandidateActionDialog = ({
         <div className="space-y-4 py-4">
           {action === 'reject' && (
             <div className="space-y-2">
-              <Label htmlFor="reason">Rejection Reason *</Label>
+              <Label htmlFor="reason">{t('candidateActionDialog.label.rejectionReason')}</Label>
               <Select value={rejectionReason} onValueChange={setRejectionReason}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select a reason" />
+                  <SelectValue placeholder={t('candidateActionDialog.placeholder.selectAReason')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Not a fit">Not a fit</SelectItem>
-                  <SelectItem value="Salary expectations">Salary expectations</SelectItem>
-                  <SelectItem value="Location">Location</SelectItem>
-                  <SelectItem value="Seniority mismatch">Seniority mismatch</SelectItem>
-                  <SelectItem value="Skills gap">Skills gap</SelectItem>
-                  <SelectItem value="Cultural fit">Cultural fit</SelectItem>
-                  <SelectItem value="Other">Other</SelectItem>
+                  <SelectItem value="Not a fit">{t('candidateActionDialog.option.notAFit')}</SelectItem>
+                  <SelectItem value="Salary expectations">{t('candidateActionDialog.option.salaryExpectations')}</SelectItem>
+                  <SelectItem value="Location">{t('candidateActionDialog.option.location')}</SelectItem>
+                  <SelectItem value="Seniority mismatch">{t('candidateActionDialog.option.seniorityMismatch')}</SelectItem>
+                  <SelectItem value="Skills gap">{t('candidateActionDialog.option.skillsGap')}</SelectItem>
+                  <SelectItem value="Cultural fit">{t('candidateActionDialog.option.culturalFit')}</SelectItem>
+                  <SelectItem value="Other">{t('candidateActionDialog.option.other')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -232,7 +232,7 @@ export const CandidateActionDialog = ({
         </div>
 
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={loading}>Cancel</AlertDialogCancel>
+          <AlertDialogCancel disabled={loading}>{t('common:cancel')}</AlertDialogCancel>
           <AlertDialogAction
             onClick={(e) => {
               e.preventDefault();

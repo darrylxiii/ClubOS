@@ -27,7 +27,7 @@ import { TrendChart } from '@/components/admin/shared/TrendChart';
 import { format, subDays } from 'date-fns';
 
 export default function RAGAnalyticsDashboard() {
-  const { t } = useTranslation(['admin']);
+  const { t } = useTranslation('admin');
   const [dateRangeKey, setDateRangeKey] = useState<'7d' | '30d' | '90d'>('7d');
   
   const dateRange = useMemo(() => {
@@ -75,9 +75,7 @@ export default function RAGAnalyticsDashboard() {
             <Brain className="h-8 w-8 text-primary" />
             RAG Analytics Dashboard
           </h1>
-          <p className="text-muted-foreground mt-1">
-            Real-time performance metrics for the retrieval-augmented generation system
-          </p>
+          <p className="text-muted-foreground mt-1">{t('rAGAnalyticsDashboard.desc')}</p>
         </div>
         <div className="flex items-center gap-3">
           <Select value={dateRangeKey} onValueChange={(v) => setDateRangeKey(v as '7d' | '30d' | '90d')}>
@@ -85,9 +83,9 @@ export default function RAGAnalyticsDashboard() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="7d">Last 7 days</SelectItem>
-              <SelectItem value="30d">Last 30 days</SelectItem>
-              <SelectItem value="90d">Last 90 days</SelectItem>
+              <SelectItem value="7d">{t('rAGAnalyticsDashboard.text5')}</SelectItem>
+              <SelectItem value="30d">{t('rAGAnalyticsDashboard.text6')}</SelectItem>
+              <SelectItem value="90d">{t('rAGAnalyticsDashboard.text7')}</SelectItem>
             </SelectContent>
           </Select>
           <Button variant="outline" size="icon" onClick={() => refresh()}>
@@ -108,24 +106,22 @@ export default function RAGAnalyticsDashboard() {
                 {loading ? <Skeleton className="h-10 w-20" /> : formatPercent(overallHealth)}
               </div>
               <div>
-                <p className="font-medium">System Health Score</p>
-                <p className="text-sm text-muted-foreground">
-                  Based on precision, recall, and hallucination rate
-                </p>
+                <p className="font-medium">{t('rAGAnalyticsDashboard.text8')}</p>
+                <p className="text-sm text-muted-foreground">{t('rAGAnalyticsDashboard.desc2')}</p>
               </div>
             </div>
             <div className="flex gap-6">
               <div className="text-center">
                 <p className="text-2xl font-semibold">{metrics?.total_queries?.toLocaleString() || '—'}</p>
-                <p className="text-xs text-muted-foreground">Total Queries</p>
+                <p className="text-xs text-muted-foreground">{t('rAGAnalyticsDashboard.text9')}</p>
               </div>
               <div className="text-center">
                 <p className="text-2xl font-semibold">{formatPercent(metrics?.cache_hit_rate)}</p>
-                <p className="text-xs text-muted-foreground">Cache Hit Rate</p>
+                <p className="text-xs text-muted-foreground">{t('rAGAnalyticsDashboard.text10')}</p>
               </div>
               <div className="text-center">
                 <p className="text-2xl font-semibold">{formatMs(metrics?.avg_latency_ms)}</p>
-                <p className="text-xs text-muted-foreground">Avg Latency</p>
+                <p className="text-xs text-muted-foreground">{t('rAGAnalyticsDashboard.text11')}</p>
               </div>
             </div>
           </div>
@@ -135,30 +131,30 @@ export default function RAGAnalyticsDashboard() {
       {/* Primary Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricCard
-          title="Precision@5"
+          title={"Precision@5"}
           icon={Target}
           primaryMetric={loading ? '...' : formatPercent(metrics?.precision_at_5)}
-          description="Relevant results in top 5"
+          description={t('rAGAnalyticsDashboard.text12')}
         />
         <MetricCard
-          title="Recall@5"
+          title={"Recall@5"}
           icon={Database}
           primaryMetric={loading ? '...' : formatPercent(metrics?.recall_at_5)}
-          description="Coverage of relevant docs"
+          description={t('rAGAnalyticsDashboard.text13')}
         />
         <MetricCard
-          title="Context Utilization"
+          title={t('rAGAnalyticsDashboard.text14')}
           icon={Zap}
           primaryMetric={loading ? '...' : formatPercent(metrics?.context_utilization)}
-          description="Target: 70%"
+          description={"Target: 70%"}
           secondaryText={metrics?.context_utilization && metrics.context_utilization > 0.65 && metrics.context_utilization < 0.75 ? '✓ Optimal' : undefined}
         />
         <MetricCard
-          title="Hallucination Rate"
+          title={t('rAGAnalyticsDashboard.text15')}
           icon={AlertTriangle}
           iconColor={metrics?.hallucination_rate && metrics.hallucination_rate > 0.1 ? 'critical' : 'success'}
           primaryMetric={loading ? '...' : formatPercent(metrics?.hallucination_rate)}
-          description="AI responses with unsupported claims"
+          description={t('rAGAnalyticsDashboard.text16')}
         />
       </div>
 
@@ -187,8 +183,8 @@ export default function RAGAnalyticsDashboard() {
         <TabsContent value="performance" className="space-y-4">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <TrendChart
-              title="Precision & Recall Trends"
-              description="Daily averages over time"
+              title={t('rAGAnalyticsDashboard.text17')}
+              description={t('rAGAnalyticsDashboard.text18')}
               data={trends.map(t => ({
                 date: format(new Date(t.date), 'MMM d'),
                 precision: (t.precision_at_5 || 0) * 100,
@@ -205,13 +201,13 @@ export default function RAGAnalyticsDashboard() {
             />
             <Card>
               <CardHeader>
-                <CardTitle>Context Utilization</CardTitle>
-                <CardDescription>Target: 70% utilization</CardDescription>
+                <CardTitle>{t('rAGAnalyticsDashboard.text19')}</CardTitle>
+                <CardDescription>{"Target: 70% utilization"}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Current</span>
+                    <span className="text-sm text-muted-foreground">{t('rAGAnalyticsDashboard.text20')}</span>
                     <span className="text-2xl font-bold text-primary">
                       {formatPercent(metrics?.context_utilization)}
                     </span>
@@ -219,7 +215,7 @@ export default function RAGAnalyticsDashboard() {
                   <Progress value={(metrics?.context_utilization || 0) * 100} className="h-3" />
                   <div className="flex justify-between text-xs text-muted-foreground">
                     <span>0%</span>
-                    <span className="text-primary font-medium">Target: 70%</span>
+                    <span className="text-primary font-medium">{"Target: 70%"}</span>
                     <span>100%</span>
                   </div>
                 </div>
@@ -240,13 +236,13 @@ export default function RAGAnalyticsDashboard() {
             <CardContent>
               <div className="grid grid-cols-2 gap-4">
                 <div className="p-4 rounded-lg bg-muted/50">
-                  <p className="text-sm text-muted-foreground">Current Rate</p>
+                  <p className="text-sm text-muted-foreground">{t('rAGAnalyticsDashboard.text21')}</p>
                   <p className={`text-3xl font-bold ${(metrics?.hallucination_rate || 0) > 0.1 ? 'text-red-500' : 'text-emerald-500'}`}>
                     {formatPercent(metrics?.hallucination_rate)}
                   </p>
                 </div>
                 <div className="p-4 rounded-lg bg-muted/50">
-                  <p className="text-sm text-muted-foreground">Threshold</p>
+                  <p className="text-sm text-muted-foreground">{t('rAGAnalyticsDashboard.text22')}</p>
                   <p className="text-3xl font-bold text-muted-foreground">5%</p>
                 </div>
               </div>
@@ -259,42 +255,42 @@ export default function RAGAnalyticsDashboard() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-lg">Avg Latency</CardTitle>
+                <CardTitle className="text-lg">{t('rAGAnalyticsDashboard.text23')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-bold text-primary">
                   {loading ? <Skeleton className="h-9 w-24" /> : formatMs(metrics?.avg_latency_ms)}
                 </div>
-                <p className="text-sm text-muted-foreground mt-1">Average response time</p>
+                <p className="text-sm text-muted-foreground mt-1">{t('rAGAnalyticsDashboard.text24')}</p>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-lg">P95 Latency</CardTitle>
+                <CardTitle className="text-lg">{t('rAGAnalyticsDashboard.text25')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-bold text-amber-500">
                   {loading ? <Skeleton className="h-9 w-24" /> : formatMs(metrics?.p95_latency_ms)}
                 </div>
-                <p className="text-sm text-muted-foreground mt-1">95th percentile</p>
+                <p className="text-sm text-muted-foreground mt-1">{"95th percentile"}</p>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-lg">Feedback Rate</CardTitle>
+                <CardTitle className="text-lg">{t('rAGAnalyticsDashboard.text26')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-bold text-emerald-500">
                   {loading ? <Skeleton className="h-9 w-24" /> : formatPercent(metrics?.feedback_positive_rate)}
                 </div>
-                <p className="text-sm text-muted-foreground mt-1">Positive feedback</p>
+                <p className="text-sm text-muted-foreground mt-1">{t('rAGAnalyticsDashboard.text27')}</p>
               </CardContent>
             </Card>
           </div>
 
           <TrendChart
-            title="Latency Trends Over Time"
-            description="Average latency by day"
+            title={t('rAGAnalyticsDashboard.text28')}
+            description={t('rAGAnalyticsDashboard.text29')}
             data={trends.map(t => ({
               date: format(new Date(t.date), 'MMM d'),
               latency: t.avg_latency_ms
@@ -312,8 +308,8 @@ export default function RAGAnalyticsDashboard() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <Card>
               <CardHeader>
-                <CardTitle>Query Intent Distribution</CardTitle>
-                <CardDescription>Classification of user queries by intent type</CardDescription>
+                <CardTitle>{t('rAGAnalyticsDashboard.text30')}</CardTitle>
+                <CardDescription>{t('rAGAnalyticsDashboard.text31')}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -339,9 +335,7 @@ export default function RAGAnalyticsDashboard() {
                     </div>
                   ))}
                   {intentDistribution.length === 0 && (
-                    <p className="text-muted-foreground text-center py-8">
-                      No intent data available yet
-                    </p>
+                    <p className="text-muted-foreground text-center py-8">{t('rAGAnalyticsDashboard.desc3')}</p>
                   )}
                 </div>
               </CardContent>
@@ -349,8 +343,8 @@ export default function RAGAnalyticsDashboard() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Intent Summary</CardTitle>
-                <CardDescription>Query types breakdown</CardDescription>
+                <CardTitle>{t('rAGAnalyticsDashboard.text32')}</CardTitle>
+                <CardDescription>{t('rAGAnalyticsDashboard.text33')}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -373,9 +367,7 @@ export default function RAGAnalyticsDashboard() {
                       </div>
                     ))
                   ) : (
-                    <p className="text-muted-foreground text-center py-8">
-                      No data available
-                    </p>
+                    <p className="text-muted-foreground text-center py-8">{t('rAGAnalyticsDashboard.desc4')}</p>
                   )}
                 </div>
               </CardContent>
@@ -387,7 +379,7 @@ export default function RAGAnalyticsDashboard() {
         <TabsContent value="experiments" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Active Prompt Experiments</CardTitle>
+              <CardTitle>{t('rAGAnalyticsDashboard.text34')}</CardTitle>
               <CardDescription>
                 A/B testing system prompts to optimize response quality
               </CardDescription>
@@ -413,25 +405,25 @@ export default function RAGAnalyticsDashboard() {
                           <p className="text-2xl font-semibold">
                             {exp.total_impressions.toLocaleString()}
                           </p>
-                          <p className="text-xs text-muted-foreground">Impressions</p>
+                          <p className="text-xs text-muted-foreground">{t('rAGAnalyticsDashboard.text35')}</p>
                         </div>
                         <div>
                           <p className="text-2xl font-semibold text-emerald-500">
                             {exp.positive_feedback}
                           </p>
-                          <p className="text-xs text-muted-foreground">Positive</p>
+                          <p className="text-xs text-muted-foreground">{t('rAGAnalyticsDashboard.text36')}</p>
                         </div>
                         <div>
                           <p className="text-2xl font-semibold text-red-500">
                             {exp.negative_feedback}
                           </p>
-                          <p className="text-xs text-muted-foreground">Negative</p>
+                          <p className="text-xs text-muted-foreground">{t('rAGAnalyticsDashboard.text37')}</p>
                         </div>
                         <div>
                           <p className="text-2xl font-semibold text-primary">
                             {(exp.success_rate * 100).toFixed(1)}%
                           </p>
-                          <p className="text-xs text-muted-foreground">Success Rate</p>
+                          <p className="text-xs text-muted-foreground">{t('rAGAnalyticsDashboard.text38')}</p>
                         </div>
                       </div>
                     </div>
@@ -440,8 +432,8 @@ export default function RAGAnalyticsDashboard() {
               ) : (
                 <div className="text-center py-12 text-muted-foreground">
                   <BarChart3 className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>No active experiments</p>
-                  <p className="text-sm">Create a prompt experiment to start A/B testing</p>
+                  <p>{t('rAGAnalyticsDashboard.text39')}</p>
+                  <p className="text-sm">{t('rAGAnalyticsDashboard.text40')}</p>
                 </div>
               )}
             </CardContent>
@@ -461,21 +453,21 @@ export default function RAGAnalyticsDashboard() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="text-center p-4 rounded-lg bg-muted/50">
               <p className="text-3xl font-bold">{metrics?.total_queries ?? '—'}</p>
-              <p className="text-sm text-muted-foreground">Total Queries</p>
+              <p className="text-sm text-muted-foreground">{t('rAGAnalyticsDashboard.text41')}</p>
             </div>
             <div className="text-center p-4 rounded-lg bg-muted/50">
               <p className="text-3xl font-bold">{formatPercent(metrics?.cache_hit_rate)}</p>
-              <p className="text-sm text-muted-foreground">Cache Hit Rate</p>
+              <p className="text-sm text-muted-foreground">{t('rAGAnalyticsDashboard.text42')}</p>
             </div>
             <div className="text-center p-4 rounded-lg bg-muted/50">
               <p className="text-3xl font-bold">{formatPercent(metrics?.feedback_positive_rate)}</p>
-              <p className="text-sm text-muted-foreground">Positive Feedback</p>
+              <p className="text-sm text-muted-foreground">{t('rAGAnalyticsDashboard.text43')}</p>
             </div>
             <div className="text-center p-4 rounded-lg bg-muted/50">
               <p className="text-3xl font-bold text-emerald-500">
                 {metrics && metrics.hallucination_rate < 0.05 ? 'Healthy' : 'Monitor'}
               </p>
-              <p className="text-sm text-muted-foreground">System Status</p>
+              <p className="text-sm text-muted-foreground">{t('rAGAnalyticsDashboard.text44')}</p>
             </div>
           </div>
         </CardContent>

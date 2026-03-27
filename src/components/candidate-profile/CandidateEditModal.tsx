@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -22,6 +23,7 @@ interface CandidateEditModalProps {
 }
 
 export function CandidateEditModal({ open, onOpenChange, candidate, onSaved }: CandidateEditModalProps) {
+  const { t } = useTranslation('common');
   const [isSaving, setIsSaving] = useState(false);
   const [changeReason, setChangeReason] = useState('');
   const [changes, setChanges] = useState<any>({
@@ -35,7 +37,7 @@ export function CandidateEditModal({ open, onOpenChange, candidate, onSaved }: C
 
   const handleSaveAll = async () => {
     if (!changeReason.trim()) {
-      toast.error('Please provide a reason for the changes');
+      toast.error(t("please_provide_a_reason", "Please provide a reason for the changes"));
       return;
     }
 
@@ -125,14 +127,14 @@ export function CandidateEditModal({ open, onOpenChange, candidate, onSaved }: C
           },
         });
 
-      toast.success('Profile updated successfully');
+      toast.success(t("profile_updated_successfully", "Profile updated successfully"));
       onSaved();
       onOpenChange(false);
       setChangeReason('');
       setChanges({ basic: null, assessment: null, workAuth: null, career: null, skills: null, adminNotes: null });
     } catch (error) {
       console.error('Error saving changes:', error);
-      toast.error('Failed to save changes');
+      toast.error(t("failed_to_save_changes", "Failed to save changes"));
     } finally {
       setIsSaving(false);
     }
@@ -148,7 +150,7 @@ export function CandidateEditModal({ open, onOpenChange, candidate, onSaved }: C
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-5xl max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
-          <DialogTitle>Edit Candidate Profile</DialogTitle>
+          <DialogTitle>{t("edit_candidate_profile", "Edit Candidate Profile")}</DialogTitle>
           <DialogDescription>
             Make changes to {candidate?.first_name} {candidate?.last_name}'s profile. All changes will be saved together.
           </DialogDescription>
@@ -156,12 +158,12 @@ export function CandidateEditModal({ open, onOpenChange, candidate, onSaved }: C
 
         <Tabs defaultValue="basic" className="flex-1 overflow-hidden flex flex-col">
           <TabsList className="grid w-full grid-cols-6">
-            <TabsTrigger value="basic">Basic Info</TabsTrigger>
-            <TabsTrigger value="assessment">Assessment</TabsTrigger>
-            <TabsTrigger value="work_auth">Work Auth</TabsTrigger>
-            <TabsTrigger value="career">Career</TabsTrigger>
-            <TabsTrigger value="skills">Skills</TabsTrigger>
-            <TabsTrigger value="admin_notes">Admin Notes</TabsTrigger>
+            <TabsTrigger value="basic">{t("basic_info", "Basic Info")}</TabsTrigger>
+            <TabsTrigger value="assessment">{t("assessment", "Assessment")}</TabsTrigger>
+            <TabsTrigger value="work_auth">{t("work_auth", "Work Auth")}</TabsTrigger>
+            <TabsTrigger value="career">{t("career", "Career")}</TabsTrigger>
+            <TabsTrigger value="skills">{t("skills", "Skills")}</TabsTrigger>
+            <TabsTrigger value="admin_notes">{t("admin_notes", "Admin Notes")}</TabsTrigger>
           </TabsList>
 
           <div className="flex-1 overflow-y-auto py-4">
@@ -211,10 +213,10 @@ export function CandidateEditModal({ open, onOpenChange, candidate, onSaved }: C
 
         <div className="space-y-4 border-t pt-4">
           <div className="space-y-2">
-            <Label htmlFor="change-reason">Reason for Changes *</Label>
+            <Label htmlFor="change-reason">{t("reason_for_changes", "Reason for Changes *")}</Label>
             <Textarea
               id="change-reason"
-              placeholder="Explain why these changes are being made..."
+              placeholder={t("explain_why_these_changes", "Explain why these changes are being made...")}
               value={changeReason}
               onChange={(e) => setChangeReason(e.target.value)}
               rows={3}

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from '@/lib/motion';
 import { Bot, X, ChevronUp, ChevronDown, AlertTriangle, TrendingUp, Clock, Lightbulb, Sparkles, Send, Loader2 } from 'lucide-react';
@@ -38,6 +39,7 @@ export function ClubAIAdvisorWidget({
   context = 'general',
   className
 }: ClubAIAdvisorWidgetProps) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
@@ -204,8 +206,8 @@ export function ClubAIAdvisorWidget({
                 <Bot className="h-4 w-4 text-white" />
               </div>
               <div>
-                <h3 className="text-sm font-semibold text-white">Club AI Advisor</h3>
-                <p className="text-[10px] text-white/70">Powered by AI</p>
+                <h3 className="text-sm font-semibold text-white">{t("club_ai_advisor", "Club AI Advisor")}</h3>
+                <p className="text-[10px] text-white/70">{t("powered_by_ai", "Powered by AI")}</p>
               </div>
             </div>
             <div className="flex items-center gap-1">
@@ -244,7 +246,7 @@ export function ClubAIAdvisorWidget({
                       {advices.length === 0 ? (
                         <div className="flex flex-col items-center justify-center h-full text-center py-8">
                           <Sparkles className="h-8 w-8 text-muted-foreground/50 mb-2" />
-                          <p className="text-sm text-muted-foreground">Ask me anything</p>
+                          <p className="text-sm text-muted-foreground">{t("ask_me_anything", "Ask me anything")}</p>
                           <p className="text-xs text-muted-foreground/70">
                             I can help with career advice, interview prep, and more
                           </p>
@@ -330,7 +332,7 @@ export function ClubAIAdvisorWidget({
                           className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg mr-4"
                         >
                           <Loader2 className="h-3 w-3 animate-spin" />
-                          <span className="text-xs text-muted-foreground">Club AI is thinking...</span>
+                          <span className="text-xs text-muted-foreground">{t("club_ai_is_thinking", "Club AI is thinking...")}</span>
                         </motion.div>
                       )}
                     </div>
@@ -343,7 +345,7 @@ export function ClubAIAdvisorWidget({
                     <Input
                       value={question}
                       onChange={(e) => setQuestion(e.target.value)}
-                      placeholder="Ask Club AI anything..."
+                      placeholder={t("ask_club_ai_anything", "Ask Club AI anything...")}
                       className="h-8 text-xs"
                       disabled={isLoading}
                     />

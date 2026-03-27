@@ -1,9 +1,4 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
-};
+import { createHandler } from '../_shared/handler.ts';
 
 // Simple Levenshtein distance for dedup
 function levenshtein(a: string, b: string): number {
@@ -30,75 +25,64 @@ function similarity(a: string, b: string): number {
   return 1 - levenshtein(la, lb) / maxLen;
 }
 
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+Deno.serve(createHandler(async (req, ctx) => {
+  const { autoQueue } = await req.json();
+
+  const GOOGLE_API_KEY = Deno.env.get('GOOGLE_API_KEY');
+  if (!GOOGLE_API_KEY) throw new Error('GOOGLE_API_KEY not configured');
+
+  // Get existing posts for gap analysis
+  const { data: existingPosts } = await ctx.supabase
+    .from('blog_posts')
+    .select('title, category, keywords')
+    .order('created_at', { ascending: false })
+    .limit(100);
+
+  // Also get pending queue items for dedup
+  const { data: pendingQueue } = await ctx.supabase
+    .from('blog_generation_queue')
+    .select('topic')
+    .in('status', ['pending', 'generating']);
+
+  const existingTitles = (existingPosts || []).map((p: any) => p.title);
+  const pendingTopics = (pendingQueue || []).map((q: any) => q.topic);
+  const allExistingTopics = [...existingTitles, ...pendingTopics];
+
+  const existingTopics = existingTitles.join(', ');
+  const existingCategories = (existingPosts || []).map((p: any) => p.category);
+  const categoryCounts: Record<string, number> = {};
+  existingCategories.forEach((c: string) => { categoryCounts[c] = (categoryCounts[c] || 0) + 1; });
+
+  const underservedCategory = Object.entries({
+    'career-insights': categoryCounts['career-insights'] || 0,
+    'talent-strategy': categoryCounts['talent-strategy'] || 0,
+    'industry-trends': categoryCounts['industry-trends'] || 0,
+    'leadership': categoryCounts['leadership'] || 0,
+  }).sort((a, b) => a[1] - b[1]).map(e => e[0]);
+
+  // Read learnings from the intelligence feedback loop
+  const { data: learnings } = await ctx.supabase
+    .from('blog_learnings')
+    .select('learning_type, insight, confidence')
+    .eq('is_active', true)
+    .order('confidence', { ascending: false })
+    .limit(10);
+
+  const learningsBlock = (learnings && learnings.length > 0)
+    ? `\n\nPerformance learnings from past articles (use these to guide topic selection):\n${learnings.map((l: any) => `- [${l.learning_type}, confidence: ${(l.confidence * 100).toFixed(0)}%] ${l.insight}`).join('\n')}`
+    : '';
+
+  // Increment applied_count for used learnings
+  if (learnings && learnings.length > 0) {
+    for (const l of learnings) {
+      await ctx.supabase.rpc('increment_learning_applied_count', { learning_type_val: l.learning_type }).catch(() => {
+        // Fallback: direct update if RPC doesn't exist
+        ctx.supabase.from('blog_learnings').update({ applied_count: (l as any).applied_count + 1 }).eq('learning_type', l.learning_type);
+      });
+    }
   }
 
-  try {
-    const { autoQueue } = await req.json();
-
-    const { createClient } = await import("https://esm.sh/@supabase/supabase-js@2");
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
-    );
-
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) throw new Error('LOVABLE_API_KEY not configured');
-
-    // Get existing posts for gap analysis
-    const { data: existingPosts } = await supabase
-      .from('blog_posts')
-      .select('title, category, keywords')
-      .order('created_at', { ascending: false })
-      .limit(100);
-
-    // Also get pending queue items for dedup
-    const { data: pendingQueue } = await supabase
-      .from('blog_generation_queue')
-      .select('topic')
-      .in('status', ['pending', 'generating']);
-
-    const existingTitles = (existingPosts || []).map((p: any) => p.title);
-    const pendingTopics = (pendingQueue || []).map((q: any) => q.topic);
-    const allExistingTopics = [...existingTitles, ...pendingTopics];
-
-    const existingTopics = existingTitles.join(', ');
-    const existingCategories = (existingPosts || []).map((p: any) => p.category);
-    const categoryCounts: Record<string, number> = {};
-    existingCategories.forEach((c: string) => { categoryCounts[c] = (categoryCounts[c] || 0) + 1; });
-
-    const underservedCategory = Object.entries({
-      'career-insights': categoryCounts['career-insights'] || 0,
-      'talent-strategy': categoryCounts['talent-strategy'] || 0,
-      'industry-trends': categoryCounts['industry-trends'] || 0,
-      'leadership': categoryCounts['leadership'] || 0,
-    }).sort((a, b) => a[1] - b[1]).map(e => e[0]);
-
-    // Read learnings from the intelligence feedback loop
-    const { data: learnings } = await supabase
-      .from('blog_learnings')
-      .select('learning_type, insight, confidence')
-      .eq('is_active', true)
-      .order('confidence', { ascending: false })
-      .limit(10);
-
-    const learningsBlock = (learnings && learnings.length > 0)
-      ? `\n\nPerformance learnings from past articles (use these to guide topic selection):\n${learnings.map((l: any) => `- [${l.learning_type}, confidence: ${(l.confidence * 100).toFixed(0)}%] ${l.insight}`).join('\n')}`
-      : '';
-
-    // Increment applied_count for used learnings
-    if (learnings && learnings.length > 0) {
-      for (const l of learnings) {
-        await supabase.rpc('increment_learning_applied_count', { learning_type_val: l.learning_type }).catch(() => {
-          // Fallback: direct update if RPC doesn't exist
-          supabase.from('blog_learnings').update({ applied_count: (l as any).applied_count + 1 }).eq('learning_type', l.learning_type);
-        });
-      }
-    }
-
-    const prompt = `Given these existing articles: [${existingTopics}]
+  const prompt = `Given these existing articles: [${existingTopics}]
 
 Categories ranked by content gap (least content first): ${underservedCategory.join(', ')}${learningsBlock}
 
@@ -109,113 +93,106 @@ Formats: career-playbook, market-analysis, trend-report, success-story, myth-bus
 
 For each, return using the provided tool. Include a cluster_id to group related topics together.`;
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash-lite',
-        messages: [{ role: 'user', content: prompt }],
-        temperature: 0.8,
-        tools: [
-          {
-            type: 'function',
-            function: {
-              name: 'suggest_topics',
-              description: 'Return 10 blog topic suggestions with cluster grouping',
-              parameters: {
-                type: 'object',
-                properties: {
-                  suggestions: {
-                    type: 'array',
-                    items: {
-                      type: 'object',
-                      properties: {
-                        topic: { type: 'string' },
-                        category: { type: 'string' },
-                        format: { type: 'string', enum: ['career-playbook', 'market-analysis', 'trend-report', 'success-story', 'myth-buster', 'talent-origin', 'executive-stack'] },
-                        targetKeywords: { type: 'array', items: { type: 'string' } },
-                        priority: { type: 'number' },
-                        reasoning: { type: 'string' },
-                        clusterId: { type: 'string', description: 'Group related topics under a cluster name' },
-                        isPillar: { type: 'boolean', description: 'True if this is a pillar/cornerstone article' },
-                      },
-                      required: ['topic', 'category', 'format', 'targetKeywords', 'priority', 'reasoning'],
+  const response = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${GOOGLE_API_KEY}`,
+    },
+    body: JSON.stringify({
+      model: 'gemini-2.5-flash-lite',
+      messages: [{ role: 'user', content: prompt }],
+      temperature: 0.8,
+      tools: [
+        {
+          type: 'function',
+          function: {
+            name: 'suggest_topics',
+            description: 'Return 10 blog topic suggestions with cluster grouping',
+            parameters: {
+              type: 'object',
+              properties: {
+                suggestions: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      topic: { type: 'string' },
+                      category: { type: 'string' },
+                      format: { type: 'string', enum: ['career-playbook', 'market-analysis', 'trend-report', 'success-story', 'myth-buster', 'talent-origin', 'executive-stack'] },
+                      targetKeywords: { type: 'array', items: { type: 'string' } },
+                      priority: { type: 'number' },
+                      reasoning: { type: 'string' },
+                      clusterId: { type: 'string', description: 'Group related topics under a cluster name' },
+                      isPillar: { type: 'boolean', description: 'True if this is a pillar/cornerstone article' },
                     },
+                    required: ['topic', 'category', 'format', 'targetKeywords', 'priority', 'reasoning'],
                   },
                 },
-                required: ['suggestions'],
               },
+              required: ['suggestions'],
             },
           },
-        ],
-        tool_choice: { type: 'function', function: { name: 'suggest_topics' } },
-      }),
-    });
+        },
+      ],
+      tool_choice: { type: 'function', function: { name: 'suggest_topics' } },
+    }),
+  });
 
-    if (!response.ok) {
-      if (response.status === 429) {
-        return new Response(JSON.stringify({ error: 'Rate limit exceeded', code: 'AI_RATE_LIMITED' }), {
-          status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-      if (response.status === 402) {
-        return new Response(JSON.stringify({ error: 'AI credits exhausted', code: 'AI_CREDITS_EXHAUSTED' }), {
-          status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-      throw new Error(`AI suggestion failed: ${response.statusText}`);
-    }
-
-    const aiResult = await response.json();
-    const toolCall = aiResult.choices?.[0]?.message?.tool_calls?.[0];
-    let suggestions;
-    if (toolCall) {
-      const parsed = JSON.parse(toolCall.function.arguments);
-      suggestions = parsed.suggestions;
-    } else {
-      const parsed = JSON.parse(aiResult.choices[0].message.content);
-      suggestions = parsed.suggestions || parsed;
-    }
-
-    // Dedup: filter out suggestions too similar to existing posts or pending queue
-    if (Array.isArray(suggestions)) {
-      const SIMILARITY_THRESHOLD = 0.8;
-      suggestions = suggestions.filter((s: any) => {
-        for (const existing of allExistingTopics) {
-          if (similarity(s.topic, existing) >= SIMILARITY_THRESHOLD) {
-            console.log(`Dedup: rejected "${s.topic}" (too similar to "${existing}")`);
-            return false;
-          }
-        }
-        return true;
+  if (!response.ok) {
+    if (response.status === 429) {
+      return new Response(JSON.stringify({ error: 'Rate limit exceeded', code: 'AI_RATE_LIMITED' }), {
+        status: 429, headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' },
       });
     }
-
-    if (autoQueue && Array.isArray(suggestions)) {
-      for (const s of suggestions) {
-        await supabase.from('blog_generation_queue').insert({
-          topic: s.topic,
-          category: s.category,
-          target_keywords: s.targetKeywords,
-          priority: s.priority,
-          content_format: s.format,
-          source: 'ai_suggestion',
-          status: 'pending',
-        });
-      }
+    if (response.status === 402) {
+      return new Response(JSON.stringify({ error: 'AI quota exceeded', code: 'AI_QUOTA_EXCEEDED' }), {
+        status: 402, headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
+    throw new Error(`AI suggestion failed: ${response.statusText}`);
+  }
 
-    return new Response(JSON.stringify({ suggestions }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-  } catch (error) {
-    console.error('Blog suggest error:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+  const aiResult = await response.json();
+  const toolCall = aiResult.choices?.[0]?.message?.tool_calls?.[0];
+  let suggestions;
+  if (toolCall) {
+    const parsed = JSON.parse(toolCall.function.arguments);
+    suggestions = parsed.suggestions;
+  } else {
+    const parsed = JSON.parse(aiResult.choices[0].message.content);
+    suggestions = parsed.suggestions || parsed;
+  }
+
+  // Dedup: filter out suggestions too similar to existing posts or pending queue
+  if (Array.isArray(suggestions)) {
+    const SIMILARITY_THRESHOLD = 0.8;
+    suggestions = suggestions.filter((s: any) => {
+      for (const existing of allExistingTopics) {
+        if (similarity(s.topic, existing) >= SIMILARITY_THRESHOLD) {
+          console.log(`Dedup: rejected "${s.topic}" (too similar to "${existing}")`);
+          return false;
+        }
+      }
+      return true;
     });
   }
-});
+
+  if (autoQueue && Array.isArray(suggestions)) {
+    for (const s of suggestions) {
+      await ctx.supabase.from('blog_generation_queue').insert({
+        topic: s.topic,
+        category: s.category,
+        target_keywords: s.targetKeywords,
+        priority: s.priority,
+        content_format: s.format,
+        source: 'ai_suggestion',
+        status: 'pending',
+      });
+    }
+  }
+
+  return new Response(JSON.stringify({ suggestions }), {
+    headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' },
+  });
+}));

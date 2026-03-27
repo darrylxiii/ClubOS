@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { 
   Heart, 
   TrendingUp, 
@@ -75,6 +76,7 @@ const getBenefitCategory = (benefit: string) => {
 };
 
 export function BenefitsShowcase({ benefits = [] }: BenefitsShowcaseProps) {
+  const { t } = useTranslation('common');
   if (benefits.length === 0) return null;
 
   return (
@@ -83,7 +85,7 @@ export function BenefitsShowcase({ benefits = [] }: BenefitsShowcaseProps) {
         <div className="flex items-center gap-3">
           <Gift className="w-6 h-6 text-primary flex-shrink-0" />
           <div>
-            <h3 className="text-xl font-black">Benefits & Perks</h3>
+            <h3 className="text-xl font-black">{t("benefits_perks", "Benefits & Perks")}</h3>
             <p className="text-sm text-muted-foreground">
               {benefits.length} benefits included
             </p>

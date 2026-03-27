@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.7";
+import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.39.7";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -18,7 +18,7 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const results: any[] = [];
+    const results: Record<string, unknown>[] = [];
 
     if (batch_mode) {
       // Process entities that need score updates
@@ -72,7 +72,7 @@ serve(async (req) => {
   }
 });
 
-async function updateEntityScore(supabase: any, entityType: string, entityId: string) {
+async function updateEntityScore(supabase: SupabaseClient, entityType: string, entityId: string) {
   const now = new Date();
   const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
   const ninetyDaysAgo = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
@@ -105,14 +105,14 @@ async function updateEntityScore(supabase: any, entityType: string, entityId: st
   const lastContact = new Date(communications[0].occurred_at);
   const daysSinceContact = Math.floor((now.getTime() - lastContact.getTime()) / (1000 * 60 * 60 * 24));
 
-  const recentComms = communications.filter((c: any) => 
+  const recentComms = communications.filter((c: Record<string, unknown>) => 
     new Date(c.occurred_at) >= thirtyDaysAgo
   );
 
   // Sentiment analysis
   const sentiments = communications
-    .filter((c: any) => c.sentiment_score !== null)
-    .map((c: any) => c.sentiment_score);
+    .filter((c: Record<string, unknown>) => c.sentiment_score !== null)
+    .map((c: Record<string, unknown>) => c.sentiment_score);
   
   const avgSentiment = sentiments.length > 0 
     ? sentiments.reduce((a: number, b: number) => a + b, 0) / sentiments.length 
@@ -120,11 +120,11 @@ async function updateEntityScore(supabase: any, entityType: string, entityId: st
 
   // Sentiment trend (recent vs older)
   const recentSentiments = recentComms
-    .filter((c: any) => c.sentiment_score !== null)
-    .map((c: any) => c.sentiment_score);
+    .filter((c: Record<string, unknown>) => c.sentiment_score !== null)
+    .map((c: Record<string, unknown>) => c.sentiment_score);
   const olderSentiments = communications
-    .filter((c: any) => new Date(c.occurred_at) < thirtyDaysAgo && c.sentiment_score !== null)
-    .map((c: any) => c.sentiment_score);
+    .filter((c: Record<string, unknown>) => new Date(c.occurred_at) < thirtyDaysAgo && c.sentiment_score !== null)
+    .map((c: Record<string, unknown>) => c.sentiment_score);
   
   let sentimentTrend = 0;
   if (recentSentiments.length > 0 && olderSentiments.length > 0) {
@@ -134,14 +134,14 @@ async function updateEntityScore(supabase: any, entityType: string, entityId: st
   }
 
   // Response rate (inbound that have subsequent outbound)
-  const inboundComms = communications.filter((c: any) => c.direction === "inbound");
-  const outboundComms = communications.filter((c: any) => c.direction === "outbound");
+  const inboundComms = communications.filter((c: Record<string, unknown>) => c.direction === "inbound");
+  const outboundComms = communications.filter((c: Record<string, unknown>) => c.direction === "outbound");
   const responseRate = inboundComms.length > 0 
     ? Math.min(outboundComms.length / inboundComms.length, 1) 
     : (outboundComms.length > 0 ? 1 : 0);
 
   // Channel diversity
-  const channels = new Set(communications.map((c: any) => c.source));
+  const channels = new Set(communications.map((c: Record<string, unknown>) => c.source));
   const channelDiversity = channels.size / 6; // Normalize by expected max channels
 
   // Calculate health score (0-100)
@@ -207,7 +207,7 @@ async function updateEntityScore(supabase: any, entityType: string, entityId: st
   };
 }
 
-async function upsertScore(supabase: any, entityType: string, entityId: string, data: any) {
+async function upsertScore(supabase: SupabaseClient, entityType: string, entityId: string, data: Record<string, unknown>) {
   const { error } = await supabase
     .from("communication_relationship_scores")
     .upsert({

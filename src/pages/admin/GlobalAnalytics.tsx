@@ -1,4 +1,5 @@
 import { useState, useEffect, lazy, Suspense } from "react";
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription as CardDescriptionOld, CardHeader, CardTitle as CardTitleOld } from "@/components/ui/card";
 import {
   AnimatedCard,
@@ -37,6 +38,7 @@ const TAB_MAP: Record<string, string> = {
 };
 
 const GlobalAnalytics = () => {
+  const { t } = useTranslation('admin');
   const [searchParams, setSearchParams] = useSearchParams();
   const activeTab = TAB_MAP[searchParams.get('tab') || ''] || 'overview';
 
@@ -166,7 +168,7 @@ const GlobalAnalytics = () => {
       });
     } catch (error) {
       console.error('Error fetching analytics:', error);
-      toast.error('Failed to load analytics');
+      toast.error(t('text.globalanalytics.failedToLoadAnalytics', 'Failed to load analytics'));
     } finally {
       setLoading(false);
     }
@@ -191,18 +193,16 @@ const GlobalAnalytics = () => {
   return (
     <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
       <div className="mb-2">
-        <h1 className="text-3xl font-bold mb-1">Global Analytics</h1>
-        <p className="text-muted-foreground">
-          Cross-company insights, funnel performance and platform engagement
-        </p>
+        <h1 className="text-3xl font-bold mb-1">{t('globalAnalytics.title')}</h1>
+        <p className="text-muted-foreground">{t('globalAnalytics.desc')}</p>
       </div>
 
       {/* Hub-level tabs */}
       <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
         <TabsList className="h-auto flex-wrap bg-card/50 backdrop-blur-sm rounded-lg p-1">
-          <TabsTrigger value="overview">Platform Overview</TabsTrigger>
-          <TabsTrigger value="funnel">Funnel Analytics</TabsTrigger>
-          <TabsTrigger value="engagement">User Engagement</TabsTrigger>
+          <TabsTrigger value="overview">{t('globalAnalytics.tabPlatformoverview')}</TabsTrigger>
+          <TabsTrigger value="funnel">{t('globalAnalytics.tabFunnelanalytics')}</TabsTrigger>
+          <TabsTrigger value="engagement">{t('globalAnalytics.tabUserengagement')}</TabsTrigger>
         </TabsList>
 
         {/* ── Overview Tab ── */}
@@ -231,7 +231,7 @@ const GlobalAnalytics = () => {
                       </div>
                       <div>
                         <CardTitle className="text-3xl font-bold">{analytics.totalJobs.toLocaleString()}</CardTitle>
-                        <CardDescription>Total Jobs Posted</CardDescription>
+                        <CardDescription>{t('text.globalanalytics.totalJobsPosted', 'Total Jobs Posted')}</CardDescription>
                       </div>
                     </div>
                   </CardBody>
@@ -248,7 +248,7 @@ const GlobalAnalytics = () => {
                       </div>
                       <div>
                         <CardTitle className="text-3xl font-bold">{analytics.totalCandidates.toLocaleString()}</CardTitle>
-                        <CardDescription>Total Candidates</CardDescription>
+                        <CardDescription>{t('text.globalanalytics.totalCandidates', 'Total Candidates')}</CardDescription>
                       </div>
                     </div>
                   </CardBody>
@@ -265,7 +265,7 @@ const GlobalAnalytics = () => {
                       </div>
                       <div>
                         <CardTitle className="text-3xl font-bold">{analytics.avgTimeToHire} Days</CardTitle>
-                        <CardDescription>Avg Time to Hire</CardDescription>
+                        <CardDescription>{t('text.globalanalytics.avgTimeToHire', 'Avg Time to Hire')}</CardDescription>
                       </div>
                     </div>
                   </CardBody>
@@ -282,7 +282,7 @@ const GlobalAnalytics = () => {
                       </div>
                       <div>
                         <CardTitle className="text-3xl font-bold">{analytics.totalCompanies.toLocaleString()}</CardTitle>
-                        <CardDescription>Partners & Companies</CardDescription>
+                        <CardDescription>{t('text.globalanalytics.partnersCompanies', 'Partners & Companies')}</CardDescription>
                       </div>
                     </div>
                   </CardBody>
@@ -292,16 +292,16 @@ const GlobalAnalytics = () => {
               {/* Charts — inner switcher tabs */}
               <Tabs defaultValue="applications" className="space-y-6">
                 <TabsList>
-                  <TabsTrigger value="applications">Applications Trend</TabsTrigger>
-                  <TabsTrigger value="funnel-chart">Conversion Funnel</TabsTrigger>
-                  <TabsTrigger value="companies">Top Companies</TabsTrigger>
+                  <TabsTrigger value="applications">{t('globalAnalytics.tabApplicationstrend')}</TabsTrigger>
+                  <TabsTrigger value="funnel-chart">{t('globalAnalytics.tabConversionfunnel')}</TabsTrigger>
+                  <TabsTrigger value="companies">{t('globalAnalytics.tabTopcompanies')}</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="applications">
                   <Card>
                     <CardHeader>
-                      <CardTitleOld>Applications Per Week</CardTitleOld>
-                      <CardDescriptionOld>Track application volume over time</CardDescriptionOld>
+                      <CardTitleOld>{t('text.globalanalytics.applicationsPerWeek', 'Applications Per Week')}</CardTitleOld>
+                      <CardDescriptionOld>{t('text.globalanalytics.trackApplicationVolumeOverTime', 'Track application volume over time')}</CardDescriptionOld>
                     </CardHeader>
                     <CardContent>
                       <DynamicChart
@@ -322,8 +322,8 @@ const GlobalAnalytics = () => {
                 <TabsContent value="funnel-chart">
                   <Card>
                     <CardHeader>
-                      <CardTitleOld>Conversion Funnel</CardTitleOld>
-                      <CardDescriptionOld>Candidate progression through pipeline stages</CardDescriptionOld>
+                      <CardTitleOld>{t('text.globalanalytics.conversionFunnel', 'Conversion Funnel')}</CardTitleOld>
+                      <CardDescriptionOld>{t('text.globalanalytics.candidateProgressionThroughPipelineStages', 'Candidate progression through pipeline stages')}</CardDescriptionOld>
                     </CardHeader>
                     <CardContent>
                       <DynamicChart
@@ -344,8 +344,8 @@ const GlobalAnalytics = () => {
                 <TabsContent value="companies">
                   <Card>
                     <CardHeader>
-                      <CardTitleOld>Top Performing Companies</CardTitleOld>
-                      <CardDescriptionOld>Ranked by fill rate (hires / jobs)</CardDescriptionOld>
+                      <CardTitleOld>{t('text.globalanalytics.topPerformingCompanies', 'Top Performing Companies')}</CardTitleOld>
+                      <CardDescriptionOld>{t('text.globalanalytics.rankedByFillRateHiresJobs', 'Ranked by fill rate (hires / jobs)')}</CardDescriptionOld>
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-4">
@@ -365,9 +365,7 @@ const GlobalAnalytics = () => {
                           </div>
                         ))}
                         {analytics.topCompanies.length === 0 && (
-                          <p className="text-center text-muted-foreground py-8">
-                            No hiring data available yet
-                          </p>
+                          <p className="text-center text-muted-foreground py-8">{t('globalAnalytics.desc2')}</p>
                         )}
                       </div>
                     </CardContent>

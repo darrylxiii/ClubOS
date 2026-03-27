@@ -1,5 +1,6 @@
 import { useState } from "react";
 
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -14,6 +15,7 @@ import { InlineLoader } from "@/components/ui/unified-loader";
 import { formatDistanceToNow } from "date-fns";
 
 export default function ReferralProgram() {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [copied, setCopied] = useState(false);
   const [referralEmail, setReferralEmail] = useState("");
@@ -113,7 +115,7 @@ export default function ReferralProgram() {
   return (
     <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Referral Program</h1>
+          <h1 className="text-3xl font-bold mb-2">{t('referralProgram.text2')}</h1>
           <p className="text-muted-foreground">
             Earn up to €10,000 by referring companies and candidates to The Quantum Club
           </p>
@@ -124,52 +126,52 @@ export default function ReferralProgram() {
           <Card>
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-medium">Total Earned</CardTitle>
+                <CardTitle className="text-sm font-medium">{t('referralProgram.text3')}</CardTitle>
                 <Euro className="w-4 h-4 text-muted-foreground" />
               </div>
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold">€{stats?.totalEarned.toLocaleString() || 0}</div>
-              <p className="text-xs text-muted-foreground mt-1">Lifetime earnings</p>
+              <p className="text-xs text-muted-foreground mt-1">{t('referralProgram.text4')}</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-medium">Pending</CardTitle>
+                <CardTitle className="text-sm font-medium">{t('referralProgram.text5')}</CardTitle>
                 <Clock className="w-4 h-4 text-muted-foreground" />
               </div>
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold">€{stats?.pending.toLocaleString() || 0}</div>
-              <p className="text-xs text-muted-foreground mt-1">Under review</p>
+              <p className="text-xs text-muted-foreground mt-1">{t('referralProgram.text6')}</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-medium">Qualified</CardTitle>
+                <CardTitle className="text-sm font-medium">{t('referralProgram.text7')}</CardTitle>
                 <TrendingUp className="w-4 h-4 text-muted-foreground" />
               </div>
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold">€{stats?.qualified.toLocaleString() || 0}</div>
-              <p className="text-xs text-muted-foreground mt-1">Ready for payout</p>
+              <p className="text-xs text-muted-foreground mt-1">{t('referralProgram.text8')}</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-medium">Total Referrals</CardTitle>
+                <CardTitle className="text-sm font-medium">{t('referralProgram.text9')}</CardTitle>
                 <Users className="w-4 h-4 text-muted-foreground" />
               </div>
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold">{stats?.totalReferrals || 0}</div>
-              <p className="text-xs text-muted-foreground mt-1">All time</p>
+              <p className="text-xs text-muted-foreground mt-1">{t('referralProgram.text10')}</p>
             </CardContent>
           </Card>
         </div>
@@ -178,8 +180,8 @@ export default function ReferralProgram() {
           {/* Referral Link Card */}
           <Card className="lg:col-span-2">
             <CardHeader>
-              <CardTitle>Your Referral Link</CardTitle>
-              <CardDescription>Share this link with companies and candidates</CardDescription>
+              <CardTitle>{t('referralProgram.text11')}</CardTitle>
+              <CardDescription>{t('referralProgram.text12')}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex gap-2">
@@ -190,12 +192,12 @@ export default function ReferralProgram() {
               </div>
 
               <div className="bg-muted/50 rounded-lg p-4">
-                <p className="text-sm font-medium mb-2">How it works:</p>
+                <p className="text-sm font-medium mb-2">{t('referralProgram.text13')}</p>
                 <ol className="text-sm text-muted-foreground space-y-1 list-decimal list-inside">
-                  <li>Share your unique referral link</li>
-                  <li>They sign up and become active users</li>
-                  <li>You earn rewards when they qualify</li>
-                  <li>Get paid when requirements are met</li>
+                  <li>{t('referralProgram.text14')}</li>
+                  <li>{t('referralProgram.text15')}</li>
+                  <li>{t('referralProgram.text16')}</li>
+                  <li>{t('referralProgram.text17')}</li>
                 </ol>
               </div>
             </CardContent>
@@ -204,8 +206,8 @@ export default function ReferralProgram() {
           {/* Bonus Structure */}
           <Card>
             <CardHeader>
-              <CardTitle>Bonus Structure</CardTitle>
-              <CardDescription>Earn based on referral type</CardDescription>
+              <CardTitle>{t('referralProgram.text18')}</CardTitle>
+              <CardDescription>{t('referralProgram.text19')}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
               {referralConfig?.map((config) => (
@@ -228,8 +230,8 @@ export default function ReferralProgram() {
         {/* Referrals Table */}
         <Card>
           <CardHeader>
-            <CardTitle>Your Referrals</CardTitle>
-            <CardDescription>Track the status of all your referrals</CardDescription>
+            <CardTitle>{t('referralProgram.text20')}</CardTitle>
+            <CardDescription>{t('referralProgram.text21')}</CardDescription>
           </CardHeader>
           <CardContent>
             {referralsLoading ? (
@@ -275,10 +277,8 @@ export default function ReferralProgram() {
             ) : (
               <div className="text-center py-12">
                 <Gift className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-                <p className="text-lg font-medium mb-2">No referrals yet</p>
-                <p className="text-muted-foreground">
-                  Start sharing your referral link to earn rewards
-                </p>
+                <p className="text-lg font-medium mb-2">{t('referralProgram.text22')}</p>
+                <p className="text-muted-foreground">{t('referralProgram.desc')}</p>
               </div>
             )}
           </CardContent>

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from 'react-i18next';
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -28,6 +29,7 @@ import { PartnerGlassCard } from "@/components/partner/PartnerGlassCard";
 import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function PartnerContractsPage() {
+  const { t } = useTranslation('contracts');
   const { user } = useAuth();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
@@ -70,15 +72,15 @@ export default function PartnerContractsPage() {
   return (
     <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
       <PartnerPageHeader
-        title="Contract Management"
-        subtitle="Manage freelance contracts, payments, and change orders"
+        title={t('management.title')}
+        subtitle={t('management.subtitle')}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
-        searchPlaceholder="Search contracts..."
+        searchPlaceholder={t('management.searchPlaceholder')}
         actions={
           <Button onClick={() => navigate('/partner/contracts/new')} size="sm" className="gap-1.5 h-9">
             <Plus className="h-4 w-4" />
-            <span className="hidden sm:inline">Create Contract</span>
+            <span className="hidden sm:inline">{t('management.createContract')}</span>
           </Button>
         }
       />
@@ -100,12 +102,12 @@ export default function PartnerContractsPage() {
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="mb-6 bg-card/30 backdrop-blur-sm border border-border/20">
           <TabsTrigger value="contracts">
-            Contracts
+            {t('management.tabContracts')}
             <Badge variant="secondary" className="ml-2">{contracts.length}</Badge>
           </TabsTrigger>
-          <TabsTrigger value="budget">Budget & Spend</TabsTrigger>
+          <TabsTrigger value="budget">{t('management.tabBudget')}</TabsTrigger>
           <TabsTrigger value="change-orders">
-            Change Orders
+            {t('management.tabChangeOrders')}
             {changeOrders.filter(co => co.status === 'pending').length > 0 && (
               <Badge variant="destructive" className="ml-2">
                 {changeOrders.filter(co => co.status === 'pending').length}
@@ -113,7 +115,7 @@ export default function PartnerContractsPage() {
             )}
           </TabsTrigger>
           <TabsTrigger value="invoices">
-            Invoices
+            {t('management.tabInvoices')}
             <Badge variant="secondary" className="ml-2">{invoices.length}</Badge>
           </TabsTrigger>
         </TabsList>
@@ -122,10 +124,10 @@ export default function PartnerContractsPage() {
           <div className="flex items-center gap-4 mb-6">
             <Tabs value={statusFilter} onValueChange={setStatusFilter}>
               <TabsList className="bg-card/30 backdrop-blur-sm border border-border/20">
-                <TabsTrigger value="all">All</TabsTrigger>
-                <TabsTrigger value="pending_signature">Pending</TabsTrigger>
-                <TabsTrigger value="active">Active</TabsTrigger>
-                <TabsTrigger value="completed">Completed</TabsTrigger>
+                <TabsTrigger value="all">{t('management.filterAll')}</TabsTrigger>
+                <TabsTrigger value="pending_signature">{t('management.filterPending')}</TabsTrigger>
+                <TabsTrigger value="active">{t('management.filterActive')}</TabsTrigger>
+                <TabsTrigger value="completed">{t('management.filterCompleted')}</TabsTrigger>
               </TabsList>
             </Tabs>
           </div>
@@ -139,14 +141,14 @@ export default function PartnerContractsPage() {
               <div className="text-center py-12">
                 <FileText className="h-16 w-16 mx-auto text-muted-foreground/30 mb-4" />
                 <h3 className="text-lg font-semibold text-foreground mb-2">
-                  {contracts.length === 0 ? 'No contracts yet' : 'No contracts match your filters'}
+                  {contracts.length === 0 ? t('management.noContracts') : t('management.noFilterMatch')}
                 </h3>
                 <p className="text-muted-foreground mb-6">
-                  Create your first contract to start hiring freelancers
+                  {t('management.emptyDescription')}
                 </p>
                 <Button onClick={() => navigate('/partner/contracts/new')}>
                   <Plus className="h-4 w-4 mr-2" />
-                  Create Contract
+                  {t('management.createContract')}
                 </Button>
               </div>
             </PartnerGlassCard>
@@ -168,10 +170,10 @@ export default function PartnerContractsPage() {
         </TabsContent>
 
         <TabsContent value="invoices">
-          <PartnerGlassCard title="Contract Invoices">
+          <PartnerGlassCard title={t('management.contractInvoices')}>
             {invoices.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
-                No invoices generated yet
+                {t('management.noInvoices')}
               </div>
             ) : (
               <div className="space-y-3">

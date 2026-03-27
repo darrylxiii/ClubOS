@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Euro, TrendingUp, Users, Percent } from "lucide-react";
 import { formatCurrency } from "@/lib/revenueCalculations";
+import { useTranslation } from 'react-i18next';
 
 interface RevenueShareSummaryProps {
   revenueShares: Array<{
@@ -22,6 +23,7 @@ interface RevenueShareSummaryProps {
 }
 
 export function RevenueShareSummary({ revenueShares }: RevenueShareSummaryProps) {
+  const { t } = useTranslation('admin');
   // Fetch Moneybird revenue data
   const { data: moneybirdData, isLoading } = useQuery({
     queryKey: ['revenue-share-moneybird-summary'],
@@ -96,7 +98,7 @@ export function RevenueShareSummary({ revenueShares }: RevenueShareSummaryProps)
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
             <Euro className="h-4 w-4" />
-            YTD Revenue
+            {t('revenueShareSummary.ytdRevenue')}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -113,7 +115,7 @@ export function RevenueShareSummary({ revenueShares }: RevenueShareSummaryProps)
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
             <TrendingUp className="h-4 w-4" />
-            Collected Revenue
+            {t('revenueShareSummary.collectedRevenue')}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -130,7 +132,7 @@ export function RevenueShareSummary({ revenueShares }: RevenueShareSummaryProps)
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
             <Users className="h-4 w-4" />
-            Share Obligations
+            {t('revenueShareSummary.shareObligations')}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -147,7 +149,7 @@ export function RevenueShareSummary({ revenueShares }: RevenueShareSummaryProps)
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
             <Percent className="h-4 w-4" />
-            Net Revenue
+            {t('revenueShareSummary.netRevenue')}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -155,7 +157,7 @@ export function RevenueShareSummary({ revenueShares }: RevenueShareSummaryProps)
             {formatCurrency(netRevenue)}
           </p>
           <p className="text-xs text-muted-foreground mt-1">
-            After share obligations
+            {t('revenueShareSummary.afterShareObligations')}
           </p>
         </CardContent>
       </Card>

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,6 +31,7 @@ interface EmailComposerProps {
 }
 
 export function EmailComposer({ open, onClose, replyTo }: EmailComposerProps) {
+  const { t } = useTranslation('common');
   const [to, setTo] = useState(replyTo?.email || "");
   const [subject, setSubject] = useState(
     replyTo?.subject ? `Re: ${replyTo.subject}` : ""
@@ -85,7 +87,7 @@ export function EmailComposer({ open, onClose, replyTo }: EmailComposerProps) {
       return uploadedFiles;
     } catch (error) {
       console.error("Failed to upload attachments:", error);
-      toast.error("Failed to upload attachments");
+      toast.error(t("failed_to_upload_attachments", "Failed to upload attachments"));
       throw error;
     } finally {
       setUploadingAttachments(false);
@@ -94,7 +96,7 @@ export function EmailComposer({ open, onClose, replyTo }: EmailComposerProps) {
 
   const handleAiAssist = async (action: string) => {
     if (!body && action !== "compose") {
-      toast.error("Write some text first for AI to work with");
+      toast.error(t("write_some_text_first", "Write some text first for AI to work with"));
       return;
     }
 
@@ -114,7 +116,7 @@ export function EmailComposer({ open, onClose, replyTo }: EmailComposerProps) {
 
       if (data?.suggestion) {
         setBody(data.suggestion);
-        toast.success("AI suggestion applied");
+        toast.success(t("ai_suggestion_applied", "AI suggestion applied"));
       }
     } catch (error: unknown) {
       console.error("AI assist failed:", error);
@@ -126,7 +128,7 @@ export function EmailComposer({ open, onClose, replyTo }: EmailComposerProps) {
 
   const handleSend = async () => {
     if (!to || !subject) {
-      toast.error("Please fill in recipient and subject");
+      toast.error(t("please_fill_in_recipient", "Please fill in recipient and subject"));
       return;
     }
 
@@ -148,7 +150,7 @@ export function EmailComposer({ open, onClose, replyTo }: EmailComposerProps) {
 
       if (error) throw error;
 
-      toast.success("Email sent successfully");
+      toast.success(t("email_sent_successfully", "Email sent successfully"));
       setTo("");
       setSubject("");
       setBody("");
@@ -168,7 +170,7 @@ export function EmailComposer({ open, onClose, replyTo }: EmailComposerProps) {
         <div className="flex flex-col h-full">
           <SheetHeader className="border-b border-border p-4">
             <div className="flex items-center justify-between">
-              <SheetTitle>New Message</SheetTitle>
+              <SheetTitle>{t("new_message", "New Message")}</SheetTitle>
               <Button variant="ghost" size="icon" onClick={onClose}>
                 <X className="h-4 w-4" />
               </Button>
@@ -182,23 +184,23 @@ export function EmailComposer({ open, onClose, replyTo }: EmailComposerProps) {
                 id="to"
                 value={to}
                 onChange={(e) => setTo(e.target.value)}
-                placeholder="recipient@example.com"
+                placeholder={t("recipientexamplecom", "recipient@example.com")}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="subject">Subject</Label>
+              <Label htmlFor="subject">{t("subject", "Subject")}</Label>
               <Input
                 id="subject"
                 value={subject}
                 onChange={(e) => setSubject(e.target.value)}
-                placeholder="Email subject"
+                placeholder={t("email_subject", "Email subject")}
               />
             </div>
 
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label htmlFor="body">Message</Label>
+                <Label htmlFor="body">{t("message", "Message")}</Label>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
@@ -247,7 +249,7 @@ export function EmailComposer({ open, onClose, replyTo }: EmailComposerProps) {
                 id="body"
                 value={body}
                 onChange={(e) => setBody(e.target.value)}
-                placeholder="Write your message or use AI to help you compose..."
+                placeholder={t("write_your_message_or", "Write your message or use AI to help you compose...")}
                 className="min-h-[300px] resize-none"
                 disabled={aiGenerating}
               />
@@ -256,7 +258,7 @@ export function EmailComposer({ open, onClose, replyTo }: EmailComposerProps) {
             {/* Attachments */}
             {attachments.length > 0 && (
               <div className="space-y-2">
-                <Label>Attachments</Label>
+                <Label>{t("attachments", "Attachments")}</Label>
                 <div className="flex flex-wrap gap-2">
                   {attachments.map((file, index) => (
                     <Badge key={index} variant="secondary" className="pr-1">

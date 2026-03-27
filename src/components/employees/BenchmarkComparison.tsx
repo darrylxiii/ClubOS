@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { useBenchmarks, Period } from "@/hooks/useTeamAnalytics";
@@ -16,6 +17,7 @@ interface BenchmarkComparisonProps {
 }
 
 export function BenchmarkComparison({ userId }: BenchmarkComparisonProps) {
+  const { t } = useTranslation('common');
   const [period, setPeriod] = useState<Period>('monthly');
   const { data: benchmarks, isLoading } = useBenchmarks(userId, period);
 
@@ -122,7 +124,7 @@ export function BenchmarkComparison({ userId }: BenchmarkComparisonProps) {
               <div className="space-y-2">
                 {/* User */}
                 <div className="flex items-center gap-3">
-                  <span className="text-xs w-20 text-muted-foreground">You</span>
+                  <span className="text-xs w-20 text-muted-foreground">{t("you", "You")}</span>
                   <div className="flex-1">
                     <Progress 
                       value={getPercentage(metric.user, maxValue)} 
@@ -136,7 +138,7 @@ export function BenchmarkComparison({ userId }: BenchmarkComparisonProps) {
 
                 {/* Team Avg */}
                 <div className="flex items-center gap-3">
-                  <span className="text-xs w-20 text-muted-foreground">Team Avg</span>
+                  <span className="text-xs w-20 text-muted-foreground">{t("team_avg", "Team Avg")}</span>
                   <div className="flex-1">
                     <Progress 
                       value={getPercentage(metric.teamAvg, maxValue)} 
@@ -150,7 +152,7 @@ export function BenchmarkComparison({ userId }: BenchmarkComparisonProps) {
 
                 {/* Top 10% */}
                 <div className="flex items-center gap-3">
-                  <span className="text-xs w-20 text-muted-foreground">Top 10%</span>
+                  <span className="text-xs w-20 text-muted-foreground">{t("top_10", "Top 10%")}</span>
                   <div className="flex-1">
                     <Progress 
                       value={getPercentage(metric.top10, maxValue)} 

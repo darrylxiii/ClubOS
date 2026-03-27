@@ -8,8 +8,10 @@ import { Calendar, Download, TrendingUp, Users, Briefcase, CheckCircle } from "l
 import { format, subDays } from "date-fns";
 import { useRecharts } from "@/hooks/useRecharts";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useTranslation } from 'react-i18next';
 
 export const EnhancedAnalytics = () => {
+  const { t } = useTranslation('partner');
   const { companyId } = useRole();
   const [dateRange, setDateRange] = useState({ start: subDays(new Date(), 30), end: new Date() });
   const { recharts, isLoading: rechartsLoading } = useRecharts();
@@ -77,7 +79,7 @@ export const EnhancedAnalytics = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">Enhanced Analytics</h2>
+        <h2 className="text-2xl font-bold">{t('enhancedAnalytics.enhancedAnalytics')}</h2>
         <Button onClick={handleExport} variant="outline">
           <Download className="w-4 h-4 mr-2" />
           Export CSV
@@ -87,7 +89,7 @@ export const EnhancedAnalytics = () => {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Applications</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('enhancedAnalytics.title')}</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -97,7 +99,7 @@ export const EnhancedAnalytics = () => {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Interviews Scheduled</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('enhancedAnalytics.title')}</CardTitle>
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -107,7 +109,7 @@ export const EnhancedAnalytics = () => {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Offers Sent</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('enhancedAnalytics.title')}</CardTitle>
             <Briefcase className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -117,7 +119,7 @@ export const EnhancedAnalytics = () => {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Hires Made</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('enhancedAnalytics.title')}</CardTitle>
             <CheckCircle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -128,7 +130,7 @@ export const EnhancedAnalytics = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Hiring Pipeline Trends</CardTitle>
+          <CardTitle>{t('enhancedAnalytics.title')}</CardTitle>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={350}>

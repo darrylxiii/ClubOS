@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -22,6 +23,7 @@ export function ChangeAvatarDialog({
   userId,
   onSuccess 
 }: ChangeAvatarDialogProps) {
+  const { t } = useTranslation('common');
   const [avatarUrl, setAvatarUrl] = useState(currentAvatarUrl);
   const [editorOpen, setEditorOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -33,12 +35,12 @@ export function ChangeAvatarDialog({
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-      toast.error('Please upload an image file');
+      toast.error(t("please_upload_an_image", "Please upload an image file"));
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      toast.error('Image must be less than 5MB');
+      toast.error(t("image_must_be_less", "Image must be less than 5MB"));
       return;
     }
 
@@ -85,11 +87,11 @@ export function ChangeAvatarDialog({
       if (updateError) throw updateError;
 
       setAvatarUrl(cacheBustedUrl);
-      toast.success('Profile picture updated');
+      toast.success(t("profile_picture_updated", "Profile picture updated"));
       onSuccess();
     } catch (error: unknown) {
       console.error('Error updating avatar:', error);
-      toast.error('Failed to update profile picture');
+      toast.error(t("failed_to_update_profile", "Failed to update profile picture"));
     } finally {
       setUploading(false);
       if (selectedImage) {
@@ -112,7 +114,7 @@ export function ChangeAvatarDialog({
       <Dialog open={open} onOpenChange={onClose}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Change Profile Picture</DialogTitle>
+            <DialogTitle>{t("change_profile_picture", "Change Profile Picture")}</DialogTitle>
           </DialogHeader>
 
           <div className="py-4 space-y-4">
@@ -121,7 +123,7 @@ export function ChangeAvatarDialog({
                 {uploading ? (
                   <AvatarFallback><Loader2 className="w-8 h-8 animate-spin" /></AvatarFallback>
                 ) : avatarUrl ? (
-                  <AvatarImage src={avatarUrl} alt="Profile" className="object-cover" />
+                  <AvatarImage src={avatarUrl} alt={t("profile", "Profile")} className="object-cover" />
                 ) : (
                   <AvatarFallback><User className="w-12 h-12 text-muted-foreground" /></AvatarFallback>
                 )}
@@ -145,7 +147,7 @@ export function ChangeAvatarDialog({
                   <Upload className="w-4 h-4 mr-2" />
                   {avatarUrl ? 'Change' : 'Upload'} Picture
                 </Button>
-                <p className="text-xs text-muted-foreground">JPG, PNG or WEBP. Max 5MB.</p>
+                <p className="text-xs text-muted-foreground">{t("jpg_png_or_webp", "JPG, PNG or WEBP. Max 5MB.")}</p>
               </div>
             </div>
           </div>

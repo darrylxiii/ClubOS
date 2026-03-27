@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -42,6 +43,7 @@ export function AssessmentRecommendations({
   resultsData,
   score,
 }: AssessmentRecommendationsProps) {
+  const { t } = useTranslation('common');
   const [isRefetching, setIsRefetching] = useState(false);
 
   const { data: insights, isLoading, error, refetch } = useQuery({
@@ -80,7 +82,7 @@ export function AssessmentRecommendations({
       <div className="space-y-4">
         <div className="flex items-center gap-2">
           <Sparkles className="w-5 h-5 text-primary animate-pulse" />
-          <span className="text-sm text-muted-foreground">QUIN is analyzing your results...</span>
+          <span className="text-sm text-muted-foreground">{t("quin_is_analyzing_your", "QUIN is analyzing your results...")}</span>
         </div>
         <div className="grid gap-4 md:grid-cols-2">
           {[1, 2, 3, 4].map((i) => (
@@ -124,7 +126,7 @@ export function AssessmentRecommendations({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Sparkles className="w-5 h-5 text-primary" />
-          <span className="text-sm font-medium">Powered by QUIN</span>
+          <span className="text-sm font-medium">{t("powered_by_quin", "Powered by QUIN")}</span>
         </div>
         <Button 
           variant="ghost" 
@@ -228,7 +230,7 @@ export function AssessmentRecommendations({
             ))}
           </ul>
           <div className="p-4 rounded-lg bg-muted/50 border">
-            <p className="text-sm font-medium mb-1">Next Steps</p>
+            <p className="text-sm font-medium mb-1">{t("next_steps", "Next Steps")}</p>
             <p className="text-sm text-muted-foreground">{insights.nextSteps}</p>
           </div>
         </CardContent>

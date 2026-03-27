@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -32,6 +33,7 @@ interface PortfolioSectionProps {
 }
 
 export const PortfolioSection = ({ userId, isReadOnly = false }: PortfolioSectionProps = {}) => {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const targetUserId = userId || user?.id;
   const [items, setItems] = useState<Portfolio[]>([]);
@@ -88,20 +90,20 @@ export const PortfolioSection = ({ userId, isReadOnly = false }: PortfolioSectio
         .eq('id', editingId);
       
       if (error) {
-        toast.error('Failed to update portfolio item');
+        toast.error("Failed to update portfolio item");
         return;
       }
-      toast.success('Portfolio item updated');
+      toast.success("Portfolio item updated");
     } else {
       const { error } = await supabase
         .from('profile_portfolio')
         .insert(payload);
       
       if (error) {
-        toast.error('Failed to add portfolio item');
+        toast.error("Failed to add portfolio item");
         return;
       }
-      toast.success('Portfolio item added');
+      toast.success("Portfolio item added");
     }
 
     setIsDialogOpen(false);
@@ -116,10 +118,10 @@ export const PortfolioSection = ({ userId, isReadOnly = false }: PortfolioSectio
       .eq('id', id);
 
     if (error) {
-      toast.error('Failed to delete portfolio item');
+      toast.error("Failed to delete portfolio item");
       return;
     }
-    toast.success('Portfolio item deleted');
+    toast.success("Portfolio item deleted");
     loadPortfolio();
   };
 
@@ -164,7 +166,7 @@ export const PortfolioSection = ({ userId, isReadOnly = false }: PortfolioSectio
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-2">
             <Folder className="w-5 h-5" />
-            <CardTitle>Portfolio</CardTitle>
+            <CardTitle>{t('profile.portfolio')}</CardTitle>
           </div>
           <Dialog open={isDialogOpen} onOpenChange={(open) => {
             setIsDialogOpen(open);
@@ -174,17 +176,17 @@ export const PortfolioSection = ({ userId, isReadOnly = false }: PortfolioSectio
               <DialogTrigger asChild>
                 <Button size="sm">
                   <Plus className="w-4 h-4 mr-2" />
-                  Add Project
+                  {t('profile.addProject')}
                 </Button>
               </DialogTrigger>
             )}
             <DialogContent className="max-w-2xl">
               <DialogHeader>
-                <DialogTitle>{editingId ? 'Edit' : 'Add'} Portfolio Item</DialogTitle>
+                <DialogTitle>{editingId ? t('common:actions.edit') : t('common:actions.add')} {t('profile.portfolioItem')}</DialogTitle>
               </DialogHeader>
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label>Title *</Label>
+                  <Label>{t('profile.title')} *</Label>
                   <Input 
                     value={formData.title}
                     onChange={(e) => setFormData({...formData, title: e.target.value})}
@@ -193,36 +195,36 @@ export const PortfolioSection = ({ userId, isReadOnly = false }: PortfolioSectio
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Type</Label>
+                  <Label>{t('profile.type')}</Label>
                   <Select value={formData.type} onValueChange={(value) => setFormData({...formData, type: value})}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="project">Project</SelectItem>
-                      <SelectItem value="code">Code</SelectItem>
-                      <SelectItem value="design">Design</SelectItem>
-                      <SelectItem value="video">Video</SelectItem>
-                      <SelectItem value="presentation">Presentation</SelectItem>
-                      <SelectItem value="article">Article</SelectItem>
-                      <SelectItem value="case_study">Case Study</SelectItem>
+                      <SelectItem value="project">{t('profile.project')}</SelectItem>
+                      <SelectItem value="code">{t('profile.code')}</SelectItem>
+                      <SelectItem value="design">{t('profile.design')}</SelectItem>
+                      <SelectItem value="video">{t('profile.video')}</SelectItem>
+                      <SelectItem value="presentation">{t('profile.presentation')}</SelectItem>
+                      <SelectItem value="article">{t('profile.article')}</SelectItem>
+                      <SelectItem value="case_study">{t('profile.caseStudy')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Description</Label>
-                  <Textarea 
+                  <Label>{t('profile.description')}</Label>
+                  <Textarea
                     value={formData.description}
                     onChange={(e) => setFormData({...formData, description: e.target.value})}
-                    placeholder="Describe your project..."
+                    placeholder={t('profile.describeProject')}
                     rows={4}
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>Project URL</Label>
+                    <Label>{t('profile.projectUrl')}</Label>
                     <Input 
                       value={formData.project_url}
                       onChange={(e) => setFormData({...formData, project_url: e.target.value})}
@@ -230,7 +232,7 @@ export const PortfolioSection = ({ userId, isReadOnly = false }: PortfolioSectio
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>GitHub URL</Label>
+                    <Label>{t('profile.githubUrl')}</Label>
                     <Input 
                       value={formData.github_url}
                       onChange={(e) => setFormData({...formData, github_url: e.target.value})}
@@ -240,7 +242,7 @@ export const PortfolioSection = ({ userId, isReadOnly = false }: PortfolioSectio
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Thumbnail URL</Label>
+                  <Label>{t('profile.thumbnailUrl')}</Label>
                   <Input 
                     value={formData.thumbnail_url}
                     onChange={(e) => setFormData({...formData, thumbnail_url: e.target.value})}
@@ -249,7 +251,7 @@ export const PortfolioSection = ({ userId, isReadOnly = false }: PortfolioSectio
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Tags (comma-separated)</Label>
+                  <Label>{t('profile.tagsCommaSeparated')}</Label>
                   <Input 
                     value={formData.tags}
                     onChange={(e) => setFormData({...formData, tags: e.target.value})}
@@ -264,11 +266,11 @@ export const PortfolioSection = ({ userId, isReadOnly = false }: PortfolioSectio
                     onChange={(e) => setFormData({...formData, featured: e.target.checked})}
                     className="rounded"
                   />
-                  <Label>Feature this project</Label>
+                  <Label>{t('profile.featureThisProject')}</Label>
                 </div>
 
                 <Button onClick={handleSave} className="w-full">
-                  {editingId ? 'Update' : 'Add'} Project
+                  {editingId ? t('common:actions.update') : t('common:actions.add')} {t('profile.project')}
                 </Button>
               </div>
             </DialogContent>
@@ -292,7 +294,7 @@ export const PortfolioSection = ({ userId, isReadOnly = false }: PortfolioSectio
 
           {filteredItems.length === 0 ? (
             <p className="text-muted-foreground text-center py-8">
-              No portfolio items yet. Click "Add Project" to showcase your work.
+              {t('profile.noPortfolioYet')}
             </p>
           ) : (
             <div className="grid md:grid-cols-2 gap-4">
@@ -312,7 +314,7 @@ export const PortfolioSection = ({ userId, isReadOnly = false }: PortfolioSectio
                       <div className="flex-1">
                         <h4 className="font-semibold">{item.title}</h4>
                         {item.featured && (
-                          <Badge variant="default" className="text-xs mt-1">Featured</Badge>
+                          <Badge variant="default" className="text-xs mt-1">{t('profile.featured')}</Badge>
                         )}
                       </div>
                       {!isReadOnly && (

@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 
@@ -9,6 +10,7 @@ import { Loader2 } from "lucide-react";
  * actual placement revenue data.
  */
 export default function RevenueAnalytics() {
+  const { t } = useTranslation('admin');
   const navigate = useNavigate();
 
   useEffect(() => {

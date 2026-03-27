@@ -9,6 +9,7 @@ import { useCompanyDomains } from "@/hooks/useCompanyDomains";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTranslation } from 'react-i18next';
 
 interface PartnerDomainSettingsProps {
   companyId: string;
@@ -16,6 +17,7 @@ interface PartnerDomainSettingsProps {
 }
 
 export const PartnerDomainSettings = ({ companyId, canRequestDomains = true }: PartnerDomainSettingsProps) => {
+  const { t } = useTranslation('partner');
   const { domains, allDomainSettings, loading, refetch } = useCompanyDomains(companyId);
   const { user } = useAuth();
   const [newDomain, setNewDomain] = useState("");
@@ -28,7 +30,7 @@ export const PartnerDomainSettings = ({ companyId, canRequestDomains = true }: P
     // Basic domain validation
     const domainRegex = /^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/i;
     if (!domainRegex.test(newDomain.trim())) {
-      toast.error("Please enter a valid domain (e.g., example.com)");
+      toast.error(t('partnerDomainSettings.toast.pleaseEnterAValidDomainEgExamplecom'));
       return;
     }
 
@@ -43,7 +45,7 @@ export const PartnerDomainSettings = ({ companyId, canRequestDomains = true }: P
         .maybeSingle();
 
       if (existing) {
-        toast.error("This domain is already configured");
+        toast.error(t('partnerDomainSettings.toast.thisDomainIsAlreadyConfigured'));
         return;
       }
 
@@ -61,13 +63,13 @@ export const PartnerDomainSettings = ({ companyId, canRequestDomains = true }: P
 
       if (error) throw error;
 
-      toast.success("Domain request submitted for admin approval");
+      toast.success(t('partnerDomainSettings.toast.domainRequestSubmittedForAdminApproval'));
       setNewDomain("");
       setShowRequestForm(false);
       refetch();
     } catch (error) {
       console.error("Error requesting domain:", error);
-      toast.error("Failed to submit domain request");
+      toast.error(t('partnerDomainSettings.toast.failedToSubmitDomainRequest'));
     } finally {
       setRequesting(false);
     }
@@ -78,7 +80,7 @@ export const PartnerDomainSettings = ({ companyId, canRequestDomains = true }: P
       <Card className="border-2">
         <CardContent className="py-8">
           <div className="flex items-center justify-center">
-            <div className="animate-pulse text-muted-foreground">Loading domain settings...</div>
+            <div className="animate-pulse text-muted-foreground">{t('partnerDomainSettings.loadingDomainSettings')}</div>
           </div>
         </CardContent>
       </Card>
@@ -92,20 +94,14 @@ export const PartnerDomainSettings = ({ companyId, canRequestDomains = true }: P
           <Globe className="w-5 h-5" />
           Authorized Domains
         </CardTitle>
-        <CardDescription>
-          Team members can only be invited from these email domains
-        </CardDescription>
+        <CardDescription>{t('partnerDomainSettings.description')}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {domains.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-8 text-center">
             <AlertCircle className="w-10 h-10 text-muted-foreground mb-3" />
-            <p className="text-sm text-muted-foreground mb-2">
-              No domains configured yet
-            </p>
-            <p className="text-xs text-muted-foreground">
-              Contact your administrator to set up authorized domains
-            </p>
+            <p className="text-sm text-muted-foreground mb-2">{t('partnerDomainSettings.noDomainsConfiguredYet')}</p>
+            <p className="text-xs text-muted-foreground">{t('partnerDomainSettings.contactYourAdministratorToSetUpAuthorize')}</p>
           </div>
         ) : (
           <div className="space-y-2">
@@ -146,7 +142,7 @@ export const PartnerDomainSettings = ({ companyId, canRequestDomains = true }: P
           <div className="pt-4 border-t">
             {showRequestForm ? (
               <div className="space-y-3">
-                <Label htmlFor="new-domain">Request New Domain</Label>
+                <Label htmlFor="new-domain">{t('partnerDomainSettings.label.requestNewDomain')}</Label>
                 <div className="flex gap-2">
                   <div className="relative flex-1">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">@</span>
@@ -162,12 +158,10 @@ export const PartnerDomainSettings = ({ companyId, canRequestDomains = true }: P
                     {requesting ? "Submitting..." : "Submit"}
                   </Button>
                   <Button variant="outline" onClick={() => setShowRequestForm(false)}>
-                    Cancel
+                    {t('common:cancel')}
                   </Button>
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  Domain requests require admin approval before they become active
-                </p>
+                <p className="text-xs text-muted-foreground">{t('partnerDomainSettings.domainRequestsRequireAdminApprovalBefore')}</p>
               </div>
             ) : (
               <Button

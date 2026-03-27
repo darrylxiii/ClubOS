@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Command, CommandEmpty, CommandGroup, CommandItem, CommandList } from "@/components/ui/command";
 import { supabase } from "@/integrations/supabase/client";
 import { Building2, Plus } from "lucide-react";
+import { useTranslation } from 'react-i18next';
 
 interface Company {
   name: string;
@@ -18,6 +19,7 @@ interface CompanySearchProps {
 }
 
 export const CompanySearch = ({ value, onChange, onSelect }: CompanySearchProps) => {
+  const { t } = useTranslation('common');
   const [companies, setCompanies] = useState<Company[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showResults, setShowResults] = useState(false);

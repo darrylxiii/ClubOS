@@ -1,10 +1,4 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { createHandler } from '../_shared/handler.ts';
 
 interface SearchFilters {
   talent_tiers?: string[];
@@ -25,51 +19,42 @@ interface SearchRequest {
   similarity_threshold?: number;
 }
 
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+Deno.serve(createHandler(async (req, ctx) => {
+  const {
+    query,
+    filters = {},
+    limit = 25,
+    include_explanation = false,
+    similarity_threshold = 0.5
+  }: SearchRequest = await req.json();
+
+  if (!query || query.trim().length === 0) {
+    throw new Error('Search query is required');
   }
 
-  try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+  console.log(`[enhance-semantic-candidate-search] Query: "${query}", Limit: ${limit}`);
 
-    const {
-      query,
-      filters = {},
-      limit = 25,
-      include_explanation = false,
-      similarity_threshold = 0.5
-    }: SearchRequest = await req.json();
-
-    if (!query || query.trim().length === 0) {
-      throw new Error('Search query is required');
-    }
-
-    console.log(`[enhance-semantic-candidate-search] Query: "${query}", Limit: ${limit}`);
-
-    // Generate embedding for the search query using existing generate-embeddings function
-    const { data: embeddingResponse, error: embeddingError } = await supabase.functions.invoke(
-      'generate-embeddings',
-      {
-        body: {
-          content: query,
-          type: 'search_query'
-        }
+  // Generate embedding for the search query using existing generate-embeddings function
+  const { data: embeddingResponse, error: embeddingError } = await ctx.supabase.functions.invoke(
+    'generate-embeddings',
+    {
+      body: {
+        content: query,
+        type: 'search_query'
       }
-    );
-
-    if (embeddingError || !embeddingResponse?.embedding) {
-      console.error('[enhance-semantic-candidate-search] Embedding error:', embeddingError);
-      // Fall back to keyword search if embedding fails
-      return await keywordSearch(supabase, query, filters, limit);
     }
+  );
+
+  if (embeddingError || !embeddingResponse?.embedding) {
+    console.error('[enhance-semantic-candidate-search] Embedding error:', embeddingError);
+    // Fall back to keyword search if embedding fails
+    return await keywordSearch(ctx.supabase, query, filters, limit, ctx.corsHeaders);
+  }
 
     const queryEmbedding = embeddingResponse.embedding;
 
     // Build the search query with filters
-    let searchQuery = supabase
+    let searchQuery = ctx.supabase
       .from('candidate_profiles')
       .select(`
         id,
@@ -144,7 +129,7 @@ serve(async (req) => {
           total: 0,
           message: 'No candidates found matching the criteria'
         }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -152,7 +137,7 @@ serve(async (req) => {
     const candidatesWithScores = await Promise.all(
       candidates.map(async (candidate) => {
         // Get candidate's embedding from intelligence_embeddings
-        const { data: embeddingData } = await supabase
+        const { data: embeddingData } = await ctx.supabase
           .from('intelligence_embeddings')
           .select('embedding')
           .eq('entity_id', candidate.id)
@@ -207,19 +192,11 @@ serve(async (req) => {
         results,
         total: results.length,
       }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } }
     );
+}));
 
-  } catch (error) {
-    console.error('[enhance-semantic-candidate-search] Error:', error);
-    return new Response(
-      JSON.stringify({ success: false, error: error instanceof Error ? error.message : String(error) }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-  }
-});
-
-async function keywordSearch(supabase: any, query: string, filters: SearchFilters, limit: number) {
+async function keywordSearch(supabase: any, query: string, filters: SearchFilters, limit: number, corsHeaders: Record<string, string>) {
   console.log('[enhance-semantic-candidate-search] Falling back to keyword search');
 
   const keywords = query.toLowerCase().split(/\s+/).filter(k => k.length > 2);

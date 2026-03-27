@@ -4,8 +4,10 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { useSecurityMetrics } from "@/hooks/useSecurityMetrics";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useTranslation } from 'react-i18next';
 
 export const RLSPoliciesCard = () => {
+  const { t } = useTranslation('admin');
   const { rlsMetrics, isLoading } = useSecurityMetrics();
 
   if (isLoading || !rlsMetrics) {
@@ -30,8 +32,8 @@ export const RLSPoliciesCard = () => {
     <Card className={isHealthy ? "border-green-500/20" : "border-orange-500/20"}>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <div>
-          <CardTitle className="text-sm font-medium">RLS Policies</CardTitle>
-          <CardDescription>Row-level security coverage</CardDescription>
+          <CardTitle className="text-sm font-medium">{t('security.rLSPoliciesCard.rlsPolicies')}</CardTitle>
+          <CardDescription>{t('security.rLSPoliciesCard.rowlevelSecurityCoverage')}</CardDescription>
         </div>
         <Shield className={`h-4 w-4 ${isHealthy ? 'text-green-500' : 'text-orange-500'}`} />
       </CardHeader>
@@ -43,7 +45,7 @@ export const RLSPoliciesCard = () => {
         
         <div className="space-y-2">
           <div className="flex items-center justify-between text-xs">
-            <span>Coverage</span>
+            <span>{t('security.rLSPoliciesCard.coverage')}</span>
             <Badge variant={isHealthy ? "default" : "secondary"}>
               {coveragePercentage}%
             </Badge>
@@ -55,7 +57,7 @@ export const RLSPoliciesCard = () => {
           <div className="mt-4 pt-4 border-t">
             <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
               <TrendingUp className="h-3 w-3" />
-              <span>Top Secured Tables</span>
+              <span>{t('security.rLSPoliciesCard.topSecuredTables')}</span>
             </div>
             <div className="space-y-1">
               {topTables.slice(0, 3).map((table) => (

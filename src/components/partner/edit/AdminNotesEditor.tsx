@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -10,6 +11,7 @@ interface AdminNotesEditorProps {
 }
 
 export function AdminNotesEditor({ candidate, onChange }: AdminNotesEditorProps) {
+  const { t } = useTranslation('common');
   const { currentRole } = useRole();
   const [adminNotes, setAdminNotes] = useState(candidate.admin_notes || '');
 
@@ -32,13 +34,11 @@ export function AdminNotesEditor({ candidate, onChange }: AdminNotesEditorProps)
           id="admin_notes"
           value={adminNotes}
           onChange={(e) => setAdminNotes(e.target.value)}
-          placeholder="Add internal notes about this candidate (not visible to partners or candidates)"
+          placeholder={t("add_internal_notes_about", "Add internal notes about this candidate (not visible to partners or candidates)")}
           rows={10}
           className="resize-none"
         />
-        <p className="text-sm text-muted-foreground">
-          These notes are for internal use only and will not be shared with the candidate or partners.
-        </p>
+        <p className="text-sm text-muted-foreground">{t('adminNotesEditor.theseNotesAreForInternalUseOnlyAndWillNo')}</p>
       </div>
     </div>
   );

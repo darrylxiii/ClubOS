@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -29,6 +30,7 @@ interface DocumentStatus {
 }
 
 export function DocumentStatusWidget() {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -162,7 +164,7 @@ export function DocumentStatusWidget() {
             Documents
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3" role="status" aria-label="Loading document status">
+        <CardContent className="space-y-3" role="status" aria-label={t("loading_document_status", "Loading document status")}>
           {[1, 2, 3, 4].map((i) => (
             <Skeleton key={i} className="h-12 w-full" />
           ))}
@@ -209,7 +211,7 @@ export function DocumentStatusWidget() {
   };
 
   return (
-    <Card className="glass-subtle rounded-2xl" role="region" aria-label="Document status">
+    <Card className="glass-subtle rounded-2xl" role="region" aria-label={t("document_status", "Document status")}>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-base flex items-center gap-2">
@@ -221,7 +223,7 @@ export function DocumentStatusWidget() {
             size="sm" 
             className="text-xs"
             onClick={() => navigate('/settings?tab=documents')}
-            aria-label="Manage your documents"
+            aria-label={t("manage_your_documents", "Manage your documents")}
           >
             Manage
           </Button>
@@ -230,7 +232,7 @@ export function DocumentStatusWidget() {
         {/* Completion Progress */}
         <div className="mt-3">
           <div className="flex items-center justify-between text-xs mb-2">
-            <span className="text-muted-foreground">Profile Documents</span>
+            <span className="text-muted-foreground">{t("profile_documents", "Profile Documents")}</span>
             <span className="font-medium" aria-live="polite">{completedCount}/{totalCount} Complete</span>
           </div>
           <Progress 
@@ -242,7 +244,7 @@ export function DocumentStatusWidget() {
       </CardHeader>
       
       <CardContent className="space-y-2">
-        <ul className="space-y-2" role="list" aria-label="Document list">
+        <ul className="space-y-2" role="list" aria-label={t("document_list", "Document list")}>
           {documentStatus?.map((doc) => (
             <li key={doc.type}>
               <div 
@@ -297,7 +299,7 @@ export function DocumentStatusWidget() {
             <div className="flex items-start gap-3">
               <FileCheck className="h-5 w-5 text-primary mt-0.5" aria-hidden="true" />
               <div className="flex-1">
-                <p className="text-sm font-medium">Upload your CV to get started</p>
+                <p className="text-sm font-medium">{t("upload_your_cv_to", "Upload your CV to get started")}</p>
                 <p className="text-xs text-muted-foreground mt-1">
                   A complete profile gets 3x more recruiter views
                 </p>
@@ -305,7 +307,7 @@ export function DocumentStatusWidget() {
                   size="sm" 
                   className="mt-3"
                   onClick={() => navigate('/settings?tab=documents')}
-                  aria-label="Upload your CV now"
+                  aria-label={t("upload_your_cv_now", "Upload your CV now")}
                 >
                   <Upload className="h-4 w-4 mr-2" aria-hidden="true" />
                   Upload CV

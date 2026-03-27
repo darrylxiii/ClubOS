@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -39,6 +40,7 @@ interface BookingApprovalListProps {
 }
 
 export function BookingApprovalList({ onApprovalChange }: BookingApprovalListProps) {
+  const { t } = useTranslation('common');
   const queryClient = useQueryClient();
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<PendingBooking | null>(null);
@@ -83,7 +85,7 @@ export function BookingApprovalList({ onApprovalChange }: BookingApprovalListPro
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["pending-bookings"] });
       queryClient.invalidateQueries({ queryKey: ["bookings"] });
-      toast.success("Booking approved successfully");
+      toast.success(t("booking_approved_successfully", "Booking approved successfully"));
       onApprovalChange?.();
     },
     onError: (error: Error) => {
@@ -105,7 +107,7 @@ export function BookingApprovalList({ onApprovalChange }: BookingApprovalListPro
       setRejectDialogOpen(false);
       setSelectedBooking(null);
       setRejectionReason("");
-      toast.success("Booking rejected");
+      toast.success(t("booking_rejected", "Booking rejected"));
       onApprovalChange?.();
     },
     onError: (error: Error) => {
@@ -161,7 +163,7 @@ export function BookingApprovalList({ onApprovalChange }: BookingApprovalListPro
         <CardContent>
           <div className="text-center py-8 text-muted-foreground">
             <Check className="h-12 w-12 mx-auto mb-4 text-green-500" />
-            <p>All caught up! No pending booking requests.</p>
+            <p>{t("all_caught_up_no", "All caught up! No pending booking requests.")}</p>
           </div>
         </CardContent>
       </Card>
@@ -252,7 +254,7 @@ export function BookingApprovalList({ onApprovalChange }: BookingApprovalListPro
       <AlertDialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Reject Booking Request</AlertDialogTitle>
+            <AlertDialogTitle>{t("reject_booking_request", "Reject Booking Request")}</AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to reject this booking from{" "}
               <strong>{selectedBooking?.guest_name}</strong>? They will be notified via email.
@@ -260,14 +262,14 @@ export function BookingApprovalList({ onApprovalChange }: BookingApprovalListPro
           </AlertDialogHeader>
           <div className="py-4">
             <Textarea
-              placeholder="Optional: Provide a reason for rejection..."
+              placeholder={t("optional_provide_a_reason", "Optional: Provide a reason for rejection...")}
               value={rejectionReason}
               onChange={(e) => setRejectionReason(e.target.value)}
               rows={3}
             />
           </div>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t("cancel", "Cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmReject}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"

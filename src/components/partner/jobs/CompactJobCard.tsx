@@ -44,6 +44,7 @@ import { NextActionBadge } from '@/components/jobs/NextActionBadge';
 import { JobLocationDisplay, type JobLocationItem } from '@/components/jobs/JobLocationDisplay';
 import { UrgencyMeter } from '@/components/jobs/UrgencyMeter';
 import { computeJobUrgencyScore, getUrgencyAccentHsl } from '@/lib/jobUrgencyScore';
+import { useTranslation } from 'react-i18next';
 
 interface CompactJobCardProps {
   job: {
@@ -195,6 +196,7 @@ export const CompactJobCard = memo(({
   onRestore,
   onToggleFavorite,
 }: CompactJobCardProps) => {
+  const { t } = useTranslation('partner');
   const nextAction = getNextAction(job);
   const trendData = generateTrendData(job.candidate_count, job.days_since_opened);
 
@@ -308,7 +310,7 @@ export const CompactJobCard = memo(({
                   <TooltipTrigger asChild>
                     <Lock className="h-3.5 w-3.5 text-amber-500 shrink-0" />
                   </TooltipTrigger>
-                  <TooltipContent>Confidential</TooltipContent>
+                  <TooltipContent>{t('compactJobCard.tooltip.confidential')}</TooltipContent>
                 </Tooltip>
               )}
             </div>
@@ -351,7 +353,7 @@ export const CompactJobCard = memo(({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48 bg-card/95 backdrop-blur-xl border-border/40">
-                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                <DropdownMenuLabel>{t('common:actions')}</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 
                 {job.status === 'draft' && (
@@ -362,7 +364,7 @@ export const CompactJobCard = memo(({
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onArchive(); }}>
                       <Archive className="h-4 w-4 mr-2" />
-                      Archive
+                      {t('common:archive')}
                     </DropdownMenuItem>
                   </>
                 )}
@@ -375,7 +377,7 @@ export const CompactJobCard = memo(({
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onClose(); }}>
                       <XCircle className="h-4 w-4 mr-2 text-amber-500" />
-                      Close
+                      {t('common:close')}
                     </DropdownMenuItem>
                   </>
                 )}
@@ -388,7 +390,7 @@ export const CompactJobCard = memo(({
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onArchive(); }}>
                       <Archive className="h-4 w-4 mr-2" />
-                      Archive
+                      {t('common:archive')}
                     </DropdownMenuItem>
                   </>
                 )}

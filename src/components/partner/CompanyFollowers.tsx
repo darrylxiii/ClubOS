@@ -5,12 +5,14 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Users } from "lucide-react";
+import { useTranslation } from 'react-i18next';
 
 interface CompanyFollowersProps {
   companyId: string;
 }
 
 export const CompanyFollowers = ({ companyId }: CompanyFollowersProps) => {
+  const { t } = useTranslation('partner');
   const [followers, setFollowers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({ total: 0, thisWeek: 0 });
@@ -50,7 +52,7 @@ export const CompanyFollowers = ({ companyId }: CompanyFollowersProps) => {
       });
     } catch (error) {
       console.error('Error fetching followers:', error);
-      toast.error("Failed to load followers");
+      toast.error(t('companyFollowers.toast.failedToLoadFollowers'));
     } finally {
       setLoading(false);
     }
@@ -81,7 +83,7 @@ export const CompanyFollowers = ({ companyId }: CompanyFollowersProps) => {
         {followers.length === 0 ? (
           <div className="text-center py-12 text-muted-foreground">
             <Users className="w-12 h-12 mx-auto mb-4 opacity-50" />
-            <p>No followers yet</p>
+            <p>{t('companyFollowers.noFollowersYet')}</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -100,7 +102,7 @@ export const CompanyFollowers = ({ companyId }: CompanyFollowersProps) => {
                   </div>
                 </div>
                 {follower.notification_enabled && (
-                  <Badge variant="secondary">Notifications On</Badge>
+                  <Badge variant="secondary">{t('companyFollowers.badge.notificationsOn')}</Badge>
                 )}
               </div>
             ))}

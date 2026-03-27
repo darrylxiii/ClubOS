@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -29,6 +30,7 @@ const getFAQResponse = (message: string): string => {
 };
 
 export function FunnelAIAssistant() {
+  const { t } = useTranslation('common');
   const [isOpen, setIsOpen] = useState(false);
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -133,7 +135,7 @@ Tone: calm, professional, concise. Never mention specific fee percentages or con
           <div className="p-4 border-b border-border flex items-center justify-between">
             <div>
               <h3 className="font-semibold text-sm">QUIN</h3>
-              <p className="text-xs text-muted-foreground">AI assistant</p>
+              <p className="text-xs text-muted-foreground">{t("ai_assistant", "AI assistant")}</p>
             </div>
             <Button size="icon" variant="ghost" onClick={() => setIsOpen(false)}>
               <X className="w-4 h-4" />
@@ -171,7 +173,7 @@ Tone: calm, professional, concise. Never mention specific fee percentages or con
           {/* Quick replies */}
           {messages.length === 1 && (
             <div className="px-4 pb-2 border-t border-border pt-3">
-              <p className="text-xs text-muted-foreground mb-2">Common questions:</p>
+              <p className="text-xs text-muted-foreground mb-2">{t("common_questions", "Common questions:")}</p>
               <div className="flex flex-wrap gap-1.5">
                 {quickReplies.map((reply) => (
                   <button
@@ -189,7 +191,7 @@ Tone: calm, professional, concise. Never mention specific fee percentages or con
           <div className="p-4 border-t border-border">
             <div className="flex gap-2">
               <Input
-                placeholder="Ask a question..."
+                placeholder={t("ask_a_question", "Ask a question...")}
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSend()}

@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useTranslation } from 'react-i18next';
 import { useQuery } from "@tanstack/react-query";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -36,6 +37,7 @@ export interface CandidateData {
 }
 
 export default function InterviewComparison() {
+  const { t } = useTranslation('common');
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const roleId = searchParams.get("role");
@@ -209,7 +211,7 @@ export default function InterviewComparison() {
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h1 className="text-2xl font-semibold">Interview Comparison</h1>
+            <h1 className="text-2xl font-semibold">{t('interviewComparison.text1')}</h1>
             <p className="text-muted-foreground">
               {selectedRole
                 ? `Comparing candidates for ${(selectedRole as any).title}`
@@ -247,7 +249,7 @@ export default function InterviewComparison() {
         <CardContent className="space-y-4">
           <Select value={roleId || ""} onValueChange={(v) => navigate(`/interview-comparison?role=${v}`)}>
             <SelectTrigger className="w-full max-w-md">
-              <SelectValue placeholder="Select a role to compare candidates" />
+              <SelectValue placeholder={t('interviewComparison.text2')} />
             </SelectTrigger>
             <SelectContent>
               {roles?.map((role: any) => (
@@ -258,7 +260,7 @@ export default function InterviewComparison() {
             </SelectContent>
           </Select>
 
-          {isLoading && <p className="text-muted-foreground">Loading candidates...</p>}
+          {isLoading && <p className="text-muted-foreground">{t('interviewComparison.text3')}</p>}
 
           {candidates && candidates.length > 0 && (
             <div className="flex flex-wrap gap-2">
@@ -281,7 +283,7 @@ export default function InterviewComparison() {
           )}
 
           {candidates && candidates.length === 0 && roleId && (
-            <p className="text-muted-foreground text-sm">No candidates with interview feedback found for this role.</p>
+            <p className="text-muted-foreground text-sm">{t('interviewComparison.text4')}</p>
           )}
         </CardContent>
       </Card>
@@ -292,7 +294,7 @@ export default function InterviewComparison() {
             <CardTitle className="text-lg flex items-center gap-2">
               <Sparkles className="h-5 w-5 text-primary" />
               AI Comparison Summary
-              <span className="text-xs font-normal text-muted-foreground ml-auto">Powered by QUIN</span>
+              <span className="text-xs font-normal text-muted-foreground ml-auto">{t('interviewComparison.text5')}</span>
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -305,7 +307,7 @@ export default function InterviewComparison() {
         <>
           <Card>
             <CardHeader>
-              <CardTitle>Skills Comparison</CardTitle>
+              <CardTitle>{t('interviewComparison.text6')}</CardTitle>
             </CardHeader>
             <CardContent>
               <ComparisonRadarChart candidates={scoredCandidates} />

@@ -29,6 +29,7 @@ import { cn } from '@/lib/utils';
 import { formatDistanceToNow, format } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface Touchpoint {
   id: string;
@@ -101,6 +102,7 @@ const sentimentColors: Record<string, string> = {
 };
 
 function formatTouchpointType(type: string): string {
+  const { t } = useTranslation('common');
   return type
     .replace(/_/g, ' ')
     .replace(/\b\w/g, (l) => l.toUpperCase());
@@ -177,10 +179,10 @@ export function TouchpointTimeline({ candidateId, onAddTouchpoint, className }: 
             <Select value={typeFilter} onValueChange={setTypeFilter}>
               <SelectTrigger className="h-8 w-[130px]">
                 <Filter className="h-3 w-3 mr-1" />
-                <SelectValue placeholder="All types" />
+                <SelectValue placeholder={"All types"} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Types</SelectItem>
+                <SelectItem value="all">{"All Types"}</SelectItem>
                 {uniqueTypes.map((type) => (
                   <SelectItem key={type} value={type}>
                     {formatTouchpointType(type)}
@@ -201,7 +203,7 @@ export function TouchpointTimeline({ candidateId, onAddTouchpoint, className }: 
         {filteredTouchpoints.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
             <MessageSquare className="h-8 w-8 mx-auto mb-2 opacity-50" />
-            <p className="text-sm">No touchpoints recorded yet</p>
+            <p className="text-sm">{"No touchpoints recorded yet"}</p>
             {onAddTouchpoint && (
               <Button variant="link" size="sm" onClick={onAddTouchpoint} className="mt-2">
                 Log first interaction

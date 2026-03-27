@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,6 +16,7 @@ interface FreelanceVideoIntroProps {
 }
 
 export function FreelanceVideoIntro({ userId, freelanceProfile, onUpdate }: FreelanceVideoIntroProps) {
+  const { t } = useTranslation('common');
   const [saving, setSaving] = useState(false);
   const [videoUrl, setVideoUrl] = useState<string>(freelanceProfile?.video_intro_url || "");
   const [inputUrl, setInputUrl] = useState<string>(freelanceProfile?.video_intro_url || "");
@@ -40,11 +42,11 @@ export function FreelanceVideoIntro({ userId, freelanceProfile, onUpdate }: Free
       if (error) throw error;
       
       setVideoUrl(inputUrl.trim());
-      toast.success("Video intro saved");
+      toast.success(t("video_intro_saved", "Video intro saved"));
       onUpdate();
     } catch (error: unknown) {
       console.error("Error saving video intro:", error);
-      toast.error("Failed to save video intro");
+      toast.error(t("failed_to_save_video", "Failed to save video intro"));
     } finally {
       setSaving(false);
     }
@@ -65,11 +67,11 @@ export function FreelanceVideoIntro({ userId, freelanceProfile, onUpdate }: Free
       
       setVideoUrl("");
       setInputUrl("");
-      toast.success("Video intro removed");
+      toast.success(t("video_intro_removed", "Video intro removed"));
       onUpdate();
     } catch (error: unknown) {
       console.error("Error removing video intro:", error);
-      toast.error("Failed to remove video intro");
+      toast.error(t("failed_to_remove_video", "Failed to remove video intro"));
     } finally {
       setSaving(false);
     }
@@ -120,7 +122,7 @@ export function FreelanceVideoIntro({ userId, freelanceProfile, onUpdate }: Free
         {/* Current Video Preview */}
         {embedUrl ? (
           <div className="space-y-3">
-            <Label>Current Video</Label>
+            <Label>{t("current_video", "Current Video")}</Label>
             <div className="aspect-video rounded-lg overflow-hidden bg-muted">
               <iframe
                 src={embedUrl}
@@ -205,13 +207,13 @@ export function FreelanceVideoIntro({ userId, freelanceProfile, onUpdate }: Free
 
         {/* Tips */}
         <div className="p-4 rounded-lg bg-muted/50">
-          <h4 className="font-medium mb-2">Tips for a great video intro</h4>
+          <h4 className="font-medium mb-2">{t("tips_for_a_great", "Tips for a great video intro")}</h4>
           <ul className="text-sm text-muted-foreground space-y-1">
-            <li>• Keep it 60-90 seconds</li>
-            <li>• Use good lighting and clear audio</li>
-            <li>• Introduce yourself and your expertise</li>
-            <li>• Mention what types of projects you excel at</li>
-            <li>• Show your personality - clients want to work with real people</li>
+            <li>{t("keep_it_6090_seconds", "• Keep it 60-90 seconds")}</li>
+            <li>{t("use_good_lighting_and", "• Use good lighting and clear audio")}</li>
+            <li>{t("introduce_yourself_and_your", "• Introduce yourself and your expertise")}</li>
+            <li>{t("mention_what_types_of", "• Mention what types of projects you excel at")}</li>
+            <li>{t("show_your_personality_clients", "• Show your personality - clients want to work with real people")}</li>
           </ul>
         </div>
       </CardContent>

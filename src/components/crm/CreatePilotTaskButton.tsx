@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
@@ -34,6 +35,7 @@ export function CreatePilotTaskButton({
   variant = 'outline',
   size = 'sm',
 }: CreatePilotTaskButtonProps) {
+  const { t } = useTranslation('common');
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [taskType, setTaskType] = useState<'follow_up' | 'call' | 'email' | 'meeting' | 'review'>('follow_up');
@@ -74,7 +76,7 @@ export function CreatePilotTaskButton({
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Create Club Pilot Task</DialogTitle>
+          <DialogTitle>{t("create_club_pilot_task", "Create Club Pilot Task")}</DialogTitle>
           <DialogDescription>
             Create a follow-up task for {prospect.full_name}
           </DialogDescription>
@@ -82,23 +84,23 @@ export function CreatePilotTaskButton({
 
         <div className="space-y-4 py-4">
           <div className="space-y-2">
-            <Label>Task Type</Label>
+            <Label>{t("task_type", "Task Type")}</Label>
             <Select value={taskType} onValueChange={(v: any) => setTaskType(v)}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="follow_up">Follow Up</SelectItem>
-                <SelectItem value="call">Phone Call</SelectItem>
-                <SelectItem value="email">Send Email</SelectItem>
-                <SelectItem value="meeting">Schedule Meeting</SelectItem>
-                <SelectItem value="review">Review Profile</SelectItem>
+                <SelectItem value="follow_up">{t("follow_up", "Follow Up")}</SelectItem>
+                <SelectItem value="call">{t("phone_call", "Phone Call")}</SelectItem>
+                <SelectItem value="email">{t("send_email", "Send Email")}</SelectItem>
+                <SelectItem value="meeting">{t("schedule_meeting", "Schedule Meeting")}</SelectItem>
+                <SelectItem value="review">{t("review_profile", "Review Profile")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <div className="space-y-2">
-            <Label>Title (optional)</Label>
+            <Label>{t("title_optional", "Title (optional)")}</Label>
             <Input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
@@ -107,17 +109,17 @@ export function CreatePilotTaskButton({
           </div>
 
           <div className="space-y-2">
-            <Label>Description (optional)</Label>
+            <Label>{t("description_optional", "Description (optional)")}</Label>
             <Textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Add notes or context..."
+              placeholder={t("add_notes_or_context", "Add notes or context...")}
               rows={3}
             />
           </div>
 
           <div className="space-y-2">
-            <Label>Due Date</Label>
+            <Label>{t("due_date", "Due Date")}</Label>
             <Input
               type="datetime-local"
               value={dueDate}

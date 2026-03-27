@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -67,14 +68,15 @@ export function StageCandidatesList({
   onMoveBack,
   onViewDetails,
 }: StageCandidatesListProps) {
+  const { t } = useTranslation('common');
   if (candidates.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">
         <div className="w-16 h-16 rounded-full bg-muted/50 flex items-center justify-center mb-4">
           <Users className="w-8 h-8 text-muted-foreground" />
         </div>
-        <p className="text-sm font-medium text-muted-foreground">No candidates in this stage</p>
-        <p className="text-xs text-muted-foreground mt-1">Candidates will appear here when they reach this stage</p>
+        <p className="text-sm font-medium text-muted-foreground">{t("no_candidates_in_this", "No candidates in this stage")}</p>
+        <p className="text-xs text-muted-foreground mt-1">{t("candidates_will_appear_here", "Candidates will appear here when they reach this stage")}</p>
       </div>
     );
   }
@@ -115,7 +117,7 @@ export function StageCandidatesList({
                     </AvatarFallback>
                   </Avatar>
                   {candidate.is_linked_user ? (
-                    <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-primary border-2 border-background flex items-center justify-center" title="Linked to user account">
+                    <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-primary border-2 border-background flex items-center justify-center" title={t("linked_to_user_account", "Linked to user account")}>
                       <Users className="w-3 h-3 text-primary-foreground" />
                     </div>
                   ) : (
@@ -208,7 +210,7 @@ export function StageCandidatesList({
                         onClick={(e) => e.stopPropagation()}
                       >
                         <Linkedin className="w-3.5 h-3.5" />
-                        <span>LinkedIn</span>
+                        <span>{t("linkedin", "LinkedIn")}</span>
                         <ExternalLink className="w-3 h-3" />
                       </a>
                     )}
@@ -273,7 +275,7 @@ export function StageCandidatesList({
                       className="text-xs font-medium"
                     >
                       <X className="w-3.5 h-3.5 mr-1.5" />
-                      Decline
+                      {t('common:decline')}
                     </Button>
                     {canMoveBack && onMoveBack && (
                       <Button

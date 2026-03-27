@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Email } from "@/hooks/useEmails";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -49,6 +50,7 @@ export function EmailDetail({
   onMarkAsUnread,
   onToggleStar,
 }: EmailDetailProps) {
+  const { t } = useTranslation('common');
   const [replyDraft, setReplyDraft] = useState("");
 
   const handleSmartReply = (reply: string, type: string) => {
@@ -89,11 +91,11 @@ export function EmailDetail({
       <div className="border-b border-border p-2 sm:p-3 md:p-4 flex items-center gap-1 sm:gap-2 flex-wrap flex-shrink-0">
         <Button variant="ghost" size="sm" onClick={onReply} className="min-h-[44px]">
           <Reply className="h-4 w-4 sm:mr-2" />
-          <span className="hidden sm:inline">Reply</span>
+          <span className="hidden sm:inline">{t("reply", "Reply")}</span>
         </Button>
         <Button variant="ghost" size="sm" onClick={onForward} className="min-h-[44px]">
           <Forward className="h-4 w-4 sm:mr-2" />
-          <span className="hidden sm:inline">Forward</span>
+          <span className="hidden sm:inline">{t("forward", "Forward")}</span>
         </Button>
         <div className="flex-1 min-w-0" />
         <Button variant="ghost" size="icon" onClick={onArchive} className="min-h-[44px] min-w-[44px] flex-shrink-0">
@@ -178,7 +180,7 @@ export function EmailDetail({
 
           {/* To/Cc */}
           <div className="text-sm text-muted-foreground break-words">
-            <span>To: </span>
+            <span>{t("to", "To:")}</span>
             {email.to_emails.map((to, i) => (
               <span key={i}>
                 {to.name || to.email}
@@ -200,7 +202,7 @@ export function EmailDetail({
             <Card>
               <CardContent className="p-4 space-y-3">
                 <div className="flex items-center gap-2 text-sm font-medium">
-                  <span className="text-primary">✨ AI Insights</span>
+                  <span className="text-primary">{t("ai_insights", "✨ AI Insights")}</span>
                 </div>
                 
                 <div className="flex items-center gap-2 flex-wrap">
@@ -210,7 +212,7 @@ export function EmailDetail({
                     </Badge>
                   )}
                   {email.ai_priority && email.ai_priority >= 4 && (
-                    <Badge variant="destructive">High Priority</Badge>
+                    <Badge variant="destructive">{t("high_priority", "High Priority")}</Badge>
                   )}
                   {email.ai_sentiment && (
                     <Badge className={getSentimentColor(email.ai_sentiment)}>
@@ -232,7 +234,7 @@ export function EmailDetail({
 
                 {email.ai_action_items && email.ai_action_items.length > 0 && (
                   <div className="space-y-2">
-                    <div className="text-sm font-medium">Action Items:</div>
+                    <div className="text-sm font-medium">{t("action_items", "Action Items:")}</div>
                     {email.ai_action_items.map((item: any, i: number) => (
                       <div key={i} className="flex items-center gap-2 text-sm">
                         <div className="w-2 h-2 rounded-full bg-primary" />

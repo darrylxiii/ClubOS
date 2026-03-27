@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
@@ -8,6 +9,7 @@ import EnhancedProfile from "./EnhancedProfile";
 import { SectionLoader } from "@/components/ui/unified-loader";
 
 export default function SharedProfile() {
+  const { t } = useTranslation('common');
   const { token } = useParams<{ token: string }>();
   const navigate = useNavigate();
   const [userId, setUserId] = useState<string | null>(null);
@@ -53,7 +55,7 @@ export default function SharedProfile() {
       <div className="min-h-screen flex items-center justify-center bg-gradient-subtle">
         <div className="text-center space-y-4">
           <SectionLoader />
-          <p className="text-muted-foreground">Loading shared profile...</p>
+          <p className="text-muted-foreground">{t('sharedProfile.text1')}</p>
         </div>
       </div>
     );
@@ -66,7 +68,7 @@ export default function SharedProfile() {
           <CardContent className="py-12 text-center space-y-6">
             <AlertCircle className="w-16 h-16 mx-auto text-destructive" />
             <div>
-              <h2 className="text-2xl font-bold mb-2">Link Expired</h2>
+              <h2 className="text-2xl font-bold mb-2">{t('sharedProfile.text2')}</h2>
               <p className="text-muted-foreground mb-6">
                 {error || "This share link is no longer valid."}
               </p>

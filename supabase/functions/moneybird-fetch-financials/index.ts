@@ -1,12 +1,5 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
-};
-
-const MONEYBIRD_API_BASE = 'https://moneybird.com/api/v2';
+import { moneybirdRequest } from '../_shared/moneybird-client.ts';
+import { createHandler } from '../_shared/handler.ts';
 
 interface MoneybirdInvoiceDetail {
   id: string;
@@ -129,17 +122,10 @@ function unwrapInvoice(item: unknown): MoneybirdInvoice | null {
   return null;
 }
 
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
+Deno.serve(createHandler(async (req, ctx) => {
+    const { supabase, corsHeaders } = ctx;
 
-  const startTime = Date.now();
-  const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-  const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-  const accessToken = Deno.env.get('MONEYBIRD_ACCESS_TOKEN')!;
-  const administrationId = Deno.env.get('MONEYBIRD_ADMINISTRATION_ID')!;
-  const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const startTime = Date.now();
 
   // Diagnostics object to track what's happening
   const diagnostics: Record<string, unknown> = {
@@ -160,13 +146,6 @@ serve(async (req) => {
   };
 
   try {
-    if (!accessToken || !administrationId) {
-      return new Response(
-        JSON.stringify({ error: 'Moneybird not configured' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
     const body = await req.json().catch(() => ({}));
     const { year = new Date().getFullYear() } = body;
     diagnostics.year = year;
@@ -186,25 +165,13 @@ serve(async (req) => {
 
     // Paginate through all invoices
     while (hasMore) {
-      const invoicesUrl = new URL(`${MONEYBIRD_API_BASE}/${administrationId}/sales_invoices.json`);
-      invoicesUrl.searchParams.set('per_page', '100');
-      invoicesUrl.searchParams.set('page', page.toString());
-      // Request all states explicitly
-      invoicesUrl.searchParams.set('filter', 'state:all');
-      
+      const endpoint = `sales_invoices.json?per_page=100&page=${page}&filter=state:all`;
+
       console.log(`[Moneybird Financials] Fetching page ${page}...`);
-      
-      const invoicesResponse = await fetch(invoicesUrl.toString(), {
-        headers: { 'Authorization': `Bearer ${accessToken}` },
+
+      const rawResponse = await moneybirdRequest<unknown>(endpoint, {
+        operation: 'fetch-financials',
       });
-
-      if (!invoicesResponse.ok) {
-        const errorBody = await invoicesResponse.text();
-        console.error(`[Moneybird Financials] API error: ${invoicesResponse.status} - ${errorBody}`);
-        throw new Error(`Moneybird API error (${invoicesResponse.status}): ${errorBody.slice(0, 200)}`);
-      }
-
-      const rawResponse = await invoicesResponse.json();
       
       // Handle both array and wrapped responses
       let invoices: MoneybirdInvoice[] = [];
@@ -628,4 +595,4 @@ serve(async (req) => {
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
-});
+}));

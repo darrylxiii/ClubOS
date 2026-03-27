@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, memo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { motion } from '@/lib/motion';
 import { BlogPost } from '@/data/blog';
 import BlogCard from './BlogCard';
@@ -33,6 +34,7 @@ const MemoizedBlogCardWrapper = memo(({
 MemoizedBlogCardWrapper.displayName = 'MemoizedBlogCardWrapper';
 
 const BlogGrid: React.FC<BlogGridProps> = ({ posts, columns = 3, searchQuery, focusedIndex = -1, isLoading = false }) => {
+  const { t } = useTranslation('common');
   const focusedRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -53,14 +55,14 @@ const BlogGrid: React.FC<BlogGridProps> = ({ posts, columns = 3, searchQuery, fo
     return (
       <div className="text-center py-20">
         <p className="text-muted-foreground text-body-sm">
-          {searchQuery ? `No articles found for "${searchQuery}"` : 'No articles found.'}
+          {searchQuery ? t('blog.noArticlesFoundFor', { query: searchQuery }) : t('blog.noArticlesFound')}
         </p>
       </div>
     );
   }
 
   return (
-    <div id="blog-search-results" role="listbox" aria-label="Blog articles"
+    <div id="blog-search-results" role="listbox" aria-label={t('blog.blogArticles')}
       className={`grid grid-cols-1 md:grid-cols-2 ${columns === 3 ? 'lg:grid-cols-3' : ''} gap-6 md:gap-8`}>
       {posts.map((post, index) => (
         <MemoizedBlogCardWrapper key={post.id} post={post} searchQuery={searchQuery}

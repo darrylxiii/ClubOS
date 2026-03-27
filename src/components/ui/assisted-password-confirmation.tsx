@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { motion } from '@/lib/motion';
 import { useEffect, useState } from 'react';
 import { validatePasswordStrength } from '@/utils/passwordReset';
@@ -11,13 +12,14 @@ interface AssistedPasswordConfirmationProps {
   showPasswordInput?: boolean;
 }
 
-const REQUIREMENT_LABELS: Record<string, string> = {
-  minLength: '12+ characters',
-  uppercase: 'Uppercase letter',
-  lowercase: 'Lowercase letter',
-  number: 'Number',
-  special: 'Special character',
-  noCommonPattern: 'No common patterns',
+// Labels are resolved at render time via useTranslation in the component below
+const REQUIREMENT_KEYS: Record<string, { key: string; fallback: string }> = {
+  minLength: { key: 'password.twelveChars', fallback: '12+ characters' },
+  uppercase: { key: 'password.uppercaseLetter', fallback: 'Uppercase letter' },
+  lowercase: { key: 'password.lowercaseLetter', fallback: 'Lowercase letter' },
+  number: { key: 'password.number', fallback: 'Number' },
+  special: { key: 'password.specialChar', fallback: 'Special character' },
+  noCommonPattern: { key: 'password.noCommonPatterns', fallback: 'No common patterns' },
 };
 
 export function AssistedPasswordConfirmation({
@@ -27,6 +29,7 @@ export function AssistedPasswordConfirmation({
   onPasswordChange,
   showPasswordInput = false,
 }: AssistedPasswordConfirmationProps) {
+  const { t } = useTranslation('common');
   const [shake, setShake] = useState(false);
 
   const handleConfirmPasswordChange = (
@@ -115,8 +118,8 @@ export function AssistedPasswordConfirmation({
         <input
           id="password-input"
           type="password"
-          placeholder="Password"
-          aria-label="Password"
+          placeholder={t("password", "Password")}
+          aria-label={t("password", "Password")}
           value={password}
           onChange={(e) => onPasswordChange?.(e.target.value)}
           required
@@ -137,7 +140,7 @@ export function AssistedPasswordConfirmation({
                 transition={{ duration: 0.3 }}
               />
             </div>
-            <span className="text-xs text-muted-foreground capitalize">{strength.strength}</span>
+            <span className="text-xs text-muted-foreground capitalize">{t(`password.${strength.strength}`, strength.strength)}</span>
           </div>
 
           {/* Requirements checklist */}
@@ -150,7 +153,7 @@ export function AssistedPasswordConfirmation({
                   <X className="h-3 w-3 text-muted-foreground/50 shrink-0" />
                 )}
                 <span className={`text-xs ${met ? 'text-green-500' : 'text-muted-foreground/70'}`}>
-                  {REQUIREMENT_LABELS[key] || key}
+                  {REQUIREMENT_KEYS[key] ? t(REQUIREMENT_KEYS[key].key, REQUIREMENT_KEYS[key].fallback) : key}
                 </span>
               </div>
             ))}
@@ -167,8 +170,8 @@ export function AssistedPasswordConfirmation({
           id="confirm-password-input"
           className="h-full w-full rounded-2xl border-2 bg-background px-3.5 py-3 tracking-[0.4em] text-foreground outline-none placeholder:tracking-normal placeholder:text-muted-foreground focus:border-primary/50 focus:ring-2 focus:ring-primary/20 font-semibold text-base transition-all"
           type="password"
-          placeholder="Confirm Password"
-          aria-label="Confirm password"
+          placeholder={t("confirm_password", "Confirm Password")}
+          aria-label={t("confirm_password", "Confirm password")}
           value={confirmPassword}
           onChange={handleConfirmPasswordChange}
           animate={borderAnimation}

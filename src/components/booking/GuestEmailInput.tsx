@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -38,6 +39,7 @@ export function GuestEmailInput({
   allowedPermissions,
   showPermissions = false,
 }: GuestEmailInputProps) {
+  const { t } = useTranslation('common');
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
   const [expandedGuest, setExpandedGuest] = useState<number | null>(null);
@@ -144,7 +146,7 @@ export function GuestEmailInput({
               setError("");
             }}
             onKeyDown={handleKeyDown}
-            placeholder="colleague@example.com"
+            placeholder={t("colleagueexamplecom", "colleague@example.com")}
             className={error ? "border-destructive" : ""}
           />
           {error && (
@@ -183,7 +185,7 @@ export function GuestEmailInput({
                         className="h-6 px-2 text-xs text-muted-foreground hover:text-foreground"
                       >
                         <ChevronDown className={`h-3 w-3 transition-transform ${expandedGuest === index ? 'rotate-180' : ''}`} />
-                        <span className="ml-1">Permissions</span>
+                        <span className="ml-1">{t("permissions", "Permissions")}</span>
                       </Button>
                     )}
                   </div>

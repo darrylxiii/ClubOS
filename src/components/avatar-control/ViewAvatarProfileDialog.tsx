@@ -17,6 +17,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { format, formatDistanceToNow } from 'date-fns';
 import { formatLocation } from '@/lib/format-location';
 import { versionedAvatarUrl } from '@/lib/avatar-url';
+import { useTranslation } from 'react-i18next';
 
 interface ViewAvatarProfileDialogProps {
   account: AvatarAccount | null;
@@ -25,6 +26,7 @@ interface ViewAvatarProfileDialogProps {
 }
 
 function formatCompact(n: number | null | undefined): string {
+  const { t } = useTranslation('common');
   if (n == null) return '—';
   if (n >= 1000) return `${(n / 1000).toFixed(n >= 10000 ? 0 : 1)}k`;
   return n.toLocaleString();
@@ -154,10 +156,10 @@ export function ViewAvatarProfileDialog({ account, open, onOpenChange }: ViewAva
 
             {/* Stats row */}
             <div className="grid grid-cols-4 gap-3">
-              <StatBox label="Connections" value={formatCompact(account.connections_count)} icon={<Users className="h-3.5 w-3.5" />} />
-              <StatBox label="Followers" value={formatCompact(account.followers_count)} icon={<UserPlus className="h-3.5 w-3.5" />} />
-              <StatBox label="Risk Score" value={`${account.risk_score}/100`} icon={<Shield className={`h-3.5 w-3.5 ${riskColors[account.risk_level]}`} />} />
-              <StatBox label="Usage Today" value={`${account.daily_usage_minutes_today}m`} icon={<Clock className="h-3.5 w-3.5" />} />
+              <StatBox label={"Connections"} value={formatCompact(account.connections_count)} icon={<Users className="h-3.5 w-3.5" />} />
+              <StatBox label={"Followers"} value={formatCompact(account.followers_count)} icon={<UserPlus className="h-3.5 w-3.5" />} />
+              <StatBox label={"Risk Score"} value={`${account.risk_score}/100`} icon={<Shield className={`h-3.5 w-3.5 ${riskColors[account.risk_level]}`} />} />
+              <StatBox label={"Usage Today"} value={`${account.daily_usage_minutes_today}m`} icon={<Clock className="h-3.5 w-3.5" />} />
             </div>
 
             {/* Connection Request Quota */}
@@ -182,7 +184,7 @@ export function ViewAvatarProfileDialog({ account, open, onOpenChange }: ViewAva
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
                       <span className={`text-lg font-semibold ${colorClass}`}>{remaining} / {limit}</span>
-                      <span className="text-xs text-muted-foreground">remaining this week</span>
+                      <span className="text-xs text-muted-foreground">{"remaining this week"}</span>
                     </div>
                     <Progress value={pct} className={`h-2 ${barColor}`} />
                     <div className="flex items-center justify-between text-xs text-muted-foreground">
@@ -193,7 +195,7 @@ export function ViewAvatarProfileDialog({ account, open, onOpenChange }: ViewAva
                     </div>
                     {/* Quick log buttons */}
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-muted-foreground">Log sent:</span>
+                      <span className="text-xs text-muted-foreground">{"Log sent:"}</span>
                       {[1, 5, 10, 25].map(n => (
                         <Button
                           key={n}
@@ -230,7 +232,7 @@ export function ViewAvatarProfileDialog({ account, open, onOpenChange }: ViewAva
                     return (
                       <div key={platform.value} className="flex items-center gap-3 py-1.5 opacity-40">
                         <PlatformIcon className={`h-4 w-4 ${platform.color}`} />
-                        <span className="text-xs text-muted-foreground">Not configured</span>
+                        <span className="text-xs text-muted-foreground">{"Not configured"}</span>
                       </div>
                     );
                   }
@@ -253,12 +255,12 @@ export function ViewAvatarProfileDialog({ account, open, onOpenChange }: ViewAva
                           <span className={`text-xs font-mono ${isDone ? 'text-emerald-400' : 'text-muted-foreground'}`}>
                             {target.weekly_posts_done}/{target.weekly_target}
                           </span>
-                          {isDone && <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-emerald-500/40 text-emerald-400">Done</Badge>}
+                          {isDone && <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-emerald-500/40 text-emerald-400">{"Done"}</Badge>}
                         </div>
                       </div>
                       <Progress value={Math.min(pct, 100)} className={`h-1.5 ${barColor}`} />
                       <div className="flex items-center gap-1.5">
-                        <span className="text-[11px] text-muted-foreground">Log post:</span>
+                        <span className="text-[11px] text-muted-foreground">{"Log post:"}</span>
                         <Button
                           variant="outline"
                           size="sm"
@@ -280,7 +282,7 @@ export function ViewAvatarProfileDialog({ account, open, onOpenChange }: ViewAva
               <>
                 <Separator />
                 <div>
-                  <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">About</h3>
+                  <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">{"About"}</h3>
                   <p className="text-sm whitespace-pre-wrap leading-relaxed">{account.about}</p>
                 </div>
               </>
@@ -291,7 +293,7 @@ export function ViewAvatarProfileDialog({ account, open, onOpenChange }: ViewAva
               <>
                 <Separator />
                 <div>
-                  <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">Skills</h3>
+                  <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">{"Skills"}</h3>
                   <div className="flex flex-wrap gap-1.5">
                     {account.top_skills.map(skill => (
                       <Badge key={skill} variant="secondary" className="text-xs font-normal">{skill}</Badge>
@@ -378,11 +380,11 @@ export function ViewAvatarProfileDialog({ account, open, onOpenChange }: ViewAva
               </h3>
               <div className="space-y-2.5">
                 <CredentialRow
-                  label="LinkedIn Email"
+                  label={"LinkedIn Email"}
                   value={account.linkedin_email || '—'}
                 />
                 <CredentialRow
-                  label="LinkedIn Password"
+                  label={"LinkedIn Password"}
                   value={loadingCreds ? 'Loading…' : (linkedinPw || '—')}
                   isPassword
                   show={showLinkedinPw}
@@ -390,11 +392,11 @@ export function ViewAvatarProfileDialog({ account, open, onOpenChange }: ViewAva
                   hasValue={!!linkedinPw}
                 />
                 <CredentialRow
-                  label="Email Account"
+                  label={"Email Account"}
                   value={account.email_account_address || '—'}
                 />
                 <CredentialRow
-                  label="Email Password"
+                  label={"Email Password"}
                   value={loadingCreds ? 'Loading…' : (emailPw || '—')}
                   isPassword
                   show={showEmailPw}
@@ -407,17 +409,17 @@ export function ViewAvatarProfileDialog({ account, open, onOpenChange }: ViewAva
             {/* Operational info */}
             <Separator />
             <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-xs">
-              <InfoRow label="Status" value={account.status.replace('_', ' ')} />
-              <InfoRow label="Risk Level" value={account.risk_level} />
-              <InfoRow label="Max Daily Min" value={`${account.max_daily_minutes}`} />
-              <InfoRow label="Sessions Today" value={`${account.sessions_today}`} />
-              <InfoRow label="Owner / Team" value={account.owner_team || '—'} />
-              <InfoRow label="Public ID" value={account.public_identifier || '—'} />
+              <InfoRow label={"Status"} value={account.status.replace('_', ' ')} />
+              <InfoRow label={"Risk Level"} value={account.risk_level} />
+              <InfoRow label={"Max Daily Min"} value={`${account.max_daily_minutes}`} />
+              <InfoRow label={"Sessions Today"} value={`${account.sessions_today}`} />
+              <InfoRow label={"Owner / Team"} value={account.owner_team || '—'} />
+              <InfoRow label={"Public ID"} value={account.public_identifier || '—'} />
               {account.last_synced_at && (
-                <InfoRow label="Last Synced" value={formatDistanceToNow(new Date(account.last_synced_at), { addSuffix: true })} />
+                <InfoRow label={"Last Synced"} value={formatDistanceToNow(new Date(account.last_synced_at), { addSuffix: true })} />
               )}
               {account.created_at && (
-                <InfoRow label="Created" value={format(new Date(account.created_at), 'dd MMM yyyy')} />
+                <InfoRow label={"Created"} value={format(new Date(account.created_at), 'dd MMM yyyy')} />
               )}
             </div>
 
@@ -426,7 +428,7 @@ export function ViewAvatarProfileDialog({ account, open, onOpenChange }: ViewAva
               <>
                 <Separator />
                 <div>
-                  <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5">Notes</h3>
+                  <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5">{"Notes"}</h3>
                   <p className="text-sm whitespace-pre-wrap">{account.notes}</p>
                 </div>
               </>
@@ -437,7 +439,7 @@ export function ViewAvatarProfileDialog({ account, open, onOpenChange }: ViewAva
               <>
                 <Separator />
                 <div>
-                  <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5">Playbook</h3>
+                  <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5">{"Playbook"}</h3>
                   <p className="text-sm whitespace-pre-wrap">{account.playbook}</p>
                 </div>
               </>

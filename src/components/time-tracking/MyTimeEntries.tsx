@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,6 +19,7 @@ import { cn } from "@/lib/utils";
 import { EditTimeEntryDialog } from "./EditTimeEntryDialog";
 
 export function MyTimeEntries() {
+  const { t } = useTranslation('common');
   const { myEntries, deleteEntry, isLoading } = useTimeTracking();
   const [currentWeekStart, setCurrentWeekStart] = useState(
     startOfWeek(new Date(), { weekStartsOn: 1 })
@@ -195,7 +197,7 @@ function TimeEntryRow({ entry, onEdit, onDelete }: TimeEntryRowProps) {
           <div className="text-right">
             <div className="text-lg font-bold text-foreground font-mono">
               {entry.is_running ? (
-                <span className="text-green-500">Running...</span>
+                <span className="text-green-500">{t("running", "Running...")}</span>
               ) : (
                 formatDuration(entry.duration_seconds)
               )}
@@ -211,7 +213,7 @@ function TimeEntryRow({ entry, onEdit, onDelete }: TimeEntryRowProps) {
               size="icon" 
               className="h-8 w-8"
               onClick={onEdit}
-              title="Edit entry"
+              title={t("edit_entry", "Edit entry")}
             >
               <Edit className="h-4 w-4" />
             </Button>

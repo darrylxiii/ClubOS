@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,6 +11,7 @@ interface MLInsightsWidgetProps {
 }
 
 export function MLInsightsWidget({ jobId }: MLInsightsWidgetProps) {
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
   const [mlMetrics, setMlMetrics] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -95,15 +97,15 @@ export function MLInsightsWidget({ jobId }: MLInsightsWidgetProps) {
       <CardContent>
         <div className="grid grid-cols-3 gap-4 mb-4">
           <div>
-            <p className="text-xs text-muted-foreground">Avg Match</p>
+            <p className="text-xs text-muted-foreground">{t("avg_match", "Avg Match")}</p>
             <p className="text-xl font-bold">{mlMetrics.avgMatchScore}%</p>
           </div>
           <div>
-            <p className="text-xs text-muted-foreground">Interview Prob</p>
+            <p className="text-xs text-muted-foreground">{t("interview_prob", "Interview Prob")}</p>
             <p className="text-xl font-bold">{mlMetrics.avgInterviewProb}%</p>
           </div>
           <div>
-            <p className="text-xs text-muted-foreground">Predictions</p>
+            <p className="text-xs text-muted-foreground">{t("predictions", "Predictions")}</p>
             <p className="text-xl font-bold">{mlMetrics.totalPredictions}</p>
           </div>
         </div>

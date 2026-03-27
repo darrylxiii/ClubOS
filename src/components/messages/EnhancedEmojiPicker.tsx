@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Smile, Search, TrendingUp } from "lucide-react";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 const EMOJI_CATEGORIES = {
   frequent: ["😀", "😂", "❤️", "👍", "👎", "🎉", "🔥", "💯", "👏", "🙌"],
@@ -23,6 +24,7 @@ interface EnhancedEmojiPickerProps {
 }
 
 export const EnhancedEmojiPicker = ({ onSelect, children }: EnhancedEmojiPickerProps) => {
+  const { t } = useTranslation('messages');
   const [searchQuery, setSearchQuery] = useState("");
   const [open, setOpen] = useState(false);
 
@@ -60,7 +62,7 @@ export const EnhancedEmojiPicker = ({ onSelect, children }: EnhancedEmojiPickerP
           <div className="relative">
             <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search emoji..."
+              placeholder={t('emoji.searchPlaceholder')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-8 glass-subtle border-border/50"

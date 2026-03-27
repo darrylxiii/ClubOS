@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -15,6 +16,7 @@ interface InterviewerAICoachProps {
 }
 
 export function InterviewerAICoach({ candidateId, jobId, interviewerId, interviewType }: InterviewerAICoachProps) {
+  const { t } = useTranslation('common');
   const [loading, setLoading] = useState(false);
   const [prep, setPrep] = useState<any>(null);
 
@@ -27,10 +29,10 @@ export function InterviewerAICoach({ candidateId, jobId, interviewerId, intervie
 
       if (error) throw error;
       setPrep(data.prepMaterial);
-      toast.success("AI interview prep ready");
+      toast.success(t("ai_interview_prep_ready", "AI interview prep ready"));
     } catch (error: unknown) {
       console.error('Error loading prep:', error);
-      toast.error("Failed to generate prep material");
+      toast.error(t("failed_to_generate_prep", "Failed to generate prep material"));
     } finally {
       setLoading(false);
     }
@@ -45,7 +47,7 @@ export function InterviewerAICoach({ candidateId, jobId, interviewerId, intervie
       <Card className="border-primary/20 bg-gradient-to-br from-card to-primary/5">
         <CardContent className="pt-6 flex flex-col items-center justify-center py-12">
           <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
-          <p className="text-sm text-muted-foreground">Preparing personalized interview coaching...</p>
+          <p className="text-sm text-muted-foreground">{t("preparing_personalized_interview_coaching", "Preparing personalized interview coaching...")}</p>
         </CardContent>
       </Card>
     );
@@ -135,16 +137,16 @@ export function InterviewerAICoach({ candidateId, jobId, interviewerId, intervie
                 <AccordionContent>
                   <div className="space-y-3 pl-8 pt-2">
                     <div>
-                      <p className="text-xs font-medium text-muted-foreground mb-1">Why ask this?</p>
+                      <p className="text-xs font-medium text-muted-foreground mb-1">{t("why_ask_this", "Why ask this?")}</p>
                       <p className="text-sm">{q.rationale}</p>
                     </div>
                     <div>
-                      <p className="text-xs font-medium text-muted-foreground mb-1">Expected insights</p>
+                      <p className="text-xs font-medium text-muted-foreground mb-1">{t("expected_insights", "Expected insights")}</p>
                       <p className="text-sm">{q.expectedInsights}</p>
                     </div>
                     {q.followUps && q.followUps.length > 0 && (
                       <div>
-                        <p className="text-xs font-medium text-muted-foreground mb-1">Follow-ups</p>
+                        <p className="text-xs font-medium text-muted-foreground mb-1">{t("followups", "Follow-ups")}</p>
                         <ul className="space-y-1">
                           {q.followUps.map((followUp: string, fIdx: number) => (
                             <li key={fIdx} className="text-sm flex items-start gap-2">
@@ -206,7 +208,7 @@ export function InterviewerAICoach({ candidateId, jobId, interviewerId, intervie
       <div className="grid md:grid-cols-2 gap-4">
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm">Culture Fit Indicators</CardTitle>
+            <CardTitle className="text-sm">{t("culture_fit_indicators", "Culture Fit Indicators")}</CardTitle>
           </CardHeader>
           <CardContent>
             <ul className="space-y-1.5">
@@ -222,7 +224,7 @@ export function InterviewerAICoach({ candidateId, jobId, interviewerId, intervie
 
         <Card className="border-yellow-500/20 bg-yellow-500/5">
           <CardHeader>
-            <CardTitle className="text-sm text-yellow-500">Red Flags to Watch</CardTitle>
+            <CardTitle className="text-sm text-yellow-500">{t("red_flags_to_watch", "Red Flags to Watch")}</CardTitle>
           </CardHeader>
           <CardContent>
             <ul className="space-y-1.5">
@@ -241,7 +243,7 @@ export function InterviewerAICoach({ candidateId, jobId, interviewerId, intervie
       {prep.previousRoundInsights && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm">Previous Interview Insights</CardTitle>
+            <CardTitle className="text-sm">{t("previous_interview_insights", "Previous Interview Insights")}</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground">{prep.previousRoundInsights}</p>
@@ -253,7 +255,7 @@ export function InterviewerAICoach({ candidateId, jobId, interviewerId, intervie
       {prep.potentialConcerns && prep.potentialConcerns.length > 0 && (
         <Card className="border-red-500/20 bg-red-500/5">
           <CardHeader>
-            <CardTitle className="text-sm text-red-500">Potential Concerns to Probe</CardTitle>
+            <CardTitle className="text-sm text-red-500">{t("potential_concerns_to_probe", "Potential Concerns to Probe")}</CardTitle>
           </CardHeader>
           <CardContent>
             <ul className="space-y-1.5">

@@ -7,6 +7,7 @@ import { Clock, AlertTriangle, CheckCircle2, Timer } from "lucide-react";
 import { differenceInDays, format } from "date-fns";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
+import { useTranslation } from 'react-i18next';
 
 interface OpenPosition {
   id: string;
@@ -16,7 +17,8 @@ interface OpenPosition {
   applications_count: number;
 }
 
-export function PositionFillCountdown({ companyId }: { companyId: string }) {
+export function PositionFillCountdown({
+  const { t } = useTranslation('partner'); companyId }: { companyId: string }) {
   const { data: positions, isLoading } = useQuery({
     queryKey: ['open-positions-countdown', companyId],
     queryFn: async () => {
@@ -92,9 +94,7 @@ export function PositionFillCountdown({ companyId }: { companyId: string }) {
         {!positions || positions.length === 0 ? (
           <div className="text-center py-6 space-y-2">
             <CheckCircle2 className="h-8 w-8 mx-auto text-green-500/40" />
-            <p className="text-sm text-muted-foreground">
-              All positions filled! Great work.
-            </p>
+            <p className="text-sm text-muted-foreground">{t('positionFillCountdown.allPositionsFilledGreatWork')}</p>
           </div>
         ) : (
           <div className="space-y-3">

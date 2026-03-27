@@ -1,4 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { Users, ArrowRight, Loader2 } from "lucide-react";
 
 interface BreakoutRoomTransitionProps {
@@ -12,6 +13,7 @@ export function BreakoutRoomTransition({
   direction,
   roomName 
 }: BreakoutRoomTransitionProps) {
+  const { t } = useTranslation("meetings");
   return (
     <AnimatePresence>
       {isVisible && (
@@ -51,13 +53,13 @@ export function BreakoutRoomTransition({
 
             <div className="space-y-2">
               <h2 className="text-2xl font-bold">
-                {direction === 'to-breakout' 
-                  ? `Joining ${roomName || 'Breakout Room'}` 
-                  : 'Returning to Main Room'}
+                {direction === 'to-breakout'
+                  ? t('breakout.joining', { room: roomName || t('breakout.breakoutRoom') })
+                  : t('breakout.returningToMain')}
               </h2>
               <p className="text-muted-foreground flex items-center justify-center gap-2">
                 <Loader2 className="h-4 w-4 animate-spin" />
-                Switching rooms...
+                {t('breakout.switchingRooms')}
               </p>
             </div>
 

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { MapPin, DollarSign, Briefcase, Calendar } from "lucide-react";
 
 interface JobQuickStatsProps {
@@ -17,6 +18,7 @@ export function JobQuickStats({
   employmentType,
   daysOpen
 }: JobQuickStatsProps) {
+  const { t } = useTranslation('jobs');
   const formatSalary = () => {
     if (!salaryMin || !salaryMax) return null;
     
@@ -54,7 +56,7 @@ export function JobQuickStats({
 
       <div className="flex items-center gap-1.5">
         <Calendar className="w-4 h-4" />
-        <span>{daysOpen === 0 ? 'Today' : `${daysOpen} day${daysOpen !== 1 ? 's' : ''} ago`}</span>
+        <span>{daysOpen === 0 ? t('quickStats.today', 'Today') : t('quickStats.daysAgo', '{{count}} day ago', { count: daysOpen })}</span>
       </div>
     </div>
   );

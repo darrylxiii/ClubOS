@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import {
@@ -38,6 +39,7 @@ export function MessageActions({
   onReply,
   onDelete,
 }: MessageActionsProps) {
+  const { t } = useTranslation('common');
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [translating, setTranslating] = useState(false);
   const [forwardDialogOpen, setForwardDialogOpen] = useState(false);
@@ -49,12 +51,12 @@ export function MessageActions({
         .update({ deleted_at: new Date().toISOString() })
         .eq('id', message.id);
 
-      toast.success('Message deleted');
+      toast.success(t("message_deleted", "Message deleted"));
       onDelete();
       setDeleteOpen(false);
     } catch (error) {
       console.error('Error deleting message:', error);
-      toast.error('Failed to delete message');
+      toast.error(t("failed_to_delete_message", "Failed to delete message"));
     }
   };
 
@@ -94,7 +96,7 @@ export function MessageActions({
       // We could trigger a refresh via a callback if needed
     } catch (error) {
       console.error('Error translating:', error);
-      toast.error('Failed to translate message');
+      toast.error(t("failed_to_translate_message", "Failed to translate message"));
     } finally {
       setTranslating(false);
     }
@@ -105,7 +107,7 @@ export function MessageActions({
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg opacity-0 group-hover:opacity-100 hover:bg-primary/10 transition-all duration-200" aria-label="Message options">
+          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg opacity-0 group-hover:opacity-100 hover:bg-primary/10 transition-all duration-200" aria-label={t("message_options", "Message options")}>
             <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
           </Button>
         </DropdownMenuTrigger>
@@ -157,14 +159,14 @@ export function MessageActions({
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete message</AlertDialogTitle>
+            <AlertDialogTitle>{t("delete_message", "Delete message")}</AlertDialogTitle>
             <AlertDialogDescription>
               This will permanently delete this message. This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
+            <AlertDialogCancel>{t("cancel", "Cancel")}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete}>{t("delete", "Delete")}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

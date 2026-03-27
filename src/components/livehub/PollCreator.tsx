@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -22,6 +23,7 @@ export interface PollData {
 }
 
 export const PollCreator = ({ onCreate }: PollCreatorProps) => {
+    const { t } = useTranslation('meetings');
     const [open, setOpen] = useState(false);
     const [question, setQuestion] = useState('');
     const [options, setOptions] = useState(['', '']);
@@ -92,21 +94,21 @@ export const PollCreator = ({ onCreate }: PollCreatorProps) => {
             </DialogTrigger>
             <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                    <DialogTitle>Create a Poll</DialogTitle>
+                    <DialogTitle>{t('livehub.createAPoll')}</DialogTitle>
                 </DialogHeader>
 
                 <Tabs defaultValue="basic" className="w-full">
                     <TabsList className="grid w-full grid-cols-2">
-                        <TabsTrigger value="basic">Basic</TabsTrigger>
-                        <TabsTrigger value="advanced">Advanced</TabsTrigger>
+                        <TabsTrigger value="basic">{t('livehub.basic')}</TabsTrigger>
+                        <TabsTrigger value="advanced">{t('livehub.advanced')}</TabsTrigger>
                     </TabsList>
 
                     <TabsContent value="basic" className="space-y-4 mt-4">
                         {/* Question */}
                         <div className="space-y-2">
-                            <Label>Question</Label>
+                            <Label>{t('livehub.question')}</Label>
                             <Input
-                                placeholder="Ask a question..."
+                                placeholder={t('livehub.askAQuestion')}
                                 value={question}
                                 onChange={(e) => setQuestion(e.target.value)}
                             />
@@ -114,7 +116,7 @@ export const PollCreator = ({ onCreate }: PollCreatorProps) => {
 
                         {/* Poll Type */}
                         <div className="space-y-2">
-                            <Label>Poll Type</Label>
+                            <Label>{t('livehub.pollType')}</Label>
                             <Select value={pollType} onValueChange={(v: any) => setPollType(v)}>
                                 <SelectTrigger>
                                     <SelectValue />
@@ -122,20 +124,20 @@ export const PollCreator = ({ onCreate }: PollCreatorProps) => {
                                 <SelectContent>
                                     <SelectItem value="single">
                                         <div className="flex flex-col items-start">
-                                            <span className="font-medium">Single Choice</span>
-                                            <span className="text-xs text-muted-foreground">Select one option</span>
+                                            <span className="font-medium">{t('livehub.singleChoice')}</span>
+                                            <span className="text-xs text-muted-foreground">{t('livehub.selectOneOption')}</span>
                                         </div>
                                     </SelectItem>
                                     <SelectItem value="multiple">
                                         <div className="flex flex-col items-start">
-                                            <span className="font-medium">Multiple Choice</span>
-                                            <span className="text-xs text-muted-foreground">Select multiple options</span>
+                                            <span className="font-medium">{t('livehub.multipleChoice')}</span>
+                                            <span className="text-xs text-muted-foreground">{t('livehub.selectMultipleOptions')}</span>
                                         </div>
                                     </SelectItem>
                                     <SelectItem value="ranking">
                                         <div className="flex flex-col items-start">
-                                            <span className="font-medium">Ranking</span>
-                                            <span className="text-xs text-muted-foreground">Rank options by preference</span>
+                                            <span className="font-medium">{t('livehub.ranking')}</span>
+                                            <span className="text-xs text-muted-foreground">{t('livehub.rankByPreference')}</span>
                                         </div>
                                     </SelectItem>
                                 </SelectContent>
@@ -144,11 +146,11 @@ export const PollCreator = ({ onCreate }: PollCreatorProps) => {
 
                         {/* Options */}
                         <div className="space-y-2">
-                            <Label>Options (min 2)</Label>
+                            <Label>{t('livehub.optionsMin2')}</Label>
                             {options.map((option, index) => (
                                 <div key={index} className="flex gap-2">
                                     <Input
-                                        placeholder={`Option ${index + 1}`}
+                                        placeholder={t('livehub.optionNumber', { number: index + 1 })}
                                         value={option}
                                         onChange={(e) => handleOptionChange(index, e.target.value)}
                                     />
@@ -165,7 +167,7 @@ export const PollCreator = ({ onCreate }: PollCreatorProps) => {
                             ))}
                             <Button variant="outline" size="sm" onClick={handleAddOption} className="w-full">
                                 <Plus className="w-4 h-4 mr-2" />
-                                Add Option
+                                {t('livehub.addOption')}
                             </Button>
                         </div>
                     </TabsContent>
@@ -174,9 +176,9 @@ export const PollCreator = ({ onCreate }: PollCreatorProps) => {
                         {/* Show Results Before Vote */}
                         <div className="flex items-center justify-between">
                             <div>
-                                <Label>Show Results Before Voting</Label>
+                                <Label>{t('livehub.showResultsBeforeVoting')}</Label>
                                 <p className="text-xs text-muted-foreground">
-                                    Display results to users who haven't voted yet
+                                    {t('livehub.displayResultsDescription')}
                                 </p>
                             </div>
                             <Switch

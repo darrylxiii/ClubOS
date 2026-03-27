@@ -20,6 +20,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { useTranslation } from 'react-i18next';
 
 interface SmartSchedulingSuggestionsProps {
   candidateId: string;
@@ -67,6 +68,7 @@ export const SmartSchedulingSuggestions = memo(({
   }
 
   const handleSelectSlot = (slot: any) => {
+  const { t } = useTranslation('common');
     const slotKey = `${slot.date}-${slot.slot}`;
     setSelectedSlot(slotKey);
     onSelectSlot?.(slot.date, slot.slot);

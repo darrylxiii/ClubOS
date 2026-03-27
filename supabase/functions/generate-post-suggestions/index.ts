@@ -15,12 +15,12 @@ serve(async (req) => {
   try {
     const { context, postType, platform, currentContent } = await req.json();
 
-    // Use Lovable AI Gateway (no external API key required)
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    // Use Google Gemini API (no external API key required)
+    const GOOGLE_API_KEY = Deno.env.get('GOOGLE_API_KEY');
     
     let suggestions: string[] = [];
 
-    if (LOVABLE_API_KEY) {
+    if (GOOGLE_API_KEY) {
       const systemPrompt = `You are an expert social media content strategist for The Quantum Club, a luxury talent platform. Generate engaging, professional post suggestions that:
 - Match the platform's tone (LinkedIn = professional, Twitter = concise, Instagram = visual-focused)
 - Drive engagement and showcase thought leadership
@@ -35,14 +35,14 @@ ${context ? `Additional context: ${context}` : ''}
 Return ONLY a JSON array of 3 strings, each being a complete post. No markdown, no explanation.`;
 
       try {
-        const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+        const response = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+            'Authorization': `Bearer ${GOOGLE_API_KEY}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: 'google/gemini-2.5-flash-lite',
+            model: 'gemini-2.5-flash-lite',
             messages: [
               { role: 'system', content: systemPrompt },
               { role: 'user', content: userPrompt }
@@ -68,7 +68,7 @@ Return ONLY a JSON array of 3 strings, each being a complete post. No markdown, 
           }
         } else {
           const errorText = await response.text();
-          console.error('Lovable AI error:', response.status, errorText);
+          console.error('Google Gemini error:', response.status, errorText);
           
           if (response.status === 429) {
             return new Response(
@@ -78,7 +78,7 @@ Return ONLY a JSON array of 3 strings, each being a complete post. No markdown, 
           }
           if (response.status === 402) {
             return new Response(
-              JSON.stringify({ error: 'AI credits exhausted. Please add funds.', suggestions: [] }),
+              JSON.stringify({ error: 'AI quota exceeded. Please add funds.', suggestions: [] }),
               { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
             );
           }
@@ -87,7 +87,7 @@ Return ONLY a JSON array of 3 strings, each being a complete post. No markdown, 
         console.error('AI suggestion error:', aiError);
       }
     } else {
-      console.log('LOVABLE_API_KEY not configured, using fallback suggestions');
+      console.log('GOOGLE_API_KEY not configured, using fallback suggestions');
     }
 
     // Fallback suggestions if AI fails or no API key

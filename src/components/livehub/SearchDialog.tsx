@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import {
   Dialog,
@@ -18,6 +19,7 @@ interface SearchDialogProps {
 }
 
 export function SearchDialog({ open, onOpenChange, onChannelSelect }: SearchDialogProps) {
+  const { t } = useTranslation('common');
   const [query, setQuery] = useState('');
   const { results, loading, search } = useLiveHubSearch();
 
@@ -58,7 +60,7 @@ export function SearchDialog({ open, onOpenChange, onChannelSelect }: SearchDial
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Search LiveHub</DialogTitle>
+          <DialogTitle>{t("search_livehub", "Search LiveHub")}</DialogTitle>
         </DialogHeader>
 
         <div className="relative">
@@ -66,7 +68,7 @@ export function SearchDialog({ open, onOpenChange, onChannelSelect }: SearchDial
           <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search messages, users, channels..."
+            placeholder={t("search_messages_users_channels", "Search messages, users, channels...")}
             className="pl-10"
             autoFocus
           />
@@ -82,7 +84,7 @@ export function SearchDialog({ open, onOpenChange, onChannelSelect }: SearchDial
           {!loading && query.length >= 2 && results.length === 0 && (
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <Search className="h-12 w-12 text-muted-foreground mb-3" />
-              <p className="text-sm text-muted-foreground">No results found</p>
+              <p className="text-sm text-muted-foreground">{t("no_results_found", "No results found")}</p>
             </div>
           )}
 

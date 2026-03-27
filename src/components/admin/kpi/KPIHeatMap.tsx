@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React, { useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -39,6 +40,7 @@ const domainLabels: Record<KPIDomain, string> = {
 };
 
 export function KPIHeatMap({ kpis, groupBy, onCellClick, className }: KPIHeatMapProps) {
+  const { t } = useTranslation('common');
   const [hoveredCell, setHoveredCell] = useState<string | null>(null);
 
   const cells = useMemo(() => {
@@ -124,19 +126,19 @@ export function KPIHeatMap({ kpis, groupBy, onCellClick, className }: KPIHeatMap
     <Card className={className}>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-base font-medium">KPI Health Heat Map</CardTitle>
+          <CardTitle className="text-base font-medium">{t("kpi_health_heat_map", "KPI Health Heat Map")}</CardTitle>
           <div className="flex items-center gap-2 text-xs">
             <div className="flex items-center gap-1">
               <div className="w-3 h-3 rounded bg-emerald-500" />
-              <span className="text-muted-foreground">On Target</span>
+              <span className="text-muted-foreground">{t("on_target", "On Target")}</span>
             </div>
             <div className="flex items-center gap-1">
               <div className="w-3 h-3 rounded bg-amber-500" />
-              <span className="text-muted-foreground">Warning</span>
+              <span className="text-muted-foreground">{t("warning", "Warning")}</span>
             </div>
             <div className="flex items-center gap-1">
               <div className="w-3 h-3 rounded bg-rose-500" />
-              <span className="text-muted-foreground">Critical</span>
+              <span className="text-muted-foreground">{t("critical", "Critical")}</span>
             </div>
           </div>
         </div>

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -23,6 +24,7 @@ interface PlacementHistoryProps {
 }
 
 export function PlacementHistory({ placements, isLoading }: PlacementHistoryProps) {
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
 
   const placementCommissions = placements.filter(c => c.source_type === 'placement');
@@ -35,7 +37,7 @@ export function PlacementHistory({ placements, isLoading }: PlacementHistoryProp
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Placement History</CardTitle>
+          <CardTitle>{t("placement_history", "Placement History")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="h-48 bg-muted/50 animate-pulse rounded-lg" />
@@ -61,13 +63,13 @@ export function PlacementHistory({ placements, isLoading }: PlacementHistoryProp
         {/* Summary Stats */}
         <div className="grid grid-cols-2 gap-4">
           <div className="p-3 bg-muted/30 rounded-lg">
-            <p className="text-xs text-muted-foreground">Total Earned</p>
+            <p className="text-xs text-muted-foreground">{t("total_earned", "Total Earned")}</p>
             <p className="text-lg font-semibold text-green-500">
               {formatCurrency(totalRevenue)}
             </p>
           </div>
           <div className="p-3 bg-muted/30 rounded-lg">
-            <p className="text-xs text-muted-foreground">Avg per Placement</p>
+            <p className="text-xs text-muted-foreground">{t("avg_per_placement", "Avg per Placement")}</p>
             <p className="text-lg font-semibold">
               {formatCurrency(avgPlacementValue)}
             </p>
@@ -79,7 +81,7 @@ export function PlacementHistory({ placements, isLoading }: PlacementHistoryProp
           {placementCommissions.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-32 text-muted-foreground">
               <Award className="h-8 w-8 mb-2 opacity-50" />
-              <p>No placements yet</p>
+              <p>{t("no_placements_yet", "No placements yet")}</p>
             </div>
           ) : (
             <div className="relative">

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useEdgeFunctionStats } from '@/hooks/useEdgeFunctionRegistry';
@@ -20,6 +21,7 @@ const COLORS = [
 ];
 
 export function EdgeFunctionOverviewTab() {
+  const { t } = useTranslation('common');
   const { data: stats, isLoading: statsLoading } = useEdgeFunctionStats();
   const { data: usage, isLoading: usageLoading } = useEdgeFunctionUsageSummary(7);
   const { recharts, isLoading: rechartsLoading } = useRecharts();
@@ -45,7 +47,7 @@ export function EdgeFunctionOverviewTab() {
                 <Zap className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Total</p>
+                <p className="text-sm text-muted-foreground">{t("total", "Total")}</p>
                 <p className="text-2xl font-bold">{stats?.total || 0}</p>
               </div>
             </div>
@@ -59,7 +61,7 @@ export function EdgeFunctionOverviewTab() {
                 <CheckCircle className="h-5 w-5 text-green-500" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Active</p>
+                <p className="text-sm text-muted-foreground">{t("active", "Active")}</p>
                 <p className="text-2xl font-bold">{stats?.active || 0}</p>
               </div>
             </div>
@@ -73,7 +75,7 @@ export function EdgeFunctionOverviewTab() {
                 <XCircle className="h-5 w-5 text-destructive" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Disabled</p>
+                <p className="text-sm text-muted-foreground">{t("disabled", "Disabled")}</p>
                 <p className="text-2xl font-bold">{stats?.disabled || 0}</p>
               </div>
             </div>
@@ -87,7 +89,7 @@ export function EdgeFunctionOverviewTab() {
                 <Activity className="h-5 w-5 text-accent" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Calls (7d)</p>
+                <p className="text-sm text-muted-foreground">{t("calls_7d", "Calls (7d)")}</p>
                 <p className="text-2xl font-bold">{usage?.totalLogs?.toLocaleString() || 0}</p>
               </div>
             </div>
@@ -101,7 +103,7 @@ export function EdgeFunctionOverviewTab() {
                 <AlertTriangle className="h-5 w-5 text-yellow-500" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Unhealthy</p>
+                <p className="text-sm text-muted-foreground">{t("unhealthy", "Unhealthy")}</p>
                 <p className="text-2xl font-bold">{stats?.unhealthy || 0}</p>
               </div>
             </div>
@@ -115,7 +117,7 @@ export function EdgeFunctionOverviewTab() {
                 <DollarSign className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Est. $/day</p>
+                <p className="text-sm text-muted-foreground">{t("est_day", "Est. $/day")}</p>
                 <p className="text-2xl font-bold">${(stats?.totalEstimatedDailyCost || 0).toFixed(2)}</p>
               </div>
             </div>
@@ -130,7 +132,7 @@ export function EdgeFunctionOverviewTab() {
         {/* Category Distribution */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Functions by Category</CardTitle>
+            <CardTitle className="text-base">{t("functions_by_category", "Functions by Category")}</CardTitle>
           </CardHeader>
           <CardContent>
             {!chartsReady ? (
@@ -167,7 +169,7 @@ export function EdgeFunctionOverviewTab() {
                 );
               })()
             ) : (
-              <p className="text-sm text-muted-foreground">No data available</p>
+              <p className="text-sm text-muted-foreground">{t("no_data_available", "No data available")}</p>
             )}
           </CardContent>
         </Card>
@@ -201,7 +203,7 @@ export function EdgeFunctionOverviewTab() {
                 );
               })()
             ) : (
-              <p className="text-sm text-muted-foreground">No usage data yet</p>
+              <p className="text-sm text-muted-foreground">{t("no_usage_data_yet", "No usage data yet")}</p>
             )}
           </CardContent>
         </Card>

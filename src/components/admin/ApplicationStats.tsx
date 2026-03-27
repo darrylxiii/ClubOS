@@ -1,6 +1,7 @@
 import { Card } from "@/components/ui/card";
 import { Users, Clock, CheckCircle, XCircle, TrendingUp, Timer } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { useTranslation } from 'react-i18next';
 
 interface ApplicationStatsProps {
   total: number;
@@ -17,18 +18,19 @@ export function ApplicationStats({
   rejected, 
   lastSubmission 
 }: ApplicationStatsProps) {
+  const { t } = useTranslation('admin');
   const conversionRate = total > 0 ? ((approved / total) * 100).toFixed(1) : '0.0';
   
   const stats = [
     {
-      label: "Total Applications",
+      label: t('applicationStats.totalApplications'),
       value: total,
       icon: Users,
       color: "text-blue-600 dark:text-blue-400",
       bgColor: "bg-blue-100 dark:bg-blue-900/30"
     },
     {
-      label: "Pending Review",
+      label: t('applicationStats.pendingReview'),
       value: pending,
       icon: Clock,
       color: "text-orange-600 dark:text-orange-400",
@@ -36,29 +38,29 @@ export function ApplicationStats({
       highlight: pending > 0
     },
     {
-      label: "Approved",
+      label: t('applicationStats.approved'),
       value: approved,
       icon: CheckCircle,
       color: "text-green-600 dark:text-green-400",
       bgColor: "bg-green-100 dark:bg-green-900/30"
     },
     {
-      label: "Rejected",
+      label: t('applicationStats.rejected'),
       value: rejected,
       icon: XCircle,
       color: "text-red-600 dark:text-red-400",
       bgColor: "bg-red-100 dark:bg-red-900/30"
     },
     {
-      label: "Conversion Rate",
+      label: t('applicationStats.conversionRate'),
       value: `${conversionRate}%`,
       icon: TrendingUp,
       color: "text-purple-600 dark:text-purple-400",
       bgColor: "bg-purple-100 dark:bg-purple-900/30"
     },
     {
-      label: "Last Submission",
-      value: lastSubmission ? formatDistanceToNow(new Date(lastSubmission), { addSuffix: true }) : 'None',
+      label: t('applicationStats.lastSubmission'),
+      value: lastSubmission ? formatDistanceToNow(new Date(lastSubmission), { addSuffix: true }) : t('common:status.none'),
       icon: Timer,
       color: "text-gray-600 dark:text-gray-400",
       bgColor: "bg-gray-100 dark:bg-gray-900/30"

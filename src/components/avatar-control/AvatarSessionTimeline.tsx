@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Badge } from '@/components/ui/badge';
@@ -24,6 +25,7 @@ const statusColors: Record<string, string> = {
 };
 
 export function AvatarSessionTimeline({ accountId }: AvatarSessionTimelineProps) {
+  const { t } = useTranslation('common');
   const { data: sessions = [] } = useQuery({
     queryKey: ['avatar-session-timeline', accountId],
     queryFn: async () => {
@@ -39,7 +41,7 @@ export function AvatarSessionTimeline({ accountId }: AvatarSessionTimelineProps)
   });
 
   if (sessions.length === 0) {
-    return <p className="text-sm text-muted-foreground py-4 text-center">No session history yet.</p>;
+    return <p className="text-sm text-muted-foreground py-4 text-center">{t("no_session_history_yet", "No session history yet.")}</p>;
   }
 
   return (

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -26,6 +27,7 @@ export function ReconciliationReviewStep({
   selectedPlacement, 
   formData 
 }: ReconciliationReviewStepProps) {
+  const { t } = useTranslation('common');
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR' }).format(amount);
   };
@@ -63,19 +65,19 @@ export function ReconciliationReviewStep({
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div>
-              <p className="text-xs text-muted-foreground">Invoice #</p>
+              <p className="text-xs text-muted-foreground">{t("invoice", "Invoice #")}</p>
               <p className="font-mono font-medium">{invoice.invoice_number || '-'}</p>
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">Contact</p>
+              <p className="text-xs text-muted-foreground">{t("contact", "Contact")}</p>
               <p className="font-medium">{invoice.contact_name || '-'}</p>
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">Amount</p>
+              <p className="text-xs text-muted-foreground">{t("amount", "Amount")}</p>
               <p className="font-bold">{formatCurrency(invoice.total_amount)}</p>
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">Date</p>
+              <p className="text-xs text-muted-foreground">{t("date", "Date")}</p>
               <p className="font-medium">
                 {invoice.invoice_date 
                   ? format(new Date(invoice.invoice_date), 'MMM d, yyyy')
@@ -113,7 +115,7 @@ export function ReconciliationReviewStep({
               </div>
             </div>
           ) : (
-            <p className="text-muted-foreground">No company selected</p>
+            <p className="text-muted-foreground">{t("no_company_selected", "No company selected")}</p>
           )}
         </CardContent>
       </Card>
@@ -153,7 +155,7 @@ export function ReconciliationReviewStep({
             <div className="flex items-center gap-2">
               <AlertTriangle className="h-4 w-4 text-amber-600" />
               <div className="flex-1">
-                <p className="text-sm font-medium text-amber-700">Variance Recorded</p>
+                <p className="text-sm font-medium text-amber-700">{t("variance_recorded", "Variance Recorded")}</p>
                 <p className="text-xs text-amber-600">
                   {formatCurrency(invoice.total_amount - selectedPlacement!.fee_amount)} difference
                   {varianceReason && ` - ${varianceReason.label}`}
@@ -167,16 +169,16 @@ export function ReconciliationReviewStep({
       {/* Classification & Settings */}
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-base">Classification</CardTitle>
+          <CardTitle className="text-base">{t("classification", "Classification")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <p className="text-xs text-muted-foreground">Invoice Type</p>
+              <p className="text-xs text-muted-foreground">{t("invoice_type", "Invoice Type")}</p>
               <Badge variant="secondary">{invoiceType?.label || formData.invoice_type}</Badge>
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">Payment Terms</p>
+              <p className="text-xs text-muted-foreground">{t("payment_terms", "Payment Terms")}</p>
               <Badge variant="outline">{paymentTerm?.label || formData.payment_terms}</Badge>
             </div>
           </div>
@@ -185,7 +187,7 @@ export function ReconciliationReviewStep({
             <>
               <Separator className="my-4" />
               <div>
-                <p className="text-xs text-muted-foreground mb-1">Notes</p>
+                <p className="text-xs text-muted-foreground mb-1">{t("notes", "Notes")}</p>
                 <p className="text-sm bg-muted p-2 rounded">{formData.reconciliation_notes}</p>
               </div>
             </>
@@ -196,7 +198,7 @@ export function ReconciliationReviewStep({
               <Separator className="my-4" />
               <div className="flex items-center gap-2 text-amber-600">
                 <Flag className="h-4 w-4" />
-                <span className="text-sm font-medium">Flagged for Finance Review</span>
+                <span className="text-sm font-medium">{t("flagged_for_finance_review", "Flagged for Finance Review")}</span>
               </div>
             </>
           )}
@@ -206,7 +208,7 @@ export function ReconciliationReviewStep({
       {/* Impact Summary */}
       <Card className="bg-muted/30">
         <CardHeader className="pb-3">
-          <CardTitle className="text-base">Impact Summary</CardTitle>
+          <CardTitle className="text-base">{t("impact_summary", "Impact Summary")}</CardTitle>
         </CardHeader>
         <CardContent>
           <ul className="space-y-2 text-sm">

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -27,6 +28,7 @@ interface ThresholdConfig {
 }
 
 export function SecurityControlsPanel() {
+  const { t } = useTranslation('common');
   const { data: config, isLoading } = useSecurityConfig();
   const updateConfig = useUpdateSecurityConfig();
   const whitelist = useIPWhitelist();
@@ -76,7 +78,7 @@ export function SecurityControlsPanel() {
         <CardContent>
           <div className="flex items-center justify-between p-4 rounded-lg bg-muted/30">
             <div>
-              <p className="font-medium">Enable Auto-Response</p>
+              <p className="font-medium">{t("enable_autoresponse", "Enable Auto-Response")}</p>
               <p className="text-sm text-muted-foreground">
                 Automatically block IPs when thresholds are exceeded
               </p>
@@ -96,8 +98,8 @@ export function SecurityControlsPanel() {
 
       {/* Brute Force Threshold */}
       <ThresholdCard
-        title="Brute Force Protection"
-        description="Block IPs with repeated failed login attempts for same account"
+        title={t("brute_force_protection", "Brute Force Protection")}
+        description={t("block_ips_with_repeated", "Block IPs with repeated failed login attempts for same account")}
         icon={<AlertTriangle className="h-5 w-5 text-orange-500" />}
         config={bruteForceConfig?.config_value as unknown as ThresholdConfig}
         configKey="brute_force_threshold"
@@ -107,8 +109,8 @@ export function SecurityControlsPanel() {
 
       {/* Credential Stuffing Threshold */}
       <ThresholdCard
-        title="Credential Stuffing Protection"
-        description="Block IPs trying multiple different accounts"
+        title={t("credential_stuffing_protection", "Credential Stuffing Protection")}
+        description={t("block_ips_trying_multiple", "Block IPs trying multiple different accounts")}
         icon={<AlertTriangle className="h-5 w-5 text-red-500" />}
         config={credentialStuffingConfig?.config_value as unknown as ThresholdConfig}
         configKey="credential_stuffing_threshold"
@@ -118,8 +120,8 @@ export function SecurityControlsPanel() {
 
       {/* Enumeration Threshold */}
       <ThresholdCard
-        title="Account Enumeration Protection"
-        description="Block IPs probing for valid email addresses"
+        title={t("account_enumeration_protection", "Account Enumeration Protection")}
+        description={t("block_ips_probing_for", "Block IPs probing for valid email addresses")}
         icon={<AlertTriangle className="h-5 w-5 text-yellow-500" />}
         config={enumerationConfig?.config_value as unknown as ThresholdConfig}
         configKey="enumeration_threshold"
@@ -143,7 +145,7 @@ export function SecurityControlsPanel() {
           <div className="space-y-2">
             <div className="flex gap-2">
               <Input
-                placeholder="IP Address (e.g., 192.168.1.1)"
+                placeholder={t("ip_address_eg_19216811", "IP Address (e.g., 192.168.1.1)")}
                 value={newIP}
                 onChange={(e) => setNewIP(e.target.value)}
                 className="flex-1"
@@ -157,7 +159,7 @@ export function SecurityControlsPanel() {
               </Button>
             </div>
             <Input
-              placeholder="Reason (optional)"
+              placeholder={t("reason_optional", "Reason (optional)")}
               value={newIPReason}
               onChange={(e) => setNewIPReason(e.target.value)}
             />
@@ -257,7 +259,7 @@ function ThresholdCard({
       <CardContent className="space-y-4">
         <div className="grid grid-cols-3 gap-3">
           <div className="space-y-1">
-            <Label className="text-xs">Max Attempts</Label>
+            <Label className="text-xs">{t("max_attempts", "Max Attempts")}</Label>
             <Input
               type="number"
               min={1}
@@ -269,7 +271,7 @@ function ThresholdCard({
             />
           </div>
           <div className="space-y-1">
-            <Label className="text-xs">Window (min)</Label>
+            <Label className="text-xs">{t("window_min", "Window (min)")}</Label>
             <Input
               type="number"
               min={1}
@@ -281,7 +283,7 @@ function ThresholdCard({
             />
           </div>
           <div className="space-y-1">
-            <Label className="text-xs">Block (hrs)</Label>
+            <Label className="text-xs">{t("block_hrs", "Block (hrs)")}</Label>
             <Input
               type="number"
               min={1}

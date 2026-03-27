@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { UnifiedCalendarEvent } from "@/types/calendar";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -14,6 +15,7 @@ interface CalendarEventCardProps {
 }
 
 export function CalendarEventCard({ event, onClick, compact = false }: CalendarEventCardProps) {
+  const { t } = useTranslation('common');
   const timeString = `${format(event.start, 'h:mm a')} - ${format(event.end, 'h:mm a')}`;
   const isLive = isLiveMeeting(event);
 
@@ -27,10 +29,10 @@ export function CalendarEventCard({ event, onClick, compact = false }: CalendarE
       );
     }
     if (event.source === 'google') {
-      return <Badge variant="secondary" className="bg-blue-500/10 text-blue-600 border-blue-500/20">Google</Badge>;
+      return <Badge variant="secondary" className="bg-blue-500/10 text-blue-600 border-blue-500/20">{t("google", "Google")}</Badge>;
     }
     if (event.source === 'microsoft') {
-      return <Badge variant="secondary" className="bg-green-500/10 text-green-600 border-green-500/20">Microsoft</Badge>;
+      return <Badge variant="secondary" className="bg-green-500/10 text-green-600 border-green-500/20">{t("microsoft", "Microsoft")}</Badge>;
     }
   };
 
@@ -54,7 +56,7 @@ export function CalendarEventCard({ event, onClick, compact = false }: CalendarE
             {isLive && (
               <div className="flex items-center gap-1.5 px-2 py-0.5 bg-red-500/10 border border-red-500/20 rounded-full">
                 <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-                <span className="text-[10px] font-semibold text-red-600 uppercase">Live</span>
+                <span className="text-[10px] font-semibold text-red-600 uppercase">{t("live", "Live")}</span>
               </div>
             )}
             {event.has_club_ai && (

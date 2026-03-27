@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -72,6 +73,7 @@ export const UnifiedTasksList = ({
   objectiveId,
   onRefresh,
 }: UnifiedTasksListProps) => {
+  const { t } = useTranslation('common');
   const [tasks, setTasks] = useState<UnifiedTask[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedTask, setSelectedTask] = useState<UnifiedTask | null>(null);
@@ -128,7 +130,7 @@ export const UnifiedTasksList = ({
       }
     } catch (error) {
       console.error("Error loading tasks:", error);
-      toast.error("Failed to load tasks");
+      toast.error(t('tasks.failedToLoadTasks', 'Failed to load tasks'));
     } finally {
       setLoading(false);
     }
@@ -140,8 +142,8 @@ export const UnifiedTasksList = ({
     if (next === "completed") { requestComplete(task.id, task.title); return; }
     setTasks((p) => p.map((t) => (t.id === task.id ? { ...t, status: next } : t)));
     const { error } = await supabase.from("unified_tasks").update({ status: next, completed_at: null }).eq("id", task.id);
-    if (error) { toast.error("Failed"); loadTasks(); return; }
-    toast.success(`Status → ${next.replace("_", " ")}`);
+    if (error) { toast.error(t('tasks.failedToUpdateStatus', 'Failed')); loadTasks(); return; }
+    toast.success(t('tasks.statusChangedTo', 'Status → {{status}}', { status: next.replace("_", " ") }));
     loadTasks(); onRefresh();
   };
 
@@ -176,9 +178,9 @@ export const UnifiedTasksList = ({
       <Card className="border-border/30">
         <CardContent className="py-10 text-center">
           <Circle className="w-8 h-8 mx-auto mb-2 text-muted-foreground/30" />
-          <p className="text-xs text-muted-foreground mb-2">No tasks yet</p>
+          <p className="text-xs text-muted-foreground mb-2">{t('tasks.noTasksYet', 'No tasks yet')}</p>
           <CreateUnifiedTaskDialog objectiveId={objectiveId} onTaskCreated={() => { loadTasks(); onRefresh(); }}>
-            <Button size="sm" variant="outline" className="text-xs h-7">Create Task</Button>
+            <Button size="sm" variant="outline" className="text-xs h-7">{t('tasks.createTask', 'Create Task')}</Button>
           </CreateUnifiedTaskDialog>
         </CardContent>
       </Card>
@@ -196,12 +198,12 @@ export const UnifiedTasksList = ({
           P <SortIcon col="priority" />
         </button>
         <button onClick={() => toggleSort("title")} className="flex items-center hover:text-foreground transition-colors">
-          Task <SortIcon col="title" />
+          {t('tasks.task', 'Task')} <SortIcon col="title" />
         </button>
         <button onClick={() => toggleSort("due_date")} className="flex items-center justify-end hover:text-foreground transition-colors hidden sm:flex">
-          Due <SortIcon col="due_date" />
+          {t('tasks.due', 'Due')} <SortIcon col="due_date" />
         </button>
-        <span className="text-center hidden md:block">Deps</span>
+        <span className="text-center hidden md:block">{t('tasks.deps', 'Deps')}</span>
         <span className="hidden md:block" />
         <span />
       </div>
@@ -254,7 +256,7 @@ export const UnifiedTasksList = ({
             <div className="text-right hidden sm:block">
               {dueDate ? (
                 <span className={cn("text-[11px]", isOverdue && "text-destructive font-medium", isDueToday && !isOverdue && "text-amber-500")}>
-                  {isOverdue ? "Overdue" : isDueToday ? "Today" : format(dueDate, "MMM d")}
+                  {isOverdue ? t('tasks.overdue', 'Overdue') : isDueToday ? t('tasks.today', 'Today') : format(dueDate, "MMM d")}
                 </span>
               ) : (
                 <span className="text-[11px] text-muted-foreground/20">—</span>

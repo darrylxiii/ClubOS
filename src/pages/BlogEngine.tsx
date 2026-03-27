@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Helmet } from 'react-helmet-async';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -27,6 +28,7 @@ import BlogLearningsPanel from '@/components/admin/BlogLearningsPanel';
 import BlogEngineControlModal from '@/components/admin/BlogEngineControlModal';
 
 const BlogEngine: React.FC = () => {
+  const { t } = useTranslation('common');
   const { settings, isLoading: settingsLoading, isEngineActive } = useBlogEngineSettings();
 
   // Dashboard analytics
@@ -82,7 +84,7 @@ const BlogEngine: React.FC = () => {
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-3">
             <div>
-              <h1 className="text-2xl md:text-3xl font-semibold text-foreground">Blog Engine</h1>
+              <h1 className="text-2xl md:text-3xl font-semibold text-foreground">{t('blogEngine.title')}</h1>
               <p className="text-muted-foreground mt-1">
                 AI-powered content generation and management.
                 {settings && (
@@ -207,13 +209,13 @@ const BlogEngine: React.FC = () => {
               <Card>
                 <CardContent className="pt-4 pb-4 text-center">
                   <p className="text-3xl font-semibold text-foreground">{stats?.totalPosts ?? 0}</p>
-                  <p className="text-sm text-muted-foreground">Total Articles</p>
+                  <p className="text-sm text-muted-foreground">{t('blogEngine.desc')}</p>
                 </CardContent>
               </Card>
               <Card>
                 <CardContent className="pt-4 pb-4 text-center">
                   <p className="text-3xl font-semibold text-foreground">{stats?.drafts ?? 0}</p>
-                  <p className="text-sm text-muted-foreground">Drafts Pending Review</p>
+                  <p className="text-sm text-muted-foreground">{t('blogEngine.desc2')}</p>
                 </CardContent>
               </Card>
               <Card>
@@ -259,33 +261,33 @@ const BlogEngine: React.FC = () => {
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-muted-foreground">Status</p>
+                    <p className="text-sm text-muted-foreground">{t('blogEngine.desc3')}</p>
                     <Badge variant={isEngineActive ? 'default' : 'secondary'}>
                       {isEngineActive ? 'Active' : 'Paused'}
                     </Badge>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Posts/Day</p>
+                    <p className="text-sm text-muted-foreground">{t('blogEngine.desc4')}</p>
                     <p className="font-medium">{settings?.posts_per_day ?? 1}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Auto-Publish</p>
+                    <p className="text-sm text-muted-foreground">{t('blogEngine.desc5')}</p>
                     <Badge variant={settings?.auto_publish ? 'default' : 'outline'}>
                       {settings?.auto_publish ? 'On' : 'Off'}
                     </Badge>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Expert Review</p>
+                    <p className="text-sm text-muted-foreground">{t('blogEngine.desc6')}</p>
                     <Badge variant={settings?.require_medical_review ? 'default' : 'outline'}>
                       {settings?.require_medical_review ? 'Required' : 'Disabled'}
                     </Badge>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Min Quality</p>
+                    <p className="text-sm text-muted-foreground">{t('blogEngine.desc7')}</p>
                     <p className="font-medium">{settings?.min_quality_score ?? 70}/100</p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Publishing Window</p>
+                    <p className="text-sm text-muted-foreground">{t('blogEngine.desc8')}</p>
                     <p className="font-medium">
                       {settings?.publishing_window_start || '09:00'} – {settings?.publishing_window_end || '17:00'}
                     </p>

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -18,6 +19,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export function TrackUploader() {
+  const { t } = useTranslation('common');
   const queryClient = useQueryClient();
   const [audioFile, setAudioFile] = useState<File | null>(null);
   const [coverFile, setCoverFile] = useState<File | null>(null);
@@ -48,7 +50,7 @@ export function TrackUploader() {
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > 20 * 1024 * 1024) {
-        toast.error('File size must be less than 20MB');
+        toast.error(t("file_size_must_be", "File size must be less than 20MB"));
         return;
       }
       setAudioFile(file);
@@ -81,7 +83,7 @@ export function TrackUploader() {
 
   const handleYoutubeDownload = async () => {
     if (!youtubeUrl) {
-      toast.error('Please enter a YouTube URL');
+      toast.error(t("please_enter_a_youtube", "Please enter a YouTube URL"));
       return;
     }
 
@@ -121,7 +123,7 @@ export function TrackUploader() {
         }
       }
 
-      toast.success('Audio downloaded from YouTube!');
+      toast.success(t("audio_downloaded_from_youtube", "Audio downloaded from YouTube!"));
       setUploadMode('file'); // Switch to file mode to show the downloaded track
     } catch (error: unknown) {
       console.error('YouTube download error:', error);
@@ -134,7 +136,7 @@ export function TrackUploader() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!audioFile) {
-      toast.error('Please select an audio file');
+      toast.error(t("please_select_an_audio", "Please select an audio file"));
       return;
     }
 
@@ -224,7 +226,7 @@ export function TrackUploader() {
         if (linkError) throw linkError;
       }
 
-      toast.success('Track uploaded successfully');
+      toast.success(t("track_uploaded_successfully", "Track uploaded successfully"));
       
       // Reset form
       setAudioFile(null);
@@ -262,7 +264,7 @@ export function TrackUploader() {
           <TabsContent value="youtube" className="mt-6">
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="youtube-url">YouTube URL</Label>
+                <Label htmlFor="youtube-url">{t("youtube_url", "YouTube URL")}</Label>
                 <div className="flex gap-2">
                   <Input
                     id="youtube-url"
@@ -300,7 +302,7 @@ export function TrackUploader() {
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Audio File Upload */}
               <div className="space-y-2">
-                <Label>Audio File</Label>
+                <Label>{t("audio_file", "Audio File")}</Label>
                 <label className="flex flex-col items-center justify-center h-32 rounded-2xl border-2 border-dashed border-white/20 hover:border-primary/50 transition-colors cursor-pointer">
               {audioFile ? (
                 <div className="text-center">
@@ -316,7 +318,7 @@ export function TrackUploader() {
                   <p className="text-sm text-muted-foreground">
                     Upload audio file (MP3, WAV, M4A)
                   </p>
-                  <p className="text-xs text-muted-foreground mt-1">Max 20MB</p>
+                  <p className="text-xs text-muted-foreground mt-1">{t("max_20mb", "Max 20MB")}</p>
                 </div>
               )}
               <input
@@ -330,20 +332,20 @@ export function TrackUploader() {
 
           {/* Cover Image Upload */}
           <div className="space-y-2">
-            <Label>Cover Image (Optional)</Label>
+            <Label>{t("cover_image_optional", "Cover Image (Optional)")}</Label>
             <div className="grid grid-cols-2 gap-4">
               {coverPreview && (
                 <div className="aspect-square rounded-2xl overflow-hidden">
                   <img
                     src={coverPreview}
-                    alt="Cover preview"
+                    alt={t("cover_preview", "Cover preview")}
                     className="w-full h-full object-cover"
                   />
                 </div>
               )}
               <label className={`flex flex-col items-center justify-center aspect-square rounded-2xl border-2 border-dashed border-white/20 hover:border-primary/50 transition-colors cursor-pointer ${coverPreview ? '' : 'col-span-2'}`}>
                 <ImageIcon className="h-8 w-8 text-muted-foreground mb-2" />
-                <span className="text-sm text-muted-foreground">Upload cover</span>
+                <span className="text-sm text-muted-foreground">{t("upload_cover", "Upload cover")}</span>
                 <input
                   type="file"
                   accept="image/*"
@@ -357,36 +359,36 @@ export function TrackUploader() {
           {/* Track Info */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2 col-span-2">
-              <Label htmlFor="title">Track Title</Label>
+              <Label htmlFor="title">{t("track_title", "Track Title")}</Label>
               <Input
                 id="title"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="Quantum Beats"
+                placeholder={t("quantum_beats", "Quantum Beats")}
                 required
               />
             </div>
 
             <div className="space-y-2 col-span-2">
-              <Label htmlFor="artist">Artist</Label>
+              <Label htmlFor="artist">{t("artist", "Artist")}</Label>
               <Input
                 id="artist"
                 value={artist}
                 onChange={(e) => setArtist(e.target.value)}
-                placeholder="DJ Quantum"
+                placeholder={t("dj_quantum", "DJ Quantum")}
               />
             </div>
           </div>
 
           {/* Tags */}
           <div className="space-y-2">
-            <Label>Tags</Label>
+            <Label>{t("tags", "Tags")}</Label>
             <div className="flex gap-2">
               <Input
                 value={tagInput}
                 onChange={(e) => setTagInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
-                placeholder="Genre, mood, occasion..."
+                placeholder={t("genre_mood_occasion", "Genre, mood, occasion...")}
               />
               <Button type="button" onClick={addTag} size="icon">
                 <Plus className="h-4 w-4" />
@@ -412,10 +414,10 @@ export function TrackUploader() {
 
           {/* Add to Playlist */}
           <div className="space-y-2">
-            <Label>Add to Playlist (Optional)</Label>
+            <Label>{t("add_to_playlist_optional", "Add to Playlist (Optional)")}</Label>
             <Select value={selectedPlaylist} onValueChange={setSelectedPlaylist}>
               <SelectTrigger>
-                <SelectValue placeholder="Select a playlist" />
+                <SelectValue placeholder={t("select_a_playlist", "Select a playlist")} />
               </SelectTrigger>
               <SelectContent>
                 {playlists?.map((playlist) => (

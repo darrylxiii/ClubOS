@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -21,6 +22,7 @@ interface CashFlowPipelineProps {
 }
 
 export function CashFlowPipeline({ year }: CashFlowPipelineProps) {
+  const { t } = useTranslation('common');
   const { data: pipelineData, isLoading } = useQuery({
     queryKey: ['cash-flow-pipeline', year],
     queryFn: async () => {
@@ -145,7 +147,7 @@ export function CashFlowPipeline({ year }: CashFlowPipelineProps) {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold">Cash Flow Pipeline</h3>
+        <h3 className="text-lg font-semibold">{t("cash_flow_pipeline", "Cash Flow Pipeline")}</h3>
         <Badge variant="outline" className="text-sm">
           {collectionRate.toFixed(1)}% Collection Rate
         </Badge>

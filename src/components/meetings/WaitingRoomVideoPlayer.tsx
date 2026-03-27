@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Play, Pause, Volume2, VolumeX, SkipForward, CheckCircle } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface VideoContent {
   id: string;
@@ -25,6 +26,7 @@ export function WaitingRoomVideoPlayer({
   onVideoComplete, 
   autoPlay = true 
 }: WaitingRoomVideoPlayerProps) {
+  const { t } = useTranslation("meetings");
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(autoPlay);
   const [isMuted, setIsMuted] = useState(false);
@@ -81,10 +83,10 @@ export function WaitingRoomVideoPlayer({
 
   const getTypeLabel = (type: VideoContent["type"]) => {
     const labels = {
-      culture: "Company Culture",
-      role: "About the Role",
-      tips: "Interview Tips",
-      company: "About Us",
+      culture: t('waitingRoom.companyCulture'),
+      role: t('waitingRoom.aboutTheRole'),
+      tips: t('waitingRoom.interviewTips'),
+      company: t('waitingRoom.aboutUs'),
     };
     return labels[type];
   };
@@ -143,7 +145,7 @@ export function WaitingRoomVideoPlayer({
                   onClick={skipToNext}
                 >
                   <SkipForward className="h-4 w-4 mr-1" />
-                  Next
+                  {t('common:actions.next')}
                 </Button>
               )}
             </div>

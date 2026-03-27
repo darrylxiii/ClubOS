@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/tooltip";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Smile } from "lucide-react";
 import { EnhancedEmojiPicker } from "./EnhancedEmojiPicker";
@@ -25,6 +26,7 @@ interface MessageReactionsDisplayProps {
 }
 
 export const MessageReactionsDisplay = ({ messageId }: MessageReactionsDisplayProps) => {
+  const { t } = useTranslation('messages');
   const { user } = useAuth();
   const [reactions, setReactions] = useState<Reaction[]>([]);
 
@@ -78,7 +80,7 @@ export const MessageReactionsDisplay = ({ messageId }: MessageReactionsDisplayPr
         .from('message_reactions')
         .delete()
         .eq('id', existing.id);
-      toast.success("Reaction removed");
+      toast.success(t('reactions.removed'));
     } else {
       const { error } = await supabase
         .from('message_reactions')
@@ -90,7 +92,7 @@ export const MessageReactionsDisplay = ({ messageId }: MessageReactionsDisplayPr
 
       if (error) {
         console.error('Error adding reaction:', error);
-        toast.error("Failed to add reaction");
+        toast.error(t('reactions.addFailed'));
       }
     }
   };
@@ -144,7 +146,7 @@ export const MessageReactionsDisplay = ({ messageId }: MessageReactionsDisplayPr
                 <div className="text-xs space-y-1 font-medium">
                   {reactionList.slice(0, 5).map((r) => (
                     <div key={r.id} className="text-foreground/80">
-                      {r.user_id === user?.id ? "You" : "Someone"} reacted {emoji}
+                      {r.user_id === user?.id ? t('reactions.you') : t('someone')} {t('reactions.reacted')} {emoji}
                     </div>
                   ))}
                   {reactionList.length > 5 && (

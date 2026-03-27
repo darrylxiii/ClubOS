@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useRef, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -12,6 +13,7 @@ interface VideoEditorProps {
 }
 
 export function VideoEditor({ file, open, onClose, onSave }: VideoEditorProps) {
+  const { t } = useTranslation('common');
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -93,7 +95,7 @@ export function VideoEditor({ file, open, onClose, onSave }: VideoEditorProps) {
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl">
         <DialogHeader>
-          <DialogTitle>Edit Video</DialogTitle>
+          <DialogTitle>{t("edit_video", "Edit Video")}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">

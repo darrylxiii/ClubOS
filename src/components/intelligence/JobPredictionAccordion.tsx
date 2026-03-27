@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ChevronDown, ChevronRight, AlertTriangle, Briefcase, Infinity } from "lucide-react";
 import { PredictiveAnalyticsDashboard } from "./PredictiveAnalyticsDashboard";
 import { cn } from "@/lib/utils";
+import { useTranslation } from 'react-i18next';
 
 interface JobHealthScore {
   jobId: string;
@@ -29,6 +30,7 @@ interface JobPredictionAccordionProps {
 }
 
 function getHealthColor(score: number) {
+  const { t } = useTranslation('common');
   if (score >= 80) return 'bg-green-500';
   if (score >= 60) return 'bg-amber-500';
   if (score >= 40) return 'bg-orange-500';
@@ -61,7 +63,7 @@ export function JobPredictionAccordion({ jobs, jobHealthScores }: JobPredictionA
       <Card>
         <CardContent className="pt-6 text-center py-12">
           <Briefcase className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-          <h3 className="text-lg font-semibold mb-2">No Active Jobs</h3>
+          <h3 className="text-lg font-semibold mb-2">{"No Active Jobs"}</h3>
           <p className="text-sm text-muted-foreground">
             Publish jobs to see AI-powered predictions for each role.
           </p>
@@ -73,8 +75,8 @@ export function JobPredictionAccordion({ jobs, jobHealthScores }: JobPredictionA
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold">Individual Job Predictions</h3>
-        <p className="text-sm text-muted-foreground">Click to expand</p>
+        <h3 className="text-lg font-semibold">{"Individual Job Predictions"}</h3>
+        <p className="text-sm text-muted-foreground">{"Click to expand"}</p>
       </div>
 
       {sortedJobs.map(job => {

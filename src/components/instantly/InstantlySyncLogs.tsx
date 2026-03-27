@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { motion } from '@/lib/motion';
 import { CheckCircle2, XCircle, RefreshCw } from 'lucide-react';
 import { Card } from '@/components/ui/card';
@@ -10,6 +11,7 @@ interface InstantlySyncLogsProps {
 }
 
 export function InstantlySyncLogs({ logs }: InstantlySyncLogsProps) {
+  const { t } = useTranslation('common');
   const getStatus = (log: SyncLog) => {
     if ((log.failed_records || 0) > 0) return 'error';
     if ((log.synced_records || 0) > 0) return 'success';
@@ -39,8 +41,8 @@ export function InstantlySyncLogs({ logs }: InstantlySyncLogsProps) {
       <Card className="p-6 bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border-border/30">
         <div className="text-center text-muted-foreground">
           <RefreshCw className="h-8 w-8 mx-auto mb-2 opacity-50" />
-          <p>No sync history yet</p>
-          <p className="text-sm">Click "Sync Now" to start syncing data from Instantly</p>
+          <p>{t("no_sync_history_yet", "No sync history yet")}</p>
+          <p className="text-sm">{t("click_sync_now_to", "Click ')Sync Now' to start syncing data from Instantly")}</p>
         </div>
       </Card>
     );
@@ -48,7 +50,7 @@ export function InstantlySyncLogs({ logs }: InstantlySyncLogsProps) {
 
   return (
     <Card className="p-4 bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border-border/30">
-      <h3 className="font-semibold mb-4">Recent Sync Activity</h3>
+      <h3 className="font-semibold mb-4">{t("recent_sync_activity", "Recent Sync Activity")}</h3>
       <div className="space-y-3">
         {logs.map((log, index) => {
           const status = getStatus(log);

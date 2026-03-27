@@ -13,6 +13,7 @@ import type { UnifiedCalendarEvent } from "@/types/calendar";
 import { EventDetailModal } from "@/components/meetings/EventDetailModal";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAttendeeProfiles, type AttendeeProfileMap } from "@/hooks/useAttendeeProfiles";
+import { useTranslation } from 'react-i18next';
 
 function getInitialsFromEmail(email: string): string {
   const local = email.split('@')[0];
@@ -59,6 +60,7 @@ const SOURCE_LABELS: Record<string, { label: string; color: string }> = {
 };
 
 export const ActiveMeetingsWidget = () => {
+  const { t } = useTranslation('common');
   const [events, setEvents] = useState<UnifiedCalendarEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [statuses, setStatuses] = useState<Map<string, MeetingStatusInfo>>(new Map());
@@ -152,9 +154,9 @@ export const ActiveMeetingsWidget = () => {
         {events.length === 0 ? (
           <div className="flex flex-col items-center gap-3 py-6 text-center">
             <Calendar className="h-8 w-8 text-muted-foreground/40" />
-            <p className="text-sm text-muted-foreground">No meetings in the next 5 days</p>
+            <p className="text-sm text-muted-foreground">{"No meetings in the next 5 days"}</p>
             <Button asChild variant="outline" size="sm">
-              <Link to="/meetings?tab=calendar">View Calendar</Link>
+              <Link to="/meetings?tab=calendar">{"View Calendar"}</Link>
             </Button>
           </div>
         ) : (
@@ -189,9 +191,7 @@ export const ActiveMeetingsWidget = () => {
                       </span>
                     )}
                     {isLive && (
-                      <Badge className="shrink-0 bg-success text-success-foreground text-[10px] animate-pulse">
-                        Live
-                      </Badge>
+                      <Badge className="shrink-0 bg-success text-success-foreground text-[10px] animate-pulse">{t('activeMeetingsWidget.badge.live')}</Badge>
                     )}
                     {isStartingSoon && (
                       <Badge variant="secondary" className="shrink-0 text-[10px]">
@@ -200,7 +200,7 @@ export const ActiveMeetingsWidget = () => {
                     )}
                     {isNext && !isStartingSoon && (
                       <Badge className="shrink-0 border-accent-gold/40 bg-accent-gold/15 text-accent-gold text-[10px]">
-                        Next
+                        {t('common:next')}
                       </Badge>
                     )}
                   </div>
@@ -227,7 +227,7 @@ export const ActiveMeetingsWidget = () => {
                         className="shrink-0 text-xs"
                         onClick={() => navigate(`/meetings/${e.meeting_id}/insights`)}
                       >
-                        View
+                        {t('common:view')}
                       </Button>
                     ) : null}
                   </div>

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -14,6 +15,7 @@ const DATE_RANGES = [
 ];
 
 export function EdgeFunctionUsageTab() {
+  const { t } = useTranslation('common');
   const [days, setDays] = useState(7);
   const { data: usage, isLoading } = useEdgeFunctionUsageSummary(days);
   const { recharts, isLoading: rechartsLoading } = useRecharts();
@@ -59,7 +61,7 @@ export function EdgeFunctionUsageTab() {
       {/* Daily Trend Chart */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Invocations Over Time</CardTitle>
+          <CardTitle className="text-base">{t("invocations_over_time", "Invocations Over Time")}</CardTitle>
         </CardHeader>
         <CardContent>
           {rechartsLoading || !recharts ? (
@@ -93,27 +95,27 @@ export function EdgeFunctionUsageTab() {
       {/* Per-Function Table */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Per-Function Breakdown</CardTitle>
+          <CardTitle className="text-base">{t("perfunction_breakdown", "Per-Function Breakdown")}</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           <ScrollArea className="h-[400px]">
             <table className="w-full text-sm">
               <thead className="sticky top-0 bg-card border-b">
                 <tr className="text-left text-muted-foreground">
-                  <th className="p-3 font-medium">Function</th>
-                  <th className="p-3 font-medium text-right">Invocations</th>
-                  <th className="p-3 font-medium text-right hidden md:table-cell">Successes</th>
-                  <th className="p-3 font-medium text-right hidden md:table-cell">Errors</th>
-                  <th className="p-3 font-medium text-right">Success Rate</th>
-                  <th className="p-3 font-medium text-right hidden lg:table-cell">Avg Time</th>
-                  <th className="p-3 font-medium text-right hidden lg:table-cell">Tokens</th>
+                  <th className="p-3 font-medium">{t("function", "Function")}</th>
+                  <th className="p-3 font-medium text-right">{t("invocations", "Invocations")}</th>
+                  <th className="p-3 font-medium text-right hidden md:table-cell">{t("successes", "Successes")}</th>
+                  <th className="p-3 font-medium text-right hidden md:table-cell">{t("errors", "Errors")}</th>
+                  <th className="p-3 font-medium text-right">{t("success_rate", "Success Rate")}</th>
+                  <th className="p-3 font-medium text-right hidden lg:table-cell">{t("avg_time", "Avg Time")}</th>
+                  <th className="p-3 font-medium text-right hidden lg:table-cell">{t("tokens", "Tokens")}</th>
                 </tr>
               </thead>
               <tbody>
                 {isLoading ? (
-                  <tr><td colSpan={7} className="p-8 text-center text-muted-foreground">Loading...</td></tr>
+                  <tr><td colSpan={7} className="p-8 text-center text-muted-foreground">{t("loading", "Loading...")}</td></tr>
                 ) : !usage?.topFunctions.length ? (
-                  <tr><td colSpan={7} className="p-8 text-center text-muted-foreground">No usage data</td></tr>
+                  <tr><td colSpan={7} className="p-8 text-center text-muted-foreground">{t("no_usage_data", "No usage data")}</td></tr>
                 ) : (
                   usage.topFunctions.map(fn => (
                     <tr key={fn.function_name} className="border-b hover:bg-muted/30">

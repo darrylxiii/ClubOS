@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Palette, Globe, Image, Code, Building2, Save, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 
 interface CompanyBranding {
   id: string;
@@ -29,6 +30,7 @@ interface CompanyBranding {
 }
 
 export const WhiteLabelManager = () => {
+  const { t } = useTranslation('admin');
   const queryClient = useQueryClient();
   const [selectedCompanyId, setSelectedCompanyId] = useState<string>('');
   const [editedBranding, setEditedBranding] = useState<Partial<CompanyBranding>>({});
@@ -83,9 +85,9 @@ export const WhiteLabelManager = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['company-branding', selectedCompanyId] });
-      toast.success('Branding settings saved');
+      toast.success(t('enterprise.whiteLabelManager.brandingSettingsSaved'));
     },
-    onError: () => toast.error('Failed to save branding')
+    onError: () => toast.error(t('enterprise.whiteLabelManager.failedToSaveBranding'))
   });
 
   const currentBranding = { ...branding, ...editedBranding };
@@ -103,8 +105,8 @@ export const WhiteLabelManager = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold">White Label Configuration</h2>
-          <p className="text-muted-foreground">Customize branding for enterprise tenants</p>
+          <h2 className="text-2xl font-bold">{t('enterprise.whiteLabelManager.whiteLabelConfiguration')}</h2>
+          <p className="text-muted-foreground">{t('enterprise.whiteLabelManager.customizeBrandingForEnterpriseTenants')}</p>
         </div>
       </div>
 
@@ -119,7 +121,7 @@ export const WhiteLabelManager = () => {
         <CardContent>
           <Select value={selectedCompanyId} onValueChange={setSelectedCompanyId}>
             <SelectTrigger className="w-full max-w-md">
-              <SelectValue placeholder="Choose a company to configure" />
+              <SelectValue placeholder={t('enterprise.whiteLabelManager.chooseACompanyToConfigure')} />
             </SelectTrigger>
             <SelectContent>
               {companies?.map((company) => (
@@ -139,8 +141,8 @@ export const WhiteLabelManager = () => {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="font-medium">White Label Mode</p>
-                  <p className="text-sm text-muted-foreground">Enable custom branding for this company</p>
+                  <p className="font-medium">{t('enterprise.whiteLabelManager.whiteLabelMode')}</p>
+                  <p className="text-sm text-muted-foreground">{t('enterprise.whiteLabelManager.enableCustomBrandingForThisCompany')}</p>
                 </div>
                 <Switch
                   checked={currentBranding?.is_whitelabel_enabled || false}
@@ -173,13 +175,13 @@ export const WhiteLabelManager = () => {
             <TabsContent value="colors">
               <Card>
                 <CardHeader>
-                  <CardTitle>Brand Colors</CardTitle>
-                  <CardDescription>Define the color palette for this tenant</CardDescription>
+                  <CardTitle>{t('enterprise.whiteLabelManager.brandColors')}</CardTitle>
+                  <CardDescription>{t('enterprise.whiteLabelManager.defineTheColorPaletteForThis')}</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-3 gap-4">
                     <div>
-                      <Label>Primary Color</Label>
+                      <Label>{t('enterprise.whiteLabelManager.primaryColor')}</Label>
                       <div className="flex gap-2 mt-1">
                         <Input
                           type="color"
@@ -195,7 +197,7 @@ export const WhiteLabelManager = () => {
                       </div>
                     </div>
                     <div>
-                      <Label>Secondary Color</Label>
+                      <Label>{t('enterprise.whiteLabelManager.secondaryColor')}</Label>
                       <div className="flex gap-2 mt-1">
                         <Input
                           type="color"
@@ -211,7 +213,7 @@ export const WhiteLabelManager = () => {
                       </div>
                     </div>
                     <div>
-                      <Label>Accent Color</Label>
+                      <Label>{t('enterprise.whiteLabelManager.accentColor')}</Label>
                       <div className="flex gap-2 mt-1">
                         <Input
                           type="color"
@@ -237,7 +239,7 @@ export const WhiteLabelManager = () => {
                       >
                         Primary Button
                       </div>
-                      <span style={{ color: currentBranding?.accent_color || '#F5F4EF' }}>Preview Text</span>
+                      <span style={{ color: currentBranding?.accent_color || '#F5F4EF' }}>{t('enterprise.whiteLabelManager.previewText')}</span>
                     </div>
                   </div>
                 </CardContent>
@@ -247,12 +249,12 @@ export const WhiteLabelManager = () => {
             <TabsContent value="assets">
               <Card>
                 <CardHeader>
-                  <CardTitle>Brand Assets</CardTitle>
-                  <CardDescription>Upload logos and favicons</CardDescription>
+                  <CardTitle>{t('enterprise.whiteLabelManager.brandAssets')}</CardTitle>
+                  <CardDescription>{t('enterprise.whiteLabelManager.uploadLogosAndFavicons')}</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                    <Label>Logo URL</Label>
+                    <Label>{t('enterprise.whiteLabelManager.logoUrl')}</Label>
                     <Input
                       value={currentBranding?.logo_url || ''}
                       onChange={(e) => updateField('logo_url', e.target.value)}
@@ -262,7 +264,7 @@ export const WhiteLabelManager = () => {
                     <p className="text-xs text-muted-foreground mt-1">Recommended: SVG or PNG, 200x60px</p>
                   </div>
                   <div>
-                    <Label>Favicon URL</Label>
+                    <Label>{t('enterprise.whiteLabelManager.faviconUrl')}</Label>
                     <Input
                       value={currentBranding?.favicon_url || ''}
                       onChange={(e) => updateField('favicon_url', e.target.value)}
@@ -278,12 +280,12 @@ export const WhiteLabelManager = () => {
             <TabsContent value="domain">
               <Card>
                 <CardHeader>
-                  <CardTitle>Custom Domain</CardTitle>
-                  <CardDescription>Configure a custom domain for this tenant</CardDescription>
+                  <CardTitle>{t('enterprise.whiteLabelManager.customDomain')}</CardTitle>
+                  <CardDescription>{t('enterprise.whiteLabelManager.configureACustomDomainForThis')}</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                    <Label>Custom Domain</Label>
+                    <Label>{t('enterprise.whiteLabelManager.customDomain')}</Label>
                     <Input
                       value={currentBranding?.custom_domain || ''}
                       onChange={(e) => updateField('custom_domain', e.target.value)}
@@ -296,7 +298,7 @@ export const WhiteLabelManager = () => {
                   </div>
                   {currentBranding?.custom_domain && (
                     <div className="p-4 bg-muted rounded-lg">
-                      <p className="text-sm font-medium mb-2">DNS Configuration</p>
+                      <p className="text-sm font-medium mb-2">{t('enterprise.whiteLabelManager.dnsConfiguration')}</p>
                       <code className="text-xs bg-background p-2 rounded block">
                         {currentBranding.custom_domain} CNAME app.thequantumclub.com
                       </code>
@@ -309,12 +311,12 @@ export const WhiteLabelManager = () => {
             <TabsContent value="advanced">
               <Card>
                 <CardHeader>
-                  <CardTitle>Advanced Customization</CardTitle>
-                  <CardDescription>Custom CSS and email templates</CardDescription>
+                  <CardTitle>{t('enterprise.whiteLabelManager.advancedCustomization')}</CardTitle>
+                  <CardDescription>{t('enterprise.whiteLabelManager.customCssAndEmailTemplates')}</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                    <Label>Custom CSS</Label>
+                    <Label>{t('enterprise.whiteLabelManager.customCss')}</Label>
                     <Textarea
                       value={currentBranding?.custom_css || ''}
                       onChange={(e) => updateField('custom_css', e.target.value)}
@@ -324,11 +326,11 @@ export const WhiteLabelManager = () => {
                     />
                   </div>
                   <div>
-                    <Label>Email Footer</Label>
+                    <Label>{t('enterprise.whiteLabelManager.emailFooter')}</Label>
                     <Textarea
                       value={currentBranding?.email_footer || ''}
                       onChange={(e) => updateField('email_footer', e.target.value)}
-                      placeholder="Custom email footer text..."
+                      placeholder={t('enterprise.whiteLabelManager.customEmailFooterText')}
                       className="mt-1"
                       rows={3}
                     />

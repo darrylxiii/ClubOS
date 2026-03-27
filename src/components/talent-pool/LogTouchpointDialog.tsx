@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -73,6 +74,7 @@ export function LogTouchpointDialog({
   onOpenChange,
   onSuccess,
 }: LogTouchpointDialogProps) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
@@ -99,13 +101,13 @@ export function LogTouchpointDialog({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['touchpoints', candidateId] });
       queryClient.invalidateQueries({ queryKey: ['talent-pool'] });
-      toast.success('Touchpoint logged successfully');
+      toast.success(t("touchpoint_logged_successfully", "Touchpoint logged successfully"));
       resetForm();
       onOpenChange(false);
       onSuccess?.();
     },
     onError: (error) => {
-      toast.error('Failed to log touchpoint: ' + error.message);
+      toast.error(t("failed_to_log_touchpoint", "Failed to log touchpoint:") + error.message);
     },
   });
 
@@ -126,7 +128,7 @@ export function LogTouchpointDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Log Touchpoint</DialogTitle>
+          <DialogTitle>{t("log_touchpoint", "Log Touchpoint")}</DialogTitle>
           <p className="text-sm text-muted-foreground">
             Record an interaction with {candidateName}
           </p>
@@ -135,10 +137,10 @@ export function LogTouchpointDialog({
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Touchpoint Type */}
           <div className="space-y-2">
-            <Label htmlFor="type">Interaction Type</Label>
+            <Label htmlFor="type">{t("interaction_type", "Interaction Type")}</Label>
             <Select value={touchpointType} onValueChange={setTouchpointType}>
               <SelectTrigger>
-                <SelectValue placeholder="Select type" />
+                <SelectValue placeholder={t("select_type", "Select type")} />
               </SelectTrigger>
               <SelectContent className="max-h-[300px]">
                 {touchpointTypes.map((type) => (
@@ -152,23 +154,23 @@ export function LogTouchpointDialog({
 
           {/* Subject */}
           <div className="space-y-2">
-            <Label htmlFor="subject">Subject</Label>
+            <Label htmlFor="subject">{t("subject", "Subject")}</Label>
             <Input
               id="subject"
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
-              placeholder="Brief description of the interaction"
+              placeholder={t("brief_description_of_the", "Brief description of the interaction")}
             />
           </div>
 
           {/* Summary */}
           <div className="space-y-2">
-            <Label htmlFor="summary">Summary / Notes</Label>
+            <Label htmlFor="summary">{t("summary_notes", "Summary / Notes")}</Label>
             <Textarea
               id="summary"
               value={summary}
               onChange={(e) => setSummary(e.target.value)}
-              placeholder="Key points from the interaction..."
+              placeholder={t("key_points_from_the", "Key points from the interaction...")}
               rows={4}
             />
           </div>

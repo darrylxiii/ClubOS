@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { UnifiedCalendarEvent } from "@/types/calendar";
 import { Card } from "@/components/ui/card";
 import { calculateOverlappingPositions, getEventColor } from "@/utils/calendarLayout";
@@ -18,6 +19,7 @@ const END_HOUR = 20;
 const HOURS = Array.from({ length: END_HOUR - START_HOUR }, (_, i) => START_HOUR + i);
 
 export function CalendarTimeGrid({ events, date, onEventClick }: CalendarTimeGridProps) {
+  const { t } = useTranslation('common');
   const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
@@ -139,7 +141,7 @@ export function CalendarTimeGrid({ events, date, onEventClick }: CalendarTimeGri
             <div className="absolute left-16 top-0 right-0 h-full flex items-center justify-center">
               <div className="text-center text-muted-foreground">
                 <Clock className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                <p className="text-sm">No events scheduled</p>
+                <p className="text-sm">{t("no_events_scheduled", "No events scheduled")}</p>
               </div>
             </div>
           )}

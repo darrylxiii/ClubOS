@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,6 +16,7 @@ interface FreelancePayoutSettingsProps {
 }
 
 export function FreelancePayoutSettings({ userId, freelanceProfile, onUpdate }: FreelancePayoutSettingsProps) {
+  const { t } = useTranslation('common');
   const [saving, setSaving] = useState(false);
   const [payoutSchedule, setPayoutSchedule] = useState<string>(freelanceProfile?.payout_schedule || 'weekly');
   const [instantPayoutEnabled, setInstantPayoutEnabled] = useState<boolean>(freelanceProfile?.instant_payout_enabled ?? false);
@@ -39,11 +41,11 @@ export function FreelancePayoutSettings({ userId, freelanceProfile, onUpdate }: 
         }, { onConflict: 'id' });
 
       if (error) throw error;
-      toast.success("Payout settings saved");
+      toast.success(t("payout_settings_saved", "Payout settings saved"));
       onUpdate();
     } catch (error: unknown) {
       console.error("Error saving payout settings:", error);
-      toast.error("Failed to save payout settings");
+      toast.error(t("failed_to_save_payout", "Failed to save payout settings"));
     } finally {
       setSaving(false);
     }
@@ -56,7 +58,7 @@ export function FreelancePayoutSettings({ userId, freelanceProfile, onUpdate }: 
       <Card className="border-dashed">
         <CardContent className="py-8 text-center">
           <Wallet className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-          <h3 className="text-lg font-semibold mb-2">Set Up Payments First</h3>
+          <h3 className="text-lg font-semibold mb-2">{t("set_up_payments_first", "Set Up Payments First")}</h3>
           <p className="text-muted-foreground">
             Complete your Stripe Connect setup above to configure payout preferences.
           </p>
@@ -90,8 +92,8 @@ export function FreelancePayoutSettings({ userId, freelanceProfile, onUpdate }: 
               }`}>
                 <RadioGroupItem value="daily" id="daily" className="sr-only" />
                 <div>
-                  <p className="font-medium">Daily</p>
-                  <p className="text-xs text-muted-foreground">Receive payouts every day</p>
+                  <p className="font-medium">{t("daily", "Daily")}</p>
+                  <p className="text-xs text-muted-foreground">{t("receive_payouts_every_day", "Receive payouts every day")}</p>
                 </div>
               </label>
               <label className={`flex items-center p-4 rounded-lg border cursor-pointer transition-colors ${
@@ -99,8 +101,8 @@ export function FreelancePayoutSettings({ userId, freelanceProfile, onUpdate }: 
               }`}>
                 <RadioGroupItem value="weekly" id="weekly" className="sr-only" />
                 <div>
-                  <p className="font-medium">Weekly</p>
-                  <p className="text-xs text-muted-foreground">Every Monday</p>
+                  <p className="font-medium">{t("weekly", "Weekly")}</p>
+                  <p className="text-xs text-muted-foreground">{t("every_monday", "Every Monday")}</p>
                 </div>
               </label>
               <label className={`flex items-center p-4 rounded-lg border cursor-pointer transition-colors ${
@@ -108,8 +110,8 @@ export function FreelancePayoutSettings({ userId, freelanceProfile, onUpdate }: 
               }`}>
                 <RadioGroupItem value="monthly" id="monthly" className="sr-only" />
                 <div>
-                  <p className="font-medium">Monthly</p>
-                  <p className="text-xs text-muted-foreground">First of each month</p>
+                  <p className="font-medium">{t("monthly", "Monthly")}</p>
+                  <p className="text-xs text-muted-foreground">{t("first_of_each_month", "First of each month")}</p>
                 </div>
               </label>
             </div>
@@ -122,7 +124,7 @@ export function FreelancePayoutSettings({ userId, freelanceProfile, onUpdate }: 
             <div className="flex items-start gap-3">
               <Zap className="h-5 w-5 text-amber-500 mt-0.5" />
               <div>
-                <p className="font-medium">Instant Payouts</p>
+                <p className="font-medium">{t("instant_payouts", "Instant Payouts")}</p>
                 <p className="text-sm text-muted-foreground">
                   Get your earnings within minutes (1.5% fee applies)
                 </p>
@@ -137,11 +139,11 @@ export function FreelancePayoutSettings({ userId, freelanceProfile, onUpdate }: 
 
         {/* Payout Summary */}
         <div className="p-4 rounded-lg bg-muted/50">
-          <h4 className="font-medium mb-2">Your Payout Settings</h4>
+          <h4 className="font-medium mb-2">{t("your_payout_settings", "Your Payout Settings")}</h4>
           <ul className="text-sm space-y-1 text-muted-foreground">
             <li>• Regular payouts: {payoutSchedule}</li>
             <li>• Instant payouts: {instantPayoutEnabled ? 'Enabled (1.5% fee)' : 'Disabled'}</li>
-            <li>• Minimum payout: €10</li>
+            <li>{t("minimum_payout_10", "• Minimum payout: €10")}</li>
           </ul>
         </div>
 

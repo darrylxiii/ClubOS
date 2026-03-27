@@ -1,27 +1,14 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createHandler } from '../_shared/handler.ts';
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+Deno.serve(createHandler(async (req, ctx) => {
+  const { meetingId } = await req.json();
 
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+  if (!meetingId) {
+    throw new Error('Meeting ID is required');
   }
 
-  try {
-    const { meetingId } = await req.json();
-
-    if (!meetingId) {
-      throw new Error('Meeting ID is required');
-    }
-
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+  const googleApiKey = Deno.env.get('GOOGLE_API_KEY')!;
+  const supabase = ctx.supabase;
 
     // Get meeting details
     const { data: meeting } = await supabase
@@ -40,17 +27,17 @@ serve(async (req) => {
       .map((t: any) => `${t.speaker_name}: ${t.transcript_text}`)
       .join('\n');
 
-    console.log('[Extract Hiring Manager] Analyzing transcript via Lovable AI...');
+    console.log('[Extract Hiring Manager] Analyzing transcript via Google Gemini...');
 
-    // Call Lovable AI Gateway instead of OpenAI directly
-    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    // Call Google Gemini API instead of OpenAI directly
+    const aiResponse = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${lovableApiKey}`,
+        'Authorization': `Bearer ${googleApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
+        model: 'gemini-2.5-flash',
         messages: [
           {
             role: 'system',
@@ -170,16 +157,6 @@ Return a JSON object with:
 
     return new Response(
       JSON.stringify({ success: true, analysis }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } }
     );
-  } catch (error: any) {
-    console.error('[Extract Hiring Manager] Error:', error);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      }
-    );
-  }
-});
+}));

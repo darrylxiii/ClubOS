@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { T } from "@/components/T";
+import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 
 interface UserAchievement {
@@ -24,6 +25,7 @@ interface UserAchievement {
 }
 
 export const AchievementsPreviewWidget = () => {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
 
   const { data, isLoading } = useQuery({
@@ -112,7 +114,7 @@ export const AchievementsPreviewWidget = () => {
         </CardTitle>
         <CardDescription className="text-xs sm:text-sm flex items-center gap-2">
           <Star className="h-3 w-3 text-yellow-500" />
-          <span>{data?.totalPoints || 0} XP earned</span>
+          <span>{t('achievements.xpEarned', '{{count}} XP earned', { count: data?.totalPoints || 0 })}</span>
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -158,8 +160,8 @@ export const AchievementsPreviewWidget = () => {
             {/* Progress to next milestone */}
             <div className="space-y-2">
               <div className="flex items-center justify-between text-xs text-muted-foreground">
-                <span>{data.totalCount} unlocked</span>
-                <span>Next: {data.nextMilestone}</span>
+                <span>{t('achievements.unlocked', '{{count}} unlocked', { count: data.totalCount })}</span>
+                <span>{t('achievements.next', 'Next: {{milestone}}', { milestone: data.nextMilestone })}</span>
               </div>
               <Progress value={progressToNext} className="h-2" />
             </div>

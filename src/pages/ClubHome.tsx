@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from "react-router-dom";
 
 import { useRole } from "@/contexts/RoleContext";
@@ -11,6 +12,7 @@ import { ClubHomeHeader } from "@/components/clubhome/ClubHomeHeader";
 import { BackgroundVideo } from "@/components/BackgroundVideo";
 
 const ClubHome = () => {
+  const { t } = useTranslation('common');
   const { currentRole: role, loading: roleLoading } = useRole();
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();

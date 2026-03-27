@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -38,6 +39,7 @@ export function AddProspectDialog({
   campaigns = [],
   defaultStage = 'new',
 }: AddProspectDialogProps) {
+  const { t } = useTranslation('common');
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     full_name: '',
@@ -58,7 +60,7 @@ export function AddProspectDialog({
     e.preventDefault();
     
     if (!formData.full_name || !formData.email) {
-      toast.error('Name and email are required');
+      toast.error(t("name_and_email_are", "Name and email are required"));
       return;
     }
 
@@ -88,7 +90,7 @@ export function AddProspectDialog({
 
       if (error) throw error;
 
-      toast.success('Prospect added successfully');
+      toast.success(t("prospect_added_successfully", "Prospect added successfully"));
       setFormData({
         full_name: '',
         email: '',
@@ -107,7 +109,7 @@ export function AddProspectDialog({
       onSuccess?.();
     } catch (error) {
       console.error('Error adding prospect:', error);
-      toast.error('Failed to add prospect');
+      toast.error(t("failed_to_add_prospect", "Failed to add prospect"));
     } finally {
       setLoading(false);
     }
@@ -130,12 +132,12 @@ export function AddProspectDialog({
           <div className="grid grid-cols-2 gap-4">
             {/* Name */}
             <div className="col-span-2">
-              <Label htmlFor="full_name">Full Name *</Label>
+              <Label htmlFor="full_name">{t("full_name", "Full Name *")}</Label>
               <Input
                 id="full_name"
                 value={formData.full_name}
                 onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-                placeholder="John Smith"
+                placeholder={t("john_smith", "John Smith")}
                 className="bg-muted/20 border-border/30"
                 required
               />
@@ -151,7 +153,7 @@ export function AddProspectDialog({
                 type="email"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                placeholder="john@company.com"
+                placeholder={t("johncompanycom", "john@company.com")}
                 className="bg-muted/20 border-border/30"
                 required
               />
@@ -173,12 +175,12 @@ export function AddProspectDialog({
 
             {/* Job Title */}
             <div>
-              <Label htmlFor="job_title">Job Title</Label>
+              <Label htmlFor="job_title">{t("job_title", "Job Title")}</Label>
               <Input
                 id="job_title"
                 value={formData.job_title}
                 onChange={(e) => setFormData({ ...formData, job_title: e.target.value })}
-                placeholder="VP of Engineering"
+                placeholder={t("vp_of_engineering", "VP of Engineering")}
                 className="bg-muted/20 border-border/30"
               />
             </div>
@@ -192,20 +194,20 @@ export function AddProspectDialog({
                 id="company_name"
                 value={formData.company_name}
                 onChange={(e) => setFormData({ ...formData, company_name: e.target.value })}
-                placeholder="Acme Inc"
+                placeholder={t("acme_inc", "Acme Inc")}
                 className="bg-muted/20 border-border/30"
               />
             </div>
 
             {/* Company Size */}
             <div>
-              <Label htmlFor="company_size">Company Size</Label>
+              <Label htmlFor="company_size">{t("company_size", "Company Size")}</Label>
               <Select
                 value={formData.company_size}
                 onValueChange={(value) => setFormData({ ...formData, company_size: value })}
               >
                 <SelectTrigger className="bg-muted/20 border-border/30">
-                  <SelectValue placeholder="Select size" />
+                  <SelectValue placeholder={t("select_size", "Select size")} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="1-10">1-10</SelectItem>
@@ -249,16 +251,16 @@ export function AddProspectDialog({
 
             {/* Campaign */}
             <div>
-              <Label htmlFor="campaign">Campaign</Label>
+              <Label htmlFor="campaign">{t("campaign", "Campaign")}</Label>
               <Select
                 value={formData.campaign_id}
                 onValueChange={(value) => setFormData({ ...formData, campaign_id: value })}
               >
                 <SelectTrigger className="bg-muted/20 border-border/30">
-                  <SelectValue placeholder="Select campaign" />
+                  <SelectValue placeholder={t("select_campaign", "Select campaign")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">None</SelectItem>
+                  <SelectItem value="none">{t("none", "None")}</SelectItem>
                   {campaigns.map(campaign => (
                     <SelectItem key={campaign.id} value={campaign.id}>
                       {campaign.name}
@@ -270,12 +272,12 @@ export function AddProspectDialog({
 
             {/* Notes */}
             <div className="col-span-2">
-              <Label htmlFor="notes">Notes</Label>
+              <Label htmlFor="notes">{t("notes", "Notes")}</Label>
               <Textarea
                 id="notes"
                 value={formData.notes}
                 onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                placeholder="Any additional notes about this prospect..."
+                placeholder={t("any_additional_notes_about", "Any additional notes about this prospect...")}
                 className="bg-muted/20 border-border/30 min-h-20"
               />
             </div>

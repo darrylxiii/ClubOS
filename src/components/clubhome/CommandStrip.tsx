@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { Clock, AlertTriangle, Building2, Shield, CheckCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 
 interface CommandItem {
   label: string;
@@ -15,6 +16,7 @@ interface CommandItem {
 }
 
 export const CommandStrip = () => {
+  const { t } = useTranslation('common');
   const { data, isLoading } = useQuery({
     queryKey: ['admin-command-strip'],
     queryFn: async () => {
@@ -71,7 +73,7 @@ export const CommandStrip = () => {
 
   const items: CommandItem[] = [
     {
-      label: "Pending",
+      label: t('dashboard.attention.pending', 'Pending'),
       count: data?.pending || 0,
       icon: Clock,
       href: "/admin?tab=users",
@@ -79,7 +81,7 @@ export const CommandStrip = () => {
       bgClass: data?.pending ? "bg-amber-500/10 border-amber-500/20" : "bg-emerald-500/10 border-emerald-500/20",
     },
     {
-      label: "Overdue",
+      label: t('dashboard.attention.overdue', 'Overdue'),
       count: data?.overdue || 0,
       icon: AlertTriangle,
       href: "/applications?filter=overdue",
@@ -87,7 +89,7 @@ export const CommandStrip = () => {
       bgClass: data?.overdue ? "bg-red-500/10 border-red-500/20" : "bg-emerald-500/10 border-emerald-500/20",
     },
     {
-      label: "At Risk",
+      label: t('dashboard.attention.atRisk', 'At Risk'),
       count: data?.atRisk || 0,
       icon: Building2,
       href: "/admin?tab=companies",
@@ -95,7 +97,7 @@ export const CommandStrip = () => {
       bgClass: data?.atRisk ? "bg-orange-500/10 border-orange-500/20" : "bg-emerald-500/10 border-emerald-500/20",
     },
     {
-      label: "Alerts",
+      label: t('dashboard.attention.alerts', 'Alerts'),
       count: data?.alerts || 0,
       icon: Shield,
       href: "/admin/anti-hacking",

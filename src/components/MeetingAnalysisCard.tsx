@@ -5,6 +5,7 @@ import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { CheckCircle2, XCircle, Lightbulb, Mail, ListTodo, TrendingUp, AlertTriangle, Copy } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from 'react-i18next';
 
 interface AnalysisData {
   whatWentWell: string[];
@@ -35,6 +36,7 @@ export const MeetingAnalysisCard = ({
   tasksCreated 
 }: MeetingAnalysisCardProps) => {
   const getSentimentColor = (sentiment: string) => {
+  const { t } = useTranslation('common');
     switch (sentiment) {
       case 'positive': return 'bg-green-500/10 text-green-500 border-green-500/20';
       case 'negative': return 'bg-red-500/10 text-red-500 border-red-500/20';
@@ -44,7 +46,7 @@ export const MeetingAnalysisCard = ({
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
-    toast.success('Copied to clipboard!');
+    toast.success("Copied to clipboard!");
   };
 
   return (

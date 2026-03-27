@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -27,6 +28,7 @@ export function EnhancedCandidateDetails({
   visibility,
   appliedToOurJob,
 }: EnhancedCandidateDetailsProps) {
+  const { t } = useTranslation('common');
   const currency = profile?.preferred_currency || candidate?.preferred_currency || 'USD';
   
   const formatCurrency = (amount: number) => {
@@ -43,9 +45,7 @@ export function EnhancedCandidateDetails({
     return (
       <Alert>
         <Shield className="h-4 w-4" />
-        <AlertDescription>
-          Limited candidate information available. Full details visible when candidate applies to your jobs.
-        </AlertDescription>
+        <AlertDescription>{t('enhancedCandidateDetails.alert.limitedCandidateInformationAvailableFullDesc')}</AlertDescription>
       </Alert>
     );
   }
@@ -63,7 +63,7 @@ export function EnhancedCandidateDetails({
           </CardHeader>
           <CardContent className="space-y-3">
             <div>
-              <p className="text-sm text-muted-foreground mb-1">Desired Salary</p>
+              <p className="text-sm text-muted-foreground mb-1">{t("desired_salary", "Desired Salary")}</p>
               <p className="text-lg font-semibold">
                 {formatCurrency(profile?.desired_salary_min || candidate?.desired_salary_min)}
                 {(profile?.desired_salary_max || candidate?.desired_salary_max) && 
@@ -74,7 +74,7 @@ export function EnhancedCandidateDetails({
 
             {visibility.currentSalary && profile?.current_salary_min && (
               <div className="pt-3 border-t">
-                <p className="text-sm text-muted-foreground mb-1">Current Salary</p>
+                <p className="text-sm text-muted-foreground mb-1">{t("current_salary", "Current Salary")}</p>
                 <p className="text-lg font-semibold">
                   {formatCurrency(profile.current_salary_min)}
                   {profile.current_salary_max && ` - ${formatCurrency(profile.current_salary_max)}`}
@@ -96,7 +96,7 @@ export function EnhancedCandidateDetails({
         <CardContent className="space-y-3">
           {visibility.remotePreference && (profile?.remote_work_preference || candidate?.remote_preference) && (
             <div>
-              <p className="text-sm text-muted-foreground mb-1">Remote Preference</p>
+              <p className="text-sm text-muted-foreground mb-1">{t("remote_preference", "Remote Preference")}</p>
               <Badge variant="secondary">
                 {profile?.remote_work_preference || candidate?.remote_preference}
               </Badge>
@@ -105,7 +105,7 @@ export function EnhancedCandidateDetails({
 
           {visibility.employmentType && profile?.employment_type_preference && (
             <div>
-              <p className="text-sm text-muted-foreground mb-1">Employment Type</p>
+              <p className="text-sm text-muted-foreground mb-1">{t("employment_type", "Employment Type")}</p>
               <Badge variant="secondary">
                 {profile.employment_type_preference}
               </Badge>
@@ -116,7 +116,7 @@ export function EnhancedCandidateDetails({
             <div className="flex items-center gap-2">
               <Clock className="w-4 h-4 text-muted-foreground" />
               <div>
-                <p className="text-sm text-muted-foreground">Notice Period</p>
+                <p className="text-sm text-muted-foreground">{t("notice_period", "Notice Period")}</p>
                 <p className="font-medium">{profile?.notice_period || candidate?.notice_period}</p>
               </div>
             </div>
@@ -126,7 +126,7 @@ export function EnhancedCandidateDetails({
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <MapPin className="w-4 h-4 text-muted-foreground" />
-                <p className="text-sm text-muted-foreground">Preferred Locations</p>
+                <p className="text-sm text-muted-foreground">{t("preferred_locations", "Preferred Locations")}</p>
               </div>
               <div className="flex flex-wrap gap-2">
                 {(profile?.preferred_work_locations || candidate?.desired_locations || []).map((loc: string, idx: number) => (
@@ -138,7 +138,7 @@ export function EnhancedCandidateDetails({
 
           {profile?.freelance_hourly_rate_min && (
             <div className="pt-3 border-t">
-              <p className="text-sm text-muted-foreground mb-1">Freelance Rate</p>
+              <p className="text-sm text-muted-foreground mb-1">{t("freelance_rate", "Freelance Rate")}</p>
               <p className="font-medium">
                 {formatCurrency(profile.freelance_hourly_rate_min)}
                 {profile.freelance_hourly_rate_max && 
@@ -163,12 +163,12 @@ export function EnhancedCandidateDetails({
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Eye className="w-4 h-4 text-green-600" />
-                <span className="text-sm">Resume available</span>
+                <span className="text-sm">{t("resume_available", "Resume available")}</span>
               </div>
               <Button variant="outline" size="sm" asChild>
                 <a href={profile.resume_url} target="_blank" rel="noopener noreferrer">
                   <Download className="w-4 h-4 mr-2" />
-                  Download
+                  {t('common:download')}
                 </a>
               </Button>
             </div>
@@ -180,18 +180,18 @@ export function EnhancedCandidateDetails({
       {(visibility.email || visibility.phone) && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Contact Information</CardTitle>
+            <CardTitle className="text-base">{t("contact_information", "Contact Information")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
             {visibility.email && (candidate?.email || profile?.email) && (
               <div>
-                <p className="text-sm text-muted-foreground">Email</p>
+                <p className="text-sm text-muted-foreground">{t("email", "Email")}</p>
                 <p className="font-medium">{candidate?.email || profile?.email}</p>
               </div>
             )}
             {visibility.phone && profile?.phone && (
               <div>
-                <p className="text-sm text-muted-foreground">Phone</p>
+                <p className="text-sm text-muted-foreground">{t("phone", "Phone")}</p>
                 <p className="font-medium">{profile.phone}</p>
               </div>
             )}

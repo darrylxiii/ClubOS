@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -30,6 +31,7 @@ interface WhatsAppConsentManagerProps {
 }
 
 export function WhatsAppConsentManager({ open, onClose }: WhatsAppConsentManagerProps) {
+  const { t } = useTranslation('common');
   const { allConsents, stats, loading, updateConsent, bulkUpdate, isUpdating } = useWhatsAppBroadcastConsent();
   const [search, setSearch] = useState('');
   const [bulkPhones, setBulkPhones] = useState('');
@@ -95,36 +97,36 @@ export function WhatsAppConsentManager({ open, onClose }: WhatsAppConsentManager
             <CardContent className="p-3 text-center">
               <Users className="w-5 h-5 mx-auto text-muted-foreground mb-1" />
               <p className="text-2xl font-bold">{stats.total}</p>
-              <p className="text-xs text-muted-foreground">Total</p>
+              <p className="text-xs text-muted-foreground">{t("total", "Total")}</p>
             </CardContent>
           </Card>
           <Card className="bg-emerald-500/10 border-emerald-500/20">
             <CardContent className="p-3 text-center">
               <CheckCircle className="w-5 h-5 mx-auto text-emerald-500 mb-1" />
               <p className="text-2xl font-bold text-emerald-600">{stats.optedIn}</p>
-              <p className="text-xs text-muted-foreground">Opted In</p>
+              <p className="text-xs text-muted-foreground">{t("opted_in", "Opted In")}</p>
             </CardContent>
           </Card>
           <Card className="bg-red-500/10 border-red-500/20">
             <CardContent className="p-3 text-center">
               <XCircle className="w-5 h-5 mx-auto text-red-500 mb-1" />
               <p className="text-2xl font-bold text-red-600">{stats.optedOut}</p>
-              <p className="text-xs text-muted-foreground">Opted Out</p>
+              <p className="text-xs text-muted-foreground">{t("opted_out", "Opted Out")}</p>
             </CardContent>
           </Card>
           <Card className="bg-amber-500/10 border-amber-500/20">
             <CardContent className="p-3 text-center">
               <HelpCircle className="w-5 h-5 mx-auto text-amber-500 mb-1" />
               <p className="text-2xl font-bold text-amber-600">{stats.unknown}</p>
-              <p className="text-xs text-muted-foreground">Unknown</p>
+              <p className="text-xs text-muted-foreground">{t("unknown", "Unknown")}</p>
             </CardContent>
           </Card>
         </div>
 
         <Tabs defaultValue="list" className="flex-1 flex flex-col overflow-hidden">
           <TabsList className="w-full justify-start">
-            <TabsTrigger value="list">Consent List</TabsTrigger>
-            <TabsTrigger value="import">Bulk Import</TabsTrigger>
+            <TabsTrigger value="list">{t("consent_list", "Consent List")}</TabsTrigger>
+            <TabsTrigger value="import">{t("bulk_import", "Bulk Import")}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="list" className="flex-1 overflow-hidden flex flex-col mt-4">
@@ -132,7 +134,7 @@ export function WhatsAppConsentManager({ open, onClose }: WhatsAppConsentManager
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search by phone number..."
+                  placeholder={t("search_by_phone_number", "Search by phone number...")}
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   className="pl-10"
@@ -152,7 +154,7 @@ export function WhatsAppConsentManager({ open, onClose }: WhatsAppConsentManager
               ) : filteredConsents.length === 0 ? (
                 <div className="text-center py-12 text-muted-foreground">
                   <Shield className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                  <p>No consent records found</p>
+                  <p>{t("no_consent_records_found", "No consent records found")}</p>
                 </div>
               ) : (
                 <div className="space-y-2">
@@ -198,7 +200,7 @@ export function WhatsAppConsentManager({ open, onClose }: WhatsAppConsentManager
           <TabsContent value="import" className="flex-1 overflow-hidden flex flex-col mt-4">
             <div className="space-y-4">
               <div>
-                <Label>Phone Numbers (one per line)</Label>
+                <Label>{t("phone_numbers_one_per", "Phone Numbers (one per line)")}</Label>
                 <Textarea
                   placeholder="+31612345678&#10;+31698765432&#10;+31687654321"
                   value={bulkPhones}
@@ -212,7 +214,7 @@ export function WhatsAppConsentManager({ open, onClose }: WhatsAppConsentManager
               </div>
 
               <div className="flex items-center gap-4">
-                <Label>Set status to:</Label>
+                <Label>{t("set_status_to", "Set status to:")}</Label>
                 <div className="flex gap-2">
                   <Button
                     variant={bulkStatus === 'opted_in' ? 'default' : 'outline'}

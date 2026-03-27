@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Brain, AlertTriangle, Sparkles, Target, MessageSquare, ShieldCheck } from "lucide-react";
+import { useTranslation } from 'react-i18next';
 
 interface Props {
   brief: any;
@@ -9,6 +10,7 @@ interface Props {
 }
 
 export const CandidateBriefCard = ({ brief, skillVerification }: Props) => {
+  const { t } = useTranslation('candidates');
   if (!brief) {
     return (
       <Card className="bg-card/90 backdrop-blur-xl border border-border/50">

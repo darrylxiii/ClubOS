@@ -1,10 +1,4 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { createHandler } from '../_shared/handler.ts';
 
 interface AnalyzeRequest {
   entity_type?: string;
@@ -12,15 +6,9 @@ interface AnalyzeRequest {
   analyze_all?: boolean;
 }
 
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+Deno.serve(createHandler(async (req, ctx) => {
+    const corsHeaders = ctx.corsHeaders;
+    const supabase = ctx.supabase;
 
     const body = await req.json().catch(() => ({})) as AnalyzeRequest;
     const { entity_type, entity_id, analyze_all } = body;
@@ -169,11 +157,12 @@ serve(async (req) => {
 
       // Pattern 5: Ready to Convert Detection
       const recentPositive = recentComms.filter(c => c.sentiment_score && c.sentiment_score > 0.3);
-      const hasIntentSignals = communications.some(c => 
-        c.intent?.toLowerCase().includes('interested') || 
-        c.intent?.toLowerCase().includes('ready') ||
-        c.intent?.toLowerCase().includes('proceed')
-      );
+      const hasIntentSignals = communications.some(c => {
+        const intent = typeof c.intent === 'string' ? c.intent.toLowerCase() : '';
+        return intent.includes('interested') ||
+          intent.includes('ready') ||
+          intent.includes('proceed');
+      });
 
       if (recentPositive.length >= 2 && hasIntentSignals && inboundLast7Days >= 2) {
         patternsDetected.push({
@@ -225,11 +214,4 @@ serve(async (req) => {
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
-  } catch (error: any) {
-    console.error('[analyze-patterns] Error:', error);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-  }
-});
+}));

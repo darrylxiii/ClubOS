@@ -5,8 +5,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Euro, TrendingUp, Users, Briefcase, Gift, Percent } from "lucide-react";
 import { formatCurrency } from "@/lib/revenueCalculations";
 import { grossToNet, vatFromGross } from "@/lib/vatRates";
+import { useTranslation } from 'react-i18next';
 
 export function RevenueDistributionSummary() {
+  const { t } = useTranslation('admin');
   const currentYear = new Date().getFullYear();
   const startOfYear = `${currentYear}-01-01`;
 

@@ -1,5 +1,6 @@
 import { createReactBlockSpec } from '@blocknote/react';
 import { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 
 export const MathBlock = createReactBlockSpec(
@@ -25,6 +26,7 @@ export const MathBlock = createReactBlockSpec(
       const inputRef = useRef<HTMLTextAreaElement>(null);
 
       useEffect(() => {
+  const { t } = useTranslation('common');
         const renderMath = async () => {
           if (!latex) {
             setRendered('');
@@ -73,21 +75,21 @@ export const MathBlock = createReactBlockSpec(
         return (
           <div className="my-4 p-3 rounded-lg border border-border bg-muted/30">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-medium text-muted-foreground">LaTeX Formula</span>
+              <span className="text-xs font-medium text-muted-foreground">{t('workspace.latexFormula', 'LaTeX Formula')}</span>
               <div className="flex gap-2">
                 <button
                   onClick={() => setIsEditing(false)}
                   className="text-xs px-2 py-1 rounded bg-secondary text-secondary-foreground hover:bg-secondary/80"
                   contentEditable={false}
                 >
-                  Cancel
+                  {t('workspace.cancel', 'Cancel')}
                 </button>
                 <button
                   onClick={handleSave}
                   className="text-xs px-2 py-1 rounded bg-accent text-accent-foreground hover:bg-accent/80"
                   contentEditable={false}
                 >
-                  Save
+                  {t('workspace.save', 'Save')}
                 </button>
               </div>
             </div>
@@ -106,12 +108,12 @@ export const MathBlock = createReactBlockSpec(
             />
             {isLoading && (
               <div className="mt-2 p-2 text-center text-muted-foreground text-sm">
-                Rendering...
+                {t('workspace.rendering', 'Rendering...')}
               </div>
             )}
             {rendered && !isLoading && (
               <div className="mt-2 p-2 bg-background rounded border border-input">
-                <span className="text-xs text-muted-foreground mb-1 block">Preview:</span>
+                <span className="text-xs text-muted-foreground mb-1 block">{t('workspace.preview', 'Preview:')}</span>
                 <div 
                   dangerouslySetInnerHTML={{ __html: rendered }}
                   className="text-center py-2"
@@ -143,11 +145,11 @@ export const MathBlock = createReactBlockSpec(
           ) : isLoading ? (
             <div className="flex items-center justify-center gap-2">
               <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-              <span className="text-muted-foreground text-sm">Rendering formula...</span>
+              <span className="text-muted-foreground text-sm">{t('workspace.renderingFormula', 'Rendering formula...')}</span>
             </div>
           ) : (
             <p className="text-muted-foreground text-sm text-center">
-              Click to add LaTeX formula
+              {t('workspace.clickToAddLatex', 'Click to add LaTeX formula')}
             </p>
           )}
         </div>

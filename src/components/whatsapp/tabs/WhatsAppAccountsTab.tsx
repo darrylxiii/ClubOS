@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -38,6 +39,7 @@ import {
 } from 'lucide-react';
 
 export function WhatsAppAccountsTab() {
+  const { t } = useTranslation('common');
   const { data: accounts, isLoading } = useWhatsAppAccounts();
   const { createAccount, deleteAccount, setPrimary, verifyConnection, updateAccount } = useManageWhatsAppAccount();
   
@@ -81,8 +83,8 @@ export function WhatsAppAccountsTab() {
     <div className="p-6 w-full space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold">WhatsApp Accounts</h2>
-          <p className="text-sm text-muted-foreground">Manage your connected WhatsApp Business accounts</p>
+          <h2 className="text-xl font-bold">{t("whatsapp_accounts", "WhatsApp Accounts")}</h2>
+          <p className="text-sm text-muted-foreground">{t("manage_your_connected_whatsapp", "Manage your connected WhatsApp Business accounts")}</p>
         </div>
         <Button onClick={() => setShowAddDialog(true)}>
           <Plus className="h-4 w-4 mr-2" />
@@ -100,7 +102,7 @@ export function WhatsAppAccountsTab() {
         <Card>
           <CardContent className="p-8 text-center">
             <Phone className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-            <h3 className="font-medium mb-2">No WhatsApp Accounts</h3>
+            <h3 className="font-medium mb-2">{t("no_whatsapp_accounts", "No WhatsApp Accounts")}</h3>
             <p className="text-sm text-muted-foreground mb-4">
               Add your first WhatsApp Business account to start messaging
             </p>
@@ -126,7 +128,7 @@ export function WhatsAppAccountsTab() {
                       <div className="flex items-center gap-2">
                         <span className="font-medium">{account.display_phone_number}</span>
                         {account.is_primary && (
-                          <Badge variant="default" className="text-xs">Primary</Badge>
+                          <Badge variant="default" className="text-xs">{t("primary", "Primary")}</Badge>
                         )}
                         {account.is_active ? (
                           <Badge variant="outline" className="text-xs bg-green-500/10 text-green-600 border-green-500/20">
@@ -156,7 +158,7 @@ export function WhatsAppAccountsTab() {
                       size="icon"
                       onClick={() => verifyConnection.mutateAsync(account.id)}
                       disabled={verifyConnection.isPending}
-                      title="Verify Connection"
+                      title={t("verify_connection", "Verify Connection")}
                     >
                       {verifyConnection.isPending ? (
                         <Loader2 className="h-4 w-4 animate-spin" />
@@ -170,7 +172,7 @@ export function WhatsAppAccountsTab() {
                         size="icon"
                         onClick={() => setPrimary.mutateAsync(account.id)}
                         disabled={setPrimary.isPending}
-                        title="Set as Primary"
+                        title={t("set_as_primary", "Set as Primary")}
                       >
                         <Star className="h-4 w-4" />
                       </Button>
@@ -192,7 +194,7 @@ export function WhatsAppAccountsTab() {
                         setShowDeleteDialog(true);
                       }}
                       className="text-destructive hover:text-destructive"
-                      title="Delete Account"
+                      title={t("delete_account", "Delete Account")}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -208,22 +210,22 @@ export function WhatsAppAccountsTab() {
       <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Add WhatsApp Account</DialogTitle>
+            <DialogTitle>{t("add_whatsapp_account", "Add WhatsApp Account")}</DialogTitle>
             <DialogDescription>
               Enter your WhatsApp Business API credentials from Meta Business Suite
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>
-              <Label>Account Label (Optional)</Label>
+              <Label>{t("account_label_optional", "Account Label (Optional)")}</Label>
               <Input
-                placeholder="e.g., Sales Team, Support"
+                placeholder={t("eg_sales_team_support", "e.g., Sales Team, Support")}
                 value={newAccountData.account_label}
                 onChange={(e) => setNewAccountData({ ...newAccountData, account_label: e.target.value })}
               />
             </div>
             <div>
-              <Label>Display Phone Number</Label>
+              <Label>{t("display_phone_number", "Display Phone Number")}</Label>
               <Input
                 placeholder="+31622888444"
                 value={newAccountData.display_phone_number}
@@ -231,18 +233,18 @@ export function WhatsAppAccountsTab() {
               />
             </div>
             <div>
-              <Label>Phone Number ID</Label>
+              <Label>{t("phone_number_id", "Phone Number ID")}</Label>
               <Input
-                placeholder="From Meta Business Suite"
+                placeholder={t("from_meta_business_suite", "From Meta Business Suite")}
                 value={newAccountData.phone_number_id}
                 onChange={(e) => setNewAccountData({ ...newAccountData, phone_number_id: e.target.value })}
                 className="font-mono"
               />
             </div>
             <div>
-              <Label>Business Account ID</Label>
+              <Label>{t("business_account_id", "Business Account ID")}</Label>
               <Input
-                placeholder="Your WABA ID"
+                placeholder={t("your_waba_id", "Your WABA ID")}
                 value={newAccountData.business_account_id}
                 onChange={(e) => setNewAccountData({ ...newAccountData, business_account_id: e.target.value })}
                 className="font-mono"
@@ -274,13 +276,13 @@ export function WhatsAppAccountsTab() {
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete WhatsApp Account?</AlertDialogTitle>
+            <AlertDialogTitle>{t("delete_whatsapp_account", "Delete WhatsApp Account?")}</AlertDialogTitle>
             <AlertDialogDescription>
               This will remove the account "{selectedAccount?.display_phone_number}" and all associated data including conversations, messages, and templates. This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t("cancel", "Cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteConfirm}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"

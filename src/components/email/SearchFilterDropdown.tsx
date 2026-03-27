@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Filter, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -31,6 +32,7 @@ export function SearchFilterDropdown({
   onApply,
   onClear,
 }: SearchFilterDropdownProps) {
+  const { t } = useTranslation('common');
   const [open, setOpen] = useState(false);
   const [localOperators, setLocalOperators] = useState<SearchOperators>(currentOperators);
 
@@ -89,7 +91,7 @@ export function SearchFilterDropdown({
         sideOffset={8}
       >
         <div className="flex items-center justify-between p-4 pb-3">
-          <h3 className="font-semibold text-sm">Search Filters</h3>
+          <h3 className="font-semibold text-sm">{t("search_filters", "Search Filters")}</h3>
           {hasActiveFilters && (
             <Button
               variant="ghost"
@@ -113,7 +115,7 @@ export function SearchFilterDropdown({
               </Label>
               <Input
                 id="from"
-                placeholder="sender@example.com"
+                placeholder={t("senderexamplecom", "sender@example.com")}
                 value={localOperators.from || ""}
                 onChange={(e) =>
                   setLocalOperators({
@@ -132,7 +134,7 @@ export function SearchFilterDropdown({
               </Label>
               <Input
                 id="to"
-                placeholder="recipient@example.com"
+                placeholder={t("recipientexamplecom", "recipient@example.com")}
                 value={localOperators.to || ""}
                 onChange={(e) =>
                   setLocalOperators({
@@ -151,7 +153,7 @@ export function SearchFilterDropdown({
               </Label>
               <Input
                 id="subject"
-                placeholder="Keywords in subject..."
+                placeholder={t("keywords_in_subject", "Keywords in subject...")}
                 value={localOperators.subject || ""}
                 onChange={(e) =>
                   setLocalOperators({
@@ -167,7 +169,7 @@ export function SearchFilterDropdown({
 
             {/* Status */}
             <div className="space-y-3">
-              <Label className="text-xs font-semibold">Status</Label>
+              <Label className="text-xs font-semibold">{t("status", "Status")}</Label>
               <div className="space-y-2">
                 <div className="flex items-center space-x-2">
                   <Checkbox
@@ -215,7 +217,7 @@ export function SearchFilterDropdown({
 
             {/* Has */}
             <div className="space-y-3">
-              <Label className="text-xs font-semibold">Contains</Label>
+              <Label className="text-xs font-semibold">{t("contains", "Contains")}</Label>
               <div className="space-y-2">
                 <div className="flex items-center space-x-2">
                   <Checkbox

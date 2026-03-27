@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -53,6 +54,7 @@ export function JobFilterSidebar({
   availableCompanies,
   availableDepartments
 }: JobFilterSidebarProps) {
+  const { t } = useTranslation('common');
   const [locationInput, setLocationInput] = useState("");
   const [isOpen, setIsOpen] = useState(true);
 
@@ -171,7 +173,7 @@ export function JobFilterSidebar({
           {/* Location Input */}
           <div className="flex gap-2">
             <Input
-              placeholder="Add location..."
+              placeholder={t("add_location", "Add location...")}
               value={locationInput}
               onChange={(e) => setLocationInput(e.target.value)}
               onKeyDown={(e) => {
@@ -382,7 +384,7 @@ export function JobFilterSidebar({
                 </div>
               ))
             ) : (
-              <p className="text-sm text-muted-foreground">No companies available</p>
+              <p className="text-sm text-muted-foreground">{t("no_companies_available", "No companies available")}</p>
             )}
           </div>
         </div>
@@ -413,7 +415,7 @@ export function JobFilterSidebar({
                 </div>
               ))
             ) : (
-              <p className="text-sm text-muted-foreground">No departments available</p>
+              <p className="text-sm text-muted-foreground">{t("no_departments_available", "No departments available")}</p>
             )}
           </div>
         </div>

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -19,6 +20,7 @@ interface CandidateActivity {
 }
 
 export function CandidateIntelligenceTab() {
+  const { t } = useTranslation('common');
   const { data: candidates, isLoading } = useQuery({
     queryKey: ['candidate-intelligence-v2'],
     queryFn: async () => {
@@ -100,16 +102,16 @@ export function CandidateIntelligenceTab() {
 
   const getActivityBadge = (level: string) => {
     switch (level) {
-      case 'highly_active': return <Badge className="bg-emerald-500">Highly Active</Badge>;
-      case 'active': return <Badge className="bg-green-500">Active</Badge>;
-      case 'moderate': return <Badge className="bg-yellow-500 text-black">Moderate</Badge>;
-      case 'low': return <Badge className="bg-orange-500">Low</Badge>;
-      default: return <Badge variant="secondary">Inactive</Badge>;
+      case 'highly_active': return <Badge className="bg-emerald-500">{t("highly_active", "Highly Active")}</Badge>;
+      case 'active': return <Badge className="bg-green-500">{t("active", "Active")}</Badge>;
+      case 'moderate': return <Badge className="bg-yellow-500 text-black">{t("moderate", "Moderate")}</Badge>;
+      case 'low': return <Badge className="bg-orange-500">{t("low", "Low")}</Badge>;
+      default: return <Badge variant="secondary">{t("inactive", "Inactive")}</Badge>;
     }
   };
 
   if (isLoading) {
-    return <div className="p-6">Loading candidate intelligence...</div>;
+    return <div className="p-6">{t("loading_candidate_intelligence", "Loading candidate intelligence...")}</div>;
   }
 
   return (
@@ -118,45 +120,45 @@ export function CandidateIntelligenceTab() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card className="bg-card/30 backdrop-blur-[var(--blur-glass)] border-border/20">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Total Candidates</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("total_candidates", "Total Candidates")}</CardTitle>
             <Users className="w-4 h-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.total}</div>
-            <p className="text-xs text-muted-foreground mt-1">Registered users</p>
+            <p className="text-xs text-muted-foreground mt-1">{t("registered_users", "Registered users")}</p>
           </CardContent>
         </Card>
 
         <Card className="bg-card/30 backdrop-blur-[var(--blur-glass)] border-border/20">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Online Now</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("online_now", "Online Now")}</CardTitle>
             <div className="w-3 h-3 rounded-full bg-green-500 animate-pulse" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.online}</div>
-            <p className="text-xs text-muted-foreground mt-1">Currently active</p>
+            <p className="text-xs text-muted-foreground mt-1">{t("currently_active", "Currently active")}</p>
           </CardContent>
         </Card>
 
         <Card className="bg-card/30 backdrop-blur-[var(--blur-glass)] border-border/20">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Active Candidates</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("active_candidates", "Active Candidates")}</CardTitle>
             <TrendingUp className="w-4 h-4 text-green-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.active}</div>
-            <p className="text-xs text-muted-foreground mt-1">With recent activity</p>
+            <p className="text-xs text-muted-foreground mt-1">{t("with_recent_activity", "With recent activity")}</p>
           </CardContent>
         </Card>
 
         <Card className="bg-card/30 backdrop-blur-[var(--blur-glass)] border-border/20">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Total Actions</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("total_actions", "Total Actions")}</CardTitle>
             <Briefcase className="w-4 h-4 text-primary" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalActions.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground mt-1">All time</p>
+            <p className="text-xs text-muted-foreground mt-1">{t("all_time", "All time")}</p>
           </CardContent>
         </Card>
       </div>
@@ -164,8 +166,8 @@ export function CandidateIntelligenceTab() {
       {/* Candidate List */}
       <Card className="bg-card/30 backdrop-blur-[var(--blur-glass)] border-border/20">
         <CardHeader>
-          <CardTitle>Candidate Activity</CardTitle>
-          <CardDescription>Real-time monitoring of candidate users</CardDescription>
+          <CardTitle>{t("candidate_activity", "Candidate Activity")}</CardTitle>
+          <CardDescription>{t("realtime_monitoring_of_candidate", "Real-time monitoring of candidate users")}</CardDescription>
         </CardHeader>
         <CardContent>
           <ScrollArea className="h-[500px]">

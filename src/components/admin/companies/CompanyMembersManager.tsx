@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import {
   Dialog,
@@ -61,6 +62,7 @@ export function CompanyMembersManager({
   companyId,
   companyName,
 }: CompanyMembersManagerProps) {
+  const { t } = useTranslation('common');
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
   const [removeMember, setRemoveMember] = useState<Member | null>(null);
@@ -96,7 +98,7 @@ export function CompanyMembersManager({
       setMembers((data as unknown as Member[]) || []);
     } catch (error) {
       console.error("Error fetching members:", error);
-      toast.error("Failed to load company members");
+      toast.error(t("failed_to_load_company", "Failed to load company members"));
     } finally {
       setLoading(false);
     }
@@ -114,10 +116,10 @@ export function CompanyMembersManager({
       setMembers((prev) =>
         prev.map((m) => (m.id === memberId ? { ...m, role: newRole } : m))
       );
-      toast.success("Role updated");
+      toast.success(t("role_updated", "Role updated"));
     } catch (error) {
       console.error("Error updating role:", error);
-      toast.error("Failed to update role");
+      toast.error(t("failed_to_update_role", "Failed to update role"));
     }
   };
 
@@ -133,11 +135,11 @@ export function CompanyMembersManager({
       if (error) throw error;
 
       setMembers((prev) => prev.filter((m) => m.id !== removeMember.id));
-      toast.success("Member removed");
+      toast.success(t("member_removed", "Member removed"));
       setRemoveMember(null);
     } catch (error) {
       console.error("Error removing member:", error);
-      toast.error("Failed to remove member");
+      toast.error(t("failed_to_remove_member", "Failed to remove member"));
     }
   };
 
@@ -227,7 +229,7 @@ export function CompanyMembersManager({
       <ConfirmDialog
         open={!!removeMember}
         onOpenChange={(open) => !open && setRemoveMember(null)}
-        title="Remove Member?"
+        title={t("remove_member", "Remove Member?")}
         description={`Are you sure you want to remove ${removeMember?.profiles?.full_name || removeMember?.profiles?.email} from ${companyName}?`}
         confirmText="Remove"
         onConfirm={handleRemoveMember}

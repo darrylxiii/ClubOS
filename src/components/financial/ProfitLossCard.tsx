@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -100,6 +101,7 @@ function usePLData(year: number, legalEntity?: string) {
 }
 
 export function ProfitLossCard({ year, legalEntity }: ProfitLossCardProps) {
+  const { t } = useTranslation('common');
   const currentYear = year || new Date().getFullYear();
   const { data, isLoading } = usePLData(currentYear, legalEntity);
   const { data: priorData, isLoading: priorLoading } = usePLData(currentYear - 1, legalEntity);
@@ -155,7 +157,7 @@ export function ProfitLossCard({ year, legalEntity }: ProfitLossCardProps) {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
-          <span>Profit & Loss Summary</span>
+          <span>{t('financial.profitLossSummary')}</span>
           <div className={`flex items-center gap-1 text-sm font-normal ${
             profitStatus === 'positive' ? 'text-success' : 
             profitStatus === 'negative' ? 'text-destructive' : 
@@ -167,15 +169,15 @@ export function ProfitLossCard({ year, legalEntity }: ProfitLossCardProps) {
             {data?.netMarginPercent?.toFixed(1)}% margin
           </div>
         </CardTitle>
-        <CardDescription>Year-to-date financial performance</CardDescription>
+        <CardDescription>{t('financial.ytdPerformance')}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Net Revenue (excl. VAT) */}
         <div className="space-y-1">
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">
-              Net Revenue (excl. VAT)
-              <YoYBadge value={yoyRevenueChange} label="Prior year revenue" />
+              {t('financial.netRevenueExclVAT')}
+              <YoYBadge value={yoyRevenueChange} label={t('financial.priorYearRevenue')} />
             </span>
             <span className="font-medium">{formatCurrency(data?.netRevenue || 0)}</span>
           </div>
@@ -188,11 +190,11 @@ export function ProfitLossCard({ year, legalEntity }: ProfitLossCardProps) {
         {/* Deductions */}
         <div className="pl-4 border-l-2 border-muted space-y-2">
           <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Recruiter Commissions</span>
+            <span className="text-muted-foreground">{t('financial.recruiterCommissions')}</span>
             <span className="text-destructive">-{formatCurrency(data?.totalCommissions || 0)}</span>
           </div>
           <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Referral Payouts</span>
+            <span className="text-muted-foreground">{t('financial.referralPayouts')}</span>
             <span className="text-destructive">-{formatCurrency(data?.totalPayouts || 0)}</span>
           </div>
         </div>
@@ -200,7 +202,7 @@ export function ProfitLossCard({ year, legalEntity }: ProfitLossCardProps) {
         {/* Gross Margin */}
         <div className="pt-2 border-t">
           <div className="flex justify-between">
-            <span className="font-medium">Gross Margin</span>
+            <span className="font-medium">{t('financial.grossMargin')}</span>
             <span className={`font-bold ${
               (data?.grossMargin || 0) >= 0 ? 'text-success' : 'text-destructive'
             }`}>
@@ -215,11 +217,11 @@ export function ProfitLossCard({ year, legalEntity }: ProfitLossCardProps) {
         {/* Operating Expenses */}
         <div className="pl-4 border-l-2 border-muted space-y-2">
           <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">SaaS & Subscriptions</span>
+            <span className="text-muted-foreground">{t('financial.saasSubscriptions')}</span>
             <span className="text-destructive">-{formatCurrency(data?.totalSubscriptionCosts || 0)}</span>
           </div>
           <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Other Operating Expenses</span>
+            <span className="text-muted-foreground">{t('financial.otherOperatingExpenses')}</span>
             <span className="text-destructive">-{formatCurrency(data?.totalOtherExpenses || 0)}</span>
           </div>
         </div>
@@ -228,8 +230,8 @@ export function ProfitLossCard({ year, legalEntity }: ProfitLossCardProps) {
         <div className="pt-2 border-t bg-muted/30 -mx-6 px-6 py-3 rounded-b-lg">
           <div className="flex justify-between items-center">
             <span className="font-bold text-lg">
-              Net Profit
-              <YoYBadge value={yoyProfitChange} label="Prior year profit" />
+              {t('financial.netProfit')}
+              <YoYBadge value={yoyProfitChange} label={t('financial.priorYearProfit')} />
             </span>
             <span className={`font-bold text-xl ${
               (data?.netProfit || 0) >= 0 ? 'text-success' : 'text-destructive'
@@ -238,7 +240,7 @@ export function ProfitLossCard({ year, legalEntity }: ProfitLossCardProps) {
             </span>
           </div>
           <div className="text-xs text-muted-foreground mt-1">
-            After all distributions and operating expenses
+            {t('financial.afterAllDistributions')}
           </div>
         </div>
       </CardContent>

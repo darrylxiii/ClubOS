@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from 'react-i18next';
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -67,6 +68,7 @@ const agentConfig: Record<string, { label: string; color: string }> = {
 };
 
 export const PilotDashboard = () => {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [tasks, setTasks] = useState<PilotTask[]>([]);
   const [goals, setGoals] = useState<AgentGoal[]>([]);
@@ -118,7 +120,7 @@ export const PilotDashboard = () => {
       setDelegations(delegationsRes.data || []);
     } catch (error: unknown) {
       console.error("Error loading data:", error);
-      toast.error("Failed to load dashboard data");
+      toast.error(t('clubPilot.failedToLoadDashboardData'));
     } finally {
       setLoading(false);
     }
@@ -175,14 +177,14 @@ export const PilotDashboard = () => {
 
       if (error) throw error;
 
-      toast.success(`🚀 Club Pilot analyzed your pipeline and created ${data.tasks_created} tasks`, {
-        description: `${data.tasks_scheduled} tasks auto-scheduled`,
+      toast.success(t('clubPilot.pilotAnalyzedPipeline', { count: data.tasks_created }), {
+        description: t('clubPilot.tasksAutoScheduled', { count: data.tasks_scheduled }),
       });
 
       await loadData();
     } catch (error: unknown) {
       console.error("Error running orchestrator:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to run Club Pilot");
+      toast.error(error instanceof Error ? error.message : t('clubPilot.failedToRunPilot'));
     } finally {
       setOrchestrating(false);
     }
@@ -201,11 +203,11 @@ export const PilotDashboard = () => {
 
       if (error) throw error;
 
-      toast.success(status === "completed" ? "Task completed!" : "Task updated");
+      toast.success(status === "completed" ? t('clubPilot.taskCompleted') : t('clubPilot.taskUpdated'));
       await loadData();
     } catch (error: unknown) {
       console.error("Error updating task:", error);
-      toast.error("Failed to update task");
+      toast.error(t('clubPilot.failedToUpdateTask'));
     }
   };
 
@@ -234,16 +236,14 @@ export const PilotDashboard = () => {
                 <Sparkles className="h-6 w-6 text-primary" />
               </div>
               <div>
-                <CardTitle className="text-2xl">Club Pilot</CardTitle>
-                <CardDescription className="text-base">
-                  AI-powered task orchestration • Auto-prioritization • Smart scheduling
-                </CardDescription>
+                <CardTitle className="text-2xl">{t('clubPilot.clubPilot')}</CardTitle>
+                <CardDescription className="text-base">{t('clubPilot.aIpoweredTaskOrchestrationAutoprioritiza')}</CardDescription>
               </div>
             </div>
             <div className="flex gap-2">
               <Button variant="outline" size="sm">
                 <Settings className="h-4 w-4 mr-2" />
-                Settings
+                {t('clubPilot.settings')}
               </Button>
               <Button 
                 onClick={runOrchestrator} 
@@ -256,12 +256,12 @@ export const PilotDashboard = () => {
                     <div className="animate-spin mr-2">
                       <Sparkles className="h-4 w-4" />
                     </div>
-                    Analyzing...
+                    {t('clubPilot.analyzing')}
                   </>
                 ) : (
                   <>
                     <Zap className="h-4 w-4 mr-2" />
-                    Run Pilot
+                    {t('clubPilot.runPilot')}
                   </>
                 )}
               </Button>
@@ -279,9 +279,9 @@ export const PilotDashboard = () => {
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-lg">
                   <Target className="h-5 w-5 text-primary" />
-                  Active Goals
+                  {t('clubPilot.activeGoals')}
                 </CardTitle>
-                <CardDescription>AI-driven objectives in progress</CardDescription>
+                <CardDescription>{t('clubPilot.aIdrivenObjectivesInProgress')}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -311,7 +311,7 @@ export const PilotDashboard = () => {
                           {goal.next_action_description && (
                             <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1">
                               <Sparkles className="h-3 w-3 text-primary" />
-                              Next: {goal.next_action_description}
+                              {t('clubPilot.next')}: {goal.next_action_description}
                             </p>
                           )}
                         </div>
@@ -333,9 +333,9 @@ export const PilotDashboard = () => {
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-lg">
                   <GitBranch className="h-5 w-5 text-purple-500" />
-                  Agent Activity
+                  {t('clubPilot.agentActivity')}
                 </CardTitle>
-                <CardDescription>Sub-tasks delegated between agents</CardDescription>
+                <CardDescription>{t('clubPilot.subtasksDelegatedBetweenAgents')}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
@@ -391,25 +391,25 @@ export const PilotDashboard = () => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-3">
-            <CardDescription>Scheduled Today</CardDescription>
+            <CardDescription>{t('clubPilot.scheduledToday')}</CardDescription>
             <CardTitle className="text-3xl">{scheduledTasks.length}</CardTitle>
           </CardHeader>
         </Card>
         <Card>
           <CardHeader className="pb-3">
-            <CardDescription>In Progress</CardDescription>
+            <CardDescription>{t('clubPilot.inProgress')}</CardDescription>
             <CardTitle className="text-3xl">{inProgressTasks.length}</CardTitle>
           </CardHeader>
         </Card>
         <Card>
           <CardHeader className="pb-3">
-            <CardDescription>Pending</CardDescription>
+            <CardDescription>{t('clubPilot.pending')}</CardDescription>
             <CardTitle className="text-3xl">{pendingTasks.length}</CardTitle>
           </CardHeader>
         </Card>
         <Card>
           <CardHeader className="pb-3">
-            <CardDescription>Total Active</CardDescription>
+            <CardDescription>{t('clubPilot.totalActive')}</CardDescription>
             <CardTitle className="text-3xl">{tasks.length}</CardTitle>
           </CardHeader>
         </Card>
@@ -422,17 +422,15 @@ export const PilotDashboard = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Calendar className="h-5 w-5" />
-              Scheduled Tasks
+              {t('clubPilot.scheduledTasks')}
             </CardTitle>
-            <CardDescription>Auto-scheduled by Club Pilot</CardDescription>
+            <CardDescription>{t('clubPilot.autoscheduledByClubPilot')}</CardDescription>
           </CardHeader>
           <CardContent>
             <ScrollArea className="h-[500px] pr-4">
               <div className="space-y-3">
                 {scheduledTasks.length === 0 ? (
-                  <p className="text-muted-foreground text-center py-8">
-                    No scheduled tasks. Run Club Pilot to auto-schedule your tasks.
-                  </p>
+                  <p className="text-muted-foreground text-center py-8">{t('clubPilot.noScheduledTasksRunClubPilotToAutoschedu')}</p>
                 ) : (
                   scheduledTasks.map((task) => <TaskCard key={task.id} task={task} onUpdateStatus={updateTaskStatus} />)
                 )}
@@ -446,17 +444,15 @@ export const PilotDashboard = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Circle className="h-5 w-5" />
-              Pending Tasks
+              {t('clubPilot.pendingTasks')}
             </CardTitle>
-            <CardDescription>Awaiting scheduling</CardDescription>
+            <CardDescription>{t('clubPilot.awaitingScheduling')}</CardDescription>
           </CardHeader>
           <CardContent>
             <ScrollArea className="h-[500px] pr-4">
               <div className="space-y-3">
                 {pendingTasks.length === 0 ? (
-                  <p className="text-muted-foreground text-center py-8">
-                    All tasks are scheduled! Great job! 🎉
-                  </p>
+                  <p className="text-muted-foreground text-center py-8">{t('clubPilot.allTasksAreScheduledGreatJob ')}</p>
                 ) : (
                   pendingTasks.map((task) => <TaskCard key={task.id} task={task} onUpdateStatus={updateTaskStatus} />)
                 )}
@@ -470,6 +466,7 @@ export const PilotDashboard = () => {
 };
 
 const TaskCard = ({ task, onUpdateStatus }: { task: PilotTask; onUpdateStatus: (id: string, status: string) => void }) => {
+  const { t } = useTranslation('common');
   const config = taskTypeConfig[task.task_type as keyof typeof taskTypeConfig] || taskTypeConfig.review_candidate;
   const Icon = config.icon;
 
@@ -521,7 +518,7 @@ const TaskCard = ({ task, onUpdateStatus }: { task: PilotTask; onUpdateStatus: (
                 })}
               </span>
               <span>•</span>
-              <span>{task.effort_minutes} min</span>
+              <span>{task.effort_minutes} {t('clubPilot.min')}</span>
             </div>
           )}
 
@@ -535,7 +532,7 @@ const TaskCard = ({ task, onUpdateStatus }: { task: PilotTask; onUpdateStatus: (
                 onClick={() => onUpdateStatus(task.id, "in_progress")}
               >
                 <PlayCircle className="h-3 w-3 mr-1" />
-                Start
+                {t('clubPilot.start')}
               </Button>
             )}
             {task.status === "in_progress" && (
@@ -547,7 +544,7 @@ const TaskCard = ({ task, onUpdateStatus }: { task: PilotTask; onUpdateStatus: (
                   onClick={() => onUpdateStatus(task.id, "completed")}
                 >
                   <CheckCircle2 className="h-3 w-3 mr-1" />
-                  Complete
+                  {t('clubPilot.complete')}
                 </Button>
                 <Button
                   size="sm"
@@ -566,7 +563,7 @@ const TaskCard = ({ task, onUpdateStatus }: { task: PilotTask; onUpdateStatus: (
                 onClick={() => onUpdateStatus(task.id, "in_progress")}
               >
                 <PlayCircle className="h-3 w-3 mr-1" />
-                Start Now
+                {t('clubPilot.startNow')}
               </Button>
             )}
           </div>

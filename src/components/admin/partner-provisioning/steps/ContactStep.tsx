@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { UseFormReturn } from 'react-hook-form';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -26,6 +27,7 @@ export function ContactStep({
   onCheckDuplicate,
   onNext,
 }: ContactStepProps) {
+  const { t } = useTranslation('common');
   const { register, watch, setValue, formState: { errors } } = form;
   const email = watch('email');
   const phoneNumber = watch('phoneNumber');
@@ -39,11 +41,11 @@ export function ContactStep({
 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="fullName">Full Name *</Label>
+          <Label htmlFor="fullName">{t("full_name", "Full Name *")}</Label>
           <Input
             id="fullName"
             {...register('fullName')}
-            placeholder="John Smith"
+            placeholder={t("john_smith", "John Smith")}
             aria-invalid={!!errors.fullName}
           />
           {errors.fullName && (
@@ -51,12 +53,12 @@ export function ContactStep({
           )}
         </div>
         <div className="space-y-2">
-          <Label htmlFor="email">Email Address *</Label>
+          <Label htmlFor="email">{t("email_address", "Email Address *")}</Label>
           <Input
             id="email"
             type="email"
             {...register('email')}
-            placeholder="john@company.com"
+            placeholder={t("johncompanycom", "john@company.com")}
             aria-invalid={!!errors.email}
             onBlur={(e) => {
               register('email').onBlur(e);
@@ -81,7 +83,7 @@ export function ContactStep({
 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label>Phone Number</Label>
+          <Label>{t("phone_number", "Phone Number")}</Label>
           <PhoneInput
             international
             defaultCountry="NL"
@@ -114,7 +116,7 @@ export function ContactStep({
                 <Shield className="w-4 h-4 text-emerald-500" />
                 Mark Email as Verified
               </Label>
-              <p className="text-xs text-muted-foreground">Skip email confirmation step</p>
+              <p className="text-xs text-muted-foreground">{t("skip_email_confirmation_step", "Skip email confirmation step")}</p>
             </div>
             <Switch
               checked={watch('markEmailVerified')}
@@ -128,7 +130,7 @@ export function ContactStep({
                 <Phone className="w-4 h-4 text-emerald-500" />
                 Mark Phone as Verified
               </Label>
-              <p className="text-xs text-muted-foreground">Skip phone verification step</p>
+              <p className="text-xs text-muted-foreground">{t("skip_phone_verification_step", "Skip phone verification step")}</p>
             </div>
             <Switch
               checked={watch('markPhoneVerified')}

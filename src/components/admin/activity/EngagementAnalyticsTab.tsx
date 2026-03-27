@@ -4,8 +4,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useRecharts } from "@/hooks/useRecharts";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Clock, MousePointer, Eye, TrendingUp } from "lucide-react";
+import { useTranslation } from 'react-i18next';
 
 export default function EngagementAnalyticsTab() {
+  const { t } = useTranslation('admin');
   const { recharts, isLoading: rechartsLoading } = useRecharts();
 
   const { data: engagementData } = useQuery({
@@ -99,61 +101,61 @@ export default function EngagementAnalyticsTab() {
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Avg Time on Page</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('activity.engagementAnalyticsTab.avgTimeOnPage')}</CardTitle>
             <Clock className="h-4 w-4 text-blue-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
               {engagementData?.topPages?.[0]?.avgTime || 0}s
             </div>
-            <p className="text-xs text-muted-foreground">Top performing page</p>
+            <p className="text-xs text-muted-foreground">{t('activity.engagementAnalyticsTab.topPerformingPage')}</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Avg Scroll Depth</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('activity.engagementAnalyticsTab.avgScrollDepth')}</CardTitle>
             <MousePointer className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
               {engagementData?.topPages?.[0]?.avgScroll || 0}%
             </div>
-            <p className="text-xs text-muted-foreground">Content visibility</p>
+            <p className="text-xs text-muted-foreground">{t('activity.engagementAnalyticsTab.contentVisibility')}</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Engagement Rate</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('activity.engagementAnalyticsTab.engagementRate')}</CardTitle>
             <TrendingUp className="h-4 w-4 text-purple-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
               {engagementData?.topPages?.[0]?.engagementRate || 0}%
             </div>
-            <p className="text-xs text-muted-foreground">Active users</p>
+            <p className="text-xs text-muted-foreground">{t('activity.engagementAnalyticsTab.activeUsers')}</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Bounce Rate</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('activity.engagementAnalyticsTab.bounceRate')}</CardTitle>
             <Eye className="h-4 w-4 text-orange-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
               {engagementData?.topPages?.[0]?.bounceRate || 0}%
             </div>
-            <p className="text-xs text-muted-foreground">Quick exits</p>
+            <p className="text-xs text-muted-foreground">{t('activity.engagementAnalyticsTab.quickExits')}</p>
           </CardContent>
         </Card>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Page Views & Engagement</CardTitle>
-          <CardDescription>Top 10 pages by view count</CardDescription>
+          <CardTitle>{t('activity.engagementAnalyticsTab.pageViewsEngagement')}</CardTitle>
+          <CardDescription>{t('activity.engagementAnalyticsTab.top10PagesByViewCount')}</CardDescription>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={400}>
@@ -172,8 +174,8 @@ export default function EngagementAnalyticsTab() {
       <div className="grid gap-6 md:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Average Time on Page</CardTitle>
-            <CardDescription>In seconds</CardDescription>
+            <CardTitle>{t('activity.engagementAnalyticsTab.averageTimeOnPage')}</CardTitle>
+            <CardDescription>{t('activity.engagementAnalyticsTab.inSeconds')}</CardDescription>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
@@ -190,8 +192,8 @@ export default function EngagementAnalyticsTab() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Scroll Depth Distribution</CardTitle>
-            <CardDescription>Average scroll percentage</CardDescription>
+            <CardTitle>{t('activity.engagementAnalyticsTab.scrollDepthDistribution')}</CardTitle>
+            <CardDescription>{t('activity.engagementAnalyticsTab.averageScrollPercentage')}</CardDescription>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>

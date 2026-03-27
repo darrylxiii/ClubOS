@@ -19,6 +19,7 @@ import {
 import { useCopyPerformance } from '@/hooks/useCopyPerformance';
 import { cn } from '@/lib/utils';
 import useRecharts from '@/hooks/useRecharts';
+import { useTranslation } from 'react-i18next';
 
 function getScoreBadge(rate: number, type: 'open' | 'reply') {
   const thresholds = type === 'open'
@@ -31,6 +32,7 @@ function getScoreBadge(rate: number, type: 'open' | 'reply') {
 }
 
 export function CopyPerformancePanel() {
+  const { t } = useTranslation('common');
   const { subjectLines, bodyCopy, stepHeatmap, learnings, loading } = useCopyPerformance();
   const { recharts, isLoading: rechartsLoading } = useRecharts();
   const [tab, setTab] = useState('subjects');
@@ -214,7 +216,7 @@ export function CopyPerformancePanel() {
               {!rechartsLoading && recharts ? (
                 <Card className="bg-card/60 border-border/30">
                   <CardHeader className="pb-2">
-                    <CardTitle className="text-sm">Step-by-Step Performance</CardTitle>
+                    <CardTitle className="text-sm">{"Step-by-Step Performance"}</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <recharts.ResponsiveContainer width="100%" height={280}>
@@ -255,10 +257,10 @@ export function CopyPerformancePanel() {
                     <CardContent className="p-4 text-center">
                       <p className="text-xs text-muted-foreground mb-1">Step {step.step_number}</p>
                       <p className="text-lg font-bold">{step.avg_open_rate.toFixed(1)}%</p>
-                      <p className="text-xs text-muted-foreground">open rate</p>
+                      <p className="text-xs text-muted-foreground">{"open rate"}</p>
                       <div className="mt-2 pt-2 border-t border-border/30">
                         <p className="text-sm font-semibold">{step.avg_reply_rate.toFixed(1)}%</p>
-                        <p className="text-xs text-muted-foreground">reply rate</p>
+                        <p className="text-xs text-muted-foreground">{"reply rate"}</p>
                       </div>
                       <p className="text-xs text-muted-foreground mt-2">
                         {step.total_sends.toLocaleString()} sends · {step.campaign_count} campaigns

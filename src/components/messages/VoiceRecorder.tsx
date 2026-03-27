@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Mic, Square, Send, Trash2, Loader2 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
@@ -10,6 +11,7 @@ interface VoiceRecorderProps {
 }
 
 export const VoiceRecorder = ({ onSend }: VoiceRecorderProps) => {
+  const { t } = useTranslation('messages');
   const [isRecording, setIsRecording] = useState(false);
   const [duration, setDuration] = useState(0);
   const [uploading, setUploading] = useState(false);
@@ -59,16 +61,16 @@ export const VoiceRecorder = ({ onSend }: VoiceRecorderProps) => {
         setDuration((prev) => prev + 1);
       }, 1000);
       
-      toast.success("Recording started");
+      toast.success(t('voice.recordingStarted'));
     } catch (error: unknown) {
       console.error("Error accessing microphone:", error);
       const err = error as { name?: string };
       if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-        toast.error("Microphone access denied. Please allow microphone permissions in your browser settings.");
+        toast.error(t('voice.micDenied'));
       } else if (err.name === 'NotFoundError') {
-        toast.error("No microphone found on your device.");
+        toast.error(t('voice.noMicrophone'));
       } else {
-        toast.error("Could not access microphone. Please check your device settings.");
+        toast.error(t('voice.micError'));
       }
     }
   };
@@ -111,11 +113,11 @@ export const VoiceRecorder = ({ onSend }: VoiceRecorderProps) => {
         transcript = transcriptionData?.text || '';
         
         if (transcript) {
-          toast.success("Audio transcribed successfully");
+          toast.success(t('voice.transcribed'));
         }
       } catch (transcriptionError) {
         console.error("Transcription error:", transcriptionError);
-        toast.error("Could not transcribe audio, sending without transcript");
+        toast.error(t('voice.transcribeFailed'));
       } finally {
         setTranscribing(false);
       }
@@ -137,10 +139,10 @@ export const VoiceRecorder = ({ onSend }: VoiceRecorderProps) => {
       onSend(publicUrl, duration, transcript);
       setDuration(0);
       chunksRef.current = [];
-      toast.success("Voice note sent");
+      toast.success(t('voice.sent'));
     } catch (error) {
       console.error("Error uploading voice note:", error);
-      toast.error("Failed to send voice note");
+      toast.error(t('voice.sendFailed'));
     } finally {
       setUploading(false);
       setTranscribing(false);
@@ -190,7 +192,7 @@ export const VoiceRecorder = ({ onSend }: VoiceRecorderProps) => {
                   size="icon"
                   onClick={handleCancel}
                   className="hover:bg-destructive/20 hover:text-destructive h-9 w-9"
-                  title="Cancel recording"
+                  title={t('voice.cancelRecording')}
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
@@ -199,7 +201,7 @@ export const VoiceRecorder = ({ onSend }: VoiceRecorderProps) => {
                   disabled={uploading || transcribing}
                   size="icon"
                   className="bg-gradient-accent shadow-glass-md h-9 w-9"
-                  title="Stop and send"
+                  title={t('voice.stopAndSend')}
                 >
                   <Square className="h-4 w-4" />
                 </Button>
@@ -209,13 +211,13 @@ export const VoiceRecorder = ({ onSend }: VoiceRecorderProps) => {
           {transcribing && (
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <Loader2 className="h-3 w-3 animate-spin" />
-              <span>Transcribing audio...</span>
+              <span>{t('voice.transcribing')}</span>
             </div>
           )}
           {uploading && !transcribing && (
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <Loader2 className="h-3 w-3 animate-spin" />
-              <span>Uploading voice note...</span>
+              <span>{t('voice.uploading')}</span>
             </div>
           )}
         </div>
@@ -229,7 +231,7 @@ export const VoiceRecorder = ({ onSend }: VoiceRecorderProps) => {
       size="icon"
       onClick={startRecording}
       className="flex-shrink-0 hover:bg-accent/50 h-9 w-9 p-0 rounded-lg"
-      title="Record voice note"
+      title={t('voice.record')}
     >
       <Mic className="h-4 w-4" />
     </Button>

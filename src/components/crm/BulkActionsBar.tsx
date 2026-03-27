@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from '@/lib/motion';
 import { Button } from '@/components/ui/button';
 import { Archive, CheckCircle, UserPlus, X, Trash2 } from 'lucide-react';
@@ -17,6 +18,7 @@ export function BulkActionsBar({
   onAssign,
   onClearSelection,
 }: BulkActionsBarProps) {
+  const { t } = useTranslation('common');
   return (
     <AnimatePresence>
       {selectedCount > 0 && (
@@ -43,7 +45,7 @@ export function BulkActionsBar({
             Assign
           </Button>
           <div className="h-4 w-px bg-border" />
-          <Button variant="ghost" size="icon" onClick={onClearSelection} className="h-8 w-8" aria-label="Clear selection">
+          <Button variant="ghost" size="icon" onClick={onClearSelection} className="h-8 w-8" aria-label={t("clear_selection", "Clear selection")}>
             <X className="w-4 h-4" aria-hidden="true" />
           </Button>
         </motion.div>

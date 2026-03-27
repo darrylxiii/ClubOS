@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { Upload, X, Loader2, Image as ImageIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -52,6 +53,7 @@ export function ImageUpload({
   previewShape,
   previewAspectRatio,
 }: ImageUploadProps) {
+  const { t } = useTranslation('common');
   const [previewUrl, setPreviewUrl] = useState<string | null>(value);
   const [editorOpen, setEditorOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -84,7 +86,7 @@ export function ImageUpload({
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
-      toast.error('Please upload an image file');
+      toast.error(t("please_upload_an_image", "Please upload an image file"));
       return;
     }
 
@@ -137,7 +139,7 @@ export function ImageUpload({
     await deleteFile(value);
     setPreviewUrl(null);
     onChange(null);
-    toast.success('Image removed');
+    toast.success(t("image_removed", "Image removed"));
   }, [value, deleteFile, onChange]);
 
   const getPreviewClasses = () => {
@@ -189,7 +191,7 @@ export function ImageUpload({
             ) : previewUrl ? (
               <img
                 src={previewUrl}
-                alt="Preview"
+                alt={t("preview", "Preview")}
                 className="w-full h-full object-cover"
               />
             ) : (

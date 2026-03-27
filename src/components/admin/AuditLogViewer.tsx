@@ -14,6 +14,7 @@ import { Download, Search, Shield } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { notify } from '@/lib/notify';
 import { format } from 'date-fns';
+import { useTranslation } from 'react-i18next';
 
 interface AuditEvent {
   id: string;
@@ -29,6 +30,7 @@ interface AuditEvent {
 }
 
 export const AuditLogViewer = () => {
+  const { t } = useTranslation('admin');
   const [events, setEvents] = useState<AuditEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -61,7 +63,7 @@ export const AuditLogViewer = () => {
       if (error) throw error;
       setEvents((data || []) as AuditEvent[]);
     } catch (error: unknown) {
-      notify.error('Failed to Load Audit Logs', { description: error instanceof Error ? error.message : 'An unexpected error occurred' });
+      notify.error('Failed to Load Audit Logs', { description: error instanceof Error ? error.message : t('auditlogviewertsx.auditlogviewer.anUnexpectedErrorOccurred', 'An unexpected error occurred') });
     } finally {
       setLoading(false);
     }
@@ -88,7 +90,7 @@ export const AuditLogViewer = () => {
     a.download = `audit-logs-${format(new Date(), 'yyyy-MM-dd')}.csv`;
     a.click();
 
-    notify.success('Export Complete', { description: 'Audit logs exported to CSV' });
+    notify.success('Export Complete', { description: t('auditlogviewertsx.auditlogviewer.auditLogsExportedToCsv', 'Audit logs exported to CSV') });
   };
 
   const filteredEvents = events.filter(event => {
@@ -118,9 +120,7 @@ export const AuditLogViewer = () => {
           <Shield className="w-5 h-5" />
           Audit Log
         </CardTitle>
-        <CardDescription>
-          Complete audit trail of system activity and security events
-        </CardDescription>
+        <CardDescription>{t('auditlogviewertsx.auditlogviewer.completeAuditTrailOfSystemActivity', 'Complete audit trail of system activity and security events')}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Filters */}
@@ -128,7 +128,7 @@ export const AuditLogViewer = () => {
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
-              placeholder="Search by email, action, or resource..."
+              placeholder={t('auditLogViewer.searchByEmailActionOrResource')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-9"
@@ -136,27 +136,27 @@ export const AuditLogViewer = () => {
           </div>
           <Select value={eventTypeFilter} onValueChange={setEventTypeFilter}>
             <SelectTrigger className="w-full sm:w-[180px]">
-              <SelectValue placeholder="Event Type" />
+              <SelectValue placeholder={t('auditLogViewer.eventType')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Events</SelectItem>
-              <SelectItem value="login">Login</SelectItem>
-              <SelectItem value="logout">Logout</SelectItem>
-              <SelectItem value="data_access">Data Access</SelectItem>
-              <SelectItem value="role_change">Role Change</SelectItem>
-              <SelectItem value="gdpr_export">GDPR Export</SelectItem>
-              <SelectItem value="gdpr_deletion_requested">Deletion Request</SelectItem>
+              <SelectItem value="all">{t('auditlogviewertsx.auditlogviewer.allEvents', 'All Events')}</SelectItem>
+              <SelectItem value="login">{t('auditlogviewertsx.auditlogviewer.login', 'Login')}</SelectItem>
+              <SelectItem value="logout">{t('auditlogviewertsx.auditlogviewer.logout', 'Logout')}</SelectItem>
+              <SelectItem value="data_access">{t('auditlogviewertsx.auditlogviewer.dataAccess', 'Data Access')}</SelectItem>
+              <SelectItem value="role_change">{t('auditlogviewertsx.auditlogviewer.roleChange', 'Role Change')}</SelectItem>
+              <SelectItem value="gdpr_export">{t('auditlogviewertsx.auditlogviewer.gdprExport', 'GDPR Export')}</SelectItem>
+              <SelectItem value="gdpr_deletion_requested">{t('auditlogviewertsx.auditlogviewer.deletionRequest', 'Deletion Request')}</SelectItem>
             </SelectContent>
           </Select>
           <Select value={resultFilter} onValueChange={setResultFilter}>
             <SelectTrigger className="w-full sm:w-[150px]">
-              <SelectValue placeholder="Result" />
+              <SelectValue placeholder={t('auditLogViewer.result')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Results</SelectItem>
-              <SelectItem value="success">Success</SelectItem>
-              <SelectItem value="failed">Failed</SelectItem>
-              <SelectItem value="denied">Denied</SelectItem>
+              <SelectItem value="all">{t('auditlogviewertsx.auditlogviewer.allResults', 'All Results')}</SelectItem>
+              <SelectItem value="success">{t('auditlogviewertsx.auditlogviewer.success', 'Success')}</SelectItem>
+              <SelectItem value="failed">{t('auditlogviewertsx.auditlogviewer.failed', 'Failed')}</SelectItem>
+              <SelectItem value="denied">{t('auditlogviewertsx.auditlogviewer.denied', 'Denied')}</SelectItem>
             </SelectContent>
           </Select>
           <Button onClick={exportToCSV} variant="outline" size="icon">
@@ -170,26 +170,22 @@ export const AuditLogViewer = () => {
             <table className="w-full">
               <thead className="bg-muted/50">
                 <tr className="border-b">
-                  <th className="text-left p-3 text-sm font-medium">Timestamp</th>
-                  <th className="text-left p-3 text-sm font-medium">Event</th>
-                  <th className="text-left p-3 text-sm font-medium">Actor</th>
-                  <th className="text-left p-3 text-sm font-medium">Action</th>
-                  <th className="text-left p-3 text-sm font-medium">Result</th>
-                  <th className="text-left p-3 text-sm font-medium">IP</th>
+                  <th className="text-left p-3 text-sm font-medium">{t('auditlogviewertsx.auditlogviewer.timestamp', 'Timestamp')}</th>
+                  <th className="text-left p-3 text-sm font-medium">{t('auditlogviewertsx.auditlogviewer.event', 'Event')}</th>
+                  <th className="text-left p-3 text-sm font-medium">{t('auditlogviewertsx.auditlogviewer.actor', 'Actor')}</th>
+                  <th className="text-left p-3 text-sm font-medium">{t('auditlogviewertsx.auditlogviewer.action', 'Action')}</th>
+                  <th className="text-left p-3 text-sm font-medium">{t('auditlogviewertsx.auditlogviewer.result', 'Result')}</th>
+                  <th className="text-left p-3 text-sm font-medium">{t('auditlogviewertsx.auditlogviewer.ip', 'IP')}</th>
                 </tr>
               </thead>
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan={6} className="text-center p-8 text-muted-foreground">
-                      Loading audit events...
-                    </td>
+                    <td colSpan={6} className="text-center p-8 text-muted-foreground">{t('auditlogviewertsx.auditlogviewer.loadingAuditEvents', 'Loading audit events...')}</td>
                   </tr>
                 ) : filteredEvents.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="text-center p-8 text-muted-foreground">
-                      No audit events found
-                    </td>
+                    <td colSpan={6} className="text-center p-8 text-muted-foreground">{t('auditlogviewertsx.auditlogviewer.noAuditEventsFound', 'No audit events found')}</td>
                   </tr>
                 ) : (
                   filteredEvents.map((event) => (

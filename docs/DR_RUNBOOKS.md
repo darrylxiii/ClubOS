@@ -15,7 +15,7 @@
 
 ### **Symptoms:**
 - All database queries failing
-- Lovable Cloud dashboard unreachable
+- Supabase dashboard unreachable
 - Health checks returning 500 errors
 - Users unable to login or access any data
 
@@ -23,12 +23,12 @@
 
 1. **Verify Outage Scope**
    ```bash
-   curl https://dpjucecmoyfzrduhlctt.supabase.co/rest/v1/profiles?limit=1
+   curl https://chgrkvftjfibufoopmav.supabase.co/rest/v1/profiles?limit=1
    # Expected: 200 OK or specific error
    ```
 
 2. **Check Platform Status**
-   - Visit Lovable Cloud status page
+   - Visit Supabase status page
    - Check backup verification logs: `/admin/disaster-recovery`
    - Review recent platform alerts
 
@@ -53,7 +53,7 @@
    - Identify most recent successful backup
    - Note timestamp and verification status
 
-6. **Contact Lovable Support**
+6. **Contact Supabase Support**
    - Open critical support ticket
    - Provide backup verification log ID
    - Request immediate database restoration
@@ -138,7 +138,7 @@
 
 ### **Recovery Actions (30-120 minutes):**
 
-5. **Contact Lovable Support for PITR**
+5. **Contact Supabase Support for PITR**
    - Provide target recovery timestamp
    - Request Point-in-Time Recovery
    - Specify affected tables if partial recovery possible
@@ -181,7 +181,7 @@
 ### **Immediate Actions (0-15 minutes):**
 
 1. **Identify Failed Function**
-   - Check edge function logs in Lovable Cloud
+   - Check edge function logs in Supabase
    - Review error messages
    - Determine affected features
 
@@ -201,7 +201,7 @@
    ```
 
 4. **Redeploy Function**
-   - Lovable will auto-deploy on git push
+   - the platform will auto-deploy on git push
    - Monitor deployment logs
    - Test function manually
 
@@ -209,7 +209,7 @@
    ```bash
    # Test function endpoint
    curl -X POST \
-     https://dpjucecmoyfzrduhlctt.supabase.co/functions/v1/[function-name] \
+     https://chgrkvftjfibufoopmav.supabase.co/functions/v1/[function-name] \
      -H "Authorization: Bearer [ANON_KEY]" \
      -H "Content-Type: application/json" \
      -d '{}'
@@ -254,7 +254,7 @@
    - Verify table exists
    - Test direct queries to affected tables
 
-5. **Contact Lovable Support**
+5. **Contact Supabase Support**
    - If backup infrastructure issue
    - Provide verification log details
    - Request immediate investigation
@@ -294,7 +294,7 @@
 
 ### **Recovery Actions (30-120 minutes):**
 
-4. **Contact Lovable Support**
+4. **Contact Supabase Support**
    - Report PITR test failures
    - Request backup infrastructure review
    - Escalate if multiple failures
@@ -313,7 +313,7 @@
 | Detection | 0-5 min | Automated monitoring |
 | Assessment | 5-15 min | On-call engineer |
 | Stakeholder notification | 15-20 min | CTO |
-| Recovery initiation | 20-60 min | DevOps + Lovable Support |
+| Recovery initiation | 20-60 min | DevOps + Supabase Support |
 | Verification | 60-90 min | QA + DevOps |
 | Postmortem | 90-240 min | Full team |
 
@@ -362,7 +362,7 @@ Next steps: [Prevention measures]
 |----------|-------------------|-------------|
 | On-Call Engineer | Immediate | [Internal system] |
 | CTO | 15 minutes | [Contact] |
-| Lovable Support | 20 minutes | [Support channel] |
+| Supabase Support | 20 minutes | [Support channel] |
 | Enterprise Customers | 30 minutes | [Email list] |
 
 ---

@@ -39,6 +39,7 @@ import { getDaysOpenColor, getConversionColor } from '@/lib/jobUtils';
 import { JobStatusBadge, JobStatus } from '@/components/jobs/JobStatusBadge';
 import { VirtualizedList } from '@/components/ui/VirtualizedList';
 import { format, formatDistanceToNow } from 'date-fns';
+import { useTranslation } from 'react-i18next';
 
 interface JobWithMetrics {
   id: string;
@@ -139,7 +140,7 @@ const JobListItem = memo(({
                       <TooltipTrigger>
                         <Lock className="h-3 w-3 text-amber-500 shrink-0" />
                       </TooltipTrigger>
-                      <TooltipContent>Confidential</TooltipContent>
+                      <TooltipContent>{t('jobListView.tooltip.confidential')}</TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
                 )}
@@ -210,7 +211,7 @@ const JobListItem = memo(({
                   {formatDistanceToNow(new Date(job.last_activity), { addSuffix: true })}
                 </span>
               ) : (
-                <span>No activity</span>
+                <span>{t('jobListView.noActivity')}</span>
               )}
             </div>
           </div>
@@ -227,7 +228,7 @@ const JobListItem = memo(({
               }}
             >
               <LayoutDashboard className="h-4 w-4" />
-              <span className="hidden lg:inline">Dashboard</span>
+              <span className="hidden lg:inline">{t('jobListView.dashboard')}</span>
             </Button>
 
             <DropdownMenu>
@@ -256,7 +257,7 @@ const JobListItem = memo(({
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={onClose}>
                       <XCircle className="h-4 w-4 mr-2" />
-                      Close
+                      {t('common:close')}
                     </DropdownMenuItem>
                   </>
                 )}
@@ -269,7 +270,7 @@ const JobListItem = memo(({
                 {job.status !== 'archived' && (
                   <DropdownMenuItem onClick={onArchive} className="text-destructive">
                     <Archive className="h-4 w-4 mr-2" />
-                    Archive
+                    {t('common:archive')}
                   </DropdownMenuItem>
                 )}
                 {job.status === 'archived' && (
@@ -303,11 +304,10 @@ export const JobListView = memo(({
   onRestore,
   isSelected,
 }: JobListViewProps) => {
+  const { t } = useTranslation('partner');
   if (jobs.length === 0) {
     return (
-      <div className="flex items-center justify-center py-12 text-muted-foreground">
-        No jobs found
-      </div>
+      <div className="flex items-center justify-center py-12 text-muted-foreground">{t('jobListView.noJobsFound')}</div>
     );
   }
 

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from "react";
 import { Calendar, CheckCircle2, AlertCircle, RefreshCw } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -16,6 +17,7 @@ interface CalendarConnection {
 }
 
 export function CalendarConnectionStatus() {
+  const { t } = useTranslation('common');
   const [connectedCalendars, setConnectedCalendars] = useState<CalendarConnection[]>([]);
   const [lastSync, setLastSync] = useState<Date | null>(null);
   const navigate = useNavigate();
@@ -87,7 +89,7 @@ export function CalendarConnectionStatus() {
     <Alert className="border-green-500/20 bg-green-500/10">
       <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
       <AlertTitle className="text-green-900 dark:text-green-100 flex items-center justify-between">
-        <span>Calendar Connected</span>
+        <span>{t("calendar_connected", "Calendar Connected")}</span>
         <Button 
           variant="ghost" 
           size="sm" 

@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { JobDocuments } from "@/components/partner/JobDocuments";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { useTranslation } from 'react-i18next';
 
 interface DocumentItem {
   id: string;
@@ -23,6 +24,7 @@ interface InlineDocumentsCardProps {
 }
 
 export const InlineDocumentsCard = memo(({ jobId }: InlineDocumentsCardProps) => {
+  const { t } = useTranslation('jobs');
   const [documents, setDocuments] = useState<DocumentItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [showFullDialog, setShowFullDialog] = useState(false);
@@ -152,7 +154,7 @@ export const InlineDocumentsCard = memo(({ jobId }: InlineDocumentsCardProps) =>
       }
     } catch (err) {
       console.error('Error viewing document:', err);
-      toast.error('Failed to open document viewer');
+      toast.error("Failed to open document viewer");
     }
   };
 
@@ -186,11 +188,11 @@ export const InlineDocumentsCard = memo(({ jobId }: InlineDocumentsCardProps) =>
         link.click();
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
-        toast.success('Document downloaded');
+        toast.success("Document downloaded");
       }
     } catch (err) {
       console.error('Error downloading document:', err);
-      toast.error('Failed to download document');
+      toast.error("Failed to download document");
     }
   };
 

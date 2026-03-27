@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { motion } from '@/lib/motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -26,6 +27,7 @@ interface AutomationLog {
 }
 
 export function CRMAutomationLogs() {
+  const { t } = useTranslation('common');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -127,7 +129,7 @@ export function CRMAutomationLogs() {
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search logs..."
+              placeholder={t("search_logs", "Search logs...")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-9"
@@ -135,13 +137,13 @@ export function CRMAutomationLogs() {
           </div>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger className="w-32">
-              <SelectValue placeholder="Status" />
+              <SelectValue placeholder={t("status", "Status")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="success">Success</SelectItem>
-              <SelectItem value="failed">Failed</SelectItem>
-              <SelectItem value="pending">Pending</SelectItem>
+              <SelectItem value="all">{t("all_status", "All Status")}</SelectItem>
+              <SelectItem value="success">{t("success", "Success")}</SelectItem>
+              <SelectItem value="failed">{t("failed", "Failed")}</SelectItem>
+              <SelectItem value="pending">{t("pending", "Pending")}</SelectItem>
             </SelectContent>
           </Select>
         </div>

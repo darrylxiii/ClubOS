@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -21,6 +22,7 @@ interface LiveTranscriptionPanelProps {
 }
 
 export function LiveTranscriptionPanel({ meetingId }: LiveTranscriptionPanelProps) {
+  const { t } = useTranslation('common');
   const [transcripts, setTranscripts] = useState<Transcript[]>([]);
   const [botActive, setBotActive] = useState(false);
 
@@ -112,7 +114,7 @@ export function LiveTranscriptionPanel({ meetingId }: LiveTranscriptionPanelProp
     a.download = `transcript-${meetingId}-${Date.now()}.txt`;
     a.click();
     URL.revokeObjectURL(url);
-    toast.success('Transcript downloaded');
+    toast.success(t("transcript_downloaded", "Transcript downloaded"));
   };
 
   return (
@@ -121,8 +123,8 @@ export function LiveTranscriptionPanel({ meetingId }: LiveTranscriptionPanelProp
         <div className="px-4 py-2 bg-purple-500/10 border-b border-purple-500/20">
           <div className="flex items-center gap-2 text-sm">
             <Bot className="h-4 w-4 text-purple-500 animate-pulse" />
-            <span className="text-purple-500 font-medium">Club AI Notetaker Active</span>
-            <Badge variant="outline" className="ml-auto text-xs">Recording</Badge>
+            <span className="text-purple-500 font-medium">{t("club_ai_notetaker_active", "Club AI Notetaker Active")}</span>
+            <Badge variant="outline" className="ml-auto text-xs">{t("recording", "Recording")}</Badge>
           </div>
         </div>
       )}
@@ -131,9 +133,9 @@ export function LiveTranscriptionPanel({ meetingId }: LiveTranscriptionPanelProp
         {transcripts.length === 0 ? (
           <div className="text-center text-muted-foreground py-8">
             <Bot className="h-12 w-12 mx-auto mb-4 opacity-50" />
-            <p>Live transcription will appear here</p>
+            <p>{t("live_transcription_will_appear", "Live transcription will appear here")}</p>
             {!botActive && (
-              <p className="text-xs mt-2">Enable Club AI Notetaker when creating meetings</p>
+              <p className="text-xs mt-2">{t("enable_club_ai_notetaker", "Enable Club AI Notetaker when creating meetings")}</p>
             )}
           </div>
         ) : (

@@ -14,8 +14,10 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { useTranslation } from 'react-i18next';
 
 export const AccountLinking = () => {
+  const { t } = useTranslation('common');
   const [identities, setIdentities] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [newPassword, setNewPassword] = useState("");
@@ -37,7 +39,7 @@ export const AccountLinking = () => {
       }
     } catch (error) {
       console.error("Error loading identities:", error);
-      toast.error("Failed to load connected accounts");
+      toast.error(t('accountlinking.failedToLoadConnectedAccounts', 'Failed to load connected accounts'));
     } finally {
       setLoading(false);
     }
@@ -52,16 +54,16 @@ export const AccountLinking = () => {
         provider: 'google',
       });
       if (error) throw error;
-      toast.success("Redirecting to Google...");
+      toast.success(t('accountlinking.redirectingToGoogle', 'Redirecting to Google...'));
     } catch (error: unknown) {
       console.error("Error linking Google:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to link Google account");
+      toast.error(error instanceof Error ? error.message : t('accountlinking.failedToLinkGoogleAccount', 'Failed to link Google account'));
     }
   };
 
   const handleUnlinkIdentity = async (identity: any, provider: string) => {
     if (identities.length === 1) {
-      toast.error("Cannot remove your only login method");
+      toast.error(t('accountlinking.cannotRemoveYourOnlyLoginMethod', 'Cannot remove your only login method'));
       return;
     }
 
@@ -73,18 +75,18 @@ export const AccountLinking = () => {
       await loadIdentities();
     } catch (error: unknown) {
       console.error("Error unlinking identity:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to disconnect account");
+      toast.error(error instanceof Error ? error.message : t('accountlinking.failedToDisconnectAccount', 'Failed to disconnect account'));
     }
   };
 
   const handleSetPassword = async () => {
     if (newPassword !== confirmPassword) {
-      toast.error("Passwords do not match");
+      toast.error(t('accountlinking.passwordsDoNotMatch', 'Passwords do not match'));
       return;
     }
 
     if (newPassword.length < 12) {
-      toast.error("Password must be at least 12 characters");
+      toast.error(t('accountlinking.passwordMustBeAtLeast12', 'Password must be at least 12 characters'));
       return;
     }
 
@@ -96,14 +98,14 @@ export const AccountLinking = () => {
       
       if (error) throw error;
       
-      toast.success("Password set successfully! You can now login with email and password.");
+      toast.success(t('accountlinking.passwordSetSuccessfullyYouCanNow', 'Password set successfully! You can now login with email and password.'));
       setShowPasswordDialog(false);
       setNewPassword("");
       setConfirmPassword("");
       await loadIdentities();
     } catch (error: unknown) {
       console.error("Error setting password:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to set password");
+      toast.error(error instanceof Error ? error.message : t('accountlinking.failedToSetPassword', 'Failed to set password'));
     } finally {
       setIsSettingPassword(false);
     }
@@ -134,9 +136,7 @@ export const AccountLinking = () => {
           <Shield className="w-5 h-5" />
           Connected Accounts
         </CardTitle>
-        <CardDescription>
-          Link multiple login methods to your account for easy access
-        </CardDescription>
+        <CardDescription>{t('accountlinking.linkMultipleLoginMethodsToYour', 'Link multiple login methods to your account for easy access')}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Email/Password */}
@@ -146,9 +146,9 @@ export const AccountLinking = () => {
               <Mail className="w-5 h-5 text-primary" />
             </div>
             <div>
-              <p className="font-semibold">Email & Password</p>
+              <p className="font-semibold">{t('accountlinking.emailPassword', 'Email & Password')}</p>
               <p className="text-sm text-muted-foreground">
-                {hasEmailPassword ? "Connected" : "Not connected"}
+                {hasEmailPassword ? t('accountlinking.connected', 'Connected') : t('accountlinking.notConnected', 'Not connected')}
               </p>
             </div>
           </div>
@@ -178,30 +178,28 @@ export const AccountLinking = () => {
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Set Password</DialogTitle>
-                  <DialogDescription>
-                    Add a password to enable email/password login
-                  </DialogDescription>
+                  <DialogTitle>{t('accountlinking.setPassword', 'Set Password')}</DialogTitle>
+                  <DialogDescription>{t('accountlinking.addAPasswordToEnableEmailpassword', 'Add a password to enable email/password login')}</DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4">
                   <div>
-                    <Label htmlFor="new-password">New Password</Label>
+                    <Label htmlFor="new-password">{t('accountlinking.newPassword', 'New Password')}</Label>
                     <Input
                       id="new-password"
                       type="password"
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
-                      placeholder="Enter new password"
+                      placeholder={t('accountlinking.enterNewPassword', 'Enter new password')}
                     />
                   </div>
                   <div>
-                    <Label htmlFor="confirm-password">Confirm Password</Label>
+                    <Label htmlFor="confirm-password">{t('accountlinking.confirmPassword', 'Confirm Password')}</Label>
                     <Input
                       id="confirm-password"
                       type="password"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
-                      placeholder="Confirm password"
+                      placeholder={t('accountlinking.confirmPassword1', 'Confirm password')}
                     />
                   </div>
                   <Button
@@ -233,7 +231,7 @@ export const AccountLinking = () => {
             <div>
               <p className="font-semibold">Google</p>
               <p className="text-sm text-muted-foreground">
-                {hasGoogle ? "Connected" : "Not connected"}
+                {hasGoogle ? t('accountlinking.connected', 'Connected') : t('accountlinking.notConnected', 'Not connected')}
               </p>
             </div>
           </div>

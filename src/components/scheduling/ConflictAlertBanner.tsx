@@ -6,6 +6,7 @@ import { AlertTriangle, XCircle, ChevronRight, Zap, X } from 'lucide-react';
 import { useConflictResolution, SchedulingConflict } from '@/hooks/useConflictResolution';
 import { ConflictResolutionDialog } from './ConflictResolutionDialog';
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 
 interface ConflictAlertBannerProps {
   className?: string;
@@ -13,6 +14,7 @@ interface ConflictAlertBannerProps {
 }
 
 export function ConflictAlertBanner({ className, onConflictsChange }: ConflictAlertBannerProps) {
+  const { t } = useTranslation('common');
   const { conflicts, fetchConflicts, autoResolve, isResolving } = useConflictResolution();
   const [selectedConflict, setSelectedConflict] = useState<SchedulingConflict | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);

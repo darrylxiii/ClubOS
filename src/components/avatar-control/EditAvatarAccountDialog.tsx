@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -22,6 +23,7 @@ interface EditAvatarAccountDialogProps {
 }
 
 export function EditAvatarAccountDialog({ account, open, onOpenChange }: EditAvatarAccountDialogProps) {
+  const { t } = useTranslation('common');
   const { updateAccount, saveCredentials, deleteAccount, resetConnectionCounter } = useAvatarAccounts();
   const { targets, upsertSocialTarget } = useAvatarSocialTargets(account?.id);
 
@@ -171,8 +173,8 @@ export function EditAvatarAccountDialog({ account, open, onOpenChange }: EditAva
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !account) return;
-    if (!file.type.startsWith('image/')) { toast.error('Please select an image file'); return; }
-    if (file.size > 5 * 1024 * 1024) { toast.error('Image must be under 5MB'); return; }
+    if (!file.type.startsWith('image/')) { toast.error(t("please_select_an_image", "Please select an image file")); return; }
+    if (file.size > 5 * 1024 * 1024) { toast.error(t("image_must_be_under", "Image must be under 5MB")); return; }
 
     setAvatarUploading(true);
     try {
@@ -183,7 +185,7 @@ export function EditAvatarAccountDialog({ account, open, onOpenChange }: EditAva
       const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(filePath);
       const newUrl = `${urlData.publicUrl}?t=${Date.now()}`;
       await supabase.from('linkedin_avatar_accounts').update({ avatar_url: newUrl }).eq('id', account.id);
-      toast.success('Avatar updated');
+      toast.success(t("avatar_updated", "Avatar updated"));
       // Trigger refetch via invalidation handled by the hook
     } catch (err: any) {
       toast.error(err.message || 'Upload failed');
@@ -197,7 +199,7 @@ export function EditAvatarAccountDialog({ account, open, onOpenChange }: EditAva
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Edit Account</DialogTitle>
+          <DialogTitle>{t("edit_account", "Edit Account")}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 pt-2">
@@ -218,71 +220,71 @@ export function EditAvatarAccountDialog({ account, open, onOpenChange }: EditAva
                 <Upload className="h-3.5 w-3.5 mr-1.5" />
                 {account?.avatar_url ? 'Change' : 'Upload'} Photo
               </Button>
-              <p className="text-[11px] text-muted-foreground">JPG, PNG or WEBP. Max 5MB.</p>
+              <p className="text-[11px] text-muted-foreground">{t("jpg_png_or_webp", "JPG, PNG or WEBP. Max 5MB.")}</p>
             </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label className="text-xs">Label</Label>
+              <Label className="text-xs">{t("label", "Label")}</Label>
               <Input value={label} onChange={e => setLabel(e.target.value)} />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs">Owner / Team</Label>
+              <Label className="text-xs">{t("owner_team", "Owner / Team")}</Label>
               <Input value={ownerTeam} onChange={e => setOwnerTeam(e.target.value)} />
             </div>
           </div>
 
           <div className="space-y-1.5">
-            <Label className="text-xs">LinkedIn URL</Label>
+            <Label className="text-xs">{t("linkedin_url", "LinkedIn URL")}</Label>
             <Input value={linkedinUrl} onChange={e => setLinkedinUrl(e.target.value)} placeholder="https://linkedin.com/in/..." />
           </div>
 
           <div className="space-y-1.5">
-            <Label className="text-xs">LinkedIn Email</Label>
+            <Label className="text-xs">{t("linkedin_email", "LinkedIn Email")}</Label>
             <Input value={linkedinEmail} onChange={e => setLinkedinEmail(e.target.value)} />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label className="text-xs">Status</Label>
+              <Label className="text-xs">{t("status", "Status")}</Label>
               <Select value={status} onValueChange={setStatus}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="available">Available</SelectItem>
-                  <SelectItem value="paused">Paused</SelectItem>
-                  <SelectItem value="banned">Banned</SelectItem>
-                  <SelectItem value="needs_review">Needs Review</SelectItem>
+                  <SelectItem value="available">{t("available", "Available")}</SelectItem>
+                  <SelectItem value="paused">{t("paused", "Paused")}</SelectItem>
+                  <SelectItem value="banned">{t("banned", "Banned")}</SelectItem>
+                  <SelectItem value="needs_review">{t("needs_review", "Needs Review")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs">Risk Level</Label>
+              <Label className="text-xs">{t("risk_level", "Risk Level")}</Label>
               <Select value={riskLevel} onValueChange={setRiskLevel}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="low">Low</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="high">High</SelectItem>
+                  <SelectItem value="low">{t("low", "Low")}</SelectItem>
+                  <SelectItem value="medium">{t("medium", "Medium")}</SelectItem>
+                  <SelectItem value="high">{t("high", "High")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
 
           <div className="space-y-1.5">
-            <Label className="text-xs">Max Daily Minutes</Label>
+            <Label className="text-xs">{t("max_daily_minutes", "Max Daily Minutes")}</Label>
             <Input type="number" value={maxDailyMinutes} onChange={e => setMaxDailyMinutes(Number(e.target.value))} />
           </div>
 
           {/* Connection Request Quota */}
           <div className="border-t pt-4 space-y-3">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Connection Request Quota</p>
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t("connection_request_quota", "Connection Request Quota")}</p>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label className="text-xs">Weekly Limit</Label>
+                <Label className="text-xs">{t("weekly_limit", "Weekly Limit")}</Label>
                 <Input type="number" value={weeklyConnectionLimit} onChange={e => setWeeklyConnectionLimit(Number(e.target.value))} min={0} max={500} />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs">Sent This Week</Label>
+                <Label className="text-xs">{t("sent_this_week", "Sent This Week")}</Label>
                 <Input type="number" value={weeklyConnectionsSent} onChange={e => setWeeklyConnectionsSent(Number(e.target.value))} min={0} />
               </div>
             </div>
@@ -303,7 +305,7 @@ export function EditAvatarAccountDialog({ account, open, onOpenChange }: EditAva
 
           {/* Social Platforms */}
           <div className="border-t pt-4 space-y-3">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Social Platforms</p>
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t("social_platforms", "Social Platforms")}</p>
             {SOCIAL_PLATFORMS.map(p => {
               const Icon = p.value === 'linkedin' ? Linkedin : p.value === 'twitter' ? Twitter : p.value === 'reddit' ? MessageSquare : Instagram;
               const s = socialState[p.value];
@@ -324,7 +326,7 @@ export function EditAvatarAccountDialog({ account, open, onOpenChange }: EditAva
                   {s.active && (
                     <div className="grid grid-cols-2 gap-2">
                       <div className="space-y-1">
-                        <Label className="text-[11px]">Handle</Label>
+                        <Label className="text-[11px]">{t("handle", "Handle")}</Label>
                         <Input
                           className="h-8 text-xs"
                           placeholder={p.value === 'reddit' ? 'u/username' : '@username'}
@@ -333,7 +335,7 @@ export function EditAvatarAccountDialog({ account, open, onOpenChange }: EditAva
                         />
                       </div>
                       <div className="space-y-1">
-                        <Label className="text-[11px]">Weekly Target</Label>
+                        <Label className="text-[11px]">{t("weekly_target", "Weekly Target")}</Label>
                         <Input
                           type="number"
                           className="h-8 text-xs"
@@ -352,10 +354,10 @@ export function EditAvatarAccountDialog({ account, open, onOpenChange }: EditAva
 
           {/* Credentials section */}
           <div className="border-t pt-4 space-y-3">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Credentials</p>
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t("credentials", "Credentials")}</p>
 
             <div className="space-y-1.5">
-              <Label className="text-xs">LinkedIn Password</Label>
+              <Label className="text-xs">{t("linkedin_password", "LinkedIn Password")}</Label>
               <div className="relative">
                 <Input
                   type={showLinkedinPw ? 'text' : 'password'}
@@ -378,12 +380,12 @@ export function EditAvatarAccountDialog({ account, open, onOpenChange }: EditAva
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs">Email Account Address</Label>
-              <Input value={emailAccountAddress} onChange={e => setEmailAccountAddress(e.target.value)} placeholder="backup@email.com" />
+              <Label className="text-xs">{t("email_account_address", "Email Account Address")}</Label>
+              <Input value={emailAccountAddress} onChange={e => setEmailAccountAddress(e.target.value)} placeholder={t("backupemailcom", "backup@email.com")} />
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs">Email Account Password</Label>
+              <Label className="text-xs">{t("email_account_password", "Email Account Password")}</Label>
               <div className="relative">
                 <Input
                   type={showEmailPw ? 'text' : 'password'}
@@ -407,12 +409,12 @@ export function EditAvatarAccountDialog({ account, open, onOpenChange }: EditAva
           </div>
 
           <div className="space-y-1.5">
-            <Label className="text-xs">Notes</Label>
+            <Label className="text-xs">{t("notes", "Notes")}</Label>
             <Textarea rows={2} value={notes} onChange={e => setNotes(e.target.value)} />
           </div>
 
           <div className="space-y-1.5">
-            <Label className="text-xs">Playbook</Label>
+            <Label className="text-xs">{t("playbook", "Playbook")}</Label>
             <Textarea rows={2} value={playbook} onChange={e => setPlaybook(e.target.value)} />
           </div>
 
@@ -425,13 +427,13 @@ export function EditAvatarAccountDialog({ account, open, onOpenChange }: EditAva
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
-                  <AlertDialogTitle>Delete account?</AlertDialogTitle>
+                  <AlertDialogTitle>{t("delete_account", "Delete account?")}</AlertDialogTitle>
                   <AlertDialogDescription>
                     This will permanently delete "{account?.label}" and all associated session history. This action cannot be undone.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogCancel>{t("cancel", "Cancel")}</AlertDialogCancel>
                   <AlertDialogAction
                     onClick={() => {
                       if (account) {

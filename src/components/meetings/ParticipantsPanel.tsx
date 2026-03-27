@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useMemo } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
@@ -47,6 +48,7 @@ export function ParticipantsPanel({
   onMuteParticipant,
   onRemoveParticipant,
 }: ParticipantsPanelProps) {
+  const { t } = useTranslation('common');
   const [searchQuery, setSearchQuery] = useState('');
 
   const filteredParticipants = participants.filter((p) =>
@@ -163,7 +165,7 @@ export function ParticipantsPanel({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="right" className="w-[400px] p-0 z-[10200]">
         <SheetHeader className="p-4 border-b">
-          <SheetTitle>Participants</SheetTitle>
+          <SheetTitle>{t("participants", "Participants")}</SheetTitle>
         </SheetHeader>
 
         <div className="p-4 space-y-4">
@@ -177,7 +179,7 @@ export function ParticipantsPanel({
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search for people"
+              placeholder={t("search_for_people", "Search for people")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-9"
@@ -205,7 +207,7 @@ export function ParticipantsPanel({
           {/* Participants List */}
           <div className="space-y-2">
             <div className="flex items-center justify-between px-2">
-              <h3 className="text-sm font-medium text-muted-foreground">In the meeting</h3>
+              <h3 className="text-sm font-medium text-muted-foreground">{t("in_the_meeting", "In the meeting")}</h3>
               <Badge variant="secondary" className="rounded-full">
                 {participants.length}
               </Badge>

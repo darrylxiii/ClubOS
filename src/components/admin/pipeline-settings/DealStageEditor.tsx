@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { usePipelineStageMappings } from "@/hooks/usePipelineStageMappings";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,6 +28,7 @@ const DEFAULT_COLORS = [
 ];
 
 export function DealStageEditor() {
+  const { t } = useTranslation('common');
   const { dealStages, isLoading } = usePipelineStageMappings();
   const queryClient = useQueryClient();
   
@@ -67,7 +69,7 @@ export function DealStageEditor() {
           .eq('id', editingStage.id);
 
         if (error) throw error;
-        toast.success("Stage updated successfully");
+        toast.success(t("stage_updated_successfully", "Stage updated successfully"));
       } else {
         const { error } = await supabase
           .from('deal_stages')
@@ -80,7 +82,7 @@ export function DealStageEditor() {
           });
 
         if (error) throw error;
-        toast.success("Stage created successfully");
+        toast.success(t("stage_created_successfully", "Stage created successfully"));
       }
       
       queryClient.invalidateQueries({ queryKey: ['deal-stages'] });
@@ -88,7 +90,7 @@ export function DealStageEditor() {
       resetForm();
     } catch (error) {
       console.error('Error saving stage:', error);
-      toast.error("Failed to save stage");
+      toast.error(t("failed_to_save_stage", "Failed to save stage"));
     } finally {
       setSaving(false);
     }
@@ -120,7 +122,7 @@ export function DealStageEditor() {
     <Card className="bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border-border/50">
       <CardHeader className="flex flex-row items-center justify-between">
         <div>
-          <CardTitle>Deal Stages</CardTitle>
+          <CardTitle>{t("deal_stages", "Deal Stages")}</CardTitle>
           <CardDescription>
             Configure the stages in your deal pipeline
           </CardDescription>
@@ -146,16 +148,16 @@ export function DealStageEditor() {
             </DialogHeader>
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <Label htmlFor="stage-name">Stage Name</Label>
+                <Label htmlFor="stage-name">{t("stage_name", "Stage Name")}</Label>
                 <Input
                   id="stage-name"
                   value={formData.name}
                   onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                  placeholder="e.g., Qualified, Proposal, Negotiation..."
+                  placeholder={t("eg_qualified_proposal_negotiation", "e.g., Qualified, Proposal, Negotiation...")}
                 />
               </div>
               <div className="space-y-2">
-                <Label>Color</Label>
+                <Label>{t("color", "Color")}</Label>
                 <div className="flex flex-wrap gap-2">
                   {DEFAULT_COLORS.map((color) => (
                     <button
@@ -191,7 +193,7 @@ export function DealStageEditor() {
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="probability">Win Probability (%)</Label>
+                <Label htmlFor="probability">{t("win_probability", "Win Probability (%)")}</Label>
                 <Input
                   id="probability"
                   type="number"
@@ -202,7 +204,7 @@ export function DealStageEditor() {
                     ...prev, 
                     probability_weight: Math.min(100, Math.max(0, parseInt(e.target.value) || 0))
                   }))}
-                  placeholder="e.g., 25"
+                  placeholder={t("eg_25", "e.g., 25")}
                 />
                 <p className="text-xs text-muted-foreground">
                   Used for weighted pipeline value calculations (0-100%)
@@ -241,11 +243,11 @@ export function DealStageEditor() {
           <TableHeader>
             <TableRow>
               <TableHead className="w-[50px]"></TableHead>
-              <TableHead>Stage Name</TableHead>
-              <TableHead>Color</TableHead>
-              <TableHead className="text-center">Probability</TableHead>
-              <TableHead className="text-center">Order</TableHead>
-              <TableHead className="w-[80px]">Actions</TableHead>
+              <TableHead>{t("stage_name", "Stage Name")}</TableHead>
+              <TableHead>{t("color", "Color")}</TableHead>
+              <TableHead className="text-center">{t("probability", "Probability")}</TableHead>
+              <TableHead className="text-center">{t("order", "Order")}</TableHead>
+              <TableHead className="w-[80px]">{t("actions", "Actions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

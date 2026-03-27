@@ -3,10 +3,10 @@ import { supabase } from '@/integrations/supabase/client';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 
 interface UseJobsRealtimeOptions {
-  onJobInsert?: (job: any) => void;
-  onJobUpdate?: (job: any) => void;
-  onJobDelete?: (oldJob: any) => void;
-  onApplicationChange?: (payload: any) => void;
+  onJobInsert?: (job: Record<string, unknown>) => void;
+  onJobUpdate?: (job: Record<string, unknown>) => void;
+  onJobDelete?: (oldJob: Record<string, unknown>) => void;
+  onApplicationChange?: (payload: Record<string, unknown>) => void;
   companyId?: string | null;
   enabled?: boolean;
 }
@@ -25,7 +25,7 @@ export function useJobsRealtime({
 }: UseJobsRealtimeOptions) {
   const channelRef = useRef<RealtimeChannel | null>(null);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const pendingUpdatesRef = useRef<Map<string, any>>(new Map());
+  const pendingUpdatesRef = useRef<Map<string, Record<string, unknown>>>(new Map());
 
   // Debounced handler for batching rapid updates
   const flushUpdates = useCallback(() => {

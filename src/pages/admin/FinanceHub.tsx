@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { lazy, Suspense } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { RoleGate } from '@/components/RoleGate';
@@ -31,6 +32,7 @@ const TAB_MAP: Record<string, string> = {
 };
 
 export default function FinanceHub() {
+  const { t } = useTranslation('common');
   const [searchParams, setSearchParams] = useSearchParams();
   const activeTab = TAB_MAP[searchParams.get('tab') || ''] || 'dashboard';
 
@@ -44,7 +46,7 @@ export default function FinanceHub() {
           <div className="space-y-1">
             <div className="flex items-center gap-3">
               <DollarSign className="h-8 w-8 text-primary" />
-              <h1 className="text-3xl font-bold tracking-tight">FINANCE HUB</h1>
+              <h1 className="text-3xl font-bold tracking-tight">{t("finance_hub", "FINANCE HUB")}</h1>
             </div>
             <p className="text-muted-foreground">
               Revenue, fees, expenses, invoicing, inventory, and pipeline management
@@ -53,16 +55,16 @@ export default function FinanceHub() {
 
           <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
             <TabsList className="h-auto flex-wrap bg-card/50 backdrop-blur-sm rounded-lg p-1">
-              <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-              <TabsTrigger value="pipeline">Deal Pipeline</TabsTrigger>
-              <TabsTrigger value="revenue-ladder">Revenue Ladder</TabsTrigger>
-              <TabsTrigger value="fees">Company Fees</TabsTrigger>
-              <TabsTrigger value="revenue-shares">Revenue Shares</TabsTrigger>
-              <TabsTrigger value="expenses">Expenses</TabsTrigger>
-              <TabsTrigger value="reconciliation">Reconciliation</TabsTrigger>
-              <TabsTrigger value="controls">Controls</TabsTrigger>
-              <TabsTrigger value="moneybird">Moneybird</TabsTrigger>
-              <TabsTrigger value="pipeline-settings">Pipeline Settings</TabsTrigger>
+              <TabsTrigger value="dashboard">{t("dashboard", "Dashboard")}</TabsTrigger>
+              <TabsTrigger value="pipeline">{t("deal_pipeline", "Deal Pipeline")}</TabsTrigger>
+              <TabsTrigger value="revenue-ladder">{t("revenue_ladder", "Revenue Ladder")}</TabsTrigger>
+              <TabsTrigger value="fees">{t("company_fees", "Company Fees")}</TabsTrigger>
+              <TabsTrigger value="revenue-shares">{t("revenue_shares", "Revenue Shares")}</TabsTrigger>
+              <TabsTrigger value="expenses">{t("expenses", "Expenses")}</TabsTrigger>
+              <TabsTrigger value="reconciliation">{t("reconciliation", "Reconciliation")}</TabsTrigger>
+              <TabsTrigger value="controls">{t("controls", "Controls")}</TabsTrigger>
+              <TabsTrigger value="moneybird">{t("moneybird", "Moneybird")}</TabsTrigger>
+              <TabsTrigger value="pipeline-settings">{t("pipeline_settings", "Pipeline Settings")}</TabsTrigger>
             </TabsList>
 
             <Suspense fallback={<PageLoader />}>

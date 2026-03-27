@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -61,6 +62,7 @@ export function ApplicationDetailDrawer({
   onReject,
   onUpdate
 }: ApplicationDetailDrawerProps) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [notes, setNotes] = useState(application?.admin_notes || '');
   const [isSaving, setIsSaving] = useState(false);
@@ -85,11 +87,11 @@ export function ApplicationDetailDrawer({
         details: { notes }
       });
 
-      toast.success('Notes saved successfully');
+      toast.success(t("notes_saved_successfully", "Notes saved successfully"));
       onUpdate();
     } catch (error) {
       console.error('Failed to save notes:', error);
-      toast.error('Failed to save notes');
+      toast.error(t("failed_to_save_notes", "Failed to save notes"));
     } finally {
       setIsSaving(false);
     }
@@ -142,9 +144,9 @@ export function ApplicationDetailDrawer({
 
         <Tabs defaultValue="overview" className="mt-6">
           <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="review">Review</TabsTrigger>
-            <TabsTrigger value="decision">Decision</TabsTrigger>
+            <TabsTrigger value="overview">{t("overview", "Overview")}</TabsTrigger>
+            <TabsTrigger value="review">{t("review", "Review")}</TabsTrigger>
+            <TabsTrigger value="decision">{t("decision", "Decision")}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-4">
@@ -155,14 +157,14 @@ export function ApplicationDetailDrawer({
                 Contact Information
               </h3>
               <div className="space-y-1">
-                <InfoRow icon={Mail} label="Email" value={application.email} />
-                <InfoRow icon={Phone} label="Phone" value={application.phone} />
-                <InfoRow icon={MapPin} label="Location" value={application.location} />
+                <InfoRow icon={Mail} label={t("email", "Email")} value={application.email} />
+                <InfoRow icon={Phone} label={t("phone", "Phone")} value={application.phone} />
+                <InfoRow icon={MapPin} label={t("location", "Location")} value={application.location} />
                 {application.linkedin_url && (
                   <div className="flex items-start gap-3 py-2">
                     <Linkedin className="w-4 h-4 mt-1 text-muted-foreground" />
                     <div className="flex-1">
-                      <p className="text-xs text-muted-foreground uppercase tracking-wide">LinkedIn</p>
+                      <p className="text-xs text-muted-foreground uppercase tracking-wide">{t("linkedin", "LinkedIn")}</p>
                       <a 
                         href={ensureHttpsUrl(application.linkedin_url) || '#'} 
                         target="_blank" 
@@ -184,10 +186,10 @@ export function ApplicationDetailDrawer({
                 Professional Background
               </h3>
               <div className="space-y-1">
-                <InfoRow icon={Briefcase} label="Current Title" value={application.current_title} />
+                <InfoRow icon={Briefcase} label={t("current_title", "Current Title")} value={application.current_title} />
                 {application.bio && (
                   <div className="py-2">
-                    <p className="text-xs text-muted-foreground uppercase tracking-wide mb-2">Bio</p>
+                    <p className="text-xs text-muted-foreground uppercase tracking-wide mb-2">{t("bio", "Bio")}</p>
                     <p className="text-sm">{application.bio}</p>
                   </div>
                 )}
@@ -209,9 +211,9 @@ export function ApplicationDetailDrawer({
                 Career Goals
               </h3>
               <div className="space-y-1">
-                <InfoRow icon={Briefcase} label="Dream Job Title" value={application.dream_job_title} />
-                <InfoRow icon={Clock} label="Employment Type" value={application.employment_type} />
-                <InfoRow icon={Calendar} label="Notice Period" value={application.notice_period} />
+                <InfoRow icon={Briefcase} label={t("dream_job_title", "Dream Job Title")} value={application.dream_job_title} />
+                <InfoRow icon={Clock} label={t("employment_type", "Employment Type")} value={application.employment_type} />
+                <InfoRow icon={Calendar} label={t("notice_period", "Notice Period")} value={application.notice_period} />
               </div>
             </Card>
 
@@ -224,12 +226,12 @@ export function ApplicationDetailDrawer({
               <div className="space-y-1">
                 <InfoRow 
                   icon={Euro} 
-                  label="Current Salary" 
+                  label={t("current_salary", "Current Salary")} 
                   value={application.current_salary ? `€${application.current_salary.toLocaleString()}` : undefined} 
                 />
                 <InfoRow 
                   icon={Euro} 
-                  label="Desired Salary Range" 
+                  label={t("desired_salary_range", "Desired Salary Range")} 
                   value={
                     application.desired_salary_min && application.desired_salary_max
                       ? `€${application.desired_salary_min.toLocaleString()} - €${application.desired_salary_max.toLocaleString()}`
@@ -238,7 +240,7 @@ export function ApplicationDetailDrawer({
                 />
                 <InfoRow 
                   icon={Euro} 
-                  label="Freelance Rate" 
+                  label={t("freelance_rate", "Freelance Rate")} 
                   value={application.freelance_rate ? `€${application.freelance_rate}/hour` : undefined} 
                 />
               </div>
@@ -251,15 +253,15 @@ export function ApplicationDetailDrawer({
                 Work Preferences
               </h3>
               <div className="space-y-1">
-                <InfoRow icon={Home} label="Remote Preference" value={application.remote_preference} />
+                <InfoRow icon={Home} label={t("remote_preference", "Remote Preference")} value={application.remote_preference} />
                 <InfoRow 
                   icon={MapPin} 
-                  label="Preferred Locations" 
+                  label={t("preferred_locations", "Preferred Locations")} 
                   value={application.preferred_locations?.join(', ')} 
                 />
                 <InfoRow 
                   icon={MapPin} 
-                  label="Work Radius" 
+                  label={t("work_radius", "Work Radius")} 
                   value={application.work_radius ? `${application.work_radius} km` : undefined} 
                 />
               </div>
@@ -268,10 +270,10 @@ export function ApplicationDetailDrawer({
 
           <TabsContent value="review" className="space-y-4">
             <Card className="p-4">
-              <Label htmlFor="admin-notes">Admin Notes</Label>
+              <Label htmlFor="admin-notes">{t("admin_notes", "Admin Notes")}</Label>
               <Textarea
                 id="admin-notes"
-                placeholder="Add internal notes about this candidate..."
+                placeholder={t("add_internal_notes_about", "Add internal notes about this candidate...")}
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 rows={10}
@@ -289,7 +291,7 @@ export function ApplicationDetailDrawer({
 
           <TabsContent value="decision" className="space-y-4">
             <Card className="p-6">
-              <h3 className="font-semibold text-lg mb-4">Application Decision</h3>
+              <h3 className="font-semibold text-lg mb-4">{t("application_decision", "Application Decision")}</h3>
               
               {application.application_status === 'applied' ? (
                 <div className="space-y-4">
@@ -320,12 +322,12 @@ export function ApplicationDetailDrawer({
                   <Separator className="my-4" />
 
                   <div className="bg-muted/50 p-4 rounded-lg space-y-2">
-                    <p className="text-sm font-medium">What happens when you approve:</p>
+                    <p className="text-sm font-medium">{t("what_happens_when_you", "What happens when you approve:")}</p>
                     <ul className="text-sm text-muted-foreground space-y-1 ml-4">
-                      <li>✓ User account created with platform access</li>
-                      <li>✓ Profile verified and marked as approved</li>
-                      <li>✓ Welcome email sent with login instructions</li>
-                      <li>✓ Activity logged for audit trail</li>
+                      <li>{t("user_account_created_with", "✓ User account created with platform access")}</li>
+                      <li>{t("profile_verified_and_marked", "✓ Profile verified and marked as approved")}</li>
+                      <li>{t("welcome_email_sent_with", "✓ Welcome email sent with login instructions")}</li>
+                      <li>{t("activity_logged_for_audit", "✓ Activity logged for audit trail")}</li>
                     </ul>
                   </div>
                 </div>

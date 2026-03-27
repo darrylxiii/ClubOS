@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 import { Loader2 } from "lucide-react";
 
@@ -52,12 +53,14 @@ export interface PageLoadingProps {
   text?: string;
 }
 
-export function PageLoading({ text = "Loading OS Notes..." }: PageLoadingProps) {
+export function PageLoading({ text }: PageLoadingProps) {
+  const { t } = useTranslation('common');
+  const displayText = text ?? t("loading.pageLoading", "Loading OS Notes...");
   return (
     <div className="flex-1 flex items-center justify-center min-h-[200px]">
       <div className="flex flex-col items-center gap-3">
         <LoadingSpinner size="lg" />
-        <p className="text-muted-foreground animate-pulse font-medium tracking-wider text-xs uppercase">{text}</p>
+        <p className="text-muted-foreground animate-pulse font-medium tracking-wider text-xs uppercase">{displayText}</p>
       </div>
     </div>
   );

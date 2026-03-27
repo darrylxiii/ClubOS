@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -14,6 +15,7 @@ interface PostCommentsProps {
 }
 
 export function PostComments({ postId, postAuthorId, onCommentAdded }: PostCommentsProps) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [comments, setComments] = useState<any[]>([]);
   const [newComment, setNewComment] = useState("");
@@ -133,7 +135,7 @@ export function PostComments({ postId, postAuthorId, onCommentAdded }: PostComme
           
           <div className="flex-1">
             <Textarea
-              placeholder="Add a comment..."
+              placeholder={t("add_a_comment", "Add a comment...")}
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
               className="min-h-[60px] resize-none"

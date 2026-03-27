@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -54,6 +55,7 @@ export function ApplicationCommentsThread({
   candidateName,
   compact = false,
 }: ApplicationCommentsThreadProps) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -117,7 +119,7 @@ export function ApplicationCommentsThread({
       fetchComments();
     } catch (error) {
       console.error('Error adding comment:', error);
-      toast.error('Failed to add comment');
+      toast.error(t("failed_to_add_comment", "Failed to add comment"));
     } finally {
       setSubmitting(false);
     }
@@ -133,11 +135,11 @@ export function ApplicationCommentsThread({
 
       if (error) throw error;
 
-      toast.success('Comment deleted');
+      toast.success(t("comment_deleted", "Comment deleted"));
       fetchComments();
     } catch (error) {
       console.error('Error deleting comment:', error);
-      toast.error('Failed to delete comment');
+      toast.error(t("failed_to_delete_comment", "Failed to delete comment"));
     }
   };
 
@@ -208,7 +210,7 @@ export function ApplicationCommentsThread({
             <Textarea
               value={replyText}
               onChange={(e) => setReplyText(e.target.value)}
-              placeholder="Write a reply..."
+              placeholder={t("write_a_reply", "Write a reply...")}
               rows={2}
               className="text-sm"
             />
@@ -312,8 +314,8 @@ export function ApplicationCommentsThread({
         {comments.length === 0 && (
           <div className="text-center py-6 text-muted-foreground">
             <MessageSquare className="h-8 w-8 mx-auto mb-2 opacity-50" />
-            <p className="text-sm">No comments yet</p>
-            <p className="text-xs">Be the first to add a comment</p>
+            <p className="text-sm">{t("no_comments_yet", "No comments yet")}</p>
+            <p className="text-xs">{t("be_the_first_to", "Be the first to add a comment")}</p>
           </div>
         )}
       </CardContent>

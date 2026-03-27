@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -42,6 +43,7 @@ export function CandidatePipelineContextBanner({
   currentStage: propStage,
   stageIndex: propStageIndex
 }: Props) {
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
   const [context, setContext] = useState<PipelineContextData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -121,7 +123,7 @@ export function CandidatePipelineContextBanner({
       });
     } catch (error) {
       console.error('Error loading pipeline context:', error);
-      toast.error("Failed to load pipeline context");
+      toast.error(t("failed_to_load_pipeline", "Failed to load pipeline context"));
     } finally {
       setLoading(false);
     }
@@ -170,7 +172,7 @@ export function CandidatePipelineContextBanner({
 
               <div className="flex items-center gap-4 flex-wrap">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground">Current Stage:</span>
+                  <span className="text-sm text-muted-foreground">{t("current_stage", "Current Stage:")}</span>
                   <Badge variant="outline" className="text-base">
                     {context.currentStage}
                   </Badge>
@@ -203,7 +205,7 @@ export function CandidatePipelineContextBanner({
               {context.sourcedBy && (
                 <div className="flex items-center gap-2">
                   <User className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm text-muted-foreground">Sourced by:</span>
+                  <span className="text-sm text-muted-foreground">{t("sourced_by", "Sourced by:")}</span>
                   <Avatar className="h-6 w-6">
                     <AvatarImage src={context.sourcedBy.avatar} />
                     <AvatarFallback>{context.sourcedBy.name[0]}</AvatarFallback>

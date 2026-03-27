@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { motion } from '@/lib/motion';
 import { DollarSign, EyeOff } from 'lucide-react';
 import { candidateProfileTokens } from '@/config/candidate-profile-tokens';
@@ -10,6 +11,7 @@ interface CompensationCardProps {
 }
 
 export function CompensationCard({ candidate, className }: CompensationCardProps) {
+  const { t } = useTranslation('common');
   if (candidate.salary_preference_hidden) {
     return (
       <motion.div
@@ -25,11 +27,11 @@ export function CompensationCard({ candidate, className }: CompensationCardProps
       >
         <div className="flex items-center gap-2 mb-3">
           <DollarSign className="w-4 h-4 text-muted-foreground" />
-          <h3 className="text-sm font-semibold tracking-tight">Compensation</h3>
+          <h3 className="text-sm font-semibold tracking-tight">{t("compensation", "Compensation")}</h3>
         </div>
         <div className="flex items-center gap-2 text-muted-foreground">
           <EyeOff className="w-4 h-4" />
-          <span className="text-xs">Hidden by candidate</span>
+          <span className="text-xs">{t("hidden_by_candidate", "Hidden by candidate")}</span>
         </div>
       </motion.div>
     );
@@ -68,13 +70,13 @@ export function CompensationCard({ candidate, className }: CompensationCardProps
     >
       <div className="flex items-center gap-2 mb-4">
         <DollarSign className="w-4 h-4 text-primary" />
-        <h3 className="text-sm font-semibold tracking-tight">Compensation Intelligence</h3>
+        <h3 className="text-sm font-semibold tracking-tight">{t("compensation_intelligence", "Compensation Intelligence")}</h3>
       </div>
 
       <div className="space-y-3">
         {hasCurrentComp && (
           <div>
-            <p className="text-[11px] text-muted-foreground mb-0.5">Current</p>
+            <p className="text-[11px] text-muted-foreground mb-0.5">{t("current", "Current")}</p>
             <p className="text-sm font-medium">
               {formatCurrencyCompact(currentMin, currency)} – {formatCurrencyCompact(currentMax, currency)}
             </p>
@@ -82,7 +84,7 @@ export function CompensationCard({ candidate, className }: CompensationCardProps
         )}
         {hasDesiredComp && (
           <div>
-            <p className="text-[11px] text-muted-foreground mb-0.5">Desired</p>
+            <p className="text-[11px] text-muted-foreground mb-0.5">{t("desired", "Desired")}</p>
             <p className="text-sm font-medium">
               {formatCurrencyCompact(desiredMin, currency)} – {formatCurrencyCompact(desiredMax, currency)}
             </p>

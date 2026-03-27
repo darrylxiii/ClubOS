@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -45,6 +46,7 @@ export function OfferCard({
   onViewDetails,
   compact = false 
 }: OfferCardProps) {
+  const { t } = useTranslation('common');
   const status = statusConfig[offer.status || 'draft'];
   const company = offer.job?.companies;
   const job = offer.job;
@@ -140,15 +142,15 @@ export function OfferCard({
         {/* Compensation breakdown */}
         <div className="grid grid-cols-3 gap-4">
           <div className="text-center p-3 rounded-lg bg-muted/50">
-            <p className="text-xs text-muted-foreground mb-1">Base Salary</p>
+            <p className="text-xs text-muted-foreground mb-1">{t("base_salary", "Base Salary")}</p>
             <p className="font-semibold">{formatCurrency(offer.base_salary)}</p>
           </div>
           <div className="text-center p-3 rounded-lg bg-muted/50">
-            <p className="text-xs text-muted-foreground mb-1">Bonus</p>
+            <p className="text-xs text-muted-foreground mb-1">{t("bonus", "Bonus")}</p>
             <p className="font-semibold">{offer.bonus_percentage ? `${offer.bonus_percentage}%` : '—'}</p>
           </div>
           <div className="text-center p-3 rounded-lg bg-muted/50">
-            <p className="text-xs text-muted-foreground mb-1">Equity</p>
+            <p className="text-xs text-muted-foreground mb-1">{t("equity", "Equity")}</p>
             <p className="font-semibold">{offer.equity_percentage ? `${offer.equity_percentage}%` : '—'}</p>
           </div>
         </div>
@@ -157,7 +159,7 @@ export function OfferCard({
         <div className="flex items-center justify-between p-3 rounded-lg bg-primary/5 border border-primary/10">
           <div className="flex items-center gap-2">
             <DollarSign className="h-5 w-5 text-primary" />
-            <span className="font-medium">Total Compensation</span>
+            <span className="font-medium">{t("total_compensation", "Total Compensation")}</span>
           </div>
           <span className="text-xl font-bold text-primary">
             {formatCurrency(offer.total_compensation)}
@@ -180,7 +182,7 @@ export function OfferCard({
           <div className="p-3 rounded-lg bg-muted/50 border border-border">
             <div className="flex items-center gap-2 mb-2">
               <Sparkles className="h-4 w-4 text-primary" />
-              <span className="text-sm font-medium">QUIN Analysis</span>
+              <span className="text-sm font-medium">{t("quin_analysis", "QUIN Analysis")}</span>
             </div>
             <p className="text-sm text-muted-foreground line-clamp-2">
               {offer.ai_recommendation.summary}

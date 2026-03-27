@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { UseFormReturn } from 'react-hook-form';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -32,6 +33,7 @@ export function QuickProvisionView({
   onSubmit,
   domainMatchedCompany,
 }: QuickProvisionViewProps) {
+  const { t } = useTranslation('common');
   const { register, watch, setValue, formState: { errors } } = form;
   const phoneNumber = watch('phoneNumber');
   const companyMode = watch('companyMode');
@@ -44,17 +46,17 @@ export function QuickProvisionView({
     <div className="space-y-5">
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <Zap className="w-4 h-4 text-primary" />
-        <span>Pre-verified account — partner logs in immediately</span>
+        <span>{t("preverified_account_partner_logs", "Pre-verified account — partner logs in immediately")}</span>
       </div>
 
       {/* Name + Email */}
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-1.5">
-          <Label htmlFor="q-fullName">Full Name *</Label>
+          <Label htmlFor="q-fullName">{t("full_name", "Full Name *")}</Label>
           <Input
             id="q-fullName"
             {...register('fullName')}
-            placeholder="John Smith"
+            placeholder={t("john_smith", "John Smith")}
             aria-invalid={!!errors.fullName}
           />
           {errors.fullName && (
@@ -62,12 +64,12 @@ export function QuickProvisionView({
           )}
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="q-email">Email *</Label>
+          <Label htmlFor="q-email">{t("email", "Email *")}</Label>
           <Input
             id="q-email"
             type="email"
             {...register('email')}
-            placeholder="john@company.com"
+            placeholder={t("johncompanycom", "john@company.com")}
             aria-invalid={!!errors.email}
             onBlur={(e) => {
               register('email').onBlur(e);
@@ -85,7 +87,7 @@ export function QuickProvisionView({
           {duplicateWarning && !isCheckingDuplicate && (
             <p className="text-xs text-amber-500 flex items-center gap-1">
               <AlertTriangle className="w-3 h-3" /> {duplicateWarning}
-              <span className="text-muted-foreground ml-1">— will update company/role</span>
+              <span className="text-muted-foreground ml-1">{t("will_update_companyrole", "— will update company/role")}</span>
             </p>
           )}
         </div>
@@ -93,7 +95,7 @@ export function QuickProvisionView({
 
       {/* Phone */}
       <div className="space-y-1.5">
-        <Label>Phone Number</Label>
+        <Label>{t("phone_number", "Phone Number")}</Label>
         <PhoneInput
           international
           defaultCountry="NL"
@@ -133,7 +135,7 @@ export function QuickProvisionView({
 
         {domainMatchedCompany && companyMode === 'existing' && (
           <div className="flex items-center gap-2 text-xs text-muted-foreground bg-primary/5 border border-primary/10 rounded-lg px-3 py-2">
-            <Badge variant="outline" className="text-xs">Auto-matched</Badge>
+            <Badge variant="outline" className="text-xs">{t("automatched", "Auto-matched")}</Badge>
             Matched to <span className="font-medium text-foreground">{domainMatchedCompany.name}</span> via email domain
           </div>
         )}
@@ -144,7 +146,7 @@ export function QuickProvisionView({
             onValueChange={(v) => setValue('companyId', v, { shouldDirty: true })}
           >
             <SelectTrigger>
-              <SelectValue placeholder="Select company" />
+              <SelectValue placeholder={t("select_company", "Select company")} />
             </SelectTrigger>
             <SelectContent>
               {companies.map(c => (
@@ -155,7 +157,7 @@ export function QuickProvisionView({
         ) : (
           <Input
             {...register('companyName')}
-            placeholder="Company name"
+            placeholder={t("company_name", "Company name")}
           />
         )}
       </div>
@@ -163,7 +165,7 @@ export function QuickProvisionView({
       {/* Role + Strategist */}
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-1.5">
-          <Label>Company Role</Label>
+          <Label>{t("company_role", "Company Role")}</Label>
           <Select
             value={watch('companyRole')}
             onValueChange={(v: any) => setValue('companyRole', v, { shouldDirty: true })}
@@ -172,21 +174,21 @@ export function QuickProvisionView({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="owner">Owner</SelectItem>
-              <SelectItem value="admin">Admin</SelectItem>
-              <SelectItem value="recruiter">Recruiter</SelectItem>
-              <SelectItem value="member">Member</SelectItem>
+              <SelectItem value="owner">{t("owner", "Owner")}</SelectItem>
+              <SelectItem value="admin">{t("admin", "Admin")}</SelectItem>
+              <SelectItem value="recruiter">{t("recruiter", "Recruiter")}</SelectItem>
+              <SelectItem value="member">{t("member", "Member")}</SelectItem>
             </SelectContent>
           </Select>
         </div>
         <div className="space-y-1.5">
-          <Label>Assigned Strategist</Label>
+          <Label>{t("assigned_strategist", "Assigned Strategist")}</Label>
           <Select
             value={watch('assignedStrategistId')}
             onValueChange={(v) => setValue('assignedStrategistId', v, { shouldDirty: true })}
           >
             <SelectTrigger>
-              <SelectValue placeholder="Select strategist" />
+              <SelectValue placeholder={t("select_strategist", "Select strategist")} />
             </SelectTrigger>
             <SelectContent>
               {strategists.map(s => (

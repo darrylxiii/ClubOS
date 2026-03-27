@@ -3,12 +3,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { TrendingUp, Users, Eye, Briefcase, MessageSquare } from "lucide-react";
+import { useTranslation } from 'react-i18next';
 
 interface CompanyAnalyticsChartProps {
   companyId: string;
 }
 
 export const CompanyAnalyticsChart = ({ companyId }: CompanyAnalyticsChartProps) => {
+  const { t } = useTranslation('partner');
   const [analytics, setAnalytics] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -52,7 +54,7 @@ export const CompanyAnalyticsChart = ({ companyId }: CompanyAnalyticsChartProps)
       setAnalytics(totals);
     } catch (error) {
       console.error('Error fetching analytics:', error);
-      toast.error("Failed to load analytics");
+      toast.error(t('companyAnalyticsChart.toast.failedToLoadAnalytics'));
     } finally {
       setLoading(false);
     }
@@ -71,14 +73,14 @@ export const CompanyAnalyticsChart = ({ companyId }: CompanyAnalyticsChartProps)
       title: "Profile Views",
       value: analytics?.profile_views || 0,
       icon: Eye,
-      description: "Last 30 days",
+      description: t('companyAnalyticsChart.desc.last30Days'),
       color: "text-blue-500",
     },
     {
       title: "Job Views",
       value: analytics?.job_views || 0,
       icon: Briefcase,
-      description: "Last 30 days",
+      description: t('companyAnalyticsChart.desc.last30Days'),
       color: "text-green-500",
     },
     {
@@ -92,21 +94,21 @@ export const CompanyAnalyticsChart = ({ companyId }: CompanyAnalyticsChartProps)
       title: "Followers",
       value: analytics?.follower_count || 0,
       icon: Users,
-      description: "Current followers",
+      description: t('companyAnalyticsChart.desc.currentFollowers'),
       color: "text-pink-500",
     },
     {
       title: "Post Views",
       value: analytics?.post_views || 0,
       icon: MessageSquare,
-      description: "Last 30 days",
+      description: t('companyAnalyticsChart.desc.last30Days'),
       color: "text-orange-500",
     },
     {
       title: "Post Engagements",
       value: analytics?.post_engagements || 0,
       icon: TrendingUp,
-      description: "Reactions & comments",
+      description: t('companyAnalyticsChart.desc.reactionsComments'),
       color: "text-indigo-500",
     },
   ];

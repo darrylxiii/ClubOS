@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -35,6 +36,7 @@ const colorClasses: Record<string, string> = {
 const colorOptions = Object.keys(colorClasses);
 
 export function MultiSelectCell({ value, onChange, options, onAddOption }: MultiSelectCellProps) {
+  const { t } = useTranslation('common');
   const [isOpen, setIsOpen] = useState(false);
   const [newOption, setNewOption] = useState('');
   const [newOptionColor, setNewOptionColor] = useState('gray');
@@ -100,7 +102,7 @@ export function MultiSelectCell({ value, onChange, options, onAddOption }: Multi
               );
             })
           ) : (
-            <span className="text-sm text-muted-foreground">Empty</span>
+            <span className="text-sm text-muted-foreground">{t("empty", "Empty")}</span>
           )}
         </div>
       </PopoverTrigger>
@@ -108,7 +110,7 @@ export function MultiSelectCell({ value, onChange, options, onAddOption }: Multi
         <div className="space-y-2">
           {/* Search/filter input */}
           <Input
-            placeholder="Search or create option..."
+            placeholder={t("search_or_create_option", "Search or create option...")}
             value={newOption}
             onChange={(e) => setNewOption(e.target.value)}
             className="h-8 text-sm"
@@ -152,7 +154,7 @@ export function MultiSelectCell({ value, onChange, options, onAddOption }: Multi
           {/* Create new option */}
           {newOption && !selectOptions.some(o => o.value.toLowerCase() === newOption.toLowerCase()) && (
             <div className="pt-2 border-t border-border space-y-2">
-              <p className="text-xs text-muted-foreground">Create new option:</p>
+              <p className="text-xs text-muted-foreground">{t("create_new_option", "Create new option:")}</p>
               
               {/* Color picker */}
               <div className="flex gap-1 flex-wrap">

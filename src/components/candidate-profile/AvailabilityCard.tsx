@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { motion } from '@/lib/motion';
 import { Clock, MapPin, Building2, Globe2, Languages, Briefcase } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -16,6 +17,7 @@ interface InfoRowProps {
 }
 
 function InfoRow({ icon: Icon, label, value }: InfoRowProps) {
+  const { t } = useTranslation('common');
   if (value == null || value === '') return null;
   return (
     <div className="flex items-start gap-2.5">
@@ -66,23 +68,23 @@ export function AvailabilityCard({ candidate, className }: AvailabilityCardProps
     >
       <div className="flex items-center gap-2 mb-4">
         <Clock className="w-4 h-4 text-primary" />
-        <h3 className="text-sm font-semibold tracking-tight">Availability & Preferences</h3>
+        <h3 className="text-sm font-semibold tracking-tight">{t("availability_preferences", "Availability & Preferences")}</h3>
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
-        <InfoRow icon={Clock} label="Notice Period" value={notice_period} />
-        <InfoRow icon={Briefcase} label="Hours/Week" value={available_hours_per_week} />
-        <InfoRow icon={Building2} label="Industry" value={industry_preference} />
-        <InfoRow icon={Building2} label="Company Size" value={company_size_preference} />
-        <InfoRow icon={Globe2} label="Remote Aspiration" value={remote_work_aspiration} />
-        <InfoRow icon={Languages} label="Preferred Language" value={preferred_language} />
+        <InfoRow icon={Clock} label={t("notice_period", "Notice Period")} value={notice_period} />
+        <InfoRow icon={Briefcase} label={t("hoursweek", "Hours/Week")} value={available_hours_per_week} />
+        <InfoRow icon={Building2} label={t("industry", "Industry")} value={industry_preference} />
+        <InfoRow icon={Building2} label={t("company_size", "Company Size")} value={company_size_preference} />
+        <InfoRow icon={Globe2} label={t("remote_aspiration", "Remote Aspiration")} value={remote_work_aspiration} />
+        <InfoRow icon={Languages} label={t("preferred_language", "Preferred Language")} value={preferred_language} />
       </div>
 
       {locations.length > 0 && (
         <div className="mt-4">
           <div className="flex items-center gap-1.5 mb-2">
             <MapPin className="w-3.5 h-3.5 text-muted-foreground" />
-            <span className="text-[11px] text-muted-foreground">Desired Locations</span>
+            <span className="text-[11px] text-muted-foreground">{t("desired_locations", "Desired Locations")}</span>
           </div>
           <div className="flex flex-wrap gap-1.5">
             {locations.map((loc: string, i: number) => (

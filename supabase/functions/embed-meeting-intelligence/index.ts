@@ -11,13 +11,7 @@
  * Body: { recordingId: string }
  */
 
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.58.0';
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { createHandler } from '../_shared/handler.ts';
 
 const EMBEDDING_CHUNK_SIZE = 8000; // Characters per chunk for embedding
 
@@ -28,30 +22,22 @@ interface EmbeddingResult {
   error?: string;
 }
 
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
-  }
-
+Deno.serve(createHandler(async (req, ctx) => {
   const startTime = Date.now();
 
-  try {
-    const { recordingId, batchMode = false } = await req.json();
-    
-    if (!recordingId) {
-      throw new Error('recordingId is required');
-    }
+  const { recordingId, batchMode = false } = await req.json();
 
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    
-    // Use OpenAI API key for embeddings (Lovable AI doesn't support embedding models)
-    const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
-    if (!openaiApiKey) {
-      throw new Error('OPENAI_API_KEY not configured');
-    }
-    
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+  if (!recordingId) {
+    throw new Error('recordingId is required');
+  }
+
+  // Use OpenAI API key for embeddings (Google Gemini doesn't support embedding models)
+  const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
+  if (!openaiApiKey) {
+    throw new Error('OPENAI_API_KEY not configured');
+  }
+
+  const supabase = ctx.supabase;
 
     console.log(`[EmbedMeeting] 🚀 Starting embedding generation for: ${recordingId}`);
 
@@ -88,12 +74,12 @@ serve(async (req) => {
     if (recording.analysis_status !== 'completed') {
       console.log(`[EmbedMeeting] ⏭️ Skipping - analysis not complete: ${recording.analysis_status}`);
       return new Response(
-        JSON.stringify({ 
-          success: false, 
+        JSON.stringify({
+          success: false,
           reason: 'Analysis not complete',
-          status: recording.analysis_status 
+          status: recording.analysis_status
         }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -358,7 +344,7 @@ serve(async (req) => {
     console.log(`[EmbedMeeting] ✅ Completed in ${duration}ms - ${results.filter(r => r.success).length}/${results.length} embeddings generated`);
 
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         success: true,
         recordingId,
         results,
@@ -368,16 +354,6 @@ serve(async (req) => {
           duration_ms: duration,
         }
       }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } }
     );
-
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    console.error('[EmbedMeeting] ❌ Error:', errorMessage);
-    
-    return new Response(
-      JSON.stringify({ error: errorMessage }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-  }
-});
+}));

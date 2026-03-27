@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { lazy, Suspense } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { BarChart3 } from 'lucide-react';
@@ -17,6 +18,7 @@ const TAB_MAP: Record<string, string> = {
 };
 
 export default function CandidateAnalyticsHub() {
+  const { t } = useTranslation('common');
   const [searchParams, setSearchParams] = useSearchParams();
   const activeTab = TAB_MAP[searchParams.get('tab') || ''] || 'performance';
 
@@ -29,7 +31,7 @@ export default function CandidateAnalyticsHub() {
       <div className="space-y-1">
         <div className="flex items-center gap-3">
           <BarChart3 className="h-8 w-8 text-primary" />
-          <h1 className="text-3xl font-bold tracking-tight">MY ANALYTICS</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{t("my_analytics", "MY ANALYTICS")}</h1>
         </div>
         <p className="text-muted-foreground">
           Your performance, salary benchmarks, career insights and trajectory
@@ -38,10 +40,10 @@ export default function CandidateAnalyticsHub() {
 
       <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
         <TabsList className="h-auto flex-wrap bg-card/50 backdrop-blur-sm rounded-lg p-1">
-          <TabsTrigger value="performance">Performance</TabsTrigger>
-          <TabsTrigger value="salary">Salary Insights</TabsTrigger>
-          <TabsTrigger value="career">Career Insights</TabsTrigger>
-          <TabsTrigger value="career-path">Career Path</TabsTrigger>
+          <TabsTrigger value="performance">{t("performance", "Performance")}</TabsTrigger>
+          <TabsTrigger value="salary">{t("salary_insights", "Salary Insights")}</TabsTrigger>
+          <TabsTrigger value="career">{t("career_insights", "Career Insights")}</TabsTrigger>
+          <TabsTrigger value="career-path">{t("career_path", "Career Path")}</TabsTrigger>
         </TabsList>
 
         <Suspense fallback={<PageLoader />}>

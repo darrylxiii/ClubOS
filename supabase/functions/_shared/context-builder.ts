@@ -5,13 +5,219 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 const adminContextCache = new Map<string, { context: string; ts: number }>();
 const ADMIN_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
+interface ConversationMessage {
+  role: string;
+  content: string | Record<string, unknown>;
+}
+
+interface PredictiveSignalRow {
+  signal_type?: string;
+  entity_type: string;
+  signal_strength?: number;
+  recommended_actions?: string[];
+}
+
+interface SuccessPatternRow {
+  pattern_type?: string;
+  pattern_description?: string;
+  success_rate?: number;
+  confidence_score: number;
+}
+
+interface RoleRow {
+  role: string;
+}
+
+interface TaskRow {
+  title: string;
+  status: string;
+  priority: string;
+  due_date: string | null;
+}
+
+interface ObjectiveRow {
+  title: string;
+  status: string;
+  completion_percentage: number;
+}
+
+interface BookingRow {
+  id: string;
+  status: string;
+  scheduled_start: string;
+  scheduled_end: string;
+  booking_links: { title: string; description: string } | { title: string; description: string }[] | null;
+}
+
+interface ApplicationRow {
+  id: string;
+  position: string;
+  company_name: string;
+  status: string;
+  current_stage_index: number;
+  created_at: string;
+  updated_at: string;
+  stages?: { name: string }[];
+  jobs?: { id: string; title: string } | { id: string; title: string }[];
+}
+
+interface JobRow {
+  id: string;
+  title: string;
+  location: string;
+  employment_type: string;
+}
+
+interface AiMemoryRow {
+  memory_type?: string;
+  content: string;
+  relevance_score: number;
+}
+
+interface TrendInsightRow {
+  title: string;
+  description?: string;
+  impact_level?: string;
+}
+
+interface UpcomingInterview {
+  title: string;
+  date: string;
+  daysUntil: number;
+}
+
+interface UrgentTask {
+  title: string;
+  priority: string;
+  dueDate: string | null;
+}
+
+interface ActiveApplicationStage {
+  position: string;
+  company: string;
+  stage: string;
+  stageIndex: number;
+  totalStages: number;
+}
+
+interface EmailRow {
+  id: string;
+  subject?: string;
+  from_name?: string;
+  from_email?: string;
+  email_date: string;
+  is_read: boolean;
+  ai_priority_score?: number;
+  inbox_type?: string;
+}
+
+interface MeetingRow {
+  id: string;
+  title: string;
+  start_time: string;
+  end_time?: string;
+  location?: string;
+  meeting_type?: string;
+  meeting_url?: string;
+  status?: string;
+  ai_summary?: string;
+}
+
+interface RelationshipAlertRow {
+  risk_level?: string;
+  days_since_contact: number;
+}
+
+interface SalaryBenchmarkRow {
+  role_title: string;
+  location?: string;
+  salary_min?: number;
+  salary_max?: number;
+  currency?: string;
+}
+
+interface PlacementFeeRow {
+  status?: string;
+  fee_amount?: number;
+  jobs?: { title: string } | { title: string }[];
+  companies?: { name: string } | { name: string }[];
+}
+
+interface CrmProspectRow {
+  stage?: string;
+  deal_value?: number;
+  company_name?: string;
+  contact_name?: string;
+}
+
+interface CandidateProfileRow {
+  full_name: string;
+  talent_tier?: string;
+  availability_status?: string;
+}
+
+interface KpiMetricRow {
+  kpi_name: string;
+  value: number;
+}
+
+interface AdminJobRow {
+  id: string;
+  title: string;
+  status: string;
+  location?: string;
+  salary_min?: number;
+  salary_max?: number;
+  currency?: string;
+  job_fee_type?: string;
+  job_fee_percentage?: number;
+  job_fee_fixed?: number;
+  deal_value_override?: number;
+  companies?: { name: string } | { name: string }[];
+}
+
+interface AdminApplicationRow {
+  id: string;
+  position: string;
+  company_name: string;
+  status: string;
+  current_stage_index: number;
+  job_id?: string;
+}
+
+interface ScorecardRow {
+  overall_rating?: number;
+  recommendation?: string;
+}
+
+interface CompanyJobRow {
+  id: string;
+  title: string;
+  status: string;
+  location?: string;
+  club_sync_status?: string;
+}
+
+interface CompanyFeeRow {
+  candidate_name?: string;
+  fee_amount?: number;
+  status?: string;
+}
+
+interface CompanyMemberRow {
+  role?: string;
+  is_active: boolean;
+  job_title?: string;
+  profiles: { full_name: string } | { full_name: string }[];
+}
+
 export interface BuiltContext {
   userContext: string;
   careerBrainContext: string;
   conversationHistory: string;
-  upcomingInterviews: any[];
-  urgentTasks: any[];
-  activeApplicationsWithStages: any[];
+  upcomingInterviews: UpcomingInterview[];
+  urgentTasks: UrgentTask[];
+  activeApplicationsWithStages: ActiveApplicationStage[];
 }
 
 export async function buildUserContext(
@@ -22,9 +228,9 @@ export async function buildUserContext(
   let conversationHistory = "";
   let userContext = "";
   let careerBrainContext = "";
-  let upcomingInterviews: any[] = [];
-  let activeApplicationsWithStages: any[] = [];
-  let urgentTasks: any[] = [];
+  let upcomingInterviews: UpcomingInterview[] = [];
+  let activeApplicationsWithStages: ActiveApplicationStage[] = [];
+  let urgentTasks: UrgentTask[] = [];
 
   // Fetch conversation history — TRUNCATED to last 15 messages
   if (conversationId) {
@@ -38,7 +244,7 @@ export async function buildUserContext(
       const truncated = conversation.messages.slice(-15);
       conversationHistory = `
 === CONVERSATION HISTORY (last ${truncated.length} messages) ===
-${truncated.map((msg: any) =>
+${truncated.map((msg: ConversationMessage) =>
   `${msg.role.toUpperCase()}: ${typeof msg.content === 'string' ? msg.content.substring(0, 300) : ''}`
 ).join("\n")}
 ===
@@ -57,7 +263,7 @@ ${truncated.map((msg: any) =>
   if (activeSignals && activeSignals.length > 0) {
     predictiveSignalsContext = `
 ⚠️ PREDICTIVE SIGNALS DETECTED (High Confidence):
-${activeSignals.map((s: any) => `• [${s.signal_type?.toUpperCase()}] ${s.entity_type} - Strength: ${Math.round((s.signal_strength || 0) * 100)}%
+${activeSignals.map((s: PredictiveSignalRow) => `• [${s.signal_type?.toUpperCase()}] ${s.entity_type} - Strength: ${Math.round((s.signal_strength || 0) * 100)}%
   Recommended: ${Array.isArray(s.recommended_actions) ? s.recommended_actions[0] : 'Take action'}`).join('\n')}
 `;
   }
@@ -71,7 +277,7 @@ ${activeSignals.map((s: any) => `• [${s.signal_type?.toUpperCase()}] ${s.entit
   if (successPatterns && successPatterns.length > 0) {
     successPatternsContext = `
 📊 PROVEN SUCCESS PATTERNS:
-${successPatterns.map((p: any) => `• [${p.pattern_type?.toUpperCase()}] ${p.pattern_description?.substring(0, 80)}... (${Math.round((p.success_rate || 0) * 100)}% success)`).join('\n')}
+${successPatterns.map((p: SuccessPatternRow) => `• [${p.pattern_type?.toUpperCase()}] ${p.pattern_description?.substring(0, 80)}... (${Math.round((p.success_rate || 0) * 100)}% success)`).join('\n')}
 `;
   }
 
@@ -115,7 +321,7 @@ ${successPatterns.map((p: any) => `• [${p.pattern_type?.toUpperCase()}] ${p.pa
   const companyData = Array.isArray(companyMember?.companies) ? companyMember?.companies[0] : companyMember?.companies;
 
   // === SKIP PERSONAL COMMS FOR ADMIN/STRATEGIST (saves 13 DB queries per chat message) ===
-  const userRolesEarly = (rolesRes.data || []).map((r: any) => r.role);
+  const userRolesEarly = (rolesRes.data || []).map((r: RoleRow) => r.role);
   const isAdminOrStrategist = userRolesEarly.includes('admin') || userRolesEarly.includes('strategist');
 
   if (isAdminOrStrategist) {
@@ -124,7 +330,7 @@ ${successPatterns.map((p: any) => `• [${p.pattern_type?.toUpperCase()}] ${p.pa
     const twoWeeksAhead = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString();
     const { data: upcomingMeetings } = await supabase.from("meetings").select("id, title, start_time, end_time, location, meeting_type, meeting_url").gte("start_time", nowISO).lte("start_time", twoWeeksAhead).order("start_time", { ascending: true }).limit(5);
     upcomingInterviews = [];
-    urgentTasks = (tasks || []).filter((t: any) => t.status !== "completed" && (t.priority === "high" || t.priority === "urgent")).map((t: any) => ({ title: t.title, priority: t.priority, dueDate: t.due_date }));
+    urgentTasks = (tasks || []).filter((t: TaskRow) => t.status !== "completed" && (t.priority === "high" || t.priority === "urgent")).map((t: TaskRow) => ({ title: t.title, priority: t.priority, dueDate: t.due_date }));
     activeApplicationsWithStages = [];
     careerBrainContext = `\n=== ADMIN/STRATEGIST MODE — Platform data only ===\n`;
     userContext = `\n=== ADMIN/STRATEGIST CONTEXT ===\nName: ${profile?.full_name || "Not set"}\nRoles: ${userRolesEarly.join(", ")}\n`;
@@ -181,11 +387,11 @@ ${successPatterns.map((p: any) => `• [${p.pattern_type?.toUpperCase()}] ${p.pa
   const now = new Date();
 
   // Build derived arrays
-  upcomingInterviews = (bookings || []).filter((b: any) => {
+  upcomingInterviews = (bookings || []).filter((b: BookingRow) => {
     const start = new Date(b.scheduled_start);
     const daysUntil = (start.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
     return daysUntil >= 0 && daysUntil <= 7;
-  }).map((b: any) => {
+  }).map((b: BookingRow) => {
     const linkData = Array.isArray(b.booking_links) ? b.booking_links[0] : b.booking_links;
     return {
       title: linkData?.title || "Interview",
@@ -194,29 +400,29 @@ ${successPatterns.map((p: any) => `• [${p.pattern_type?.toUpperCase()}] ${p.pa
     };
   });
 
-  activeApplicationsWithStages = (applications || []).filter((app: any) => app.status === "active").map((app: any) => {
+  activeApplicationsWithStages = (applications || []).filter((app: ApplicationRow) => app.status === "active").map((app: ApplicationRow) => {
     const jobData = Array.isArray(app.jobs) ? app.jobs[0] : app.jobs;
     const currentStage = app.stages?.[app.current_stage_index];
     return { position: jobData?.title || app.position, company: app.company_name, stage: currentStage?.name || "Unknown", stageIndex: app.current_stage_index, totalStages: app.stages?.length || 0 };
   });
 
-  urgentTasks = (tasks || []).filter((t: any) => t.status !== "completed" && (t.priority === "high" || t.priority === "urgent")).map((t: any) => ({ title: t.title, priority: t.priority, dueDate: t.due_date }));
+  urgentTasks = (tasks || []).filter((t: TaskRow) => t.status !== "completed" && (t.priority === "high" || t.priority === "urgent")).map((t: TaskRow) => ({ title: t.title, priority: t.priority, dueDate: t.due_date }));
 
   // Build Career Brain Context
   careerBrainContext = `
 === 🧠 CAREER BRAIN: DEEP CONTEXTUAL AWARENESS ===
 
 🎯 AI MEMORY & LEARNED PREFERENCES:
-${aiMemory.length > 0 ? aiMemory.map((mem: any) => `- [${mem.memory_type?.toUpperCase()}] ${String(mem.content).substring(0, 150)} (Rel: ${mem.relevance_score})`).join("\n") : "No learned preferences yet"}
+${aiMemory.length > 0 ? aiMemory.map((mem: AiMemoryRow) => `- [${mem.memory_type?.toUpperCase()}] ${String(mem.content).substring(0, 150)} (Rel: ${mem.relevance_score})`).join("\n") : "No learned preferences yet"}
 
 ⚡ URGENT ITEMS REQUIRING ATTENTION:
-${upcomingInterviews.length > 0 ? `📅 UPCOMING INTERVIEWS (Next 7 days):\n${upcomingInterviews.map((int: any) => `  • ${int.title} in ${int.daysUntil} day${int.daysUntil !== 1 ? 's' : ''} (${new Date(int.date).toLocaleDateString()})`).join("\n")}` : ""}
-${urgentTasks.length > 0 ? `🚨 HIGH-PRIORITY TASKS:\n${urgentTasks.map((t: any) => `  • ${t.title} (${t.priority})`).join("\n")}` : ""}
-${activeApplicationsWithStages.length > 0 ? `📊 ACTIVE PIPELINES:\n${activeApplicationsWithStages.map((app: any) => `  • ${app.position} at ${app.company} - Stage ${app.stageIndex + 1}/${app.totalStages}: ${app.stage}`).join("\n")}` : ""}
-${recentEmails.filter((e: any) => !e.is_read && e.inbox_type === 'action').length > 0 ? `📧 URGENT EMAIL: ${recentEmails.filter((e: any) => !e.is_read && e.inbox_type === 'action').length} unread action emails` : ""}
+${upcomingInterviews.length > 0 ? `📅 UPCOMING INTERVIEWS (Next 7 days):\n${upcomingInterviews.map((int: UpcomingInterview) => `  • ${int.title} in ${int.daysUntil} day${int.daysUntil !== 1 ? 's' : ''} (${new Date(int.date).toLocaleDateString()})`).join("\n")}` : ""}
+${urgentTasks.length > 0 ? `🚨 HIGH-PRIORITY TASKS:\n${urgentTasks.map((t: UrgentTask) => `  • ${t.title} (${t.priority})`).join("\n")}` : ""}
+${activeApplicationsWithStages.length > 0 ? `📊 ACTIVE PIPELINES:\n${activeApplicationsWithStages.map((app: ActiveApplicationStage) => `  • ${app.position} at ${app.company} - Stage ${app.stageIndex + 1}/${app.totalStages}: ${app.stage}`).join("\n")}` : ""}
+${recentEmails.filter((e: EmailRow) => !e.is_read && e.inbox_type === 'action').length > 0 ? `📧 URGENT EMAIL: ${recentEmails.filter((e: EmailRow) => !e.is_read && e.inbox_type === 'action').length} unread action emails` : ""}
 
 🌐 MARKET & TREND INSIGHTS:
-${trendInsights.length > 0 ? trendInsights.map((trend: any) => `- [${trend.impact_level?.toUpperCase() || 'INFO'}] ${trend.title}: ${trend.description?.substring(0, 100) || ''}...`).join("\n") : "No current trend data"}
+${trendInsights.length > 0 ? trendInsights.map((trend: TrendInsightRow) => `- [${trend.impact_level?.toUpperCase() || 'INFO'}] ${trend.title}: ${trend.description?.substring(0, 100) || ''}...`).join("\n") : "No current trend data"}
 
 === END CAREER BRAIN ===
 
@@ -242,14 +448,14 @@ Location: ${profile?.location || "Not set"}
 Profile Completion: ${profileStrength?.completion_percentage || 0}%
 
 === USER ROLES ===
-${roles.map((r: any) => r.role).join(", ") || "No roles assigned"}
+${roles.map((r: RoleRow) => r.role).join(", ") || "No roles assigned"}
 
 === COMPANY ASSOCIATION ===
 ${companyData ? `Company: ${companyData.name}\nRole: ${companyMember?.role || "Unknown"}\nIndustry: ${companyData.industry || "N/A"}` : "Not associated with any company"}
 
 === RECENT APPLICATIONS ===
 ${applications.length > 0 ?
-  applications.map((app: any) => {
+  applications.map((app: ApplicationRow) => {
     const stageName = app.stages?.[app.current_stage_index]?.name || "Unknown";
     const jobData = Array.isArray(app.jobs) ? app.jobs[0] : app.jobs;
     return `- ${jobData?.title || app.position} at ${app.company_name} | ${app.status} | Stage: ${stageName} | ${new Date(app.created_at).toLocaleDateString()}`;
@@ -257,36 +463,36 @@ ${applications.length > 0 ?
 
 === TASKS & OBJECTIVES ===
 Tasks (${tasks.length} active):
-${tasks.length > 0 ? tasks.map((t: any) => `- ${t.title} (${t.status}) - Priority: ${t.priority}`).join("\n") : "No active tasks"}
+${tasks.length > 0 ? tasks.map((t: TaskRow) => `- ${t.title} (${t.status}) - Priority: ${t.priority}`).join("\n") : "No active tasks"}
 
 Objectives (${objectives.length}):
-${objectives.length > 0 ? objectives.map((o: any) => `- ${o.title} (${o.status}) - ${o.completion_percentage}% complete`).join("\n") : "No active objectives"}
+${objectives.length > 0 ? objectives.map((o: ObjectiveRow) => `- ${o.title} (${o.status}) - ${o.completion_percentage}% complete`).join("\n") : "No active objectives"}
 
 === UPCOMING BOOKINGS ===
-${bookings.length > 0 ? bookings.map((b: any) => { const linkData = Array.isArray(b.booking_links) ? b.booking_links[0] : b.booking_links; return `- ${linkData?.title || "Meeting"} on ${new Date(b.scheduled_start).toLocaleString()}`; }).join("\n") : "No upcoming bookings"}
+${bookings.length > 0 ? bookings.map((b: BookingRow) => { const linkData = Array.isArray(b.booking_links) ? b.booking_links[0] : b.booking_links; return `- ${linkData?.title || "Meeting"} on ${new Date(b.scheduled_start).toLocaleString()}`; }).join("\n") : "No upcoming bookings"}
 
 === AVAILABLE OPPORTUNITIES ===
-${availableJobs.length > 0 ? availableJobs.map((j: any) => `- ${j.title} (${j.location || "Remote"})`).join("\n") : "No new opportunities"}
+${availableJobs.length > 0 ? availableJobs.map((j: JobRow) => `- ${j.title} (${j.location || "Remote"})`).join("\n") : "No new opportunities"}
 
 === SOCIAL & CONTENT ===
 Posts: ${userPosts.length} recent | Connections: ${connections.length} | Followers: ${followersCount}
 Achievements: ${achievements.length} unlocked
 
 === EMAIL INTELLIGENCE ===
-Recent: ${recentEmails.length} | Unread: ${recentEmails.filter((e: any) => !e.is_read).length} | Action Required: ${recentEmails.filter((e: any) => e.inbox_type === 'action').length}
+Recent: ${recentEmails.length} | Unread: ${recentEmails.filter((e: EmailRow) => !e.is_read).length} | Action Required: ${recentEmails.filter((e: EmailRow) => e.inbox_type === 'action').length}
 High Priority:
-${recentEmails.filter((e: any) => e.ai_priority_score && e.ai_priority_score >= 70).slice(0, 3).map((email: any) => `- From: ${email.from_name || email.from_email} | ${email.subject?.substring(0, 60)} | ${email.is_read ? 'Read' : 'UNREAD'}`).join('\n') || 'No high-priority emails'}
+${recentEmails.filter((e: EmailRow) => e.ai_priority_score && e.ai_priority_score >= 70).slice(0, 3).map((email: EmailRow) => `- From: ${email.from_name || email.from_email} | ${email.subject?.substring(0, 60)} | ${email.is_read ? 'Read' : 'UNREAD'}`).join('\n') || 'No high-priority emails'}
 
 === CALENDAR & MEETINGS ===
 Upcoming (${upcomingMeetings.length}):
-${upcomingMeetings.slice(0, 5).map((m: any) => `- ${m.title} | ${new Date(m.start_time).toLocaleString()} | ${m.location || m.meeting_url || 'TBD'}`).join('\n') || 'No upcoming meetings'}
+${upcomingMeetings.slice(0, 5).map((m: MeetingRow) => `- ${m.title} | ${new Date(m.start_time).toLocaleString()} | ${m.location || m.meeting_url || 'TBD'}`).join('\n') || 'No upcoming meetings'}
 
 Recent (${recentMeetings.length}):
-${recentMeetings.slice(0, 3).map((m: any) => `- ${m.title} (${new Date(m.start_time).toLocaleDateString()})${m.ai_summary ? ` | ${m.ai_summary.substring(0, 80)}...` : ''}`).join('\n') || 'No recent meetings'}
+${recentMeetings.slice(0, 3).map((m: MeetingRow) => `- ${m.title} (${new Date(m.start_time).toLocaleDateString()})${m.ai_summary ? ` | ${m.ai_summary.substring(0, 80)}...` : ''}`).join('\n') || 'No recent meetings'}
 
 === RELATIONSHIP HEALTH ===
 At-Risk: ${relationshipAlerts.length} relationships
-${relationshipAlerts.slice(0, 3).map((r: any) => `- Risk ${r.risk_level?.toUpperCase()}: ${r.days_since_contact} days since contact`).join('\n') || 'All healthy'}
+${relationshipAlerts.slice(0, 3).map((r: RelationshipAlertRow) => `- Risk ${r.risk_level?.toUpperCase()}: ${r.days_since_contact} days since contact`).join('\n') || 'All healthy'}
 
 === COMMUNICATIONS SUMMARY ===
 Recent WhatsApp: ${recentWhatsApp.length} | Recent SMS: ${recentSMS.length} | Unified Timeline: ${unifiedTimeline.length} entries
@@ -295,7 +501,7 @@ Company Interactions: ${companyInteractions.length} | External Imports: ${extern
 ${careerBrainContext}`;
 
   // Role-based enrichment
-  const userRoles = (roles || []).map((r: any) => r.role);
+  const userRoles = (roles || []).map((r: RoleRow) => r.role);
   const isAdmin = userRoles.includes('admin');
   const isStrategist = userRoles.includes('strategist');
   const isPartner = userRoles.includes('partner');
@@ -310,7 +516,7 @@ ${careerBrainContext}`;
     const { data: salaryBenchmarks } = await supabase
       .from('salary_benchmarks').select('role_title, location, salary_min, salary_max, currency').limit(5);
     if (salaryBenchmarks && salaryBenchmarks.length > 0) {
-      userContext += `\n=== SALARY BENCHMARKS ===\n${salaryBenchmarks.map((b: any) => `- ${b.role_title} (${b.location || 'Global'}): ${b.currency || '€'}${b.salary_min?.toLocaleString() || 'N/A'} – ${b.salary_max?.toLocaleString() || 'N/A'}`).join('\n')}\n`;
+      userContext += `\n=== SALARY BENCHMARKS ===\n${salaryBenchmarks.map((b: SalaryBenchmarkRow) => `- ${b.role_title} (${b.location || 'Global'}): ${b.currency || '€'}${b.salary_min?.toLocaleString() || 'N/A'} – ${b.salary_max?.toLocaleString() || 'N/A'}`).join('\n')}\n`;
     }
   }
 
@@ -363,20 +569,20 @@ async function buildAdminContext(supabase: ReturnType<typeof createClient>, user
 
   // Aggregations
   const feesByStatus: Record<string, { count: number; total: number }> = {};
-  placementFees.forEach((f: any) => {
+  placementFees.forEach((f: PlacementFeeRow) => {
     const s = f.status || 'unknown';
     if (!feesByStatus[s]) feesByStatus[s] = { count: 0, total: 0 };
     feesByStatus[s].count++; feesByStatus[s].total += (f.fee_amount || 0);
   });
   const crmByStage: Record<string, { count: number; dealValue: number }> = {};
-  crmProspects.forEach((p: any) => {
+  crmProspects.forEach((p: CrmProspectRow) => {
     const s = p.stage || 'unknown';
     if (!crmByStage[s]) crmByStage[s] = { count: 0, dealValue: 0 };
     crmByStage[s].count++; crmByStage[s].dealValue += (p.deal_value || 0);
   });
   const appsByJob: Record<string, number> = {};
-  allApps.forEach((a: any) => { if (a.job_id) { appsByJob[a.job_id] = (appsByJob[a.job_id] || 0) + 1; } });
-  const calcFee = (j: any): string => {
+  allApps.forEach((a: AdminApplicationRow) => { if (a.job_id) { appsByJob[a.job_id] = (appsByJob[a.job_id] || 0) + 1; } });
+  const calcFee = (j: AdminJobRow): string => {
     if (j.deal_value_override) return `€${j.deal_value_override.toLocaleString()} (override)`;
     if (j.job_fee_type === 'fixed' && j.job_fee_fixed) return `€${j.job_fee_fixed.toLocaleString()} (fixed)`;
     const salaryBase = j.salary_max || j.salary_min || 0; const pct = j.job_fee_percentage || 20;
@@ -384,7 +590,7 @@ async function buildAdminContext(supabase: ReturnType<typeof createClient>, user
     return 'N/A';
   };
   let totalRating = 0; let ratedCount = 0;
-  candidateScorecards.forEach((sc: any) => {
+  candidateScorecards.forEach((sc: ScorecardRow) => {
     if (sc.overall_rating) { totalRating += sc.overall_rating; ratedCount++; }
   });
 
@@ -399,18 +605,18 @@ CRM (${crmProspects.length}): ${Object.entries(crmByStage).map(([s, d]) => `${s}
 
 === ADMIN: TALENT POOL ===
 Total Candidates: ${candidateProfiles.length}
-By Tier: ${['hot', 'warm', 'strategic', 'pool', 'dormant'].map(t => `${t}: ${candidateProfiles.filter((c: any) => c.talent_tier === t).length}`).join(', ')}
-Top 10: ${candidateProfiles.slice(0, 10).map((c: any) => `${c.full_name} (${c.talent_tier})`).join(', ')}
+By Tier: ${['hot', 'warm', 'strategic', 'pool', 'dormant'].map(t => `${t}: ${candidateProfiles.filter((c: CandidateProfileRow) => c.talent_tier === t).length}`).join(', ')}
+Top 10: ${candidateProfiles.slice(0, 10).map((c: CandidateProfileRow) => `${c.full_name} (${c.talent_tier})`).join(', ')}
 === END ADMIN TALENT ===
 
 === ADMIN: PLATFORM KPIs ===
-Users: ${totalUsers} | Active Jobs: ${allJobs.filter((j: any) => j.status === 'published').length}/${allJobs.length} | Applications: ${allApps.length}
+Users: ${totalUsers} | Active Jobs: ${allJobs.filter((j: AdminJobRow) => j.status === 'published').length}/${allJobs.length} | Applications: ${allApps.length}
 Offers: ${candidateOffers.length} | Shortlists: ${candidateShortlists.length} | Scorecards: ${candidateScorecards.length} (avg ${ratedCount > 0 ? (totalRating / ratedCount).toFixed(1) : 'N/A'}/5) | Interview Feedback: ${interviewFeedback.length}
-KPIs: ${kpiMetrics.slice(0, 10).map((k: any) => `${k.kpi_name}: ${k.value}`).join(', ')}
+KPIs: ${kpiMetrics.slice(0, 10).map((k: KpiMetricRow) => `${k.kpi_name}: ${k.value}`).join(', ')}
 === END ADMIN KPIs ===
 
 === ADMIN: JOBS PIPELINE ===
-${allJobs.slice(0, 15).map((j: any) => {
+${allJobs.slice(0, 15).map((j: AdminJobRow) => {
   const co = Array.isArray(j.companies) ? j.companies[0] : j.companies;
   const jobAppCount = appsByJob[j.id] || 0;
   return `- ${j.title} @ ${co?.name || 'N/A'} (${j.status}) | Apps: ${jobAppCount} | Fee: ${calcFee(j)}`;
@@ -442,17 +648,17 @@ async function buildPartnerContext(supabase: ReturnType<typeof createClient>, co
   return `
 
 === PARTNER: COMPANY PIPELINE ===
-Jobs (${companyJobs.filter((j: any) => j.status === 'published').length} active / ${companyJobs.length} total):
-${companyJobs.slice(0, 10).map((j: any) => `- ${j.title} (${j.status}) | Club Sync: ${j.club_sync_status || 'N/A'}`).join('\n')}
+Jobs (${companyJobs.filter((j: CompanyJobRow) => j.status === 'published').length} active / ${companyJobs.length} total):
+${companyJobs.slice(0, 10).map((j: CompanyJobRow) => `- ${j.title} (${j.status}) | Club Sync: ${j.club_sync_status || 'N/A'}`).join('\n')}
 === END PARTNER PIPELINE ===
 
 === PARTNER: FINANCIALS ===
 Fees: ${companyFees.length}
-${companyFees.slice(0, 5).map((f: any) => `- ${f.candidate_name || 'N/A'}: €${f.fee_amount || 0} (${f.status})`).join('\n')}
+${companyFees.slice(0, 5).map((f: CompanyFeeRow) => `- ${f.candidate_name || 'N/A'}: €${f.fee_amount || 0} (${f.status})`).join('\n')}
 === END PARTNER FINANCIALS ===
 
 === PARTNER: TEAM (${companyTeam.length} members) ===
-${companyTeam.slice(0, 10).map((m: any) => { const profile = Array.isArray(m.profiles) ? m.profiles[0] : m.profiles; return `- ${profile?.full_name || 'N/A'} (${m.role || 'Member'})${m.job_title ? ` - ${m.job_title}` : ''}`; }).join('\n')}
+${companyTeam.slice(0, 10).map((m: CompanyMemberRow) => { const profile = Array.isArray(m.profiles) ? m.profiles[0] : m.profiles; return `- ${profile?.full_name || 'N/A'} (${m.role || 'Member'})${m.job_title ? ` - ${m.job_title}` : ''}`; }).join('\n')}
 === END PARTNER TEAM ===
 
 === PARTNER: HIRING ACTIVITY ===

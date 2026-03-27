@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { MeetingInvitationCard } from './MeetingInvitationCard';
 import { notificationSoundManager } from '@/lib/sounds/NotificationSoundManager';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 
 interface MeetingInvitation {
   id: string;
@@ -19,6 +20,7 @@ interface MeetingInvitation {
 }
 
 export function MeetingNotificationManager() {
+  const { t } = useTranslation("meetings");
   const [activeInvitations, setActiveInvitations] = useState<MeetingInvitation[]>([]);
   const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
 
@@ -98,7 +100,7 @@ export function MeetingNotificationManager() {
             inviter_id: inv.inviter_id,
             inviter_name: inviter?.full_name,
             inviter_avatar: inviter?.avatar_url,
-            meeting_title: meeting.title || 'Untitled Meeting',
+            meeting_title: meeting.title || t('notifications.untitledMeeting'),
             meeting_start_time: meeting.scheduled_start,
             meeting_duration_minutes: 30,
             status: inv.status,
@@ -148,7 +150,7 @@ export function MeetingNotificationManager() {
             inviter_id: newInvitation.inviter_id,
             inviter_name: inviter?.full_name,
             inviter_avatar: inviter?.avatar_url,
-            meeting_title: meeting?.title || 'Untitled Meeting',
+            meeting_title: meeting?.title || t('notifications.untitledMeeting'),
             meeting_start_time: meeting?.scheduled_start || new Date().toISOString(),
             meeting_duration_minutes: 30,
             status: newInvitation.status,
@@ -172,8 +174,8 @@ export function MeetingNotificationManager() {
           // Show browser notification if enabled
           if (preferences?.browser_meetings !== false && 'Notification' in window) {
             if (Notification.permission === 'granted') {
-              new Notification(`Meeting Invitation from ${inviter?.full_name || 'Someone'}`, {
-                body: meeting?.title || 'New meeting invitation',
+              new Notification(t('notifications.invitationFrom', { name: inviter?.full_name || t('notifications.someone') }), {
+                body: meeting?.title || t('notifications.newMeetingInvitation'),
                 icon: inviter?.avatar_url || '/placeholder.svg',
                 tag: newInvitation.id,
               });
@@ -223,7 +225,7 @@ export function MeetingNotificationManager() {
       
       {activeInvitations.length > 3 && (
         <div className="pointer-events-auto bg-card/20 backdrop-blur-xl border border-border/50 rounded-xl p-3 text-center text-sm text-muted-foreground">
-          +{activeInvitations.length - 3} more invitation{activeInvitations.length - 3 !== 1 ? 's' : ''}
+          {t('notifications.moreInvitations', { count: activeInvitations.length - 3 })}
         </div>
       )}
     </div>

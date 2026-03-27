@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -38,6 +39,7 @@ export function InlineEdit({
   aiSuggestion,
   label,
 }: InlineEditProps) {
+  const { t } = useTranslation('common');
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(value);
   const [visibility, setVisibility] = useState(currentVisibility);
@@ -77,13 +79,13 @@ export function InlineEdit({
     setIsSaving(true);
     try {
       await onSave(editValue, visibility);
-      toast.success("✓ Updated", {
+      toast.success(t("updated", "✓ Updated"), {
         description: "Changes saved successfully",
         duration: 2000,
       });
       setIsEditing(false);
     } catch (error) {
-      toast.error("Failed to save", {
+      toast.error(t("failed_to_save", "Failed to save"), {
         description: "Please try again",
       });
     } finally {
@@ -110,7 +112,7 @@ export function InlineEdit({
   const applyAISuggestion = () => {
     if (aiSuggestion) {
       setEditValue(aiSuggestion);
-      toast.success("AI suggestion applied", {
+      toast.success(t("ai_suggestion_applied", "AI suggestion applied"), {
         icon: <Sparkles className="w-4 h-4 text-accent" />,
       });
     }

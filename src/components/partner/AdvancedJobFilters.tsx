@@ -10,6 +10,7 @@ import { ChevronDown, ChevronUp, X, Calendar as CalendarIcon } from 'lucide-reac
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { JobFilterState } from '@/types/jobFilters';
+import { useTranslation } from 'react-i18next';
 
 interface AdvancedJobFiltersProps {
   filters: JobFilterState;
@@ -33,6 +34,7 @@ export const AdvancedJobFilters = memo<AdvancedJobFiltersProps>(({
   hasActiveFilters,
   availableCompanies,
 }) => {
+  const { t } = useTranslation('partner');
   const [isExpanded, setIsExpanded] = useState(false);
 
   const activeFilterCount = useMemo(() => {
@@ -80,7 +82,7 @@ export const AdvancedJobFilters = memo<AdvancedJobFiltersProps>(({
             <div className="flex items-center gap-3">
               <CollapsibleTrigger asChild>
                 <Button variant="ghost" size="sm" className="gap-2">
-                  <CardTitle className="text-base">Advanced Filters</CardTitle>
+                  <CardTitle className="text-base">{t('advancedJobFilters.title')}</CardTitle>
                   {activeFilterCount > 0 && (
                     <Badge variant="secondary" className="ml-1">
                       {activeFilterCount}
@@ -103,7 +105,7 @@ export const AdvancedJobFilters = memo<AdvancedJobFiltersProps>(({
                 className="gap-2 text-muted-foreground hover:text-foreground"
               >
                 <X className="w-4 h-4" />
-                Clear All
+                {t('common:clearAll')}
               </Button>
             )}
           </div>
@@ -113,7 +115,7 @@ export const AdvancedJobFilters = memo<AdvancedJobFiltersProps>(({
           <CardContent className="space-y-6 pt-0">
             {/* Status Filter */}
             <div className="space-y-3">
-              <h4 className="text-sm font-medium text-foreground">Status</h4>
+              <h4 className="text-sm font-medium text-foreground">{t('advancedJobFilters.status')}</h4>
               <div className="flex flex-wrap gap-2">
                 {statusOptions.map((option) => (
                   <Button
@@ -139,7 +141,7 @@ export const AdvancedJobFilters = memo<AdvancedJobFiltersProps>(({
             {/* Company Filter */}
             {availableCompanies.length > 0 && (
               <div className="space-y-3">
-                <h4 className="text-sm font-medium text-foreground">Company</h4>
+                <h4 className="text-sm font-medium text-foreground">{t('advancedJobFilters.company')}</h4>
                 <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
                   {availableCompanies.map((company) => (
                     <Button
@@ -166,7 +168,7 @@ export const AdvancedJobFilters = memo<AdvancedJobFiltersProps>(({
             {/* Date Range Filter */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <h4 className="text-sm font-medium text-foreground">Created Date Range</h4>
+                <h4 className="text-sm font-medium text-foreground">{t('advancedJobFilters.createdDateRange')}</h4>
                 {(filters.dateRange.from || filters.dateRange.to) && (
                   <Button
                     variant="ghost"
@@ -174,7 +176,7 @@ export const AdvancedJobFilters = memo<AdvancedJobFiltersProps>(({
                     onClick={clearDateRange}
                     className="h-6 px-2 text-xs"
                   >
-                    Clear
+                    {t('common:clear')}
                   </Button>
                 )}
               </div>
@@ -193,7 +195,7 @@ export const AdvancedJobFilters = memo<AdvancedJobFiltersProps>(({
                       {filters.dateRange.from ? (
                         format(filters.dateRange.from, 'PPP')
                       ) : (
-                        <span>From date</span>
+                        <span>{t('advancedJobFilters.fromDate')}</span>
                       )}
                     </Button>
                   </PopoverTrigger>
@@ -220,7 +222,7 @@ export const AdvancedJobFilters = memo<AdvancedJobFiltersProps>(({
                       {filters.dateRange.to ? (
                         format(filters.dateRange.to, 'PPP')
                       ) : (
-                        <span>To date</span>
+                        <span>{t('advancedJobFilters.toDate')}</span>
                       )}
                     </Button>
                   </PopoverTrigger>

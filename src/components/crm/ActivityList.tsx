@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { motion, AnimatePresence } from '@/lib/motion';
 import { cn } from '@/lib/utils';
@@ -28,6 +29,7 @@ interface ActivityListProps {
 type FilterType = 'all' | 'due_today' | 'overdue' | 'upcoming' | 'done';
 
 export function ActivityList({ prospectId, showProspect = true, maxHeight = '400px', className }: ActivityListProps) {
+  const { t } = useTranslation('common');
   const [filter, setFilter] = useState<FilterType>('all');
 
   // Fetch activities based on filter
@@ -97,7 +99,7 @@ export function ActivityList({ prospectId, showProspect = true, maxHeight = '400
         </div>
 
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" onClick={refetch} aria-label="Refresh activities">
+          <Button variant="ghost" size="icon" onClick={refetch} aria-label={t("refresh_activities", "Refresh activities")}>
             <RefreshCw className="w-4 h-4" aria-hidden="true" />
           </Button>
           <ActivityQuickAdd 

@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from 'react-i18next';
 import { Carousel, Card, CardType } from "@/components/ui/apple-cards-carousel";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -27,6 +28,7 @@ interface CourseAppleCarouselProps {
 }
 
 export function CourseAppleCarousel({ title, courses }: CourseAppleCarouselProps) {
+  const { t } = useTranslation('common');
   const courseCards: CardType[] = courses.map((course) => ({
     category: course.category || "Course",
     title: course.title,
@@ -87,14 +89,10 @@ export function CourseAppleCarousel({ title, courses }: CourseAppleCarouselProps
 
         <div className="flex gap-3">
           <Link to={`/courses/${course.slug}`} className="flex-1">
-            <Button className="w-full squircle" size="lg">
-              View Course
-            </Button>
+            <Button className="w-full squircle" size="lg">{t('academy.viewCourse')}</Button>
           </Link>
           <Link to={`/courses/${course.slug}`}>
-            <Button variant="outline" className="squircle" size="lg">
-              Preview
-            </Button>
+            <Button variant="outline" className="squircle" size="lg">{t('academy.preview')}</Button>
           </Link>
         </div>
 

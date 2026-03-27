@@ -18,6 +18,7 @@ import { useFieldPermissions } from "@/hooks/useFieldPermissions";
 import { useRole } from "@/contexts/RoleContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useTranslation } from 'react-i18next';
 
 interface Props {
   candidate: any;
@@ -51,6 +52,7 @@ const ExpandableSummary = ({ summary }: { summary: string }) => {
 };
 
 export const CandidateDecisionDashboard = ({ candidate, applications, jobId, applicationId, onAction }: Props) => {
+  const { t } = useTranslation('partner');
   const { recharts, isLoading: chartsLoading } = useRecharts();
   const [showOfferDialog, setShowOfferDialog] = useState(false);
   const [showVerdictDialog, setShowVerdictDialog] = useState(false);
@@ -130,7 +132,7 @@ export const CandidateDecisionDashboard = ({ candidate, applications, jobId, app
   // Action handlers
   const handleMoveToOffer = async () => {
     if (!applicationId) {
-      toast.error("No application selected");
+      toast.error(t('candidateDecisionDashboard.toast.noApplicationSelected'));
       return;
     }
     
@@ -146,12 +148,12 @@ export const CandidateDecisionDashboard = ({ candidate, applications, jobId, app
 
       if (error) throw error;
       
-      toast.success("Candidate moved to Offer stage");
+      toast.success(t('candidateDecisionDashboard.toast.candidateMovedToOfferStage'));
       setShowOfferDialog(false);
       onAction?.("offer");
     } catch (error: unknown) {
       console.error("Error moving to offer:", error);
-      toast.error("Failed to move candidate to offer stage");
+      toast.error(t('candidateDecisionDashboard.toast.failedToMoveCandidateToOfferStage'));
     } finally {
       setIsSubmitting(false);
     }
@@ -159,7 +161,7 @@ export const CandidateDecisionDashboard = ({ candidate, applications, jobId, app
 
   const handleLogVerdict = async (verdict: "proceed" | "reject") => {
     if (!applicationId) {
-      toast.error("No application selected");
+      toast.error(t('candidateDecisionDashboard.toast.noApplicationSelected'));
       return;
     }
     
@@ -195,7 +197,7 @@ export const CandidateDecisionDashboard = ({ candidate, applications, jobId, app
       onAction?.(verdict);
     } catch (error: unknown) {
       console.error("Error logging verdict:", error);
-      toast.error("Failed to log verdict");
+      toast.error(t('candidateDecisionDashboard.toast.failedToLogVerdict'));
     } finally {
       setIsSubmitting(false);
     }
@@ -204,7 +206,7 @@ export const CandidateDecisionDashboard = ({ candidate, applications, jobId, app
   const handleRequestInterview = () => {
     // Navigate to scheduling or open interview scheduling modal
     window.open(`/scheduling?candidate=${candidate.id}&job=${jobId}`, '_blank');
-    toast.info("Opening interview scheduler...");
+    toast.info(t('candidateDecisionDashboard.toast.openingInterviewScheduler'));
     onAction?.("schedule_interview");
   };
 
@@ -243,7 +245,7 @@ export const CandidateDecisionDashboard = ({ candidate, applications, jobId, app
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Zap className="w-5 h-5 text-primary" />
-                <span className="font-semibold">Quick Actions</span>
+                <span className="font-semibold">{t('candidateDecisionDashboard.quickActions')}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Button
@@ -280,7 +282,7 @@ export const CandidateDecisionDashboard = ({ candidate, applications, jobId, app
       <Dialog open={showOfferDialog} onOpenChange={setShowOfferDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Move to Offer Stage</DialogTitle>
+            <DialogTitle>{t('candidateDecisionDashboard.dialogTitle')}</DialogTitle>
             <DialogDescription>
               You're about to move {candidate.full_name} to the Offer stage. This will notify the TQC team to prepare an offer package.
             </DialogDescription>
@@ -288,14 +290,12 @@ export const CandidateDecisionDashboard = ({ candidate, applications, jobId, app
           <div className="py-4">
             <Alert>
               <CheckCircle2 className="w-4 h-4" />
-              <AlertDescription>
-                This action will trigger the offer workflow and notify relevant stakeholders.
-              </AlertDescription>
+              <AlertDescription>{t('candidateDecisionDashboard.alert.thisActionWillTriggerTheOfferWorkflowAndDesc')}</AlertDescription>
             </Alert>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowOfferDialog(false)} disabled={isSubmitting}>
-              Cancel
+              {t('common:cancel')}
             </Button>
             <Button onClick={handleMoveToOffer} disabled={isSubmitting}>
               {isSubmitting ? "Moving..." : "Confirm Move to Offer"}
@@ -308,14 +308,14 @@ export const CandidateDecisionDashboard = ({ candidate, applications, jobId, app
       <Dialog open={showVerdictDialog} onOpenChange={setShowVerdictDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Log Final Verdict</DialogTitle>
+            <DialogTitle>{t('candidateDecisionDashboard.dialogTitle')}</DialogTitle>
             <DialogDescription>
               Record your decision for {candidate.full_name}
             </DialogDescription>
           </DialogHeader>
           <div className="py-4 space-y-4">
             <Textarea
-              placeholder="Add notes about your decision..."
+              placeholder={t('candidateDecisionDashboard.placeholder.addNotesAboutYourDecision')}
               value={verdictNotes}
               onChange={(e) => setVerdictNotes(e.target.value)}
               rows={4}
@@ -328,7 +328,7 @@ export const CandidateDecisionDashboard = ({ candidate, applications, jobId, app
               disabled={isSubmitting}
             >
               <ThumbsDown className="w-4 h-4 mr-2" />
-              Reject
+              {t('common:reject')}
             </Button>
             <Button 
               variant="default" 
@@ -357,14 +357,14 @@ export const CandidateDecisionDashboard = ({ candidate, applications, jobId, app
             {/* Overall Score - Large */}
             <div className="text-center">
               <div className="text-6xl font-black mb-2">{overallScore}</div>
-              <p className="text-sm text-muted-foreground">Overall</p>
+              <p className="text-sm text-muted-foreground">{t('candidateDecisionDashboard.overall')}</p>
             </div>
 
             {/* Score Badges Grid - 2x2 */}
             <div className="grid grid-cols-2 gap-3">
-              <ScoreBadge label="Fit Score" value={fitScore} icon={TrendingUp} />
+              <ScoreBadge label="Fit" Score value={fitScore} icon={TrendingUp} />
               <ScoreBadge label="Engagement" value={engagementScore} icon={Activity} />
-              <ScoreBadge label="Internal Rating" value={internalRating} icon={Star} />
+              <ScoreBadge label="Internal" Rating value={internalRating} icon={Star} />
               <ScoreBadge label="Completeness" value={completeness} max={100} icon={CheckCircle2} />
             </div>
 
@@ -457,7 +457,7 @@ export const CandidateDecisionDashboard = ({ candidate, applications, jobId, app
               <div className="text-center">
                 <Briefcase className="w-6 h-6 mx-auto mb-2 text-muted-foreground" />
                 <p className="text-2xl font-bold">{candidate.years_of_experience}</p>
-                <p className="text-xs text-muted-foreground">Years Exp</p>
+                <p className="text-xs text-muted-foreground">{t('candidateDecisionDashboard.yearsExp')}</p>
               </div>
             </CardContent>
           </Card>
@@ -472,7 +472,7 @@ export const CandidateDecisionDashboard = ({ candidate, applications, jobId, app
                 <p className="text-lg font-bold">
                   {candidate.preferred_currency || 'EUR'} {Math.round(candidate.desired_salary_min / 1000)}K-{Math.round(candidate.desired_salary_max / 1000)}K
                 </p>
-                <p className="text-xs text-muted-foreground">Salary Range</p>
+                <p className="text-xs text-muted-foreground">{t('candidateDecisionDashboard.salaryRange')}</p>
               </div>
             </CardContent>
           </Card>
@@ -485,7 +485,7 @@ export const CandidateDecisionDashboard = ({ candidate, applications, jobId, app
               <div className="text-center">
                 <Clock className="w-6 h-6 mx-auto mb-2 text-muted-foreground" />
                 <p className="text-lg font-bold">{candidate.notice_period}</p>
-                <p className="text-xs text-muted-foreground">Notice Period</p>
+                <p className="text-xs text-muted-foreground">{t('candidateDecisionDashboard.noticePeriod')}</p>
               </div>
             </CardContent>
           </Card>
@@ -498,7 +498,7 @@ export const CandidateDecisionDashboard = ({ candidate, applications, jobId, app
               <div className="text-center">
                 <MapPin className="w-6 h-6 mx-auto mb-2 text-muted-foreground" />
                 <p className="text-lg font-bold truncate">{candidate.desired_locations[0]}</p>
-                <p className="text-xs text-muted-foreground">Preferred Location</p>
+                <p className="text-xs text-muted-foreground">{t('candidateDecisionDashboard.preferredLocation')}</p>
               </div>
             </CardContent>
           </Card>

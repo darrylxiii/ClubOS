@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import {
     DndContext,
@@ -37,6 +38,7 @@ interface CourseBuilderProps {
 }
 
 function SortableItem({ module, onEditModule, onDeleteModule }: { module: Module; onEditModule: (id: string) => void; onDeleteModule: (id: string) => void }) {
+  const { t } = useTranslation('common');
     const {
         attributes,
         listeners,
@@ -126,7 +128,7 @@ export function CourseBuilder({ modules, onModulesChange, onEditModule, onDelete
     return (
         <div className="space-y-4">
             <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold">Course Modules</h3>
+                <h3 className="text-lg font-semibold">{t("course_modules", "Course Modules")}</h3>
                 <Button onClick={onAddModule} size="sm" className="gap-2">
                     <Plus className="h-4 w-4" />
                     Add Module
@@ -160,7 +162,7 @@ export function CourseBuilder({ modules, onModulesChange, onEditModule, onDelete
                     <div className="p-3 bg-primary/10 rounded-full w-fit mx-auto mb-3">
                         <Sparkles className="h-6 w-6 text-primary" />
                     </div>
-                    <h3 className="text-lg font-medium mb-1">Start Building Your Course</h3>
+                    <h3 className="text-lg font-medium mb-1">{t("start_building_your_course", "Start Building Your Course")}</h3>
                     <p className="text-muted-foreground mb-4">
                         Add your first module to get started
                     </p>

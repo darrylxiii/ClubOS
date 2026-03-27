@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -37,6 +38,7 @@ interface Props {
 }
 
 export function RejectedApplicationsTab({ applications }: Props) {
+  const { t } = useTranslation('common');
   const calculateDaysInPipeline = (appliedAt: string, rejectedAt: string) => {
     const start = new Date(appliedAt);
     const end = new Date(rejectedAt);
@@ -56,7 +58,7 @@ export function RejectedApplicationsTab({ applications }: Props) {
           <div className="flex flex-col items-center gap-4">
             <CheckCircle className="w-16 h-16 text-muted-foreground/30" />
             <div>
-              <p className="text-lg font-medium">No Rejected Applications</p>
+              <p className="text-lg font-medium">{t("no_rejected_applications", "No Rejected Applications")}</p>
               <p className="text-sm text-muted-foreground mt-1">
                 You don't have any rejected applications yet.
               </p>
@@ -75,7 +77,7 @@ export function RejectedApplicationsTab({ applications }: Props) {
           <div className="flex items-start gap-3">
             <AlertCircle className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
             <div className="space-y-1">
-              <p className="text-sm font-medium">About Rejected Applications</p>
+              <p className="text-sm font-medium">{t("about_rejected_applications", "About Rejected Applications")}</p>
               <p className="text-xs text-muted-foreground">
                 Every rejection is a learning opportunity. Review these applications to understand what to improve for future opportunities. 
                 The Quantum Club is here to help you grow and succeed.
@@ -105,7 +107,7 @@ export function RejectedApplicationsTab({ applications }: Props) {
                 <div className="flex-1 min-w-0">
                   <CardTitle className="text-xl mb-2 flex items-center gap-2">
                     {application.job?.title}
-                    <Badge variant="destructive" className="ml-2">Rejected</Badge>
+                    <Badge variant="destructive" className="ml-2">{t("rejected", "Rejected")}</Badge>
                   </CardTitle>
                   <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 text-sm text-muted-foreground">
                     <div className="flex items-center gap-1.5">
@@ -215,7 +217,7 @@ export function RejectedApplicationsTab({ applications }: Props) {
                 <Card className="border-destructive/20 bg-destructive/5">
                   <CardContent className="py-3">
                     <p className="text-sm">
-                      <span className="font-medium">Rejected at stage:</span>{" "}
+                      <span className="font-medium">{t("rejected_at_stage", "Rejected at stage:")}</span>{" "}
                       <span className="text-muted-foreground">{rejectedStage.title}</span>
                     </p>
                   </CardContent>

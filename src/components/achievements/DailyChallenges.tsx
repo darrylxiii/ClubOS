@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
@@ -27,6 +28,7 @@ interface ChallengeProgress {
 }
 
 export const DailyChallenges = () => {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [challenges, setChallenges] = useState<Challenge[]>([]);
   const [progress, setProgress] = useState<Map<string, ChallengeProgress>>(new Map());
@@ -125,7 +127,7 @@ export const DailyChallenges = () => {
     if (route) {
       window.location.href = route;
     } else {
-      toast.info('Complete the challenge to earn bonus XP!');
+      toast.info(t('achievements.completeChallengeForXP'));
     }
   };
 
@@ -182,7 +184,7 @@ export const DailyChallenges = () => {
             <>
               <div className="space-y-1">
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">Progress</span>
+                  <span className="text-muted-foreground">{t('achievements.progress')}</span>
                   <span className="font-semibold">
                     {prog?.current_progress || 0} / {prog?.target_value || challenge.criteria.count || 1}
                   </span>
@@ -192,7 +194,7 @@ export const DailyChallenges = () => {
 
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">
-                  {remaining} more action{remaining !== 1 ? 's' : ''} needed
+                  {t('achievements.moreActionsNeeded', { count: remaining })}
                 </span>
                 <Badge variant="outline" className="gap-1">
                   <Zap className="h-3 w-3" />
@@ -206,7 +208,7 @@ export const DailyChallenges = () => {
                 size="sm"
                 className="w-full"
               >
-                Start Challenge
+                {t('achievements.startChallenge')}
               </Button>
             </>
           )}
@@ -215,7 +217,7 @@ export const DailyChallenges = () => {
           {isCompleted && (
             <div className="flex items-center justify-center gap-2 text-sm font-semibold text-primary">
               <CheckCircle2 className="h-4 w-4" />
-              <span>Challenge Completed!</span>
+              <span>{t('achievements.challengeCompleted')}</span>
               <Badge variant="secondary" className="gap-1">
                 <Zap className="h-3 w-3" />
                 +{challenge.bonus_points} XP
@@ -231,7 +233,7 @@ export const DailyChallenges = () => {
     return (
       <Card className="p-8 text-center">
         <Clock className="h-8 w-8 mx-auto mb-4 animate-spin text-primary" />
-        <p className="text-muted-foreground">Loading challenges...</p>
+        <p className="text-muted-foreground">{t('achievements.loadingChallenges')}</p>
       </Card>
     );
   }
@@ -255,9 +257,9 @@ export const DailyChallenges = () => {
                 <Flame className="h-8 w-8 text-primary" />
               </div>
               <div>
-                <h3 className="text-2xl font-bold">{streak} Day Streak!</h3>
+                <h3 className="text-2xl font-bold">{t('achievements.dayStreak', { count: streak })}</h3>
                 <p className="text-sm text-muted-foreground">
-                  Keep it going! Complete today's challenges
+                  {t('achievements.keepItGoing')}
                 </p>
               </div>
             </div>
@@ -273,11 +275,11 @@ export const DailyChallenges = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Target className="h-5 w-5 text-primary" />
-            <h3 className="text-lg font-semibold">Daily Challenges</h3>
+            <h3 className="text-lg font-semibold">{t('achievements.dailyChallenges')}</h3>
           </div>
           <Badge variant="outline" className="gap-1">
             <Clock className="h-3 w-3" />
-            Resets in {24 - new Date().getHours()}h
+            {t('achievements.resetsIn', { hours: 24 - new Date().getHours() })}
           </Badge>
         </div>
         <div className="grid gap-4">
@@ -285,7 +287,7 @@ export const DailyChallenges = () => {
           {dailyChallenges.length === 0 && (
             <Card className="p-8 text-center">
               <Target className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-              <p className="text-muted-foreground">No daily challenges available</p>
+              <p className="text-muted-foreground">{t('achievements.noDailyChallenges')}</p>
             </Card>
           )}
         </div>
@@ -296,7 +298,7 @@ export const DailyChallenges = () => {
         <div className="space-y-4">
           <div className="flex items-center gap-2">
             <Flame className="h-5 w-5 text-primary" />
-            <h3 className="text-lg font-semibold">Weekly Challenges</h3>
+            <h3 className="text-lg font-semibold">{t('achievements.weeklyChallenges')}</h3>
           </div>
           <div className="grid gap-4">
             {weeklyChallenges.map(renderChallenge)}

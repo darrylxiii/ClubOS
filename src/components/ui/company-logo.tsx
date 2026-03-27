@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { Building2 } from 'lucide-react';
 import { useBrandAssets } from '@/hooks/useBrandAssets';
@@ -68,6 +69,7 @@ export function CompanyLogo({
   autoFetch = true,
   showInitials = true,
 }: CompanyLogoProps) {
+  const { t } = useTranslation('common');
   const [imageError, setImageError] = React.useState(false);
   
   // Resolve props from company object or direct props
@@ -108,7 +110,7 @@ export function CompanyLogo({
       <div className={containerClasses}>
         <img
           src={finalLogoUrl}
-          alt={`${resolvedName || 'Company'} logo`}
+          alt={`${resolvedName || t('companyLogo.fallbackName', 'Company')} ${t('companyLogo.logo', 'logo')}`}
           className="h-full w-full object-contain p-1"
           onError={() => setImageError(true)}
           loading="lazy"
@@ -152,6 +154,7 @@ export function CompanyLogoStatic({
   size?: keyof typeof sizeClasses;
   className?: string;
 }) {
+  const { t } = useTranslation('common');
   const [imageError, setImageError] = React.useState(false);
 
   const containerClasses = cn(
@@ -165,7 +168,7 @@ export function CompanyLogoStatic({
       <div className={containerClasses}>
         <img
           src={logoUrl}
-          alt={`${name || 'Company'} logo`}
+          alt={`${name || t('companyLogo.fallbackName', 'Company')} ${t('companyLogo.logo', 'logo')}`}
           className="h-full w-full object-contain p-1"
           onError={() => setImageError(true)}
           loading="lazy"

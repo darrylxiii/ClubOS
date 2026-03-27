@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -23,6 +24,7 @@ import {
 } from "lucide-react";
 
 export function PayoutScheduler() {
+  const { t } = useTranslation('common');
   const [statusFilter, setStatusFilter] = useState<string>('approved');
   const { data: payouts, isLoading } = useCommissionPayouts(statusFilter);
   const schedulePayout = useSchedulePayout();
@@ -48,7 +50,7 @@ export function PayoutScheduler() {
 
   const handleSchedule = async () => {
     if (!selectedIds.length) {
-      toast.error('Select at least one payout');
+      toast.error(t("select_at_least_one", "Select at least one payout"));
       return;
     }
     try {
@@ -57,15 +59,15 @@ export function PayoutScheduler() {
         scheduledDate 
       });
       setSelectedIds([]);
-      toast.success('Payouts scheduled');
+      toast.success(t("payouts_scheduled", "Payouts scheduled"));
     } catch (error) {
-      toast.error('Failed to schedule payouts');
+      toast.error(t("failed_to_schedule_payouts", "Failed to schedule payouts"));
     }
   };
 
   const handleMarkPaid = async () => {
     if (!selectedIds.length) {
-      toast.error('Select at least one payout');
+      toast.error(t("select_at_least_one", "Select at least one payout"));
       return;
     }
     try {
@@ -75,9 +77,9 @@ export function PayoutScheduler() {
       });
       setSelectedIds([]);
       setPaymentRef('');
-      toast.success('Payouts marked as paid');
+      toast.success(t("payouts_marked_as_paid", "Payouts marked as paid"));
     } catch (error) {
-      toast.error('Failed to mark payouts as paid');
+      toast.error(t("failed_to_mark_payouts", "Failed to mark payouts as paid"));
     }
   };
 
@@ -153,7 +155,7 @@ export function PayoutScheduler() {
                   checked={selectedIds.length === payouts.length}
                   onCheckedChange={selectAll}
                 />
-                <span className="text-sm text-muted-foreground">Select All</span>
+                <span className="text-sm text-muted-foreground">{t("select_all", "Select All")}</span>
               </div>
                 {payouts.map(payout => (
                 <div 
@@ -221,7 +223,7 @@ export function PayoutScheduler() {
             <div className="flex items-center gap-3">
               <div className="flex-1">
                 <Input
-                  placeholder="Payment reference (optional)"
+                  placeholder={t("payment_reference_optional", "Payment reference (optional)")}
                   value={paymentRef}
                   onChange={(e) => setPaymentRef(e.target.value)}
                 />

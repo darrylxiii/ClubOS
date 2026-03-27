@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -43,6 +44,7 @@ interface OperatingExpense {
 }
 
 export default function ExpenseTracking() {
+  const { t } = useTranslation('admin');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editExpense, setEditExpense] = useState<OperatingExpense | null>(null);
   const [isCategorizing, setIsCategorizing] = useState(false);
@@ -221,7 +223,7 @@ export default function ExpenseTracking() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <p className="text-muted-foreground">Track operating expenses, recurring costs, and vendor subscriptions</p>
+        <p className="text-muted-foreground">{t('expenseTracking.text1')}</p>
         <div className="flex gap-2">
           <Button variant="outline" onClick={handleAICategorize} disabled={isCategorizing}>
             <Sparkles className={`h-4 w-4 mr-2 ${isCategorizing ? "animate-pulse" : ""}`} />
@@ -290,7 +292,7 @@ export default function ExpenseTracking() {
       {/* Expense Ledger */}
       <Card>
         <CardHeader>
-          <CardTitle>Expense Ledger</CardTitle>
+          <CardTitle>{t('expenseTracking.text2')}</CardTitle>
           <CardDescription>All operating expenses for {currentYear}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -316,20 +318,20 @@ export default function ExpenseTracking() {
           ) : filteredExpenses.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               <Building2 className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>No expenses found</p>
+              <p>{t('expenseTracking.text3')}</p>
               <p className="text-sm">{hasActiveFilters ? "Try adjusting your filters." : "Add your first expense to start tracking."}</p>
             </div>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Category</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead>Vendor</TableHead>
-                  <TableHead className="text-right">Amount</TableHead>
+                  <TableHead>{t('expenseTracking.text4')}</TableHead>
+                  <TableHead>{t('expenseTracking.text5')}</TableHead>
+                  <TableHead>{t('expenseTracking.text6')}</TableHead>
+                  <TableHead>{t('expenseTracking.text7')}</TableHead>
+                  <TableHead className="text-right">{t('expenseTracking.text8')}</TableHead>
                   <TableHead className="text-right">VAT</TableHead>
-                  <TableHead className="text-center">Type</TableHead>
+                  <TableHead className="text-center">{t('expenseTracking.text9')}</TableHead>
                   <TableHead />
                 </TableRow>
               </TableHeader>
@@ -360,13 +362,13 @@ export default function ExpenseTracking() {
                           {expense.recurring_frequency || "Monthly"}
                         </Badge>
                       ) : (
-                        <span className="text-xs text-muted-foreground">One-time</span>
+                        <span className="text-xs text-muted-foreground">{t('expenseTracking.text10')}</span>
                       )}
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1">
                         {expense.receipt_url && (
-                          <Button variant="ghost" size="icon" className="h-8 w-8" title="Receipt attached">
+                          <Button variant="ghost" size="icon" className="h-8 w-8" title={t('expenseTracking.text11')}>
                             <FileText className="h-4 w-4 text-primary" />
                           </Button>
                         )}

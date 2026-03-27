@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Activity } from "lucide-react";
@@ -5,6 +6,7 @@ import { useRecentActivity } from "@/hooks/useRecentActivity";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export function RecentActivityFeed() {
+  const { t } = useTranslation('common');
   const { data: activities, isLoading } = useRecentActivity();
 
   if (isLoading) {
@@ -15,7 +17,7 @@ export function RecentActivityFeed() {
             <Activity className="h-5 w-5" />
             Recent System Activity
           </CardTitle>
-          <CardDescription>Latest platform events (last 24 hours)</CardDescription>
+          <CardDescription>{t("latest_platform_events_last", "Latest platform events (last 24 hours)")}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
@@ -43,7 +45,7 @@ export function RecentActivityFeed() {
             <Activity className="h-5 w-5" />
             Recent System Activity
           </CardTitle>
-          <CardDescription>Latest platform events (last 24 hours)</CardDescription>
+          <CardDescription>{t("latest_platform_events_last", "Latest platform events (last 24 hours)")}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="text-center py-8 text-muted-foreground">
@@ -61,7 +63,7 @@ export function RecentActivityFeed() {
           <Activity className="h-5 w-5" />
           Recent System Activity
         </CardTitle>
-        <CardDescription>Latest platform events (last 24 hours)</CardDescription>
+        <CardDescription>{t("latest_platform_events_last", "Latest platform events (last 24 hours)")}</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="space-y-3">

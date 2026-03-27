@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion } from "framer-motion";
 import { useCRMPipelineMetrics, formatCurrencyCompact } from "@/hooks/useCRMPipelineMetrics";
+import { useTranslation } from 'react-i18next';
 
 interface StageCount {
   stage: string;
@@ -25,6 +26,7 @@ const STAGE_COLORS: Record<string, string> = {
 };
 
 export const CRMProspectsWidget = () => {
+  const { t } = useTranslation('common');
   const { data: pipelineMetrics, isLoading: metricsLoading } = useCRMPipelineMetrics();
   
   const { data: stageCounts, isLoading: stageLoading } = useQuery({
@@ -90,7 +92,7 @@ export const CRMProspectsWidget = () => {
         <CardContent className="flex-1">
           <div className="flex flex-col items-center justify-center py-4 text-center">
             <Info className="h-6 w-6 text-muted-foreground mb-2" />
-            <p className="text-sm text-muted-foreground mb-3">No prospects yet</p>
+            <p className="text-sm text-muted-foreground mb-3">{t('cRMProspectsWidget.noProspectsYet')}</p>
             <Button asChild variant="outline" size="sm">
               <Link to="/crm">
                 Add Prospects
@@ -119,7 +121,7 @@ export const CRMProspectsWidget = () => {
             </div>
             <Button variant="ghost" size="sm" asChild className="text-xs">
               <Link to="/crm">
-                View All
+                {t('common:viewAll')}
                 <ArrowRight className="h-3 w-3 ml-1" />
               </Link>
             </Button>
@@ -130,11 +132,11 @@ export const CRMProspectsWidget = () => {
           <div className="grid grid-cols-2 gap-3">
             <div className="p-2 rounded-lg bg-muted/50 text-center">
               <div className="text-xl font-bold text-primary">{pipelineMetrics.prospect_count}</div>
-              <div className="text-xs text-muted-foreground">Active</div>
+              <div className="text-xs text-muted-foreground">{t('cRMProspectsWidget.active')}</div>
             </div>
             <div className="p-2 rounded-lg bg-muted/50 text-center">
               <div className="text-xl font-bold">{formatCurrencyCompact(pipelineMetrics.avg_deal_size)}</div>
-              <div className="text-xs text-muted-foreground">Avg Deal</div>
+              <div className="text-xs text-muted-foreground">{t('cRMProspectsWidget.avgDeal')}</div>
             </div>
           </div>
 

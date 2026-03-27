@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from 'react-i18next';
 import {
   Dialog,
   DialogContent,
@@ -66,10 +67,10 @@ interface PipelineStage {
 }
 
 const DEFAULT_STAGES: PipelineStage[] = [
-  { name: "Applied" },
-  { name: "Screening" },
-  { name: "Interview" },
-  { name: "Final Round" },
+  { name: t('partner.addcandidatedialog.applied', 'Applied') },
+  { name: t('partner.addcandidatedialog.screening', 'Screening') },
+  { name: t('partner.addcandidatedialog.interview', 'Interview') },
+  { name: t('partner.addcandidatedialog.finalRound', 'Final Round') },
 ];
 
 export const AddCandidateDialog = ({
@@ -79,6 +80,7 @@ export const AddCandidateDialog = ({
   jobTitle,
   onCandidateAdded,
 }: AddCandidateDialogProps) => {
+  const { t } = useTranslation('partner');
   const { currentRole } = useRole();
   const isAdmin = currentRole === 'admin' || currentRole === 'strategist';
 
@@ -255,7 +257,7 @@ export const AddCandidateDialog = ({
 
   const handleLinkedInScrape = async () => {
     if (!linkedinUrlForScrape) {
-      toast.error("Please enter a LinkedIn URL");
+      toast.error(t('addCandidate.enterLinkedInUrl'));
       return;
     }
 
@@ -282,10 +284,10 @@ export const AddCandidateDialog = ({
         });
         setLinkedinImported(true);
         setAddMode("manual");
-        toast.success("Profile imported from LinkedIn", {
-          description: data.data.avatar_url 
-            ? "Name and photo extracted successfully" 
-            : "Name extracted - please verify details"
+        toast.success(t('addCandidate.profileImported'), {
+          description: data.data.avatar_url
+            ? t('addCandidate.nameAndPhotoExtracted')
+            : t('addCandidate.nameExtractedVerify')
         });
       }
     } catch (error: unknown) {
@@ -308,8 +310,8 @@ export const AddCandidateDialog = ({
           }));
           setLinkedinImported(true);
           setAddMode("manual");
-          toast.warning("LinkedIn import timed out", {
-            description: `Name extracted as "${extractedName}" - please verify and complete details manually`
+          toast.warning(t('addCandidate.linkedinTimedOut'), {
+            description: t('addCandidate.nameExtractedManual', { name: extractedName })
           });
         } else {
           setFormData(prev => ({
@@ -317,13 +319,13 @@ export const AddCandidateDialog = ({
             linkedinUrl: linkedinUrlForScrape,
           }));
           setAddMode("manual");
-          toast.error("LinkedIn import timed out", {
-            description: "Please enter candidate details manually"
+          toast.error(t('addCandidate.linkedinTimedOut'), {
+            description: t('addCandidate.enterDetailsManually')
           });
         }
       } else {
-        toast.error("Failed to import LinkedIn profile", {
-          description: "Please try again or enter details manually"
+        toast.error(t('addCandidate.failedImportLinkedIn'), {
+          description: t('addCandidate.tryAgainOrManual')
         });
       }
     } finally {
@@ -429,8 +431,8 @@ export const AddCandidateDialog = ({
       return [];
     } catch (error) {
       console.error('Duplicate check error:', error);
-      toast.warning("Could not check for duplicates", {
-        description: "Please verify manually that this candidate doesn't already exist"
+      toast.warning(t('addCandidate.duplicateCheckFailed'), {
+        description: t('addCandidate.verifyManually')
       });
       return [];
     }
@@ -515,7 +517,7 @@ export const AddCandidateDialog = ({
           status: "active",
           stages: [
             {
-              name: linkedinImported ? "LinkedIn Import" : "Admin Added",
+              name: linkedinImported ? t('partner.addcandidatedialog.linkedinImport', 'LinkedIn Import') : t('partner.addcandidatedialog.adminAdded', 'Admin Added'),
               status: "in_progress",
               started_at: new Date().toISOString(),
               notes: formData.notes || null,
@@ -603,8 +605,8 @@ export const AddCandidateDialog = ({
             application_id: application.id,
             interaction_type: 'status_change',
             interaction_direction: 'internal',
-            title: selectedExistingCandidate ? 'Existing Candidate Added to Pipeline' : 'Candidate Added to Pipeline',
-            content: `🎯 **${selectedExistingCandidate ? 'Existing Candidate Linked' : 'Admin-Added Candidate'}**${linkedinImported ? ' 📎 **LinkedIn Import**' : ''}
+            title: selectedExistingCandidate ? t('partner.addcandidatedialog.existingCandidateAddedToPipeline', 'Existing Candidate Added to Pipeline') : t('partner.addcandidatedialog.candidateAddedToPipeline', 'Candidate Added to Pipeline'),
+            content: `🎯 **${selectedExistingCandidate ? t('partner.addcandidatedialog.existingCandidateLinked', 'Existing Candidate Linked') : t('partner.addcandidatedialog.adminaddedCandidate', 'Admin-Added Candidate')}**${linkedinImported ? ' 📎 **LinkedIn Import**' : ''}
 
 **Name:** ${logName}
 **Email:** ${logEmail}
@@ -630,7 +632,7 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
           });
         } catch (interactionError) {
           console.error('[Add Candidate] Failed to log interaction:', interactionError);
-          toast.error("Candidate added but interaction log failed");
+          toast.error(t('addCandidate.addedButLogFailed'));
         }
 
         try {
@@ -667,12 +669,12 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
           });
         } catch (auditError) {
           console.error('[Add Candidate] Failed to log audit:', auditError);
-          toast.error("Candidate added but audit log failed");
+          toast.error(t('addCandidate.addedButAuditFailed'));
         }
       }
 
-      toast.success("Candidate added successfully", {
-        description: `${logName} has been added to the pipeline${selectedExistingCandidate ? ' (existing profile linked)' : ''}`,
+      toast.success(t('addCandidate.addedSuccessfully'), {
+        description: t('addCandidate.addedToPipeline', { name: logName, extra: selectedExistingCandidate ? ` (${t('addCandidate.existingProfileLinked')})` : '' }),
       });
 
       // Auto-enrich from LinkedIn + calculate skill match (fire-and-forget)
@@ -713,7 +715,7 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
       
       setSubmitError(errorMsg);
       
-      toast.error("Failed to Add Candidate", {
+      toast.error(t('addCandidate.toast.failedToAdd'), {
         description: errorMsg,
         duration: 8000
       });
@@ -724,33 +726,33 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
 
   const validateForm = (): boolean => {
     if (!formData.fullName.trim()) {
-      toast.error("Full name is required");
+      toast.error(t('addCandidate.fullNameRequired'));
       return false;
     }
-    
+
     if (!formData.linkedinUrl && !formData.email && !formData.phone) {
-      toast.error("Please provide at least one contact method", {
-        description: "LinkedIn URL (preferred), email, or phone number"
+      toast.error(t('addCandidate.contactRequired'), {
+        description: t('addCandidate.contactRequiredDesc')
       });
       return false;
     }
-    
+
     if (!formData.linkedinUrl) {
-      toast.warning("LinkedIn URL recommended", {
-        description: "Adding a LinkedIn profile helps with candidate enrichment"
+      toast.warning(t('addCandidate.linkedinRecommended'), {
+        description: t('addCandidate.linkedinRecommendedDesc')
       });
     }
-    
+
     if (formData.email.trim()) {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(formData.email)) {
-        toast.error("Please enter a valid email address");
+        toast.error(t('addCandidate.validEmailRequired'));
         return false;
       }
     }
-    
+
     if (formData.linkedinUrl && !formData.linkedinUrl.startsWith('http')) {
-      toast.warning("LinkedIn URL should start with http:// or https://");
+      toast.warning(t('addCandidate.linkedinUrlFormat'));
     }
     
     return true;
@@ -791,28 +793,24 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
       const err = error as { message?: string; code?: string };
       
       if (err.message?.includes('email already exists') || err.message?.includes('duplicate') || err.code === '23505') {
-        toast.error("Duplicate Email Detected", {
-          description: "A candidate with this email already exists. Please search for the existing candidate or use a different email.",
+        toast.error(t('addCandidateDialog.toast.duplicateEmailDetected'), { description: t('addCandidateDialog.toast.duplicateEmailDetectedDesc'),
           duration: 6000
         });
       } else if (err.code === '23503') {
-        toast.error("Database Error", {
-          description: "Unable to link candidate data. Please try again or contact support if the issue persists.",
+        toast.error(t('addCandidateDialog.toast.databaseError'), { description: t('addCandidateDialog.toast.databaseErrorDesc'),
           duration: 5000
         });
       } else if (err.message?.includes('permission') || err.message?.includes('RLS') || err.code === '42501') {
-        toast.error("Permission Denied", {
-          description: "You don't have permission to add candidates. Please contact an administrator.",
+        toast.error(t('addCandidateDialog.toast.permissionDenied'), { description: t('addCandidateDialog.toast.permissionDeniedDesc'),
           duration: 5000
         });
       } else if (err.message?.includes('unique constraint')) {
-        toast.error("Duplicate Candidate", {
-          description: "This candidate already exists in the system. Please check existing applications.",
+        toast.error(t('addCandidateDialog.toast.duplicateCandidate'), { description: t('addCandidateDialog.toast.duplicateCandidateDesc'),
           duration: 5000
         });
       } else {
-        toast.error("Failed to Add Candidate", {
-          description: err.message || "An unexpected error occurred. Please try again or contact support.",
+        toast.error(t('addCandidate.toast.failedToAdd'), {
+          description: err.message || t('addCandidate.toast.unexpectedError'),
           duration: 5000
         });
       }
@@ -860,7 +858,7 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
             </div>
             <div>
               <DialogTitle className="text-2xl font-black uppercase">
-                Add Candidate
+                {t('addCandidate.title')}
               </DialogTitle>
               <DialogDescription className="text-base">
                 Add a candidate to <strong>{jobTitle}</strong>. Provide at least a LinkedIn URL or email to get started. You can merge with their user account later if they sign up.
@@ -874,10 +872,9 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
           <div className="flex items-start gap-2">
             <Info className="h-4 w-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
             <div className="text-sm text-blue-900 dark:text-blue-100">
-              <strong>Step 1: Add candidate manually</strong>
+              <strong>{t('addCandidate.step1Title')}</strong>
               <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">
-                Add candidates to track them in your pipeline. If they sign up later, 
-                you can merge their profile with their account.
+                {t('addCandidate.step1Description')}
               </p>
             </div>
           </div>
@@ -893,7 +890,7 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
               </div>
               <div className="flex-1">
                 <h4 className="text-sm font-semibold text-destructive mb-1">
-                  Failed to Add Candidate
+                  {t('addCandidate.failedToAdd')}
                 </h4>
                 <p className="text-sm text-destructive/90">
                   {submitError}
@@ -917,16 +914,16 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
           <TabsList className={`grid w-full ${isAdmin ? 'grid-cols-3' : 'grid-cols-2'}`}>
             <TabsTrigger value="manual">
               <UserPlus className="w-4 h-4 mr-2" />
-              Manual
-            </TabsTrigger>
+              {t('common:manual', 'Manual')}
+         </TabsTrigger>
             <TabsTrigger value="linkedin">
               <Zap className="w-4 h-4 mr-2" />
-              LinkedIn
+              {t('common:linkedin', 'LinkedIn')}
             </TabsTrigger>
             {isAdmin && (
               <TabsTrigger value="existing">
                 <Users className="w-4 h-4 mr-2" />
-                Existing
+                {t('addCandidate.existing')}
               </TabsTrigger>
             )}
           </TabsList>
@@ -938,15 +935,15 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
                   <Linkedin className="w-5 h-5 text-accent" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-semibold mb-1">LinkedIn Profile Importer</h3>
+                  <h3 className="font-semibold mb-1">{t('addCandidate.linkedinImporter')}</h3>
                   <p className="text-sm text-muted-foreground">
-                    Paste a LinkedIn profile URL and we'll automatically extract all relevant candidate information.
+                    {t('addCandidate.linkedinImporterDesc')}
                   </p>
                 </div>
               </div>
 
               <div className="space-y-3">
-                <Label htmlFor="linkedinImport">LinkedIn Profile URL</Label>
+                <Label htmlFor="linkedinImport">{t('addCandidate.linkedinProfileUrl')}</Label>
                 <div className="flex gap-2">
                   <Input
                     id="linkedinImport"
@@ -964,18 +961,18 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
                     {scrapingLinkedIn ? (
                       <>
                         <Sparkles className="w-4 h-4 animate-spin" />
-                        Importing...
+                        {t('addCandidate.importing')}
                       </>
                     ) : (
                       <>
                         <Zap className="w-4 h-4" />
-                        Import Profile
+                        {t('addCandidate.importProfile')}
                       </>
                     )}
                   </Button>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  AI will automatically fill in candidate details from their LinkedIn profile
+                  {t('addCandidate.aiFillDetails')}
                 </p>
               </div>
             </div>
@@ -990,9 +987,9 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
                     <Users className="w-5 h-5 text-accent" />
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-semibold mb-1">Link Existing Candidate</h3>
+                    <h3 className="font-semibold mb-1">{t('addCandidate.linkExisting')}</h3>
                     <p className="text-sm text-muted-foreground">
-                      Search for a candidate already in the system and add them to this job without creating a duplicate profile.
+                      {t('addCandidate.linkExistingDesc')}
                     </p>
                   </div>
                 </div>
@@ -1001,7 +998,7 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
                 <div className="relative mb-3">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
-                    placeholder="Search by name, email, or LinkedIn URL..."
+                    placeholder={t('addCandidate.searchPlaceholder')}
                     value={existingSearch}
                     onChange={(e) => setExistingSearch(e.target.value)}
                     className="pl-9"
@@ -1015,9 +1012,9 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
                       <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
                     </div>
                   ) : existingSearch.trim() && existingResults.length === 0 ? (
-                    <p className="text-sm text-muted-foreground text-center py-8">No candidates found.</p>
+                    <p className="text-sm text-muted-foreground text-center py-8">{t('addCandidate.noCandidatesFound')}</p>
                   ) : !existingSearch.trim() ? (
-                    <p className="text-sm text-muted-foreground text-center py-8">Start typing to search candidates.</p>
+                    <p className="text-sm text-muted-foreground text-center py-8">{t('addCandidate.startTypingToSearch')}</p>
                   ) : (
                     <div className="p-1 space-y-1">
                       {existingResults.map((c) => {
@@ -1052,7 +1049,7 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
                               </div>
                               {inPipeline ? (
                                 <Badge variant="outline" className="text-[10px] shrink-0 border-muted-foreground/30">
-                                  Already in pipeline
+                                  {t('addCandidate.alreadyInPipeline')}
                                 </Badge>
                               ) : isSelected ? (
                                 <CheckCircle2 className="w-4 h-4 text-accent shrink-0" />
@@ -1078,7 +1075,7 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
                     </div>
 
                     <div className="space-y-2">
-                      <Label>Starting Pipeline Stage</Label>
+                      <Label>{t('addCandidate.startingPipelineStage')}</Label>
                       <Select
                         value={formData.startStageIndex}
                         onValueChange={(value) => setFormData({ ...formData, startStageIndex: value })}
@@ -1100,7 +1097,7 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
                     <div className="space-y-2">
                       <Label className="flex items-center gap-2">
                         <Award className="w-4 h-4 text-accent" />
-                        Credit Assignment
+                        {t('addCandidate.creditAssignment')}
                       </Label>
                       <Popover open={creditPopoverOpen} onOpenChange={setCreditPopoverOpen}>
                         <PopoverTrigger asChild>
@@ -1110,15 +1107,15 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
                             className="w-full justify-between"
                           >
                             {creditTo.length === 0
-                              ? "Select team members..."
-                              : `${creditTo.length} selected`}
+                              ? t('addCandidate.selectTeamMembers')
+                              : t('addCandidate.selectedCount', { count: creditTo.length })}
                             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                           </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-full p-0">
                           <Command>
-                            <CommandInput placeholder="Search team members..." />
-                            <CommandEmpty>No team member found.</CommandEmpty>
+                            <CommandInput placeholder={t('addCandidate.searchTeamMembers')} />
+                            <CommandEmpty>{t('addCandidate.noTeamMemberFound')}</CommandEmpty>
                             <CommandGroup className="max-h-64 overflow-auto">
                               {teamMembers.map((member) => (
                                 <CommandItem
@@ -1150,12 +1147,12 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
                     </div>
 
                     <div className="space-y-2">
-                      <Label>Notes (optional)</Label>
+                      <Label>{t('addCandidate.notesOptional')}</Label>
                       <Textarea
                         value={formData.notes}
                         onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                         rows={2}
-                        placeholder="Why are you adding this candidate to this job?"
+                        placeholder={t('addCandidate.whyAddingCandidate')}
                       />
                     </div>
 
@@ -1165,7 +1162,7 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
                         variant="outline"
                         onClick={() => handleOpenChange(false)}
                       >
-                        Cancel
+                        {t('common:cancel', 'Cancel')}
                       </Button>
                       <Button
                         type="button"
@@ -1185,12 +1182,12 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
                         {loading ? (
                           <>
                             <Loader2 className="w-4 h-4 animate-spin" />
-                            Adding...
+                            {t('addCandidate.adding')}
                           </>
                         ) : (
                           <>
                             <UserPlus className="w-4 h-4" />
-                            Add to Pipeline
+                            {t('addCandidate.addToPipeline')}
                           </>
                         )}
                       </Button>
@@ -1207,7 +1204,7 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
             <div className="space-y-2">
               <Label htmlFor="fullName" className="flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-accent" />
-                Full Name *
+                {t('addCandidate.fullName')} *
               </Label>
               <Input
                 id="fullName"
@@ -1216,14 +1213,14 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
                   setFormData({ ...formData, fullName: e.target.value })
                 }
                 required
-                placeholder="John Doe"
+                placeholder={t('addCandidateDialog.placeholder.johnDoe')}
                 disabled={linkedinImported && formData.fullName.length > 0}
                 className={linkedinImported && formData.fullName.length > 0 ? "bg-muted" : ""}
               />
               {linkedinImported && formData.fullName.length > 0 && (
                 <p className="text-xs text-muted-foreground flex items-center gap-1">
                   <Linkedin className="w-3 h-3" />
-                  Name extracted from LinkedIn profile
+                  {t('addCandidate.nameFromLinkedIn')}
                 </p>
               )}
             </div>
@@ -1231,7 +1228,7 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
             <div className="space-y-2">
               <Label htmlFor="linkedinUrl" className="flex items-center gap-2">
                 <Linkedin className="w-4 h-4 text-accent" />
-                LinkedIn Profile (Recommended)
+                {t('addCandidate.linkedinProfileRecommended')}
               </Label>
               <Input
                 id="linkedinUrl"
@@ -1248,7 +1245,7 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
             <div className="space-y-2">
               <Label htmlFor="email" className="flex items-center gap-2">
                 <Mail className="w-4 h-4 text-accent" />
-                Email Address (Optional)
+                {t('addCandidate.emailOptional')}
               </Label>
               <Input
                 id="email"
@@ -1264,7 +1261,7 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
             <div className="space-y-2">
               <Label htmlFor="phone" className="flex items-center gap-2">
                 <Phone className="w-4 h-4 text-accent" />
-                Phone Number (Optional)
+                {t('addCandidate.phoneOptional')}
               </Label>
               <Input
                 id="phone"
@@ -1279,32 +1276,32 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="currentCompany">Current Company</Label>
+              <Label htmlFor="currentCompany">{t('addCandidate.currentCompany')}</Label>
               <Input
                 id="currentCompany"
                 value={formData.currentCompany}
                 onChange={(e) =>
                   setFormData({ ...formData, currentCompany: e.target.value })
                 }
-                placeholder="Tech Corp"
+                placeholder={t('addCandidateDialog.placeholder.techCorp')}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="currentTitle">Current Title</Label>
+              <Label htmlFor="currentTitle">{t('addCandidate.currentTitle')}</Label>
               <Input
                 id="currentTitle"
                 value={formData.currentTitle}
                 onChange={(e) =>
                   setFormData({ ...formData, currentTitle: e.target.value })
                 }
-                placeholder="Senior Developer"
+                placeholder={t('addCandidateDialog.placeholder.seniorDeveloper')}
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="startStageIndex">Starting Pipeline Stage</Label>
+            <Label htmlFor="startStageIndex">{t('addCandidate.startingPipelineStage')}</Label>
             <Select
               value={formData.startStageIndex}
               onValueChange={(value) =>
@@ -1327,7 +1324,7 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
           <div className="space-y-2">
             <Label htmlFor="notes" className="flex items-center gap-2">
               <FileText className="w-4 h-4 text-accent" />
-              Admin Notes
+              {t('addCandidate.adminNotes')}
             </Label>
             <Textarea
               id="notes"
@@ -1336,14 +1333,14 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
                 setFormData({ ...formData, notes: e.target.value })
               }
               rows={4}
-              placeholder="Why this candidate? Source? Special considerations?"
+              placeholder={t('addCandidateDialog.placeholder.whyThisCandidateSourceSpecialConsiderati')}
             />
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="resume" className="flex items-center gap-2">
               <FileText className="w-4 h-4 text-accent" />
-              Resume / CV
+              {t('addCandidate.resumeCV')}
             </Label>
             <Input
               id="resume"
@@ -1370,14 +1367,14 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
               className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-2"
             >
               <Linkedin className="w-4 h-4 text-accent" />
-              LinkedIn profile imported
+              {t('addCandidate.linkedinProfileImported')}
             </Label>
           </div>
 
           <div className="space-y-2">
             <Label className="flex items-center gap-2">
               <Award className="w-4 h-4 text-accent" />
-              Credit Assignment
+              {t('addCandidate.creditAssignment')}
             </Label>
             <Popover open={creditPopoverOpen} onOpenChange={setCreditPopoverOpen}>
               <PopoverTrigger asChild>
@@ -1387,15 +1384,15 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
                   className="w-full justify-between"
                 >
                   {creditTo.length === 0
-                    ? "Select team members..."
-                    : `${creditTo.length} selected`}
+                    ? t('addCandidate.selectTeamMembers')
+                    : t('addCandidate.selectedCount', { count: creditTo.length })}
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-full p-0">
                 <Command>
-                  <CommandInput placeholder="Search team members..." />
-                  <CommandEmpty>No team member found.</CommandEmpty>
+                  <CommandInput placeholder={t('addCandidate.searchTeamMembers')} />
+                  <CommandEmpty>{t('addCandidate.noTeamMemberFound')}</CommandEmpty>
                   <CommandGroup className="max-h-64 overflow-auto">
                     {teamMembers.map((member) => (
                       <CommandItem
@@ -1425,7 +1422,7 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
               </PopoverContent>
             </Popover>
             <p className="text-xs text-muted-foreground">
-              Select team members who should receive credit for this candidate
+              {t('addCandidate.creditDescription')}
             </p>
           </div>
 
@@ -1435,7 +1432,7 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
               variant="outline"
               onClick={() => handleOpenChange(false)}
             >
-              Cancel
+              {t('common:cancel', 'Cancel')}
             </Button>
             <Button
               type="submit"
@@ -1445,12 +1442,12 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
               {loading ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  Adding...
+                  {t('addCandidate.adding')}
                 </>
               ) : (
                 <>
                   <UserPlus className="w-4 h-4" />
-                  Add Candidate
+                  {t('addCandidate.title')}
                 </>
               )}
             </Button>

@@ -1,13 +1,8 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createAuthenticatedHandler } from '../_shared/handler.ts';
 import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
 import { EMAIL_SENDERS, EMAIL_COLORS } from "../_shared/email-config.ts";
+import { sendEmail } from '../_shared/resend-client.ts';
 import { Heading, Paragraph, Spacer, Card, StatusBadge, InfoRow, Button } from "../_shared/email-templates/components.ts";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
 
 interface HandleProposalRequest {
   proposalId: string;
@@ -18,36 +13,8 @@ interface HandleProposalRequest {
   counterEnd?: string;
 }
 
-serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  try {
-    // Verify authentication
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
-      return new Response(
-        JSON.stringify({ error: "Authorization required" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    const supabaseClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
-    );
-
-    // Verify user from token
-    const token = authHeader.replace("Bearer ", "");
-    const { data: { user }, error: authError } = await supabaseClient.auth.getUser(token);
-    
-    if (authError || !user) {
-      return new Response(
-        JSON.stringify({ error: "Invalid authentication" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
+Deno.serve(createAuthenticatedHandler(async (req, ctx) => {
+    const { supabase: supabaseClient, user, corsHeaders } = ctx;
 
     const body: HandleProposalRequest = await req.json();
     const { proposalId, action, responseMessage, counterStart, counterEnd } = body;
@@ -96,8 +63,6 @@ serve(async (req) => {
       );
     }
 
-    const resendApiKey = Deno.env.get("RESEND_API_KEY");
-
     switch (action) {
       case 'accept': {
         // Update the proposal status
@@ -121,7 +86,7 @@ serve(async (req) => {
           .eq("id", proposal.booking_id);
 
         // Notify proposer
-        if (resendApiKey) {
+        try {
           const formattedDate = new Date(proposal.proposed_start).toLocaleDateString("en-US", {
             weekday: "long", year: "numeric", month: "long", day: "numeric",
           });
@@ -147,24 +112,19 @@ serve(async (req) => {
             ${Paragraph('Your calendar invite will be updated automatically.', 'muted')}
           `;
 
-          await fetch("https://api.resend.com/emails", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${resendApiKey}`,
-            },
-            body: JSON.stringify({
-              from: EMAIL_SENDERS.bookings,
-              to: [proposal.proposed_by_email],
-              subject: `Time Proposal Accepted — ${proposal.bookings.booking_links.title}`,
-              html: baseEmailTemplate({
-                preheader: `Your proposed time for ${proposal.bookings.booking_links.title} was accepted`,
-                content: emailContent,
-                showHeader: true,
-                showFooter: true,
-              }),
+          await sendEmail({
+            from: EMAIL_SENDERS.bookings,
+            to: [proposal.proposed_by_email],
+            subject: `Time Proposal Accepted — ${proposal.bookings.booking_links.title}`,
+            html: baseEmailTemplate({
+              preheader: `Your proposed time for ${proposal.bookings.booking_links.title} was accepted`,
+              content: emailContent,
+              showHeader: true,
+              showFooter: true,
             }),
           });
+        } catch (emailErr) {
+          console.error('[HandleProposal] Failed to send accept email:', emailErr);
         }
 
         console.log(`[HandleProposal] Accepted proposal ${proposalId}`);
@@ -186,7 +146,7 @@ serve(async (req) => {
           .eq("id", proposalId);
 
         // Notify proposer
-        if (resendApiKey) {
+        try {
           const emailContent = `
             ${StatusBadge({ status: 'cancelled', text: 'TIME PROPOSAL DECLINED' })}
             ${Heading({ text: 'Time Proposal Not Available', level: 1 })}
@@ -203,24 +163,19 @@ serve(async (req) => {
             ${Paragraph('The original meeting time remains unchanged. You may propose another time if needed.', 'muted')}
           `;
 
-          await fetch("https://api.resend.com/emails", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${resendApiKey}`,
-            },
-            body: JSON.stringify({
-              from: EMAIL_SENDERS.bookings,
-              to: [proposal.proposed_by_email],
-              subject: `Time Proposal Declined — ${proposal.bookings.booking_links.title}`,
-              html: baseEmailTemplate({
-                preheader: `Your proposed time for ${proposal.bookings.booking_links.title} could not be accommodated`,
-                content: emailContent,
-                showHeader: true,
-                showFooter: true,
-              }),
+          await sendEmail({
+            from: EMAIL_SENDERS.bookings,
+            to: [proposal.proposed_by_email],
+            subject: `Time Proposal Declined — ${proposal.bookings.booking_links.title}`,
+            html: baseEmailTemplate({
+              preheader: `Your proposed time for ${proposal.bookings.booking_links.title} could not be accommodated`,
+              content: emailContent,
+              showHeader: true,
+              showFooter: true,
             }),
           });
+        } catch (emailErr) {
+          console.error('[HandleProposal] Failed to send decline email:', emailErr);
         }
 
         console.log(`[HandleProposal] Declined proposal ${proposalId}`);
@@ -276,7 +231,7 @@ serve(async (req) => {
         }
 
         // Notify the original proposer
-        if (resendApiKey) {
+        try {
           const formattedDate = new Date(counterStart).toLocaleDateString("en-US", {
             weekday: "long", year: "numeric", month: "long", day: "numeric",
           });
@@ -302,24 +257,19 @@ serve(async (req) => {
             ${Paragraph('Please respond to let the host know if this time works for you.', 'secondary')}
           `;
 
-          await fetch("https://api.resend.com/emails", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${resendApiKey}`,
-            },
-            body: JSON.stringify({
-              from: EMAIL_SENDERS.bookings,
-              to: [proposal.proposed_by_email],
-              subject: `Counter-Proposal — ${proposal.bookings.booking_links.title}`,
-              html: baseEmailTemplate({
-                preheader: `The host suggested a different time for ${proposal.bookings.booking_links.title}`,
-                content: emailContent,
-                showHeader: true,
-                showFooter: true,
-              }),
+          await sendEmail({
+            from: EMAIL_SENDERS.bookings,
+            to: [proposal.proposed_by_email],
+            subject: `Counter-Proposal — ${proposal.bookings.booking_links.title}`,
+            html: baseEmailTemplate({
+              preheader: `The host suggested a different time for ${proposal.bookings.booking_links.title}`,
+              content: emailContent,
+              showHeader: true,
+              showFooter: true,
             }),
           });
+        } catch (emailErr) {
+          console.error('[HandleProposal] Failed to send counter-proposal email:', emailErr);
         }
 
         console.log(`[HandleProposal] Counter-proposal created for ${proposalId}`);
@@ -337,11 +287,4 @@ serve(async (req) => {
         );
     }
 
-  } catch (error: any) {
-    console.error("[HandleProposal] Error:", error);
-    return new Response(
-      JSON.stringify({ error: error.message || "Internal server error" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
-  }
-});
+}));

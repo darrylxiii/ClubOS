@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
@@ -14,6 +15,7 @@ interface Insight {
 }
 
 export function PipelineInsights() {
+  const { t } = useTranslation('common');
   const { data: insights, isLoading } = useQuery({
     queryKey: ['pipeline-insights'],
     queryFn: async () => {
@@ -129,7 +131,7 @@ export function PipelineInsights() {
   if (isLoading) {
     return (
       <Card className="p-6 bg-card/50 backdrop-blur-sm border-border/50">
-        <h3 className="text-lg font-semibold mb-4 text-foreground">Pipeline Insights</h3>
+        <h3 className="text-lg font-semibold mb-4 text-foreground">{t("pipeline_insights", "Pipeline Insights")}</h3>
         <div className="space-y-3">
           {[...Array(3)].map((_, i) => (
             <Skeleton key={i} className="h-20 w-full" />
@@ -146,7 +148,7 @@ export function PipelineInsights() {
 
   return (
     <Card className="p-6 bg-card/50 backdrop-blur-sm border-border/50">
-      <h3 className="text-lg font-semibold mb-4 text-foreground">Pipeline Insights</h3>
+      <h3 className="text-lg font-semibold mb-4 text-foreground">{t("pipeline_insights", "Pipeline Insights")}</h3>
       
       {insights && insights.length > 0 ? (
         <div className="space-y-3">
@@ -166,7 +168,7 @@ export function PipelineInsights() {
           })}
         </div>
       ) : (
-        <p className="text-sm text-muted-foreground">No insights available yet.</p>
+        <p className="text-sm text-muted-foreground">{t("no_insights_available_yet", "No insights available yet.")}</p>
       )}
     </Card>
   );

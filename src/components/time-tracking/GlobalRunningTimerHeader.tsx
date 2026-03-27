@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -14,6 +15,7 @@ import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 
 export function GlobalRunningTimerHeader() {
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
   const { runningEntry, projects, stopTimer, switchProject } = useTimeTracking();
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
@@ -67,7 +69,7 @@ export function GlobalRunningTimerHeader() {
                         style={{ backgroundColor: currentProject.color }}
                       />
                     )}
-                    <SelectValue placeholder="No project" />
+                    <SelectValue placeholder={t("no_project", "No project")} />
                   </div>
                 </SelectTrigger>
                 <SelectContent>
@@ -120,7 +122,7 @@ export function GlobalRunningTimerHeader() {
             className="bg-white/20 hover:bg-white/30 text-white border-0 gap-1.5 h-8"
           >
             <Square className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Stop</span>
+            <span className="hidden sm:inline">{t("stop", "Stop")}</span>
           </Button>
         </div>
       </div>

@@ -1,15 +1,17 @@
+import { useTranslation } from 'react-i18next';
 import { Card } from "@/components/ui/card";
 import { usePipelineVelocity, useDealStages } from "@/hooks/useDealPipeline";
 import { Loader2, Clock, Trophy, Zap } from "lucide-react";
 
 export function PipelineVelocityMetrics() {
+  const { t } = useTranslation('common');
   const { data, isLoading, error } = usePipelineVelocity();
   const { data: stages } = useDealStages();
 
   if (isLoading) {
     return (
       <Card className="p-6 bg-card/50 backdrop-blur-sm border-border/50">
-        <h3 className="text-lg font-semibold mb-4 text-foreground">Pipeline Velocity</h3>
+        <h3 className="text-lg font-semibold mb-4 text-foreground">{t("pipeline_velocity", "Pipeline Velocity")}</h3>
         <div className="flex items-center justify-center py-12">
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
         </div>
@@ -20,8 +22,8 @@ export function PipelineVelocityMetrics() {
   if (error || !data) {
     return (
       <Card className="p-6 bg-card/50 backdrop-blur-sm border-border/50">
-        <h3 className="text-lg font-semibold mb-4 text-foreground">Pipeline Velocity</h3>
-        <p className="text-sm text-muted-foreground">Unable to load velocity data.</p>
+        <h3 className="text-lg font-semibold mb-4 text-foreground">{t("pipeline_velocity", "Pipeline Velocity")}</h3>
+        <p className="text-sm text-muted-foreground">{t("unable_to_load_velocity", "Unable to load velocity data.")}</p>
       </Card>
     );
   }
@@ -57,21 +59,21 @@ export function PipelineVelocityMetrics() {
 
   return (
     <Card className="p-6 bg-card/50 backdrop-blur-sm border-border/50">
-      <h3 className="text-lg font-semibold mb-4 text-foreground">Pipeline Velocity</h3>
+      <h3 className="text-lg font-semibold mb-4 text-foreground">{t("pipeline_velocity", "Pipeline Velocity")}</h3>
 
       {/* Summary Cards */}
       <div className="grid grid-cols-2 gap-3 mb-6">
         <div className="rounded-lg border border-border/50 p-3 bg-background/50">
           <div className="flex items-center gap-2 mb-1">
             <Trophy className="h-3.5 w-3.5 text-primary" />
-            <span className="text-xs text-muted-foreground">Win Rate</span>
+            <span className="text-xs text-muted-foreground">{t("win_rate", "Win Rate")}</span>
           </div>
           <p className="text-xl font-bold text-foreground">{winRate}%</p>
         </div>
         <div className="rounded-lg border border-border/50 p-3 bg-background/50">
           <div className="flex items-center gap-2 mb-1">
             <Clock className="h-3.5 w-3.5 text-primary" />
-            <span className="text-xs text-muted-foreground">Avg Days to Close</span>
+            <span className="text-xs text-muted-foreground">{t("avg_days_to_close", "Avg Days to Close")}</span>
           </div>
           <p className="text-xl font-bold text-foreground">{avgDaysToClose}d</p>
         </div>

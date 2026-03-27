@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Sparkles, Loader2, Send } from 'lucide-react';
 import {
@@ -33,6 +34,7 @@ export function AISlashCommandDialog({
   onInsertText,
   context 
 }: AISlashCommandDialogProps) {
+  const { t } = useTranslation('common');
   const [prompt, setPrompt] = useState('');
   const [generatedText, setGeneratedText] = useState('');
   const { isLoading, generate } = useAIWriting();
@@ -96,7 +98,7 @@ export function AISlashCommandDialog({
           {/* Prompt input */}
           <div className="relative">
             <Textarea
-              placeholder="e.g., Write a paragraph about the benefits of remote work..."
+              placeholder={t("eg_write_a_paragraph", "e.g., Write a paragraph about the benefits of remote work...")}
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               className="min-h-[80px] pr-12 resize-none"
@@ -153,7 +155,7 @@ export function AISlashCommandDialog({
 
           {/* Keyboard shortcut hint */}
           <div className="text-xs text-muted-foreground text-center">
-            Press <kbd className="px-1.5 py-0.5 rounded bg-muted">⌘ Enter</kbd> to generate
+            Press <kbd className="px-1.5 py-0.5 rounded bg-muted">{t("enter", "⌘ Enter")}</kbd> to generate
           </div>
         </div>
       </DialogContent>

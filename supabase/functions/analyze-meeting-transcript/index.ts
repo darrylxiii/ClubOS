@@ -1,21 +1,9 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createHandler } from '../_shared/handler.ts';
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
-
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+Deno.serve(createHandler(async (req, ctx) => {
+    const corsHeaders = ctx.corsHeaders;
+    const supabase = ctx.supabase;
+    const googleApiKey = Deno.env.get('GOOGLE_API_KEY')!;
 
     const { meeting_id } = await req.json();
     console.log('Analyzing transcript for meeting:', meeting_id);
@@ -56,7 +44,7 @@ serve(async (req) => {
 
     console.log('Full transcript length:', fullTranscript.length, 'characters');
 
-    // Call Lovable AI for analysis
+    // Call Google Gemini for analysis
     const analysisPrompt = `You are an expert meeting analyst for The Quantum Club, a luxury talent platform. Analyze this meeting transcript and extract structured insights.
 
 Meeting Transcript:
@@ -81,14 +69,14 @@ Extract and return the following in JSON format:
 
 Be concise, professional, and focus on actionable insights.`;
 
-    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    const aiResponse = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${lovableApiKey}`,
+        'Authorization': `Bearer ${googleApiKey}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash-lite',
+        model: 'gemini-2.5-flash-lite',
         messages: [
           { role: 'system', content: 'You are a meeting analysis expert. Always respond with valid JSON.' },
           { role: 'user', content: analysisPrompt }
@@ -192,12 +180,4 @@ Be concise, professional, and focus on actionable insights.`;
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
-  } catch (error) {
-    console.error('Error analyzing transcript:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    return new Response(
-      JSON.stringify({ error: errorMessage }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-  }
-});
+}));

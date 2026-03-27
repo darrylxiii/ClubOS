@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate } from "react-router-dom";
 
 import { Button } from "@/components/ui/button";
@@ -38,6 +39,7 @@ interface Objective {
 }
 
 const ObjectiveWorkspace = () => {
+  const { t } = useTranslation('common');
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -83,7 +85,7 @@ const ObjectiveWorkspace = () => {
       }
     } catch (error) {
       console.error("Error loading objective:", error);
-      toast.error("Failed to load objective");
+      toast.error(t('text.objectiveworkspace.failedToLoadObjective', 'Failed to load objective'));
       navigate("/tasks");
     } finally {
       setLoading(false);
@@ -108,7 +110,7 @@ const ObjectiveWorkspace = () => {
       setComments(data || []);
     } catch (error) {
       console.error("Error loading comments:", error);
-      toast.error("Failed to load comments");
+      toast.error(t('text.objectiveworkspace.failedToLoadComments', 'Failed to load comments'));
     }
   }, [id]);
 
@@ -130,7 +132,7 @@ const ObjectiveWorkspace = () => {
       setActivities(data || []);
     } catch (error) {
       console.error("Error loading activities:", error);
-      toast.error("Failed to load activities");
+      toast.error(t('text.objectiveworkspace.failedToLoadActivities', 'Failed to load activities'));
     }
   }, [id]);
 
@@ -185,7 +187,7 @@ const ObjectiveWorkspace = () => {
       setBlockedByTasks(blockedBy?.map(b => b.blocker).filter(Boolean) || []);
     } catch (error) {
       console.error("Error loading dependencies:", error);
-      toast.error("Failed to load task dependencies");
+      toast.error(t('text.objectiveworkspace.failedToLoadTaskDependencies', 'Failed to load task dependencies'));
     }
   }, [id]);
 
@@ -213,12 +215,12 @@ const ObjectiveWorkspace = () => {
 
       if (error) throw error;
 
-      toast.success("Comment added");
+      toast.success(t('text.objectiveworkspace.commentAdded', 'Comment added'));
       setNewComment("");
       loadComments();
     } catch (error) {
       console.error("Error adding comment:", error);
-      toast.error("Failed to add comment");
+      toast.error(t('text.objectiveworkspace.failedToAddComment', 'Failed to add comment'));
     } finally {
       setSubmittingComment(false);
     }
@@ -289,9 +291,7 @@ const ObjectiveWorkspace = () => {
                       </Badge>
                     )}
                     {isOverdue && (
-                      <Badge variant="outline" className="bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/20">
-                        Overdue
-                      </Badge>
+                      <Badge variant="outline" className="bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/20">{t('text.objectiveworkspace.overdue', 'Overdue')}</Badge>
                     )}
                   </div>
                 </div>
@@ -340,7 +340,7 @@ const ObjectiveWorkspace = () => {
               <div className="space-y-2">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Calendar className="h-4 w-4" />
-                  {isOverdue ? 'Overdue' : 'Days Left'}
+                  {isOverdue ? t('text.objectiveworkspace.overdue', 'Overdue') : t('text.objectiveworkspace.daysLeft', 'Days Left')}
                 </div>
                 <div className="text-2xl font-bold">
                   {daysRemaining !== null ? (isOverdue ? `${Math.abs(daysRemaining)}` : daysRemaining) : '-'}
@@ -379,10 +379,10 @@ const ObjectiveWorkspace = () => {
         {/* Main Content */}
         <Tabs defaultValue="overview" className="space-y-6">
           <TabsList>
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="tasks">Tasks</TabsTrigger>
-            <TabsTrigger value="comments">Comments</TabsTrigger>
-            <TabsTrigger value="activity">Activity</TabsTrigger>
+            <TabsTrigger value="overview">{t('objectiveWorkspace.tabOverview')}</TabsTrigger>
+            <TabsTrigger value="tasks">{t('objectiveWorkspace.tabTasks')}</TabsTrigger>
+            <TabsTrigger value="comments">{t('objectiveWorkspace.tabComments')}</TabsTrigger>
+            <TabsTrigger value="activity">{t('objectiveWorkspace.tabActivity')}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
@@ -391,7 +391,7 @@ const ObjectiveWorkspace = () => {
                 {objective.description && (
                   <Card>
                     <CardHeader>
-                      <CardTitle>Description</CardTitle>
+                      <CardTitle>{t('text.objectiveworkspace.description', 'Description')}</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <p className="text-muted-foreground whitespace-pre-wrap">{objective.description}</p>
@@ -402,7 +402,7 @@ const ObjectiveWorkspace = () => {
                 {objective.goals && (
                   <Card>
                     <CardHeader>
-                      <CardTitle>Goals & Success Criteria</CardTitle>
+                      <CardTitle>{t('text.objectiveworkspace.goalsSuccessCriteria', 'Goals & Success Criteria')}</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <p className="text-muted-foreground whitespace-pre-wrap">{objective.goals}</p>
@@ -414,24 +414,24 @@ const ObjectiveWorkspace = () => {
               <div className="space-y-6">
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-sm">Timeline</CardTitle>
+                    <CardTitle className="text-sm">{t('text.objectiveworkspace.timeline', 'Timeline')}</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3">
                     {objective.start_date && (
                       <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Start Date</span>
+                        <span className="text-muted-foreground">{t('text.objectiveworkspace.startDate', 'Start Date')}</span>
                         <span>{format(new Date(objective.start_date), 'MMM dd, yyyy')}</span>
                       </div>
                     )}
                     {objective.due_date && (
                       <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Due Date</span>
+                        <span className="text-muted-foreground">{t('text.objectiveworkspace.dueDate', 'Due Date')}</span>
                         <span>{format(new Date(objective.due_date), 'MMM dd, yyyy')}</span>
                       </div>
                     )}
                     {objective.hard_deadline && (
                       <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Hard Deadline</span>
+                        <span className="text-muted-foreground">{t('text.objectiveworkspace.hardDeadline', 'Hard Deadline')}</span>
                         <span className="font-semibold">{format(new Date(objective.hard_deadline), 'MMM dd, yyyy')}</span>
                       </div>
                     )}
@@ -441,7 +441,7 @@ const ObjectiveWorkspace = () => {
                 {objective.tags && objective.tags.length > 0 && (
                   <Card>
                     <CardHeader>
-                      <CardTitle className="text-sm">Tags</CardTitle>
+                      <CardTitle className="text-sm">{t('text.objectiveworkspace.tags', 'Tags')}</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <div className="flex flex-wrap gap-2">
@@ -489,7 +489,7 @@ const ObjectiveWorkspace = () => {
                 {(blockingTasks.length > 0 || blockedByTasks.length > 0) && (
                   <Card>
                     <CardHeader>
-                      <CardTitle className="text-sm">Task Dependencies</CardTitle>
+                      <CardTitle className="text-sm">{t('text.objectiveworkspace.taskDependencies', 'Task Dependencies')}</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
                       {blockingTasks.length > 0 && (
@@ -545,14 +545,14 @@ const ObjectiveWorkspace = () => {
           <TabsContent value="comments" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Discussion</CardTitle>
+                <CardTitle>{t('text.objectiveworkspace.discussion', 'Discussion')}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="space-y-2">
                   <Textarea
                     value={newComment}
                     onChange={(e) => setNewComment(e.target.value)}
-                    placeholder="Add a comment..."
+                    placeholder={t('text.objectiveworkspace.addAComment', 'Add a comment...')}
                     rows={3}
                   />
                   <Button onClick={handleSubmitComment} disabled={submittingComment || !newComment.trim()}>
@@ -563,7 +563,7 @@ const ObjectiveWorkspace = () => {
 
                 <div className="space-y-4">
                   {comments.length === 0 ? (
-                    <p className="text-center text-muted-foreground py-8">No comments yet</p>
+                    <p className="text-center text-muted-foreground py-8">{t('objectiveWorkspace.desc')}</p>
                   ) : (
                     comments.map((comment) => (
                       <div key={comment.id} className="flex gap-3 p-4 rounded-lg border">
@@ -593,12 +593,12 @@ const ObjectiveWorkspace = () => {
           <TabsContent value="activity" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Activity Log</CardTitle>
+                <CardTitle>{t('text.objectiveworkspace.activityLog', 'Activity Log')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   {activities.length === 0 ? (
-                    <p className="text-center text-muted-foreground py-8">No activity yet</p>
+                    <p className="text-center text-muted-foreground py-8">{t('objectiveWorkspace.desc2')}</p>
                   ) : (
                     activities.map((activity) => (
                       <div key={activity.id} className="flex gap-3 pb-4 border-b last:border-0">

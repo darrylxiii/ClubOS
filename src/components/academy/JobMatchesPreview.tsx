@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
@@ -13,6 +14,7 @@ interface JobMatch {
 }
 
 export const JobMatchesPreview = () => {
+  const { t } = useTranslation('common');
   const [matches, setMatches] = useState<JobMatch[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -55,13 +57,9 @@ export const JobMatchesPreview = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-muted-foreground mb-3">
-            Complete more courses to unlock job matches
-          </p>
+          <p className="text-sm text-muted-foreground mb-3">{t('academy.completeMoreCoursesToUnlockJobMatches')}</p>
           <Link to="/academy?tab=explore">
-            <Button variant="outline" size="sm" className="w-full">
-              Browse Courses
-            </Button>
+            <Button variant="outline" size="sm" className="w-full">{t('academy.browseCourses')}</Button>
           </Link>
         </CardContent>
       </Card>
@@ -86,9 +84,7 @@ export const JobMatchesPreview = () => {
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold text-primary">{match.match_score}% match</span>
               <Link to={`/jobs/${match.id}`}>
-                <Button variant="ghost" size="sm" className="h-7 px-2">
-                  View
-                </Button>
+                <Button variant="ghost" size="sm" className="h-7 px-2">{t('academy.view')}</Button>
               </Link>
             </div>
           </div>

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useMemo } from 'react';
 import { motion } from '@/lib/motion';
 import {
@@ -38,6 +39,7 @@ interface InstantlyLeadsTableProps {
 }
 
 export function InstantlyLeadsTable({ leads, onPromoteToCRM }: InstantlyLeadsTableProps) {
+  const { t } = useTranslation('common');
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
 
@@ -89,7 +91,7 @@ export function InstantlyLeadsTable({ leads, onPromoteToCRM }: InstantlyLeadsTab
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search leads..."
+            placeholder={t("search_leads", "Search leads...")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-9"
@@ -97,15 +99,15 @@ export function InstantlyLeadsTable({ leads, onPromoteToCRM }: InstantlyLeadsTab
         </div>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger className="w-full sm:w-[180px]">
-            <SelectValue placeholder="Filter by status" />
+            <SelectValue placeholder={t("filter_by_status", "Filter by status")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Leads</SelectItem>
-            <SelectItem value="opened">Opened</SelectItem>
-            <SelectItem value="clicked">Clicked</SelectItem>
-            <SelectItem value="replied">Replied</SelectItem>
-            <SelectItem value="interested">Interested</SelectItem>
-            <SelectItem value="bounced">Bounced</SelectItem>
+            <SelectItem value="all">{t("all_leads", "All Leads")}</SelectItem>
+            <SelectItem value="opened">{t("opened", "Opened")}</SelectItem>
+            <SelectItem value="clicked">{t("clicked", "Clicked")}</SelectItem>
+            <SelectItem value="replied">{t("replied", "Replied")}</SelectItem>
+            <SelectItem value="interested">{t("interested", "Interested")}</SelectItem>
+            <SelectItem value="bounced">{t("bounced", "Bounced")}</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -115,12 +117,12 @@ export function InstantlyLeadsTable({ leads, onPromoteToCRM }: InstantlyLeadsTab
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Contact</TableHead>
-              <TableHead>Company</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Engagement</TableHead>
-              <TableHead>Last Activity</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead>{t("contact", "Contact")}</TableHead>
+              <TableHead>{t("company", "Company")}</TableHead>
+              <TableHead>{t("status", "Status")}</TableHead>
+              <TableHead>{t("engagement", "Engagement")}</TableHead>
+              <TableHead>{t("last_activity", "Last Activity")}</TableHead>
+              <TableHead className="text-right">{t("actions", "Actions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

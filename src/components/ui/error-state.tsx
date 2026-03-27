@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { AlertCircle, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -52,6 +53,7 @@ export function ErrorState({
   className,
   showIcon = true,
 }: ErrorStateProps) {
+  const { t } = useTranslation('common');
   if (variant === 'inline') {
     return (
       <div className={cn("flex items-center gap-2 text-destructive", className)}>
@@ -65,7 +67,7 @@ export function ErrorState({
             className="h-auto p-1 text-destructive hover:text-destructive"
           >
             <RefreshCw className="h-3 w-3" aria-hidden="true" />
-            <span className="sr-only">Retry</span>
+            <span className="sr-only">{t("retry", "Retry")}</span>
           </Button>
         )}
       </div>
@@ -87,7 +89,7 @@ export function ErrorState({
         {onRetry && (
           <Button onClick={onRetry} variant="outline">
             <RefreshCw className="h-4 w-4 mr-2" aria-hidden="true" />
-            Try again
+            {t("actions.tryAgain", "Try again")}
           </Button>
         )}
       </div>
@@ -111,7 +113,7 @@ export function ErrorState({
           {onRetry && (
             <Button onClick={onRetry} variant="outline" size="sm" className="mt-2">
               <RefreshCw className="h-4 w-4 mr-2" aria-hidden="true" />
-              Retry
+              {t("actions.retry", "Retry")}
             </Button>
           )}
         </div>

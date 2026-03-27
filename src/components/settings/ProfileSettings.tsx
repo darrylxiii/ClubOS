@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -70,6 +71,7 @@ export const ProfileSettings = ({
   onAvatarChange,
   saving
 }: ProfileSettingsProps) => {
+  const { t } = useTranslation('settings');
   const [selectedCity, setSelectedCity] = useState('');
 
   const handleAddPreferredLocation = () => {
@@ -90,10 +92,10 @@ export const ProfileSettings = ({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <User className="w-5 h-5" />
-            Profile Picture
+            {t('profile.profilePicture')}
           </CardTitle>
           <CardDescription>
-            Add a professional photo to complete your profile
+            {t('profile.profilePictureDesc')}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -113,29 +115,29 @@ export const ProfileSettings = ({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <User className="w-5 h-5" />
-            Personal Information
+            {t('profile.personalInfo')}
           </CardTitle>
           <CardDescription>
-            Complete your profile to get the best matches
+            {t('profile.completeProfileDesc')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="fullname">Full Name *</Label>
+            <Label htmlFor="fullname">{t('profile.fullName')} *</Label>
             <Input 
               id="fullname" 
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
-              placeholder="Your full name"
+              placeholder={t('profile.fullNamePlaceholder')}
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="location">Current Location</Label>
+            <Label htmlFor="location">{t('profile.currentLocation')}</Label>
             <LocationAutocomplete
               value={locationCity}
               onChange={setLocationCity}
-              placeholder="Type to search cities worldwide..."
+              placeholder={t('profile.searchCitiesPlaceholder')}
             />
           </div>
 
@@ -155,7 +157,7 @@ export const ProfileSettings = ({
           </div>
 
           <Button onClick={onSave} disabled={saving} className="w-full">
-            {saving ? 'Saving...' : 'Save Personal Information'}
+            {saving ? t('common:status.saving') : t('profile.savePersonalInfo')}
           </Button>
         </CardContent>
       </Card>
@@ -165,25 +167,25 @@ export const ProfileSettings = ({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Briefcase className="w-5 h-5" />
-            Professional Details
+            {t('profile.professionalDetails')}
           </CardTitle>
           <CardDescription>
-            Your career information
+            {t('profile.careerInfo')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="title">Current Title</Label>
-            <Input 
-              id="title" 
+            <Label htmlFor="title">{t('profile.currentTitle')}</Label>
+            <Input
+              id="title"
               value={currentTitle}
               onChange={(e) => setCurrentTitle(e.target.value)}
-              placeholder="e.g., Senior Software Engineer"
+              placeholder={t('profile.currentTitlePlaceholder')}
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="linkedin">LinkedIn Profile</Label>
+            <Label htmlFor="linkedin">{t('profile.linkedinProfile')}</Label>
             <Input
               id="linkedin"
               type="url"
@@ -194,12 +196,12 @@ export const ProfileSettings = ({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="bio">Professional Bio</Label>
-            <Textarea 
+            <Label htmlFor="bio">{t('profile.professionalBio')}</Label>
+            <Textarea
               id="bio"
               value={bio}
               onChange={(e) => setBio(e.target.value)}
-              placeholder="Tell us about your experience and what you're looking for..."
+              placeholder={t('profile.professionalBioPlaceholder')}
               className="min-h-[100px]"
             />
           </div>
@@ -211,10 +213,10 @@ export const ProfileSettings = ({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <MapPin className="w-5 h-5" />
-            Preferred Work Locations
+            {t('preferences.preferredWorkLocations')}
           </CardTitle>
           <CardDescription>
-            Specify where you'd like to work - add multiple cities or toggle remote
+            {t('preferences.preferredWorkLocationsDesc')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -224,10 +226,10 @@ export const ProfileSettings = ({
               <Globe className="w-5 h-5 text-primary" />
               <div>
                 <Label htmlFor="remoteWork" className="text-base font-semibold cursor-pointer">
-                  Open to Remote Work
+                  {t('preferences.openToRemoteWork')}
                 </Label>
                 <p className="text-sm text-muted-foreground">
-                  Work from anywhere in the world
+                  {t('preferences.remoteWorkDesc')}
                 </p>
               </div>
             </div>
@@ -240,11 +242,11 @@ export const ProfileSettings = ({
 
           {/* City Selection */}
           <div className="space-y-3">
-            <Label>Add Preferred Cities</Label>
+            <Label>{t('preferences.addPreferredCities')}</Label>
             <div className="flex gap-2">
               <Select value={selectedCity} onValueChange={setSelectedCity}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select a city" />
+                  <SelectValue placeholder={t('preferences.selectCity')} />
                 </SelectTrigger>
                 <SelectContent className="max-h-[300px]">
                   {cities
@@ -261,7 +263,7 @@ export const ProfileSettings = ({
                 onClick={handleAddPreferredLocation}
                 disabled={!selectedCity}
               >
-                Add
+                {t('common:actions.add')}
               </Button>
             </div>
           </div>
@@ -269,7 +271,7 @@ export const ProfileSettings = ({
           {/* Selected Locations */}
           {preferredWorkLocations.length > 0 ? (
             <div className="space-y-2">
-              <p className="text-sm font-medium">Selected Locations:</p>
+              <p className="text-sm font-medium">{t('preferences.selectedLocations')}</p>
               <div className="flex flex-wrap gap-2">
                 {preferredWorkLocations.map((location) => (
                   <div
@@ -293,7 +295,7 @@ export const ProfileSettings = ({
             <div className="text-center py-8 border-2 border-dashed border-border rounded-lg">
               <MapPin className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
               <p className="text-sm text-muted-foreground">
-                No preferred locations added yet. {remoteWorkPreference ? 'Remote work is enabled.' : 'Add cities or enable remote work.'}
+                {t('preferences.noLocationsYet')} {remoteWorkPreference ? t('preferences.remoteEnabled') : t('preferences.addCitiesOrRemote')}
               </p>
             </div>
           )}

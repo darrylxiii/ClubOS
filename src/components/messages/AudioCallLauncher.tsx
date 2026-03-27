@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Button } from "@/components/ui/button";
 import { Phone } from "lucide-react";
 import { useState } from "react";
@@ -13,6 +14,7 @@ interface AudioCallLauncherProps {
 }
 
 export function AudioCallLauncher({ conversationId, participantName, participantAvatar, onSendMessage }: AudioCallLauncherProps) {
+  const { t } = useTranslation('common');
   const [showDialog, setShowDialog] = useState(false);
   const [callActive, setCallActive] = useState(false);
   const [invitationId, setInvitationId] = useState<string | null>(null);
@@ -69,7 +71,7 @@ export function AudioCallLauncher({ conversationId, participantName, participant
         size="icon" 
         onClick={() => setShowDialog(true)}
         className="h-9 w-9 hover:bg-primary/10 hover:text-primary"
-        title="Start voice call"
+        title={t("start_voice_call", "Start voice call")}
       >
         <Phone className="h-5 w-5" />
       </Button>

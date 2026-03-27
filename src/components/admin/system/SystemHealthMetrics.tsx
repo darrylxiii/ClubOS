@@ -8,6 +8,7 @@ import {
 import { Visual3 } from "@/components/ui/visual-3";
 import { Activity, Database, Clock, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslation } from 'react-i18next';
 
 interface SystemHealthMetricsProps {
   health: {
@@ -21,6 +22,7 @@ interface SystemHealthMetricsProps {
 }
 
 export const SystemHealthMetrics = ({ health }: SystemHealthMetricsProps) => {
+  const { t } = useTranslation('admin');
   if (!health) return null;
 
   return (
@@ -36,7 +38,7 @@ export const SystemHealthMetrics = ({ health }: SystemHealthMetricsProps) => {
             </div>
             <div>
               <CardTitle className="text-3xl font-bold">{health.active_users_1h}</CardTitle>
-              <CardDescription>Active Users (1h)</CardDescription>
+              <CardDescription>{t('system.systemHealthMetrics.activeUsers1h')}</CardDescription>
             </div>
           </div>
         </CardBody>
@@ -53,7 +55,7 @@ export const SystemHealthMetrics = ({ health }: SystemHealthMetricsProps) => {
             </div>
             <div>
               <CardTitle className="text-3xl font-bold">{health.avg_response_time_ms}ms</CardTitle>
-              <CardDescription>Avg Response Time</CardDescription>
+              <CardDescription>{t('system.systemHealthMetrics.avgResponseTime')}</CardDescription>
             </div>
           </div>
         </CardBody>
@@ -70,7 +72,7 @@ export const SystemHealthMetrics = ({ health }: SystemHealthMetricsProps) => {
             </div>
             <div>
               <CardTitle className="text-3xl font-bold">{health.db_connections}</CardTitle>
-              <CardDescription>DB Connections</CardDescription>
+              <CardDescription>{t('system.systemHealthMetrics.dbConnections')}</CardDescription>
             </div>
           </div>
         </CardBody>

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -15,6 +16,7 @@ interface AvatarAccountFormProps {
 }
 
 export function AvatarAccountForm({ open, onOpenChange }: AvatarAccountFormProps) {
+  const { t } = useTranslation('common');
   const { createAccount, syncLinkedIn, saveCredentials } = useAvatarAccounts();
   const [syncing, setSyncing] = useState(false);
   const [showLinkedinPw, setShowLinkedinPw] = useState(false);
@@ -82,7 +84,7 @@ export function AvatarAccountForm({ open, onOpenChange }: AvatarAccountFormProps
 
           // Trigger LinkedIn sync if URL provided
           if (form.linkedin_url.trim()) {
-            toast.info('Syncing LinkedIn profile data…');
+            toast.info(t("syncing_linkedin_profile_data", "Syncing LinkedIn profile data…"));
             syncLinkedIn.mutate(
               { accountId, linkedinUrl: form.linkedin_url.trim() },
               {
@@ -112,18 +114,18 @@ export function AvatarAccountForm({ open, onOpenChange }: AvatarAccountFormProps
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Add LinkedIn Account</DialogTitle>
+          <DialogTitle>{t("add_linkedin_account", "Add LinkedIn Account")}</DialogTitle>
         </DialogHeader>
         <div className="space-y-5 py-2">
           {/* Section 1: Identity */}
           <div className="space-y-3">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Identity</p>
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t("identity", "Identity")}</p>
             <div className="space-y-2">
-              <Label>Label *</Label>
-              <Input placeholder="e.g. Darryl – Growth Avatar #3" value={form.label} onChange={e => set('label', e.target.value)} />
+              <Label>{t("label", "Label *")}</Label>
+              <Input placeholder={t("eg_darryl_growth_avatar", "e.g. Darryl – Growth Avatar #3")} value={form.label} onChange={e => set('label', e.target.value)} />
             </div>
             <div className="space-y-2">
-              <Label>LinkedIn Profile URL</Label>
+              <Label>{t("linkedin_profile_url", "LinkedIn Profile URL")}</Label>
               <Input
                 placeholder="https://linkedin.com/in/username"
                 value={form.linkedin_url}
@@ -133,12 +135,12 @@ export function AvatarAccountForm({ open, onOpenChange }: AvatarAccountFormProps
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
-                <Label>LinkedIn Email</Label>
-                <Input placeholder="email@example.com" value={form.linkedin_email} onChange={e => set('linkedin_email', e.target.value)} />
+                <Label>{t("linkedin_email", "LinkedIn Email")}</Label>
+                <Input placeholder={t("emailexamplecom", "email@example.com")} value={form.linkedin_email} onChange={e => set('linkedin_email', e.target.value)} />
               </div>
               <div className="space-y-2">
-                <Label>Team / Campaign</Label>
-                <Input placeholder="e.g. DACH Outbound" value={form.owner_team} onChange={e => set('owner_team', e.target.value)} />
+                <Label>{t("team_campaign", "Team / Campaign")}</Label>
+                <Input placeholder={t("eg_dach_outbound", "e.g. DACH Outbound")} value={form.owner_team} onChange={e => set('owner_team', e.target.value)} />
               </div>
             </div>
           </div>
@@ -150,10 +152,10 @@ export function AvatarAccountForm({ open, onOpenChange }: AvatarAccountFormProps
             <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
               <Lock className="h-3 w-3" /> Credentials
             </p>
-            <p className="text-[11px] text-muted-foreground">Passwords are encrypted at rest and only accessible by admins.</p>
+            <p className="text-[11px] text-muted-foreground">{t("passwords_are_encrypted_at", "Passwords are encrypted at rest and only accessible by admins.")}</p>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
-                <Label>LinkedIn Password</Label>
+                <Label>{t("linkedin_password", "LinkedIn Password")}</Label>
                 <div className="relative">
                   <Input
                     type={showLinkedinPw ? 'text' : 'password'}
@@ -172,12 +174,12 @@ export function AvatarAccountForm({ open, onOpenChange }: AvatarAccountFormProps
                 </div>
               </div>
               <div className="space-y-2">
-                <Label>Email Account Address</Label>
-                <Input placeholder="account@gmail.com" value={form.email_account_address} onChange={e => set('email_account_address', e.target.value)} />
+                <Label>{t("email_account_address", "Email Account Address")}</Label>
+                <Input placeholder={t("accountgmailcom", "account@gmail.com")} value={form.email_account_address} onChange={e => set('email_account_address', e.target.value)} />
               </div>
             </div>
             <div className="space-y-2">
-              <Label>Email Account Password</Label>
+              <Label>{t("email_account_password", "Email Account Password")}</Label>
               <div className="relative max-w-[calc(50%-6px)]">
                 <Input
                   type={showEmailPw ? 'text' : 'password'}
@@ -201,23 +203,23 @@ export function AvatarAccountForm({ open, onOpenChange }: AvatarAccountFormProps
 
           {/* Section 3: Operations */}
           <div className="space-y-3">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Operations</p>
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t("operations", "Operations")}</p>
             <div className="space-y-2">
-              <Label>Max Daily Usage (minutes)</Label>
+              <Label>{t("max_daily_usage_minutes", "Max Daily Usage (minutes)")}</Label>
               <Input type="number" value={form.max_daily_minutes} onChange={e => set('max_daily_minutes', parseInt(e.target.value) || 360)} />
             </div>
             <div className="space-y-2">
-              <Label>Notes</Label>
-              <Textarea placeholder="Positioning, niche, tone of voice…" value={form.notes} onChange={e => set('notes', e.target.value)} rows={2} />
+              <Label>{t("notes", "Notes")}</Label>
+              <Textarea placeholder={t("positioning_niche_tone_of", "Positioning, niche, tone of voice…")} value={form.notes} onChange={e => set('notes', e.target.value)} rows={2} />
             </div>
             <div className="space-y-2">
-              <Label>Playbook</Label>
-              <Textarea placeholder="Max connections/day, allowed tools, activity windows…" value={form.playbook} onChange={e => set('playbook', e.target.value)} rows={3} />
+              <Label>{t("playbook", "Playbook")}</Label>
+              <Textarea placeholder={t("max_connectionsday_allowed_tools", "Max connections/day, allowed tools, activity windows…")} value={form.playbook} onChange={e => set('playbook', e.target.value)} rows={3} />
             </div>
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>{t("cancel", "Cancel")}</Button>
           <Button onClick={handleSubmit} disabled={!form.label.trim() || saving}>
             {saving ? 'Adding…' : 'Add Account'}
           </Button>

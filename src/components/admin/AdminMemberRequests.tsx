@@ -17,6 +17,7 @@ import { OnboardingProgressTracker } from "./OnboardingProgressTracker";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { MemberApprovalWorkflowDialog } from "./approval/MemberApprovalWorkflowDialog";
 import { DocumentPreviewDialog } from "@/components/shared/DocumentPreviewDialog";
+import { useTranslation } from 'react-i18next';
 
 interface MemberRequest {
   id: string;
@@ -87,6 +88,7 @@ const ELEVATED_ROLES = ['admin', 'super_admin', 'partner', 'strategist', 'recrui
 
 // Helper function to check if a request is from a pure candidate (no elevated roles)
 const isPureCandidate = (request: MemberRequest): boolean => {
+  const { t } = useTranslation('admin');
   const roles = (request.profiles?.user_roles as any[])?.map((r: any) => r.role) || [];
   return !roles.some(r => ELEVATED_ROLES.includes(r));
 };
@@ -306,7 +308,7 @@ export const AdminMemberRequests = () => {
       setRequests(enrichedRequests);
     } catch (error) {
       console.error('Error fetching member requests:', error);
-      toast.error('Failed to load requests');
+      toast.error(t('adminMemberRequests.failedToLoadRequests'));
     } finally {
       setLoading(false);
     }
@@ -374,7 +376,7 @@ export const AdminMemberRequests = () => {
         console.log('[AdminMemberRequests] Partner provisioned successfully:', provisionResult);
         toast.success(
           `${selectedRequest.name} has been approved and provisioned.`,
-          { description: 'Auth user, company, and welcome email created.' }
+          { description: t('adminmemberrequeststsx.adminmemberrequests.authUserCompanyAndWelcomeEmail', 'Auth user, company, and welcome email created.') }
         );
       }
       // ── PARTNER DECLINE: direct DB update + direct email ──
@@ -406,11 +408,11 @@ export const AdminMemberRequests = () => {
           });
           if (emailErr) {
             console.warn('[AdminMemberRequests] Decline email failed:', emailErr);
-            toast.warning('Partner declined, but the notification email could not be sent.');
+            toast.warning(t('adminMemberRequests.partnerDeclinedButTheNotificationEmail'));
           }
         }
 
-        toast.success('Partner application declined.');
+        toast.success(t('adminMemberRequests.partnerApplicationDeclined'));
       }
       // ── CANDIDATE PATH: existing logic (direct DB update + generic notification) ──
       else {
@@ -487,7 +489,7 @@ export const AdminMemberRequests = () => {
               : undefined
           );
         } else {
-          toast.success('Application declined.');
+          toast.success(t('adminMemberRequests.applicationDeclined'));
         }
       }
 
@@ -501,7 +503,7 @@ export const AdminMemberRequests = () => {
 
     } catch (error: unknown) {
       console.error('Error reviewing request:', error);
-      toast.error('Failed to process request');
+      toast.error(t('adminMemberRequests.failedToProcessRequest'));
     } finally {
       setSubmitting(false);
     }
@@ -558,10 +560,10 @@ export const AdminMemberRequests = () => {
         });
 
         if (error) throw error;
-        toast.success('Email resent successfully');
+        toast.success(t('adminMemberRequests.emailResentSuccessfully'));
       } else {
         if (!request.phone) {
-          toast.error('No phone number available');
+          toast.error(t('adminMemberRequests.noPhoneNumberAvailable'));
           return;
         }
 
@@ -575,7 +577,7 @@ export const AdminMemberRequests = () => {
         });
 
         if (error) throw error;
-        toast.success('SMS resent successfully');
+        toast.success(t('adminMemberRequests.smsResentSuccessfully'));
       }
 
       // Refresh to show updated notification status
@@ -608,9 +610,9 @@ export const AdminMemberRequests = () => {
       <div className="mb-4">
         <Tabs value={requestTypeFilter} onValueChange={(v) => setRequestTypeFilter(v as any)}>
           <TabsList>
-            <TabsTrigger value="all">All Requests</TabsTrigger>
-            <TabsTrigger value="candidate">Candidates Only</TabsTrigger>
-            <TabsTrigger value="partner">Partners Only</TabsTrigger>
+            <TabsTrigger value="all">{t('adminMemberRequests.allRequests')}</TabsTrigger>
+            <TabsTrigger value="candidate">{t('adminMemberRequests.candidatesOnly')}</TabsTrigger>
+            <TabsTrigger value="partner">{t('adminMemberRequests.partnersOnly')}</TabsTrigger>
           </TabsList>
         </Tabs>
       </div>
@@ -618,9 +620,9 @@ export const AdminMemberRequests = () => {
       {/* Status Filter */}
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="mb-6">
         <TabsList>
-          <TabsTrigger value="pending">Pending</TabsTrigger>
-          <TabsTrigger value="approved">Approved</TabsTrigger>
-          <TabsTrigger value="declined">Declined</TabsTrigger>
+          <TabsTrigger value="pending">{t('common:status.pending')}</TabsTrigger>
+          <TabsTrigger value="approved">{t('adminMemberRequests.approved')}</TabsTrigger>
+          <TabsTrigger value="declined">{t('adminMemberRequests.declined')}</TabsTrigger>
         </TabsList>
       </Tabs>
 
@@ -655,7 +657,7 @@ export const AdminMemberRequests = () => {
                         <div className="flex items-center gap-2">
                           <h3 className="font-semibold text-lg">{request.name}</h3>
                           <Badge variant="outline">
-                            {request.request_type === 'candidate' ? 'Candidate' : 'Partner'}
+                            {request.request_type === 'candidate' ? t('adminmemberrequeststsx.adminmemberrequests.candidate', 'Candidate') : t('adminmemberrequeststsx.adminmemberrequests.partner', 'Partner')}
                           </Badge>
                         </div>
                         <p className="text-sm text-muted-foreground">
@@ -692,7 +694,7 @@ export const AdminMemberRequests = () => {
                     {/* Candidate-specific info */}
                     {request.request_type === 'candidate' && request.desired_salary_min && (
                       <div className="mt-3 p-3 bg-muted rounded-lg text-sm">
-                        <strong>Desired Salary:</strong> €{request.desired_salary_min.toLocaleString()} - €{request.desired_salary_max?.toLocaleString()}
+                        <strong>{t('adminmemberrequeststsx.adminmemberrequests.desiredSalary', 'Desired Salary:')}</strong> €{request.desired_salary_min.toLocaleString()} - €{request.desired_salary_max?.toLocaleString()}
                       </div>
                     )}
 
@@ -724,16 +726,16 @@ export const AdminMemberRequests = () => {
                     {request.request_type === 'partner' && request.additional_data && (
                       <div className="mt-3 p-3 bg-muted rounded-lg text-sm space-y-1">
                         {request.additional_data.industry && (
-                          <p><strong>Industry:</strong> {request.additional_data.industry}</p>
+                          <p><strong>{t('adminmemberrequeststsx.adminmemberrequests.industry', 'Industry:')}</strong> {request.additional_data.industry}</p>
                         )}
                         {request.additional_data.company_size && (
-                          <p><strong>Company Size:</strong> {request.additional_data.company_size}</p>
+                          <p><strong>{t('adminmemberrequeststsx.adminmemberrequests.companySize', 'Company Size:')}</strong> {request.additional_data.company_size}</p>
                         )}
                         {request.additional_data.budget_range && (
-                          <p><strong>Budget:</strong> {request.additional_data.budget_range}</p>
+                          <p><strong>{t('adminmemberrequeststsx.adminmemberrequests.budget', 'Budget:')}</strong> {request.additional_data.budget_range}</p>
                         )}
                         {request.additional_data.estimated_roles_per_year && (
-                          <p><strong>Roles/Year:</strong> {request.additional_data.estimated_roles_per_year}</p>
+                          <p><strong>{t('adminmemberrequeststsx.adminmemberrequests.rolesyear', 'Roles/Year:')}</strong> {request.additional_data.estimated_roles_per_year}</p>
                         )}
                       </div>
                     )}
@@ -813,7 +815,7 @@ export const AdminMemberRequests = () => {
                           <AvatarFallback>{request.approver.full_name?.split(' ').map(n => n[0]).join('').toUpperCase()}</AvatarFallback>
                         </Avatar>
                         <div>
-                          <p className="text-sm font-medium">{request.status === 'approved' ? 'Approved by' : 'Declined by'}</p>
+                          <p className="text-sm font-medium">{request.status === 'approved' ? t('adminmemberrequeststsx.adminmemberrequests.approvedBy', 'Approved by') : t('adminmemberrequeststsx.adminmemberrequests.declinedBy', 'Declined by')}</p>
                           <p className="text-sm text-muted-foreground">{request.approver.full_name}</p>
                           {request.reviewed_at && <p className="text-xs text-muted-foreground">{formatDistanceToNow(new Date(request.reviewed_at), { addSuffix: true })}</p>}
                         </div>
@@ -821,12 +823,12 @@ export const AdminMemberRequests = () => {
                     )}
                     {request.status === 'approved' && (
                       <div className="flex flex-col gap-2 p-3 bg-muted rounded-lg">
-                        <p className="text-sm font-medium mb-1">Notifications</p>
+                        <p className="text-sm font-medium mb-1">{t('adminMemberRequests.notifications')}</p>
                         <div className="flex flex-col gap-2">
                           <div className="flex items-center justify-between gap-2">
                             <Badge variant={emailSent ? "default" : "outline"}>
                               <Mail className="w-3 h-3 mr-1" />
-                              Email {emailSent ? "Sent" : "Not Sent"}
+                              Email {emailSent ? t('adminmemberrequeststsx.adminmemberrequests.sent', 'Sent') : t('adminmemberrequeststsx.adminmemberrequests.notSent', 'Not Sent')}
                             </Badge>
                             {!emailSent && (
                               <Button 
@@ -836,14 +838,14 @@ export const AdminMemberRequests = () => {
                                 disabled={resending.email}
                                 className="h-7 text-xs"
                               >
-                                {resending.email ? 'Sending...' : 'Resend'}
+                                {resending.email ? t('adminmemberrequeststsx.adminmemberrequests.sending', 'Sending...') : t('adminmemberrequeststsx.adminmemberrequests.resend', 'Resend')}
                               </Button>
                             )}
                           </div>
                           <div className="flex items-center justify-between gap-2">
                             <Badge variant={smsSent ? "default" : "outline"}>
                               <Phone className="w-3 h-3 mr-1" />
-                              SMS {smsSent ? "Sent" : "Not Sent"}
+                              SMS {smsSent ? t('adminmemberrequeststsx.adminmemberrequests.sent', 'Sent') : t('adminmemberrequeststsx.adminmemberrequests.notSent', 'Not Sent')}
                             </Badge>
                             {!smsSent && request.phone && (
                               <Button 
@@ -853,7 +855,7 @@ export const AdminMemberRequests = () => {
                                 disabled={resending.sms}
                                 className="h-7 text-xs"
                               >
-                                {resending.sms ? 'Sending...' : 'Resend'}
+                                {resending.sms ? t('adminmemberrequeststsx.adminmemberrequests.sending', 'Sending...') : t('adminmemberrequeststsx.adminmemberrequests.resend', 'Resend')}
                               </Button>
                             )}
                           </div>
@@ -862,7 +864,7 @@ export const AdminMemberRequests = () => {
                     )}
                     {request.status === 'approved' && (
                       <div className="p-3 bg-muted rounded-lg">
-                        <p className="text-sm font-medium mb-2">Login Status</p>
+                        <p className="text-sm font-medium mb-2">{t('adminMemberRequests.loginStatus')}</p>
                         {hasLoggedInAfterApproval ? (
                           <div className="flex items-center gap-2 text-green-600">
                             <CheckCircle2 className="w-4 h-4" />
@@ -873,7 +875,7 @@ export const AdminMemberRequests = () => {
                         ) : (
                           <div className="flex items-center gap-2 text-amber-600">
                             <Clock className="w-4 h-4" />
-                            <span className="text-sm">Not logged in since approval</span>
+                            <span className="text-sm">{t('adminMemberRequests.notLoggedInSinceApproval')}</span>
                           </div>
                         )}
                       </div>
@@ -881,7 +883,7 @@ export const AdminMemberRequests = () => {
                   </div>
                 )}
                 {request.status === 'declined' && request.decline_reason && (
-                  <div className="mt-4 p-3 bg-destructive/10 border border-destructive/20 rounded-lg"><p className="text-sm font-semibold mb-1">Decline Reason:</p><p className="text-sm text-muted-foreground">{request.decline_reason}</p></div>
+                  <div className="mt-4 p-3 bg-destructive/10 border border-destructive/20 rounded-lg"><p className="text-sm font-semibold mb-1">{t('adminmemberrequeststsx.adminmemberrequests.declineReason', 'Decline Reason:')}</p><p className="text-sm text-muted-foreground">{request.decline_reason}</p></div>
                 )}
               </CardContent>
             </Card>
@@ -895,7 +897,7 @@ export const AdminMemberRequests = () => {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {reviewAction === 'approve' ? 'Approve Application' : 'Decline Application'}
+              {reviewAction === 'approve' ? t('adminmemberrequeststsx.adminmemberrequests.approveApplication', 'Approve Application') : t('adminmemberrequeststsx.adminmemberrequests.declineApplication', 'Decline Application')}
             </DialogTitle>
             <DialogDescription>
               {reviewAction === 'approve' 
@@ -907,7 +909,7 @@ export const AdminMemberRequests = () => {
 
           {reviewAction === 'approve' && (
             <div className="space-y-3">
-              <Label>Notification Preferences</Label>
+              <Label>{t('adminMemberRequests.notificationPreferences')}</Label>
               <div className="space-y-3">
                 <div className="flex items-center space-x-2">
                   <Checkbox
@@ -915,9 +917,7 @@ export const AdminMemberRequests = () => {
                     checked={sendEmail}
                     onCheckedChange={(checked) => setSendEmail(checked === true)}
                   />
-                  <label htmlFor="send-email" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer">
-                    Send approval email
-                  </label>
+                  <label htmlFor="send-email" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer">{t('adminmemberrequeststsx.adminmemberrequests.sendApprovalEmail', 'Send approval email')}</label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Checkbox
@@ -939,7 +939,7 @@ export const AdminMemberRequests = () => {
 
           {reviewAction === 'decline' && (
             <div className="space-y-2">
-              <Label htmlFor="decline-reason">Reason for Decline (will be sent to applicant)</Label>
+              <Label htmlFor="decline-reason">{t('adminMemberRequests.reasonForDeclineWillBeSent')}</Label>
               <Textarea
                 id="decline-reason"
                 placeholder="e.g., Profile does not match our current criteria..."
@@ -951,14 +951,14 @@ export const AdminMemberRequests = () => {
           )}
 
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setSelectedRequest(null)}>Cancel</Button>
+            <Button variant="ghost" onClick={() => setSelectedRequest(null)}>{t('adminmemberrequeststsx.adminmemberrequests.cancel', 'Cancel')}</Button>
             <Button 
               onClick={handleReview}
               disabled={submitting || (reviewAction === 'decline' && !declineReason)}
               variant={reviewAction === 'approve' ? 'default' : 'outline'}
               className={reviewAction === 'decline' ? 'border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground' : ''}
             >
-              {submitting ? 'Processing...' : reviewAction === 'approve' ? 'Approve' : 'Decline'}
+              {submitting ? 'Processing...' : reviewAction === 'approve' ? t('adminmemberrequeststsx.adminmemberrequests.approve', 'Approve') : t('adminmemberrequeststsx.adminmemberrequests.decline', 'Decline')}
             </Button>
           </DialogFooter>
         </DialogContent>

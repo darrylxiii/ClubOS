@@ -1,14 +1,10 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { checkUserRateLimit, createRateLimitResponse } from "../_shared/rate-limiter.ts";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
-};
+import { getCorsHeaders } from '../_shared/cors.ts';
 
 serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -85,7 +81,7 @@ serve(async (req) => {
       .eq("user_id", bookingLink.user_id)
       .eq("is_active", true);
 
-    const calendarBusyTimes: any[] = [];
+    const calendarBusyTimes: { scheduled_start: string; scheduled_end: string }[] = [];
 
     // Fetch busy times from each connected calendar
     if (calendars && calendars.length > 0) {
@@ -157,15 +153,16 @@ serve(async (req) => {
                   continue;
                 }
               }
-            } catch (refreshError: any) {
-              console.warn(`[Slots] Token refresh error, using existing token:`, refreshError);
-              
+            } catch (refreshErr: unknown) {
+              console.warn(`[Slots] Token refresh error, using existing token:`, refreshErr);
+
               // PHASE 4: Track refresh errors with circuit breaker
               const newErrorCount = (calendar.error_count || 0) + 1;
+              const refreshErrMessage = refreshErr instanceof Error ? refreshErr.message : 'Token refresh failed';
               await supabaseClient
                 .from('calendar_connections')
-                .update({ 
-                  last_error: refreshError?.message || 'Token refresh failed',
+                .update({
+                  last_error: refreshErrMessage,
                   error_count: newErrorCount
                 })
                 .eq('id', calendar.id);
@@ -216,14 +213,14 @@ serve(async (req) => {
           const { data: busyData, error: busyError } = await Promise.race([
             apiPromise,
             timeoutPromise
-          ]) as any;
+          ]) as { data?: Record<string, unknown>; error?: Record<string, unknown> };
 
           if (!busyError && busyData?.busySlots) {
             console.log(`[Slots] ${calendar.provider} returned ${busyData.busySlots.length} busy slots${tokenRefreshed ? ' (token refreshed)' : ''}`);
             if (busyData.busySlots.length > 0) {
               console.log(`[Slots] Sample busy slot from ${calendar.provider}:`, JSON.stringify(busyData.busySlots[0]));
             }
-            calendarBusyTimes.push(...busyData.busySlots.map((slot: any) => ({
+            calendarBusyTimes.push(...(busyData.busySlots as Array<{ start: string; end: string }>).map((slot) => ({
               scheduled_start: slot.start,
               scheduled_end: slot.end
             })));
@@ -264,7 +261,7 @@ serve(async (req) => {
                 .eq('id', calendar.id);
             }
           }
-        } catch (error: any) {
+        } catch (error: unknown) {
           console.error(`[Slots] Error fetching calendar busy times from ${calendar.provider}:`, error);
           // Continue with other calendars even if one fails
         }
@@ -336,20 +333,20 @@ serve(async (req) => {
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error getting available slots:", error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 });
 
 function generateAvailableSlots(
-  dateRange: any,
-  bookingLink: any,
-  settings: any,
-  existingBookings: any[],
+  dateRange: { start: string; end: string },
+  bookingLink: Record<string, unknown>,
+  settings: Record<string, unknown> | null,
+  existingBookings: { scheduled_start: string; scheduled_end: string }[],
   timezone: string
 ): { start: string; end: string }[] {
   const slots = [];
@@ -357,16 +354,16 @@ function generateAvailableSlots(
   const endDate = new Date(dateRange.end);
   
   // Use settings from booking_availability_settings table or defaults
-  const workingHoursStart = settings?.default_start_time || "09:00:00";
-  const workingHoursEnd = settings?.default_end_time || "17:00:00";
-  const workingDays = settings?.default_available_days || [1, 2, 3, 4, 5];
+  const workingHoursStart = (settings?.default_start_time as string) || "09:00:00";
+  const workingHoursEnd = (settings?.default_end_time as string) || "17:00:00";
+  const workingDays = (settings?.default_available_days as number[]) || [1, 2, 3, 4, 5];
   
   console.log(`[Slots] Using availability settings: start=${workingHoursStart}, end=${workingHoursEnd}, days=${JSON.stringify(workingDays)}`);
   
-  const durationMinutes = bookingLink.duration_minutes;
-  const bufferBefore = bookingLink.buffer_before_minutes || 0;
-  const bufferAfter = bookingLink.buffer_after_minutes || 0;
-  const minNoticeHours = bookingLink.min_notice_hours || 2;
+  const durationMinutes = bookingLink.duration_minutes as number;
+  const bufferBefore = (bookingLink.buffer_before_minutes as number) || 0;
+  const bufferAfter = (bookingLink.buffer_after_minutes as number) || 0;
+  const minNoticeHours = (bookingLink.min_notice_hours as number) || 2;
   
   console.log(`[Slots] Slot generation params: duration=${durationMinutes}min, buffer_before=${bufferBefore}min, buffer_after=${bufferAfter}min`);
   

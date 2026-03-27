@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -33,6 +34,7 @@ export function CandidateStrategistDialog({
   candidate,
   onSuccess,
 }: CandidateStrategistDialogProps) {
+  const { t } = useTranslation('common');
   const queryClient = useQueryClient();
   const [selectedStrategist, setSelectedStrategist] = useState<string>(
     candidate.assigned_strategist_id || ""
@@ -68,12 +70,12 @@ export function CandidateStrategistDialog({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['candidates-with-assignments'] });
       queryClient.invalidateQueries({ queryKey: ['strategist-workload'] });
-      toast.success("Strategist assigned successfully");
+      toast.success(t("strategist_assigned_successfully", "Strategist assigned successfully"));
       onOpenChange(false);
       onSuccess?.();
     },
     onError: (error) => {
-      toast.error("Failed to assign strategist");
+      toast.error(t("failed_to_assign_strategist", "Failed to assign strategist"));
       console.error(error);
     },
   });
@@ -88,7 +90,7 @@ export function CandidateStrategistDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>Assign Strategist</DialogTitle>
+          <DialogTitle>{t("assign_strategist", "Assign Strategist")}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6">
@@ -111,7 +113,7 @@ export function CandidateStrategistDialog({
           {/* Current Assignment */}
           {candidate.assigned_strategist_id && (
             <div className="text-sm">
-              <span className="text-muted-foreground">Currently assigned to: </span>
+              <span className="text-muted-foreground">{t("currently_assigned_to", "Currently assigned to:")}</span>
               <span className="font-medium">
                 {workloads?.find(w => w.id === candidate.assigned_strategist_id)?.full_name || 'Unknown'}
               </span>
@@ -120,7 +122,7 @@ export function CandidateStrategistDialog({
 
           {/* Strategist Selection */}
           <div className="space-y-3">
-            <Label>Select Strategist</Label>
+            <Label>{t("select_strategist", "Select Strategist")}</Label>
             {loadingWorkloads ? (
               <div className="flex items-center justify-center py-8">
                 <Loader2 className="h-6 w-6 animate-spin" />
@@ -180,8 +182,8 @@ export function CandidateStrategistDialog({
                   >
                     <RadioGroupItem value="" id="none" />
                     <div className="flex-1">
-                      <p className="font-medium text-sm text-muted-foreground">No strategist</p>
-                      <p className="text-xs text-muted-foreground">Remove current assignment</p>
+                      <p className="font-medium text-sm text-muted-foreground">{t("no_strategist", "No strategist")}</p>
+                      <p className="text-xs text-muted-foreground">{t("remove_current_assignment", "Remove current assignment")}</p>
                     </div>
                     {selectedStrategist === '' && (
                       <CheckCircle className="h-4 w-4 text-primary" />
@@ -194,10 +196,10 @@ export function CandidateStrategistDialog({
 
           {/* Notes */}
           <div className="space-y-2">
-            <Label htmlFor="notes">Assignment Notes (optional)</Label>
+            <Label htmlFor="notes">{t("assignment_notes_optional", "Assignment Notes (optional)")}</Label>
             <Textarea
               id="notes"
-              placeholder="e.g., High-priority candidate for fintech roles"
+              placeholder={t("eg_highpriority_candidate_for", "e.g., High-priority candidate for fintech roles")}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={2}

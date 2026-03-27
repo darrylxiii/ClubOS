@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -35,6 +36,7 @@ const CALENDAR_PROVIDERS = [
 ];
 
 export function CalendarIntegrationSettings() {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [connecting, setConnecting] = useState<string | null>(null);
@@ -76,7 +78,7 @@ export function CalendarIntegrationSettings() {
     try {
       if (providerId === 'google') {
         // Initiate Google OAuth flow
-        toast.info('Opening Google Calendar authorization...');
+        toast.info(t("opening_google_calendar_authorization", "Opening Google Calendar authorization..."));
         
         // This would typically redirect to Google OAuth
         // For now, we'll simulate the connection
@@ -97,10 +99,10 @@ export function CalendarIntegrationSettings() {
         setCalendarConnectedAt(new Date().toISOString());
         setCalendarSyncEnabled(true);
 
-        toast.success('Google Calendar connected successfully!');
+        toast.success(t("google_calendar_connected_successfully", "Google Calendar connected successfully!"));
       } else if (providerId === 'outlook') {
         // Initiate Microsoft OAuth flow
-        toast.info('Opening Microsoft authorization...');
+        toast.info(t("opening_microsoft_authorization", "Opening Microsoft authorization..."));
         
         // Connect Microsoft Calendar
         await new Promise(resolve => setTimeout(resolve, 2000));
@@ -120,13 +122,13 @@ export function CalendarIntegrationSettings() {
         setCalendarConnectedAt(new Date().toISOString());
         setCalendarSyncEnabled(true);
 
-        toast.success('Microsoft Outlook connected successfully!');
+        toast.success(t("microsoft_outlook_connected_successfully", "Microsoft Outlook connected successfully!"));
       } else {
-        toast.info('This calendar provider is coming soon!');
+        toast.info(t("this_calendar_provider_is", "This calendar provider is coming soon!"));
       }
     } catch (error) {
       console.error('Error connecting calendar:', error);
-      toast.error('Failed to connect calendar');
+      toast.error(t("failed_to_connect_calendar", "Failed to connect calendar"));
     } finally {
       setConnecting(null);
     }
@@ -152,10 +154,10 @@ export function CalendarIntegrationSettings() {
       setCalendarConnectedAt(null);
       setCalendarSyncEnabled(false);
 
-      toast.success('Calendar disconnected');
+      toast.success(t("calendar_disconnected", "Calendar disconnected"));
     } catch (error) {
       console.error('Error disconnecting calendar:', error);
-      toast.error('Failed to disconnect calendar');
+      toast.error(t("failed_to_disconnect_calendar", "Failed to disconnect calendar"));
     }
   };
 
@@ -172,7 +174,7 @@ export function CalendarIntegrationSettings() {
       toast.success(enabled ? 'Calendar sync enabled' : 'Calendar sync disabled');
     } catch (error) {
       console.error('Error updating sync setting:', error);
-      toast.error('Failed to update sync setting');
+      toast.error(t("failed_to_update_sync", "Failed to update sync setting"));
     }
   };
 
@@ -247,7 +249,7 @@ export function CalendarIntegrationSettings() {
 
           {/* Calendar Providers */}
           <div className="space-y-3">
-            <Label className="text-sm font-semibold">Available Calendar Providers</Label>
+            <Label className="text-sm font-semibold">{t("available_calendar_providers", "Available Calendar Providers")}</Label>
             <div className="grid gap-3">
               {CALENDAR_PROVIDERS.map(provider => {
                 const isConnected = calendarProvider === provider.id;
@@ -274,7 +276,7 @@ export function CalendarIntegrationSettings() {
                               </Badge>
                             )}
                             {provider.comingSoon && (
-                              <Badge variant="secondary">Coming Soon</Badge>
+                              <Badge variant="secondary">{t("coming_soon", "Coming Soon")}</Badge>
                             )}
                           </div>
                           <p className="text-sm text-muted-foreground">
@@ -316,7 +318,7 @@ export function CalendarIntegrationSettings() {
             <Alert>
               <AlertCircle className="w-4 h-4" />
               <AlertDescription>
-                <strong>Why connect your calendar?</strong><br />
+                <strong>{t("why_connect_your_calendar", "Why connect your calendar?")}</strong><br />
                 Connecting your calendar allows recruiters to see your availability and schedule interviews at times that work for you, eliminating back-and-forth emails.
               </AlertDescription>
             </Alert>

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { DynamicChart } from "@/components/charts/DynamicChart";
 import { HiringMetrics } from "@/hooks/useAnalytics";
 import { format } from "date-fns";
@@ -8,10 +9,11 @@ interface HiringVelocityChartProps {
 }
 
 export function HiringVelocityChart({ data, isLoading }: HiringVelocityChartProps) {
+  const { t } = useTranslation('common');
   if (isLoading) {
     return (
       <div className="h-[400px] w-full flex items-center justify-center">
-        <div className="text-muted-foreground">Loading chart data...</div>
+        <div className="text-muted-foreground">{t("loading_chart_data", "Loading chart data...")}</div>
       </div>
     );
   }
@@ -19,7 +21,7 @@ export function HiringVelocityChart({ data, isLoading }: HiringVelocityChartProp
   if (!data || data.length === 0) {
     return (
       <div className="h-[400px] w-full flex items-center justify-center">
-        <div className="text-muted-foreground">No data available for the selected period</div>
+        <div className="text-muted-foreground">{t("no_data_available_for", "No data available for the selected period")}</div>
       </div>
     );
   }
@@ -38,7 +40,7 @@ export function HiringVelocityChart({ data, isLoading }: HiringVelocityChartProp
     <div className="space-y-8">
       {/* Applications & Hires Trend */}
       <div>
-        <h4 className="text-sm font-medium mb-4">Applications vs. Hires</h4>
+        <h4 className="text-sm font-medium mb-4">{t("applications_vs_hires", "Applications vs. Hires")}</h4>
         <DynamicChart
           type="bar"
           data={chartData}
@@ -57,7 +59,7 @@ export function HiringVelocityChart({ data, isLoading }: HiringVelocityChartProp
 
       {/* Time to Hire Trend */}
       <div>
-        <h4 className="text-sm font-medium mb-4">Average Time to Hire (Days)</h4>
+        <h4 className="text-sm font-medium mb-4">{t("average_time_to_hire", "Average Time to Hire (Days)")}</h4>
         <DynamicChart
           type="line"
           data={chartData}

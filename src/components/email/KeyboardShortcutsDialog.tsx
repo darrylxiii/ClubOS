@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import {
   Dialog,
   DialogContent,
@@ -13,13 +14,14 @@ interface KeyboardShortcutsDialogProps {
 }
 
 export function KeyboardShortcutsDialog({ open, onOpenChange }: KeyboardShortcutsDialogProps) {
+  const { t } = useTranslation('common');
   const shortcuts = Object.values(EMAIL_SHORTCUTS);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Keyboard Shortcuts</DialogTitle>
+          <DialogTitle>{t("keyboard_shortcuts", "Keyboard Shortcuts")}</DialogTitle>
           <DialogDescription>
             Use these keyboard shortcuts to navigate and manage your emails faster
           </DialogDescription>

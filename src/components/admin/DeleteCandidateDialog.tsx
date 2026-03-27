@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { candidateAuditService, DeletionImpact } from "@/services/candidateAuditService";
@@ -33,6 +34,7 @@ export function DeleteCandidateDialog({
   onDeleted,
   deleteType
 }: DeleteCandidateDialogProps) {
+  const { t } = useTranslation('common');
   const [reason, setReason] = useState('');
   const [confirmText, setConfirmText] = useState('');
   const [impact, setImpact] = useState<DeletionImpact | null>(null);
@@ -54,7 +56,7 @@ export function DeleteCandidateDialog({
 
   const handleSoftDelete = async () => {
     if (!reason.trim()) {
-      toast.error('Please provide a reason for archiving');
+      toast.error(t("please_provide_a_reason", "Please provide a reason for archiving"));
       return;
     }
 
@@ -98,13 +100,13 @@ export function DeleteCandidateDialog({
         }
       });
 
-      toast.success('Candidate archived successfully. Stats preserved.');
+      toast.success(t("candidate_archived_successfully_stats", "Candidate archived successfully. Stats preserved."));
       onDeleted();
       onOpenChange(false);
       setReason('');
     } catch (error: unknown) {
       console.error('Error archiving candidate:', error);
-      toast.error('Failed to archive candidate: ' + (error instanceof Error ? error.message : 'Unknown error'));
+      toast.error(t("failed_to_archive_candidate", "Failed to archive candidate:") + (error instanceof Error ? error.message : 'Unknown error'));
     } finally {
       setLoading(false);
     }
@@ -112,12 +114,12 @@ export function DeleteCandidateDialog({
 
   const handleHardDelete = async () => {
     if (!reason.trim()) {
-      toast.error('Please provide a reason for deletion');
+      toast.error(t("please_provide_a_reason", "Please provide a reason for deletion"));
       return;
     }
 
     if (confirmText !== 'DELETE') {
-      toast.error('Please type DELETE to confirm permanent deletion');
+      toast.error(t("please_type_delete_to", "Please type DELETE to confirm permanent deletion"));
       return;
     }
 
@@ -144,14 +146,14 @@ export function DeleteCandidateDialog({
 
       if (error) throw error;
 
-      toast.success('Candidate permanently deleted. Stats updated.');
+      toast.success(t("candidate_permanently_deleted_stats", "Candidate permanently deleted. Stats updated."));
       onDeleted();
       onOpenChange(false);
       setReason('');
       setConfirmText('');
     } catch (error: unknown) {
       console.error('Error deleting candidate:', error);
-      toast.error('Failed to delete candidate: ' + (error instanceof Error ? error.message : 'Unknown error'));
+      toast.error(t("failed_to_delete_candidate", "Failed to delete candidate:") + (error instanceof Error ? error.message : 'Unknown error'));
     } finally {
       setLoading(false);
     }
@@ -178,9 +180,9 @@ export function DeleteCandidateDialog({
           </DialogTitle>
           <DialogDescription>
             {isSoftDelete ? (
-              <>This candidate will be archived and hidden from active searches.</>
+              <>{t("this_candidate_will_be", "This candidate will be archived and hidden from active searches.")}</>
             ) : (
-              <>⚠️ THIS ACTION CANNOT BE UNDONE. The candidate will be permanently removed.</>
+              <>{t("this_action_cannot_be", "⚠️ THIS ACTION CANNOT BE UNDONE. The candidate will be permanently removed.")}</>
             )}
           </DialogDescription>
         </DialogHeader>

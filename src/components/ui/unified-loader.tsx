@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { Loader2 } from "lucide-react";
@@ -23,6 +24,7 @@ export function UnifiedLoader({
   className,
   size = 'md'
 }: UnifiedLoaderProps) {
+  const { t } = useTranslation('common');
 
   const logoSrc = "/quantum-logo.svg";
 
@@ -50,7 +52,7 @@ export function UnifiedLoader({
       >
         <img
           src={logoSrc}
-          alt="Loading"
+          alt={t("loading", "Loading")}
           className="w-full h-full object-contain drop-shadow-[0_0_20px_rgba(255,255,255,0.15)]"
         />
       </motion.div>

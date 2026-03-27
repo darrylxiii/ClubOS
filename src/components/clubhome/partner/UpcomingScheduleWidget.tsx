@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,6 +19,7 @@ interface ScheduleItem {
 }
 
 export function UpcomingScheduleWidget() {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
 
   const { data: items, isLoading } = useQuery({
@@ -131,7 +133,7 @@ export function UpcomingScheduleWidget() {
           </CardTitle>
           <Button variant="ghost" size="sm" asChild className="text-xs">
             <Link to="/meetings">
-              View All
+              {t('common:viewAll')}
               <ArrowRight className="h-3 w-3 ml-1" />
             </Link>
           </Button>
@@ -143,15 +145,13 @@ export function UpcomingScheduleWidget() {
             <div className="flex items-center gap-3 p-4 rounded-lg border border-emerald-500/20 bg-emerald-500/5">
               <CheckCircle className="h-5 w-5 text-emerald-500 shrink-0" />
               <div>
-                <p className="text-sm font-medium text-emerald-600 dark:text-emerald-400">Clear schedule</p>
-                <p className="text-xs text-muted-foreground">No upcoming interviews this week</p>
+                <p className="text-sm font-medium text-emerald-600 dark:text-emerald-400">{t("clear_schedule", "Clear schedule")}</p>
+                <p className="text-xs text-muted-foreground">{t("no_upcoming_interviews_this", "No upcoming interviews this week")}</p>
               </div>
             </div>
             <div className="flex items-start gap-2.5 px-3 py-2.5 rounded-lg bg-muted/30">
               <Info className="h-3.5 w-3.5 text-muted-foreground mt-0.5 shrink-0" />
-              <p className="text-xs text-muted-foreground">
-                Interviews are automatically scheduled once candidates are shortlisted for your roles
-              </p>
+              <p className="text-xs text-muted-foreground">{t('upcomingScheduleWidget.interviewsAreAutomaticallyScheduledOnceC')}</p>
             </div>
           </div>
         ) : (

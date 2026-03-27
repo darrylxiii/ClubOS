@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
@@ -31,6 +32,7 @@ export function PrivacyTab({
   onPrivacyChange,
   onSave,
 }: PrivacyTabProps) {
+  const { t } = useTranslation('common');
   const privacyItems = [
     { key: 'share_full_name', label: 'Full Name', description: 'Share your full name with partners' },
     { key: 'share_email', label: 'Email Address', description: 'Share your email with partners' },
@@ -50,7 +52,7 @@ export function PrivacyTab({
         <CardHeader>
           <div className="flex items-center gap-2">
             <Shield className="h-5 w-5" />
-            <CardTitle>Employer Shield</CardTitle>
+            <CardTitle>{t("employer_shield", "Employer Shield")}</CardTitle>
           </div>
           <CardDescription>
             Prevent your current employer from seeing your profile
@@ -71,7 +73,7 @@ export function PrivacyTab({
 
       <Card>
         <CardHeader>
-          <CardTitle>Data Sharing Preferences</CardTitle>
+          <CardTitle>{t("data_sharing_preferences", "Data Sharing Preferences")}</CardTitle>
           <CardDescription>
             Control what information partners can see about you
           </CardDescription>

@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { toast } from 'sonner';
 import { RemoteAudioPlayer } from './RemoteAudioPlayer';
 import { useHaptics } from '@/hooks/useHaptics';
+import { useTranslation } from 'react-i18next';
 
 interface MobileVoiceChannelProps {
   channelId: string;
@@ -24,6 +25,7 @@ interface Channel {
 }
 
 const MobileVoiceChannel = ({ channelId, channelType, autoJoin = false, onConnect, onDisconnect }: MobileVoiceChannelProps) => {
+  const { t } = useTranslation('meetings');
   const { user } = useAuth();
   const { notification, impact } = useHaptics();
   const [channel, setChannel] = useState<Channel | null>(null);
@@ -74,10 +76,10 @@ const MobileVoiceChannel = ({ channelId, channelType, autoJoin = false, onConnec
       if (channel) {
         onConnect?.(channelId, channel.name);
       }
-      toast.success('Connected to voice channel');
+      toast.success(t('voice.connected', 'Connected to voice channel'));
     } catch (error: unknown) {
       console.error('Error joining channel:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to connect');
+      toast.error(error instanceof Error ? error.message : t('voice.failedToConnect', 'Failed to connect'));
     } finally {
       setIsJoining(false);
     }
@@ -88,7 +90,7 @@ const MobileVoiceChannel = ({ channelId, channelType, autoJoin = false, onConnec
     
     try {
       await leaveChannel();
-      toast.success('Disconnected');
+      toast.success(t('voice.disconnected', 'Disconnected'));
       // Notify parent to disconnect and navigate back
       onDisconnect?.();
     } catch (error) {
@@ -125,7 +127,7 @@ const MobileVoiceChannel = ({ channelId, channelType, autoJoin = false, onConnec
             <div>
               <h3 className="text-2xl font-semibold mb-2">{channel.name}</h3>
               <p className="text-sm text-muted-foreground mb-4">
-                {participants.length} {participants.length === 1 ? 'person' : 'people'} in channel
+                {t('voice.peopleInChannel', '{{count}} people in channel', { count: participants.length })}
               </p>
 
               {/* Show participant avatars */}
@@ -154,7 +156,7 @@ const MobileVoiceChannel = ({ channelId, channelType, autoJoin = false, onConnec
               disabled={isJoining}
             >
               <Phone className="w-5 h-5" />
-              {isJoining ? 'Connecting...' : 'Join Voice'}
+              {isJoining ? t('voice.connecting', 'Connecting...') : t('voice.joinVoice', 'Join Voice')}
             </Button>
           </div>
         </div>
@@ -177,7 +179,7 @@ const MobileVoiceChannel = ({ channelId, channelType, autoJoin = false, onConnec
                       </AvatarFallback>
                     </Avatar>
                     <p className="text-sm font-medium text-center truncate w-full">
-                      {participant.user?.full_name || 'Unknown'}
+                      {participant.user?.full_name || t('voice.unknown', 'Unknown')}
                     </p>
                     {participant.is_muted && (
                       <div className="absolute top-2 right-2 bg-red-500/20 p-1.5 rounded-full">
@@ -195,7 +197,7 @@ const MobileVoiceChannel = ({ channelId, channelType, autoJoin = false, onConnec
             {/* Speaking Indicator */}
             {isSpeaking && (
               <div className="px-4 py-2 bg-green-500/10 border-t border-green-500/20">
-                <p className="text-sm text-green-500 text-center font-medium">You're speaking</p>
+                <p className="text-sm text-green-500 text-center font-medium">{t('voice.youreSpeaking', "You're speaking")}</p>
               </div>
             )}
           </div>
@@ -236,7 +238,7 @@ const MobileVoiceChannel = ({ channelId, channelType, autoJoin = false, onConnec
               
               <div className="mt-3 text-center">
                 <p className="text-xs text-muted-foreground">
-                  {participants.length} {participants.length === 1 ? 'participant' : 'participants'}
+                  {t('voice.participantCount', '{{count}} participants', { count: participants.length })}
                 </p>
               </div>
             </div>

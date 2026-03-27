@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -20,6 +21,7 @@ interface FinancialKPICardProps {
 }
 
 function FinancialKPICard({ kpi }: FinancialKPICardProps) {
+  const { t } = useTranslation('common');
   const formatValue = (value: number, format: string, unit?: string) => {
     if (format === 'currency') {
       return `${unit || '€'}${value.toLocaleString('nl-NL', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
@@ -84,7 +86,7 @@ export function FinancialKPISection({ year }: FinancialKPISectionProps) {
       <div className="space-y-4">
         <div className="flex items-center gap-2">
           <DollarSign className="h-5 w-5 text-primary" />
-          <h3 className="text-lg font-semibold">Financial KPIs (Moneybird)</h3>
+          <h3 className="text-lg font-semibold">{t("financial_kpis_moneybird", "Financial KPIs (Moneybird)")}</h3>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3">
           {[1, 2, 3, 4, 5].map(i => (
@@ -100,7 +102,7 @@ export function FinancialKPISection({ year }: FinancialKPISectionProps) {
       <Card className="border-dashed">
         <CardContent className="py-8 text-center">
           <DollarSign className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
-          <p className="text-muted-foreground">No financial data synced yet</p>
+          <p className="text-muted-foreground">{t("no_financial_data_synced", "No financial data synced yet")}</p>
           <p className="text-xs text-muted-foreground mt-1">
             Visit the Financial Dashboard to sync Moneybird data
           </p>
@@ -121,7 +123,7 @@ export function FinancialKPISection({ year }: FinancialKPISectionProps) {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <DollarSign className="h-5 w-5 text-primary" />
-          <h3 className="text-lg font-semibold">Financial KPIs (Moneybird)</h3>
+          <h3 className="text-lg font-semibold">{t("financial_kpis_moneybird", "Financial KPIs (Moneybird)")}</h3>
         </div>
         {metrics.last_synced_at && (
           <Badge variant="outline" className="text-xs">
@@ -181,7 +183,7 @@ export function FinancialKPISection({ year }: FinancialKPISectionProps) {
           {/* Aging breakdown card */}
           <Card className="col-span-2 border">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">AR Aging Breakdown</CardTitle>
+              <CardTitle className="text-sm font-medium">{t("ar_aging_breakdown", "AR Aging Breakdown")}</CardTitle>
             </CardHeader>
             <CardContent className="pt-0">
               <div className="space-y-2">

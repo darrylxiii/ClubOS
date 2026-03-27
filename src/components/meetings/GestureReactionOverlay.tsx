@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from '@/lib/motion';
+import { useTranslation } from 'react-i18next';
 
 interface GestureReaction {
   id: string;
@@ -27,24 +28,26 @@ const GESTURE_EMOJIS: Record<string, string> = {
   'rock': '🤘'
 };
 
-const GESTURE_LABELS: Record<string, string> = {
-  'thumbs_up': 'Thumbs Up',
-  'thumbs_down': 'Thumbs Down',
-  'wave': 'Wave',
-  'raised_hand': 'Raised Hand',
-  'clap': 'Clapping',
-  'peace': 'Peace',
-  'ok': 'OK',
-  'point_up': 'Point Up',
-  'fist': 'Fist',
-  'rock': 'Rock On'
+const GESTURE_LABEL_KEYS: Record<string, string> = {
+  'thumbs_up': 'gestures.thumbsUp',
+  'thumbs_down': 'gestures.thumbsDown',
+  'wave': 'gestures.wave',
+  'raised_hand': 'gestures.raisedHand',
+  'clap': 'gestures.clapping',
+  'peace': 'gestures.peace',
+  'ok': 'gestures.ok',
+  'point_up': 'gestures.pointUp',
+  'fist': 'gestures.fist',
+  'rock': 'gestures.rockOn'
 };
 
 export function GestureReactionOverlay({
   currentGesture,
-  participantName = 'You',
+  participantName,
   confidence = 0
 }: GestureReactionOverlayProps) {
+  const { t } = useTranslation("meetings");
+  const displayName = participantName || t('gestures.you');
   const [reactions, setReactions] = useState<GestureReaction[]>([]);
   const [lastGesture, setLastGesture] = useState<string | null>(null);
 
@@ -54,7 +57,7 @@ export function GestureReactionOverlay({
       const newReaction: GestureReaction = {
         id: `${Date.now()}-${Math.random()}`,
         gesture: currentGesture,
-        participantName,
+        participantName: displayName,
         timestamp: Date.now()
       };
       
@@ -74,7 +77,7 @@ export function GestureReactionOverlay({
       }, 1000);
       return () => clearTimeout(timeout);
     }
-  }, [currentGesture, confidence, participantName, lastGesture]);
+  }, [currentGesture, confidence, displayName, lastGesture]);
 
   return (
     <div className="fixed bottom-24 right-4 z-50 pointer-events-none">
@@ -108,7 +111,7 @@ export function GestureReactionOverlay({
                 {reaction.participantName}
               </span>
               <span className="text-[10px] text-muted-foreground">
-                {GESTURE_LABELS[reaction.gesture] || reaction.gesture}
+                {GESTURE_LABEL_KEYS[reaction.gesture] ? t(GESTURE_LABEL_KEYS[reaction.gesture]) : reaction.gesture}
               </span>
             </div>
           </motion.div>
@@ -128,7 +131,7 @@ export function GestureReactionOverlay({
               {GESTURE_EMOJIS[currentGesture] || '👋'}
             </span>
             <span className="text-xs text-muted-foreground">
-              Detected: {GESTURE_LABELS[currentGesture] || currentGesture}
+              {t('gestures.detected')}: {GESTURE_LABEL_KEYS[currentGesture] ? t(GESTURE_LABEL_KEYS[currentGesture]) : currentGesture}
             </span>
             <div className="w-16 h-1 bg-muted rounded-full overflow-hidden">
               <motion.div 

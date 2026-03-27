@@ -3,8 +3,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Briefcase, Users, TrendingUp, CheckCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useTranslation } from 'react-i18next';
 
 export const QuickStats = () => {
+  const { t } = useTranslation('common');
   const { data: stats, isLoading } = useQuery({
     queryKey: ['quick-stats'],
     queryFn: async () => {

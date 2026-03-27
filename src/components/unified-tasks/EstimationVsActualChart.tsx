@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,6 +11,7 @@ interface EstimationVsActualChartProps {
 }
 
 export function EstimationVsActualChart({ objectiveId }: EstimationVsActualChartProps) {
+  const { t } = useTranslation('common');
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const { recharts, isLoading: rechartsLoading } = useRecharts();
@@ -65,7 +67,7 @@ export function EstimationVsActualChart({ objectiveId }: EstimationVsActualChart
       <Card>
         <CardContent className="flex flex-col items-center justify-center py-12 text-muted-foreground">
           <Timer className="h-8 w-8 mb-2 opacity-20" />
-          <p className="text-sm">No tasks with both estimates and tracked time yet.</p>
+          <p className="text-sm">{t("no_tasks_with_both", "No tasks with both estimates and tracked time yet.")}</p>
         </CardContent>
       </Card>
     );

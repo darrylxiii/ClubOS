@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -26,6 +27,7 @@ export function ManualInterviewEntryDialog({
   jobId,
   onInterviewAdded
 }: ManualInterviewEntryDialogProps) {
+  const { t } = useTranslation('common');
   const [selectedJobId, setSelectedJobId] = useState(jobId || '');
   const [selectedApplicationId, setSelectedApplicationId] = useState('');
   const [interviewType, setInterviewType] = useState('');
@@ -69,7 +71,7 @@ export function ManualInterviewEntryDialog({
     e.preventDefault();
     
     if (!selectedJobId || !selectedApplicationId || !interviewType || !date || !time) {
-      toast.error('Please fill in all required fields');
+      toast.error(t("please_fill_in_all", "Please fill in all required fields"));
       return;
     }
 
@@ -120,7 +122,7 @@ export function ManualInterviewEntryDialog({
 
       if (error) throw error;
 
-      toast.success('Interview added successfully');
+      toast.success(t("interview_added_successfully", "Interview added successfully"));
       onInterviewAdded?.();
       onOpenChange(false);
       
@@ -144,19 +146,17 @@ export function ManualInterviewEntryDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Add Interview Manually</DialogTitle>
-          <DialogDescription>
-            Add an interview that's already scheduled but not yet in the system
-          </DialogDescription>
+          <DialogTitle>{t("add_interview_manually", "Add Interview Manually")}</DialogTitle>
+          <DialogDescription>{t('manualInterviewEntryDialog.dialogDescription')}</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {!jobId && (
             <div className="space-y-2">
-              <Label htmlFor="job">Job *</Label>
+              <Label htmlFor="job">{t("job", "Job *")}</Label>
               <Select value={selectedJobId} onValueChange={setSelectedJobId}>
                 <SelectTrigger id="job">
-                  <SelectValue placeholder="Select a job" />
+                  <SelectValue placeholder={t("select_a_job", "Select a job")} />
                 </SelectTrigger>
                 <SelectContent>
                   {jobs?.map((job) => (
@@ -170,14 +170,14 @@ export function ManualInterviewEntryDialog({
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="application">Candidate *</Label>
+            <Label htmlFor="application">{t("candidate", "Candidate *")}</Label>
             <Select 
               value={selectedApplicationId} 
               onValueChange={setSelectedApplicationId}
               disabled={!selectedJobId}
             >
               <SelectTrigger id="application">
-                <SelectValue placeholder="Select a candidate" />
+                <SelectValue placeholder={t("select_a_candidate", "Select a candidate")} />
               </SelectTrigger>
               <SelectContent>
                 {applications?.map((app) => (
@@ -190,25 +190,25 @@ export function ManualInterviewEntryDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="interviewType">Interview Type *</Label>
+            <Label htmlFor="interviewType">{t("interview_type", "Interview Type *")}</Label>
             <Select value={interviewType} onValueChange={setInterviewType}>
               <SelectTrigger id="interviewType">
-                <SelectValue placeholder="Select interview type" />
+                <SelectValue placeholder={t("select_interview_type", "Select interview type")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="tqc_intro">TQC Introduction</SelectItem>
-                <SelectItem value="technical">Technical Interview</SelectItem>
-                <SelectItem value="behavioral">Behavioral Interview</SelectItem>
-                <SelectItem value="partner_interview">Partner Interview</SelectItem>
-                <SelectItem value="panel_interview">Panel Interview</SelectItem>
-                <SelectItem value="final">Final Interview</SelectItem>
+                <SelectItem value="tqc_intro">{t("tqc_introduction", "TQC Introduction")}</SelectItem>
+                <SelectItem value="technical">{t("technical_interview", "Technical Interview")}</SelectItem>
+                <SelectItem value="behavioral">{t("behavioral_interview", "Behavioral Interview")}</SelectItem>
+                <SelectItem value="partner_interview">{t("partner_interview", "Partner Interview")}</SelectItem>
+                <SelectItem value="panel_interview">{t("panel_interview", "Panel Interview")}</SelectItem>
+                <SelectItem value="final">{t("final_interview", "Final Interview")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Date *</Label>
+              <Label>{t("date", "Date *")}</Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
@@ -231,7 +231,7 @@ export function ManualInterviewEntryDialog({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="time">Time *</Label>
+              <Label htmlFor="time">{t("time", "Time *")}</Label>
               <div className="relative">
                 <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -246,24 +246,24 @@ export function ManualInterviewEntryDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="duration">Duration (minutes)</Label>
+            <Label htmlFor="duration">{t("duration_minutes", "Duration (minutes)")}</Label>
             <Select value={duration} onValueChange={setDuration}>
               <SelectTrigger id="duration">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="15">15 minutes</SelectItem>
-                <SelectItem value="30">30 minutes</SelectItem>
-                <SelectItem value="45">45 minutes</SelectItem>
-                <SelectItem value="60">1 hour</SelectItem>
-                <SelectItem value="90">1.5 hours</SelectItem>
-                <SelectItem value="120">2 hours</SelectItem>
+                <SelectItem value="15">{t("15_minutes", "15 minutes")}</SelectItem>
+                <SelectItem value="30">{t("30_minutes", "30 minutes")}</SelectItem>
+                <SelectItem value="45">{t("45_minutes", "45 minutes")}</SelectItem>
+                <SelectItem value="60">{t("1_hour", "1 hour")}</SelectItem>
+                <SelectItem value="90">{t("15_hours", "1.5 hours")}</SelectItem>
+                <SelectItem value="120">{t("2_hours", "2 hours")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="meetingLink">Meeting Link</Label>
+            <Label htmlFor="meetingLink">{t("meeting_link", "Meeting Link")}</Label>
             <Input
               id="meetingLink"
               type="url"
@@ -274,10 +274,10 @@ export function ManualInterviewEntryDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="notes">Notes</Label>
+            <Label htmlFor="notes">{t("notes", "Notes")}</Label>
             <Textarea
               id="notes"
-              placeholder="Any additional details about this interview..."
+              placeholder={t("any_additional_details_about", "Any additional details about this interview...")}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={3}
@@ -291,7 +291,7 @@ export function ManualInterviewEntryDialog({
               onClick={() => onOpenChange(false)}
               disabled={isSubmitting}
             >
-              Cancel
+              {t('common:cancel')}
             </Button>
             <Button type="submit" disabled={isSubmitting}>
               {isSubmitting ? 'Adding...' : 'Add Interview'}

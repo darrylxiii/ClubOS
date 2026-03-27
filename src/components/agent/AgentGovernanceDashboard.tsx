@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -45,6 +46,7 @@ interface AgentRegistry {
 }
 
 export function AgentGovernanceDashboard() {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [selectedTab, setSelectedTab] = useState("overview");
 
@@ -110,45 +112,45 @@ export function AgentGovernanceDashboard() {
       <div className="grid gap-4 md:grid-cols-4">
         <Card variant="static">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Agents</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("active_agents", "Active Agents")}</CardTitle>
             <Bot className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.activeAgents}</div>
-            <p className="text-xs text-muted-foreground">Working for you</p>
+            <p className="text-xs text-muted-foreground">{t("working_for_you", "Working for you")}</p>
           </CardContent>
         </Card>
 
         <Card variant="static">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Decisions</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("total_decisions", "Total Decisions")}</CardTitle>
             <Activity className="h-4 w-4 text-blue-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalDecisions}</div>
-            <p className="text-xs text-muted-foreground">Last 30 days</p>
+            <p className="text-xs text-muted-foreground">{t("last_30_days", "Last 30 days")}</p>
           </CardContent>
         </Card>
 
         <Card variant="static">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Avg Confidence</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("avg_confidence", "Avg Confidence")}</CardTitle>
             <TrendingUp className="h-4 w-4 text-emerald-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.avgConfidence}%</div>
-            <p className="text-xs text-muted-foreground">Decision accuracy</p>
+            <p className="text-xs text-muted-foreground">{t("decision_accuracy", "Decision accuracy")}</p>
           </CardContent>
         </Card>
 
         <Card variant="static">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Override Rate</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("override_rate", "Override Rate")}</CardTitle>
             <Shield className="h-4 w-4 text-amber-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{overrideRate}%</div>
-            <p className="text-xs text-muted-foreground">Human corrections</p>
+            <p className="text-xs text-muted-foreground">{t("human_corrections", "Human corrections")}</p>
           </CardContent>
         </Card>
       </div>
@@ -167,9 +169,9 @@ export function AgentGovernanceDashboard() {
         <CardContent>
           <Tabs value={selectedTab} onValueChange={setSelectedTab}>
             <TabsList className="mb-4">
-              <TabsTrigger value="overview">Agents</TabsTrigger>
-              <TabsTrigger value="decisions">Decision Log</TabsTrigger>
-              <TabsTrigger value="performance">Performance</TabsTrigger>
+              <TabsTrigger value="overview">{t("agents", "Agents")}</TabsTrigger>
+              <TabsTrigger value="decisions">{t("decision_log", "Decision Log")}</TabsTrigger>
+              <TabsTrigger value="performance">{t("performance", "Performance")}</TabsTrigger>
             </TabsList>
 
             <TabsContent value="overview">
@@ -198,7 +200,7 @@ export function AgentGovernanceDashboard() {
             <TabsContent value="performance">
               <div className="flex flex-col items-center justify-center py-12 text-center">
                 <BarChart3 className="h-12 w-12 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Performance Analytics</h3>
+                <h3 className="text-lg font-semibold mb-2">{t("performance_analytics", "Performance Analytics")}</h3>
                 <p className="text-muted-foreground max-w-md">
                   Detailed performance metrics will appear here as agents make more decisions
                   and outcomes are tracked.
@@ -327,7 +329,7 @@ function DecisionItem({ decision }: { decision: AgentDecision }) {
 
       {expanded && decision.reasoning && (
         <div className="mt-3 p-3 rounded-lg bg-muted/50 text-sm">
-          <h5 className="font-medium mb-2">Reasoning</h5>
+          <h5 className="font-medium mb-2">{t("reasoning", "Reasoning")}</h5>
           <pre className="text-xs text-muted-foreground overflow-auto">
             {JSON.stringify(decision.reasoning, null, 2)}
           </pre>

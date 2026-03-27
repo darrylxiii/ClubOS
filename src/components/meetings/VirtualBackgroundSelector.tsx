@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { supabase } from "@/integrations/supabase/client";
 import { Image, Droplets, Check } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 const DEFAULT_BACKGROUNDS = [
   { id: 'none', name: 'No Background', type: 'none', preview: '/placeholder.svg' },
@@ -27,6 +28,7 @@ export function VirtualBackgroundSelector({
   onOpenChange,
   onBackgroundSelect
 }: VirtualBackgroundSelectorProps) {
+  const { t } = useTranslation("meetings");
   const [selectedBg, setSelectedBg] = useState<string>('none');
   const [customBackgrounds, setCustomBackgrounds] = useState<any[]>([]);
 
@@ -64,9 +66,9 @@ export function VirtualBackgroundSelector({
           : { type: 'image', imageUrl: bg.preview || bg.image_url }
     );
     toast.success(
-      bg.type === 'none' ? 'Background removed'
-        : bg.type === 'blur' ? 'Background blur enabled'
-          : 'Background applied'
+      bg.type === 'none' ? t('background.removed')
+        : bg.type === 'blur' ? t('background.blurEnabled')
+          : t('background.applied')
     );
   };
 
@@ -78,7 +80,7 @@ export function VirtualBackgroundSelector({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Image className="w-5 h-5" />
-            Virtual Backgrounds
+            {t('background.title')}
           </DialogTitle>
         </DialogHeader>
 
@@ -126,10 +128,10 @@ export function VirtualBackgroundSelector({
 
         <div className="flex gap-2">
           <Button variant="outline" className="flex-1">
-            Upload Custom Background
+            {t('background.uploadCustom')}
           </Button>
           <Button onClick={() => onOpenChange(false)}>
-            Done
+            {t('common:actions.done')}
           </Button>
         </div>
       </DialogContent>

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -34,6 +35,7 @@ interface CompanyStoriesProps {
 }
 
 export function CompanyStories({ companyId, isCompanyMember, onCreateStory }: CompanyStoriesProps) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [stories, setStories] = useState<CompanyStory[]>([]);
   const [loading, setLoading] = useState(true);
@@ -108,7 +110,7 @@ export function CompanyStories({ companyId, isCompanyMember, onCreateStory }: Co
 
   const handleLike = async (storyId: string, currentlyLiked: boolean) => {
     if (!user) {
-      toast.error('Please sign in to like stories');
+      toast.error(t("please_sign_in_to", "Please sign in to like stories"));
       return;
     }
 
@@ -128,12 +130,12 @@ export function CompanyStories({ companyId, isCompanyMember, onCreateStory }: Co
       fetchStories();
     } catch (error) {
       console.error('Error toggling like:', error);
-      toast.error('Failed to update like');
+      toast.error(t("failed_to_update_like", "Failed to update like"));
     }
   };
 
   if (loading) {
-    return <div className="text-muted-foreground">Loading stories...</div>;
+    return <div className="text-muted-foreground">{t("loading_stories", "Loading stories...")}</div>;
   }
 
   return (
@@ -147,7 +149,7 @@ export function CompanyStories({ companyId, isCompanyMember, onCreateStory }: Co
             <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-2">
               <Plus className="h-8 w-8 text-primary" />
             </div>
-            <span className="text-xs text-center">Add Story</span>
+            <span className="text-xs text-center">{t("add_story", "Add Story")}</span>
           </Card>
         )}
 
@@ -159,7 +161,7 @@ export function CompanyStories({ companyId, isCompanyMember, onCreateStory }: Co
           >
             <img
               src={story.media_url}
-              alt="Story"
+              alt={t("story", "Story")}
               className="w-full h-full object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
@@ -188,7 +190,7 @@ export function CompanyStories({ companyId, isCompanyMember, onCreateStory }: Co
         ))}
 
         {stories.length === 0 && !isCompanyMember && (
-          <div className="text-muted-foreground text-sm">No active stories</div>
+          <div className="text-muted-foreground text-sm">{t("no_active_stories", "No active stories")}</div>
         )}
       </div>
 
@@ -199,7 +201,7 @@ export function CompanyStories({ companyId, isCompanyMember, onCreateStory }: Co
               {viewingStory.media_type === 'image' ? (
                 <img
                   src={viewingStory.media_url}
-                  alt="Story"
+                  alt={t("story", "Story")}
                   className="w-full max-h-[80vh] object-contain"
                 />
               ) : (

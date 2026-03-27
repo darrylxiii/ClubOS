@@ -1,12 +1,6 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createAuthenticatedHandler } from '../_shared/handler.ts';
 import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 import { checkUserRateLimit, createRateLimitResponse } from '../_shared/rate-limiter.ts';
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
 
 const requestSchema = z.object({
   meetingId: z.string().uuid('Invalid meeting ID format'),
@@ -24,39 +18,11 @@ const scoreSchema = z.object({
   follow_up_suggestions: z.array(z.string().max(500)).max(10).optional()
 });
 
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  try {
-    // Verify authentication
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      return new Response(JSON.stringify({ error: 'Unauthorized - Authentication required' }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') || Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY')!;
-
-    // Authenticate user with auth header
-    const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
-      global: { headers: { Authorization: authHeader } }
-    });
-
-    const { data: { user }, error: authError } = await supabaseAuth.auth.getUser();
-    if (authError || !user) {
-      console.error('[Realtime Analysis] Auth error:', authError);
-      return new Response(JSON.stringify({ error: 'Unauthorized - Invalid token' }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
+Deno.serve(createAuthenticatedHandler(async (req, ctx) => {
+    const corsHeaders = ctx.corsHeaders;
+    const supabase = ctx.supabase;
+    const user = ctx.user;
+    const googleApiKey = Deno.env.get('GOOGLE_API_KEY')!;
 
     // Rate limiting (5 requests per 15 minutes per user)
     const rateLimit = await checkUserRateLimit(
@@ -87,9 +53,6 @@ serve(async (req) => {
 
     const { meetingId, transcript } = validatedInput;
 
-    // Use service role key for database operations
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
     // Verify user is a participant in this meeting
     const { data: participant, error: participantError } = await supabase
       .from('meeting_participants')
@@ -110,15 +73,15 @@ serve(async (req) => {
 
     console.log('[Realtime Analysis] Analyzing transcript for meeting:', meetingId);
 
-    // Call Lovable AI to analyze the transcript
-    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    // Call Google Gemini to analyze the transcript
+    const aiResponse = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${lovableApiKey}`,
+        'Authorization': `Bearer ${googleApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash-lite',
+        model: 'gemini-2.5-flash-lite',
         messages: [
           {
             role: 'system',
@@ -254,13 +217,4 @@ Return a JSON object with these exact fields:
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
-  } catch (error) {
-    console.error('[Realtime Analysis] Error:', error);
-    return new Response(JSON.stringify({ 
-      error: error instanceof Error ? error.message : 'Unknown error occurred' 
-    }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-  }
-});
+}));

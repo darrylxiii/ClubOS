@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -38,6 +39,7 @@ interface ProfilePreviewProps {
 }
 
 export function ProfilePreview({ profile, achievements }: ProfilePreviewProps) {
+  const { t } = useTranslation('common');
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
@@ -57,7 +59,7 @@ export function ProfilePreview({ profile, achievements }: ProfilePreviewProps) {
   const handleCopy = () => {
     navigator.clipboard.writeText(profileUrl);
     setCopied(true);
-    toast.success("Profile link copied!");
+    toast.success(t("profile_link_copied", "Profile link copied!"));
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -67,7 +69,7 @@ export function ProfilePreview({ profile, achievements }: ProfilePreviewProps) {
     link.download = `${profile.full_name}-qr-code.png`;
     link.href = qrCodeUrl;
     link.click();
-    toast.success("QR code downloaded!");
+    toast.success(t("qr_code_downloaded", "QR code downloaded!"));
   };
 
   const handleShare = (platform: string) => {
@@ -124,7 +126,7 @@ export function ProfilePreview({ profile, achievements }: ProfilePreviewProps) {
                     <div className="flex items-center gap-2 mb-1">
                       <h3 className="text-2xl font-black">{profile.full_name}</h3>
                       {profile.email_verified && (
-                        <Badge variant="secondary" className="text-xs">Verified</Badge>
+                        <Badge variant="secondary" className="text-xs">{t("verified", "Verified")}</Badge>
                       )}
                     </div>
                     {profile.current_title && (
@@ -165,7 +167,7 @@ export function ProfilePreview({ profile, achievements }: ProfilePreviewProps) {
             {/* Share Options */}
             <div className="space-y-4">
               <div>
-                <p className="text-sm font-medium mb-2">Share Link</p>
+                <p className="text-sm font-medium mb-2">{t("share_link", "Share Link")}</p>
                 <div className="flex gap-2">
                   <input
                     type="text"
@@ -181,7 +183,7 @@ export function ProfilePreview({ profile, achievements }: ProfilePreviewProps) {
               </div>
 
               <div>
-                <p className="text-sm font-medium mb-2">Share On</p>
+                <p className="text-sm font-medium mb-2">{t("share_on", "Share On")}</p>
                 <div className="flex gap-2">
                   <Button
                     variant="outline"
@@ -213,7 +215,7 @@ export function ProfilePreview({ profile, achievements }: ProfilePreviewProps) {
               <div className="p-4 glass rounded-lg border border-accent/30 text-center">
                 {qrCodeUrl ? (
                   <div className="space-y-3">
-                    <img src={qrCodeUrl} alt="Profile QR Code" className="mx-auto rounded-lg" />
+                    <img src={qrCodeUrl} alt={t("profile_qr_code", "Profile QR Code")} className="mx-auto rounded-lg" />
                     <Button onClick={handleDownloadQR} variant="outline" size="sm" className="gap-2">
                       <Download className="w-4 h-4" />
                       Download QR Code
@@ -222,7 +224,7 @@ export function ProfilePreview({ profile, achievements }: ProfilePreviewProps) {
                 ) : (
                   <>
                     <QrCode className="w-12 h-12 mx-auto mb-2 text-accent animate-pulse" />
-                    <p className="text-sm text-muted-foreground">Generating QR code...</p>
+                    <p className="text-sm text-muted-foreground">{t("generating_qr_code", "Generating QR code...")}</p>
                   </>
                 )}
               </div>

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -20,6 +21,7 @@ interface NDASIgnerProps {
 }
 
 export function NDASigner({ open, onOpenChange, contractId, counterpartyName, onSigned }: NDASIgnerProps) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [agreed, setAgreed] = useState(false);
   const [signature, setSignature] = useState("");
@@ -74,12 +76,12 @@ export function NDASigner({ open, onOpenChange, contractId, counterpartyName, on
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success("NDA signed successfully");
+      toast.success(t("nda_signed_successfully", "NDA signed successfully"));
       onOpenChange(false);
       onSigned?.();
     },
     onError: (error: Error) => {
-      toast.error("Failed to sign NDA", { description: error.message });
+      toast.error(t("failed_to_sign_nda", "Failed to sign NDA"), { description: error.message });
     },
   });
 
@@ -120,7 +122,7 @@ export function NDASigner({ open, onOpenChange, contractId, counterpartyName, on
           </div>
 
           <div className="space-y-2">
-            <Label>Type your full name to sign</Label>
+            <Label>{t("type_your_full_name", "Type your full name to sign")}</Label>
             <Input
               value={signature}
               onChange={(e) => setSignature(e.target.value)}

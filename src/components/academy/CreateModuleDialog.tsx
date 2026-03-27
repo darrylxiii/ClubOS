@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from 'react-i18next';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,6 +24,7 @@ export const CreateModuleDialog = ({
   onSuccess,
   nextDisplayOrder,
 }: CreateModuleDialogProps) => {
+  const { t } = useTranslation('common');
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
@@ -95,30 +97,29 @@ export const CreateModuleDialog = ({
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <Label htmlFor="title">Module Title *</Label>
+            <Label htmlFor="title">{t('academy.moduleTitle ')}</Label>
             <Input
               id="title"
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              placeholder="e.g., Introduction to React Hooks"
-              required
+              placeholder="e.g., Introduction to React Hooks required"
             />
           </div>
 
           <div>
-            <Label htmlFor="description">Description *</Label>
+            <Label htmlFor="description">{t('academy.description ')}</Label>
             <Textarea
               id="description"
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              placeholder="What will students learn in this module?"
+              placeholder={t('academy.whatWillStudentsLearnInThisModule')}
               rows={4}
               required
             />
           </div>
 
           <div>
-            <Label htmlFor="estimated_minutes">Estimated Time (minutes)</Label>
+            <Label htmlFor="estimated_minutes">{t('academy.estimatedTimeMinutes')}</Label>
             <Input
               id="estimated_minutes"
               type="number"

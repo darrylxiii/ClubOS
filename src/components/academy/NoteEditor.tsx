@@ -1,4 +1,5 @@
 import { memo, useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -18,6 +19,7 @@ export const NoteEditor = memo<NoteEditorProps>(({
   videoTimestamp,
   onSaved,
 }) => {
+  const { t } = useTranslation('common');
   const [content, setContent] = useState('');
   const [saving, setSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
@@ -71,13 +73,13 @@ export const NoteEditor = memo<NoteEditorProps>(({
 
       setLastSaved(new Date());
       if (showToast) {
-        notify.success('Note saved');
+        notify.success(t('academy.noteSaved'));
       }
       onSaved?.();
     } catch (error) {
       console.error('Error saving note:', error);
       if (showToast) {
-        notify.error('Failed to save note');
+        notify.error(t('academy.failedToSaveNote'));
       }
     } finally {
       setSaving(false);
@@ -97,7 +99,7 @@ export const NoteEditor = memo<NoteEditorProps>(({
         is_bookmark: true,
       });
 
-      notify.success('Bookmark added');
+      notify.success(t('academy.bookmarkAdded'));
     } catch (error) {
       console.error('Error adding bookmark:', error);
     }
@@ -106,16 +108,16 @@ export const NoteEditor = memo<NoteEditorProps>(({
   return (
     <Card className="p-4 space-y-3">
       <div className="flex items-center justify-between">
-        <label className="text-sm font-medium">Notes</label>
+        <label className="text-sm font-medium">{t('academy.notes')}</label>
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           {saving && (
             <>
               <Loader2 className="w-3 h-3 animate-spin" />
-              <span>Saving...</span>
+              <span>{t('academy.saving')}</span>
             </>
           )}
           {lastSaved && !saving && (
-            <span>Saved {lastSaved.toLocaleTimeString()}</span>
+            <span>{t('academy.savedAt', { time: lastSaved.toLocaleTimeString() })}</span>
           )}
         </div>
       </div>
@@ -123,7 +125,7 @@ export const NoteEditor = memo<NoteEditorProps>(({
       <Textarea
         value={content}
         onChange={(e) => setContent(e.target.value)}
-        placeholder="Take notes while you learn... Auto-saves every 2 seconds"
+        placeholder={t('academy.takeNotesWhileYouLearnAutosavesEvery2S')}
         className="min-h-[120px] resize-none"
       />
 
@@ -131,12 +133,12 @@ export const NoteEditor = memo<NoteEditorProps>(({
         {videoTimestamp !== undefined && (
           <Button variant="outline" size="sm" onClick={handleBookmark}>
             <Bookmark className="w-4 h-4 mr-2" />
-            Bookmark
+            {t('academy.bookmark')}
           </Button>
         )}
         <Button variant="outline" size="sm" onClick={() => saveNote(true)}>
           <Save className="w-4 h-4 mr-2" />
-          Save Now
+          {t('academy.saveNow')}
         </Button>
       </div>
     </Card>

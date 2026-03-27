@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from '@/lib/motion';
 import { Button } from '@/components/ui/button';
@@ -14,6 +15,7 @@ interface BiometricLockScreenProps {
 }
 
 export function BiometricLockScreen({ onUnlock, onFallbackLogin, userName }: BiometricLockScreenProps) {
+  const { t } = useTranslation('common');
   const { isAvailable, biometryType, biometryName, authenticate } = useBiometricAuth();
   const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -79,7 +81,7 @@ export function BiometricLockScreen({ onUnlock, onFallbackLogin, userName }: Bio
             <div className="h-20 w-20 rounded-2xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center shadow-2xl">
               <Lock className="h-10 w-10 text-primary-foreground" />
             </div>
-            <h1 className="text-2xl font-bold text-foreground">The Quantum Club</h1>
+            <h1 className="text-2xl font-bold text-foreground">{t("the_quantum_club", "The Quantum Club")}</h1>
             {userName && (
               <p className="text-muted-foreground">Welcome back, {userName}</p>
             )}
@@ -167,7 +169,7 @@ export function BiometricLockScreen({ onUnlock, onFallbackLogin, userName }: Bio
                 <KeyRound className="h-8 w-8 text-muted-foreground" />
               </div>
               
-              <p className="text-foreground font-medium">Enter your PIN</p>
+              <p className="text-foreground font-medium">{t("enter_your_pin", "Enter your PIN")}</p>
               
               <form onSubmit={handlePinSubmit} className="w-full space-y-4">
                 <Input

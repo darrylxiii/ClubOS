@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Activity, Zap, Signal, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface HealthStats {
   lastRunAt: string | null;
@@ -12,6 +13,7 @@ interface HealthStats {
 }
 
 export default function AgenticSystemHealth() {
+  const { t } = useTranslation('admin');
   const [stats, setStats] = useState<HealthStats>({
     lastRunAt: null,
     isHealthy: false,

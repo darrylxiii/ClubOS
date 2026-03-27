@@ -1,4 +1,5 @@
 import { memo } from "react";
+import { useTranslation } from "react-i18next";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
@@ -27,34 +28,40 @@ interface SystemSyncIndicatorProps {
 
 const statusConfig: Record<SyncStatus, {
   icon: React.ComponentType<{ className?: string }>;
-  label: string;
+  labelKey: string;
+  labelFallback: string;
   className: string;
   animation?: string;
 }> = {
   syncing: {
     icon: Loader2,
-    label: "Syncing",
+    labelKey: "sync.syncing",
+    labelFallback: "Syncing",
     className: "bg-primary/10 text-primary border-primary/30",
     animation: "animate-spin",
   },
   synced: {
     icon: CheckCircle,
-    label: "Synced",
+    labelKey: "sync.synced",
+    labelFallback: "Synced",
     className: "bg-success/10 text-success border-success/30",
   },
   error: {
     icon: AlertCircle,
-    label: "Error",
+    labelKey: "sync.error",
+    labelFallback: "Error",
     className: "bg-destructive/10 text-destructive border-destructive/30",
   },
   pending: {
     icon: Clock,
-    label: "Pending",
+    labelKey: "sync.pending",
+    labelFallback: "Pending",
     className: "bg-amber-500/10 text-amber-500 border-amber-500/30",
   },
   offline: {
     icon: CloudOff,
-    label: "Offline",
+    labelKey: "sync.offline",
+    labelFallback: "Offline",
     className: "bg-muted/50 text-muted-foreground border-border/50",
   },
 };
@@ -69,6 +76,7 @@ export const SystemSyncIndicator = memo(({
   className,
   onRetry,
 }: SystemSyncIndicatorProps) => {
+  const { t } = useTranslation('common');
   const config = statusConfig[status];
   const Icon = config.icon;
 
@@ -101,7 +109,7 @@ export const SystemSyncIndicator = memo(({
       onClick={status === "error" && onRetry ? onRetry : undefined}
     >
       <Icon className={cn(iconSizes[size], config.animation)} />
-      {label || config.label}
+      {label || t(config.labelKey, config.labelFallback)}
     </Badge>
   );
 
@@ -117,12 +125,12 @@ export const SystemSyncIndicator = memo(({
           <div className="text-xs space-y-1">
             {formattedTime && (
               <p>
-                <strong>Last sync:</strong> {formattedTime}
+                <strong>{t("sync.lastSync", "Last sync:")}</strong> {formattedTime}
               </p>
             )}
             {details && <p className="text-muted-foreground">{details}</p>}
             {status === "error" && onRetry && (
-              <p className="text-primary">Click to retry</p>
+              <p className="text-primary">{t("sync.clickToRetry", "Click to retry")}</p>
             )}
           </div>
         </TooltipContent>

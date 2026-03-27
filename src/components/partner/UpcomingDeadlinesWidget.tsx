@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,6 +18,7 @@ interface Deadline {
 }
 
 export function UpcomingDeadlinesWidget({ companyId }: { companyId: string }) {
+  const { t } = useTranslation('common');
   const { data: deadlines, isLoading } = useQuery({
     queryKey: ['upcoming-deadlines', companyId],
     queryFn: async () => {
@@ -189,8 +191,8 @@ export function UpcomingDeadlinesWidget({ companyId }: { companyId: string }) {
               <CheckCircle className="h-5 w-5 text-emerald-500" />
             </div>
             <div>
-              <p className="font-medium text-emerald-600 dark:text-emerald-400">Clear Schedule</p>
-              <p className="text-sm text-muted-foreground">No urgent deadlines this week</p>
+              <p className="font-medium text-emerald-600 dark:text-emerald-400">{t("clear_schedule", "Clear Schedule")}</p>
+              <p className="text-sm text-muted-foreground">{t("no_urgent_deadlines_this", "No urgent deadlines this week")}</p>
             </div>
           </motion.div>
         ) : (
@@ -199,7 +201,7 @@ export function UpcomingDeadlinesWidget({ companyId }: { companyId: string }) {
               <div>
                 <div className="flex items-center gap-2 mb-2">
                   <AlertTriangle className="h-3.5 w-3.5 text-destructive" />
-                  <span className="text-xs font-semibold uppercase tracking-wider text-destructive">Today</span>
+                  <span className="text-xs font-semibold uppercase tracking-wider text-destructive">{t("today", "Today")}</span>
                 </div>
                 <div className="space-y-2">
                   {grouped.today.map((item, index) => (
@@ -213,7 +215,7 @@ export function UpcomingDeadlinesWidget({ companyId }: { companyId: string }) {
               <div>
                 <div className="flex items-center gap-2 mb-2">
                   <Clock className="h-3.5 w-3.5 text-amber-500" />
-                  <span className="text-xs font-semibold uppercase tracking-wider text-amber-600 dark:text-amber-400">Tomorrow</span>
+                  <span className="text-xs font-semibold uppercase tracking-wider text-amber-600 dark:text-amber-400">{t("tomorrow", "Tomorrow")}</span>
                 </div>
                 <div className="space-y-2">
                   {grouped.tomorrow.map((item, index) => (
@@ -227,7 +229,7 @@ export function UpcomingDeadlinesWidget({ companyId }: { companyId: string }) {
               <div>
                 <div className="flex items-center gap-2 mb-2">
                   <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
-                  <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">This Week</span>
+                  <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t("this_week", "This Week")}</span>
                 </div>
                 <div className="space-y-2">
                   {grouped.thisWeek.map((item, index) => (

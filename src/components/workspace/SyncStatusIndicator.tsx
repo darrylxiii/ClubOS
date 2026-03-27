@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { motion } from '@/lib/motion';
 import { Cloud, CloudOff, RefreshCw, Check, AlertCircle } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -18,6 +19,7 @@ export function SyncStatusIndicator({
   isConnected,
   onManualSync
 }: SyncStatusIndicatorProps) {
+  const { t } = useTranslation('common');
   const getStatusIcon = () => {
     if (!isConnected) {
       return <CloudOff className="w-4 h-4 text-destructive" />;
@@ -81,7 +83,7 @@ export function SyncStatusIndicator({
               </p>
             )}
             {onManualSync && isConnected && !isSyncing && (
-              <p className="text-muted-foreground">Click to force sync</p>
+              <p className="text-muted-foreground">{t("click_to_force_sync", "Click to force sync")}</p>
             )}
           </div>
         </TooltipContent>

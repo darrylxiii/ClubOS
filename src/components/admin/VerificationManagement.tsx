@@ -9,6 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Check, X, Mail, Phone, RefreshCw, Search, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
+import { useTranslation } from 'react-i18next';
 
 interface VerificationAttempt {
   id: string;
@@ -29,6 +30,7 @@ interface VerificationAttempt {
 }
 
 export const VerificationManagement = () => {
+  const { t } = useTranslation('admin');
   const [attempts, setAttempts] = useState<VerificationAttempt[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -68,7 +70,7 @@ export const VerificationManagement = () => {
       }
     } catch (error: unknown) {
       console.error('Error fetching attempts:', error);
-      toast.error('Failed to load verification attempts');
+      toast.error(t('verificationManagement.failedToLoadVerificationAttempts'));
     } finally {
       setLoading(false);
     }
@@ -83,11 +85,11 @@ export const VerificationManagement = () => {
 
       if (error) throw error;
 
-      toast.success('Email manually verified');
+      toast.success(t('verificationManagement.emailManuallyVerified'));
       fetchAttempts();
     } catch (error: unknown) {
       console.error('Error:', error);
-      toast.error('Failed to verify email');
+      toast.error(t('verificationManagement.failedToVerifyEmail'));
     }
   };
 
@@ -100,11 +102,11 @@ export const VerificationManagement = () => {
 
       if (error) throw error;
 
-      toast.success('Phone manually verified');
+      toast.success(t('verificationManagement.phoneManuallyVerified'));
       fetchAttempts();
     } catch (error: unknown) {
       console.error('Error:', error);
-      toast.error('Failed to verify phone');
+      toast.error(t('verificationManagement.failedToVerifyPhone'));
     }
   };
 
@@ -185,7 +187,7 @@ export const VerificationManagement = () => {
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search by name, email, or phone..."
+                  placeholder={t('verificationManagement.searchByNameEmailOrPhone')}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10 glass-subtle border-primary/20"
@@ -194,16 +196,16 @@ export const VerificationManagement = () => {
             </div>
             <Tabs value={filterType} onValueChange={(v) => setFilterType(v as any)}>
               <TabsList className="glass-subtle">
-                <TabsTrigger value="all">All</TabsTrigger>
-                <TabsTrigger value="email">Email</TabsTrigger>
-                <TabsTrigger value="phone">Phone</TabsTrigger>
+                <TabsTrigger value="all">{t('verificationManagement.all')}</TabsTrigger>
+                <TabsTrigger value="email">{t('common:fields.email')}</TabsTrigger>
+                <TabsTrigger value="phone">{t('verificationManagement.phone')}</TabsTrigger>
               </TabsList>
             </Tabs>
             <Tabs value={filterSuccess} onValueChange={(v) => setFilterSuccess(v as any)}>
               <TabsList className="glass-subtle">
-                <TabsTrigger value="all">All</TabsTrigger>
-                <TabsTrigger value="success">Success</TabsTrigger>
-                <TabsTrigger value="failed">Failed</TabsTrigger>
+                <TabsTrigger value="all">{t('verificationManagement.all')}</TabsTrigger>
+                <TabsTrigger value="success">{t('common:status.success')}</TabsTrigger>
+                <TabsTrigger value="failed">{t('verificationManagement.failed')}</TabsTrigger>
               </TabsList>
             </Tabs>
             <Button onClick={fetchAttempts} variant="outline" className="glass-subtle border-primary/20">
@@ -216,13 +218,13 @@ export const VerificationManagement = () => {
             <Table>
               <TableHeader>
                 <TableRow className="border-primary/20">
-                  <TableHead>User</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Action</TableHead>
-                  <TableHead>Contact</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Time</TableHead>
-                  <TableHead>Actions</TableHead>
+                  <TableHead>{t('verificationManagement.user')}</TableHead>
+                  <TableHead>{t('common:fields.type')}</TableHead>
+                  <TableHead>{t('verificationManagement.action')}</TableHead>
+                  <TableHead>{t('verificationManagement.contact')}</TableHead>
+                  <TableHead>{t('common:fields.status')}</TableHead>
+                  <TableHead>{t('verificationManagement.time')}</TableHead>
+                  <TableHead>{t('common:fields.actions')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -250,9 +252,9 @@ export const VerificationManagement = () => {
                       <TableCell>
                         <Badge variant="outline" className="glass-subtle">
                           {attempt.verification_type === 'email' ? (
-                            <><Mail className="h-3 w-3 mr-1" /> Email</>
+                            <><Mail className="h-3 w-3 mr-1" />Email</>
                           ) : (
-                            <><Phone className="h-3 w-3 mr-1" /> Phone</>
+                            <><Phone className="h-3 w-3 mr-1" />Phone</>
                           )}
                         </Badge>
                       </TableCell>

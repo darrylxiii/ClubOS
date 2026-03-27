@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -54,6 +55,7 @@ export const PrivacySettings = ({
   onExportData,
   saving
 }: PrivacySettingsProps) => {
+  const { t } = useTranslation('settings');
   const handleAddBlockedCompany = (company: { name: string; domain?: string }) => {
     if (company.name && !blockedCompanies.includes(company.name)) {
       const newCompanies = [...blockedCompanies, company.name];
@@ -78,10 +80,10 @@ export const PrivacySettings = ({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Shield className="w-5 h-5" />
-            Profile Information Sharing
+            {t('privacy.profileSharing')}
           </CardTitle>
           <CardDescription>
-            Choose what information you'd like to share with potential employers
+            {t('privacy.profileSharingDesc')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -92,11 +94,10 @@ export const PrivacySettings = ({
                 <Shield className="w-5 h-5 text-amber-500" />
               </div>
               <div className="flex-1">
-                <h4 className="font-semibold text-amber-500 mb-1">Matching Impact</h4>
+                <h4 className="font-semibold text-amber-500 mb-1">{t('privacy.matchingImpact')}</h4>
                 <p className="text-sm text-muted-foreground">
-                  Sharing less information reduces the likelihood of finding the perfect match. 
-                  Our AI uses your complete profile to find opportunities that align with your goals and expertise.
-                  Currently sharing <strong>{countSharedFields()} of 10</strong> fields.
+                  {t('privacy.matchingImpactDesc')}
+                  {' '}{t('privacy.currentlySharing', { count: countSharedFields(), total: 10 })}
                 </p>
               </div>
             </div>
@@ -105,7 +106,7 @@ export const PrivacySettings = ({
           {/* Privacy Toggles */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <Label>Share Full Name</Label>
+              <Label>{t('privacy.shareFullName')}</Label>
               <Switch
                 checked={privacySettings.share_full_name}
                 onCheckedChange={() => onPrivacyToggle('share_full_name')}
@@ -113,7 +114,7 @@ export const PrivacySettings = ({
             </div>
 
             <div className="flex items-center justify-between">
-              <Label>Share Email Address</Label>
+              <Label>{t('privacy.shareEmail')}</Label>
               <Switch
                 checked={privacySettings.share_email}
                 onCheckedChange={() => onPrivacyToggle('share_email')}
@@ -121,7 +122,7 @@ export const PrivacySettings = ({
             </div>
 
             <div className="flex items-center justify-between">
-              <Label>Share Phone Number</Label>
+              <Label>{t('privacy.sharePhone')}</Label>
               <Switch
                 checked={privacySettings.share_phone}
                 onCheckedChange={() => onPrivacyToggle('share_phone')}
@@ -129,7 +130,7 @@ export const PrivacySettings = ({
             </div>
 
             <div className="flex items-center justify-between">
-              <Label>Share Location</Label>
+              <Label>{t('privacy.shareLocation')}</Label>
               <Switch
                 checked={privacySettings.share_location}
                 onCheckedChange={() => onPrivacyToggle('share_location')}
@@ -137,7 +138,7 @@ export const PrivacySettings = ({
             </div>
 
             <div className="flex items-center justify-between">
-              <Label>Share Current Title</Label>
+              <Label>{t('privacy.shareCurrentTitle')}</Label>
               <Switch
                 checked={privacySettings.share_current_title}
                 onCheckedChange={() => onPrivacyToggle('share_current_title')}
@@ -145,7 +146,7 @@ export const PrivacySettings = ({
             </div>
 
             <div className="flex items-center justify-between">
-              <Label>Share LinkedIn Profile</Label>
+              <Label>{t('privacy.shareLinkedIn')}</Label>
               <Switch
                 checked={privacySettings.share_linkedin_url}
                 onCheckedChange={() => onPrivacyToggle('share_linkedin_url')}
@@ -153,7 +154,7 @@ export const PrivacySettings = ({
             </div>
 
             <div className="flex items-center justify-between">
-              <Label>Share Career Preferences</Label>
+              <Label>{t('privacy.shareCareerPreferences')}</Label>
               <Switch
                 checked={privacySettings.share_career_preferences}
                 onCheckedChange={() => onPrivacyToggle('share_career_preferences')}
@@ -161,7 +162,7 @@ export const PrivacySettings = ({
             </div>
 
             <div className="flex items-center justify-between">
-              <Label>Share Resume/CV</Label>
+              <Label>{t('privacy.shareResume')}</Label>
               <Switch
                 checked={privacySettings.share_resume}
                 onCheckedChange={() => onPrivacyToggle('share_resume')}
@@ -169,7 +170,7 @@ export const PrivacySettings = ({
             </div>
 
             <div className="flex items-center justify-between">
-              <Label>Share Salary Expectations</Label>
+              <Label>{t('privacy.shareSalary')}</Label>
               <Switch
                 checked={privacySettings.share_salary_expectations}
                 onCheckedChange={() => onPrivacyToggle('share_salary_expectations')}
@@ -177,7 +178,7 @@ export const PrivacySettings = ({
             </div>
 
             <div className="flex items-center justify-between">
-              <Label>Share Notice Period</Label>
+              <Label>{t('privacy.shareNoticePeriod')}</Label>
               <Switch
                 checked={privacySettings.share_notice_period}
                 onCheckedChange={() => onPrivacyToggle('share_notice_period')}
@@ -202,10 +203,10 @@ export const PrivacySettings = ({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Ban className="w-5 h-5" />
-            Company Blocklist
+            {t('privacy.companyBlocklist')}
           </CardTitle>
           <CardDescription>
-            Ensure complete discretion - these companies won't see your profile or opportunities
+            {t('privacy.companyBlocklistDesc')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -217,7 +218,7 @@ export const PrivacySettings = ({
 
           {blockedCompanies.length > 0 ? (
             <div className="space-y-2 mt-4">
-              <p className="text-sm font-medium mb-3">Blocked Companies:</p>
+              <p className="text-sm font-medium mb-3">{t('privacy.blockedCompanies')}</p>
               <div className="flex flex-wrap gap-2">
                 {blockedCompanies.map((company) => (
                   <div
@@ -240,15 +241,14 @@ export const PrivacySettings = ({
             <div className="text-center py-8 border-2 border-dashed border-border rounded-lg">
               <Ban className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
               <p className="text-sm text-muted-foreground">
-                No companies blocked yet. Add companies to maintain your privacy.
+                {t('privacy.noBlockedCompanies')}
               </p>
             </div>
           )}
 
           <div className="mt-4 p-4 bg-accent/5 border border-accent/20 rounded-lg">
             <p className="text-xs text-muted-foreground">
-              <strong>Note:</strong> Blocked companies will not be able to view your profile, contact you, 
-              or see that you've applied to their opportunities. Your information remains completely confidential.
+              <strong>{t('common:labels.note')}:</strong> {t('privacy.blockedCompaniesNote')}
             </p>
           </div>
         </CardContent>
@@ -262,35 +262,35 @@ export const PrivacySettings = ({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Shield className="w-5 h-5" />
-            Data Management
+            {t('privacy.dataManagement')}
           </CardTitle>
           <CardDescription>
-            Export or delete your data
+            {t('privacy.dataManagementDesc')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label>Data Export (GDPR)</Label>
+            <Label>{t('privacy.dataExportGDPR')}</Label>
             <p className="text-sm text-muted-foreground">
-              Download all your data in a portable format
+              {t('privacy.dataExportDesc')}
             </p>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={onExportData}
             >
-              Request Data Export
+              {t('privacy.requestDataExport')}
             </Button>
           </div>
 
           <Separator />
 
           <div className="space-y-2">
-            <Label className="text-destructive">Delete Account</Label>
+            <Label className="text-destructive">{t('privacy.deleteAccount')}</Label>
             <p className="text-sm text-muted-foreground">
-              Permanently delete your account and all data
+              {t('privacy.deleteAccountDesc')}
             </p>
             <Button variant="ghost" className="text-destructive">
-              Delete Account
+              {t('privacy.deleteAccount')}
             </Button>
           </div>
         </CardContent>

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useRef, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -36,6 +37,7 @@ const QUICK_PROMPTS = [
 ];
 
 export function OutreachStrategist() {
+  const { t } = useTranslation('common');
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 'welcome',
@@ -148,7 +150,7 @@ export function OutreachStrategist() {
                   </div>
                   {message.role === 'user' && (
                     <Avatar className="h-8 w-8 shrink-0">
-                      <AvatarFallback className="bg-muted text-xs">You</AvatarFallback>
+                      <AvatarFallback className="bg-muted text-xs">{t("you", "You")}</AvatarFallback>
                     </Avatar>
                   )}
                 </motion.div>
@@ -169,7 +171,7 @@ export function OutreachStrategist() {
                 <div className="bg-muted/50 rounded-lg px-4 py-2">
                   <div className="flex items-center gap-2">
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    <span className="text-sm text-muted-foreground">Thinking...</span>
+                    <span className="text-sm text-muted-foreground">{t("thinking", "Thinking...")}</span>
                   </div>
                 </div>
               </motion.div>
@@ -180,7 +182,7 @@ export function OutreachStrategist() {
         {/* Quick Prompts */}
         {messages.length <= 2 && (
           <div className="px-4 pb-2">
-            <p className="text-xs text-muted-foreground mb-2">Quick prompts:</p>
+            <p className="text-xs text-muted-foreground mb-2">{t("quick_prompts", "Quick prompts:")}</p>
             <div className="grid grid-cols-2 gap-2">
               {QUICK_PROMPTS.map((prompt) => (
                 <Button
@@ -204,7 +206,7 @@ export function OutreachStrategist() {
             <Textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask QUIN about your outreach strategy..."
+              placeholder={t("ask_quin_about_your", "Ask QUIN about your outreach strategy...")}
               className="min-h-10 max-h-32 resize-none"
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {

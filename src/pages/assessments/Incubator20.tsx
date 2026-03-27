@@ -1,4 +1,5 @@
 import { memo, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -12,6 +13,7 @@ import { IncubatorTimer } from '@/components/incubator/IncubatorTimer';
 import type { IncubatorScenario } from '@/types/assessment';
 
 const Incubator20 = memo(() => {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const navigate = useNavigate();
   const [scenario, setScenario] = useState<IncubatorScenario | null>(null);
@@ -52,7 +54,7 @@ const Incubator20 = memo(() => {
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-pulse text-center">
           <div className="text-6xl mb-4">🚀</div>
-          <p className="text-muted-foreground">Generating your challenge...</p>
+          <p className="text-muted-foreground">{t('assessments.generatingChallenge')}</p>
         </div>
       </div>
     );
@@ -110,15 +112,15 @@ const Incubator20 = memo(() => {
         <div className="min-h-screen flex items-center justify-center p-6">
           <div className="text-center space-y-6">
             <div className="text-8xl mb-4">🎉</div>
-            <h1 className="text-4xl font-bold font-serif">Assessment Complete!</h1>
+            <h1 className="text-4xl font-bold font-serif">{t('assessments.complete')}</h1>
             <p className="text-lg text-muted-foreground max-w-md mx-auto">
-              Your plan has been submitted and is being scored. Check your profile for results.
+              {t('assessments.planSubmitted')}
             </p>
             <button
               onClick={() => navigate('/profile')}
               className="btn btn-primary"
             >
-              View My Profile
+              {t('assessments.viewMyProfile')}
             </button>
           </div>
         </div>

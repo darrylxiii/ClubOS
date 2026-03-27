@@ -3,6 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { TrendingUp, TrendingDown, Minus, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 
 interface JobsInlineStatsProps {
   activeJobs: number;
@@ -56,6 +57,7 @@ export const JobsInlineStats = memo(({
   totalJobs,
   className,
 }: JobsInlineStatsProps) => {
+  const { t } = useTranslation('partner');
   const clubSyncPending = totalJobs - clubSyncActive;
 
   return (
@@ -65,8 +67,7 @@ export const JobsInlineStats = memo(({
     )}>
       <StatItem
         value={activeJobs}
-        label="Active"
-        highlight
+        label="Active highlight"
       />
       
       <Separator orientation="vertical" className="h-6" />
@@ -95,7 +96,7 @@ export const JobsInlineStats = memo(({
       <div className="flex items-center gap-2">
         <Zap className="h-4 w-4 text-primary" />
         <span className="text-lg font-bold text-foreground tabular-nums">{clubSyncActive}</span>
-        <span className="text-sm text-muted-foreground">Club Sync</span>
+        <span className="text-sm text-muted-foreground">{t('jobsInlineStats.clubSync')}</span>
         {clubSyncPending > 0 && (
           <Badge variant="outline" className="text-[10px] py-0 h-5 border-primary/30 text-primary">
             +{clubSyncPending} available

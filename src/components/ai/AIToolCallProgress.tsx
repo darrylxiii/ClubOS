@@ -1,4 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
+import { useTranslation } from 'react-i18next';
 import { Badge } from "@/components/ui/badge";
 import { Loader2, CheckCircle2, XCircle, Briefcase, CheckSquare, MessageSquare, Calendar } from "lucide-react";
 
@@ -13,6 +14,7 @@ interface AIToolCallProgressProps {
 }
 
 export function AIToolCallProgress({ toolCalls }: AIToolCallProgressProps) {
+  const { t } = useTranslation('common');
   if (toolCalls.length === 0) return null;
 
   const getToolIcon = (toolName: string) => {

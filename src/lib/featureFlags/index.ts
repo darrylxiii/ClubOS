@@ -59,8 +59,8 @@ class FeatureFlagService {
           this.overrides.set(key, value as boolean);
         });
       }
-    } catch {
-      // Ignore localStorage errors
+    } catch (error) {
+      console.error('[FeatureFlags] Failed to load local overrides:', error);
     }
   }
 
@@ -70,8 +70,8 @@ class FeatureFlagService {
     try {
       const overrides = Object.fromEntries(this.overrides);
       localStorage.setItem('feature_flag_overrides', JSON.stringify(overrides));
-    } catch {
-      // Ignore localStorage errors
+    } catch (error) {
+      console.error('[FeatureFlags] Failed to save local overrides:', error);
     }
   }
 

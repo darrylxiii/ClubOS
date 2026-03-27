@@ -9,7 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
-import { Lock, CheckCircle2, AlertTriangle, RefreshCw, Users, Building2, Loader2 } from "lucide-react";
+import { Lock, CheckCircle2, AlertTriangle, RefreshCw, Users, Building2, Loader2, Mail, Wand2 } from "lucide-react";
+import { MigrationBanner } from "@/components/auth/MigrationBanner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { UnifiedLoader } from "@/components/ui/unified-loader";
 import { AssistedPasswordConfirmation } from "@/components/ui/assisted-password-confirmation";
@@ -20,7 +21,7 @@ import { useLoginLockout } from "@/hooks/useLoginLockout";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { logger } from "@/lib/logger";
 import { signInWithOAuthCustomDomain } from "@/lib/oauth-helpers";
-import { lovable } from "@/integrations/lovable/index";
+
 import { SetPasswordModal } from "@/components/auth/SetPasswordModal";
 import { ShaderAnimation } from "@/components/auth/ShaderAnimation";
 
@@ -84,6 +85,8 @@ const Auth = () => {
   const [oauthProcessing, setOauthProcessing] = useState(false);
   const [setPasswordOpen, setSetPasswordOpen] = useState(false);
   const [showAccessDialog, setShowAccessDialog] = useState(false);
+  const [magicLinkSent, setMagicLinkSent] = useState(false);
+  const [magicLinkLoading, setMagicLinkLoading] = useState(false);
   const {
     checkLockout,
     recordAttempt
@@ -195,13 +198,13 @@ const Auth = () => {
           logger.warn('OAuth session not established after waiting', {
             componentName: 'Auth'
           });
-          toast.error('Sign in timed out. Please try again.');
+          toast.error(t('text.auth.signInTimedOutPleaseTry', 'Sign in timed out. Please try again.'));
           window.history.replaceState({}, '', '/auth');
         } catch (err) {
           logger.error('OAuth callback processing error', err instanceof Error ? err : new Error(String(err)), {
             componentName: 'Auth'
           });
-          toast.error('Sign in failed. Please try again.');
+          toast.error(t('text.auth.signInFailedPleaseTryAgain', 'Sign in failed. Please try again.'));
           window.history.replaceState({}, '', '/auth');
         } finally {
           setOauthProcessing(false);
@@ -330,7 +333,7 @@ const Auth = () => {
     if (prefillEmail) {
       setEmail(decodeURIComponent(prefillEmail));
       setIsLogin(true);
-      toast.info(t('login.pleaseEnterPassword'));
+      toast.info('login.pleaseEnterPassword');
     }
   }, [prefillEmail, t]);
   const validateInviteCode = async (code: string) => {
@@ -358,15 +361,15 @@ const Auth = () => {
         // Pre-fill form fields from invite metadata
         if (data.recipientName && !fullName) setFullName(data.recipientName);
         if (data.recipientEmail && !email) setEmail(data.recipientEmail);
-        toast.success(data.message || t('invite.validMessage'));
+        toast.success(data.message || 'invite.validMessage');
       } else {
         setInviteValid(false);
-        toast.error(data?.message || t('invite.invalidOrExpired'));
+        toast.error(data?.message || 'invite.invalidOrExpired');
       }
     } catch (error) {
       logger.error("Invite validation failed", error instanceof Error ? error : new Error(String(error)), { componentName: 'Auth' });
       setInviteValid(false);
-      toast.error(t('invite.errorValidating'));
+      toast.error('invite.errorValidating');
     } finally {
       setInviteValidating(false);
     }
@@ -379,7 +382,7 @@ const Auth = () => {
       if (!isLogin) {
         passwordSchema.parse(password);
         if (password !== confirmPassword) {
-          toast.error(t('errors.passwordMismatch'));
+          toast.error('errors.passwordMismatch');
           return;
         }
       }
@@ -387,8 +390,8 @@ const Auth = () => {
         // Check for account lockout before attempting login
         const lockoutStatus = await checkLockout(email);
         if (lockoutStatus.locked) {
-          setLockoutMessage(lockoutStatus.message || t('errors.accountLocked'));
-          toast.error(lockoutStatus.message || t('errors.tooManyAttempts'));
+          setLockoutMessage(lockoutStatus.message || 'errors.accountLocked');
+          toast.error(lockoutStatus.message || 'errors.tooManyAttempts');
           return;
         }
         setLockoutMessage(null);
@@ -402,9 +405,9 @@ const Auth = () => {
         if (error) {
           await recordAttempt(email, false);
           if (error.message.includes("Invalid login credentials")) {
-            toast.error(t('errors.invalidCredentials'));
+            toast.error('errors.invalidCredentials');
           } else if (error.message.includes("Email not confirmed")) {
-            toast.error(t('errors.emailNotVerified'));
+            toast.error('errors.emailNotVerified');
             setNeedsEmailVerification(true);
           } else {
             toast.error(error.message);
@@ -425,13 +428,13 @@ const Auth = () => {
               factorId: verifiedFactor.id
             });
             if (challengeError) {
-              toast.error(t('errors.failed2FA'));
+              toast.error('errors.failed2FA');
               return;
             }
             setMfaFactorId(verifiedFactor.id);
             setMfaChallengeId(challengeData.id);
             setMfaRequired(true);
-            toast.info(t('mfa.pleaseEnter2FA'));
+            toast.info('mfa.pleaseEnter2FA');
             return;
           }
         }
@@ -442,7 +445,7 @@ const Auth = () => {
         }
       } else {
         if (!fullName.trim()) {
-          toast.error(t('errors.fullNameRequired'));
+          toast.error('errors.fullNameRequired');
           return;
         }
         const redirectUrl = `${window.location.origin}/`;
@@ -462,7 +465,7 @@ const Auth = () => {
         });
         if (error) {
           if (error.message.includes("already registered")) {
-            toast.error(t('errors.alreadyRegistered'));
+            toast.error('errors.alreadyRegistered');
             setIsLogin(true);
           } else {
             toast.error(error.message);
@@ -488,18 +491,47 @@ const Auth = () => {
         }
 
         if (authData?.user && !authData.session) {
-          toast.success(t('messages.verificationEmailSent'));
+          toast.success('messages.verificationEmailSent');
           setNeedsEmailVerification(true);
         }
       }
     } catch (error) {
       if (error instanceof z.ZodError) {
-        toast.error(t('errors.weakPassword'));
+        toast.error('errors.weakPassword');
       } else if (error instanceof Error) {
         toast.error(error.message);
       }
     } finally {
       setIsLoading(false);
+    }
+  };
+  const handleMagicLink = async () => {
+    if (!email) {
+      toast.error(t('text.auth.pleaseEnterYourEmailAddressFirst', 'Please enter your email address first'));
+      return;
+    }
+    try {
+      emailSchema.parse(email);
+    } catch {
+      toast.error(t('text.auth.pleaseEnterAValidEmailAddress', 'Please enter a valid email address'));
+      return;
+    }
+    setMagicLinkLoading(true);
+    try {
+      const redirectUrl = `${window.location.origin}/auth`;
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          emailRedirectTo: redirectUrl,
+        },
+      });
+      if (error) throw error;
+      setMagicLinkSent(true);
+      toast.success(t('text.auth.magicLinkSentCheckYourEmail', 'Magic link sent! Check your email inbox.'));
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : t('text.auth.failedToSendMagicLink', 'Failed to send magic link'));
+    } finally {
+      setMagicLinkLoading(false);
     }
   };
   const handleGoogleAuth = async () => {
@@ -509,17 +541,18 @@ const Auth = () => {
       }
       const redirectUrl = inviteCode ? `${window.location.origin}/auth?invite=${inviteCode}` : `${window.location.origin}/auth`;
 
-      const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: redirectUrl,
-        extraParams: {
+      await signInWithOAuthCustomDomain({
+        provider: 'google',
+        redirectTo: redirectUrl,
+        scopes: 'openid profile email',
+        queryParams: {
           access_type: 'offline',
           prompt: 'consent',
         },
       });
-      if (result?.error) throw result.error;
     } catch (error: unknown) {
       toast.error(error instanceof Error ? error.message : t('errors.failedToInitiate', {
-        provider: t('oauth.google')
+        provider: 'oauth.google'
       }));
     }
   };
@@ -530,13 +563,13 @@ const Auth = () => {
       }
       const redirectUrl = inviteCode ? `${window.location.origin}/auth?invite=${inviteCode}` : `${window.location.origin}/auth`;
 
-      const result = await lovable.auth.signInWithOAuth("apple", {
-        redirect_uri: redirectUrl,
+      await signInWithOAuthCustomDomain({
+        provider: 'apple',
+        redirectTo: redirectUrl,
       });
-      if (result?.error) throw result.error;
     } catch (error: unknown) {
       toast.error(error instanceof Error ? error.message : t('errors.failedToInitiate', {
-        provider: t('oauth.apple')
+        provider: 'oauth.apple'
       }));
     }
   };
@@ -554,13 +587,13 @@ const Auth = () => {
       });
     } catch (error: unknown) {
       toast.error(error instanceof Error ? error.message : t('errors.failedToInitiate', {
-        provider: t('oauth.linkedin')
+        provider: 'oauth.linkedin'
       }));
     }
   };
   const handleVerifyEmail = async () => {
     if (emailVerificationCode.length !== 6) {
-      toast.error(t('verification.validCode'));
+      toast.error('verification.validCode');
       return;
     }
     setVerificationLoading(true);
@@ -576,23 +609,23 @@ const Auth = () => {
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
-      toast.success(t('messages.emailVerified'));
+      toast.success('messages.emailVerified');
       setNeedsEmailVerification(false);
       setEmailVerificationCode("");
       setIsLogin(true);
     } catch (error: unknown) {
-      toast.error(error instanceof Error ? error.message : t('mfa.invalidCode'));
+      toast.error(error instanceof Error ? error.message : 'mfa.invalidCode');
     } finally {
       setVerificationLoading(false);
     }
   };
   const handleVerifyMFA = async () => {
     if (mfaCode.length !== 6) {
-      toast.error(t('verification.validCode'));
+      toast.error('verification.validCode');
       return;
     }
     if (!mfaFactorId || !mfaChallengeId) {
-      toast.error(t('mfa.noChallengeFound'));
+      toast.error('mfa.noChallengeFound');
       setMfaRequired(false);
       return;
     }
@@ -612,7 +645,7 @@ const Auth = () => {
         navigate("/home");
       }
     } catch (error: unknown) {
-      toast.error(error instanceof Error ? error.message : t('errors.invalid2FACode'));
+      toast.error(error instanceof Error ? error.message : 'errors.invalid2FACode');
       setMfaCode("");
     } finally {
       setVerificationLoading(false);
@@ -622,6 +655,7 @@ const Auth = () => {
     return <UnifiedLoader variant="page" showBranding />;
   }
   return <div className="min-h-screen flex items-center justify-center px-4 py-12 relative">
+      <MigrationBanner />
       <ShaderAnimation />
       <motion.div
         className="relative z-10 w-full max-w-[624px]"
@@ -632,28 +666,28 @@ const Auth = () => {
       <Card className="w-full bg-card/85 backdrop-blur-[16px] border-border/50 shadow-glass-md shadow-inner rounded-2xl">
         <CardHeader className="space-y-6 pb-8 text-center pt-12">
           <div className="flex items-center justify-center mb-2 drop-shadow-lg">
-            <img src={quantumLogoDark} alt="The Quantum Club" className="h-24 w-auto dark:hidden" fetchPriority="high" />
-            <img src={quantumLogoLight} alt="The Quantum Club" className="h-24 w-auto hidden dark:block" fetchPriority="high" />
+            <img src={quantumLogoDark} alt={t('text.auth.theQuantumClub', 'The Quantum Club')} className="h-24 w-auto dark:hidden" fetchPriority="high" />
+            <img src={quantumLogoLight} alt={t('text.auth.theQuantumClub', 'The Quantum Club')} className="h-24 w-auto hidden dark:block" fetchPriority="high" />
           </div>
 
           <div className="space-y-3">
             <h1 className="tracking-tight text-foreground font-bold text-3xl">
               {isLogin
-                ? t('login.title')
+                ? 'login.title'
                 : inviteInfo?.targetRole === 'partner'
                   ? 'Set Up Your Partnership'
-                  : t('signup.title')}
+                  : 'signup.title'}
             </h1>
             <div className="flex items-center justify-center gap-2">
               {inviteInfo?.targetRole === 'partner' ? (
                 <>
                   <Building2 className="w-4 h-4 text-foreground/90" />
-                  <p className="text-sm text-foreground/90 font-semibold">Partner Account</p>
+                  <p className="text-sm text-foreground/90 font-semibold">{t('text.auth.partnerAccount', 'Partner Account')}</p>
                 </>
               ) : (
                 <>
                   <Lock className="w-4 h-4 text-foreground/90" />
-                  <p className="text-sm text-foreground/90 font-semibold">{t('signup.inviteOnly')}</p>
+                  <p className="text-sm text-foreground/90 font-semibold">{'signup.inviteOnly'}</p>
                 </>
               )}
             </div>
@@ -663,7 +697,7 @@ const Auth = () => {
             <div className="p-4 rounded-2xl bg-muted/30 border border-border/30 animate-pulse space-y-2">
               <div className="flex items-center justify-center gap-2">
                 <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-                <p className="text-sm text-muted-foreground">Validating invite code…</p>
+                <p className="text-sm text-muted-foreground">{t('text.auth.validatingInviteCode', 'Validating invite code…')}</p>
               </div>
             </div>
           )}
@@ -671,14 +705,14 @@ const Auth = () => {
           {!inviteValidating && inviteValid && inviteInfo && <div className="p-4 rounded-2xl bg-success/10 border border-success/20 backdrop-blur-sm space-y-2">
               <div className="flex items-center justify-center gap-2">
                 <CheckCircle2 className="w-5 h-5 text-success" />
-                <p className="text-sm font-bold text-success">{t('invite.valid')}</p>
+                <p className="text-sm font-bold text-success">{'invite.valid'}</p>
               </div>
               <p className="text-xs text-foreground/80">
                 {inviteInfo.targetRole === 'partner' && inviteInfo.recipientName
                   ? `Welcome, ${inviteInfo.recipientName}. ${inviteInfo.referrerName ? `${inviteInfo.referrerName} has` : 'You have been'} invited to join as a partner.`
                   : inviteInfo.referrerName ? t('invite.invitedBy', {
                 name: inviteInfo.referrerName
-              }) : t('invite.invitedByMember')}
+              }) : 'invite.invitedByMember'}
               </p>
               {inviteInfo.companyName && (
                 <p className="text-xs text-foreground/60 flex items-center justify-center gap-1">
@@ -689,7 +723,7 @@ const Auth = () => {
 
           {!inviteValidating && inviteValid === false && <Alert className="bg-destructive/10 border-destructive/20 backdrop-blur-sm rounded-2xl">
               <AlertDescription className="text-sm font-medium text-destructive text-center">
-                {t('invite.invalidOrExpired')}
+                {'invite.invalidOrExpired'}
               </AlertDescription>
             </Alert>}
         </CardHeader>
@@ -697,7 +731,7 @@ const Auth = () => {
         <CardContent className="pt-2 px-10 pb-10">
           {needsEmailVerification ? <div className="space-y-5">
               <div className="p-4 rounded-2xl bg-primary/10 border border-primary/20 space-y-2">
-                <p className="text-sm font-bold text-primary text-center">{t('verification.title')}</p>
+                <p className="text-sm font-bold text-primary text-center">{'verification.title'}</p>
                 <p className="text-xs text-foreground/80 text-center">
                   {t('verification.codeSentTo', {
                 email
@@ -719,20 +753,20 @@ const Auth = () => {
               </div>
 
               <RainbowButton onClick={handleVerifyEmail} disabled={emailVerificationCode.length !== 6 || verificationLoading} className="w-full h-16 rounded-2xl">
-                {verificationLoading ? t('verification.verifying') : t('verification.verify')}
+                {verificationLoading ? 'verification.verifying' : 'verification.verify'}
               </RainbowButton>
 
               <button type="button" onClick={() => {
             setNeedsEmailVerification(false);
             setEmailVerificationCode("");
            }} className="text-foreground/90 hover:text-foreground hover:underline text-sm w-full text-center">
-                {t('resetPassword.backToLogin')}
+                {'resetPassword.backToLogin'}
               </button>
             </div> : mfaRequired ? <div className="space-y-5">
               <div className="p-4 rounded-2xl bg-primary/10 border border-primary/20 space-y-2">
-                <p className="text-sm font-bold text-primary text-center">{t('mfa.title')}</p>
+                <p className="text-sm font-bold text-primary text-center">{'mfa.title'}</p>
                 <p className="text-xs text-foreground/80 text-center">
-                  {t('mfa.subtitle')}
+                  {'mfa.subtitle'}
                 </p>
               </div>
 
@@ -750,16 +784,16 @@ const Auth = () => {
               </div>
 
               <RainbowButton onClick={handleVerifyMFA} disabled={mfaCode.length !== 6 || verificationLoading} className="w-full h-16 rounded-2xl">
-                {verificationLoading ? t('verification.verifying') : t('mfa.verify')}
+                {verificationLoading ? 'verification.verifying' : 'mfa.verify'}
               </RainbowButton>
 
               <button type="button" onClick={() => {
             setMfaRequired(false);
             setMfaCode("");
           }} className="text-foreground/90 hover:text-foreground hover:underline text-sm w-full text-center">
-                {t('resetPassword.backToLogin')}
+                {'resetPassword.backToLogin'}
               </button>
-            </div> : <form onSubmit={handleEmailAuth} className="space-y-5">
+            </div> : isLogin ? <div className="space-y-5">
               {/* Account Lockout Warning */}
               {lockoutMessage && <Alert className="bg-destructive/10 border-destructive/20 backdrop-blur-sm rounded-2xl">
                   <AlertTriangle className="h-4 w-4 text-destructive" />
@@ -768,47 +802,89 @@ const Auth = () => {
                   </AlertDescription>
                 </Alert>}
 
-              {!isLogin && (
-                <div>
-                  <label htmlFor="auth-fullname" className="sr-only">{t('signup.fullName')}</label>
-                  <Input id="auth-fullname" type="text" placeholder={t('signup.fullName')} value={fullName} onChange={e => setFullName(e.target.value)} className="h-14 rounded-xl glass-input" required />
+              {/* Magic Link Sent Success State */}
+              {magicLinkSent && (
+                <div className="p-4 rounded-2xl bg-green-500/10 border border-green-500/20 space-y-2">
+                  <div className="flex items-center justify-center gap-2">
+                    <CheckCircle2 className="h-5 w-5 text-green-500" />
+                    <p className="text-sm font-bold text-green-500">{'Magic Link Sent!'}</p>
+                  </div>
+                  <p className="text-xs text-foreground/80 text-center">
+                    {'Check your email inbox and click the link to sign in securely.'}
+                  </p>
                 </div>
               )}
 
+              {/* Email Input */}
               <div>
-                <label htmlFor="auth-email" className="sr-only">{t('login.email')}</label>
-                <Input id="auth-email" type="email" placeholder={t('login.email')} value={email} onChange={e => setEmail(e.target.value)} className="h-14 rounded-xl glass-input" required />
+                <label htmlFor="auth-email" className="sr-only">{'login.email'}</label>
+                <Input id="auth-email" type="email" placeholder={'login.email'} value={email} onChange={e => { setEmail(e.target.value); setMagicLinkSent(false); }} className="h-14 rounded-xl glass-input" required />
               </div>
 
-              {isLogin ? (
-                <div>
-                  <label htmlFor="auth-password" className="sr-only">{t('login.password')}</label>
-                  <Input id="auth-password" type="password" placeholder={t('login.password')} value={password} onChange={e => setPassword(e.target.value)} className="h-14 rounded-xl glass-input" required />
-                </div>
-              ) : <AssistedPasswordConfirmation password={password} confirmPassword={confirmPassword} onPasswordChange={setPassword} onConfirmPasswordChange={setConfirmPassword} />}
-
-              <RainbowButton type="submit" disabled={isLoading || !isLogin && inviteValid !== true} className="w-full h-14 rounded-xl font-semibold text-base">
-                {isLoading ? tCommon('actions.loading') : isLogin ? t('login.signIn') : t('signup.createAccount')}
+              {/* Primary CTA: Send Secure Magic Link */}
+              <RainbowButton type="button" onClick={handleMagicLink} disabled={magicLinkLoading || magicLinkSent} className="w-full h-14 rounded-xl font-semibold text-base">
+                {magicLinkLoading ? (
+                  <><Loader2 className="h-4 w-4 animate-spin mr-2" />{tCommon('actions.loading')}</>
+                ) : magicLinkSent ? (
+                  <><Mail className="h-4 w-4 mr-2" />{'Check Email'}</>
+                ) : (
+                  <><Wand2 className="h-4 w-4 mr-2" />{'Send Secure Magic Link'}</>
+                )}
               </RainbowButton>
 
-              <div className="pt-4" />
+              {/* Divider: FASTEST WAY IN */}
+              <div className="relative py-3">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t border-border/40" />
+                </div>
+                <div className="relative flex justify-center text-[10px] uppercase tracking-[0.2em]">
+                  <span className="bg-card/85 px-3 text-muted-foreground">{'Fastest Way In'}</span>
+                </div>
+              </div>
 
-              {/* OAuth buttons — hidden until properly configured */}
+              {/* OAuth Buttons: Google & LinkedIn */}
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full h-14 rounded-xl gap-3 text-sm font-medium"
+                onClick={handleGoogleAuth}
+              >
+                <svg className="h-5 w-5" viewBox="0 0 24 24">
+                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+                </svg>
+                {'Continue with Google'}
+              </Button>
 
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full h-14 rounded-xl gap-3 text-sm font-medium"
+                onClick={handleLinkedInAuth}
+              >
+                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="#0A66C2">
+                  <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
+                </svg>
+                {'Continue with LinkedIn'}
+              </Button>
+
+              {/* Request Access & Set Password */}
               <div className="text-center pt-2">
                 <button
                   type="button"
                   onClick={() => setShowAccessDialog(true)}
                   className="text-foreground/90 hover:text-foreground hover:underline text-sm transition-colors"
                 >
-                  Request Access
+                  {'Request Access'}
                 </button>
               </div>
 
               <Dialog open={showAccessDialog} onOpenChange={setShowAccessDialog}>
                 <DialogContent className="backdrop-blur-xl bg-card/80 border-border/50 shadow-2xl max-w-sm">
                   <DialogHeader>
-                    <DialogTitle className="text-center text-lg">Request Access</DialogTitle>
+                    <DialogTitle className="text-center text-lg">{'Request Access'}</DialogTitle>
                   </DialogHeader>
                   <div className="flex flex-col gap-3 pt-2">
                     <Button
@@ -817,7 +893,7 @@ const Auth = () => {
                       onClick={() => { setShowAccessDialog(false); navigate('/onboarding'); }}
                     >
                       <Users className="h-5 w-5" />
-                      For Members
+                      {'For Members'}
                     </Button>
                     <Button
                       variant="outline"
@@ -825,24 +901,40 @@ const Auth = () => {
                       onClick={() => { setShowAccessDialog(false); navigate('/partner'); }}
                     >
                       <Building2 className="h-5 w-5" />
-                      For Partners
+                      {'For Partners'}
                     </Button>
                   </div>
                 </DialogContent>
               </Dialog>
 
-              {isLogin && <div className="text-center space-y-1">
-                  <Link to="/forgot-password" className="text-sm text-foreground/90 hover:text-foreground hover:underline block">
-                    {t('login.forgotPassword')}
-                  </Link>
-                  <button
-                    type="button"
-                    onClick={() => setSetPasswordOpen(true)}
-                    className="text-sm text-foreground/50 hover:text-foreground transition-colors"
-                  >
-                    {t('setPassword.noPassword')} <span className="underline">{t('setPassword.setOne')}</span>
-                  </button>
-                </div>}
+              <div className="text-center">
+                <button
+                  type="button"
+                  onClick={() => setSetPasswordOpen(true)}
+                  className="text-sm text-foreground/50 hover:text-foreground transition-colors"
+                >
+                  {'Want to set a permanent password?'} <span className="underline">{'Click here'}</span>
+                </button>
+              </div>
+            </div>
+
+            : <form onSubmit={handleEmailAuth} className="space-y-5">
+              {/* Sign Up Form (with invite) */}
+              <div>
+                <label htmlFor="auth-fullname" className="sr-only">{'signup.fullName'}</label>
+                <Input id="auth-fullname" type="text" placeholder={'signup.fullName'} value={fullName} onChange={e => setFullName(e.target.value)} className="h-14 rounded-xl glass-input" required />
+              </div>
+
+              <div>
+                <label htmlFor="auth-email" className="sr-only">{'login.email'}</label>
+                <Input id="auth-email" type="email" placeholder={'login.email'} value={email} onChange={e => setEmail(e.target.value)} className="h-14 rounded-xl glass-input" required />
+              </div>
+
+              <AssistedPasswordConfirmation password={password} confirmPassword={confirmPassword} onPasswordChange={setPassword} onConfirmPasswordChange={setConfirmPassword} />
+
+              <RainbowButton type="submit" disabled={isLoading || inviteValid !== true} className="w-full h-14 rounded-xl font-semibold text-base">
+                {isLoading ? tCommon('actions.loading') : 'signup.createAccount'}
+              </RainbowButton>
             </form>}
         </CardContent>
       </Card>

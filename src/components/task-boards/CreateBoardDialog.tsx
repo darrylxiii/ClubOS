@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { useTaskBoard } from '@/contexts/TaskBoardContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -25,6 +26,7 @@ interface CreateBoardDialogProps {
 }
 
 export function CreateBoardDialog({ open, onOpenChange }: CreateBoardDialogProps) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const { createBoard } = useTaskBoard();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -54,12 +56,12 @@ export function CreateBoardDialog({ open, onOpenChange }: CreateBoardDialogProps
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) {
-      toast.error('Please enter a board name');
+      toast.error(t("please_enter_a_board", "Please enter a board name"));
       return;
     }
 
     if (visibility === 'company' && !selectedCompanyId) {
-      toast.error('Please select a company');
+      toast.error(t("please_select_a_company", "Please select a company"));
       return;
     }
 
@@ -91,7 +93,7 @@ export function CreateBoardDialog({ open, onOpenChange }: CreateBoardDialogProps
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Create New Board</DialogTitle>
+          <DialogTitle>{t("create_new_board", "Create New Board")}</DialogTitle>
           <DialogDescription>
             Create a personal, shared, or company-wide task board
           </DialogDescription>
@@ -99,29 +101,29 @@ export function CreateBoardDialog({ open, onOpenChange }: CreateBoardDialogProps
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Board Name</Label>
+            <Label htmlFor="name">{t("board_name", "Board Name")}</Label>
             <Input
               id="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="e.g., Q4 Product Launch"
+              placeholder={t("eg_q4_product_launch", "e.g., Q4 Product Launch")}
               required
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description">Description (optional)</Label>
+            <Label htmlFor="description">{t("description_optional", "Description (optional)")}</Label>
             <Textarea
               id="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="What is this board for?"
+              placeholder={t("what_is_this_board", "What is this board for?")}
               rows={2}
             />
           </div>
 
           <div className="space-y-2">
-            <Label>Icon</Label>
+            <Label>{t("icon", "Icon")}</Label>
             <div className="flex gap-2 flex-wrap">
               {ICON_OPTIONS.map((icon) => (
                 <Button
@@ -139,7 +141,7 @@ export function CreateBoardDialog({ open, onOpenChange }: CreateBoardDialogProps
           </div>
 
           <div className="space-y-2">
-            <Label>Visibility</Label>
+            <Label>{t("visibility", "Visibility")}</Label>
             <RadioGroup value={visibility} onValueChange={(v) => setVisibility(v as BoardVisibility)}>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="personal" id="personal" />
@@ -166,7 +168,7 @@ export function CreateBoardDialog({ open, onOpenChange }: CreateBoardDialogProps
 
           {visibility === 'company' && companies.length > 0 && (
             <div className="space-y-2">
-              <Label htmlFor="company">Select Company</Label>
+              <Label htmlFor="company">{t("select_company", "Select Company")}</Label>
               <select
                 id="company"
                 value={selectedCompanyId}
@@ -174,7 +176,7 @@ export function CreateBoardDialog({ open, onOpenChange }: CreateBoardDialogProps
                 className="w-full px-3 py-2 border border-input bg-background rounded-md"
                 required
               >
-                <option value="">Choose a company...</option>
+                <option value="">{t("choose_a_company", "Choose a company...")}</option>
                 {companies.map((company) => (
                   <option key={company.id} value={company.id}>
                     {company.name}

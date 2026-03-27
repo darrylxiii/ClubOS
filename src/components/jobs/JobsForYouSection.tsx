@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { useTranslation } from 'react-i18next';
 import { motion } from "framer-motion";
 import { Sparkles, ChevronRight, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -46,6 +47,7 @@ export function JobsForYouSection({
   matchThreshold = 85,
   maxJobs = 5,
 }: JobsForYouSectionProps) {
+  const { t } = useTranslation('jobs');
   const topMatches = useMemo(() => {
     return jobs
       .filter((job) => job.matchScore && job.matchScore >= matchThreshold)
@@ -72,19 +74,19 @@ export function JobsForYouSection({
           </div>
           <div>
             <h2 className="text-xl font-bold flex items-center gap-2">
-              Jobs For You
+              {t('recommendations.title', 'Jobs For You')}
               <span className="text-xs font-medium text-muted-foreground bg-muted/50 px-2 py-0.5 rounded-full">
-                {matchThreshold}%+ match
+                {matchThreshold}%+ {t('recommendations.match', 'match')}
               </span>
             </h2>
             <p className="text-sm text-muted-foreground">
-              Top matches based on your profile
+              {t('recommendations.basedOn', 'Top matches based on your profile')}
             </p>
           </div>
         </div>
         {topMatches.length > 3 && onViewAll && (
           <Button variant="ghost" size="sm" className="gap-1 text-muted-foreground" onClick={onViewAll}>
-            View all
+            {t('common:viewAll', 'View all')}
             <ChevronRight className="w-4 h-4" />
           </Button>
         )}
@@ -152,7 +154,7 @@ export function JobsForYouSection({
                   <div className="absolute -top-2 -left-2 z-10">
                     <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-primary text-primary-foreground text-xs font-semibold shadow-lg">
                       <Star className="w-3 h-3 fill-current" />
-                      Best Match
+                      {t('recommendations.bestMatch', 'Best Match')}
                     </div>
                   </div>
                 )}

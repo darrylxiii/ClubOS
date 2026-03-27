@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { motion, AnimatePresence } from '@/lib/motion';
 import { Bell, X, Check, CheckCheck, AlertTriangle, TrendingUp, MessageSquare, Clock } from 'lucide-react';
@@ -11,6 +12,7 @@ import { useCommunicationNotifications } from '@/hooks/useCommunicationNotificat
 import { useNavigate } from 'react-router-dom';
 
 export function CommunicationNotificationBell() {
+  const { t } = useTranslation('common');
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const { 
@@ -69,7 +71,7 @@ export function CommunicationNotificationBell() {
       </PopoverTrigger>
       <PopoverContent align="end" className="w-80 p-0">
         <div className="p-3 border-b flex items-center justify-between">
-          <h4 className="font-semibold text-sm">Communication Alerts</h4>
+          <h4 className="font-semibold text-sm">{t("communication_alerts", "Communication Alerts")}</h4>
           {unreadCount > 0 && (
             <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={markAllAsRead}>
               <CheckCheck className="h-3 w-3 mr-1" />
@@ -82,7 +84,7 @@ export function CommunicationNotificationBell() {
           {notifications.length === 0 ? (
             <div className="p-8 text-center">
               <Bell className="h-8 w-8 mx-auto text-muted-foreground/50 mb-2" />
-              <p className="text-sm text-muted-foreground">No notifications</p>
+              <p className="text-sm text-muted-foreground">{t("no_notifications", "No notifications")}</p>
             </div>
           ) : (
             <div className="divide-y">

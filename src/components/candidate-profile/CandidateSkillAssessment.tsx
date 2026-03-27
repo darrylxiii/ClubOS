@@ -8,6 +8,7 @@ import { EngagementTimeline } from "./EngagementTimeline";
 import { AvailabilityNoticeCard } from "./AvailabilityNoticeCard";
 import { SalaryComparisonVisualizer } from "./SalaryComparisonVisualizer";
 import { CareerTrajectoryTimeline } from "./CareerTrajectoryTimeline";
+import { useTranslation } from 'react-i18next';
 
 interface CandidateSkillAssessmentProps {
   candidateId: string;
@@ -21,6 +22,7 @@ interface CandidateSkillAssessmentProps {
 }
 
 export function CandidateSkillAssessment({ candidateId, candidate, jobId, skills = [], breakdown, error, isComputing, onRecompute }: CandidateSkillAssessmentProps) {
+  const { t } = useTranslation('candidates');
   return (
     <div className="space-y-4">
       {/* Error banner */}

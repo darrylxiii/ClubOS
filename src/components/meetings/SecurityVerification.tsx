@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 /**
  * Security Verification Component
  * Visual E2EE verification UI with security codes and emoji comparison
@@ -41,6 +42,7 @@ export function SecurityVerification({
   peerId,
   onVerify
 }: SecurityVerificationProps) {
+  const { t } = useTranslation('common');
   const [copied, setCopied] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
 
@@ -48,7 +50,7 @@ export function SecurityVerification({
     if (securityCode) {
       await navigator.clipboard.writeText(securityCode);
       setCopied(true);
-      toast.success('Security code copied');
+      toast.success(t("security_code_copied", "Security code copied"));
       setTimeout(() => setCopied(false), 2000);
     }
   };
@@ -62,7 +64,7 @@ export function SecurityVerification({
   const handleReject = () => {
     onVerify(false);
     setDialogOpen(false);
-    toast.error('Verification failed - connection may not be secure');
+    toast.error(t("verification_failed_connection_may", "Verification failed - connection may not be secure"));
   };
 
   if (!securityCode) {
@@ -72,11 +74,11 @@ export function SecurityVerification({
           <TooltipTrigger asChild>
             <Badge variant="outline" className="gap-1 text-muted-foreground">
               <ShieldOff className="h-3 w-3" />
-              <span className="text-xs">No E2EE</span>
+              <span className="text-xs">{t("no_e2ee", "No E2EE")}</span>
             </Badge>
           </TooltipTrigger>
           <TooltipContent>
-            <p>End-to-end encryption is not available</p>
+            <p>{t("endtoend_encryption_is_not", "End-to-end encryption is not available")}</p>
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>

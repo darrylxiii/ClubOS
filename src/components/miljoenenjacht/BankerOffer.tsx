@@ -1,4 +1,5 @@
 import { memo, useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { motion } from '@/lib/motion';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -15,6 +16,7 @@ interface BankerOfferProps {
 }
 
 export const BankerOffer = memo(({ offer, expectedValue, onDeal, onNoDeal, onHesitation }: BankerOfferProps) => {
+  const { t } = useTranslation('common');
   const [showOffer, setShowOffer] = useState(false);
   const [startTime] = useState(Date.now());
   const [hasHovered, setHasHovered] = useState(false);
@@ -83,10 +85,8 @@ export const BankerOffer = memo(({ offer, expectedValue, onDeal, onNoDeal, onHes
                 📞
               </motion.div>
               <div className="space-y-2">
-                <h2 className="text-3xl font-bold" role="status" aria-live="polite">
-                  The Banker is Calling...
-                </h2>
-                <p className="text-muted-foreground">Preparing your offer</p>
+                <h2 className="text-3xl font-bold" role="status" aria-live="polite">{t('miljoenenjacht.theBankerIsCalling')}</h2>
+                <p className="text-muted-foreground">{t('miljoenenjacht.preparingYourOffer')}</p>
               </div>
             </CardContent>
           </Card>
@@ -98,9 +98,7 @@ export const BankerOffer = memo(({ offer, expectedValue, onDeal, onNoDeal, onHes
                 <h2 
                   id="banker-offer-title" 
                   className="text-2xl md:text-3xl font-bold"
-                >
-                  Banker's Offer
-                </h2>
+                >{t('miljoenenjacht.bankersOffer')}</h2>
                 
                 <motion.div
                   initial={{ scale: 0 }}
@@ -136,24 +134,18 @@ export const BankerOffer = memo(({ offer, expectedValue, onDeal, onNoDeal, onHes
                   onClick={handleNoDeal}
                   onMouseEnter={handleButtonHover}
                   className="h-16 text-lg border-2"
-                  aria-label="Reject offer and continue playing"
-                >
-                  NO DEAL
-                </Button>
+                  aria-label={t('miljoenenjacht.rejectOfferAndContinuePlaying')}
+                >{t('miljoenenjacht.nODEAL')}</Button>
                 <Button
                   size="lg"
                   onClick={handleDeal}
                   onMouseEnter={handleButtonHover}
                   className="h-16 text-lg bg-gradient-to-r from-primary to-primary/80"
-                  aria-label="Accept offer and end game"
-                >
-                  DEAL! 💰
-                </Button>
+                  aria-label={t('miljoenenjacht.acceptOfferAndEndGame')}
+                >{t('miljoenenjacht.dEAL ')}</Button>
               </div>
 
-              <p className="text-center text-sm text-muted-foreground">
-                Take the money and end the game, or continue playing?
-              </p>
+              <p className="text-center text-sm text-muted-foreground">{t('miljoenenjacht.takeTheMoneyAndEndTheGameOrContinuePlayi')}</p>
             </CardContent>
           </Card>
         )}

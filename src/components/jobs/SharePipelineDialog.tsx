@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -65,12 +66,12 @@ const EXPIRY_OPTIONS = [
 
 const MIN_PASSWORD_LENGTH = 8;
 
-export function SharePipelineDialog({
-  open,
+export function SharePipelineDialog({  open,
   onOpenChange,
   jobId,
   jobTitle,
 }: SharePipelineDialogProps) {
+const { t } = useTranslation('common');
   const [shares, setShares] = useState<ShareLink[]>([]);
   const [loading, setLoading] = useState(false);
   const [creating, setCreating] = useState(false);
@@ -116,7 +117,7 @@ export function SharePipelineDialog({
   const handleCreate = async () => {
     if (passwordEnabled) {
       if (!password.trim()) {
-        toast.error('Please enter a password or disable password protection.');
+        toast.error(t("please_enter_a_password", "Please enter a password or disable password protection."));
         return;
       }
       if (password.trim().length < MIN_PASSWORD_LENGTH) {
@@ -174,7 +175,7 @@ export function SharePipelineDialog({
       const link = `${window.location.origin}/pipeline/${share.token}`;
       setNewLink(link);
       await navigator.clipboard.writeText(link);
-      toast.success('Share link copied to clipboard.');
+      toast.success(t("share_link_copied_to", "Share link copied to clipboard."));
       await fetchShares();
 
       setShowCreateForm(false);
@@ -195,9 +196,9 @@ export function SharePipelineDialog({
       .eq('id', shareId);
 
     if (error) {
-      toast.error('Failed to revoke link.');
+      toast.error(t("failed_to_revoke_link", "Failed to revoke link."));
     } else {
-      toast.success('Share link revoked.');
+      toast.success(t("share_link_revoked", "Share link revoked."));
       await fetchShares();
     }
     setRevokeTarget(null);
@@ -206,7 +207,7 @@ export function SharePipelineDialog({
   const copyLink = async (token: string) => {
     const link = `${window.location.origin}/pipeline/${token}`;
     await navigator.clipboard.writeText(link);
-    toast.success('Link copied to clipboard.');
+    toast.success(t("link_copied_to_clipboard", "Link copied to clipboard."));
   };
 
   const activeShares = shares.filter((s) => s.is_active && new Date(s.expires_at) > new Date());
@@ -248,7 +249,7 @@ export function SharePipelineDialog({
                       className="shrink-0 h-8"
                       onClick={() => {
                         navigator.clipboard.writeText(newLink);
-                        toast.success('Copied.');
+                        toast.success(t("copied", "Copied."));
                       }}
                     >
                       <Copy className="w-3.5 h-3.5" />
@@ -273,13 +274,13 @@ export function SharePipelineDialog({
                 </Button>
               ) : (
                 <div className="space-y-4 rounded-xl border border-border/40 bg-card/50 p-4">
-                  <p className="text-sm font-semibold text-foreground">New share link</p>
+                  <p className="text-sm font-semibold text-foreground">{t("new_share_link", "New share link")}</p>
 
                   {/* Label */}
                   <div className="space-y-1.5">
-                    <Label className="text-xs">Label (optional)</Label>
+                    <Label className="text-xs">{t("label_optional", "Label (optional)")}</Label>
                     <Input
-                      placeholder="e.g. Sent to Acme HR team"
+                      placeholder={t("eg_sent_to_acme", "e.g. Sent to Acme HR team")}
                       value={label}
                       onChange={(e) => setLabel(e.target.value)}
                       className="h-8 text-sm"
@@ -288,7 +289,7 @@ export function SharePipelineDialog({
 
                   {/* Expiry */}
                   <div className="space-y-1.5">
-                    <Label className="text-xs">Expires after</Label>
+                    <Label className="text-xs">{t("expires_after", "Expires after")}</Label>
                     <Select
                       value={String(expiryHours)}
                       onValueChange={(v) => setExpiryHours(Number(v))}
@@ -451,7 +452,7 @@ export function SharePipelineDialog({
       <ConfirmDialog
         open={!!revokeTarget}
         onOpenChange={(open) => !open && setRevokeTarget(null)}
-        title="Revoke share link?"
+        title={t("revoke_share_link", "Revoke share link?")}
         description="Anyone currently viewing this link will immediately lose access. This cannot be undone."
         confirmText="Revoke"
         cancelText="Cancel"

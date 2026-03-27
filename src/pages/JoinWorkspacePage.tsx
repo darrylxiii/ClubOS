@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Users, Clock, User, ArrowRight, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -10,6 +11,7 @@ import { LoadingSpinner, PageLoading } from '@/components/ui/loading-spinner';
 import { formatDistanceToNow } from 'date-fns';
 
 export default function JoinWorkspacePage() {
+  const { t } = useTranslation('common');
   const { token } = useParams<{ token: string }>();
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
@@ -48,7 +50,7 @@ export default function JoinWorkspacePage() {
             <div className="mx-auto h-12 w-12 rounded-full bg-destructive/10 flex items-center justify-center mb-4">
               <AlertCircle className="h-6 w-6 text-destructive" />
             </div>
-            <CardTitle>Invalid Invitation</CardTitle>
+            <CardTitle>{t('joinWorkspacePage.text1')}</CardTitle>
             <CardDescription>
               This invitation link is invalid or has expired. Please ask the workspace owner to send you a new invitation.
             </CardDescription>

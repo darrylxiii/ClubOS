@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ExpandablePipelineStage, PipelineStageData } from "@/components/ExpandablePipelineStage";
 import { toast } from "sonner";
@@ -58,6 +59,7 @@ interface Application {
 }
 
 export default function Applications({ embedded = false }: { embedded?: boolean }) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -149,7 +151,7 @@ export default function Applications({ embedded = false }: { embedded?: boolean 
           <div className="frosted-glass p-3 rounded-lg border border-border/20 shadow-lg">
             <div className="flex items-center gap-2 text-sm">
               <InlineLoader className="text-muted-foreground" />
-              <span className="text-muted-foreground font-medium">Updating...</span>
+              <span className="text-muted-foreground font-medium">{t('applications.text3')}</span>
             </div>
           </div>
         </div>
@@ -158,27 +160,23 @@ export default function Applications({ embedded = false }: { embedded?: boolean 
       <div className="w-full px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-4xl font-black uppercase tracking-tight mb-2">
-            My Applications
-          </h1>
-          <p className="text-muted-foreground">
-            Track your application progress and prepare for each stage
-          </p>
+          <h1 className="text-4xl font-black uppercase tracking-tight mb-2">{t('applications.title')}</h1>
+          <p className="text-muted-foreground">{t('applications.desc')}</p>
         </div>
 
         <Tabs defaultValue="active" className="w-full">
           <TabsList className="grid w-full max-w-2xl grid-cols-3 h-auto min-h-[44px]">
             <TabsTrigger value="active" className="min-h-[44px] text-xs sm:text-sm">
               <span className="hidden sm:inline">Active ({activeApplications.length})</span>
-              <span className="sm:hidden">Active</span>
+              <span className="sm:hidden">{t('applications.text4')}</span>
             </TabsTrigger>
             <TabsTrigger value="rejected" className="min-h-[44px] text-xs sm:text-sm">
               <span className="hidden sm:inline">Rejected ({rejectedApplications.length})</span>
-              <span className="sm:hidden">Rejected</span>
+              <span className="sm:hidden">{t('applications.text5')}</span>
             </TabsTrigger>
             <TabsTrigger value="archived" className="min-h-[44px] text-xs sm:text-sm">
               <span className="hidden sm:inline">Archived ({archivedApplications.length})</span>
-              <span className="sm:hidden">Archived</span>
+              <span className="sm:hidden">{t('applications.text6')}</span>
             </TabsTrigger>
           </TabsList>
 
@@ -186,9 +184,7 @@ export default function Applications({ embedded = false }: { embedded?: boolean 
             {activeApplications.length === 0 ? (
               <Card>
                 <CardContent className="py-12 text-center">
-                  <p className="text-muted-foreground text-sm sm:text-base">
-                    No active applications yet. Start applying to jobs to see them here!
-                  </p>
+                  <p className="text-muted-foreground text-sm sm:text-base">{t('applications.desc2')}</p>
                 </CardContent>
               </Card>
             ) : isMobile ? (
@@ -211,7 +207,7 @@ export default function Applications({ embedded = false }: { embedded?: boolean 
             {archivedApplications.length === 0 ? (
               <Card>
                 <CardContent className="py-12 text-center">
-                  <p className="text-muted-foreground">No archived applications</p>
+                  <p className="text-muted-foreground">{t('applications.text7')}</p>
                 </CardContent>
               </Card>
             ) : (
@@ -319,7 +315,7 @@ function ApplicationCard({ application }: { application: Application }) {
               size="icon"
               variant="ghost"
               className="min-h-[44px] min-w-[44px]"
-              title="Interview Prep"
+              title={t('applications.text8')}
               onClick={(e) => {
                 e.stopPropagation();
                 navigate(`/jobs?tab=interview-prep&jobId=${application.job_id}&title=${encodeURIComponent(application.job?.title || application.position)}`);
@@ -400,7 +396,7 @@ function ApplicationCard({ application }: { application: Application }) {
         <div className="mt-2">
           <h3 className="text-xs font-medium mb-3 text-muted-foreground uppercase tracking-wide flex items-center gap-2">
             Pipeline Progress
-            <span className="text-[10px] font-normal normal-case opacity-60">(Swipe to see all stages →)</span>
+            <span className="text-[10px] font-normal normal-case opacity-60">{"(Swipe to see all stages →)"}</span>
           </h3>
           <div className="relative">
             <div

@@ -19,7 +19,7 @@ This guide explains how to build and run The Quantum Club as a native iOS and An
 ## Initial Setup
 
 ### 1. Export to GitHub
-1. In Lovable, click "Export to GitHub"
+1. In the platform, click "Export to GitHub"
 2. Clone the repository to your local machine:
    ```bash
    git clone https://github.com/YOUR_USERNAME/YOUR_REPO.git
@@ -82,9 +82,9 @@ In Android Studio:
 ## Development Workflow
 
 ### Hot Reload (Development)
-The app is configured to connect to the Lovable sandbox for hot reload:
-- URL: `https://ed1ccbea-b8dd-4007-bcc4-b3329d10bf67.lovableproject.com`
-- Changes in Lovable will reflect immediately in the native app
+The app is configured to connect to the the platform sandbox for hot reload:
+- URL: `https://ed1ccbea-b8dd-4007-bcc4-b3329d10bf67.os.thequantumclub.com`
+- Changes in the project will reflect immediately in the native app
 
 ### Building for Production
 For production builds, update `capacitor.config.ts`:

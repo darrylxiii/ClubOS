@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { usePaymentAging } from '@/hooks/useMoneybirdFinancials';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { DynamicChart } from '@/components/charts/DynamicChart';
@@ -23,6 +24,7 @@ const LABELS = {
 };
 
 export function PaymentAgingChart({ year }: PaymentAgingChartProps) {
+  const { t } = useTranslation('common');
   const aging = usePaymentAging(year);
 
   const formatCurrency = (amount: number) => {
@@ -48,8 +50,8 @@ export function PaymentAgingChart({ year }: PaymentAgingChartProps) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Payment Aging</CardTitle>
-          <CardDescription>Outstanding invoice breakdown</CardDescription>
+          <CardTitle className="text-base">{t("payment_aging", "Payment Aging")}</CardTitle>
+          <CardDescription>{t("outstanding_invoice_breakdown", "Outstanding invoice breakdown")}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-center h-[200px] text-muted-foreground">
@@ -65,7 +67,7 @@ export function PaymentAgingChart({ year }: PaymentAgingChartProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Payment Aging</CardTitle>
+        <CardTitle className="text-base">{t("payment_aging", "Payment Aging")}</CardTitle>
         <CardDescription>
           {formatCurrency(totalOutstanding)} outstanding
         </CardDescription>

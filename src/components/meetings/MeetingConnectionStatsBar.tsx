@@ -3,6 +3,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Wifi, WifiOff, Signal, SignalLow, SignalMedium, SignalHigh, AlertTriangle, Server } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { useTranslation } from 'react-i18next';
 
 interface ConnectionStats {
   packetLoss: number;
@@ -77,6 +78,7 @@ export function MeetingConnectionStatsBar({
   peerCount,
   className = '' 
 }: MeetingConnectionStatsBarProps) {
+  const { t } = useTranslation("meetings");
   const [showDetails, setShowDetails] = useState(false);
   
   if (!stats) {
@@ -84,7 +86,7 @@ export function MeetingConnectionStatsBar({
       <div className={`flex items-center gap-2 ${className}`}>
         <Badge variant="outline" className="gap-1 bg-muted/50">
           <Wifi className="h-3 w-3 animate-pulse" />
-          <span className="text-xs">Connecting...</span>
+          <span className="text-xs">{t('connection.connecting')}</span>
         </Badge>
       </div>
     );
@@ -113,19 +115,19 @@ export function MeetingConnectionStatsBar({
           </TooltipTrigger>
           <TooltipContent side="bottom" className="max-w-xs">
             <div className="space-y-2 text-xs">
-              <div className="font-medium">Connection Quality: {quality}</div>
+              <div className="font-medium">{t('connection.quality')}: {quality}</div>
               <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-muted-foreground">
-                <span>Packet Loss:</span>
+                <span>{t('connection.packetLoss')}:</span>
                 <span className={stats.packetLoss > 2 ? 'text-orange-400' : ''}>{stats.packetLoss.toFixed(1)}%</span>
-                <span>Latency:</span>
+                <span>{t('connection.latency')}:</span>
                 <span className={stats.latency > 150 ? 'text-orange-400' : ''}>{Math.round(stats.latency)}ms</span>
-                <span>Jitter:</span>
+                <span>{t('connection.jitter')}:</span>
                 <span>{stats.jitter.toFixed(1)}ms</span>
-                <span>Bitrate:</span>
+                <span>{t('connection.bitrate')}:</span>
                 <span>{Math.round(stats.bitrate)} kbps</span>
                 {stats.codec && (
                   <>
-                    <span>Codec:</span>
+                    <span>{t('connection.codec')}:</span>
                     <span>{stats.codec.replace('video/', '')}</span>
                   </>
                 )}
@@ -140,11 +142,11 @@ export function MeetingConnectionStatsBar({
             <TooltipTrigger asChild>
               <Badge variant="outline" className="gap-1 bg-blue-500/10 border-blue-500/20">
                 <Server className="h-3 w-3 text-blue-400" />
-                <span className="text-xs text-blue-400">Relay</span>
+                <span className="text-xs text-blue-400">{t('connection.relay')}</span>
               </Badge>
             </TooltipTrigger>
             <TooltipContent>
-              Connected via TURN relay server (direct P2P not possible)
+              {t('connection.relayDescription')}
             </TooltipContent>
           </Tooltip>
         )}
@@ -152,7 +154,7 @@ export function MeetingConnectionStatsBar({
         {/* Peer count */}
         {peerCount > 0 && (
           <Badge variant="secondary" className="gap-1">
-            <span className="text-xs">{peerCount} peer{peerCount !== 1 ? 's' : ''}</span>
+            <span className="text-xs">{t('connection.peerCount', { count: peerCount })}</span>
           </Badge>
         )}
 
@@ -166,11 +168,11 @@ export function MeetingConnectionStatsBar({
             </TooltipTrigger>
             <TooltipContent>
               <div className="text-xs">
-                <div className="font-medium text-orange-400">Connection Issues Detected</div>
+                <div className="font-medium text-orange-400">{t('connection.issuesDetected')}</div>
                 <div className="text-muted-foreground mt-1">
                   {stats.packetLoss > 5 && <div>• High packet loss ({stats.packetLoss.toFixed(1)}%)</div>}
                   {stats.latency > 300 && <div>• High latency ({Math.round(stats.latency)}ms)</div>}
-                  <div className="mt-1">Try moving closer to your router or using a wired connection.</div>
+                  <div className="mt-1">{t('connection.tryMovingCloser')}</div>
                 </div>
               </div>
             </TooltipContent>

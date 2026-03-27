@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -33,6 +34,7 @@ const TIME_OPTIONS = Array.from({ length: 24 }, (_, i) => {
 });
 
 export function AvailabilityOnboardingWizard({ onComplete, onSkip }: AvailabilityOnboardingWizardProps) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [step, setStep] = useState(1);
   const [saving, setSaving] = useState(false);
@@ -96,11 +98,11 @@ export function AvailabilityOnboardingWizard({ onComplete, onSkip }: Availabilit
 
       if (profileError) throw profileError;
 
-      toast.success("Availability settings saved!");
+      toast.success(t("availability_settings_saved", "Availability settings saved!"));
       onComplete();
     } catch (error) {
       console.error("Error saving settings:", error);
-      toast.error("Failed to save settings");
+      toast.error(t("failed_to_save_settings", "Failed to save settings"));
     } finally {
       setSaving(false);
     }
@@ -133,7 +135,7 @@ export function AvailabilityOnboardingWizard({ onComplete, onSkip }: Availabilit
               className="space-y-6"
             >
               <div className="text-center mb-6">
-                <h3 className="text-lg font-medium">Your Timezone</h3>
+                <h3 className="text-lg font-medium">{t("your_timezone", "Your Timezone")}</h3>
                 <p className="text-sm text-muted-foreground">
                   All booking times will be shown in this timezone
                 </p>
@@ -157,7 +159,7 @@ export function AvailabilityOnboardingWizard({ onComplete, onSkip }: Availabilit
               className="space-y-6"
             >
               <div className="text-center mb-6">
-                <h3 className="text-lg font-medium">Available Days</h3>
+                <h3 className="text-lg font-medium">{t("available_days", "Available Days")}</h3>
                 <p className="text-sm text-muted-foreground">
                   Select which days you accept bookings
                 </p>
@@ -192,7 +194,7 @@ export function AvailabilityOnboardingWizard({ onComplete, onSkip }: Availabilit
               className="space-y-6"
             >
               <div className="text-center mb-6">
-                <h3 className="text-lg font-medium">Working Hours</h3>
+                <h3 className="text-lg font-medium">{t("working_hours", "Working Hours")}</h3>
                 <p className="text-sm text-muted-foreground">
                   Set your default working hours
                 </p>
@@ -245,7 +247,7 @@ export function AvailabilityOnboardingWizard({ onComplete, onSkip }: Availabilit
               </div>
 
               <div className="max-w-md mx-auto space-y-2">
-                <Label>Slot Duration</Label>
+                <Label>{t("slot_duration", "Slot Duration")}</Label>
                 <Select
                   value={settings.slotInterval.toString()}
                   onValueChange={(value) => setSettings({ ...settings, slotInterval: parseInt(value) })}
@@ -254,10 +256,10 @@ export function AvailabilityOnboardingWizard({ onComplete, onSkip }: Availabilit
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="15">15 minutes</SelectItem>
-                    <SelectItem value="30">30 minutes</SelectItem>
-                    <SelectItem value="45">45 minutes</SelectItem>
-                    <SelectItem value="60">60 minutes</SelectItem>
+                    <SelectItem value="15">{t("15_minutes", "15 minutes")}</SelectItem>
+                    <SelectItem value="30">{t("30_minutes", "30 minutes")}</SelectItem>
+                    <SelectItem value="45">{t("45_minutes", "45 minutes")}</SelectItem>
+                    <SelectItem value="60">{t("60_minutes", "60 minutes")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

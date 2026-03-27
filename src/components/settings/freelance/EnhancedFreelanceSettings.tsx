@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -20,6 +21,7 @@ import { StripeConnectOnboarding } from "@/components/projects/payments/StripeCo
 import { ConnectsSystem } from "@/components/projects/connects/ConnectsSystem";
 
 export function EnhancedFreelanceSettings() {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("overview");
@@ -91,7 +93,7 @@ export function EnhancedFreelanceSettings() {
       <Card className="border-dashed">
         <CardContent className="py-12 text-center">
           <Rocket className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-          <h3 className="text-lg font-semibold mb-2">Enable Freelance Mode</h3>
+          <h3 className="text-lg font-semibold mb-2">{t("enable_freelance_mode", "Enable Freelance Mode")}</h3>
           <p className="text-muted-foreground mb-4">
             Turn on "Open to Freelance Projects" in the basic settings above to access enhanced freelance features.
           </p>
@@ -117,7 +119,7 @@ export function EnhancedFreelanceSettings() {
             </div>
             <div className="text-right">
               <div className="text-3xl font-bold text-primary">{profileCompleteness}%</div>
-              <p className="text-xs text-muted-foreground">Profile Complete</p>
+              <p className="text-xs text-muted-foreground">{t("profile_complete", "Profile Complete")}</p>
             </div>
           </div>
         </CardHeader>
@@ -129,15 +131,15 @@ export function EnhancedFreelanceSettings() {
             </div>
             <div className="flex items-center gap-2">
               <div className={`w-2 h-2 rounded-full ${freelanceProfile?.video_intro_url ? 'bg-green-500' : 'bg-muted-foreground'}`} />
-              <span>Video Intro</span>
+              <span>{t("video_intro", "Video Intro")}</span>
             </div>
             <div className="flex items-center gap-2">
               <div className={`w-2 h-2 rounded-full ${(freelanceProfile?.portfolio_items as any[])?.length > 0 ? 'bg-green-500' : 'bg-muted-foreground'}`} />
-              <span>Portfolio</span>
+              <span>{t("portfolio", "Portfolio")}</span>
             </div>
             <div className="flex items-center gap-2">
               <div className={`w-2 h-2 rounded-full ${freelanceProfile?.is_verified ? 'bg-green-500' : 'bg-muted-foreground'}`} />
-              <span>Verified</span>
+              <span>{t("verified", "Verified")}</span>
             </div>
           </div>
         </CardContent>

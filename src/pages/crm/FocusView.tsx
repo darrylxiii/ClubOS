@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { RoleGate } from '@/components/RoleGate';
 import { motion, AnimatePresence } from '@/lib/motion';
 import { Button } from '@/components/ui/button';
@@ -27,6 +28,7 @@ import { KeyboardShortcutsHelp } from '@/components/crm/KeyboardShortcutsHelp';
 import type { CRMActivity } from '@/types/crm-activities';
 
 export default function FocusView() {
+  const { t } = useTranslation('common');
   const [addActivityOpen, setAddActivityOpen] = useState(false);
   const [editActivity, setEditActivity] = useState<CRMActivity | null>(null);
 
@@ -115,8 +117,8 @@ export default function FocusView() {
           >
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h1 className="text-3xl font-bold">Focus View</h1>
-                <p className="text-muted-foreground">Your activities for today</p>
+                <h1 className="text-3xl font-bold">{t('focusView.text2')}</h1>
+                <p className="text-muted-foreground">{t('focusView.text3')}</p>
               </div>
               <div className="flex items-center gap-2">
                 <Button variant="outline" size="icon" onClick={refetchAll}>
@@ -139,7 +141,7 @@ export default function FocusView() {
               <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium">Today's Progress</span>
+                    <span className="text-sm font-medium">{t('focusView.text4')}</span>
                     <span className="text-sm text-muted-foreground">
                       {completedToday} of {totalDue} completed
                     </span>
@@ -179,10 +181,8 @@ export default function FocusView() {
               >
                 <PartyPopper className="w-12 h-12 text-green-500" />
               </motion.div>
-              <h2 className="text-2xl font-bold mb-2">All Caught Up!</h2>
-              <p className="text-muted-foreground mb-6">
-                You have no pending activities for today. Great job!
-              </p>
+              <h2 className="text-2xl font-bold mb-2">{t('focusView.text5')}</h2>
+              <p className="text-muted-foreground mb-6">{t('focusView.desc')}</p>
               <Button onClick={() => setAddActivityOpen(true)}>
                 <Plus className="w-4 h-4 mr-2" />
                 Schedule New Activity

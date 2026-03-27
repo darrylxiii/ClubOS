@@ -1,9 +1,11 @@
+import { useTranslation } from 'react-i18next';
 import React from 'react';
 import { useOfflineIndicator, useNetworkStatus } from '@/hooks/useNetworkStatus';
 import { Wifi, WifiOff, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export function NetworkStatusIndicator() {
+  const { t } = useTranslation('common');
   const { isOnline, showOffline } = useOfflineIndicator();
   const { isSlowConnection } = useNetworkStatus();
 
@@ -26,17 +28,17 @@ export function NetworkStatusIndicator() {
       {!isOnline ? (
         <>
           <WifiOff className="h-4 w-4" />
-          <span>You're offline. Progress is saved locally.</span>
+          <span>{t("youre_offline_progress_is", "You're offline. Progress is saved locally.")}</span>
         </>
       ) : showOffline ? (
         <>
           <Wifi className="h-4 w-4" />
-          <span>Back online!</span>
+          <span>{t("back_online", "Back online!")}</span>
         </>
       ) : isSlowConnection ? (
         <>
           <AlertTriangle className="h-4 w-4" />
-          <span>Slow connection detected</span>
+          <span>{t("slow_connection_detected", "Slow connection detected")}</span>
         </>
       ) : null}
     </div>
@@ -59,12 +61,12 @@ export function InlineNetworkStatus({ className }: { className?: string }) {
       {!isOnline ? (
         <>
           <WifiOff className="h-3 w-3" />
-          <span>Offline - changes saved locally</span>
+          <span>{t("offline_changes_saved_locally", "Offline - changes saved locally")}</span>
         </>
       ) : (
         <>
           <AlertTriangle className="h-3 w-3" />
-          <span>Slow connection</span>
+          <span>{t("slow_connection", "Slow connection")}</span>
         </>
       )}
     </div>

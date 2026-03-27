@@ -5,6 +5,8 @@ import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 import { logSecurityEvent } from "../_shared/security-logger.ts";
 import { hashOTP } from "../_shared/otp-hash.ts";
 import { checkIPRateLimit } from "../_shared/ip-rate-limiter.ts";
+import { getCorsHeaders } from '../_shared/cors.ts';
+import { sendSMS, TwilioSendError } from '../_shared/twilio-client.ts';
 
 const TWILIO_ACCOUNT_SID = Deno.env.get("TWILIO_ACCOUNT_SID");
 const TWILIO_AUTH_TOKEN = Deno.env.get("TWILIO_AUTH_TOKEN");
@@ -14,13 +16,6 @@ const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
 const IS_DEVELOPMENT = Deno.env.get("DENO_ENV") === "development";
 const DEV_FIXED_CODE = "123456";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-api-key, x-supabase-api-version, x-application-name, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version, traceparent, tracestate",
-  "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
-  "Access-Control-Max-Age": "86400",
-};
 
 const generateCode = () => {
   const array = new Uint32Array(1);
@@ -33,24 +28,23 @@ const requestSchema = z.object({
   phone: z.string().min(10, 'Phone number too short').max(20, 'Phone number too long'),
 });
 
-// Map Twilio error codes to user-friendly messages
-const TWILIO_ERROR_MAP: Record<number, { message: string; suggestion: string }> = {
-  21211: { message: 'Invalid phone number format.', suggestion: 'Please check the number and try again.' },
-  21214: { message: 'This phone number is not valid.', suggestion: 'Please use a different number.' },
-  21217: { message: 'This phone number is not verified.', suggestion: 'Please use a verified phone number.' },
-  21408: { message: 'Permission denied for this region.', suggestion: 'SMS cannot be sent to this country. Please use email verification instead.' },
-  21610: { message: 'This number has opted out of SMS.', suggestion: 'Please use email verification instead.' },
-  21612: { message: 'Unable to send to this carrier.', suggestion: 'Your carrier may be blocking messages. Try email verification instead.' },
-  21614: { message: 'This number cannot receive SMS.', suggestion: 'This may be a landline. Please use a mobile number or email verification.' },
-  21618: { message: 'Message body required.', suggestion: 'Please try again.' },
-  30003: { message: 'Carrier unreachable.', suggestion: 'The carrier network is unavailable. Please try again later or use email verification.' },
-  30004: { message: 'Message blocked by carrier.', suggestion: 'Your carrier is blocking verification SMS. Please use email verification instead.' },
-  30005: { message: 'Unknown destination number.', suggestion: 'This number does not exist. Please check and try again.' },
-  30006: { message: 'Landline or unreachable number.', suggestion: 'Please use a mobile number or try email verification.' },
-  30007: { message: 'Carrier violation.', suggestion: 'SMS blocked by carrier filters. Please use email verification.' },
+// Extended error suggestions for verification-specific UX (supplements shared TWILIO_ERROR_MAP)
+const TWILIO_VERIFICATION_SUGGESTIONS: Record<number, string> = {
+  21211: 'Please check the number and try again.',
+  21214: 'Please use a different number.',
+  21217: 'Please use a verified phone number.',
+  21408: 'SMS cannot be sent to this country. Please use email verification instead.',
+  21610: 'Please use email verification instead.',
+  21612: 'Your carrier may be blocking messages. Try email verification instead.',
+  21614: 'This may be a landline. Please use a mobile number or email verification.',
+  30003: 'The carrier network is unavailable. Please try again later or use email verification.',
+  30004: 'Your carrier is blocking verification SMS. Please use email verification instead.',
+  30005: 'This number does not exist. Please check and try again.',
+  30006: 'Please use a mobile number or try email verification.',
 };
 
 const handler = async (req: Request): Promise<Response> => {
+  const corsHeaders = getCorsHeaders(req);
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -254,80 +248,72 @@ const handler = async (req: Request): Promise<Response> => {
     // PRODUCTION: Send via Twilio
     console.log(`[SMS Verification] Sending SMS to ${phone.substring(0, 8)}****`);
 
-    const twilioUrl = `https://api.twilio.com/2010-04-01/Accounts/${TWILIO_ACCOUNT_SID}/Messages.json`;
-    const twilioAuth = btoa(`${TWILIO_ACCOUNT_SID}:${TWILIO_AUTH_TOKEN}`);
-
     // Build callback URL for delivery tracking
     const callbackUrl = `${SUPABASE_URL}/functions/v1/twilio-status-callback`;
 
-    const formData = new URLSearchParams();
-    formData.append('To', phone);
-    formData.append('From', TWILIO_PHONE_NUMBER!);
-    formData.append('Body', `Your Quantum Club verification code is: ${code}\n\nThis code expires in 30 minutes.\n\nIf you didn't request this, please ignore.`);
-    formData.append('StatusCallback', callbackUrl);
-
-    const twilioResponse = await fetch(twilioUrl, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Basic ${twilioAuth}`,
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: formData.toString(),
-    });
-
-    const twilioData = await twilioResponse.json();
-
-    if (!twilioResponse.ok) {
-      console.error('[SMS Verification] Twilio API error:', {
-        status: twilioResponse.status,
-        error_code: twilioData.code,
-        error: twilioData.message,
-        phone: phone.substring(0, 8) + '****',
+    let twilioResult: { sid: string; status: string };
+    try {
+      twilioResult = await sendSMS({
+        to: phone,
+        body: `Your Quantum Club verification code is: ${code}\n\nThis code expires in 30 minutes.\n\nIf you didn't request this, please ignore.`,
+        statusCallback: callbackUrl,
       });
+    } catch (smsError) {
+      if (smsError instanceof TwilioSendError) {
+        console.error('[SMS Verification] Twilio API error:', {
+          status: smsError.httpStatus,
+          error_code: smsError.twilioCode,
+          error: smsError.message,
+          phone: phone.substring(0, 8) + '****',
+        });
 
-      // Store Twilio error in the verification record
-      await supabase
-        .from('phone_verifications')
-        .update({
-          twilio_status: 'failed',
-          twilio_error_code: String(twilioData.code || 'unknown'),
-        })
-        .eq('phone', phone)
-        .eq('code_hash', codeHash);
+        // Store Twilio error in the verification record
+        await supabase
+          .from('phone_verifications')
+          .update({
+            twilio_status: 'failed',
+            twilio_error_code: String(smsError.twilioCode || 'unknown'),
+          })
+          .eq('phone', phone)
+          .eq('code_hash', codeHash);
 
-      // Map Twilio error to user-friendly message
-      const errorInfo = TWILIO_ERROR_MAP[twilioData.code];
-      const userMessage = errorInfo
-        ? `${errorInfo.message} ${errorInfo.suggestion}`
-        : 'SMS service temporarily unavailable. Please try email verification instead.';
+        // Map Twilio error to user-friendly message with verification-specific suggestions
+        const suggestion = smsError.twilioCode
+          ? TWILIO_VERIFICATION_SUGGESTIONS[smsError.twilioCode]
+          : undefined;
+        const userMessage = suggestion
+          ? `${smsError.message} ${suggestion}`
+          : 'SMS service temporarily unavailable. Please try email verification instead.';
 
-      return new Response(
-        JSON.stringify({
-          error: userMessage,
-          error_code: 'SMS_DELIVERY_FAILED',
-          twilio_error_code: twilioData.code,
-          suggestion: errorInfo?.suggestion || 'Try email verification instead.',
-        }),
-        {
-          status: 422,
-          headers: { "Content-Type": "application/json", ...corsHeaders },
-        }
-      );
+        return new Response(
+          JSON.stringify({
+            error: userMessage,
+            error_code: 'SMS_DELIVERY_FAILED',
+            twilio_error_code: smsError.twilioCode,
+            suggestion: suggestion || 'Try email verification instead.',
+          }),
+          {
+            status: 422,
+            headers: { "Content-Type": "application/json", ...corsHeaders },
+          }
+        );
+      }
+      throw smsError;
     }
 
     // Store Twilio SID and status for delivery tracking
     await supabase
       .from('phone_verifications')
       .update({
-        twilio_sid: twilioData.sid,
-        twilio_status: twilioData.status,
+        twilio_sid: twilioResult.sid,
+        twilio_status: twilioResult.status,
       })
       .eq('phone', phone)
       .eq('code_hash', codeHash);
 
     console.log('[SMS Verification] SMS sent successfully:', {
-      sid: twilioData.sid,
-      status: twilioData.status,
+      sid: twilioResult.sid,
+      status: twilioResult.status,
       to: phone.substring(0, 8) + '****',
     });
 
@@ -345,7 +331,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     await logSecurityEvent({
       eventType: 'sms_verification_sent',
-      details: { phone, authenticated: !!user, twilio_sid: twilioData.sid },
+      details: { phone, authenticated: !!user, twilio_sid: twilioResult.sid },
       ipAddress,
       userAgent,
       userId: user?.id,

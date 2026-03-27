@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,6 +11,7 @@ import { SpotifyPlaylistDialog } from "./SpotifyPlaylistDialog";
 import { PlaylistCard } from "./PlaylistCard";
 
 export function PlaylistManager() {
+  const { t } = useTranslation('common');
   const [selectedPlaylist, setSelectedPlaylist] = useState<any>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [spotifyDialogOpen, setSpotifyDialogOpen] = useState(false);
@@ -42,10 +44,10 @@ export function PlaylistManager() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['playlists'] });
-      toast.success('Playlist deleted');
+      toast.success(t("playlist_deleted", "Playlist deleted"));
     },
     onError: () => {
-      toast.error('Failed to delete playlist');
+      toast.error(t("failed_to_delete_playlist", "Failed to delete playlist"));
     },
   });
 
@@ -60,10 +62,10 @@ export function PlaylistManager() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['playlists'] });
-      toast.success('Playlist updated');
+      toast.success(t("playlist_updated", "Playlist updated"));
     },
     onError: () => {
-      toast.error('Failed to update playlist');
+      toast.error(t("failed_to_update_playlist", "Failed to update playlist"));
     },
   });
 
@@ -73,7 +75,7 @@ export function PlaylistManager() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Music className="h-5 w-5 text-primary" />
-          <h2 className="text-2xl font-bold">Playlists</h2>
+          <h2 className="text-2xl font-bold">{t("playlists", "Playlists")}</h2>
         </div>
         <div className="flex gap-2">
           <Button
@@ -100,9 +102,9 @@ export function PlaylistManager() {
       {/* Playlists Tabs */}
       <Tabs defaultValue="all" className="w-full">
         <TabsList>
-          <TabsTrigger value="all">All</TabsTrigger>
-          <TabsTrigger value="uploaded">Uploaded Tracks</TabsTrigger>
-          <TabsTrigger value="spotify">Spotify Playlists</TabsTrigger>
+          <TabsTrigger value="all">{t("all", "All")}</TabsTrigger>
+          <TabsTrigger value="uploaded">{t("uploaded_tracks", "Uploaded Tracks")}</TabsTrigger>
+          <TabsTrigger value="spotify">{t("spotify_playlists", "Spotify Playlists")}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="all" className="mt-6">
@@ -135,7 +137,7 @@ export function PlaylistManager() {
           ) : (
             <div className="text-center py-12 rounded-3xl bg-black/20 backdrop-blur-xl border border-white/10">
               <Music className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-              <p className="text-muted-foreground">No playlists yet. Create your first one!</p>
+              <p className="text-muted-foreground">{t("no_playlists_yet_create", "No playlists yet. Create your first one!")}</p>
             </div>
           )}
         </TabsContent>
@@ -172,7 +174,7 @@ export function PlaylistManager() {
           ) : (
             <div className="text-center py-12 rounded-3xl bg-black/20 backdrop-blur-xl border border-white/10">
               <Music className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-              <p className="text-muted-foreground">No uploaded playlists yet.</p>
+              <p className="text-muted-foreground">{t("no_uploaded_playlists_yet", "No uploaded playlists yet.")}</p>
             </div>
           )}
         </TabsContent>
@@ -209,7 +211,7 @@ export function PlaylistManager() {
           ) : (
             <div className="text-center py-12 rounded-3xl bg-black/20 backdrop-blur-xl border border-white/10">
               <Music className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-              <p className="text-muted-foreground">No Spotify playlists yet. Add one!</p>
+              <p className="text-muted-foreground">{t("no_spotify_playlists_yet", "No Spotify playlists yet. Add one!")}</p>
             </div>
           )}
         </TabsContent>

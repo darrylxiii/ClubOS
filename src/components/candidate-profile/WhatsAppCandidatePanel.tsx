@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -18,6 +19,7 @@ interface WhatsAppCandidatePanelProps {
 }
 
 export function WhatsAppCandidatePanel({ candidateId, candidatePhone, candidateName }: WhatsAppCandidatePanelProps) {
+  const { t } = useTranslation('common');
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [message, setMessage] = useState('');
@@ -108,7 +110,7 @@ export function WhatsAppCandidatePanel({ candidateId, candidatePhone, candidateN
       <Card className="bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border-border/50">
         <CardContent className="p-4 text-center text-muted-foreground">
           <MessageSquare className="h-8 w-8 mx-auto mb-2 opacity-50" />
-          <p className="text-sm">No phone number available</p>
+          <p className="text-sm">{t("no_phone_number_available", "No phone number available")}</p>
         </CardContent>
       </Card>
     );
@@ -167,7 +169,7 @@ export function WhatsAppCandidatePanel({ candidateId, candidatePhone, candidateN
           </DialogTrigger>
           <DialogContent className="max-w-md">
             <DialogHeader>
-              <DialogTitle>Send WhatsApp Message</DialogTitle>
+              <DialogTitle>{t("send_whatsapp_message", "Send WhatsApp Message")}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
               <div className="p-3 rounded-lg bg-muted/50">
@@ -179,7 +181,7 @@ export function WhatsAppCandidatePanel({ candidateId, candidatePhone, candidateN
                 <div className="flex items-start gap-2 p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
                   <Clock className="h-4 w-4 text-amber-500 mt-0.5" />
                   <div>
-                    <p className="text-sm font-medium text-amber-500">24h Window Closed</p>
+                    <p className="text-sm font-medium text-amber-500">{t("24h_window_closed", "24h Window Closed")}</p>
                     <p className="text-xs text-muted-foreground">
                       Only template messages can be sent. The candidate needs to reply to open a new window.
                     </p>
@@ -189,7 +191,7 @@ export function WhatsAppCandidatePanel({ candidateId, candidatePhone, candidateN
 
               {messages && messages.length > 0 && (
                 <div>
-                  <p className="text-sm font-medium mb-2">Recent Messages</p>
+                  <p className="text-sm font-medium mb-2">{t("recent_messages", "Recent Messages")}</p>
                   <ScrollArea className="h-32">
                     <div className="space-y-2">
                       {messages.slice(0, 5).map((msg) => (
@@ -216,7 +218,7 @@ export function WhatsAppCandidatePanel({ candidateId, candidatePhone, candidateN
                 <Input
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
-                  placeholder="Type your message..."
+                  placeholder={t("type_your_message", "Type your message...")}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && message.trim()) {
                       sendMessageMutation.mutate(message);

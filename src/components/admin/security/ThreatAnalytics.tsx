@@ -4,10 +4,12 @@ import { DynamicChart } from '@/components/charts/DynamicChart';
 import { useThreatEvents, useThreatSummary } from '@/hooks/useThreatDetection';
 import { TrendingUp, PieChart as PieIcon, BarChart3 } from 'lucide-react';
 import { format, subDays, startOfDay, eachDayOfInterval } from 'date-fns';
+import { useTranslation } from 'react-i18next';
 
 const COLORS = ['#ef4444', '#f97316', '#eab308', '#3b82f6', '#8b5cf6', '#10b981'];
 
 export function ThreatAnalytics() {
+  const { t } = useTranslation('admin');
   const { data: threats, isLoading: threatsLoading } = useThreatEvents(100);
   const { data: summary, isLoading: summaryLoading } = useThreatSummary();
 

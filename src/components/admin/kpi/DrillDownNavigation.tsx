@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { 
@@ -39,6 +40,7 @@ export function DrillDownNavigation({
   onNavigate,
   className 
 }: DrillDownNavigationProps) {
+  const { t } = useTranslation('common');
   if (breadcrumbs.length <= 1) return null;
 
   return (
@@ -47,7 +49,7 @@ export function DrillDownNavigation({
         "flex items-center gap-1 text-sm overflow-x-auto pb-1",
         className
       )}
-      aria-label="Drill-down navigation"
+      aria-label={t("drilldown_navigation", "Drill-down navigation")}
     >
       {breadcrumbs.map((item, index) => {
         const Icon = levelIcons[item.level];

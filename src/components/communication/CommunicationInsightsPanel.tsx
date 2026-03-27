@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { motion, AnimatePresence } from '@/lib/motion';
 import { Brain, ChevronDown, ChevronUp, Lightbulb, TrendingUp, AlertTriangle, Target, Sparkles, RefreshCw } from 'lucide-react';
@@ -42,6 +43,7 @@ export function CommunicationInsightsPanel({
   onGenerateInsights,
   onRefresh
 }: CommunicationInsightsPanelProps) {
+  const { t } = useTranslation('common');
   const [isExpanded, setIsExpanded] = useState(true);
 
   const engagementScore = relationshipScore?.engagement_score || 0;
@@ -80,7 +82,7 @@ export function CommunicationInsightsPanel({
             <div className="p-2 rounded-lg bg-primary/10">
               <Brain className="h-4 w-4 text-primary" />
             </div>
-            <CardTitle className="text-base">Communication Intelligence</CardTitle>
+            <CardTitle className="text-base">{t("communication_intelligence", "Communication Intelligence")}</CardTitle>
           </div>
           <div className="flex items-center gap-1">
             {onRefresh && (
@@ -112,11 +114,11 @@ export function CommunicationInsightsPanel({
               <div className="grid grid-cols-3 gap-2">
                 <div className="text-center p-2 rounded-lg bg-muted/50">
                   <p className="text-lg font-bold">{engagementScore.toFixed(1)}</p>
-                  <p className="text-[10px] text-muted-foreground">Engagement</p>
+                  <p className="text-[10px] text-muted-foreground">{t("engagement", "Engagement")}</p>
                 </div>
                 <div className="text-center p-2 rounded-lg bg-muted/50">
                   <p className="text-lg font-bold">{responseRate}%</p>
-                  <p className="text-[10px] text-muted-foreground">Response</p>
+                  <p className="text-[10px] text-muted-foreground">{t("response", "Response")}</p>
                 </div>
                 <div className="text-center p-2 rounded-lg bg-muted/50">
                   <p className={cn(
@@ -125,7 +127,7 @@ export function CommunicationInsightsPanel({
                   )}>
                     {sentiment > 0 ? '+' : ''}{(sentiment * 100).toFixed(0)}%
                   </p>
-                  <p className="text-[10px] text-muted-foreground">Sentiment</p>
+                  <p className="text-[10px] text-muted-foreground">{t("sentiment", "Sentiment")}</p>
                 </div>
               </div>
 
@@ -142,7 +144,7 @@ export function CommunicationInsightsPanel({
                 <div className="p-3 rounded-lg bg-primary/5 border border-primary/20">
                   <div className="flex items-center gap-1 mb-2">
                     <Sparkles className="h-3 w-3 text-primary" />
-                    <span className="text-xs font-medium text-primary">AI Summary</span>
+                    <span className="text-xs font-medium text-primary">{t("ai_summary", "AI Summary")}</span>
                   </div>
                   <p className="text-sm">{insights.summary}</p>
                 </div>
@@ -152,7 +154,7 @@ export function CommunicationInsightsPanel({
               {insights?.conversion_probability !== undefined && (
                 <div>
                   <div className="flex items-center justify-between text-sm mb-1">
-                    <span className="text-muted-foreground">Conversion Probability</span>
+                    <span className="text-muted-foreground">{t("conversion_probability", "Conversion Probability")}</span>
                     <span className="font-medium">{Math.round(insights.conversion_probability * 100)}%</span>
                   </div>
                   <Progress value={insights.conversion_probability * 100} className="h-2" />
@@ -162,7 +164,7 @@ export function CommunicationInsightsPanel({
               {/* Key Topics */}
               {insights?.key_topics && insights.key_topics.length > 0 && (
                 <div>
-                  <p className="text-xs text-muted-foreground mb-2">Key Topics Discussed</p>
+                  <p className="text-xs text-muted-foreground mb-2">{t("key_topics_discussed", "Key Topics Discussed")}</p>
                   <div className="flex flex-wrap gap-1">
                     {insights.key_topics.map((topic, i) => (
                       <Badge key={i} variant="secondary" className="text-xs">
@@ -178,7 +180,7 @@ export function CommunicationInsightsPanel({
                 <div className="p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/30">
                   <div className="flex items-center gap-1 mb-1">
                     <Lightbulb className="h-3 w-3 text-yellow-600" />
-                    <span className="text-xs font-medium text-yellow-600">Next Best Action</span>
+                    <span className="text-xs font-medium text-yellow-600">{t("next_best_action", "Next Best Action")}</span>
                   </div>
                   <p className="text-sm">{insights?.next_best_action || relationshipScore?.recommended_action}</p>
                 </div>
@@ -187,7 +189,7 @@ export function CommunicationInsightsPanel({
               {/* Preferred Channel */}
               {relationshipScore?.preferred_channel && (
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">Preferred Channel</span>
+                  <span className="text-muted-foreground">{t("preferred_channel", "Preferred Channel")}</span>
                   <Badge variant="outline" className="capitalize">
                     {relationshipScore.preferred_channel}
                   </Badge>

@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
+import { useTranslation } from 'react-i18next';
 
 interface StatusCounts {
   pending: number;
@@ -16,6 +17,7 @@ interface StatusCounts {
 }
 
 export const ApplicationFunnelWidget = () => {
+  const { t } = useTranslation('common');
   const { data: counts, isLoading } = useQuery({
     queryKey: ['application-funnel-counts'],
     queryFn: async () => {

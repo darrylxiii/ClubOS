@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from 'react-i18next';
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -34,6 +35,7 @@ interface Viewer {
 }
 
 export const PostViewers = ({ postId }: PostViewersProps) => {
+  const { t } = useTranslation('analytics');
   const [viewers, setViewers] = useState<Viewer[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -111,7 +113,7 @@ export const PostViewers = ({ postId }: PostViewersProps) => {
   const engagedViewers = viewers.filter(v => v.liked || v.commented || v.shared || v.saved).length;
 
   if (loading) {
-    return <div className="text-center py-8">Loading viewers...</div>;
+    return <div className="text-center py-8">{t('loadingViewers')}</div>;
   }
 
   return (
@@ -124,7 +126,7 @@ export const PostViewers = ({ postId }: PostViewersProps) => {
               <Eye className="h-4 w-4 text-primary" />
               <div>
                 <p className="text-2xl font-bold">{totalViews}</p>
-                <p className="text-xs text-muted-foreground">Total Views</p>
+                <p className="text-xs text-muted-foreground">{t('totalViews')}</p>
               </div>
             </div>
           </CardContent>
@@ -136,7 +138,7 @@ export const PostViewers = ({ postId }: PostViewersProps) => {
               <Eye className="h-4 w-4 text-blue-500" />
               <div>
                 <p className="text-2xl font-bold">{uniqueViewers}</p>
-                <p className="text-xs text-muted-foreground">Unique Viewers</p>
+                <p className="text-xs text-muted-foreground">{t('uniqueViewers')}</p>
               </div>
             </div>
           </CardContent>
@@ -148,7 +150,7 @@ export const PostViewers = ({ postId }: PostViewersProps) => {
               <Clock className="h-4 w-4 text-green-500" />
               <div>
                 <p className="text-2xl font-bold">{Math.round(avgViewDuration)}s</p>
-                <p className="text-xs text-muted-foreground">Avg. Duration</p>
+                <p className="text-xs text-muted-foreground">{t('avgDuration')}</p>
               </div>
             </div>
           </CardContent>
@@ -160,7 +162,7 @@ export const PostViewers = ({ postId }: PostViewersProps) => {
               <TrendingUp className="h-4 w-4 text-purple-500" />
               <div>
                 <p className="text-2xl font-bold">{engagedViewers}</p>
-                <p className="text-xs text-muted-foreground">Engaged</p>
+                <p className="text-xs text-muted-foreground">{t('engaged')}</p>
               </div>
             </div>
           </CardContent>
@@ -170,16 +172,16 @@ export const PostViewers = ({ postId }: PostViewersProps) => {
       {/* Filters and Search */}
       <div className="flex gap-2">
         <Input
-          placeholder="Search viewers..."
+          placeholder={t('searchViewers')}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="flex-1"
         />
         <Tabs value={filter} onValueChange={(v: any) => setFilter(v)}>
           <TabsList>
-            <TabsTrigger value="all">All</TabsTrigger>
-            <TabsTrigger value="engaged">Engaged</TabsTrigger>
-            <TabsTrigger value="repeat">Repeat</TabsTrigger>
+            <TabsTrigger value="all">{t('common:filters.all')}</TabsTrigger>
+            <TabsTrigger value="engaged">{t('engaged')}</TabsTrigger>
+            <TabsTrigger value="repeat">{t('repeat')}</TabsTrigger>
           </TabsList>
         </Tabs>
       </div>
@@ -187,8 +189,8 @@ export const PostViewers = ({ postId }: PostViewersProps) => {
       {/* Viewer List */}
       <Card>
         <CardHeader>
-          <CardTitle>Viewers ({filteredViewers.length})</CardTitle>
-          <CardDescription>People who viewed this post</CardDescription>
+          <CardTitle>{t('viewersCount', { count: filteredViewers.length })}</CardTitle>
+          <CardDescription>{t('peopleWhoViewed')}</CardDescription>
         </CardHeader>
         <CardContent>
           <ScrollArea className="h-[400px]">
@@ -208,7 +210,7 @@ export const PostViewers = ({ postId }: PostViewersProps) => {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
                       <p className="font-semibold truncate">
-                        {viewer.profiles?.full_name || "Anonymous"}
+                        {viewer.profiles?.full_name || t('common:anonymous')}
                       </p>
                       {viewer.view_count > 1 && (
                         <Badge variant="secondary" className="text-xs">
@@ -259,22 +261,22 @@ export const PostViewers = ({ postId }: PostViewersProps) => {
                     <div className="flex gap-1 mt-2">
                       {viewer.liked && (
                         <Badge variant="outline" className="text-xs">
-                          ❤️ Liked
+                          {t('engagementBadges.liked')}
                         </Badge>
                       )}
                       {viewer.commented && (
                         <Badge variant="outline" className="text-xs">
-                          💬 Commented
+                          {t('engagementBadges.commented')}
                         </Badge>
                       )}
                       {viewer.shared && (
                         <Badge variant="outline" className="text-xs">
-                          🔗 Shared
+                          {t('engagementBadges.shared')}
                         </Badge>
                       )}
                       {viewer.saved && (
                         <Badge variant="outline" className="text-xs">
-                          🔖 Saved
+                          {t('engagementBadges.saved')}
                         </Badge>
                       )}
                     </div>
@@ -284,7 +286,7 @@ export const PostViewers = ({ postId }: PostViewersProps) => {
 
               {filteredViewers.length === 0 && (
                 <p className="text-center text-muted-foreground py-8">
-                  No viewers found
+                  {t('noViewersFound')}
                 </p>
               )}
             </div>

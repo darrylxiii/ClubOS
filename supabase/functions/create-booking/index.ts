@@ -3,14 +3,10 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 import { verifyRecaptcha, createRecaptchaErrorResponse } from "../_shared/recaptcha-verifier.ts";
 import { checkUserRateLimit, createRateLimitResponse } from "../_shared/rate-limiter.ts";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, x-recaptcha-token",
-};
+import { getCorsHeaders } from '../_shared/cors.ts';
 
 serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -22,17 +18,13 @@ serve(async (req) => {
 
     // Detect environment type from origin
     const origin = req.headers.get('origin') || req.headers.get('referer') || '';
-    const isPreviewEnvironment = origin.includes('lovableproject.com') || 
-                                 origin.includes('lovable.app') ||
-                                 origin.includes('id-preview') ||  // Lovable preview subdomain pattern
-                                 origin.includes('localhost');
+    const isPreviewEnvironment = origin.includes('localhost');
     
      // Known TQC production domains - trusted sources that can bypass reCAPTCHA if frontend is disabled
-    const isKnownProductionDomain = origin.includes('bytqc.com') || 
+    const isKnownProductionDomain = origin.includes('bytqc.com') ||
                                      origin.includes('thequantumclub.app') ||
                                      origin.includes('os.thequantumclub.com') ||
-                                     origin.includes('thequantumclub.nl') ||
-                                     origin.includes('thequantumclub.lovable.app');
+                                     origin.includes('thequantumclub.nl');
 
     if (recaptchaSecretConfigured) {
       if (recaptchaToken) {
@@ -92,7 +84,7 @@ serve(async (req) => {
       scheduledStart: z.string().datetime(),
       scheduledEnd: z.string().datetime(),
       timezone: z.string().min(1).max(100),
-      customResponses: z.record(z.any()).optional(),
+      customResponses: z.record(z.unknown()).optional(),
       notes: z.string().max(1000).nullable().optional(),
       guests: z.array(z.object({
         name: z.string().optional(),
@@ -104,7 +96,7 @@ serve(async (req) => {
       })).max(10).optional(),
       guestSelectedPlatform: z.string().optional(),
       smsReminders: z.boolean().optional(),
-      metadata: z.record(z.any()).optional(),
+      metadata: z.record(z.unknown()).optional(),
       delegatedPermissions: z.object({
         can_cancel: z.boolean(),
         can_reschedule: z.boolean(),
@@ -252,7 +244,7 @@ serve(async (req) => {
 
     let calendarCheckFailed = false;
     let calendarCheckTimeout = false;
-    const calendarFailureDetails: any[] = [];
+    const calendarFailureDetails: Array<{ provider: string; error: string; timeout: boolean }> = [];
 
     if (calendars && calendars.length > 0) {
       console.log(`[Booking] Checking ${calendars.length} connected calendars for conflicts`);
@@ -326,7 +318,7 @@ serve(async (req) => {
           const { data: busyData, error: busyError } = await Promise.race([
             apiPromise,
             timeoutPromise
-          ]) as any;
+          ]) as { data?: Record<string, unknown>; error?: Record<string, unknown> };
 
           if (busyError) {
             const isTimeout = busyError.message?.includes('timeout');
@@ -365,13 +357,14 @@ serve(async (req) => {
               { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
             );
           }
-        } catch (calendarError: any) {
-          const isTimeout = calendarError.message?.includes('timeout');
+        } catch (calendarError: unknown) {
+          const calErrMsg = calendarError instanceof Error ? calendarError.message : String(calendarError);
+          const isTimeout = calErrMsg.includes('timeout');
           console.error(`[Booking] ${isTimeout ? 'Timeout' : 'Error'} checking ${calendar.provider} calendar:`, calendarError);
           
           calendarFailureDetails.push({
             provider: calendar.provider,
-            error: calendarError.message,
+            error: calErrMsg,
             timeout: isTimeout
           });
           
@@ -415,7 +408,7 @@ serve(async (req) => {
     }
 
     // Create booking with metadata about calendar check status
-    const bookingMetadata: any = { ...(metadata || {}) };
+    const bookingMetadata: Record<string, unknown> = { ...(metadata || {}) };
     if (calendarCheckTimeout || calendarCheckFailed) {
       bookingMetadata.calendar_check_bypassed = true;
       bookingMetadata.calendar_check_status = calendarCheckTimeout ? 'timeout' : 'failed';
@@ -667,7 +660,7 @@ serve(async (req) => {
           console.error("[Booking] Google Meet creation returned no video link");
           throw new Error("Failed to create Google Meet link");
         }
-      } catch (googleError: any) {
+      } catch (googleError: unknown) {
         console.error("[Booking] Google Meet creation failed:", googleError);
         await supabaseClient
           .from('bookings')
@@ -675,7 +668,7 @@ serve(async (req) => {
             metadata: {
               ...bookingMetadata,
               video_platform_error: true,
-              error_message: googleError?.message || 'Google Meet creation failed',
+              error_message: googleError instanceof Error ? googleError.message : 'Google Meet creation failed',
             }
           })
           .eq('id', booking.id);
@@ -755,10 +748,10 @@ serve(async (req) => {
         } else {
           console.warn(`[Booking] ⚠️ Calendar sync returned unsuccessful:`, syncResult.data);
         }
-      } catch (syncError: any) {
+      } catch (syncError: unknown) {
         console.error(`[Booking] ❌ Calendar sync exception:`, {
-          message: syncError.message,
-          stack: syncError.stack,
+          message: syncError instanceof Error ? syncError.message : String(syncError),
+          stack: syncError instanceof Error ? syncError.stack : undefined,
         });
       }
     } else {
@@ -766,64 +759,87 @@ serve(async (req) => {
     }
     console.log(`[Booking] ========== CALENDAR SYNC END ==========`);
 
+    // ====== NO-SHOW RISK PREDICTION (fire-and-forget) ======
+    try {
+      supabaseClient.functions.invoke('predict-no-show', {
+        body: { bookingId: booking.id },
+      }).then(result => {
+        if (result.error) {
+          console.warn('[Booking] No-show prediction failed:', result.error);
+        } else {
+          console.log('[Booking] No-show prediction generated:', result.data?.riskLevel);
+        }
+      }).catch(err => {
+        console.warn('[Booking] No-show prediction error:', err);
+      });
+    } catch (predictionError) {
+      console.warn('[Booking] Failed to invoke no-show prediction:', predictionError);
+    }
+
     return new Response(
-      JSON.stringify({ 
-        success: true, 
+      JSON.stringify({
+        success: true,
         booking: bookingForNotifications,
         redirectUrl: bookingLink.redirect_url,
         calendarCheckBypassed: calendarCheckTimeout || calendarCheckFailed,
-        calendarCheckWarning: (calendarCheckTimeout || calendarCheckFailed) 
+        calendarCheckWarning: (calendarCheckTimeout || calendarCheckFailed)
           ? "We couldn't verify your calendar availability, but your booking is confirmed. Please check your calendar manually."
           : null
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
     
-    } catch (innerError: any) {
+    } catch (innerError: unknown) {
       // Ensure lock is released even if inner try block fails
       await releaseLock();
       throw innerError;
     }
     
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error creating booking:", error);
-    
+
+    const err = error as Record<string, unknown>;
+    const errMsg = error instanceof Error ? error.message : '';
+    const errCode = (err.code as string) || '';
+    const errName = (err.name as string) || '';
+
     // Return appropriate status codes based on error type
     let status = 500;
     let errorMessage = "An unexpected error occurred. Please try again.";
-    
+
     // Database constraint violations
-    if (error.code === '23505') {
+    if (errCode === '23505') {
       status = 409;
       errorMessage = "This booking already exists.";
-    } else if (error.code === '23503') {
+    } else if (errCode === '23503') {
       status = 400;
       errorMessage = "Invalid booking link or user reference.";
     }
     // Validation errors
-    else if (error.name === 'ZodError') {
+    else if (errName === 'ZodError') {
       status = 400;
-      errorMessage = "Invalid booking data: " + error.issues.map((i: any) => i.message).join(", ");
+      const issues = (err.issues as Array<{ message: string }>) || [];
+      errorMessage = "Invalid booking data: " + issues.map((i) => i.message).join(", ");
     }
     // Rate limit or quota errors
-    else if (error.message?.includes('rate limit') || error.message?.includes('quota')) {
+    else if (errMsg.includes('rate limit') || errMsg.includes('quota')) {
       status = 429;
       errorMessage = "Too many requests. Please try again later.";
     }
     // Calendar or external service errors
-    else if (error.message?.includes('calendar') || error.message?.includes('timeout')) {
+    else if (errMsg.includes('calendar') || errMsg.includes('timeout')) {
       status = 503;
       errorMessage = "Calendar service temporarily unavailable. Please try again.";
     }
     // Use the error message if it's user-friendly
-    else if (error.message && !error.message.includes('function') && !error.message.includes('undefined')) {
-      errorMessage = error.message;
+    else if (errMsg && !errMsg.includes('function') && !errMsg.includes('undefined')) {
+      errorMessage = errMsg;
     }
-    
+
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         error: errorMessage,
-        code: error.code || 'UNKNOWN_ERROR'
+        code: errCode || 'UNKNOWN_ERROR'
       }),
       { status, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );

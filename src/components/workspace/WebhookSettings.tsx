@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -50,6 +51,7 @@ const WEBHOOK_EVENTS = [
 ];
 
 export function WebhookSettings({ databaseId }: WebhookSettingsProps) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -95,11 +97,11 @@ export function WebhookSettings({ databaseId }: WebhookSettingsProps) {
       queryClient.invalidateQueries({ queryKey: ['workspace-webhooks', databaseId] });
       setIsCreateOpen(false);
       setNewWebhook({ url: '', secret: '', events: [] });
-      toast.success('Webhook created');
+      toast.success(t("webhook_created", "Webhook created"));
     },
     onError: (error) => {
       console.error('Failed to create webhook:', error);
-      toast.error('Failed to create webhook');
+      toast.error(t("failed_to_create_webhook", "Failed to create webhook"));
     },
   });
 
@@ -130,7 +132,7 @@ export function WebhookSettings({ databaseId }: WebhookSettingsProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['workspace-webhooks', databaseId] });
-      toast.success('Webhook deleted');
+      toast.success(t("webhook_deleted", "Webhook deleted"));
     },
   });
 
@@ -152,11 +154,11 @@ export function WebhookSettings({ databaseId }: WebhookSettingsProps) {
       return data;
     },
     onSuccess: () => {
-      toast.success('Test webhook sent');
+      toast.success(t("test_webhook_sent", "Test webhook sent"));
     },
     onError: (error) => {
       console.error('Webhook test failed:', error);
-      toast.error('Webhook test failed');
+      toast.error(t("webhook_test_failed", "Webhook test failed"));
     },
   });
 
@@ -191,14 +193,14 @@ export function WebhookSettings({ databaseId }: WebhookSettingsProps) {
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Create Webhook</DialogTitle>
+                <DialogTitle>{t("create_webhook", "Create Webhook")}</DialogTitle>
                 <DialogDescription>
                   Configure a webhook to receive notifications when data changes
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="webhook-url">Webhook URL</Label>
+                  <Label htmlFor="webhook-url">{t("webhook_url", "Webhook URL")}</Label>
                   <Input
                     id="webhook-url"
                     placeholder="https://..."
@@ -207,10 +209,10 @@ export function WebhookSettings({ databaseId }: WebhookSettingsProps) {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="webhook-secret">Secret (optional)</Label>
+                  <Label htmlFor="webhook-secret">{t("secret_optional", "Secret (optional)")}</Label>
                   <Input
                     id="webhook-secret"
-                    placeholder="For signing payloads"
+                    placeholder={t("for_signing_payloads", "For signing payloads")}
                     value={newWebhook.secret}
                     onChange={(e) => setNewWebhook((prev) => ({ ...prev, secret: e.target.value }))}
                   />
@@ -219,7 +221,7 @@ export function WebhookSettings({ databaseId }: WebhookSettingsProps) {
                   </p>
                 </div>
                 <div>
-                  <Label>Events</Label>
+                  <Label>{t("events", "Events")}</Label>
                   <div className="grid grid-cols-2 gap-2 mt-2">
                     {WEBHOOK_EVENTS.map((event) => (
                       <div
@@ -262,8 +264,8 @@ export function WebhookSettings({ databaseId }: WebhookSettingsProps) {
         ) : webhooks.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
             <Webhook className="h-12 w-12 mx-auto mb-2 opacity-50" />
-            <p>No webhooks configured</p>
-            <p className="text-sm">Add a webhook to get notified of changes</p>
+            <p>{t("no_webhooks_configured", "No webhooks configured")}</p>
+            <p className="text-sm">{t("add_a_webhook_to", "Add a webhook to get notified of changes")}</p>
           </div>
         ) : (
           <ScrollArea className="max-h-[300px]">

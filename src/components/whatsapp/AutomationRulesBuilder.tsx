@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -22,6 +23,7 @@ interface AutomationRule {
 }
 
 export function AutomationRulesBuilder() {
+  const { t } = useTranslation('common');
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isOpen, setIsOpen] = useState(false);
@@ -133,20 +135,20 @@ export function AutomationRulesBuilder() {
             </DialogTrigger>
             <DialogContent className="max-w-md">
               <DialogHeader>
-                <DialogTitle>Create Automation Rule</DialogTitle>
+                <DialogTitle>{t("create_automation_rule", "Create Automation Rule")}</DialogTitle>
               </DialogHeader>
               <div className="space-y-4">
                 <div>
-                  <Label>Rule Name</Label>
+                  <Label>{t("rule_name", "Rule Name")}</Label>
                   <Input
                     value={newRule.name}
                     onChange={(e) => setNewRule({ ...newRule, name: e.target.value })}
-                    placeholder="e.g., Auto-reply to interested candidates"
+                    placeholder={t("eg_autoreply_to_interested", "e.g., Auto-reply to interested candidates")}
                   />
                 </div>
 
                 <div>
-                  <Label>Trigger</Label>
+                  <Label>{t("trigger", "Trigger")}</Label>
                   <Select
                     value={newRule.trigger_type}
                     onValueChange={(value) => setNewRule({ ...newRule, trigger_type: value })}
@@ -166,9 +168,9 @@ export function AutomationRulesBuilder() {
 
                 {newRule.trigger_type === 'keyword' && (
                   <div>
-                    <Label>Keywords (comma-separated)</Label>
+                    <Label>{t("keywords_commaseparated", "Keywords (comma-separated)")}</Label>
                     <Input
-                      placeholder="interested, yes, schedule"
+                      placeholder={t("interested_yes_schedule", "interested, yes, schedule")}
                       onChange={(e) => setNewRule({
                         ...newRule,
                         trigger_config: { keywords: e.target.value.split(',').map(k => k.trim()) },
@@ -178,7 +180,7 @@ export function AutomationRulesBuilder() {
                 )}
 
                 <div>
-                  <Label>Action</Label>
+                  <Label>{t("action", "Action")}</Label>
                   <Select
                     value={newRule.action_type}
                     onValueChange={(value) => setNewRule({ ...newRule, action_type: value })}
@@ -198,14 +200,14 @@ export function AutomationRulesBuilder() {
 
                 {newRule.action_type === 'send_template' && (
                   <div>
-                    <Label>Template Name</Label>
+                    <Label>{t("template_name", "Template Name")}</Label>
                     <Input
                       value={(newRule.action_config as { template_name?: string }).template_name || ''}
                       onChange={(e) => setNewRule({
                         ...newRule,
                         action_config: { template_name: e.target.value },
                       })}
-                      placeholder="interview_confirmation"
+                      placeholder={t("interview_confirmation", "interview_confirmation")}
                     />
                   </div>
                 )}

@@ -1,26 +1,13 @@
+import { createHandler } from '../_shared/handler.ts';
 
-import { createClient } from "npm:@supabase/supabase-js@2";
+Deno.serve(createHandler(async (req, ctx) => {
+        const googleApiKey = Deno.env.get('GOOGLE_API_KEY');
 
-const corsHeaders = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
-
-Deno.serve(async (req) => {
-    if (req.method === 'OPTIONS') {
-        return new Response('ok', { headers: corsHeaders });
-    }
-
-    try {
-        const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-        const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-        const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
-
-        if (!lovableApiKey) {
-            throw new Error('LOVABLE_API_KEY is not set');
+        if (!googleApiKey) {
+            throw new Error('GOOGLE_API_KEY is not set');
         }
 
-        const supabase = createClient(supabaseUrl, supabaseServiceKey);
+        const supabase = ctx.supabase;
         const { query, company_id, user_id, job_id } = await req.json();
 
         if (!query) {
@@ -68,14 +55,14 @@ Deno.serve(async (req) => {
 
         if (isComplexQuery) {
             try {
-                const expansionResp = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+                const expansionResp = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
                     method: 'POST',
                     headers: {
-                        'Authorization': `Bearer ${lovableApiKey}`,
+                        'Authorization': `Bearer ${googleApiKey}`,
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        model: 'google/gemini-2.5-flash-lite', // Cheapest model for query expansion
+                        model: 'gemini-2.5-flash-lite', // Cheapest model for query expansion
                         messages: [
                             {
                                 role: 'system',
@@ -102,10 +89,10 @@ Deno.serve(async (req) => {
         }
 
         // 1. Generate Embedding for the Otimized Query
-        const embeddingResp = await fetch('https://ai.gateway.lovable.dev/v1/embeddings', {
+        const embeddingResp = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/embeddings', {
             method: 'POST',
             headers: {
-                'Authorization': `Bearer ${lovableApiKey}`,
+                'Authorization': `Bearer ${googleApiKey}`,
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
@@ -168,14 +155,14 @@ Deno.serve(async (req) => {
             try {
                 const rerankPrompt = `Relevance Ranker. Query: "${query}"\nCandidates:\n${candidates.map((c: any, i: number) => `[${i}] ${c.content.substring(0, 200)}`).join('\n')}\nReturn JSON: {"indices": [0, 3, 1]} (top 5 most relevant)`;
 
-                const rerankResp = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+                const rerankResp = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
                     method: 'POST',
                     headers: {
-                        'Authorization': `Bearer ${lovableApiKey}`,
+                        'Authorization': `Bearer ${googleApiKey}`,
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        model: 'google/gemini-2.5-flash-lite', // Cheapest model for reranking
+                        model: 'gemini-2.5-flash-lite', // Cheapest model for reranking
                         messages: [{ role: 'user', content: rerankPrompt }],
                         response_format: { type: "json_object" }
                     })
@@ -217,14 +204,6 @@ Deno.serve(async (req) => {
                     strategy: "Query Expansion -> Hybrid Search + Graph Walk -> LLM Reranking"
                 }
             }),
-            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            { headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } }
         );
-
-    } catch (error) {
-        console.error('Error:', error);
-        return new Response(
-            JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
-            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-    }
-});
+}));

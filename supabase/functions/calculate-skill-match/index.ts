@@ -1,9 +1,4 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
-};
+import { createAuthenticatedHandler } from '../_shared/handler.ts';
 
 function fuzzyMatch(candidateSkill: string, requiredSkill: string): boolean {
   const a = candidateSkill.toLowerCase().trim();
@@ -15,42 +10,16 @@ function fuzzyMatch(candidateSkill: string, requiredSkill: string): boolean {
   return normalize(a) === normalize(b);
 }
 
-Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  try {
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      return new Response(JSON.stringify({ error: 'Authentication required' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-    }
-
-    const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
-    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
-
-    // Validate user
-    const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
-      global: { headers: { Authorization: authHeader } },
-    });
-    const { data: { user }, error: authError } = await supabaseAuth.auth.getUser();
-    if (authError || !user) {
-      return new Response(JSON.stringify({ error: 'Invalid authentication' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-    }
-
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+Deno.serve(createAuthenticatedHandler(async (req, ctx) => {
     const { job_id, candidate_ids } = await req.json();
 
     if (!job_id) {
       return new Response(JSON.stringify({ error: 'job_id is required' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+        { status: 400, headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } });
     }
 
     // Fetch job requirements
-    const { data: job, error: jobError } = await supabase
+    const { data: job, error: jobError } = await ctx.supabase
       .from('jobs')
       .select('requirements, nice_to_have, title')
       .eq('id', job_id)
@@ -58,7 +27,7 @@ Deno.serve(async (req) => {
 
     if (jobError || !job) {
       return new Response(JSON.stringify({ error: 'Job not found' }),
-        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+        { status: 404, headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } });
     }
 
     const mustHave: string[] = (job.requirements as string[]) || [];
@@ -68,11 +37,11 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({
         message: 'No job requirements defined — cannot calculate skill match',
         results: [],
-      }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }), { headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } });
     }
 
     // Build query for applications
-    let query = supabase
+    let query = ctx.supabase
       .from('applications')
       .select('id, candidate_id, match_score')
       .eq('job_id', job_id);
@@ -85,17 +54,17 @@ Deno.serve(async (req) => {
     if (appError) {
       console.error('[calculate-skill-match] Applications fetch error:', appError);
       return new Response(JSON.stringify({ error: 'Failed to fetch applications' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+        { status: 500, headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } });
     }
 
     if (!applications || applications.length === 0) {
       return new Response(JSON.stringify({ message: 'No applications found', results: [] }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+        { headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } });
     }
 
     // Fetch candidate skills
     const candidateIds = [...new Set(applications.map(a => a.candidate_id).filter(Boolean))];
-    const { data: candidates } = await supabase
+    const { data: candidates } = await ctx.supabase
       .from('candidate_profiles')
       .select('id, skills, full_name')
       .in('id', candidateIds);
@@ -156,7 +125,7 @@ Deno.serve(async (req) => {
       };
 
       // Update application with score and details
-      await supabase
+      await ctx.supabase
         .from('applications')
         .update({
           match_score: score,
@@ -186,13 +155,5 @@ Deno.serve(async (req) => {
       total: results.length,
       average_score: avgScore,
       results,
-    }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-
-  } catch (error) {
-    console.error('[calculate-skill-match] Error:', error);
-    return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-  }
-});
+    }), { headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } });
+}));

@@ -9,6 +9,7 @@ import {
   Music,
 } from "lucide-react";
 import { useState, useRef, KeyboardEvent } from "react";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { notify } from "@/lib/notify";
 import { EnhancedEmojiPicker } from "./EnhancedEmojiPicker";
@@ -32,6 +33,7 @@ export const MessageComposer = ({
   onTyping,
   disabled,
 }: MessageComposerProps) => {
+  const { t } = useTranslation('messages');
   const [message, setMessage] = useState("");
   const [attachment, setAttachment] = useState<File | null>(null);
   const [sending, setSending] = useState(false);
@@ -49,8 +51,8 @@ export const MessageComposer = ({
       setAttachment(null);
     } catch (error) {
       console.error("Error sending message:", error);
-      notify.error("Error", {
-        description: "Failed to send message. Please try again.",
+      notify.error(t('composer.error'), {
+        description: t('composer.sendFailed'),
       });
     } finally {
       setSending(false);
@@ -70,7 +72,7 @@ export const MessageComposer = ({
       // Validate file
       const validation = validatePostMediaFile(file);
       if (!validation.valid) {
-        notify.error("Invalid file", {
+        notify.error(t('composer.invalidFile'), {
           description: validation.error,
         });
         return;
@@ -86,11 +88,11 @@ export const MessageComposer = ({
   const handleGifSelect = async (gifUrl: string) => {
     try {
       await onSend("", undefined, { gif_url: gifUrl });
-      notify.success("GIF sent");
+      notify.success(t('gif.sent'));
     } catch (error) {
       console.error("Error sending GIF:", error);
-      notify.error("Failed to send GIF", {
-        description: "Please try again",
+      notify.error(t('gif.sendFailed'), {
+        description: t('common:actions.tryAgain'),
       });
     }
   };
@@ -105,8 +107,8 @@ export const MessageComposer = ({
       });
     } catch (error) {
       console.error("Error sending voice message:", error);
-      notify.error("Failed to send voice message", {
-        description: "Please try again",
+      notify.error(t('composer.voiceSendFailed'), {
+        description: t('common:actions.tryAgain'),
       });
     }
   };
@@ -118,11 +120,11 @@ export const MessageComposer = ({
         media_url: url,
       });
       setMessage("");
-      notify.success("YouTube video shared");
+      notify.success(t('composer.youtubeShared'));
     } catch (error) {
       console.error("Error sending YouTube video:", error);
-      notify.error("Failed to share video", {
-        description: "Please try again",
+      notify.error(t('composer.videoShareFailed'), {
+        description: t('common:actions.tryAgain'),
       });
     }
   };
@@ -138,16 +140,16 @@ export const MessageComposer = ({
           spotify_id: spotifyInfo.id,
         });
         setMessage("");
-        notify.success(`Spotify ${spotifyInfo.type} shared`);
+        notify.success(t('composer.spotifyShared', { type: spotifyInfo.type }));
       } catch (error) {
         console.error("Error sending Spotify:", error);
-        notify.error("Failed to share Spotify", {
-          description: "Please try again",
+        notify.error(t('composer.spotifyShareFailed'), {
+          description: t('common:actions.tryAgain'),
         });
       }
     } else {
-      notify.error("Invalid Spotify link", {
-        description: "Please enter a valid Spotify URL",
+      notify.error(t('composer.invalidSpotifyLink'), {
+        description: t('composer.enterValidSpotify'),
       });
     }
   };
@@ -182,7 +184,7 @@ export const MessageComposer = ({
             onClick={() => setAttachment(null)}
             className="ml-auto hover:bg-destructive/10 hover:text-destructive rounded-lg transition-colors text-xs h-7"
           >
-            Remove
+            {t('common:actions.remove')}
           </Button>
         </div>
       )}
@@ -204,7 +206,7 @@ export const MessageComposer = ({
             onClick={() => fileInputRef.current?.click()}
             disabled={disabled || sending}
             className="flex-shrink-0 rounded-lg h-9 w-9 hover:bg-muted"
-            title="Attach file"
+            title={t('composer.attachFile')}
           >
             <Paperclip className="h-4 w-4" />
           </Button>
@@ -225,16 +227,16 @@ export const MessageComposer = ({
                 size="icon"
                 className="h-9 w-9 rounded-lg hover:bg-muted"
                 disabled={disabled}
-                title="Share Spotify"
+                title={t('composer.shareSpotify')}
               >
                 <Music className="h-4 w-4" />
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-80">
               <div className="space-y-3">
-                <h4 className="font-medium text-sm">Share Spotify</h4>
+                <h4 className="font-medium text-sm">{t('composer.shareSpotify')}</h4>
                 <p className="text-xs text-muted-foreground">
-                  Paste a Spotify link (song, album, playlist, or podcast)
+                  {t('composer.spotifyDescription')}
                 </p>
                 <Input
                   placeholder="https://open.spotify.com/track/..."
@@ -267,7 +269,7 @@ export const MessageComposer = ({
             onFocus={handleFocus}
             onBlur={handleBlur}
             onKeyDown={handleKeyDown}
-            placeholder="Type a message..."
+            placeholder={t('composer.typeMessage')}
             disabled={disabled || sending}
             className="min-h-[42px] max-h-32 resize-none bg-muted/30 border-border/20 rounded-xl focus:ring-2 focus:ring-primary/20 transition-all text-sm pl-12 pr-3 py-2.5"
             rows={1}

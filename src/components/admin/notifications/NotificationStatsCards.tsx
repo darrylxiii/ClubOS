@@ -3,8 +3,10 @@ import { Mail, Users, Bell, Shield } from "lucide-react";
 import { useNotificationTypesWithAssignments } from "@/hooks/useNotificationTypes";
 import { useNotificationAssignments } from "@/hooks/useNotificationAssignments";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useTranslation } from 'react-i18next';
 
 export function NotificationStatsCards() {
+  const { t } = useTranslation('admin');
   const { data: types, isLoading: typesLoading } = useNotificationTypesWithAssignments();
   const { data: assignments, isLoading: assignmentsLoading } = useNotificationAssignments();
 

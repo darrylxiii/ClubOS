@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -89,6 +90,7 @@ const COLORS = {
 };
 
 const FeedbackDatabase = () => {
+  const { t } = useTranslation('common');
   const { recharts, isLoading: chartsLoading } = useRecharts();
   const [feedback, setFeedback] = useState<Feedback[]>([]);
   const [filteredFeedback, setFilteredFeedback] = useState<Feedback[]>([]);
@@ -160,8 +162,8 @@ const FeedbackDatabase = () => {
     } catch (error: unknown) {
       console.error('Error loading feedback:', error);
       toast({
-        title: 'Failed to load feedback',
-        description: error instanceof Error ? error.message : 'Unknown error',
+        title: t('text.feedbackdatabase.failedToLoadFeedback', 'Failed to load feedback'),
+        description: error instanceof Error ? error.message : t('text.feedbackdatabase.unknownError', 'Unknown error'),
         variant: 'destructive',
       });
     } finally {
@@ -341,14 +343,14 @@ const FeedbackDatabase = () => {
       if (error) throw error;
 
       toast({
-        title: isReviewed ? 'Marked as reviewed' : 'Marked as unreviewed',
+        title: isReviewed ? t('text.feedbackdatabase.markedAsReviewed', 'Marked as reviewed') : t('text.feedbackdatabase.markedAsUnreviewed', 'Marked as unreviewed'),
       });
       loadFeedback();
     } catch (error: unknown) {
       console.error('Error updating feedback:', error);
       toast({
-        title: 'Failed to update',
-        description: error instanceof Error ? error.message : 'Unknown error',
+        title: t('text.feedbackdatabase.failedToUpdate', 'Failed to update'),
+        description: error instanceof Error ? error.message : t('text.feedbackdatabase.unknownError', 'Unknown error'),
         variant: 'destructive',
       });
     }
@@ -370,16 +372,16 @@ const FeedbackDatabase = () => {
       if (error) throw error;
 
       toast({
-        title: 'Notes saved',
-        description: 'Admin notes have been updated.',
+        title: t('text.feedbackdatabase.notesSaved', 'Notes saved'),
+        description: t('text.feedbackdatabase.adminNotesHaveBeenUpdated', 'Admin notes have been updated.'),
       });
       setSelectedFeedback(null);
       loadFeedback();
     } catch (error: unknown) {
       console.error('Error saving notes:', error);
       toast({
-        title: 'Failed to save notes',
-        description: error instanceof Error ? error.message : 'Unknown error',
+        title: t('text.feedbackdatabase.failedToSaveNotes', 'Failed to save notes'),
+        description: error instanceof Error ? error.message : t('text.feedbackdatabase.unknownError', 'Unknown error'),
         variant: 'destructive',
       });
     } finally {
@@ -398,7 +400,7 @@ const FeedbackDatabase = () => {
           f.page_title,
           f.rating,
           `"${(f.comment || '').replace(/"/g, '""')}"`,
-          f.is_reviewed ? 'Reviewed' : 'Pending',
+          f.is_reviewed ? t('text.feedbackdatabase.reviewed', 'Reviewed') : t('text.feedbackdatabase.pending', 'Pending'),
           `"${(f.admin_notes || '').replace(/"/g, '""')}"`,
         ].join(',')
       ),
@@ -444,19 +446,19 @@ ${selectedFeedback.navigation_trail?.map((t: any, i: number) => `${i + 1}. ${t.t
 
   const handleTaskCreated = () => {
     toast({
-      title: 'Task created',
-      description: 'Feedback converted to task successfully',
+      title: t('text.feedbackdatabase.taskCreated', 'Task created'),
+      description: t('text.feedbackdatabase.feedbackConvertedToTaskSuccessfully', 'Feedback converted to task successfully'),
     });
     setShowTaskDialog(false);
   };
 
   const getResolutionStatusBadge = (status: string) => {
     const variants: Record<string, {variant: any, label: string, icon?: any}> = {
-      pending: { variant: 'secondary', label: 'Pending' },
-      acknowledged: { variant: 'default', label: 'Acknowledged' },
-      in_progress: { variant: 'default', label: 'In Progress' },
-      fixed: { variant: 'default', label: 'Fixed' },
-      wont_fix: { variant: 'destructive', label: "Won't Fix" }
+      pending: { variant: 'secondary', label: t('text.feedbackdatabase.pending', 'Pending') },
+      acknowledged: { variant: 'default', label: t('text.feedbackdatabase.acknowledged', 'Acknowledged') },
+      in_progress: { variant: 'default', label: t('text.feedbackdatabase.inProgress', 'In Progress') },
+      fixed: { variant: 'default', label: t('text.feedbackdatabase.fixed', 'Fixed') },
+      wont_fix: { variant: 'destructive', label: t('text.feedbackdatabase.wontFix', 'Won\'t Fix') }
     };
     
     const config = variants[status] || variants.pending;
@@ -470,8 +472,8 @@ ${selectedFeedback.navigation_trail?.map((t: any, i: number) => `${i + 1}. ${t.t
   const handleResolve = async () => {
     if (!selectedFeedback || !resolutionMessage.trim()) {
       toast({ 
-        title: 'Message required', 
-        description: 'Please provide a response message', 
+        title: t('text.feedbackdatabase.messageRequired', 'Message required'), 
+        description: t('text.feedbackdatabase.pleaseProvideAResponseMessage', 'Please provide a response message'), 
         variant: 'destructive' 
       });
       return;
@@ -494,7 +496,7 @@ ${selectedFeedback.navigation_trail?.map((t: any, i: number) => `${i + 1}. ${t.t
       if (error) throw error;
 
       toast({
-        title: 'Feedback resolved',
+        title: t('text.feedbackdatabase.feedbackResolved', 'Feedback resolved'),
         description: `Response sent to ${selectedFeedback.email}. Conversation created.`
       });
       
@@ -505,8 +507,8 @@ ${selectedFeedback.navigation_trail?.map((t: any, i: number) => `${i + 1}. ${t.t
     } catch (error: unknown) {
       console.error('Error resolving feedback:', error);
       toast({
-        title: 'Failed to resolve',
-        description: error instanceof Error ? error.message : 'Unknown error',
+        title: t('text.feedbackdatabase.failedToResolve', 'Failed to resolve'),
+        description: error instanceof Error ? error.message : t('text.feedbackdatabase.unknownError', 'Unknown error'),
         variant: 'destructive',
       });
     } finally {
@@ -521,7 +523,7 @@ ${selectedFeedback.navigation_trail?.map((t: any, i: number) => `${i + 1}. ${t.t
         <div className="grid md:grid-cols-2 gap-4 mb-6">
           <Card>
             <CardHeader>
-              <CardTitle className="text-sm">Feedback Trend (7 days)</CardTitle>
+              <CardTitle className="text-sm">{t('text.feedbackdatabase.feedbackTrend7Days', 'Feedback Trend (7 days)')}</CardTitle>
             </CardHeader>
             <CardContent>
               <Skeleton className="h-[200px] w-full" />
@@ -529,7 +531,7 @@ ${selectedFeedback.navigation_trail?.map((t: any, i: number) => `${i + 1}. ${t.t
           </Card>
           <Card>
             <CardHeader>
-              <CardTitle className="text-sm">Rating Distribution</CardTitle>
+              <CardTitle className="text-sm">{t('text.feedbackdatabase.ratingDistribution', 'Rating Distribution')}</CardTitle>
             </CardHeader>
             <CardContent>
               <Skeleton className="h-[200px] w-full" />
@@ -545,7 +547,7 @@ ${selectedFeedback.navigation_trail?.map((t: any, i: number) => `${i + 1}. ${t.t
       <div className="grid md:grid-cols-2 gap-4 mb-6">
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm">Feedback Trend (7 days)</CardTitle>
+            <CardTitle className="text-sm">{t('text.feedbackdatabase.feedbackTrend7Days', 'Feedback Trend (7 days)')}</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={200}>
@@ -562,7 +564,7 @@ ${selectedFeedback.navigation_trail?.map((t: any, i: number) => `${i + 1}. ${t.t
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm">Rating Distribution</CardTitle>
+            <CardTitle className="text-sm">{t('text.feedbackdatabase.ratingDistribution', 'Rating Distribution')}</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={200}>
@@ -603,9 +605,7 @@ ${selectedFeedback.navigation_trail?.map((t: any, i: number) => `${i + 1}. ${t.t
               <BarChart3 className="w-6 h-6" />
               Feedback Analytics
             </h1>
-            <p className="text-muted-foreground text-sm">
-              Monitor user satisfaction and track improvements
-            </p>
+            <p className="text-muted-foreground text-sm">{t('feedbackDatabase.desc')}</p>
           </div>
           <Button onClick={handleExport} variant="outline" className="gap-2">
             <Download className="w-4 h-4" />
@@ -615,10 +615,10 @@ ${selectedFeedback.navigation_trail?.map((t: any, i: number) => `${i + 1}. ${t.t
 
         <Tabs defaultValue="overview" className="space-y-4">
           <TabsList>
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="feedback">All Feedback</TabsTrigger>
-            <TabsTrigger value="pages">Page Analytics</TabsTrigger>
-            <TabsTrigger value="errors">Error Logs</TabsTrigger>
+            <TabsTrigger value="overview">{t('feedbackDatabase.tabOverview')}</TabsTrigger>
+            <TabsTrigger value="feedback">{t('feedbackDatabase.tabAllfeedback')}</TabsTrigger>
+            <TabsTrigger value="pages">{t('feedbackDatabase.tabPageanalytics')}</TabsTrigger>
+            <TabsTrigger value="errors">{t('feedbackDatabase.tabErrorlogs')}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-4">
@@ -628,7 +628,7 @@ ${selectedFeedback.navigation_trail?.map((t: any, i: number) => `${i + 1}. ${t.t
                 <CardContent className="p-4">
                   <div className="flex items-center gap-2">
                     <Activity className="w-4 h-4 text-blue-500" />
-                    <span className="text-xs text-muted-foreground">Total</span>
+                    <span className="text-xs text-muted-foreground">{t('text.feedbackdatabase.total', 'Total')}</span>
                   </div>
                   <p className="text-2xl font-bold mt-1">{analytics.total}</p>
                 </CardContent>
@@ -637,7 +637,7 @@ ${selectedFeedback.navigation_trail?.map((t: any, i: number) => `${i + 1}. ${t.t
                 <CardContent className="p-4">
                   <div className="flex items-center gap-2">
                     <TrendingUp className="w-4 h-4 text-green-500" />
-                    <span className="text-xs text-muted-foreground">Avg Rating</span>
+                    <span className="text-xs text-muted-foreground">{t('text.feedbackdatabase.avgRating', 'Avg Rating')}</span>
                   </div>
                   <p className={`text-2xl font-bold mt-1 ${getHealthColor(parseFloat(analytics.avgRating))}`}>
                     {analytics.avgRating}
@@ -648,7 +648,7 @@ ${selectedFeedback.navigation_trail?.map((t: any, i: number) => `${i + 1}. ${t.t
                 <CardContent className="p-4">
                   <div className="flex items-center gap-2">
                     <AlertCircle className="w-4 h-4 text-red-500" />
-                    <span className="text-xs text-muted-foreground">Critical</span>
+                    <span className="text-xs text-muted-foreground">{t('text.feedbackdatabase.critical', 'Critical')}</span>
                   </div>
                   <p className="text-2xl font-bold mt-1 text-red-500">{analytics.criticalCount}</p>
                 </CardContent>
@@ -657,7 +657,7 @@ ${selectedFeedback.navigation_trail?.map((t: any, i: number) => `${i + 1}. ${t.t
                 <CardContent className="p-4">
                   <div className="flex items-center gap-2">
                     <Clock className="w-4 h-4 text-yellow-500" />
-                    <span className="text-xs text-muted-foreground">Pending</span>
+                    <span className="text-xs text-muted-foreground">{t('text.feedbackdatabase.pending', 'Pending')}</span>
                   </div>
                   <p className="text-2xl font-bold mt-1">{analytics.pendingCount}</p>
                 </CardContent>
@@ -666,7 +666,7 @@ ${selectedFeedback.navigation_trail?.map((t: any, i: number) => `${i + 1}. ${t.t
                 <CardContent className="p-4">
                   <div className="flex items-center gap-2">
                     <Target className="w-4 h-4 text-purple-500" />
-                    <span className="text-xs text-muted-foreground">Response Rate</span>
+                    <span className="text-xs text-muted-foreground">{t('text.feedbackdatabase.responseRate', 'Response Rate')}</span>
                   </div>
                   <p className="text-2xl font-bold mt-1">{analytics.responseRate}%</p>
                 </CardContent>
@@ -675,7 +675,7 @@ ${selectedFeedback.navigation_trail?.map((t: any, i: number) => `${i + 1}. ${t.t
                 <CardContent className="p-4">
                   <div className="flex items-center gap-2">
                     <MessageSquare className="w-4 h-4 text-cyan-500" />
-                    <span className="text-xs text-muted-foreground">Comment Rate</span>
+                    <span className="text-xs text-muted-foreground">{t('text.feedbackdatabase.commentRate', 'Comment Rate')}</span>
                   </div>
                   <p className="text-2xl font-bold mt-1">{analytics.commentRate}%</p>
                 </CardContent>
@@ -692,7 +692,7 @@ ${selectedFeedback.navigation_trail?.map((t: any, i: number) => `${i + 1}. ${t.t
               <div className="relative flex-1 min-w-[200px]">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search email, page, or comment..."
+                  placeholder={t('text.feedbackdatabase.searchEmailPageOrComment', 'Search email, page, or comment...')}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-9"
@@ -700,48 +700,48 @@ ${selectedFeedback.navigation_trail?.map((t: any, i: number) => `${i + 1}. ${t.t
               </div>
               <Select value={ratingFilter} onValueChange={setRatingFilter}>
                 <SelectTrigger className="w-[140px]">
-                  <SelectValue placeholder="Rating" />
+                  <SelectValue placeholder={t('text.feedbackdatabase.rating', 'Rating')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Ratings</SelectItem>
-                  <SelectItem value="critical">Critical (1-3)</SelectItem>
-                  <SelectItem value="low">Low (4-5)</SelectItem>
-                  <SelectItem value="medium">Medium (6-7)</SelectItem>
-                  <SelectItem value="high">High (8-10)</SelectItem>
+                  <SelectItem value="all">{t('text.feedbackdatabase.allRatings', 'All Ratings')}</SelectItem>
+                  <SelectItem value="critical">{t('text.feedbackdatabase.critical13', 'Critical (1-3)')}</SelectItem>
+                  <SelectItem value="low">{t('text.feedbackdatabase.low45', 'Low (4-5)')}</SelectItem>
+                  <SelectItem value="medium">{t('text.feedbackdatabase.medium67', 'Medium (6-7)')}</SelectItem>
+                  <SelectItem value="high">{t('text.feedbackdatabase.high810', 'High (8-10)')}</SelectItem>
                 </SelectContent>
               </Select>
               <Select value={reviewedFilter} onValueChange={setReviewedFilter}>
                 <SelectTrigger className="w-[140px]">
-                  <SelectValue placeholder="Status" />
+                  <SelectValue placeholder={t('text.feedbackdatabase.status', 'Status')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="reviewed">Reviewed</SelectItem>
+                  <SelectItem value="all">{t('text.feedbackdatabase.allStatus', 'All Status')}</SelectItem>
+                  <SelectItem value="pending">{t('text.feedbackdatabase.pending', 'Pending')}</SelectItem>
+                  <SelectItem value="reviewed">{t('text.feedbackdatabase.reviewed', 'Reviewed')}</SelectItem>
                 </SelectContent>
               </Select>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger className="w-[140px]">
-                  <SelectValue placeholder="Resolution" />
+                  <SelectValue placeholder={t('text.feedbackdatabase.resolution', 'Resolution')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="acknowledged">Acknowledged</SelectItem>
-                  <SelectItem value="in_progress">In Progress</SelectItem>
-                  <SelectItem value="fixed">Fixed</SelectItem>
-                  <SelectItem value="wont_fix">Won't Fix</SelectItem>
+                  <SelectItem value="all">{t('text.feedbackdatabase.all', 'All')}</SelectItem>
+                  <SelectItem value="pending">{t('text.feedbackdatabase.pending', 'Pending')}</SelectItem>
+                  <SelectItem value="acknowledged">{t('text.feedbackdatabase.acknowledged', 'Acknowledged')}</SelectItem>
+                  <SelectItem value="in_progress">{t('text.feedbackdatabase.inProgress', 'In Progress')}</SelectItem>
+                  <SelectItem value="fixed">{t('text.feedbackdatabase.fixed', 'Fixed')}</SelectItem>
+                  <SelectItem value="wont_fix">{t('text.feedbackdatabase.wontFix', 'Won\'t Fix')}</SelectItem>
                 </SelectContent>
               </Select>
               <Select value={dateRange} onValueChange={setDateRange}>
                 <SelectTrigger className="w-[140px]">
-                  <SelectValue placeholder="Date" />
+                  <SelectValue placeholder={t('text.feedbackdatabase.date', 'Date')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Time</SelectItem>
-                  <SelectItem value="7">Last 7 days</SelectItem>
-                  <SelectItem value="30">Last 30 days</SelectItem>
-                  <SelectItem value="90">Last 90 days</SelectItem>
+                  <SelectItem value="all">{t('text.feedbackdatabase.allTime', 'All Time')}</SelectItem>
+                  <SelectItem value="7">{t('text.feedbackdatabase.last7Days', 'Last 7 days')}</SelectItem>
+                  <SelectItem value="30">{t('text.feedbackdatabase.last30Days', 'Last 30 days')}</SelectItem>
+                  <SelectItem value="90">{t('text.feedbackdatabase.last90Days', 'Last 90 days')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -751,21 +751,19 @@ ${selectedFeedback.navigation_trail?.map((t: any, i: number) => `${i + 1}. ${t.t
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Date</TableHead>
-                    <TableHead>User</TableHead>
-                    <TableHead>Page</TableHead>
-                    <TableHead>Rating</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Resolution</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead>{t('text.feedbackdatabase.date', 'Date')}</TableHead>
+                    <TableHead>{t('text.feedbackdatabase.user', 'User')}</TableHead>
+                    <TableHead>{t('text.feedbackdatabase.page', 'Page')}</TableHead>
+                    <TableHead>{t('text.feedbackdatabase.rating', 'Rating')}</TableHead>
+                    <TableHead>{t('text.feedbackdatabase.status', 'Status')}</TableHead>
+                    <TableHead>{t('text.feedbackdatabase.resolution', 'Resolution')}</TableHead>
+                    <TableHead className="text-right">{t('text.feedbackdatabase.actions', 'Actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredFeedback.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                        No feedback found
-                      </TableCell>
+                      <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">{t('text.feedbackdatabase.noFeedbackFound', 'No feedback found')}</TableCell>
                     </TableRow>
                   ) : (
                     filteredFeedback.slice(0, 50).map((item) => (
@@ -783,7 +781,7 @@ ${selectedFeedback.navigation_trail?.map((t: any, i: number) => `${i + 1}. ${t.t
                         <TableCell>{getRatingBadge(item.rating)}</TableCell>
                         <TableCell>
                           <Badge variant={item.is_reviewed ? 'default' : 'secondary'}>
-                            {item.is_reviewed ? 'Reviewed' : 'Pending'}
+                            {item.is_reviewed ? t('text.feedbackdatabase.reviewed', 'Reviewed') : t('text.feedbackdatabase.pending', 'Pending')}
                           </Badge>
                         </TableCell>
                         <TableCell>{getResolutionStatusBadge(item.resolution_status)}</TableCell>
@@ -803,18 +801,18 @@ ${selectedFeedback.navigation_trail?.map((t: any, i: number) => `${i + 1}. ${t.t
           <TabsContent value="pages" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>Page Performance</CardTitle>
-                <CardDescription>Feedback metrics by page</CardDescription>
+                <CardTitle>{t('text.feedbackdatabase.pagePerformance', 'Page Performance')}</CardTitle>
+                <CardDescription>{t('text.feedbackdatabase.feedbackMetricsByPage', 'Feedback metrics by page')}</CardDescription>
               </CardHeader>
               <CardContent>
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Page</TableHead>
-                      <TableHead>Feedback Count</TableHead>
-                      <TableHead>Avg Rating</TableHead>
-                      <TableHead>Critical Rate</TableHead>
-                      <TableHead>Comment Rate</TableHead>
+                      <TableHead>{t('text.feedbackdatabase.page', 'Page')}</TableHead>
+                      <TableHead>{t('text.feedbackdatabase.feedbackCount', 'Feedback Count')}</TableHead>
+                      <TableHead>{t('text.feedbackdatabase.avgRating', 'Avg Rating')}</TableHead>
+                      <TableHead>{t('text.feedbackdatabase.criticalRate', 'Critical Rate')}</TableHead>
+                      <TableHead>{t('text.feedbackdatabase.commentRate', 'Comment Rate')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -853,7 +851,7 @@ ${selectedFeedback.navigation_trail?.map((t: any, i: number) => `${i + 1}. ${t.t
         <Dialog open={!!selectedFeedback} onOpenChange={() => setSelectedFeedback(null)}>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
-              <DialogTitle>Feedback Details</DialogTitle>
+              <DialogTitle>{t('text.feedbackdatabase.feedbackDetails', 'Feedback Details')}</DialogTitle>
               <DialogDescription>
                 {selectedFeedback?.email} • {selectedFeedback?.page_title}
               </DialogDescription>
@@ -862,26 +860,26 @@ ${selectedFeedback.navigation_trail?.map((t: any, i: number) => `${i + 1}. ${t.t
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-xs text-muted-foreground">Rating</p>
+                    <p className="text-xs text-muted-foreground">{t('feedbackDatabase.desc2')}</p>
                     {getRatingBadge(selectedFeedback.rating)}
                   </div>
                   <div>
-                    <p className="text-xs text-muted-foreground">Status</p>
+                    <p className="text-xs text-muted-foreground">{t('feedbackDatabase.desc3')}</p>
                     {getResolutionStatusBadge(selectedFeedback.resolution_status)}
                   </div>
                   <div>
-                    <p className="text-xs text-muted-foreground">Submitted</p>
+                    <p className="text-xs text-muted-foreground">{t('feedbackDatabase.desc4')}</p>
                     <p className="text-sm">{format(new Date(selectedFeedback.submitted_at), 'PPP pp')}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-muted-foreground">Role</p>
+                    <p className="text-xs text-muted-foreground">{t('text.feedbackdatabase.role', 'Role')}</p>
                     <p className="text-sm capitalize">{selectedFeedback.role}</p>
                   </div>
                 </div>
 
                 {selectedFeedback.comment && (
                   <div>
-                    <p className="text-xs text-muted-foreground mb-1">User Comment</p>
+                    <p className="text-xs text-muted-foreground mb-1">{t('feedbackDatabase.desc5')}</p>
                     <Card className="p-3">
                       <p className="text-sm">{selectedFeedback.comment}</p>
                     </Card>
@@ -890,7 +888,7 @@ ${selectedFeedback.navigation_trail?.map((t: any, i: number) => `${i + 1}. ${t.t
 
                 {selectedFeedback.navigation_trail && selectedFeedback.navigation_trail.length > 0 && (
                   <div>
-                    <p className="text-xs text-muted-foreground mb-1">Navigation Trail</p>
+                    <p className="text-xs text-muted-foreground mb-1">{t('feedbackDatabase.desc6')}</p>
                     <div className="flex flex-wrap gap-1">
                       {selectedFeedback.navigation_trail.map((trail: any, i: number) => (
                         <Badge key={i} variant="outline" className="text-xs">
@@ -903,7 +901,7 @@ ${selectedFeedback.navigation_trail?.map((t: any, i: number) => `${i + 1}. ${t.t
 
                 {selectedFeedback.resolved_at && (
                   <div className="bg-green-500/10 p-3 rounded-lg">
-                    <p className="text-xs text-muted-foreground mb-1">Resolution</p>
+                    <p className="text-xs text-muted-foreground mb-1">{t('feedbackDatabase.desc7')}</p>
                     <p className="text-sm">{selectedFeedback.resolution_message}</p>
                     <p className="text-xs text-muted-foreground mt-2">
                       Resolved by {selectedFeedback.resolver?.full_name} on {format(new Date(selectedFeedback.resolved_at), 'PPP')}
@@ -912,9 +910,9 @@ ${selectedFeedback.navigation_trail?.map((t: any, i: number) => `${i + 1}. ${t.t
                 )}
 
                 <div>
-                  <p className="text-xs text-muted-foreground mb-1">Admin Notes</p>
+                  <p className="text-xs text-muted-foreground mb-1">{t('feedbackDatabase.desc8')}</p>
                   <Textarea
-                    placeholder="Add notes about this feedback..."
+                    placeholder={t('text.feedbackdatabase.addNotesAboutThisFeedback', 'Add notes about this feedback...')}
                     value={adminNotes}
                     onChange={(e) => setAdminNotes(e.target.value)}
                     rows={3}
@@ -929,7 +927,7 @@ ${selectedFeedback.navigation_trail?.map((t: any, i: number) => `${i + 1}. ${t.t
               </Button>
               {selectedFeedback && selectedFeedback.resolution_status === 'pending' && (
                 <Button variant="outline" onClick={() => setResolutionDialog(true)}>
-                  Resolve & Respond
+                  {t('text.feedbackdatabase.resolveRespond', 'Resolve & Respond')}
                 </Button>
               )}
               <Button onClick={handleSaveNotes} disabled={isSaving}>
@@ -943,30 +941,30 @@ ${selectedFeedback.navigation_trail?.map((t: any, i: number) => `${i + 1}. ${t.t
         <Dialog open={resolutionDialog} onOpenChange={setResolutionDialog}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Resolve Feedback</DialogTitle>
+              <DialogTitle>{t('text.feedbackdatabase.resolveFeedback', 'Resolve Feedback')}</DialogTitle>
               <DialogDescription>
                 Send a response to {selectedFeedback?.email}
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
               <div>
-                <p className="text-sm mb-2">Resolution Status</p>
+                <p className="text-sm mb-2">{t('feedbackDatabase.desc9')}</p>
                 <Select value={resolutionStatus} onValueChange={(v: any) => setResolutionStatus(v)}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="acknowledged">Acknowledged</SelectItem>
-                    <SelectItem value="in_progress">In Progress</SelectItem>
-                    <SelectItem value="fixed">Fixed</SelectItem>
-                    <SelectItem value="wont_fix">Won't Fix</SelectItem>
+                    <SelectItem value="acknowledged">{t('text.feedbackdatabase.acknowledged', 'Acknowledged')}</SelectItem>
+                    <SelectItem value="in_progress">{t('text.feedbackdatabase.inProgress', 'In Progress')}</SelectItem>
+                    <SelectItem value="fixed">{t('text.feedbackdatabase.fixed', 'Fixed')}</SelectItem>
+                    <SelectItem value="wont_fix">{t('text.feedbackdatabase.wontFix', 'Won\'t Fix')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div>
-                <p className="text-sm mb-2">Response Message</p>
+                <p className="text-sm mb-2">{t('feedbackDatabase.desc10')}</p>
                 <Textarea
-                  placeholder="Write your response to the user..."
+                  placeholder={t('text.feedbackdatabase.writeYourResponseToTheUser', 'Write your response to the user...')}
                   value={resolutionMessage}
                   onChange={(e) => setResolutionMessage(e.target.value)}
                   rows={4}
@@ -975,7 +973,7 @@ ${selectedFeedback.navigation_trail?.map((t: any, i: number) => `${i + 1}. ${t.t
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setResolutionDialog(false)}>
-                Cancel
+                {t('text.feedbackdatabase.cancel', 'Cancel')}
               </Button>
               <Button onClick={handleResolve} disabled={sendingResponse}>
                 {sendingResponse ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}

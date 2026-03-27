@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { FileText, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { useTranslation } from 'react-i18next';
 
 interface TextDocumentCreatorProps {
   jobId: string;
@@ -14,6 +15,7 @@ interface TextDocumentCreatorProps {
 }
 
 export const TextDocumentCreator = ({ jobId, onDocumentCreated }: TextDocumentCreatorProps) => {
+  const { t } = useTranslation('partner');
   const [detailedCreateOpen, setDetailedCreateOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
@@ -26,12 +28,12 @@ export const TextDocumentCreator = ({ jobId, onDocumentCreated }: TextDocumentCr
 
   const createTextDocument = async () => {
     if (!content.trim()) {
-      toast.error("Please enter some content");
+      toast.error(t('textDocumentCreator.toast.pleaseEnterSomeContent'));
       return;
     }
 
     if (!title.trim()) {
-      toast.error("Please enter a document title");
+      toast.error(t('textDocumentCreator.toast.pleaseEnterADocumentTitle'));
       return;
     }
 
@@ -125,7 +127,7 @@ export const TextDocumentCreator = ({ jobId, onDocumentCreated }: TextDocumentCr
           
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="doc-title">Document Title *</Label>
+              <Label htmlFor="doc-title">{t('textDocumentCreator.label.documentTitle')}</Label>
               <Input
                 id="doc-title"
                 placeholder="e.g., Interview Questions, Company Overview, Benefits Summary"
@@ -133,23 +135,21 @@ export const TextDocumentCreator = ({ jobId, onDocumentCreated }: TextDocumentCr
                 onChange={(e) => setTitle(e.target.value)}
                 className="font-semibold"
               />
-              <p className="text-xs text-muted-foreground">
-                Give your document a descriptive name
-              </p>
+              <p className="text-xs text-muted-foreground">{t('textDocumentCreator.giveYourDocumentADescriptiveName')}</p>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="doc-content">Document Content *</Label>
+              <Label htmlFor="doc-content">{t('textDocumentCreator.label.documentContent')}</Label>
               <Textarea
                 id="doc-content"
-                placeholder="Type or paste your content here...&#10;&#10;You can include:&#10;• Interview questions&#10;• Company information&#10;• Benefits details&#10;• Technical requirements&#10;• Any other relevant text"
+                placeholder={t('textDocumentCreator.placeholder.typeOrPasteYourContentHere1010youCanIncl')}
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
                 rows={16}
                 className="font-mono text-sm resize-none"
               />
               <div className="flex items-center justify-between text-xs text-muted-foreground">
-                <span>Plain text format - perfect for quick reference documents</span>
+                <span>{t('textDocumentCreator.plainTextFormatPerfectForQuickReferenceD')}</span>
                 <span>{content.length} characters</span>
               </div>
             </div>
@@ -163,7 +163,7 @@ export const TextDocumentCreator = ({ jobId, onDocumentCreated }: TextDocumentCr
                 }}
                 disabled={creating}
               >
-                Cancel
+                {t('common:cancel')}
               </Button>
               <Button
                 onClick={createTextDocument}

@@ -6,6 +6,7 @@
  * code splitting and reduce initial bundle size (~150MB build memory savings).
  */
 import { useState, useEffect, type ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Skeleton } from '@/components/ui/skeleton';
 
 type ChartType = 'line' | 'bar' | 'pie' | 'area' | 'radar' | 'composed' | 'funnel';
@@ -130,6 +131,7 @@ export function DynamicChart({
   config = {},
   className,
 }: DynamicChartProps) {
+  const { t } = useTranslation('common');
   const [recharts, setRecharts] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
 

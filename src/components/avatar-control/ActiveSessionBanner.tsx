@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { useActiveAvatarSession } from '@/hooks/useAvatarSessions';
 import { useSessionJobs } from '@/hooks/useSessionJobs';
@@ -8,6 +9,7 @@ import { Radio, Clock, X, ArrowRightLeft, Briefcase } from 'lucide-react';
 import { format } from 'date-fns';
 
 export function ActiveSessionBanner() {
+  const { t } = useTranslation('common');
   const { mySession, endSession } = useActiveAvatarSession();
   const { data: sessionJobs = [], switchJob } = useSessionJobs(mySession?.id);
   const [switchOpen, setSwitchOpen] = useState(false);
@@ -36,7 +38,7 @@ export function ActiveSessionBanner() {
         <div className="flex items-center gap-3 min-w-0">
           <Radio className="h-4 w-4 text-red-400 animate-pulse shrink-0" />
           <div className="min-w-0 text-sm flex items-center gap-1.5 flex-wrap">
-            <span className="font-medium">Active:</span>
+            <span className="font-medium">{t("active", "Active:")}</span>
             <span className="text-muted-foreground">{accountLabel}</span>
             <span className="text-muted-foreground">·</span>
             <Briefcase className="h-3 w-3 text-muted-foreground" />
@@ -75,7 +77,7 @@ export function ActiveSessionBanner() {
       <Dialog open={switchOpen} onOpenChange={setSwitchOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Switch Job</DialogTitle>
+            <DialogTitle>{t("switch_job", "Switch Job")}</DialogTitle>
           </DialogHeader>
           <CompanyJobSelector
             selectedJobId={currentSessionJob?.job_id ?? ''}

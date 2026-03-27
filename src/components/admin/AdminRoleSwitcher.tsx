@@ -5,6 +5,7 @@ import { Shield, User, Building2, Users, Sparkles } from "lucide-react";
 import { useRole } from "@/contexts/RoleContext";
 import { UserRole } from "@/hooks/useUserRole";
 import { toast } from "sonner";
+import { useTranslation } from 'react-i18next';
 
 interface UserRoleOption {
   value: UserRole;
@@ -14,6 +15,7 @@ interface UserRoleOption {
 }
 
 export const AdminRoleSwitcher = () => {
+  const { t } = useTranslation('admin');
   const { currentRole, availableRoles, switchRole, loading } = useRole();
 
   const roleOptions: Record<UserRole, UserRoleOption> = {
@@ -77,7 +79,7 @@ export const AdminRoleSwitcher = () => {
             <Sparkles className="w-5 h-5 text-primary" />
             Active Role
           </CardTitle>
-          <CardDescription>Loading your roles...</CardDescription>
+          <CardDescription>{t('adminRoleSwitcher.loadingYourRoles')}</CardDescription>
         </CardHeader>
       </Card>
     );

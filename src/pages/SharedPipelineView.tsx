@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -40,6 +41,7 @@ interface Application {
 type ViewState = 'loading' | 'password_gate' | 'ready' | 'error';
 
 export default function SharedPipelineView() {
+  const { t } = useTranslation('jobs');
   const { token } = useParams<{ token: string }>();
   const navigate = useNavigate();
 
@@ -182,7 +184,7 @@ export default function SharedPipelineView() {
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center space-y-4">
           <SectionLoader />
-          <p className="text-sm text-muted-foreground">Loading pipeline…</p>
+          <p className="text-sm text-muted-foreground">{"Loading pipeline…"}</p>
         </div>
       </div>
     );
@@ -196,7 +198,7 @@ export default function SharedPipelineView() {
           <CardContent className="py-12 text-center space-y-6">
             <AlertCircle className="w-14 h-14 mx-auto text-destructive" />
             <div>
-              <h2 className="text-xl font-bold mb-2">Link unavailable</h2>
+              <h2 className="text-xl font-bold mb-2">{t('sharedPipelineView.text2')}</h2>
               <p className="text-sm text-muted-foreground mb-6">{errorMsg}</p>
               <Button variant="outline" onClick={() => navigate('/auth')} className="gap-2">
                 <ExternalLink className="w-4 h-4" />
@@ -219,15 +221,13 @@ export default function SharedPipelineView() {
               <Lock className="w-7 h-7 text-primary" />
             </div>
             <div>
-              <h2 className="text-lg font-bold mb-1">Password required</h2>
-              <p className="text-sm text-muted-foreground">
-                This pipeline is protected. Enter the password to view it.
-              </p>
+              <h2 className="text-lg font-bold mb-1">{t('sharedPipelineView.text3')}</h2>
+              <p className="text-sm text-muted-foreground">{t('sharedPipelineView.desc')}</p>
             </div>
             <div className="space-y-2 text-left">
               <Input
                 type="password"
-                placeholder="Enter password"
+                placeholder={t('sharedPipelineView.text4')}
                 value={passwordInput}
                 onChange={(e) => setPasswordInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && !submittingPassword && handlePasswordSubmit()}
@@ -332,7 +332,7 @@ export default function SharedPipelineView() {
             <div className="w-12 h-12 rounded-full bg-muted/30 flex items-center justify-center">
               <Eye className="w-6 h-6 text-muted-foreground/50" />
             </div>
-            <p className="text-sm text-muted-foreground font-medium">No candidates in this pipeline yet.</p>
+            <p className="text-sm text-muted-foreground font-medium">{t('sharedPipelineView.text5')}</p>
             <p className="text-xs text-muted-foreground/70">Check back later — candidates will appear here as they progress through the stages.</p>
           </div>
         ) : (
@@ -344,7 +344,7 @@ export default function SharedPipelineView() {
       <footer className="border-t border-border/20 px-6 py-4 text-center">
         <p className="text-xs text-muted-foreground">
           Powered by{' '}
-          <span className="font-semibold text-foreground">The Quantum Club</span>{' '}
+          <span className="font-semibold text-foreground">{t('sharedPipelineView.text6')}</span>{' '}
           — executive talent, discreetly placed.
         </p>
       </footer>

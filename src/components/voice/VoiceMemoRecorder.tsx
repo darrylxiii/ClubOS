@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from "framer-motion";
 import { Mic, Square, X, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -17,6 +18,7 @@ function formatDuration(seconds: number) {
 }
 
 export const VoiceMemoRecorder = ({ open, onClose }: VoiceMemoRecorderProps) => {
+  const { t } = useTranslation('common');
   const { isRecording, duration, isUploading, startRecording, stopRecording, cancelRecording } =
     useVoiceMemo();
 
@@ -55,7 +57,7 @@ export const VoiceMemoRecorder = ({ open, onClose }: VoiceMemoRecorderProps) => 
           {isUploading ? (
             <>
               <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-              <span className="text-sm text-muted-foreground">Saving...</span>
+              <span className="text-sm text-muted-foreground">{"Saving..."}</span>
             </>
           ) : (
             <>

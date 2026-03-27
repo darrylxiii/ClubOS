@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
@@ -40,6 +41,7 @@ export function ActivityTimeline({
   companyId, 
   limit = 20 
 }: ActivityTimelineProps) {
+  const { t } = useTranslation('common');
   const [activities, setActivities] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -80,7 +82,7 @@ export function ActivityTimeline({
       <Card>
         <CardContent className="p-8 text-center">
           <Clock className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
-          <p className="text-muted-foreground">No activities yet</p>
+          <p className="text-muted-foreground">{t("no_activities_yet", "No activities yet")}</p>
         </CardContent>
       </Card>
     );

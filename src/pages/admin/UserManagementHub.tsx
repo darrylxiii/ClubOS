@@ -1,4 +1,5 @@
 import { lazy, Suspense } from "react";
+import { useTranslation } from 'react-i18next';
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Users, UserPlus, Shield, Clock, List } from "lucide-react";
@@ -15,6 +16,7 @@ const PendingRequestsTab = lazy(() => import("@/components/admin/users/PendingRe
 const AllUsersTab = lazy(() => import("@/components/admin/users/AllUsersTab"));
 
 const UserManagementHub = () => {
+  const { t } = useTranslation('admin');
   const { currentRole, loading } = useRole();
   const [searchParams, setSearchParams] = useSearchParams();
   const activeTab = searchParams.get("tab") || "candidates";
@@ -43,13 +45,9 @@ const UserManagementHub = () => {
         <div className="space-y-2 mb-8">
           <div className="flex items-center gap-3">
             <Users className="w-8 h-8" />
-            <h1 className="text-4xl font-black uppercase tracking-tight">
-              User Management
-            </h1>
+            <h1 className="text-4xl font-black uppercase tracking-tight">{t('userManagementHub.title')}</h1>
           </div>
-          <p className="text-lg text-muted-foreground">
-            Manage candidates, partners, staff, and pending requests
-          </p>
+          <p className="text-lg text-muted-foreground">{t('userManagementHub.desc')}</p>
         </div>
 
         <UsersDashboard />

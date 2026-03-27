@@ -1,12 +1,13 @@
 import { Badge } from "@/components/ui/badge";
-import { 
-  AlertTriangle, 
-  Clock, 
-  TrendingUp, 
+import {
+  AlertTriangle,
+  Clock,
+  TrendingUp,
   Eye,
   Zap
 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useTranslation } from 'react-i18next';
 
 interface UrgencyIndicatorsProps {
   hasPendingOffer?: boolean;
@@ -23,15 +24,16 @@ export function UrgencyIndicators({
   daysInStage = 0,
   avgDaysInStage = 7
 }: UrgencyIndicatorsProps) {
+  const { t } = useTranslation('common');
   const indicators = [];
 
   // High urgency: Pending offer from another company
   if (hasPendingOffer) {
     indicators.push({
       icon: AlertTriangle,
-      label: "Pending Offer",
+      label: t('partner.pendingOffer', 'Pending Offer'),
       variant: "destructive" as const,
-      tooltip: "Candidate has a pending offer from another company"
+      tooltip: t('partner.pendingOfferTooltip', 'Candidate has a pending offer from another company')
     });
   }
 
@@ -39,9 +41,9 @@ export function UrgencyIndicators({
   if (noticeEndsInDays !== undefined && noticeEndsInDays <= 30) {
     indicators.push({
       icon: Clock,
-      label: `${noticeEndsInDays}d notice`,
+      label: t('partner.noticeDays', '{{days}}d notice', { days: noticeEndsInDays }),
       variant: noticeEndsInDays <= 14 ? "destructive" as const : "default" as const,
-      tooltip: `Notice period ends in ${noticeEndsInDays} days`
+      tooltip: t('partner.noticePeriodEnds', 'Notice period ends in {{days}} days', { days: noticeEndsInDays })
     });
   }
 
@@ -49,9 +51,9 @@ export function UrgencyIndicators({
   if (profileViews >= 5) {
     indicators.push({
       icon: TrendingUp,
-      label: `${profileViews} views`,
+      label: t('partner.viewCount', '{{count}} views', { count: profileViews }),
       variant: "secondary" as const,
-      tooltip: `Profile viewed ${profileViews} times by other companies`
+      tooltip: t('partner.profileViewedTimes', 'Profile viewed {{count}} times by other companies', { count: profileViews })
     });
   }
 
@@ -59,9 +61,9 @@ export function UrgencyIndicators({
   if (daysInStage > avgDaysInStage * 1.5) {
     indicators.push({
       icon: Zap,
-      label: `${daysInStage}d in stage`,
+      label: t('partner.daysInStage', '{{days}}d in stage', { days: daysInStage }),
       variant: "default" as const,
-      tooltip: `${daysInStage} days in current stage (avg: ${avgDaysInStage})`
+      tooltip: t('partner.daysInStageAvg', '{{days}} days in current stage (avg: {{avg}})', { days: daysInStage, avg: avgDaysInStage })
     });
   }
 

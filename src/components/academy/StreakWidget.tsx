@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Flame } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
 export const StreakWidget = () => {
+  const { t } = useTranslation('common');
   const [streak, setStreak] = useState(0);
   const [loading, setLoading] = useState(true);
 
@@ -72,9 +74,7 @@ export const StreakWidget = () => {
           <span className="text-4xl font-bold text-orange-500">{streak}</span>
           <span className="text-muted-foreground">days</span>
         </div>
-        <p className="text-xs text-muted-foreground mt-2">
-          Keep learning daily to maintain your streak!
-        </p>
+        <p className="text-xs text-muted-foreground mt-2">{t('academy.keepLearningDailyToMaintainYourStreak')}</p>
       </CardContent>
     </Card>
   );

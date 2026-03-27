@@ -12,6 +12,7 @@ import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { useTranslation } from 'react-i18next';
 
 interface PartnerTaskRequestDialogProps {
   open: boolean;
@@ -30,6 +31,7 @@ export const PartnerTaskRequestDialog = ({
   jobTitle,
   onTaskCreated,
 }: PartnerTaskRequestDialogProps) => {
+  const { t } = useTranslation('jobs');
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [title, setTitle] = useState("");
@@ -83,13 +85,13 @@ export const PartnerTaskRequestDialog = ({
         await supabase.from("unified_task_assignees").insert(assigneeInserts);
       }
 
-      toast.success("Task request submitted. The team will review it shortly.");
+      toast.success(t('jobdashboard.partnertaskrequestdialog.taskRequestSubmittedTheTeamWill', 'Task request submitted. The team will review it shortly.'));
       resetForm();
       onClose();
       onTaskCreated();
     } catch (err) {
       console.error("Partner task request error:", err);
-      toast.error("Failed to submit task request");
+      toast.error(t('jobdashboard.partnertaskrequestdialog.failedToSubmitTaskRequest', 'Failed to submit task request'));
     } finally {
       setLoading(false);
     }
@@ -106,14 +108,14 @@ export const PartnerTaskRequestDialog = ({
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Request a Task</DialogTitle>
+          <DialogTitle>{t('jobdashboard.partnertaskrequestdialog.requestATask', 'Request a Task')}</DialogTitle>
           <DialogDescription>
             Request an action from The Quantum Club team{jobTitle ? ` for "${jobTitle}"` : ""}.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <Label htmlFor="request-title">What do you need?</Label>
+            <Label htmlFor="request-title">{t('jobdashboard.partnertaskrequestdialog.whatDoYouNeed', 'What do you need?')}</Label>
             <Input
               id="request-title"
               placeholder="e.g. Schedule final round interview"
@@ -124,10 +126,10 @@ export const PartnerTaskRequestDialog = ({
             />
           </div>
           <div>
-            <Label htmlFor="request-desc">Additional Details</Label>
+            <Label htmlFor="request-desc">{t('jobdashboard.partnertaskrequestdialog.additionalDetails', 'Additional Details')}</Label>
             <Textarea
               id="request-desc"
-              placeholder="Any context or notes..."
+              placeholder={t('jobdashboard.partnertaskrequestdialog.anyContextOrNotes', 'Any context or notes...')}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={3}
@@ -135,20 +137,20 @@ export const PartnerTaskRequestDialog = ({
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label>Priority</Label>
+              <Label>{t('jobdashboard.partnertaskrequestdialog.priority', 'Priority')}</Label>
               <Select value={priority} onValueChange={setPriority}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="bg-popover z-50">
-                  <SelectItem value="low">Low</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="high">High</SelectItem>
+                  <SelectItem value="low">{t('jobdashboard.partnertaskrequestdialog.low', 'Low')}</SelectItem>
+                  <SelectItem value="medium">{t('jobdashboard.partnertaskrequestdialog.medium', 'Medium')}</SelectItem>
+                  <SelectItem value="high">{t('jobdashboard.partnertaskrequestdialog.high', 'High')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div>
-              <Label>Preferred Due Date</Label>
+              <Label>{t('jobdashboard.partnertaskrequestdialog.preferredDueDate', 'Preferred Due Date')}</Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button variant="outline" className="w-full justify-start text-left font-normal text-sm">
@@ -163,11 +165,9 @@ export const PartnerTaskRequestDialog = ({
             </div>
           </div>
           <div className="flex justify-end gap-2 pt-2">
-            <Button type="button" variant="outline" onClick={onClose}>
-              Cancel
-            </Button>
+            <Button type="button" variant="outline" onClick={onClose}>{t('jobdashboard.partnertaskrequestdialog.cancel', 'Cancel')}</Button>
             <Button type="submit" disabled={loading || !title.trim()}>
-              {loading ? "Submitting..." : "Submit Request"}
+              {loading ? t('jobdashboard.partnertaskrequestdialog.submitting', 'Submitting...') : t('jobdashboard.partnertaskrequestdialog.submitRequest', 'Submit Request')}
             </Button>
           </div>
         </form>

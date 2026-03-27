@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { useTopClients } from "@/hooks/useMoneybirdFinancials";
@@ -14,6 +15,7 @@ interface TopClientsTableProps {
 }
 
 export function TopClientsTable({ year, limit = 5 }: TopClientsTableProps) {
+  const { t } = useTranslation('common');
   const topClients = useTopClients(year);
   const displayClients = topClients.slice(0, limit);
 
@@ -58,11 +60,11 @@ export function TopClientsTable({ year, limit = 5 }: TopClientsTableProps) {
       <TableHeader>
         <TableRow>
           <TableHead className="w-12">#</TableHead>
-          <TableHead>Client</TableHead>
-          <TableHead className="text-right">Net Revenue</TableHead>
-          <TableHead className="text-right">Share</TableHead>
-          <TableHead className="text-right">Score</TableHead>
-          <TableHead className="text-right">Status</TableHead>
+          <TableHead>{t("client", "Client")}</TableHead>
+          <TableHead className="text-right">{t("net_revenue", "Net Revenue")}</TableHead>
+          <TableHead className="text-right">{t("share", "Share")}</TableHead>
+          <TableHead className="text-right">{t("score", "Score")}</TableHead>
+          <TableHead className="text-right">{t("status", "Status")}</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>

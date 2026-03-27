@@ -18,7 +18,8 @@ function loadPreviousStatuses(): Record<string, KPIStatus> {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
     return stored ? JSON.parse(stored) : {};
-  } catch {
+  } catch (error) {
+    console.error('[useKPIAchievements] Failed to load previous KPI statuses:', error);
     return {};
   }
 }
@@ -26,8 +27,8 @@ function loadPreviousStatuses(): Record<string, KPIStatus> {
 function savePreviousStatuses(statuses: Record<string, KPIStatus>) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(statuses));
-  } catch {
-    // Ignore storage errors
+  } catch (error) {
+    console.error('[useKPIAchievements] Failed to save KPI statuses:', error);
   }
 }
 

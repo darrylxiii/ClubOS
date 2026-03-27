@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect, useCallback } from "react";
 import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
@@ -41,6 +42,7 @@ const LANGUAGES = [
 ];
 
 export function NotetakerSettingsTab() {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [settings, setSettings] = useState<NotetakerSettings>(DEFAULT_SETTINGS);
   const [loading, setLoading] = useState(true);
@@ -158,7 +160,7 @@ export function NotetakerSettingsTab() {
             <Bot className="h-6 w-6 text-primary" />
           </div>
           <div>
-            <h3 className="text-lg font-semibold">Club AI Notetaker</h3>
+            <h3 className="text-lg font-semibold">{t("club_ai_notetaker", "Club AI Notetaker")}</h3>
             <p className="text-sm text-muted-foreground">
               Powered by QUIN — automatically joins your Google Meet calls to capture notes, generate summaries, and extract action items.
             </p>
@@ -168,7 +170,7 @@ export function NotetakerSettingsTab() {
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label htmlFor="auto-join-bookings">Auto-join all Google Meet bookings</Label>
+              <Label htmlFor="auto-join-bookings">{t("autojoin_all_google_meet", "Auto-join all Google Meet bookings")}</Label>
               <p className="text-sm text-muted-foreground">
                 Automatically join every Google Meet booked through your scheduling links.
               </p>
@@ -182,7 +184,7 @@ export function NotetakerSettingsTab() {
 
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label htmlFor="auto-join-interviews">Auto-join detected interviews</Label>
+              <Label htmlFor="auto-join-interviews">{t("autojoin_detected_interviews", "Auto-join detected interviews")}</Label>
               <p className="text-sm text-muted-foreground">
                 Automatically join calendar events detected as interviews.
               </p>
@@ -203,7 +205,7 @@ export function NotetakerSettingsTab() {
             <Mail className="h-6 w-6 text-blue-600" />
           </div>
           <div>
-            <h3 className="text-lg font-semibold">Post-Meeting Emails</h3>
+            <h3 className="text-lg font-semibold">{t("postmeeting_emails", "Post-Meeting Emails")}</h3>
             <p className="text-sm text-muted-foreground">
               Choose what you receive after each meeting.
             </p>
@@ -213,7 +215,7 @@ export function NotetakerSettingsTab() {
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label htmlFor="send-summary">Send summary email</Label>
+              <Label htmlFor="send-summary">{t("send_summary_email", "Send summary email")}</Label>
               <p className="text-sm text-muted-foreground">
                 Receive an email with the AI summary, key points, and action items.
               </p>
@@ -227,7 +229,7 @@ export function NotetakerSettingsTab() {
 
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label htmlFor="send-transcript">Include full transcript</Label>
+              <Label htmlFor="send-transcript">{t("include_full_transcript", "Include full transcript")}</Label>
               <p className="text-sm text-muted-foreground">
                 Attach the complete meeting transcript to the summary email.
               </p>
@@ -248,7 +250,7 @@ export function NotetakerSettingsTab() {
             <Globe className="h-6 w-6 text-foreground" />
           </div>
           <div>
-            <h3 className="text-lg font-semibold">Language & Quiet Hours</h3>
+            <h3 className="text-lg font-semibold">{t("language_quiet_hours", "Language & Quiet Hours")}</h3>
             <p className="text-sm text-muted-foreground">
               Configure transcription language and availability windows.
             </p>
@@ -257,7 +259,7 @@ export function NotetakerSettingsTab() {
 
         <div className="space-y-6">
           <div className="space-y-2">
-            <Label>Transcription language</Label>
+            <Label>{t("transcription_language", "Transcription language")}</Label>
             <Select
               value={settings.default_language}
               onValueChange={(v) => updateSetting('default_language', v)}
@@ -286,7 +288,7 @@ export function NotetakerSettingsTab() {
                 value={settings.quiet_hours_start || ''}
                 onChange={(e) => updateSetting('quiet_hours_start', e.target.value || null)}
                 className="w-[140px]"
-                placeholder="Start"
+                placeholder={t("start", "Start")}
               />
               <span className="text-muted-foreground">to</span>
               <Input
@@ -294,7 +296,7 @@ export function NotetakerSettingsTab() {
                 value={settings.quiet_hours_end || ''}
                 onChange={(e) => updateSetting('quiet_hours_end', e.target.value || null)}
                 className="w-[140px]"
-                placeholder="End"
+                placeholder={t("end", "End")}
               />
               {(settings.quiet_hours_start || settings.quiet_hours_end) && (
                 <Button
@@ -327,7 +329,7 @@ export function NotetakerSettingsTab() {
             <Calendar className="h-6 w-6 text-blue-600" />
           </div>
           <div>
-            <h3 className="text-lg font-semibold">Connected Calendars</h3>
+            <h3 className="text-lg font-semibold">{t("connected_calendars", "Connected Calendars")}</h3>
             <p className="text-sm text-muted-foreground">
               The notetaker uses your calendar connections to access Google Meet.
             </p>
@@ -338,8 +340,8 @@ export function NotetakerSettingsTab() {
           {calendarConnections.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               <Calendar className="h-12 w-12 mx-auto mb-3 opacity-50" />
-              <p>No calendars connected</p>
-              <p className="text-xs mt-1">Connect your Google Calendar to enable the notetaker.</p>
+              <p>{t("no_calendars_connected", "No calendars connected")}</p>
+              <p className="text-xs mt-1">{t("connect_your_google_calendar", "Connect your Google Calendar to enable the notetaker.")}</p>
             </div>
           ) : (
             calendarConnections.map(connection => (

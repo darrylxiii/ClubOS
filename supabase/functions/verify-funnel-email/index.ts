@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.58.0";
+import { resilientFetch } from '../_shared/resilient-fetch.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -30,17 +31,58 @@ serve(async (req) => {
       });
     }
 
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Check cache first (30-day TTL)
+    const { data: cached } = await supabase
+      .from('email_verification_cache')
+      .select('quality, reason')
+      .eq('email', email.toLowerCase())
+      .gte('verified_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
+      .single();
+
+    if (cached) {
+      console.log(`Cache hit for ${email}: quality=${cached.quality}`);
+
+      // Still update funnel_partial_submissions if sessionId provided
+      if (sessionId) {
+        try {
+          await supabase
+            .from('funnel_partial_submissions')
+            .update({
+              email_quality: cached.quality,
+              email_verified_at: cached.quality === 'verified' ? new Date().toISOString() : null,
+            })
+            .eq('session_id', sessionId);
+        } catch (err) {
+          console.error('Failed to update email_quality:', err);
+        }
+      }
+
+      return new Response(JSON.stringify({ quality: cached.quality, reason: cached.reason }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const millionVerifierKey = Deno.env.get('MILLIONVERIFIER_API_KEY');
     const findymailKey = Deno.env.get('FINDYMAIL_API_KEY');
 
     let quality = 'unknown';
     let reason: string | null = null;
+    let provider: string | null = null;
 
     // Step 1: MillionVerifier check
     if (millionVerifierKey) {
       try {
         const mvUrl = `https://api.millionverifier.com/api/v3/?api=${encodeURIComponent(millionVerifierKey)}&email=${encodeURIComponent(email)}`;
-        const mvRes = await fetch(mvUrl);
+        const { response: mvRes } = await resilientFetch(mvUrl, {}, {
+          timeoutMs: 10_000,
+          maxRetries: 1,
+          service: 'millionverifier',
+          operation: 'verify-email',
+        });
 
         if (mvRes.ok) {
           const mvData = await mvRes.json();
@@ -48,6 +90,7 @@ serve(async (req) => {
 
           console.log(`MillionVerifier result for ${email}:`, mvData);
 
+          provider = 'millionverifier';
           if (result === 'ok' || result === 'valid' || mvData.resultcode === 1) {
             quality = 'verified';
           } else if (result === 'catch_all' || mvData.resultcode === 4) {
@@ -71,19 +114,26 @@ serve(async (req) => {
     // Step 2: Findymail double-check for catch_all or unknown
     if ((quality === 'catch_all' || quality === 'unknown') && findymailKey) {
       try {
-        const fmRes = await fetch('https://app.findymail.com/api/verify/single', {
+        const { response: fmRes } = await resilientFetch('https://app.findymail.com/api/verify/single', {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${findymailKey}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({ email }),
+        }, {
+          timeoutMs: 10_000,
+          maxRetries: 1,
+          retryNonIdempotent: true,
+          service: 'findymail',
+          operation: 'verify-email',
         });
 
         if (fmRes.ok) {
           const fmData = await fmRes.json();
           console.log(`Findymail result for ${email}:`, fmData);
 
+          provider = 'findymail';
           if (fmData.status === 'valid' || fmData.deliverable === true) {
             quality = 'verified';
             reason = null;
@@ -99,13 +149,26 @@ serve(async (req) => {
       }
     }
 
-    // Step 3: Update funnel_partial_submissions if sessionId provided
+    // Step 3: Cache the result (only if we got a definitive answer from a provider)
+    if (provider && quality !== 'unknown') {
+      try {
+        await supabase
+          .from('email_verification_cache')
+          .upsert({
+            email: email.toLowerCase(),
+            quality,
+            reason,
+            provider,
+            verified_at: new Date().toISOString(),
+          });
+      } catch (err) {
+        console.error('Failed to cache verification result:', err);
+      }
+    }
+
+    // Step 4: Update funnel_partial_submissions if sessionId provided
     if (sessionId) {
       try {
-        const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-        const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-        const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
         await supabase
           .from('funnel_partial_submissions')
           .update({

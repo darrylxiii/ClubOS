@@ -1,17 +1,9 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
+import { createHandler } from '../_shared/handler.ts';
+import { resilientFetch } from '../_shared/resilient-fetch.ts';
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
-
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  try {
+Deno.serve(createHandler(async (req, ctx) => {
+    const { corsHeaders } = ctx;
     const ELEVENLABS_API_KEY = Deno.env.get('ELEVENLABS_API_KEY');
     if (!ELEVENLABS_API_KEY) {
       throw new Error('ELEVENLABS_API_KEY is not set');
@@ -27,13 +19,19 @@ serve(async (req) => {
     }
 
     // Request a signed URL from ElevenLabs with the agent ID
-    const response = await fetch(
+    const { response } = await resilientFetch(
       `https://api.elevenlabs.io/v1/convai/conversation/get_signed_url?agent_id=${agentId}`,
       {
         method: "GET",
         headers: {
           "xi-api-key": ELEVENLABS_API_KEY,
         },
+      },
+      {
+        timeoutMs: 10_000,
+        maxRetries: 1,
+        service: 'elevenlabs',
+        operation: 'get-signed-url',
       }
     );
 
@@ -51,13 +49,4 @@ serve(async (req) => {
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
-  } catch (error) {
-    console.error("Error:", error);
-    return new Response(JSON.stringify({ 
-      error: error instanceof Error ? error.message : 'Unknown error' 
-    }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-  }
-});
+}));

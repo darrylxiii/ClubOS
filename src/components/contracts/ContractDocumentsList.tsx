@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { FileText, Download, Trash2, FileImage, File, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -31,6 +32,7 @@ const DOCUMENT_TYPE_COLORS: Record<string, string> = {
 };
 
 export function ContractDocumentsList({ contractId, canDelete = true }: ContractDocumentsListProps) {
+  const { t } = useTranslation('common');
   const { documents, isLoading, deleteDocument, getDownloadUrl } = useContractDocuments(contractId);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -87,8 +89,8 @@ export function ContractDocumentsList({ contractId, canDelete = true }: Contract
     return (
       <div className="text-center py-12 text-muted-foreground">
         <FileText className="h-12 w-12 mx-auto mb-3 opacity-50" />
-        <p className="text-sm">No documents uploaded yet</p>
-        <p className="text-xs mt-1">Upload contracts, NDAs, or other documents</p>
+        <p className="text-sm">{t("no_documents_uploaded_yet", "No documents uploaded yet")}</p>
+        <p className="text-xs mt-1">{t("upload_contracts_ndas_or", "Upload contracts, NDAs, or other documents")}</p>
       </div>
     );
   }
@@ -153,13 +155,13 @@ export function ContractDocumentsList({ contractId, canDelete = true }: Contract
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Document</AlertDialogTitle>
+            <AlertDialogTitle>{t("delete_document", "Delete Document")}</AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to delete "{documentToDelete?.file_name}"? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t("cancel", "Cancel")}</AlertDialogCancel>
             <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
               Delete
             </AlertDialogAction>

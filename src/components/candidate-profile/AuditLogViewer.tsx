@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -14,6 +15,7 @@ interface AuditLogViewerProps {
 }
 
 export function AuditLogViewer({ candidateId }: AuditLogViewerProps) {
+  const { t } = useTranslation('common');
   const [logs, setLogs] = useState<AuditLogEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -29,7 +31,7 @@ export function AuditLogViewer({ candidateId }: AuditLogViewerProps) {
       setLogs(data || []);
     } catch (error) {
       console.error('Error loading audit history:', error);
-      toast.error('Failed to load audit history');
+      toast.error(t("failed_to_load_audit", "Failed to load audit history"));
     } finally {
       setLoading(false);
     }
@@ -56,11 +58,11 @@ export function AuditLogViewer({ candidateId }: AuditLogViewerProps) {
         <p className="font-medium text-foreground">{field.replace(/_/g, ' ').toUpperCase()}</p>
         <div className="grid grid-cols-2 gap-2 text-muted-foreground">
           <div className="space-y-1">
-            <p className="text-xs font-semibold">Before:</p>
+            <p className="text-xs font-semibold">{t("before", "Before:")}</p>
             <p className="text-xs break-all">{before ? JSON.stringify(before) : 'N/A'}</p>
           </div>
           <div className="space-y-1">
-            <p className="text-xs font-semibold">After:</p>
+            <p className="text-xs font-semibold">{t("after", "After:")}</p>
             <p className="text-xs break-all">{after ? JSON.stringify(after) : 'N/A'}</p>
           </div>
         </div>
@@ -72,7 +74,7 @@ export function AuditLogViewer({ candidateId }: AuditLogViewerProps) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Loading audit history...</CardTitle>
+          <CardTitle>{t("loading_audit_history", "Loading audit history...")}</CardTitle>
         </CardHeader>
       </Card>
     );
@@ -86,7 +88,7 @@ export function AuditLogViewer({ candidateId }: AuditLogViewerProps) {
             <FileText className="w-5 h-5" />
             Audit Log
           </CardTitle>
-          <CardDescription>Complete history of profile changes</CardDescription>
+          <CardDescription>{t("complete_history_of_profile", "Complete history of profile changes")}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-center py-8 text-muted-foreground">
@@ -140,7 +142,7 @@ export function AuditLogViewer({ candidateId }: AuditLogViewerProps) {
                   {/* Reason */}
                   {log.reason && (
                     <div className="bg-muted/50 rounded-md p-3">
-                      <p className="text-xs font-semibold text-muted-foreground mb-1">Reason:</p>
+                      <p className="text-xs font-semibold text-muted-foreground mb-1">{t("reason", "Reason:")}</p>
                       <p className="text-sm">{log.reason}</p>
                     </div>
                   )}

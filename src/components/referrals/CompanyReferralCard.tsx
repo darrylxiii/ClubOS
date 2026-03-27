@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -16,6 +17,7 @@ interface CompanyReferralCardProps {
 }
 
 export function CompanyReferralCard({ policy, earnings }: CompanyReferralCardProps) {
+  const { t } = useTranslation('common');
   const [isExpanded, setIsExpanded] = useState(false);
   const { data: jobs = [] } = useCompanyJobs(policy.company_id);
 
@@ -66,21 +68,21 @@ export function CompanyReferralCard({ policy, earnings }: CompanyReferralCardPro
             <div className="text-center">
               <div className="flex items-center justify-center gap-1 text-muted-foreground mb-1">
                 <Euro className="h-3 w-3" />
-                <span className="text-xs">Expected Revenue</span>
+                <span className="text-xs">{t("expected_revenue", "Expected Revenue")}</span>
               </div>
               <p className="text-lg font-bold">{formatCurrency(totalExpectedRevenue)}</p>
             </div>
             <div className="text-center">
               <div className="flex items-center justify-center gap-1 text-muted-foreground mb-1">
                 <Euro className="h-3 w-3" />
-                <span className="text-xs">Your Projected</span>
+                <span className="text-xs">{t("your_projected", "Your Projected")}</span>
               </div>
               <p className="text-lg font-bold text-success">{formatCurrency(projectedEarnings)}</p>
             </div>
             <div className="text-center">
               <div className="flex items-center justify-center gap-1 text-muted-foreground mb-1">
                 <Users className="h-3 w-3" />
-                <span className="text-xs">Candidates</span>
+                <span className="text-xs">{t("candidates", "Candidates")}</span>
               </div>
               <p className="text-lg font-bold">{totalCandidates}</p>
             </div>
@@ -89,7 +91,7 @@ export function CompanyReferralCard({ policy, earnings }: CompanyReferralCardPro
           {/* Stage Breakdown */}
           {Object.keys(stageBreakdown).length > 0 && (
             <div className="py-4 border-b border-border/50">
-              <p className="text-xs text-muted-foreground mb-2">Pipeline Breakdown</p>
+              <p className="text-xs text-muted-foreground mb-2">{t("pipeline_breakdown", "Pipeline Breakdown")}</p>
               <div className="flex flex-wrap gap-2">
                 {Object.entries(stageBreakdown).map(([stage, count]) => (
                   <Badge key={stage} variant="secondary" className="capitalize">

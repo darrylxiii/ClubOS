@@ -1,32 +1,20 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { moneybirdRequest } from '../_shared/moneybird-client.ts';
+import { createHandler } from '../_shared/handler.ts';
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+/** Generate a short SHA-256 hex key for idempotency */
+async function makeIdempotencyKey(source: string): Promise<string> {
+  const data = new TextEncoder().encode(source);
+  const hash = await crypto.subtle.digest('SHA-256', data);
+  return Array.from(new Uint8Array(hash)).slice(0, 16).map(b => b.toString(16).padStart(2, '0')).join('');
+}
 
-const MONEYBIRD_API_BASE = 'https://moneybird.com/api/v2';
+Deno.serve(createHandler(async (req, ctx) => {
+    const { supabase, corsHeaders } = ctx;
 
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
+    const startTime = Date.now();
+    const administrationId = Deno.env.get('MONEYBIRD_ADMINISTRATION_ID')!;
 
-  const startTime = Date.now();
-  const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-  const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-  const accessToken = Deno.env.get('MONEYBIRD_ACCESS_TOKEN')!;
-  const administrationId = Deno.env.get('MONEYBIRD_ADMINISTRATION_ID')!;
-  const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
-  try {
-    if (!accessToken || !administrationId) {
-      return new Response(
-        JSON.stringify({ error: 'Moneybird not configured' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
+    try {
 
     const body = await req.json().catch(() => ({}));
     const { companyId, syncAll = false } = body;
@@ -70,16 +58,10 @@ serve(async (req) => {
     for (const company of companies || []) {
       try {
         // Check if contact already exists in Moneybird by company name
-        const searchUrl = `${MONEYBIRD_API_BASE}/${administrationId}/contacts.json?query=${encodeURIComponent(company.name)}`;
-        const searchResponse = await fetch(searchUrl, {
-          headers: { 'Authorization': `Bearer ${accessToken}` },
-        });
-
-        if (!searchResponse.ok) {
-          throw new Error(`Search failed: ${searchResponse.status}`);
-        }
-
-        const existingContacts = await searchResponse.json();
+        const existingContacts = await moneybirdRequest<Array<Record<string, unknown>>>(
+          `contacts.json?query=${encodeURIComponent(company.name)}`,
+          { operation: 'sync-contacts-search' },
+        );
         const existingContact = existingContacts.find(
           (c: any) => c.company_name?.toLowerCase() === company.name.toLowerCase()
         );
@@ -88,61 +70,39 @@ serve(async (req) => {
 
         if (existingContact) {
           // Update existing contact
-          moneybirdContactId = existingContact.id;
+          moneybirdContactId = existingContact.id as string;
           
-          const updateResponse = await fetch(
-            `${MONEYBIRD_API_BASE}/${administrationId}/contacts/${moneybirdContactId}.json`,
-            {
-              method: 'PATCH',
-              headers: {
-                'Authorization': `Bearer ${accessToken}`,
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                contact: {
-                  company_name: company.name,
-                  address1: company.headquarters_location || '',
-                  custom_fields_attributes: {
-                    '0': { value: company.industry || '' },
-                  },
+          await moneybirdRequest(`contacts/${moneybirdContactId}.json`, {
+            method: 'PATCH',
+            body: {
+              contact: {
+                company_name: company.name,
+                address1: company.headquarters_location || '',
+                custom_fields_attributes: {
+                  '0': { value: company.industry || '' },
                 },
-              }),
-            }
-          );
-
-          if (!updateResponse.ok) {
-            throw new Error(`Update failed: ${updateResponse.status}`);
-          }
+              },
+            },
+            operation: 'sync-contacts-update',
+          });
 
           results.updated++;
           console.log(`[Moneybird Sync Contacts] Updated: ${company.name}`);
         } else {
           // Create new contact
-          const createResponse = await fetch(
-            `${MONEYBIRD_API_BASE}/${administrationId}/contacts.json`,
-            {
-              method: 'POST',
-              headers: {
-                'Authorization': `Bearer ${accessToken}`,
-                'Content-Type': 'application/json',
+          const newContact = await moneybirdRequest<Record<string, unknown>>('contacts.json', {
+            method: 'POST',
+            body: {
+              contact: {
+                company_name: company.name,
+                address1: company.headquarters_location || '',
+                customer_id: company.id,
               },
-              body: JSON.stringify({
-                contact: {
-                  company_name: company.name,
-                  address1: company.headquarters_location || '',
-                  customer_id: company.id,
-                },
-              }),
-            }
-          );
-
-          if (!createResponse.ok) {
-            const errorText = await createResponse.text();
-            throw new Error(`Create failed: ${createResponse.status} - ${errorText}`);
-          }
-
-          const newContact = await createResponse.json();
-          moneybirdContactId = newContact.id;
+            },
+            operation: 'sync-contacts-create',
+            idempotencyKey: await makeIdempotencyKey(`sync-contact:${company.id}:${company.name}`),
+          });
+          moneybirdContactId = newContact.id as string;
           results.created++;
           console.log(`[Moneybird Sync Contacts] Created: ${company.name}`);
         }
@@ -208,4 +168,4 @@ serve(async (req) => {
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
-});
+}));

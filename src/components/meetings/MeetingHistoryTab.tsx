@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -19,6 +20,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { format, isAfter, isBefore, startOfDay, endOfDay } from "date-fns";
 
 export function MeetingHistoryTab() {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
@@ -84,12 +86,12 @@ export function MeetingHistoryTab() {
 
   const handleFileUpload = async () => {
     if (!user || !uploadFile) {
-      toast.error('Please select a file to upload');
+      toast.error(t("please_select_a_file", "Please select a file to upload"));
       return;
     }
 
     if (!uploadForm.title) {
-      toast.error('Please enter a title for the recording');
+      toast.error(t("please_enter_a_title", "Please enter a title for the recording"));
       return;
     }
 
@@ -135,7 +137,7 @@ export function MeetingHistoryTab() {
       if (dbError) throw dbError;
 
       setUploadProgress(100);
-      toast.success('Recording uploaded successfully!');
+      toast.success(t("recording_uploaded_successfully", "Recording uploaded successfully!"));
       setIsUploadOpen(false);
       setUploadFile(null);
       setUploadForm({
@@ -147,7 +149,7 @@ export function MeetingHistoryTab() {
       refresh();
     } catch (err) {
       console.error('Error uploading recording:', err);
-      toast.error('Failed to upload recording');
+      toast.error(t("failed_to_upload_recording", "Failed to upload recording"));
     } finally {
       setUploadProgress(0);
     }
@@ -158,9 +160,9 @@ export function MeetingHistoryTab() {
     
     const success = await deleteRecording(id);
     if (success) {
-      toast.success('Recording deleted');
+      toast.success(t("recording_deleted", "Recording deleted"));
     } else {
-      toast.error('Failed to delete recording');
+      toast.error(t("failed_to_delete_recording", "Failed to delete recording"));
     }
   };
 
@@ -183,11 +185,11 @@ export function MeetingHistoryTab() {
         toast.success(`Imported ${data.newly_imported} new Fathom recording${data.newly_imported !== 1 ? 's' : ''}`);
         refresh();
       } else {
-        toast.info('All Fathom recordings already synced');
+        toast.info(t("all_fathom_recordings_already", "All Fathom recordings already synced"));
       }
     } catch (err: any) {
       console.error('[MeetingHistoryTab] Fathom sync error:', err);
-      toast.error('Failed to sync Fathom recordings');
+      toast.error(t("failed_to_sync_fathom", "Failed to sync Fathom recordings"));
     } finally {
       setIsSyncingFathom(false);
     }
@@ -206,11 +208,11 @@ export function MeetingHistoryTab() {
         toast.success(`Imported ${data.newly_imported} new Fireflies recording${data.newly_imported !== 1 ? 's' : ''}`);
         refresh();
       } else {
-        toast.info('All Fireflies recordings already synced');
+        toast.info(t("all_fireflies_recordings_already", "All Fireflies recordings already synced"));
       }
     } catch (err: any) {
       console.error('[MeetingHistoryTab] Fireflies sync error:', err);
-      toast.error('Failed to sync Fireflies recordings');
+      toast.error(t("failed_to_sync_fireflies", "Failed to sync Fireflies recordings"));
     } finally {
       setIsSyncingFireflies(false);
     }
@@ -236,7 +238,7 @@ export function MeetingHistoryTab() {
       {!hasCalendarConnected && (
         <Alert className="border-accent/50 bg-accent/5">
           <AlertCircle className="h-5 w-5 text-accent" />
-          <AlertTitle className="text-lg font-bold">Automatic Recording Enabled</AlertTitle>
+          <AlertTitle className="text-lg font-bold">{t("automatic_recording_enabled", "Automatic Recording Enabled")}</AlertTitle>
           <AlertDescription className="mt-2 space-y-3">
             <p className="text-muted-foreground">
               All TQC Meetings are automatically recorded and analyzed by Club AI. 
@@ -263,7 +265,7 @@ export function MeetingHistoryTab() {
                 <div className="relative">
                   <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder="Search recordings by title, transcript, or summary..."
+                    placeholder={t("search_recordings_by_title", "Search recordings by title, transcript, or summary...")}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="pl-10"
@@ -274,15 +276,15 @@ export function MeetingHistoryTab() {
                 <Select value={filterType} onValueChange={setFilterType}>
                 <SelectTrigger>
                   <Filter className="w-4 h-4 mr-2" />
-                  <SelectValue placeholder="Filter by source" />
+                  <SelectValue placeholder={t("filter_by_source", "Filter by source")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Sources</SelectItem>
-                  <SelectItem value="tqc_meeting">TQC Meetings</SelectItem>
-                  <SelectItem value="live_hub">Live Hub</SelectItem>
-                  <SelectItem value="conversation_call">Calls</SelectItem>
-                  <SelectItem value="fathom">Fathom</SelectItem>
-                  <SelectItem value="fireflies">Fireflies</SelectItem>
+                  <SelectItem value="all">{t("all_sources", "All Sources")}</SelectItem>
+                  <SelectItem value="tqc_meeting">{t("tqc_meetings", "TQC Meetings")}</SelectItem>
+                  <SelectItem value="live_hub">{t("live_hub", "Live Hub")}</SelectItem>
+                  <SelectItem value="conversation_call">{t("calls", "Calls")}</SelectItem>
+                  <SelectItem value="fathom">{t("fathom", "Fathom")}</SelectItem>
+                  <SelectItem value="fireflies">{t("fireflies", "Fireflies")}</SelectItem>
                 </SelectContent>
               </Select>
 
@@ -297,7 +299,7 @@ export function MeetingHistoryTab() {
                 ) : (
                   <RefreshCw className="w-4 h-4 mr-2" />
                 )}
-                {isSyncingFathom ? 'Syncing...' : 'Sync Fathom'}
+                {isSyncingFathom ? t('meetings.meetinghistorytab.syncing', 'Syncing...') : t('meetings.meetinghistorytab.syncFathom', 'Sync Fathom')}
               </Button>
 
               <Button
@@ -311,7 +313,7 @@ export function MeetingHistoryTab() {
                 ) : (
                   <RefreshCw className="w-4 h-4 mr-2" />
                 )}
-                {isSyncingFireflies ? 'Syncing...' : 'Sync Fireflies'}
+                {isSyncingFireflies ? t('meetings.meetinghistorytab.syncing', 'Syncing...') : t('meetings.meetinghistorytab.syncFireflies', 'Sync Fireflies')}
               </Button>
 
               <Dialog open={isUploadOpen} onOpenChange={setIsUploadOpen}>
@@ -323,14 +325,12 @@ export function MeetingHistoryTab() {
                 </DialogTrigger>
                 <DialogContent className="max-w-lg">
                   <DialogHeader>
-                    <DialogTitle>Upload Meeting Recording</DialogTitle>
-                    <DialogDescription>
-                      Add an external recording to your library
-                    </DialogDescription>
+                    <DialogTitle>{t("upload_meeting_recording", "Upload Meeting Recording")}</DialogTitle>
+                    <DialogDescription>{t('meetings.meetinghistorytab.addAnExternalRecordingToYour', 'Add an external recording to your library')}</DialogDescription>
                   </DialogHeader>
                   <div className="space-y-4">
                     <div>
-                      <Label htmlFor="file">Recording File</Label>
+                      <Label htmlFor="file">{t("recording_file", "Recording File")}</Label>
                       <Input
                         id="file"
                         type="file"
@@ -338,23 +338,21 @@ export function MeetingHistoryTab() {
                         onChange={(e) => setUploadFile(e.target.files?.[0] || null)}
                         className="cursor-pointer"
                       />
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Supported: MP4, WebM, MP3, WAV (Max 500MB)
-                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">{t('meetings.meetinghistorytab.supportedMp4WebmMp3WavMax', 'Supported: MP4, WebM, MP3, WAV (Max 500MB)')}</p>
                     </div>
 
                     <div>
-                      <Label htmlFor="title">Title *</Label>
+                      <Label htmlFor="title">{t("title", "Title *")}</Label>
                       <Input
                         id="title"
                         value={uploadForm.title}
                         onChange={(e) => setUploadForm({ ...uploadForm, title: e.target.value })}
-                        placeholder="e.g., Interview with John Doe"
+                        placeholder={t("eg_interview_with_john", "e.g., Interview with John Doe")}
                       />
                     </div>
 
                     <div>
-                      <Label htmlFor="meeting_date">Recording Date</Label>
+                      <Label htmlFor="meeting_date">{t("recording_date", "Recording Date")}</Label>
                       <Input
                         id="meeting_date"
                         type="date"
@@ -366,7 +364,7 @@ export function MeetingHistoryTab() {
                     {uploadProgress > 0 && (
                       <div className="space-y-2" role="status" aria-live="polite">
                         <div className="flex justify-between text-sm">
-                          <span>Upload progress</span>
+                          <span>{t("upload_progress", "Upload progress")}</span>
                           <span>{uploadProgress}%</span>
                         </div>
                         <div className="w-full bg-muted rounded-full h-2" role="progressbar" aria-valuenow={uploadProgress} aria-valuemin={0} aria-valuemax={100}>
@@ -387,7 +385,7 @@ export function MeetingHistoryTab() {
                       {uploadProgress > 0 ? (
                         <>
                           <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          <span className="sr-only">Upload in progress</span>
+                          <span className="sr-only">{t("upload_in_progress", "Upload in progress")}</span>
                           Upload Recording
                         </>
                       ) : (
@@ -404,7 +402,7 @@ export function MeetingHistoryTab() {
             <div className="flex items-center gap-3 flex-wrap">
               <CalendarDays className="h-4 w-4 text-muted-foreground" />
               <div className="flex items-center gap-2">
-                <Label htmlFor="date-from" className="text-sm text-muted-foreground whitespace-nowrap">From</Label>
+                <Label htmlFor="date-from" className="text-sm text-muted-foreground whitespace-nowrap">{t("from", "From")}</Label>
                 <Input
                   id="date-from"
                   type="date"
@@ -414,7 +412,7 @@ export function MeetingHistoryTab() {
                 />
               </div>
               <div className="flex items-center gap-2">
-                <Label htmlFor="date-to" className="text-sm text-muted-foreground whitespace-nowrap">To</Label>
+                <Label htmlFor="date-to" className="text-sm text-muted-foreground whitespace-nowrap">{t('meetings.meetinghistorytab.to', 'To')}</Label>
                 <Input
                   id="date-to"
                   type="date"
@@ -453,14 +451,14 @@ export function MeetingHistoryTab() {
       ) : error ? (
         <Card className="p-8 text-center">
           <AlertCircle className="h-12 w-12 mx-auto text-destructive mb-4" />
-          <h3 className="text-lg font-semibold mb-2">Failed to Load Recordings</h3>
+          <h3 className="text-lg font-semibold mb-2">{t("failed_to_load_recordings", "Failed to Load Recordings")}</h3>
           <p className="text-muted-foreground mb-4">{error}</p>
-          <Button onClick={refresh}>Try Again</Button>
+          <Button onClick={refresh}>{t("try_again", "Try Again")}</Button>
         </Card>
       ) : filteredRecordings.length === 0 ? (
         <Card className="p-12 text-center border-dashed">
           <FolderOpen className="h-16 w-16 mx-auto text-muted-foreground/50 mb-4" />
-          <h3 className="text-xl font-semibold mb-2">No Recordings Yet</h3>
+          <h3 className="text-xl font-semibold mb-2">{t("no_recordings_yet", "No Recordings Yet")}</h3>
           <p className="text-muted-foreground max-w-md mx-auto mb-6">
             {searchQuery 
               ? "No recordings match your search. Try different keywords."

@@ -4,13 +4,9 @@
  */
 
 const ALLOWED_ORIGINS = [
-  'https://thequantumclub.lovable.app',
   'https://os.thequantumclub.com',
   'https://app.thequantumclub.nl',
 ];
-
-// Match any *.lovable.app or *.lovableproject.com preview/published domain
-const LOVABLE_PATTERN = /^https:\/\/.*\.lovable(project)?\.(app|com)$/;
 
 // Allow localhost in development
 if (Deno.env.get('DENO_ENV') === 'development') {
@@ -20,7 +16,6 @@ if (Deno.env.get('DENO_ENV') === 'development') {
 export function getAuthCorsOrigin(req: Request): string {
   const origin = req.headers.get('origin') || '';
   if (ALLOWED_ORIGINS.includes(origin)) return origin;
-  if (LOVABLE_PATTERN.test(origin)) return origin;
   return ALLOWED_ORIGINS[0];
 }
 

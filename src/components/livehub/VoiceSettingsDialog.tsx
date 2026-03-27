@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import {
   Dialog,
@@ -56,6 +57,7 @@ const DEFAULT_SETTINGS: VoiceSettings = {
 };
 
 export function VoiceSettingsDialog({ open, onOpenChange }: VoiceSettingsDialogProps) {
+  const { t } = useTranslation('common');
   const [settings, setSettings] = useState<VoiceSettings>(DEFAULT_SETTINGS);
   const [devices, setDevices] = useState<{ input: MediaDeviceInfo[]; output: MediaDeviceInfo[] }>({
     input: [],
@@ -98,19 +100,19 @@ export function VoiceSettingsDialog({ open, onOpenChange }: VoiceSettingsDialogP
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Voice & Video Settings</DialogTitle>
+          <DialogTitle>{t("voice_video_settings", "Voice & Video Settings")}</DialogTitle>
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="audio">Audio</TabsTrigger>
-            <TabsTrigger value="video">Video & Background</TabsTrigger>
+            <TabsTrigger value="audio">{t("audio", "Audio")}</TabsTrigger>
+            <TabsTrigger value="video">{t("video_background", "Video & Background")}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="audio" className="space-y-6 mt-4">
             {/* Input Device */}
             <div className="space-y-2">
-              <Label>Microphone</Label>
+              <Label>{t("microphone", "Microphone")}</Label>
               <Select
                 value={settings.inputDevice}
                 onValueChange={(value) =>
@@ -132,7 +134,7 @@ export function VoiceSettingsDialog({ open, onOpenChange }: VoiceSettingsDialogP
 
             {/* Output Device */}
             <div className="space-y-2">
-              <Label>Speakers</Label>
+              <Label>{t("speakers", "Speakers")}</Label>
               <Select
                 value={settings.outputDevice}
                 onValueChange={(value) =>
@@ -157,7 +159,7 @@ export function VoiceSettingsDialog({ open, onOpenChange }: VoiceSettingsDialogP
             {/* Input Volume */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label>Input Volume</Label>
+                <Label>{t("input_volume", "Input Volume")}</Label>
                 <span className="text-sm text-muted-foreground">
                   {settings.inputVolume}%
                 </span>
@@ -175,7 +177,7 @@ export function VoiceSettingsDialog({ open, onOpenChange }: VoiceSettingsDialogP
             {/* Output Volume */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label>Output Volume</Label>
+                <Label>{t("output_volume", "Output Volume")}</Label>
                 <span className="text-sm text-muted-foreground">
                   {settings.outputVolume}%
                 </span>
@@ -194,11 +196,11 @@ export function VoiceSettingsDialog({ open, onOpenChange }: VoiceSettingsDialogP
 
             {/* Audio Processing */}
             <div className="space-y-4">
-              <Label>Audio Processing</Label>
+              <Label>{t("audio_processing", "Audio Processing")}</Label>
 
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium">Echo Cancellation</p>
+                  <p className="text-sm font-medium">{t("echo_cancellation", "Echo Cancellation")}</p>
                   <p className="text-xs text-muted-foreground">
                     Reduces echo and feedback
                   </p>
@@ -213,7 +215,7 @@ export function VoiceSettingsDialog({ open, onOpenChange }: VoiceSettingsDialogP
 
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium">Noise Suppression</p>
+                  <p className="text-sm font-medium">{t("noise_suppression", "Noise Suppression")}</p>
                   <p className="text-xs text-muted-foreground">
                     Reduces background noise
                   </p>
@@ -228,7 +230,7 @@ export function VoiceSettingsDialog({ open, onOpenChange }: VoiceSettingsDialogP
 
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium">Automatic Gain Control</p>
+                  <p className="text-sm font-medium">{t("automatic_gain_control", "Automatic Gain Control")}</p>
                   <p className="text-xs text-muted-foreground">
                     Normalizes volume levels
                   </p>
@@ -245,7 +247,7 @@ export function VoiceSettingsDialog({ open, onOpenChange }: VoiceSettingsDialogP
 
           <TabsContent value="video" className="space-y-6 mt-4">
             <div className="space-y-4">
-              <Label>Virtual Background</Label>
+              <Label>{t("virtual_background", "Virtual Background")}</Label>
               <div className="grid grid-cols-3 gap-4">
                 <button
                   onClick={() => setSettings({
@@ -258,7 +260,7 @@ export function VoiceSettingsDialog({ open, onOpenChange }: VoiceSettingsDialogP
                     }`}
                 >
                   <Ban className="w-8 h-8" />
-                  <span className="text-sm font-medium">None</span>
+                  <span className="text-sm font-medium">{t("none", "None")}</span>
                 </button>
 
                 <button
@@ -272,7 +274,7 @@ export function VoiceSettingsDialog({ open, onOpenChange }: VoiceSettingsDialogP
                     }`}
                 >
                   <Aperture className="w-8 h-8" />
-                  <span className="text-sm font-medium">Blur</span>
+                  <span className="text-sm font-medium">{t("blur", "Blur")}</span>
                 </button>
 
                 <button
@@ -286,7 +288,7 @@ export function VoiceSettingsDialog({ open, onOpenChange }: VoiceSettingsDialogP
                     }`}
                 >
                   <ImageIcon className="w-8 h-8" />
-                  <span className="text-sm font-medium">Image</span>
+                  <span className="text-sm font-medium">{t("image", "Image")}</span>
                 </button>
               </div>
 

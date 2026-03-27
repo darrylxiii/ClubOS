@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -17,6 +18,7 @@ interface Props {
 }
 
 export function PartnerOrgIntelligence({ companyId, companyName }: Props) {
+  const { t } = useTranslation('common');
   const {
     people,
     changes,
@@ -40,7 +42,7 @@ export function PartnerOrgIntelligence({ companyId, companyName }: Props) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold">Organization Intelligence</h2>
+          <h2 className="text-2xl font-bold">{t("organization_intelligence", "Organization Intelligence")}</h2>
           <p className="text-sm text-muted-foreground">
             {stats.totalPeople > 0
               ? `${stats.activePeople} active employees mapped across ${stats.departments} departments`
@@ -73,42 +75,42 @@ export function PartnerOrgIntelligence({ companyId, companyName }: Props) {
             <CardContent className="p-4 text-center">
               <Users className="w-5 h-5 mx-auto mb-1 text-muted-foreground" />
               <p className="text-2xl font-bold">{stats.activePeople}</p>
-              <p className="text-xs text-muted-foreground">Active People</p>
+              <p className="text-xs text-muted-foreground">{t("active_people", "Active People")}</p>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="p-4 text-center">
               <Building2 className="w-5 h-5 mx-auto mb-1 text-muted-foreground" />
               <p className="text-2xl font-bold">{stats.departments}</p>
-              <p className="text-xs text-muted-foreground">Departments</p>
+              <p className="text-xs text-muted-foreground">{t("departments", "Departments")}</p>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="p-4 text-center">
               <Clock className="w-5 h-5 mx-auto mb-1 text-muted-foreground" />
               <p className="text-2xl font-bold">{stats.avgTenure}y</p>
-              <p className="text-xs text-muted-foreground">Avg Tenure</p>
+              <p className="text-xs text-muted-foreground">{t("avg_tenure", "Avg Tenure")}</p>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="p-4 text-center">
               <UserCheck className="w-5 h-5 mx-auto mb-1 text-muted-foreground" />
               <p className="text-2xl font-bold">{stats.decisionMakers}</p>
-              <p className="text-xs text-muted-foreground">Decision Makers</p>
+              <p className="text-xs text-muted-foreground">{t("decision_makers", "Decision Makers")}</p>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="p-4 text-center">
               <TrendingUp className="w-5 h-5 mx-auto mb-1 text-emerald-500" />
               <p className="text-2xl font-bold">{stats.recentHires}</p>
-              <p className="text-xs text-muted-foreground">New Hires (30d)</p>
+              <p className="text-xs text-muted-foreground">{t("new_hires_30d", "New Hires (30d)")}</p>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="p-4 text-center">
               <TrendingDown className="w-5 h-5 mx-auto mb-1 text-red-500" />
               <p className="text-2xl font-bold">{stats.recentDepartures}</p>
-              <p className="text-xs text-muted-foreground">Departures (30d)</p>
+              <p className="text-xs text-muted-foreground">{t("departures_30d", "Departures (30d)")}</p>
             </CardContent>
           </Card>
         </div>
@@ -125,11 +127,11 @@ export function PartnerOrgIntelligence({ companyId, companyName }: Props) {
       {stats.totalPeople > 0 ? (
         <Tabs defaultValue="directory" className="w-full">
           <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="directory">Directory</TabsTrigger>
+            <TabsTrigger value="directory">{t("directory", "Directory")}</TabsTrigger>
             <TabsTrigger value="changes">
               Changes {changes.length > 0 && `(${changes.length})`}
             </TabsTrigger>
-            <TabsTrigger value="insights">Insights</TabsTrigger>
+            <TabsTrigger value="insights">{t("insights", "Insights")}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="directory" className="mt-6">
@@ -148,7 +150,7 @@ export function PartnerOrgIntelligence({ companyId, companyName }: Props) {
         <Card>
           <CardContent className="p-12 text-center">
             <Users className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-            <h3 className="text-lg font-semibold mb-2">No organization data yet</h3>
+            <h3 className="text-lg font-semibold mb-2">{t("no_organization_data_yet", "No organization data yet")}</h3>
             <p className="text-sm text-muted-foreground mb-6 max-w-md mx-auto">
               Scan this company's LinkedIn page to map their full organization — employees, departments, seniority levels, and more.
             </p>

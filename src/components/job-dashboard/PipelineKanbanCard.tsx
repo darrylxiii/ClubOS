@@ -3,6 +3,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, X, Eye } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslation } from 'react-i18next';
 
 interface PipelineKanbanCardProps {
   application: any;
@@ -19,6 +20,7 @@ export const PipelineKanbanCard = memo(({
   onReject,
   onViewProfile,
 }: PipelineKanbanCardProps) => {
+  const { t } = useTranslation('jobs');
   const [hovered, setHovered] = useState(false);
   const name = application.full_name || 'Candidate';
   const initials = name.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase();

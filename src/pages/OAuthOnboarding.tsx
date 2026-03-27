@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -25,6 +26,7 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp
 const STEPS = ["contact", "professional", "career", "preferences"];
 
 export default function OAuthOnboarding() {
+  const { t } = useTranslation('common');
   const { user, loading, signOut } = useAuth();
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(0);
@@ -184,7 +186,7 @@ export default function OAuthOnboarding() {
           setPhoneNumber(saved.phone || '');
           setPhoneVerified(saved.phone_verified || false);
 
-          toast.success("Welcome back! We've restored your progress");
+          toast.success(t("welcome_back_weve_restored", "Welcome back! We've restored your progress"));
         } else {
           // Pre-fill any existing data for first-time onboarding
           const employmentType = data.employment_type_preference as "fulltime" | "freelance" | "both" | null;
@@ -242,7 +244,7 @@ export default function OAuthOnboarding() {
           resume_filename: result.filename,
         }));
 
-        toast.success("Resume uploaded successfully!");
+        toast.success(t("resume_uploaded_successfully", "Resume uploaded successfully!"));
       }
     } catch (error: unknown) {
       console.error('Error uploading resume:', error);
@@ -286,7 +288,7 @@ export default function OAuthOnboarding() {
 
   const handleVerifyPhone = async () => {
     if (verificationCode.length !== 6) {
-      toast.error("Please enter a valid 6-digit code");
+      toast.error(t("please_enter_a_valid", "Please enter a valid 6-digit code"));
       return;
     }
 
@@ -294,7 +296,7 @@ export default function OAuthOnboarding() {
     if (success) {
       setPhoneVerified(true);
       setFormData(prev => ({ ...prev, phone: phoneNumber }));
-      toast.success("Phone number verified!");
+      toast.success(t("phone_number_verified", "Phone number verified!"));
     }
   };
 
@@ -302,23 +304,23 @@ export default function OAuthOnboarding() {
     switch (currentStep) {
       case 0: // Contact
         if (!phoneNumber) {
-          toast.error("Please enter your phone number");
+          toast.error(t("please_enter_your_phone", "Please enter your phone number"));
           return false;
         }
         if (!phoneVerified) {
-          toast.error("Please verify your phone number first");
+          toast.error(t("please_verify_your_phone", "Please verify your phone number first"));
           return false;
         }
         break;
       case 1: // Professional
         if (!formData.current_title) {
-          toast.error("Please enter your current job title");
+          toast.error(t("please_enter_your_current", "Please enter your current job title"));
           return false;
         }
         break;
       case 2: // Career
         if (!formData.dream_job_title) {
-          toast.error("Please enter your dream job title");
+          toast.error(t("please_enter_your_dream", "Please enter your dream job title"));
           return false;
         }
         break;
@@ -385,7 +387,7 @@ export default function OAuthOnboarding() {
     // Step 0: Contact - handle phone verification
     if (currentStep === 0) {
       if (!phoneNumber) {
-        toast.error("Please enter your phone number");
+        toast.error(t("please_enter_your_phone", "Please enter your phone number"));
         return;
       }
 
@@ -393,7 +395,7 @@ export default function OAuthOnboarding() {
         // Send OTP
         const success = await sendOTP(phoneNumber);
         if (success) {
-          toast.success("Verification code sent to your phone");
+          toast.success(t("verification_code_sent_to", "Verification code sent to your phone"));
         }
         return;
       }
@@ -461,7 +463,7 @@ export default function OAuthOnboarding() {
       }
 
       
-      toast.success("Profile completed! Welcome to The Quantum Club!");
+      toast.success(t("profile_completed_welcome_to", "Profile completed! Welcome to The Quantum Club!"));
 
       setTimeout(() => {
         navigate("/home", { replace: true });
@@ -490,7 +492,7 @@ export default function OAuthOnboarding() {
       <Card className="w-full max-w-2xl bg-card/80 backdrop-blur-xl border-border/50">
         <CardHeader className="space-y-4">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-2xl">Complete Your Profile</CardTitle>
+            <CardTitle className="text-2xl">{t("complete_your_profile", "Complete Your Profile")}</CardTitle>
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <span>Step {currentStep + 1} of {STEPS.length}</span>
@@ -499,7 +501,7 @@ export default function OAuthOnboarding() {
                 variant="ghost"
                 size="icon"
                 onClick={() => signOut()}
-                title="Sign Out"
+                title={t("sign_out", "Sign Out")}
                 className="text-muted-foreground hover:text-destructive"
               >
                 <LogOut className="w-5 h-5" />
@@ -515,11 +517,11 @@ export default function OAuthOnboarding() {
             <div className="space-y-6 animate-fade-in">
               <div className="flex items-center gap-2 mb-4">
                 <Phone className="w-5 h-5 text-primary" />
-                <h3 className="text-lg font-semibold">Contact Information</h3>
+                <h3 className="text-lg font-semibold">{t("contact_information", "Contact Information")}</h3>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="phone">Phone Number *</Label>
+                <Label htmlFor="phone">{t("phone_number", "Phone Number *")}</Label>
                 <PhoneInput
                   international
                   defaultCountry={(countryCode as any) || "NL"}
@@ -531,7 +533,7 @@ export default function OAuthOnboarding() {
                 {phoneVerified && (
                   <div className="flex items-center gap-2 text-sm text-primary">
                     <CheckCircle className="w-4 h-4" />
-                    <span>Phone verified</span>
+                    <span>{t("phone_verified", "Phone verified")}</span>
                   </div>
                 )}
               </div>
@@ -539,7 +541,7 @@ export default function OAuthOnboarding() {
               {otpSent && !phoneVerified && (
                 <div className="space-y-4">
                   <div className="p-4 bg-primary/10 rounded-lg space-y-2">
-                    <p className="text-sm font-semibold text-primary">Verify Your Phone</p>
+                    <p className="text-sm font-semibold text-primary">{t("verify_your_phone", "Verify Your Phone")}</p>
                     <p className="text-xs text-muted-foreground">
                       We sent a 6-digit code to {phoneNumber}
                     </p>
@@ -569,7 +571,7 @@ export default function OAuthOnboarding() {
                     className="w-full"
                   >
                     {isVerifying ? (
-                      <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Verifying...</>
+                      <><Loader2 className="w-4 h-4 mr-2 animate-spin" />{t("verifying", "Verifying...")}</>
                     ) : (
                       "Verify Phone"
                     )}
@@ -595,10 +597,10 @@ export default function OAuthOnboarding() {
               )}
 
               <div className="space-y-2">
-                <Label htmlFor="location">Location (optional)</Label>
+                <Label htmlFor="location">{t("location_optional", "Location (optional)")}</Label>
                 <Input
                   id="location"
-                  placeholder="e.g., Amsterdam, Netherlands"
+                  placeholder={t("eg_amsterdam_netherlands", "e.g., Amsterdam, Netherlands")}
                   value={formData.location}
                   onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
                 />
@@ -611,21 +613,21 @@ export default function OAuthOnboarding() {
             <div className="space-y-6 animate-fade-in">
               <div className="flex items-center gap-2 mb-4">
                 <Briefcase className="w-5 h-5 text-primary" />
-                <h3 className="text-lg font-semibold">Professional Information</h3>
+                <h3 className="text-lg font-semibold">{t("professional_information", "Professional Information")}</h3>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="current_title">Current Job Title *</Label>
+                <Label htmlFor="current_title">{t("current_job_title", "Current Job Title *")}</Label>
                 <Input
                   id="current_title"
-                  placeholder="e.g., Senior Software Engineer"
+                  placeholder={t("eg_senior_software_engineer", "e.g., Senior Software Engineer")}
                   value={formData.current_title}
                   onChange={(e) => setFormData(prev => ({ ...prev, current_title: e.target.value }))}
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="linkedin_url">LinkedIn Profile (optional)</Label>
+                <Label htmlFor="linkedin_url">{t("linkedin_profile_optional", "LinkedIn Profile (optional)")}</Label>
                 <Input
                   id="linkedin_url"
                   type="url"
@@ -636,10 +638,10 @@ export default function OAuthOnboarding() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="bio">Professional Bio (optional)</Label>
+                <Label htmlFor="bio">{t("professional_bio_optional", "Professional Bio (optional)")}</Label>
                 <Textarea
                   id="bio"
-                  placeholder="Tell us about your professional journey..."
+                  placeholder={t("tell_us_about_your", "Tell us about your professional journey...")}
                   value={formData.bio}
                   onChange={(e) => setFormData(prev => ({ ...prev, bio: e.target.value }))}
                   rows={4}
@@ -647,7 +649,7 @@ export default function OAuthOnboarding() {
               </div>
 
               <div className="space-y-2">
-                <Label>Resume (optional)</Label>
+                <Label>{t("resume_optional", "Resume (optional)")}</Label>
                 {formData.resume_url ? (
                   <div className="flex items-center gap-2 p-3 bg-primary/10 rounded-lg">
                     <CheckCircle className="w-5 h-5 text-primary" />
@@ -670,9 +672,9 @@ export default function OAuthOnboarding() {
                     disabled={isUploadingResume}
                   >
                     {isUploadingResume ? (
-                      <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Uploading...</>
+                      <><Loader2 className="w-4 h-4 mr-2 animate-spin" />{t("uploading", "Uploading...")}</>
                     ) : (
-                      <><Upload className="w-4 h-4 mr-2" /> Upload Resume</>
+                      <><Upload className="w-4 h-4 mr-2" />{t("upload_resume", "Upload Resume")}</>
                     )}
                   </Button>
                 )}
@@ -692,21 +694,21 @@ export default function OAuthOnboarding() {
             <div className="space-y-6 animate-fade-in">
               <div className="flex items-center gap-2 mb-4">
                 <Target className="w-5 h-5 text-primary" />
-                <h3 className="text-lg font-semibold">Career Goals</h3>
+                <h3 className="text-lg font-semibold">{t("career_goals", "Career Goals")}</h3>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="dream_job_title">Dream Job Title *</Label>
+                <Label htmlFor="dream_job_title">{t("dream_job_title", "Dream Job Title *")}</Label>
                 <Input
                   id="dream_job_title"
-                  placeholder="e.g., CTO, Lead Engineer"
+                  placeholder={t("eg_cto_lead_engineer", "e.g., CTO, Lead Engineer")}
                   value={formData.dream_job_title}
                   onChange={(e) => setFormData(prev => ({ ...prev, dream_job_title: e.target.value }))}
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="employment_type">Employment Type</Label>
+                <Label htmlFor="employment_type">{t("employment_type", "Employment Type")}</Label>
                 <Select
                   value={formData.employment_type}
                   onValueChange={(value: any) => setFormData(prev => ({ ...prev, employment_type: value }))}
@@ -715,15 +717,15 @@ export default function OAuthOnboarding() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="fulltime">Full-time Only</SelectItem>
-                    <SelectItem value="freelance">Freelance Only</SelectItem>
-                    <SelectItem value="both">Open to Both</SelectItem>
+                    <SelectItem value="fulltime">{t("fulltime_only", "Full-time Only")}</SelectItem>
+                    <SelectItem value="freelance">{t("freelance_only", "Freelance Only")}</SelectItem>
+                    <SelectItem value="both">{t("open_to_both", "Open to Both")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="notice_period">Notice Period</Label>
+                <Label htmlFor="notice_period">{t("notice_period", "Notice Period")}</Label>
                 <Select
                   value={formData.notice_period}
                   onValueChange={(value) => setFormData(prev => ({ ...prev, notice_period: value }))}
@@ -732,19 +734,19 @@ export default function OAuthOnboarding() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="immediate">Immediate</SelectItem>
-                    <SelectItem value="2_weeks">2 Weeks</SelectItem>
-                    <SelectItem value="1_month">1 Month</SelectItem>
-                    <SelectItem value="2_months">2 Months</SelectItem>
-                    <SelectItem value="3_months">3 Months</SelectItem>
+                    <SelectItem value="immediate">{t("immediate", "Immediate")}</SelectItem>
+                    <SelectItem value="2_weeks">{t("2_weeks", "2 Weeks")}</SelectItem>
+                    <SelectItem value="1_month">{t("1_month", "1 Month")}</SelectItem>
+                    <SelectItem value="2_months">{t("2_months", "2 Months")}</SelectItem>
+                    <SelectItem value="3_months">{t("3_months", "3 Months")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
                 <div className="space-y-1">
-                  <Label htmlFor="remote_work">Open to Remote Work?</Label>
-                  <p className="text-xs text-muted-foreground">Include remote opportunities</p>
+                  <Label htmlFor="remote_work">{t("open_to_remote_work", "Open to Remote Work?")}</Label>
+                  <p className="text-xs text-muted-foreground">{t("include_remote_opportunities", "Include remote opportunities")}</p>
                 </div>
                 <Switch
                   id="remote_work"
@@ -756,7 +758,7 @@ export default function OAuthOnboarding() {
               <div className="space-y-4 p-4 bg-muted/30 rounded-lg">
                 <div className="flex items-center gap-2">
                   <DollarSign className="w-5 h-5 text-primary" />
-                  <h4 className="font-semibold">Salary Expectations</h4>
+                  <h4 className="font-semibold">{t("salary_expectations", "Salary Expectations")}</h4>
                 </div>
 
                 <div className="space-y-2">
@@ -775,7 +777,7 @@ export default function OAuthOnboarding() {
                     checked={formData.salary_preference_hidden}
                     onCheckedChange={(checked) => setFormData(prev => ({ ...prev, salary_preference_hidden: checked }))}
                   />
-                  <Label className="text-sm">Hide current salary from employers</Label>
+                  <Label className="text-sm">{t("hide_current_salary_from", "Hide current salary from employers")}</Label>
                 </div>
               </div>
             </div>
@@ -786,13 +788,13 @@ export default function OAuthOnboarding() {
             <div className="space-y-6 animate-fade-in">
               <div className="flex items-center gap-2 mb-4">
                 <MapPin className="w-5 h-5 text-primary" />
-                <h3 className="text-lg font-semibold">Work Preferences</h3>
+                <h3 className="text-lg font-semibold">{t("work_preferences", "Work Preferences")}</h3>
               </div>
 
               <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
                 <div className="space-y-1">
-                  <Label>Prefer Remote Work?</Label>
-                  <p className="text-xs text-muted-foreground">Prioritize remote opportunities</p>
+                  <Label>{t("prefer_remote_work", "Prefer Remote Work?")}</Label>
+                  <p className="text-xs text-muted-foreground">{t("prioritize_remote_opportunities", "Prioritize remote opportunities")}</p>
                 </div>
                 <Switch
                   checked={formData.remote_work_preference}
@@ -801,11 +803,11 @@ export default function OAuthOnboarding() {
               </div>
 
               <div className="space-y-4">
-                <Label>Preferred Work Locations (optional)</Label>
+                <Label>{t("preferred_work_locations_optional", "Preferred Work Locations (optional)")}</Label>
                 <div className="flex gap-2">
                   <Select value={selectedCity} onValueChange={setSelectedCity}>
                     <SelectTrigger className="flex-1">
-                      <SelectValue placeholder="Select city" />
+                      <SelectValue placeholder={t("select_city", "Select city")} />
                     </SelectTrigger>
                     <SelectContent>
                       {cities.map(city => (
@@ -866,7 +868,7 @@ export default function OAuthOnboarding() {
               ) : (
                 <Button onClick={handleSubmit} disabled={isLoading}>
                   {isLoading ? (
-                    <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Completing...</>
+                    <><Loader2 className="w-4 h-4 mr-2 animate-spin" />{t("completing", "Completing...")}</>
                   ) : (
                     "Complete Profile"
                   )}

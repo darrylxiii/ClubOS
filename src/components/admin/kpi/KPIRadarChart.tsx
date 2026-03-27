@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React, { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
@@ -26,6 +27,7 @@ export function KPIRadarChart({
   className,
   showLabels = true 
 }: KPIRadarChartProps) {
+  const { t } = useTranslation('common');
   const center = size / 2;
   const maxRadius = size / 2 - 40;
 
@@ -100,10 +102,10 @@ export function KPIRadarChart({
     return (
       <Card className={className}>
         <CardHeader>
-          <CardTitle className="text-base">Domain Performance Radar</CardTitle>
+          <CardTitle className="text-base">{t("domain_performance_radar", "Domain Performance Radar")}</CardTitle>
         </CardHeader>
         <CardContent className="flex items-center justify-center h-64">
-          <p className="text-muted-foreground text-sm">No data available</p>
+          <p className="text-muted-foreground text-sm">{t("no_data_available", "No data available")}</p>
         </CardContent>
       </Card>
     );
@@ -112,7 +114,7 @@ export function KPIRadarChart({
   return (
     <Card className={className}>
       <CardHeader className="pb-2">
-        <CardTitle className="text-base font-medium">Domain Performance Radar</CardTitle>
+        <CardTitle className="text-base font-medium">{t("domain_performance_radar", "Domain Performance Radar")}</CardTitle>
       </CardHeader>
       <CardContent className="flex justify-center">
         <svg width={size} height={size} className="overflow-visible">

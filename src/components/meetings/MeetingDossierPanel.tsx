@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -36,14 +37,14 @@ interface MeetingDossierPanelProps {
   compact?: boolean;
 }
 
-export function MeetingDossierPanel({
-  bookingId,
+export function MeetingDossierPanel({  bookingId,
   meetingId,
   participantEmail,
   participantName,
   className,
   compact = false,
 }: MeetingDossierPanelProps) {
+const { t } = useTranslation('common');
   const { 
     dossiers, 
     isLoading, 
@@ -89,7 +90,7 @@ export function MeetingDossierPanel({
       <Card className={cn('border-dashed', className)}>
         <CardContent className="flex flex-col items-center justify-center py-8">
           <Sparkles className="h-12 w-12 text-muted-foreground mb-4" />
-          <h3 className="font-semibold mb-2">Generate Intelligence Brief</h3>
+          <h3 className="font-semibold mb-2">{t("generate_intelligence_brief", "Generate Intelligence Brief")}</h3>
           <p className="text-sm text-muted-foreground text-center mb-4 max-w-sm">
             Get AI-powered insights about {participantName || participantEmail} including 
             background, talking points, and ice breakers.
@@ -135,7 +136,7 @@ export function MeetingDossierPanel({
           
           {content?.suggestedTopics && content.suggestedTopics.length > 0 && (
             <div>
-              <p className="text-xs font-medium text-muted-foreground mb-1.5">Talking Points</p>
+              <p className="text-xs font-medium text-muted-foreground mb-1.5">{t("talking_points", "Talking Points")}</p>
               <div className="flex flex-wrap gap-1">
                 {content.suggestedTopics.slice(0, 3).map((topic, i) => (
                   <Badge key={i} variant="secondary" className="text-xs">
@@ -188,10 +189,10 @@ export function MeetingDossierPanel({
       <CardContent>
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="background">Background</TabsTrigger>
-            <TabsTrigger value="history">History</TabsTrigger>
-            <TabsTrigger value="prep">Prep</TabsTrigger>
+            <TabsTrigger value="overview">{t("overview", "Overview")}</TabsTrigger>
+            <TabsTrigger value="background">{t("background", "Background")}</TabsTrigger>
+            <TabsTrigger value="history">{t("history", "History")}</TabsTrigger>
+            <TabsTrigger value="prep">{t("prep", "Prep")}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="mt-4 space-y-4">
@@ -208,17 +209,17 @@ export function MeetingDossierPanel({
             <div className="grid grid-cols-3 gap-3">
               <QuickStatCard
                 icon={<MessageSquare className="h-4 w-4" />}
-                label="Interactions"
+                label={t("interactions", "Interactions")}
                 value={content?.previousInteractions?.length || 0}
               />
               <QuickStatCard
                 icon={<Users className="h-4 w-4" />}
-                label="Mutual Connections"
+                label={t("mutual_connections", "Mutual Connections")}
                 value={content?.mutualConnections?.length || 0}
               />
               <QuickStatCard
                 icon={<AlertTriangle className="h-4 w-4" />}
-                label="Red Flags"
+                label={t("red_flags", "Red Flags")}
                 value={content?.redFlags?.length || 0}
                 variant={content?.redFlags?.length ? 'warning' : 'default'}
               />
@@ -227,7 +228,7 @@ export function MeetingDossierPanel({
             {/* Personality Insights */}
             {content?.personalityInsights && (
               <div className="space-y-2">
-                <h4 className="font-medium text-sm">Communication Style</h4>
+                <h4 className="font-medium text-sm">{t("communication_style", "Communication Style")}</h4>
                 <div className="flex flex-wrap gap-2">
                   <Badge variant="outline">
                     {content.personalityInsights.communicationStyle}
@@ -289,25 +290,25 @@ export function MeetingDossierPanel({
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   {content.companyIntel.industry && (
                     <div>
-                      <span className="text-muted-foreground">Industry:</span>
+                      <span className="text-muted-foreground">{t("industry", "Industry:")}</span>
                       <p className="font-medium">{content.companyIntel.industry}</p>
                     </div>
                   )}
                   {content.companyIntel.employeeCount && (
                     <div>
-                      <span className="text-muted-foreground">Size:</span>
+                      <span className="text-muted-foreground">{t("size", "Size:")}</span>
                       <p className="font-medium">{content.companyIntel.employeeCount} employees</p>
                     </div>
                   )}
                   {content.companyIntel.fundingStatus && (
                     <div>
-                      <span className="text-muted-foreground">Funding:</span>
+                      <span className="text-muted-foreground">{t("funding", "Funding:")}</span>
                       <p className="font-medium">{content.companyIntel.fundingStatus}</p>
                     </div>
                   )}
                   {content.companyIntel.sentiment && (
                     <div>
-                      <span className="text-muted-foreground">Sentiment:</span>
+                      <span className="text-muted-foreground">{t("sentiment", "Sentiment:")}</span>
                       <Badge variant={content.companyIntel.sentiment === 'positive' ? 'default' : 'secondary'}>
                         {content.companyIntel.sentiment}
                       </Badge>
@@ -316,7 +317,7 @@ export function MeetingDossierPanel({
                 </div>
                 {content.companyIntel.recentNews?.length > 0 && (
                   <div className="space-y-1.5">
-                    <span className="text-sm text-muted-foreground">Recent News:</span>
+                    <span className="text-sm text-muted-foreground">{t("recent_news", "Recent News:")}</span>
                     {content.companyIntel.recentNews.slice(0, 3).map((news, i) => (
                       <div key={i} className="flex items-start gap-2 text-sm">
                         <TrendingUp className="h-3 w-3 text-muted-foreground mt-1" />
@@ -357,7 +358,7 @@ export function MeetingDossierPanel({
               ) : (
                 <div className="flex flex-col items-center justify-center h-full text-center">
                   <MessageSquare className="h-10 w-10 text-muted-foreground mb-3" />
-                  <p className="text-sm text-muted-foreground">No previous interactions found</p>
+                  <p className="text-sm text-muted-foreground">{t("no_previous_interactions_found", "No previous interactions found")}</p>
                   <p className="text-xs text-muted-foreground mt-1">
                     This appears to be a first-time contact
                   </p>

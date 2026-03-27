@@ -1,22 +1,12 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createHandler } from '../_shared/handler.ts';
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
-
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  try {
+Deno.serve(createHandler(async (req, ctx) => {
     const { query } = await req.json();
 
     if (!query || query.trim().length < 2) {
       return new Response(
         JSON.stringify({ companies: [] }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -34,7 +24,7 @@ serve(async (req) => {
       // Return empty array instead of erroring out
       return new Response(
         JSON.stringify({ companies: [] }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -52,14 +42,6 @@ serve(async (req) => {
 
     return new Response(
       JSON.stringify({ companies: formattedCompanies }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } }
     );
-  } catch (error) {
-    console.error('Error in search-companies:', error);
-    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
-    return new Response(
-      JSON.stringify({ error: errorMessage, companies: [] }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-  }
-});
+}));

@@ -83,9 +83,9 @@ serve(async (req) => {
       .order('start_date', { ascending: false })
       .limit(3);
 
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY not configured');
+    const GOOGLE_API_KEY = Deno.env.get('GOOGLE_API_KEY');
+    if (!GOOGLE_API_KEY) {
+      throw new Error('GOOGLE_API_KEY not configured');
     }
 
     const prompt = `Generate personalized interview preparation for a candidate.
@@ -123,14 +123,14 @@ Return a JSON object with:
 
 Generate exactly 8 tailored questions (2 per category) and 7 smart questions to ask. Make every question specific to this JD and company, not generic.`;
 
-    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    const aiResponse = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Authorization': `Bearer ${GOOGLE_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash-lite',
+        model: 'gemini-2.5-flash-lite',
         messages: [
           { role: 'system', content: 'You are an expert interview coach at a luxury recruitment agency. Generate highly specific, JD-aware preparation materials. Always respond with valid JSON only, no markdown.' },
           { role: 'user', content: prompt }
@@ -147,7 +147,7 @@ Generate exactly 8 tailored questions (2 per category) and 7 smart questions to 
         });
       }
       if (status === 402) {
-        return new Response(JSON.stringify({ error: 'AI credits exhausted.' }), {
+        return new Response(JSON.stringify({ error: 'AI quota exceeded.' }), {
           status: 402,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });

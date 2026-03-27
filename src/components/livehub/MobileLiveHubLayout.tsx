@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Menu, Search, Users, ArrowLeft } from 'lucide-react';
 import { useSwipeable } from 'react-swipeable';
@@ -62,6 +63,7 @@ const MobileLiveHubLayout = ({
   showChannelSettings,
   setShowChannelSettings,
 }: MobileLiveHubLayoutProps) => {
+  const { t } = useTranslation('meetings');
   const { impact } = useHaptics();
   const [activePanel, setActivePanel] = useState<'home' | 'servers' | 'messages' | 'notifications' | 'you'>('home');
   const [showChannelSheet, setShowChannelSheet] = useState(false);
@@ -118,12 +120,11 @@ const MobileLiveHubLayout = ({
 
   // Get contextual header title
   const getHeaderTitle = () => {
-    if (selectedConversationId) return 'Direct Message';
+    if (selectedConversationId) return t('livehub.directMessage');
     if (selectedChannelId) {
-      // You could fetch channel name here if needed
-      return 'Channel';
+      return t('livehub.channel');
     }
-    return 'The Quantum Club';
+    return t('livehub.theQuantumClub');
   };
 
   // Check if we should show back button

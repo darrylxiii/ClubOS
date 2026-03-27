@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useRef, useEffect } from 'react';
 import { WorkspacePage } from '@/hooks/useWorkspacePages';
 import { Button } from '@/components/ui/button';
@@ -51,6 +52,7 @@ export function PageHeader({
   onDuplicate,
   onToggleFavorite,
 }: PageHeaderProps) {
+  const { t } = useTranslation('common');
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [title, setTitle] = useState(page.title);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -103,7 +105,7 @@ export function PageHeader({
   const handleCopyLink = async () => {
     const pageUrl = `${window.location.origin}/pages/${page.id}`;
     await navigator.clipboard.writeText(pageUrl);
-    toast.success('Link copied to clipboard');
+    toast.success(t("link_copied_to_clipboard", "Link copied to clipboard"));
   };
 
   return (
@@ -168,7 +170,7 @@ export function PageHeader({
                 onBlur={handleTitleBlur}
                 onKeyDown={handleTitleKeyDown}
                 className="text-4xl font-bold border-none p-0 h-auto bg-transparent focus-visible:ring-0 placeholder:text-muted-foreground/50"
-                placeholder="Untitled"
+                placeholder={t("untitled", "Untitled")}
               />
             ) : (
               <h1

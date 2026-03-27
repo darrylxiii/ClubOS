@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { z } from "zod";
 import { Loader2 } from "lucide-react";
+import { useTranslation } from 'react-i18next';
 
 const referralSchema = z.object({
   friendName: z.string().min(2, "Name must be at least 2 characters"),
@@ -27,6 +28,7 @@ interface ReferralDialogProps {
 }
 
 export const ReferralDialog = ({ open, onOpenChange, jobId, jobTitle, companyName }: ReferralDialogProps) => {
+  const { t } = useTranslation('common');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     friendName: "",
@@ -60,7 +62,7 @@ export const ReferralDialog = ({ open, onOpenChange, jobId, jobTitle, companyNam
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        toast.error("You must be logged in to refer a friend");
+        toast.error(t('referraldialog.youMustBeLoggedInTo', 'You must be logged in to refer a friend'));
         return;
       }
 
@@ -131,7 +133,7 @@ export const ReferralDialog = ({ open, onOpenChange, jobId, jobTitle, companyNam
       onOpenChange(false);
     } catch (error) {
       console.error('Error creating referral:', error);
-      toast.error("Failed to send referral. Please try again.");
+      toast.error(t('referraldialog.failedToSendReferralPleaseTry', 'Failed to send referral. Please try again.'));
     } finally {
       setIsSubmitting(false);
     }
@@ -141,7 +143,7 @@ export const ReferralDialog = ({ open, onOpenChange, jobId, jobTitle, companyNam
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Refer a Friend</DialogTitle>
+          <DialogTitle>{t('referraldialog.referAFriend', 'Refer a Friend')}</DialogTitle>
           <DialogDescription>
             Refer {jobTitle} at {companyName}. Fill in your friend's details to help them get started faster.
           </DialogDescription>
@@ -149,18 +151,18 @@ export const ReferralDialog = ({ open, onOpenChange, jobId, jobTitle, companyNam
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="friendName">Friend's Full Name *</Label>
+            <Label htmlFor="friendName">{t('referraldialog.friendsFullName', 'Friend\'s Full Name *')}</Label>
             <Input
               id="friendName"
               value={formData.friendName}
               onChange={(e) => setFormData({ ...formData, friendName: e.target.value })}
-              placeholder="John Doe"
+              placeholder={t('referraldialog.johnDoe', 'John Doe')}
             />
             {errors.friendName && <p className="text-sm text-destructive">{errors.friendName}</p>}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="friendEmail">Friend's Email *</Label>
+            <Label htmlFor="friendEmail">{t('referraldialog.friendsEmail', 'Friend\'s Email *')}</Label>
             <Input
               id="friendEmail"
               type="email"
@@ -172,7 +174,7 @@ export const ReferralDialog = ({ open, onOpenChange, jobId, jobTitle, companyNam
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="friendLinkedin">Friend's LinkedIn URL</Label>
+            <Label htmlFor="friendLinkedin">{t('referraldialog.friendsLinkedinUrl', 'Friend\'s LinkedIn URL')}</Label>
             <Input
               id="friendLinkedin"
               value={formData.friendLinkedin}
@@ -184,17 +186,17 @@ export const ReferralDialog = ({ open, onOpenChange, jobId, jobTitle, companyNam
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="friendCurrentRole">Current Role</Label>
+              <Label htmlFor="friendCurrentRole">{t('referraldialog.currentRole', 'Current Role')}</Label>
               <Input
                 id="friendCurrentRole"
                 value={formData.friendCurrentRole}
                 onChange={(e) => setFormData({ ...formData, friendCurrentRole: e.target.value })}
-                placeholder="Senior Developer"
+                placeholder={t('referraldialog.seniorDeveloper', 'Senior Developer')}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="friendCurrentCompany">Current Company</Label>
+              <Label htmlFor="friendCurrentCompany">{t('referraldialog.currentCompany', 'Current Company')}</Label>
               <Input
                 id="friendCurrentCompany"
                 value={formData.friendCurrentCompany}
@@ -205,12 +207,12 @@ export const ReferralDialog = ({ open, onOpenChange, jobId, jobTitle, companyNam
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="whyGoodFit">Why is this a good fit? *</Label>
+            <Label htmlFor="whyGoodFit">{t('referraldialog.whyIsThisAGoodFit', 'Why is this a good fit? *')}</Label>
             <Textarea
               id="whyGoodFit"
               value={formData.whyGoodFit}
               onChange={(e) => setFormData({ ...formData, whyGoodFit: e.target.value })}
-              placeholder="Explain why you think your friend would be a great fit for this role..."
+              placeholder={t('referraldialog.explainWhyYouThinkYourFriend', 'Explain why you think your friend would be a great fit for this role...')}
               rows={4}
             />
             {errors.whyGoodFit && <p className="text-sm text-destructive">{errors.whyGoodFit}</p>}
@@ -225,7 +227,7 @@ export const ReferralDialog = ({ open, onOpenChange, jobId, jobTitle, companyNam
 
           <div className="flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
-              Cancel
+              {t('referraldialog.cancel', 'Cancel')}
             </Button>
             <Button type="submit" disabled={isSubmitting}>
               {isSubmitting ? (

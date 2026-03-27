@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from 'react-i18next';
 import { Helmet } from "react-helmet-async";
 import { GoogleReCaptchaProvider } from "react-google-recaptcha-v3";
 import { RECAPTCHA_SITE_KEY } from "@/config/recaptcha";
@@ -12,6 +13,7 @@ import quantumLogoLight from "@/assets/quantum-logo-dark.png";
 import quantumLogoDark from "@/assets/quantum-club-logo.png";
 
 export default function PartnerFunnel() {
+  const { t } = useTranslation('partner');
   const [isActive, setIsActive] = useState(true);
   const [liveStats, setLiveStats] = useState({
     partnerships_this_month: 0,
@@ -39,19 +41,19 @@ export default function PartnerFunnel() {
     return (
       <div className="min-h-screen bg-background">
         <Helmet>
-          <title>Partnership Applications Paused — The Quantum Club</title>
+          <title>{"Partnership Applications Paused — The Quantum Club"}</title>
         </Helmet>
         {/* Top Banner */}
         <div className="border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
           <div className="container mx-auto px-2 py-1 flex justify-center items-center">
             <img 
               src={quantumLogoDark} 
-              alt="Quantum Club" 
+              alt={t('partnerFunnel.text3')} 
               className="h-20 w-auto dark:hidden"
             />
             <img 
               src={quantumLogoLight} 
-              alt="Quantum Club" 
+              alt={t('partnerFunnel.text4')} 
               className="h-20 w-auto hidden dark:block"
             />
           </div>
@@ -60,7 +62,7 @@ export default function PartnerFunnel() {
         <div className="flex items-center justify-center p-4 min-h-[calc(100vh-80px)]">
           <Card className="max-w-2xl w-full p-12 text-center glass">
             <Sparkles className="w-16 h-16 mx-auto mb-6 text-primary" />
-            <h1 className="text-4xl font-bold mb-4">Partnership Applications Temporarily Paused</h1>
+            <h1 className="text-4xl font-bold mb-4">{t('partnerFunnel.text5')}</h1>
             <p className="text-muted-foreground text-lg">
               We're currently at capacity and not accepting new partnership applications. 
               Please check back soon or join our waitlist.
@@ -74,7 +76,7 @@ export default function PartnerFunnel() {
   const content = (
     <div className="min-h-screen bg-background">
       <Helmet>
-        <title>Partner with The Quantum Club — Access Pre-Vetted Senior Talent</title>
+        <title>{"Partner with The Quantum Club — Access Pre-Vetted Senior Talent"}</title>
         <meta name="description" content="Access pre-vetted senior talent. Tell us who you're looking for — we'll have a shortlist ready within two weeks. No upfront fees, no contracts." />
         <meta property="og:title" content="Partner with The Quantum Club — Access Pre-Vetted Senior Talent" />
         <meta property="og:description" content="Submit your hiring request and receive a curated shortlist of senior candidates within 14 days. No upfront fees, no contracts." />
@@ -119,12 +121,12 @@ export default function PartnerFunnel() {
         <div className="container mx-auto px-2 py-1 flex justify-center items-center">
           <img 
             src={quantumLogoDark} 
-            alt="Quantum Club" 
+            alt={t('partnerFunnel.text6')} 
             className="h-20 w-auto dark:hidden"
           />
           <img 
             src={quantumLogoLight} 
-            alt="Quantum Club" 
+            alt={t('partnerFunnel.text7')} 
             className="h-20 w-auto hidden dark:block"
           />
         </div>
@@ -136,12 +138,8 @@ export default function PartnerFunnel() {
           <h1 className="text-4xl md:text-5xl font-bold text-foreground leading-tight mb-3">
             0.1% of the market in hours, not days or weeks.
           </h1>
-          <p className="text-lg text-muted-foreground mb-2">
-            Describe the role. We handle the rest.
-          </p>
-          <p className="text-sm text-muted-foreground">
-            No fees until you hire. No long-term contracts.
-          </p>
+          <p className="text-lg text-muted-foreground mb-2">{t('partnerFunnel.desc')}</p>
+          <p className="text-sm text-muted-foreground">{t('partnerFunnel.desc2')}</p>
         </div>
 
         {/* How it works — compact single-line on desktop */}
@@ -150,21 +148,21 @@ export default function PartnerFunnel() {
             <div className="w-6 h-6 rounded-full bg-card/40 border border-border/30 flex items-center justify-center">
               <span className="text-muted-foreground text-xs">1</span>
             </div>
-            <span>Share your brief</span>
+            <span>{t('partnerFunnel.text8')}</span>
           </div>
           <div className="h-px flex-1 bg-border" />
           <div className="flex flex-col items-center gap-1 text-center">
             <div className="w-6 h-6 rounded-full bg-card/40 border border-border/30 flex items-center justify-center">
               <span className="text-muted-foreground text-xs">2</span>
             </div>
-            <span>Speak with a strategist</span>
+            <span>{t('partnerFunnel.text9')}</span>
           </div>
           <div className="h-px flex-1 bg-border" />
           <div className="flex flex-col items-center gap-1 text-center">
             <div className="w-6 h-6 rounded-full bg-card/40 border border-border/30 flex items-center justify-center">
               <span className="text-muted-foreground text-xs">3</span>
             </div>
-            <span>Review your shortlist</span>
+            <span>{t('partnerFunnel.text10')}</span>
           </div>
         </div>
 

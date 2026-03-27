@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { UnifiedCalendarEvent } from "@/types/calendar";
 import {
   Dialog,
@@ -28,6 +29,7 @@ interface EventDetailModalProps {
 }
 
 export function EventDetailModal({ event, open, onOpenChange }: EventDetailModalProps) {
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
   const { profileMap } = useAttendeeProfiles(event?.attendees || []);
 
@@ -54,10 +56,10 @@ export function EventDetailModal({ event, open, onOpenChange }: EventDetailModal
       );
     }
     if (event.source === 'google') {
-      return <Badge variant="secondary" className="bg-blue-500/10 text-blue-600 border-blue-500/20">Google Calendar</Badge>;
+      return <Badge variant="secondary" className="bg-blue-500/10 text-blue-600 border-blue-500/20">{t("google_calendar", "Google Calendar")}</Badge>;
     }
     if (event.source === 'microsoft') {
-      return <Badge variant="secondary" className="bg-green-500/10 text-green-600 border-green-500/20">Microsoft Calendar</Badge>;
+      return <Badge variant="secondary" className="bg-green-500/10 text-green-600 border-green-500/20">{t("microsoft_calendar", "Microsoft Calendar")}</Badge>;
     }
   };
 
@@ -165,7 +167,7 @@ export function EventDetailModal({ event, open, onOpenChange }: EventDetailModal
             <>
               <Separator />
               <div>
-                <h4 className="font-semibold mb-2">Description</h4>
+                <h4 className="font-semibold mb-2">{t("description", "Description")}</h4>
                 <p className="text-sm text-muted-foreground whitespace-pre-wrap">
                   {event.description}
                 </p>
@@ -180,7 +182,7 @@ export function EventDetailModal({ event, open, onOpenChange }: EventDetailModal
               <div className="flex items-center gap-2 p-3 bg-amber-500/5 border border-amber-500/20 rounded-lg">
                 <Sparkles className="h-5 w-5 text-amber-500" />
                 <div className="flex-1">
-                  <div className="font-medium text-sm">Club AI Notetaker Active</div>
+                  <div className="font-medium text-sm">{t("club_ai_notetaker_active", "Club AI Notetaker Active")}</div>
                   <div className="text-xs text-muted-foreground">
                     AI will join, record, and analyze this meeting
                   </div>

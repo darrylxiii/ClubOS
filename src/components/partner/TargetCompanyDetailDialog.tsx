@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -37,6 +38,7 @@ export function TargetCompanyDetailDialog({
   company,
   onRefresh,
 }: TargetCompanyDetailDialogProps) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState("");
@@ -101,13 +103,13 @@ export function TargetCompanyDetailDialog({
 
       if (error) throw error;
 
-      toast.success("Comment toegevoegd");
+      toast.success(t("comment_toegevoegd", "Comment toegevoegd"));
       setNewComment("");
       loadComments();
       onRefresh();
     } catch (error) {
       console.error("Error adding comment:", error);
-      toast.error("Fout bij toevoegen comment");
+      toast.error(t("fout_bij_toevoegen_comment", "Fout bij toevoegen comment"));
     } finally {
       setLoading(false);
     }
@@ -132,7 +134,7 @@ export function TargetCompanyDetailDialog({
           .eq("id", company.id);
 
         setHasVoted(false);
-        toast.success("Vote verwijderd");
+        toast.success(t("vote_verwijderd", "Vote verwijderd"));
       } else {
         const { error } = await supabase
           .from("target_company_votes")
@@ -146,13 +148,13 @@ export function TargetCompanyDetailDialog({
           .eq("id", company.id);
 
         setHasVoted(true);
-        toast.success("Vote toegevoegd");
+        toast.success(t("vote_toegevoegd", "Vote toegevoegd"));
       }
 
       onRefresh();
     } catch (error) {
       console.error("Error voting:", error);
-      toast.error("Fout bij stemmen");
+      toast.error(t("fout_bij_stemmen", "Fout bij stemmen"));
     }
   };
 
@@ -233,7 +235,7 @@ export function TargetCompanyDetailDialog({
           {/* Priority */}
           {company.priority && (
             <div className="space-y-2">
-              <div className="text-sm text-muted-foreground">Prioriteit</div>
+              <div className="text-sm text-muted-foreground">{t("prioriteit", "Prioriteit")}</div>
               <div className="flex items-center gap-2">
                 <div className="w-full bg-muted rounded-full h-3">
                   <div
@@ -249,7 +251,7 @@ export function TargetCompanyDetailDialog({
           {/* Job Specifications */}
           {jobSpecs.length > 0 && (
             <div className="space-y-2">
-              <div className="text-sm text-muted-foreground">Functie Specificaties</div>
+              <div className="text-sm text-muted-foreground">{t("functie_specificaties", "Functie Specificaties")}</div>
               <div className="flex flex-wrap gap-2">
                 {jobSpecs.map((spec: string, idx: number) => (
                   <Badge key={idx} variant="outline">
@@ -263,7 +265,7 @@ export function TargetCompanyDetailDialog({
           {/* Notes */}
           {company.notes && (
             <div className="space-y-2">
-              <div className="text-sm text-muted-foreground">Notities</div>
+              <div className="text-sm text-muted-foreground">{t("notities", "Notities")}</div>
               <div className="rounded-lg bg-muted p-4 text-sm">{company.notes}</div>
             </div>
           )}
@@ -286,14 +288,14 @@ export function TargetCompanyDetailDialog({
 
           {/* Comments Section */}
           <div className="space-y-4 pt-4 border-t">
-            <h3 className="font-semibold">Comments</h3>
+            <h3 className="font-semibold">{t("comments", "Comments")}</h3>
 
             {/* Add Comment */}
             <div className="flex gap-2">
               <Textarea
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
-                placeholder="Voeg een comment toe..."
+                placeholder={t("voeg_een_comment_toe", "Voeg een comment toe...")}
                 rows={3}
               />
               <Button onClick={handleAddComment} disabled={loading || !newComment.trim()}>
@@ -324,9 +326,7 @@ export function TargetCompanyDetailDialog({
                 </div>
               ))}
               {comments.length === 0 && (
-                <div className="text-center py-8 text-muted-foreground">
-                  Nog geen comments
-                </div>
+                <div className="text-center py-8 text-muted-foreground">{t('targetCompanyDetailDialog.nogGeenComments')}</div>
               )}
             </div>
           </div>

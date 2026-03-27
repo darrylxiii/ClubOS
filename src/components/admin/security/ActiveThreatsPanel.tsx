@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -37,6 +38,7 @@ const severityConfig: Record<ThreatSeverity, { color: string; bgColor: string; i
 };
 
 export function ActiveThreatsPanel() {
+  const { t } = useTranslation('common');
   const { data: threats, isLoading } = useThreatEvents(20);
   const resolveThreat = useResolveThreat();
   const blockIP = useBlockIP();
@@ -70,7 +72,7 @@ export function ActiveThreatsPanel() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Active Threats</CardTitle>
+          <CardTitle>{t("active_threats", "Active Threats")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
@@ -102,7 +104,7 @@ export function ActiveThreatsPanel() {
             {activeThreats.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-32 text-muted-foreground">
                 <CheckCircle className="h-8 w-8 mb-2 text-green-500" />
-                <span>No active threats</span>
+                <span>{t("no_active_threats", "No active threats")}</span>
               </div>
             ) : (
               <div className="space-y-3">
@@ -189,7 +191,7 @@ export function ActiveThreatsPanel() {
       <Dialog open={showDetails} onOpenChange={setShowDetails}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>Threat Details</DialogTitle>
+            <DialogTitle>{t("threat_details", "Threat Details")}</DialogTitle>
             <DialogDescription>
               Review and resolve this security threat
             </DialogDescription>
@@ -199,11 +201,11 @@ export function ActiveThreatsPanel() {
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <span className="text-sm text-muted-foreground">Type</span>
+                  <span className="text-sm text-muted-foreground">{t("type", "Type")}</span>
                   <p className="font-medium capitalize">{selectedThreat.event_type.replace('_', ' ')}</p>
                 </div>
                 <div>
-                  <span className="text-sm text-muted-foreground">Severity</span>
+                  <span className="text-sm text-muted-foreground">{t("severity", "Severity")}</span>
                   <Badge className={severityConfig[selectedThreat.severity].color}>
                     {selectedThreat.severity.toUpperCase()}
                   </Badge>
@@ -211,7 +213,7 @@ export function ActiveThreatsPanel() {
               </div>
 
               <div>
-                <span className="text-sm text-muted-foreground">Description</span>
+                <span className="text-sm text-muted-foreground">{t("description", "Description")}</span>
                 <p>{selectedThreat.description}</p>
               </div>
 
@@ -231,7 +233,7 @@ export function ActiveThreatsPanel() {
 
               {selectedThreat.attack_details && Object.keys(selectedThreat.attack_details).length > 0 && (
                 <div>
-                  <span className="text-sm text-muted-foreground">Attack Details</span>
+                  <span className="text-sm text-muted-foreground">{t("attack_details", "Attack Details")}</span>
                   <pre className="mt-1 p-2 bg-muted rounded text-xs overflow-auto">
                     {JSON.stringify(selectedThreat.attack_details, null, 2)}
                   </pre>
@@ -239,9 +241,9 @@ export function ActiveThreatsPanel() {
               )}
 
               <div>
-                <span className="text-sm text-muted-foreground">Resolution Notes</span>
+                <span className="text-sm text-muted-foreground">{t("resolution_notes", "Resolution Notes")}</span>
                 <Input
-                  placeholder="Add notes about how this was resolved..."
+                  placeholder={t("add_notes_about_how", "Add notes about how this was resolved...")}
                   value={resolutionNotes}
                   onChange={(e) => setResolutionNotes(e.target.value)}
                   className="mt-1"

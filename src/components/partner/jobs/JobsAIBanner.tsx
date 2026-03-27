@@ -4,6 +4,7 @@ import { Brain, X, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAggregatedHiringIntelligence } from '@/hooks/useAggregatedHiringIntelligence';
 import { motion, AnimatePresence } from '@/lib/motion';
+import { useTranslation } from 'react-i18next';
 
 interface JobsAIBannerProps {
   companyId?: string;
@@ -15,6 +16,7 @@ const DISMISS_KEY = 'jobs_ai_banner_dismissed';
 const DISMISS_DURATION = 24 * 60 * 60 * 1000; // 24 hours
 
 export const JobsAIBanner = memo(({ companyId, onViewDetails, className }: JobsAIBannerProps) => {
+  const { t } = useTranslation('partner');
   const [isDismissed, setIsDismissed] = useState(true);
   const { data: insights, isLoading } = useAggregatedHiringIntelligence(companyId);
 

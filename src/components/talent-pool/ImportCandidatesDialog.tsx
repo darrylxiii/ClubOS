@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useCallback } from 'react';
 import {
   Dialog,
@@ -37,6 +38,7 @@ export function ImportCandidatesDialog({
   onOpenChange,
   onSuccess,
 }: ImportCandidatesDialogProps) {
+  const { t } = useTranslation('common');
   const [file, setFile] = useState<File | null>(null);
   const [parsedData, setParsedData] = useState<ParsedCandidate[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -88,7 +90,7 @@ export function ImportCandidatesDialog({
       setParsedData(parsed);
     } catch (error) {
       console.error('Parse error:', error);
-      toast.error('Failed to parse file');
+      toast.error(t("failed_to_parse_file", "Failed to parse file"));
     } finally {
       setIsParsing(false);
     }
@@ -97,7 +99,7 @@ export function ImportCandidatesDialog({
   const handleImport = async () => {
     const validCandidates = parsedData.filter(c => c.isValid);
     if (validCandidates.length === 0) {
-      toast.error('No valid candidates to import');
+      toast.error(t("no_valid_candidates_to", "No valid candidates to import"));
       return;
     }
 
@@ -131,7 +133,7 @@ export function ImportCandidatesDialog({
       setParsedData([]);
     } catch (error) {
       console.error('Import error:', error);
-      toast.error('Failed to import candidates', { id: toastId });
+      toast.error(t("failed_to_import_candidates", "Failed to import candidates"), { id: toastId });
     } finally {
       setIsLoading(false);
     }
@@ -156,7 +158,7 @@ export function ImportCandidatesDialog({
         <div className="space-y-4">
           {/* File Upload */}
           <div className="space-y-2">
-            <Label>CSV File</Label>
+            <Label>{t("csv_file", "CSV File")}</Label>
             <div className="border-2 border-dashed rounded-lg p-6 text-center hover:border-primary/50 transition-colors">
               <Input
                 type="file"

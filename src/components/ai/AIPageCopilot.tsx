@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
@@ -24,6 +25,7 @@ interface AIPageCopilotProps {
 }
 
 export function AIPageCopilot({ currentPage, contextData, onAction }: AIPageCopilotProps) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
@@ -144,7 +146,7 @@ export function AIPageCopilot({ currentPage, contextData, onAction }: AIPageCopi
         .eq('id', suggestion.id);
       
       loadSuggestions();
-      toast.success('AI suggestion applied');
+      toast.success(t("ai_suggestion_applied", "AI suggestion applied"));
     } catch (error) {
       console.error('Error updating suggestion:', error);
     }
@@ -197,7 +199,7 @@ export function AIPageCopilot({ currentPage, contextData, onAction }: AIPageCopi
           {loading ? (
             <div className="text-center py-8">
               <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-              <p className="text-sm text-muted-foreground mt-2">Loading suggestions...</p>
+              <p className="text-sm text-muted-foreground mt-2">{t("loading_suggestions", "Loading suggestions...")}</p>
             </div>
           ) : suggestions.length === 0 ? (
             <Card>
@@ -256,7 +258,7 @@ export function AIPageCopilot({ currentPage, contextData, onAction }: AIPageCopi
               <div className="flex items-start gap-3">
                 <Sparkles className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-sm font-medium mb-1">Need more help?</p>
+                  <p className="text-sm font-medium mb-1">{t("need_more_help", "Need more help?")}</p>
                   <p className="text-xs text-muted-foreground">
                     Chat with Club AI for personalized assistance and answers to any questions.
                   </p>

@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { useTranslation } from 'react-i18next';
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
@@ -33,6 +34,7 @@ export function EmailSidebar({
   unreadCount,
   onCompose,
 }: EmailSidebarProps) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [lastSync, setLastSync] = useState<string | null>(null);
 

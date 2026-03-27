@@ -1,4 +1,5 @@
 -- Create task_comments table
+DROP TABLE IF EXISTS public.task_comments CASCADE;
 CREATE TABLE public.task_comments (
   id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   task_id UUID NOT NULL REFERENCES public.unified_tasks(id) ON DELETE CASCADE,

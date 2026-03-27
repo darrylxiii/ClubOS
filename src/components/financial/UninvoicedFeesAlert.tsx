@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -12,6 +13,7 @@ import { differenceInDays } from "date-fns";
  * Surfaces a material receivables gap for finance review.
  */
 export function UninvoicedFeesAlert() {
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
 
   const { data, isLoading } = useQuery({
@@ -53,7 +55,7 @@ export function UninvoicedFeesAlert() {
   return (
     <Alert variant="destructive" className="mb-6 border-destructive/50 bg-destructive/10">
       <FileWarning className="h-4 w-4 text-destructive" />
-      <AlertTitle className="text-destructive">Uninvoiced Placement Fees</AlertTitle>
+      <AlertTitle className="text-destructive">{t("uninvoiced_placement_fees", "Uninvoiced Placement Fees")}</AlertTitle>
       <AlertDescription className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mt-2">
         <div>
           <span className="font-semibold">{data.count}</span> placement fee{data.count !== 1 ? 's' : ''} totaling{' '}

@@ -1,10 +1,4 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { createHandler } from '../_shared/handler.ts';
 
 interface CalculationResult {
   function_name: string;
@@ -27,16 +21,13 @@ const logStep = (step: string, details?: unknown) => {
   console.log(`[KPI-SCHEDULER] ${step}${detailsStr}`);
 };
 
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
+Deno.serve(createHandler(async (req, ctx) => {
+  const { supabase, corsHeaders } = ctx;
 
   const startTime = Date.now();
   const traceId = crypto.randomUUID();
   const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
   const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
-  const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
   // Helper to log execution events
   const logEvent = async (
@@ -347,15 +338,15 @@ serve(async (req) => {
     );
     
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         error: errorMessage,
         duration_ms: Date.now() - startTime,
         trace_id: traceId,
       }),
-      { 
-        status: 500, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       }
     );
   }
-});
+}));

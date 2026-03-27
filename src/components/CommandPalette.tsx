@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -75,6 +76,7 @@ const allCommands: CommandItem[] = [
 ];
 
 export function CommandPalette() {
+  const { t } = useTranslation('common');
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const { currentRole } = useRole();
@@ -115,9 +117,9 @@ export function CommandPalette() {
 
   return (
     <CommandDialog open={open} onOpenChange={setOpen}>
-      <CommandInput placeholder="Type a command or search..." />
+      <CommandInput placeholder={t("type_a_command_or", "Type a command or search...")} />
       <CommandList>
-        <CommandEmpty>No results found.</CommandEmpty>
+        <CommandEmpty>{t("no_results_found", "No results found.")}</CommandEmpty>
         
         {Object.entries(groupedCommands).map(([category, items], index) => (
           <div key={category}>

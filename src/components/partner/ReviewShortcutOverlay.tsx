@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Keyboard } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface ShortcutEntry {
   keys: string[];
@@ -29,6 +30,7 @@ interface ReviewShortcutOverlayProps {
 }
 
 export function ReviewShortcutOverlay({ mode }: ReviewShortcutOverlayProps) {
+  const { t } = useTranslation('partner');
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -57,9 +59,7 @@ export function ReviewShortcutOverlay({ mode }: ReviewShortcutOverlayProps) {
             <Keyboard className="h-5 w-5 text-primary" />
             Keyboard Shortcuts
           </DialogTitle>
-          <DialogDescription>
-            Speed up your review workflow with these shortcuts.
-          </DialogDescription>
+          <DialogDescription>{t('reviewShortcutOverlay.dialogDescription')}</DialogDescription>
         </DialogHeader>
         <div className="space-y-2 mt-2">
           {shortcuts.map((shortcut, i) => (

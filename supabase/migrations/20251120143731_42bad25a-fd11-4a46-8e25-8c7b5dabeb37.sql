@@ -76,6 +76,7 @@ CREATE POLICY "Admins can view all events"
   );
 
 -- Create RPC function: track_user_event
+DROP FUNCTION IF EXISTS public.track_user_event(UUID, TEXT, TEXT, TEXT, JSONB, TEXT, TEXT, TEXT, INTEGER);
 CREATE OR REPLACE FUNCTION public.track_user_event(
   p_user_id UUID,
   p_session_id TEXT,

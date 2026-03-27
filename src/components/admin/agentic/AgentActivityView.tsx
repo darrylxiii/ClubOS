@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { formatDistanceToNow } from 'date-fns';
+import { useTranslation } from 'react-i18next';
 
 interface AgentDecision {
   id: string;
@@ -15,6 +16,7 @@ interface AgentDecision {
 }
 
 export default function AgentActivityView() {
+  const { t } = useTranslation('admin');
   const [decisions, setDecisions] = useState<AgentDecision[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -38,7 +40,7 @@ export default function AgentActivityView() {
   }, []);
 
   if (loading) {
-    return <div className="text-center py-8 text-muted-foreground">Loading...</div>;
+    return <div className="text-center py-8 text-muted-foreground">{t('common:status.loading')}</div>;
   }
 
   return (
@@ -46,12 +48,12 @@ export default function AgentActivityView() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Agent</TableHead>
-            <TableHead>Decision Type</TableHead>
-            <TableHead>Action</TableHead>
-            <TableHead>Confidence</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Time</TableHead>
+            <TableHead>{t('agentic.agentActivityView.agent')}</TableHead>
+            <TableHead>{t('agentic.agentActivityView.decisionType')}</TableHead>
+            <TableHead>{t('agentic.agentActivityView.action')}</TableHead>
+            <TableHead>{t('agentic.agentActivityView.confidence')}</TableHead>
+            <TableHead>{t('common:fields.status')}</TableHead>
+            <TableHead>{t('agentic.agentActivityView.time')}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>

@@ -1,4 +1,4 @@
-import { corsHeaders } from '../_shared/cors.ts';
+import { createHandler } from '../_shared/handler.ts';
 
 const SERVICE_PROVIDER_CONFIG = {
   schemas: ['urn:ietf:params:scim:schemas:core:2.0:ServiceProviderConfig'],
@@ -194,15 +194,9 @@ const RESOURCE_TYPES = {
   ],
 };
 
-Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
-
+Deno.serve(createHandler(async (req, ctx) => {
   const url = new URL(req.url);
   const path = url.pathname.toLowerCase();
-
-  try {
     let response: any;
 
     if (path.includes('serviceproviderconfig') || path.endsWith('/')) {
@@ -226,20 +220,6 @@ Deno.serve(async (req) => {
     }
 
     return new Response(JSON.stringify(response), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/scim+json' },
+      headers: { ...ctx.corsHeaders, 'Content-Type': 'application/scim+json' },
     });
-
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Internal server error';
-    console.error('SCIM ServiceProviderConfig error:', error);
-
-    return new Response(JSON.stringify({
-      schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
-      detail: errorMessage,
-      status: 500,
-    }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/scim+json' },
-    });
-  }
-});
+}));

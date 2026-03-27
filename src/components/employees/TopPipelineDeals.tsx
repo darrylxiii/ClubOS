@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Briefcase } from 'lucide-react';
@@ -17,6 +18,7 @@ const stageBadgeVariants: Record<string, string> = {
 };
 
 export function TopPipelineDeals({ deals, isLoading }: TopPipelineDealsProps) {
+  const { t } = useTranslation('common');
   if (isLoading) {
     return (
       <Card>
@@ -36,13 +38,13 @@ export function TopPipelineDeals({ deals, isLoading }: TopPipelineDealsProps) {
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
           <Briefcase className="h-4 w-4" />
-          Top Pipeline Deals
+          {t('employees.topPipelineDeals')}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
         {deals.length === 0 ? (
           <p className="text-center text-muted-foreground py-8">
-            No deals in pipeline yet. Start sourcing!
+            {t('employees.noDealsInPipeline')}
           </p>
         ) : (
           deals.map((deal, idx) => (
@@ -68,7 +70,7 @@ export function TopPipelineDeals({ deals, isLoading }: TopPipelineDealsProps) {
                 <div className="text-right">
                   <p className="font-semibold">{formatCurrency(deal.weighted_value)}</p>
                   <p className="text-xs text-muted-foreground">
-                    {Math.round(deal.probability * 100)}% prob
+                    {Math.round(deal.probability * 100)}% {t('employees.prob')}
                   </p>
                 </div>
               </div>

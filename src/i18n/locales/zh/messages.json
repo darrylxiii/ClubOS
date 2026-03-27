@@ -1,0 +1,303 @@
+{
+  "title": "消息",
+  "subtitle": "您的对话",
+  "compose": {
+    "title": "撰写消息",
+    "newMessage": "新消息",
+    "to": "收件人",
+    "subject": "主题",
+    "body": "消息内容",
+    "send": "发送",
+    "cancel": "取消",
+    "saveDraft": "保存草稿",
+    "attachFile": "添加附件",
+    "insertEmoji": "插入表情"
+  },
+  "inbox": {
+    "title": "收件箱",
+    "all": "所有消息",
+    "unread": "未读",
+    "starred": "已加星标",
+    "archived": "已归档",
+    "spam": "垃圾邮件",
+    "trash": "已删除",
+    "empty": "您的收件箱为空"
+  },
+  "sent": {
+    "title": "已发送",
+    "empty": "暂无已发送的消息"
+  },
+  "drafts": {
+    "title": "草稿",
+    "empty": "暂无草稿"
+  },
+  "search": {
+    "placeholder": "搜索消息...",
+    "noResults": "未找到消息",
+    "inConversation": "在此对话中",
+    "filters": "搜索 filters"
+  },
+  "actions": {
+    "reply": "回复",
+    "replyAll": "全部回复",
+    "forward": "转发",
+    "delete": "删除",
+    "archive": "归档",
+    "unarchive": "取消归档",
+    "markAsRead": "标记为已读",
+    "markAsUnread": "标记为未读",
+    "star": "加星标",
+    "unstar": "取消星标",
+    "moveToTrash": "移至已删除",
+    "markAsSpam": "标记为垃圾邮件",
+    "print": "打印"
+  },
+  "conversation": {
+    "title": "对话",
+    "typeMessage": "输入消息...",
+    "send": "发送",
+    "sendMessage": "发送 消息",
+    "loadMore": "加载更多消息",
+    "noMessages": "暂无消息",
+    "startConversation": "开始对话"
+  },
+  "attachments": {
+    "title": "附件",
+    "add": "添加附件",
+    "remove": "移除",
+    "download": "下载",
+    "preview": "预览",
+    "maxSize": "最大 文件 大小: 25MB",
+    "supportedFormats": "Supported formats: PDF, DOC, DOCX, JPG, PNG"
+  },
+  "notifications": {
+    "newMessage": "收到新消息",
+    "messageSent": "消息发送成功",
+    "messageDeleted": "消息已删除",
+    "messageArchived": "消息已归档",
+    "draftSaved": "草稿已保存"
+  },
+  "templates": {
+    "title": "消息模板",
+    "create": "创建模板",
+    "edit": "编辑模板",
+    "delete": "删除模板",
+    "use": "使用模板",
+    "name": "模板名称",
+    "content": "模板内容"
+  },
+  "filters": {
+    "all": "全部",
+    "unread": "未读",
+    "hasAttachments": "含附件",
+    "fromMe": "我发送的",
+    "toMe": "发送给我的",
+    "dateRange": "日期范围"
+  },
+  "labels": {
+    "title": "标签",
+    "create": "创建标签",
+    "edit": "编辑标签",
+    "delete": "删除标签",
+    "apply": "应用标签",
+    "remove": "移除标签",
+    "noLabels": "暂无标签"
+  },
+  "settings": {
+    "title": "消息设置",
+    "notifications": "通知偏好",
+    "signature": "邮件签名",
+    "autoReply": "自动回复",
+    "blockedSenders": "已屏蔽的发件人"
+  },
+  "bulk": {
+    "selectAll": "全选",
+    "deselectAll": "取消全选",
+    "selected": "已选择",
+    "deleteSelected": "删除所选",
+    "archiveSelected": "归档所选",
+    "markAllRead": "全部标记为已读"
+  },
+  "status": {
+    "sending": "正在发送...",
+    "sent": "已发送",
+    "delivered": "已送达",
+    "read": "已读",
+    "failed": "发送失败"
+  },
+  "empty": {
+    "noConversations": "暂无对话",
+    "startNew": "开始新对话",
+    "noResults": "没有匹配您搜索的消息"
+  },
+  "quickReplies": {
+    "title": "快捷回复",
+    "thankYou": "感谢您的来信！",
+    "willReply": "我会尽快回复您。",
+    "acknowledged": "已收到，谢谢！",
+    "custom": "自定义回复..."
+  },
+  "typing": {
+    "indicator": "正在输入...",
+    "multiple": "正在输入..."
+  },
+  "online": {
+    "online": "在线",
+    "offline": "离线",
+    "away": "暂离",
+    "busy": "忙碌"
+  },
+  "videoCall": {
+    "joinedRoom": "加入时间 会议 room",
+    "mediaConnected": "Camera and microphone 已连接",
+    "joinedNoMedia": "加入时间 无 camera/microphone. You can try reconnecting from 设置.",
+    "dbError": "数据库 错误. 重试中...",
+    "connectFailed": "Could not 连接 to 会议 room. 请重试.",
+    "joinFailed": "失败 to 加入 call. 请重试.",
+    "cameraRequired": "Camera/Microphone 访问 必填",
+    "enablePermissions": "Please 启用 camera and microphone 权限 in your browser to 开始 a 视频 call.",
+    "howToEnable": "How to 启用 权限:",
+    "step1": "点击 the camera 图标 in your browser's 地址 柱状图",
+    "step2": "选择 \"Allow\" for both camera and microphone",
+    "step3": "点击 the \"重试\" 按钮 以下",
+    "mediaReconnected": "Camera and microphone reconnected",
+    "mediaConnectFailed": "失败 to 连接 media. Please check your 权限.",
+    "screenShareStarted": "筛查 sharing 已开始",
+    "screenShareFailed": "失败 to 开始 筛查 sharing",
+    "waitingForOthers": "等待中 for 其他 to 加入",
+    "shareLinkOrWait": "分享 the 会议 链接 or wait for 其他 participants",
+    "mediaNotConnected": "Your camera and microphone are not 已连接",
+    "connectCameraMic": "连接 Camera & Mic",
+    "connected": "已连接",
+    "participantCount": "{{count}} participant",
+    "you": "You",
+    "annotate": "标注",
+    "startVideoCall": "开始 视频 call",
+    "callLogMessage": "📹 视频 call ended • 时长: {{duration}} • {{count}} participant{{suffix}}"
+  },
+  "voiceRecorder": {
+    "recordingStarted": "Recording 已开始",
+    "micDenied": "Microphone 访问被拒绝. Please allow microphone 权限 in your browser 设置.",
+    "micNotFound": "No microphone found on your device.",
+    "micAccessFailed": "Could not 访问 microphone. Please check your device 设置.",
+    "transcribed": "音频 transcribed successfully",
+    "transcribeFailed": "Could not transcribe 音频, sending 无 transcript",
+    "sent": "Voice note 已发送",
+    "sendFailed": "失败 to 发送 voice note",
+    "cancelRecording": "取消 录制",
+    "stopAndSend": "停止 and 发送",
+    "stop": "停止",
+    "transcribing": "Transcribing 音频...",
+    "uploading": "Uploading voice note...",
+    "recordVoiceNote": "记录 voice note",
+    "microphone": "麦克风"
+  },
+  "youtube": {
+    "invalidUrl": "Invalid YouTube URL",
+    "pasteValidLink": "Please 粘贴 a valid YouTube 视频 链接",
+    "videoAdded": "YouTube 视频 已添加",
+    "shareVideo": "分享 YouTube 视频",
+    "shareVideoTitle": "分享 YouTube 视频",
+    "pasteUrl": "粘贴 a YouTube 视频 URL to 分享",
+    "preview": "预览",
+    "addVideo": "添加 视频",
+    "videoLabel": "YouTube 视频",
+    "videoPlayer": "YouTube 视频 player",
+    "popOut": "Pop Out",
+    "thumbnailAlt": "YouTube 视频 thumbnail"
+  },
+  "call": {
+    "microphone": "麦克风",
+    "endCall": "End call",
+    "voiceCallLogMessage": "📞 Voice call ended • 时长: {{duration}}",
+    "micAccessGranted": "Microphone 访问 granted",
+    "micAccessDenied": "Microphone 访问被拒绝. Please allow 权限 in your browser.",
+    "micNotFound": "No microphone found on your device.",
+    "micAccessFailed": "失败 to 访问 microphone. Please check your device.",
+    "micRequired": "Microphone 访问 必填",
+    "enableMicPermissions": "Please 启用 microphone 权限 in your browser to 开始 a voice call.",
+    "clickMicIcon": "点击 the microphone 图标 in your browser's 地址 柱状图 to allow 访问.",
+    "close": "关闭",
+    "startVoice": "开始 voice call",
+    "chooseHow": "Choose how to 连接",
+    "audioCall": "音频 Call",
+    "videoCall": "视频 Call",
+    "encrypted": "Your call will be end-to-end encrypted"
+  },
+  "group": {
+    "groupInfo": "分组 信息",
+    "chatInfo": "聊天 信息",
+    "closeInfoPanel": "关闭 信息 面板",
+    "members": "成员",
+    "membersLabel": "成员",
+    "noParticipantData": "No participant data 可用",
+    "member": "成员",
+    "sharedFiles": "已共享 文件",
+    "sharedLinks": "已共享 链接"
+  },
+  "messageActions": {
+    "options": "消息 选项",
+    "replyInThread": "回复 in 线程",
+    "forwardMessage": "转发 消息",
+    "editMessage": "编辑 消息",
+    "deleteMessage": "删除 消息",
+    "deleteConfirmation": "This will 永久删除 this 消息. 此操作无法撤销.",
+    "deleteFailed": "删除 消息失败",
+    "translatedSuccess": "Translated successfully",
+    "translateFailed": "失败 to translate 消息",
+    "translateDutch": "Translate to Dutch",
+    "translateEnglish": "Translate to English",
+    "translateSpanish": "Translate to Spanish"
+  },
+  "thread": {
+    "title": "线程",
+    "replySent": "回复 已发送",
+    "replyFailed": "发送 回复失败",
+    "replyPlaceholder": "回复 to 线程...",
+    "sendReply": "发送 回复",
+    "edited": "edited"
+  },
+  "story": {
+    "forwarded": "故事 forwarded successfully",
+    "forwardFailed": "转发 故事失败",
+    "altText": "故事",
+    "forward": "转发 故事",
+    "forwardTo": "转发 故事 To"
+  },
+  "sharedMedia": {
+    "loading": "加载中 media...",
+    "noFiles": "No 文件 已共享 yet",
+    "images": "Images",
+    "videos": "Videos",
+    "documents": "文档",
+    "fileDownloaded": "文件 已下载",
+    "downloadFailed": "下载 文件失败"
+  },
+  "communicationIntelligence": {
+    "desc": "所有沟通的统一视图，配备 AI 驱动的洞察分析",
+    "text2": "沟通智能",
+    "text3": "全部实体",
+    "text4": "候选人",
+    "text5": "潜在客户",
+    "text6": "合作伙伴",
+    "text7": "健康",
+    "text8": "需要关注",
+    "text9": "存在风险",
+    "text10": "严重",
+    "text11": "沟通时间线",
+    "text12": "暂无已追踪的关系",
+    "text13": "检测到的模式",
+    "text14": "未检测到模式"
+  },
+  "messages": {
+    "text1": "欢迎来到消息中心",
+    "text2": "开始与您的联系人进行对话",
+    "text3": "消息",
+    "text4": "搜索对话和消息...",
+    "text5": "选择一个对话",
+    "text6": "从现有对话中选择或开始新对话"
+  },
+  "whatsAppInbox": {
+    "text1": "WhatsApp 商业版"
+  }
+}

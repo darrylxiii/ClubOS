@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Instagram, Twitter, Video, Linkedin, Facebook, Youtube, Plus, Trash2, RefreshCw, ExternalLink } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,6 +31,7 @@ interface SocialAccount {
 }
 
 export const ConnectedAccounts = () => {
+  const { t } = useTranslation("common");
   const [accounts, setAccounts] = useState<SocialAccount[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -52,7 +54,7 @@ export const ConnectedAccounts = () => {
       setAccounts(data || []);
     } catch (error) {
       console.error("Error fetching accounts:", error);
-      toast.error("Failed to load connected accounts");
+      toast.error(t('social.accounts.loadFailed'));
     } finally {
       setLoading(false);
     }
@@ -67,17 +69,17 @@ export const ConnectedAccounts = () => {
 
       if (error) throw error;
       
-      toast.success("Account disconnected");
+      toast.success(t('social.accounts.disconnected'));
       fetchAccounts();
     } catch (error) {
       console.error("Error disconnecting account:", error);
-      toast.error("Failed to disconnect account");
+      toast.error(t('social.accounts.disconnectFailed'));
     }
   };
 
   const handleConnect = (platform: string) => {
-    toast.info(`Opening ${platform} connection...`, {
-      description: "You'll be redirected to authenticate"
+    toast.info(t('social.accounts.openingConnection', { platform }), {
+      description: t('social.accounts.redirectToAuth')
     });
     // In production, this would open OAuth flow
   };
@@ -105,7 +107,7 @@ export const ConnectedAccounts = () => {
     <div className="space-y-6">
       {/* Connected Accounts */}
       <div>
-        <h3 className="text-lg font-semibold mb-4">Connected Accounts</h3>
+        <h3 className="text-lg font-semibold mb-4">{t('social.accounts.title')}</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {loading ? (
             <div className="col-span-2 text-center py-12">
@@ -114,9 +116,9 @@ export const ConnectedAccounts = () => {
           ) : accounts.length === 0 ? (
             <Card className="col-span-2 p-12 text-center bg-card/50">
               <div className="text-6xl mb-4">🔗</div>
-              <h3 className="text-xl font-semibold mb-2">No Accounts Connected</h3>
+              <h3 className="text-xl font-semibold mb-2">{t('social.accounts.noAccounts')}</h3>
               <p className="text-muted-foreground">
-                Connect your social media accounts to start managing them
+                {t('social.accounts.noAccountsDescription')}
               </p>
             </Card>
           ) : (
@@ -131,7 +133,7 @@ export const ConnectedAccounts = () => {
                       <div className="flex items-center gap-2">
                         <h4 className="font-semibold">{account.display_name}</h4>
                         <Badge variant={account.is_active ? "default" : "secondary"}>
-                          {account.is_active ? "Active" : "Inactive"}
+                          {account.is_active ? t('social.accounts.active') : t('social.accounts.inactive')}
                         </Badge>
                       </div>
                       <p className="text-sm text-muted-foreground">@{account.username}</p>
@@ -151,11 +153,11 @@ export const ConnectedAccounts = () => {
                     onClick={() => window.open(account.profile_url, '_blank')}
                   >
                     <ExternalLink className="h-3 w-3" />
-                    View Profile
+                    {t('social.accounts.viewProfile')}
                   </Button>
                   <Button variant="outline" size="sm" className="gap-2">
                     <RefreshCw className="h-3 w-3" />
-                    Sync
+                    {t('social.accounts.sync')}
                   </Button>
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
@@ -165,16 +167,15 @@ export const ConnectedAccounts = () => {
                     </AlertDialogTrigger>
                     <AlertDialogContent>
                       <AlertDialogHeader>
-                        <AlertDialogTitle>Disconnect Account?</AlertDialogTitle>
+                        <AlertDialogTitle>{t('social.accounts.disconnectTitle')}</AlertDialogTitle>
                         <AlertDialogDescription>
-                          This will remove @{account.username} from your connected accounts. 
-                          You can reconnect it anytime.
+                          {t('social.accounts.disconnectDescription', { username: account.username })}
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogCancel>{t('actions.cancel')}</AlertDialogCancel>
                         <AlertDialogAction onClick={() => handleDisconnect(account.id)}>
-                          Disconnect
+                          {t('social.accounts.disconnect')}
                         </AlertDialogAction>
                       </AlertDialogFooter>
                     </AlertDialogContent>
@@ -188,7 +189,7 @@ export const ConnectedAccounts = () => {
 
       {/* Available Platforms */}
       <div>
-        <h3 className="text-lg font-semibold mb-4">Connect More Platforms</h3>
+        <h3 className="text-lg font-semibold mb-4">{t('social.accounts.connectMore')}</h3>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
           {platforms.map((platform) => {
             const isConnected = accounts.some(a => a.platform === platform);
@@ -205,7 +206,7 @@ export const ConnectedAccounts = () => {
                 </div>
                 <p className="font-medium capitalize">{platform}</p>
                 {isConnected && (
-                  <Badge variant="secondary" className="mt-2 text-xs">Connected</Badge>
+                  <Badge variant="secondary" className="mt-2 text-xs">{t('social.accounts.connected')}</Badge>
                 )}
               </Card>
             );

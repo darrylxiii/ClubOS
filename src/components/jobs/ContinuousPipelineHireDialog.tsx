@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import {
   Dialog,
@@ -56,6 +57,7 @@ export function ContinuousPipelineHireDialog({
   applications,
   onSuccess,
 }: ContinuousPipelineHireDialogProps) {
+  const { t } = useTranslation('common');
   const [selectedApplicationId, setSelectedApplicationId] = useState<string>("");
   const [actualSalary, setActualSalary] = useState<string>("");
   const [notes, setNotes] = useState("");
@@ -136,13 +138,13 @@ export function ContinuousPipelineHireDialog({
         <div className="space-y-4 py-4">
           {/* Candidate Selection */}
           <div className="space-y-2">
-            <Label htmlFor="candidate">Select Candidate</Label>
+            <Label htmlFor="candidate">{t("select_candidate", "Select Candidate")}</Label>
             <Select
               value={selectedApplicationId}
               onValueChange={setSelectedApplicationId}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Choose candidate to hire" />
+                <SelectValue placeholder={t("choose_candidate_to_hire", "Choose candidate to hire")} />
               </SelectTrigger>
               <SelectContent>
                 {activeApplications.map((app) => (
@@ -163,13 +165,13 @@ export function ContinuousPipelineHireDialog({
             <>
               {/* Actual Salary */}
               <div className="space-y-2">
-                <Label htmlFor="salary">Actual Salary (Annual)</Label>
+                <Label htmlFor="salary">{t("actual_salary_annual", "Actual Salary (Annual)")}</Label>
                 <div className="relative">
                   <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     id="salary"
                     type="number"
-                    placeholder="e.g., 85000"
+                    placeholder={t("eg_85000", "e.g., 85000")}
                     value={actualSalary}
                     onChange={(e) => setActualSalary(e.target.value)}
                     className="pl-9"
@@ -181,7 +183,7 @@ export function ContinuousPipelineHireDialog({
               {salaryValue > 0 && (
                 <div className="rounded-lg border bg-muted/30 p-4 space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Salary</span>
+                    <span className="text-muted-foreground">{t("salary", "Salary")}</span>
                     <span>{formatCurrency(salaryValue)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
@@ -205,10 +207,10 @@ export function ContinuousPipelineHireDialog({
 
               {/* Notes */}
               <div className="space-y-2">
-                <Label htmlFor="notes">Notes (Optional)</Label>
+                <Label htmlFor="notes">{t("notes_optional", "Notes (Optional)")}</Label>
                 <Textarea
                   id="notes"
-                  placeholder="Any relevant notes about this hire..."
+                  placeholder={t("any_relevant_notes_about", "Any relevant notes about this hire...")}
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   rows={2}

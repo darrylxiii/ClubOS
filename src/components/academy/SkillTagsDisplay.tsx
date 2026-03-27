@@ -1,5 +1,6 @@
 import { memo } from 'react';
 import { Badge } from '@/components/ui/badge';
+import { useTranslation } from 'react-i18next';
 
 interface Skill {
   skill_name: string;
@@ -24,6 +25,7 @@ export const SkillTagsDisplay = memo<SkillTagsDisplayProps>(({
   maxVisible = 3,
   onSkillClick,
 }) => {
+  const { t } = useTranslation('common');
   if (!skills || skills.length === 0) return null;
 
   const visibleSkills = skills.slice(0, maxVisible);
@@ -51,7 +53,7 @@ export const SkillTagsDisplay = memo<SkillTagsDisplayProps>(({
       })}
       {remainingCount > 0 && (
         <Badge variant="outline" className="text-xs">
-          +{remainingCount} more
+          {t('academy.moreSkills', '+{{count}} more', { count: remainingCount })}
         </Badge>
       )}
     </div>

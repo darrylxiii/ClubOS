@@ -1,42 +1,10 @@
-import { createClient } from "npm:@supabase/supabase-js@2";
+import { createAuthenticatedHandler } from '../_shared/handler.ts';
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-application-name, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
-};
-
-Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
-  const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
-  const anonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
+Deno.serve(createAuthenticatedHandler(async (req, ctx) => {
+  const supabase = ctx.supabase;
+  const user = ctx.user;
   const apifyKey = Deno.env.get('APIFY_API_KEY');
 
-  // Auth check
-  const authHeader = req.headers.get('Authorization');
-  if (!authHeader) {
-    return new Response(JSON.stringify({ error: 'Authentication required' }), {
-      status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-  }
-
-  const supabaseAuth = createClient(supabaseUrl, anonKey, {
-    global: { headers: { Authorization: authHeader } },
-  });
-  const { data: { user }, error: authError } = await supabaseAuth.auth.getUser();
-  if (authError || !user) {
-    return new Response(JSON.stringify({ error: 'Invalid authentication' }), {
-      status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-  }
-
-  // Service role client for writes
-  const supabase = createClient(supabaseUrl, serviceRoleKey);
-
-  try {
     const { companyId, action } = await req.json();
 
     if (!companyId) throw new Error('companyId is required');
@@ -142,7 +110,7 @@ Deno.serve(async (req) => {
               ? 'Could not determine employee count. The company LinkedIn URL may be incorrect.'
               : null,
         },
-      }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }), { headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } });
     }
 
     // ========== ACTION: start (begin full scan) ==========
@@ -246,7 +214,7 @@ Deno.serve(async (req) => {
         message: allProfileUrls.length > 0
           ? `Found ${allProfileUrls.length} employees. Enrichment will process in batches.`
           : 'No employees found. Check the company LinkedIn URL.',
-      }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }), { headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } });
     }
 
     // ========== ACTION: pause / resume ==========
@@ -258,19 +226,9 @@ Deno.serve(async (req) => {
         .eq('id', scanJobId);
 
       return new Response(JSON.stringify({ success: true, status: newStatus }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
     throw new Error(`Unknown action: ${action}. Use 'estimate', 'start', 'pause', or 'resume'.`);
-
-  } catch (error) {
-    console.error('scan-partner-organization error:', error);
-    return new Response(JSON.stringify({
-      error: error instanceof Error ? error.message : 'Unknown error',
-    }), {
-      status: 400,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-  }
-});
+}));

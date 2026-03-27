@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from 'react-i18next';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -8,6 +9,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
 export const InviteGate = () => {
+  const { t } = useTranslation('common');
   const [code, setCode] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showWaitlist, setShowWaitlist] = useState(false);
@@ -37,7 +39,7 @@ export const InviteGate = () => {
       }
     } catch (error) {
       console.error("Error validating invite:", error);
-      toast.error("Error validating invite code. Please try again.");
+      toast.error(t('landing.errorValidatingInviteCodePleaseTryAgain'));
     } finally {
       setIsLoading(false);
       setCode("");
@@ -72,7 +74,7 @@ export const InviteGate = () => {
         setIsSuccess(false);
       }, 1500);
     } catch (error) {
-      toast.error("Something went wrong. Please try again.");
+      toast.error(t('landing.somethingWentWrongPleaseTryAgain'));
     } finally {
       setIsLoading(false);
     }
@@ -87,7 +89,7 @@ export const InviteGate = () => {
             <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
             <Input
               type="text"
-              placeholder="ENTER ACCESS CODE"
+              placeholder={t('landing.eNTERACCESSCODE')}
               value={code}
               onChange={(e) => setCode(e.target.value.toUpperCase())}
               className="relative pl-10 h-12 text-sm font-bold uppercase tracking-wider border-2 border-foreground/20 focus:border-foreground/40 bg-background/50 backdrop-blur-sm transition-all duration-300"
@@ -108,7 +110,7 @@ export const InviteGate = () => {
             onClick={() => setShowWaitlist(true)}
             className="group relative text-sm text-muted-foreground hover:text-foreground transition-all duration-300 underline decoration-dotted underline-offset-4"
           >
-            <span className="relative z-10">Don't have an invite? Join the waitlist</span>
+            <span className="relative z-10">{t('landing.dontHaveAnInviteJoinTheWaitlist')}</span>
             <div className="absolute inset-0 bg-foreground/5 scale-0 group-hover:scale-100 transition-transform duration-300 rounded -mx-3 -my-2"></div>
           </button>
         </div>
@@ -130,7 +132,7 @@ export const InviteGate = () => {
             <form onSubmit={handleWaitlistSubmit} className="space-y-4 mt-4">
               <div>
                 <Input
-                  placeholder="Full Name"
+                  placeholder={t('landing.fullName')}
                   value={waitlistData.name}
                   onChange={(e) => setWaitlistData({ ...waitlistData, name: e.target.value })}
                   required
@@ -140,7 +142,7 @@ export const InviteGate = () => {
               <div>
                 <Input
                   type="email"
-                  placeholder="Email Address"
+                  placeholder={t('landing.emailAddress')}
                   value={waitlistData.email}
                   onChange={(e) => setWaitlistData({ ...waitlistData, email: e.target.value })}
                   required
@@ -150,7 +152,7 @@ export const InviteGate = () => {
               <div>
                 <Input
                   type="url"
-                  placeholder="LinkedIn Profile (Optional)"
+                  placeholder={t('landing.linkedInProfileOptional')}
                   value={waitlistData.linkedin}
                   onChange={(e) => setWaitlistData({ ...waitlistData, linkedin: e.target.value })}
                   className="border-2 border-foreground/20 focus:border-foreground transition-all duration-300"
@@ -167,9 +169,7 @@ export const InviteGate = () => {
           ) : (
             <div className="text-center py-8 space-y-4 animate-fade-in">
               <div className="text-6xl">🎉</div>
-              <p className="text-sm text-muted-foreground">
-                Check your email for next steps
-              </p>
+              <p className="text-sm text-muted-foreground">{t('landing.checkYourEmailForNextSteps')}</p>
             </div>
           )}
         </DialogContent>

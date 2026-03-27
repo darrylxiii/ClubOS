@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect, useRef } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -29,6 +30,7 @@ interface SharedModuleChatProps {
 }
 
 export function SharedModuleChat({ moduleId, moduleName }: SharedModuleChatProps) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [newMessage, setNewMessage] = useState('');
@@ -178,7 +180,7 @@ export function SharedModuleChat({ moduleId, moduleName }: SharedModuleChatProps
               <MessageSquare className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <h3 className="font-semibold">Module Discussion</h3>
+              <h3 className="font-semibold">{t("module_discussion", "Module Discussion")}</h3>
               <p className="text-xs text-muted-foreground line-clamp-1">
                 {moduleName}
               </p>
@@ -265,7 +267,7 @@ export function SharedModuleChat({ moduleId, moduleName }: SharedModuleChatProps
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             onKeyPress={handleKeyPress}
-            placeholder="Type your message..."
+            placeholder={t("type_your_message", "Type your message...")}
             disabled={loading}
           />
           <Button

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { FileText } from "lucide-react";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 
@@ -6,6 +7,7 @@ interface AboutRoleSectionProps {
 }
 
 export function AboutRoleSection({ description }: AboutRoleSectionProps) {
+  const { t } = useTranslation('common');
   if (!description) return null;
 
   return (
@@ -14,8 +16,8 @@ export function AboutRoleSection({ description }: AboutRoleSectionProps) {
         <div className="flex items-center gap-3">
           <FileText className="w-6 h-6 text-primary flex-shrink-0" />
           <div>
-            <h3 className="text-xl font-black">About the Role</h3>
-            <p className="text-sm text-muted-foreground">Full job description</p>
+            <h3 className="text-xl font-black">{t("about_the_role", "About the Role")}</h3>
+            <p className="text-sm text-muted-foreground">{t("full_job_description", "Full job description")}</p>
           </div>
         </div>
       </CardHeader>

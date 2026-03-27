@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Loader2 } from "lucide-react";
@@ -22,6 +23,7 @@ const stateColors: Record<string, string> = {
 };
 
 export function MoneybirdInvoicesTable({ year, limit }: MoneybirdInvoicesTableProps) {
+  const { t } = useTranslation('common');
   const { data: invoices, isLoading } = useMoneybirdInvoices(year);
 
   if (isLoading) {
@@ -49,13 +51,13 @@ export function MoneybirdInvoicesTable({ year, limit }: MoneybirdInvoicesTablePr
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Date</TableHead>
-            <TableHead>Client</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead className="text-right">Net</TableHead>
+            <TableHead>{t("date", "Date")}</TableHead>
+            <TableHead>{t("client", "Client")}</TableHead>
+            <TableHead>{t("status", "Status")}</TableHead>
+            <TableHead className="text-right">{t("net", "Net")}</TableHead>
             <TableHead className="text-right">VAT</TableHead>
-            <TableHead className="text-right">Total</TableHead>
-            <TableHead className="text-right">Paid</TableHead>
+            <TableHead className="text-right">{t("total", "Total")}</TableHead>
+            <TableHead className="text-right">{t("paid", "Paid")}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>

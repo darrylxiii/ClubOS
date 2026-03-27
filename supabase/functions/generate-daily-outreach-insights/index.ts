@@ -1,23 +1,9 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { createHandler } from '../_shared/handler.ts';
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
-
-Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
+Deno.serve(createHandler(async (_req, ctx) => {
     // === 6-HOUR CACHE GUARD: skip full regeneration if recent insights exist ===
     const sixHoursAgo = new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString();
-    const { data: recentInsight } = await supabase
+    const { data: recentInsight } = await ctx.supabase
       .from('crm_outreach_insights')
       .select('id, created_at')
       .gte('created_at', sixHoursAgo)
@@ -26,7 +12,7 @@ Deno.serve(async (req) => {
 
     if (recentInsight) {
       console.log('[generate-daily-outreach-insights] Cache hit — returning recent insights');
-      const { data: cachedInsights } = await supabase
+      const { data: cachedInsights } = await ctx.supabase
         .from('crm_outreach_insights')
         .select('*')
         .gte('created_at', sixHoursAgo)
@@ -37,7 +23,7 @@ Deno.serve(async (req) => {
         cached: true,
         insights: cachedInsights || [],
         generatedAt: recentInsight.created_at,
-      }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }), { headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } });
     }
 
     // Gather data for analysis
@@ -45,24 +31,24 @@ Deno.serve(async (req) => {
     const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
 
     // Get campaign performance
-    const { data: campaigns } = await supabase
+    const { data: campaigns } = await ctx.supabase
       .from('crm_campaigns')
       .select('*')
       .gte('updated_at', weekAgo.toISOString());
 
     // Get recent replies
-    const { data: replies } = await supabase
+    const { data: replies } = await ctx.supabase
       .from('crm_email_replies')
       .select('*, crm_reply_intelligence(*)')
       .gte('created_at', weekAgo.toISOString());
 
     // Get account health
-    const { data: accounts } = await supabase
+    const { data: accounts } = await ctx.supabase
       .from('instantly_account_health')
       .select('*');
 
     // Get predictions
-    const { data: predictions } = await supabase
+    const { data: predictions } = await ctx.supabase
       .from('crm_lead_predictions')
       .select('*')
       .gte('updated_at', weekAgo.toISOString())
@@ -73,16 +59,16 @@ Deno.serve(async (req) => {
     const totalSent = campaigns?.reduce((sum, c) => sum + (c.total_sent || 0), 0) || 0;
     const totalOpened = campaigns?.reduce((sum, c) => sum + (c.total_opened || 0), 0) || 0;
     const totalReplied = campaigns?.reduce((sum, c) => sum + (c.total_replied || 0), 0) || 0;
-    
+
     const openRate = totalSent > 0 ? (totalOpened / totalSent) * 100 : 0;
     const replyRate = totalSent > 0 ? (totalReplied / totalSent) * 100 : 0;
 
-    const hotReplies = replies?.filter(r => 
+    const hotReplies = replies?.filter(r =>
       r.smart_category === 'hot' || r.smart_category === 'interested'
     ).length || 0;
 
-    const avgHealthScore = accounts?.length 
-      ? accounts.reduce((sum, a) => sum + (a.health_score || 0), 0) / accounts.length 
+    const avgHealthScore = accounts?.length
+      ? accounts.reduce((sum, a) => sum + (a.health_score || 0), 0) / accounts.length
       : 100;
 
     const highProbabilityLeads = predictions?.filter(p => p.conversion_probability >= 70).length || 0;
@@ -159,27 +145,19 @@ Deno.serve(async (req) => {
 
     // Store insights in database
     for (const insight of insights) {
-      await supabase.from('crm_outreach_insights').insert({
+      await ctx.supabase.from('crm_outreach_insights').insert({
         ...insight,
         is_actionable: true,
         expires_at: new Date(today.getTime() + 24 * 60 * 60 * 1000).toISOString(), // 24h expiry
       });
     }
 
-    return new Response(JSON.stringify({ 
+    return new Response(JSON.stringify({
       success: true,
       executiveSummary,
       insights,
       generatedAt: new Date().toISOString(),
     }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' },
     });
-  } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    console.error('Daily insights generation error:', error);
-    return new Response(JSON.stringify({ error: errorMessage }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-  }
-});
+}));

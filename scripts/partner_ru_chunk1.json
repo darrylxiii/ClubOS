@@ -1,0 +1,166 @@
+{
+  "funnelAnalytics": {
+    "text1": "Аналитика воронки",
+    "text2": "Отслеживание запросов партнёров в реальном времени",
+    "text3": "Всего просмотров",
+    "text4": "Уникальные сессии",
+    "text5": "Отправки",
+    "text6": "Конверсия",
+    "text7": "Процент отсева",
+    "text8": "Прогресс по этапам воронки",
+    "text9": "Распределение статусов запросов",
+    "text10": "Запросы партнёров",
+    "text11": "Фильтр по статусу",
+    "text12": "Все статусы",
+    "text13": "Ожидает",
+    "text14": "На рассмотрении",
+    "text15": "Одобрено",
+    "text16": "Отклонено",
+    "text17": "Дата",
+    "text18": "Компания",
+    "text19": "Контакт",
+    "text20": "Отрасль",
+    "text21": "Тип",
+    "text22": "Статус",
+    "text23": "Источник"
+  },
+  "partnerAnalyticsDashboard": {
+    "text1": "С Вашим аккаунтом не связана компания",
+    "text2": "Обзор",
+    "text3": "Воронка",
+    "text4": "Тренды",
+    "text5": "Бенчмарки"
+  },
+  "partnerFunnel": {
+    "desc": "Опишите роль. Мы позаботимся об остальном.",
+    "desc2": "Без комиссий до найма. Без долгосрочных контрактов.",
+    "text3": "Quantum Club",
+    "text4": "Quantum Club",
+    "text5": "Приём заявок на партнёрство временно приостановлен",
+    "text6": "Quantum Club",
+    "text7": "Quantum Club",
+    "text8": "Поделитесь Вашим запросом",
+    "text9": "Поговорите со стратегом",
+    "text10": "Просмотрите Ваш шорт-лист"
+  },
+  "partnerRejections": {
+    "text1": "Возможности пула талантов",
+    "text2": "Поиск кандидатов...",
+    "text3": "Все вакансии",
+    "text4": "Все вакансии",
+    "text5": "Все причины",
+    "text6": "Все причины"
+  },
+  "partnerRelationships": {
+    "text1": "Связи с кандидатами",
+    "text2": "Отслеживайте и развивайте Ваши контакты с кандидатами"
+  },
+  "partnerSetup": {
+    "desc": "Нажмите на иконку камеры для загрузки",
+    "desc2": "Мы можем автоматически импортировать Вашу фотографию из LinkedIn."
+  },
+  "partnerWelcome": {
+    "title": "Что дальше",
+    "desc": "Ваша организация",
+    "desc2": "Ваш персональный стратег",
+    "desc3": "Обзор открытых ролей",
+    "desc4": "Просматривайте эксклюзивные возможности, подобранные для Вашей сети",
+    "desc5": "Предложить кандидатов",
+    "desc6": "Представляйте лучших специалистов через наш оптимизированный процесс",
+    "desc7": "Запланировать онбординг-звонок"
+  },
+  "addCandidateDialog": {
+    "toast": {
+      "duplicateEmailDetected": "Обнаружен дублирующий email",
+      "duplicateEmailDetectedDesc": "Кандидат с таким email уже существует. Пожалуйста, найдите существующего кандидата или используйте другой email.",
+      "databaseError": "Ошибка базы данных",
+      "databaseErrorDesc": "Не удалось привязать данные кандидата. Попробуйте ещё раз или обратитесь в поддержку.",
+      "permissionDenied": "Доступ запрещён",
+      "permissionDeniedDesc": "У Вас нет прав для добавления кандидатов. Обратитесь к администратору.",
+      "duplicateCandidate": "Дублирующий кандидат",
+      "duplicateCandidateDesc": "Этот кандидат уже есть в системе. Проверьте существующие заявки."
+    },
+    "placeholder": {
+      "johnDoe": "Иван Иванов",
+      "techCorp": "Tech Corp",
+      "seniorDeveloper": "Старший разработчик",
+      "whyThisCandidateSourceSpecialConsiderati": "Почему этот кандидат? Источник? Особые условия?"
+    }
+  },
+  "addJobTeamMemberDialog": {
+    "dialogTitle": "Добавить участника команды",
+    "toast": {
+      "failedToLoadTeamMembers": "Не удалось загрузить участников команды",
+      "failedToLoadTqcTeamMembers": "Не удалось загрузить участников команды TQC",
+      "pleaseSelectATeamMember": "Пожалуйста, выберите участника команды",
+      "pleaseSelectAUser": "Пожалуйста, выберите пользователя",
+      "pleaseProvideAReasonForThisAssignment": "Пожалуйста, укажите причину назначения",
+      "teamMemberAddedSuccessfully": "Участник команды успешно добавлен"
+    },
+    "label": {
+      "teamMember": "Участник команды",
+      "role": "Роль",
+      "permissions": "Разрешения",
+      "selectTqcTeamMember": "Выбрать участника команды TQC",
+      "assignmentReason": "Причина назначения"
+    },
+    "placeholder": {
+      "selectATeamMember": "Выберите участника команды",
+      "searchTqcTeamByNameOrEmail": "Поиск по имени или email...",
+      "whyIsThisPersonBeingAssignedToThisJob": "Почему этот человек назначается на эту вакансию?"
+    },
+    "badge": {
+      "admin": "Админ",
+      "strategist": "Стратег"
+    },
+    "noMatchingTeamMembersFound": "Подходящие участники команды не найдены",
+    "externalUsersReceiveLimitedTimeboxedAcce": "Внешние пользователи получают ограниченный по времени доступ с ведением журнала аудита",
+    "dialogDescription": "Назначьте участника команды или внешнего пользователя на эту вакансию с определённой ролью и разрешениями.",
+    "option": {
+      "hiringManager": "Менеджер по найму",
+      "founderexecutiveReviewer": "Основатель/руководитель-ревьюер",
+      "technicalInterviewer": "Технический интервьюер",
+      "behavioralInterviewer": "Поведенческий интервьюер",
+      "panelMember": "Член комиссии",
+      "interviewCoordinator": "Координатор собеседований",
+      "observer": "Наблюдатель"
+    }
+  },
+  "addStageDialog": {
+    "dialogTitle": "Добавить новый этап воронки",
+    "placeholder": {
+      "buildingroomNumberReceptionInstructionsP": "Номер здания/кабинета, инструкции для рецепции, информация о парковке, заметки о доступности...",
+      "listMaterialsCandidatesShouldPreparePort": "Перечислите материалы, которые кандидаты должны подготовить (портфолио, рекомендации, сертификаты и т.д.)"
+    },
+    "configureEveryDetailForALuxuryTailoredCa": "Настройте каждую деталь для премиального, индивидуального опыта кандидата",
+    "candidatesCanChooseBetweenOnlineOrInpers": "Кандидаты могут выбрать между онлайн и очным форматом. Настройте оба варианта выше или предоставьте гибкие инструкции.",
+    "thisHelpsEvaluatorsProvideConsistentStru": "Это помогает оценщикам давать последовательную, структурированную обратную связь",
+    "quickstartWithPreconfiguredStageTemplate": "Быстрый старт с предварительно настроенными шаблонами этапов",
+    "option": {
+      "noTeamMembersAvailable": "Нет доступных участников команды"
+    },
+    "desc": {
+      "stageConfigurationSavedAndAuditLogged": "Конфигурация этапа сохранена и зафиксирована в журнале аудита"
+    }
+  },
+  "addToJobDialog": {
+    "dialogTitle": "Добавить в воронку вакансии",
+    "toast": {
+      "candidateAddedButInteractionLogFailed": "Кандидат добавлен, но запись взаимодействия не удалась",
+      "candidateAddedButAuditLogFailed": "Кандидат добавлен, но запись в журнал аудита не удалась",
+      "failedToAddCandidate": "Не удалось добавить кандидата в вакансию"
+    },
+    "label": {
+      "startingStage": "Начальный этап",
+      "notesOptional": "Заметки (необязательно)"
+    },
+    "placeholder": {
+      "searchJobsByTitleOrCompany": "Поиск вакансий по названию или компании...",
+      "whyAreYouAddingThisCandidate": "Почему Вы добавляете этого кандидата?"
+    },
+    "badge": {
+      "alreadyInPipeline": "Уже в воронке"
+    },
+    "noActiveJobsFound": "Активные вакансии не найдены."
+  }
+}

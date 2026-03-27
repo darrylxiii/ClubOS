@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Info, Percent, Euro, Target } from "lucide-react";
@@ -10,6 +11,7 @@ interface RevenueShareInfoProps {
 }
 
 export function RevenueShareInfo({ shares, userRole }: RevenueShareInfoProps) {
+  const { t } = useTranslation('common');
   const activeShares = shares.filter(s => s.is_active);
 
   if (activeShares.length === 0) {
@@ -21,7 +23,7 @@ export function RevenueShareInfo({ shares, userRole }: RevenueShareInfoProps) {
               <Info className="h-4 w-4 text-info" />
             </div>
             <div>
-              <p className="font-medium">Revenue Share Information</p>
+              <p className="font-medium">{t("revenue_share_information", "Revenue Share Information")}</p>
               <p className="text-sm text-muted-foreground mt-1">
                 {userRole === 'candidate' 
                   ? 'Earn rewards by referring other members to job opportunities.'
@@ -93,7 +95,7 @@ export function RevenueShareInfo({ shares, userRole }: RevenueShareInfoProps) {
           <div className="mt-4 p-3 rounded-lg bg-warning/10 border border-warning/20">
             <div className="flex items-center gap-2 text-sm text-warning">
               <Target className="h-4 w-4" />
-              <span>Minimum deal value may apply</span>
+              <span>{t("minimum_deal_value_may", "Minimum deal value may apply")}</span>
             </div>
           </div>
         )}

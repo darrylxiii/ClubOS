@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { DatabaseColumn, DatabaseRow, ColumnType } from '@/hooks/useWorkspaceDatabase';
 import { DatabaseCell } from '../cells/DatabaseCell';
 import { ColumnHeader } from '../ColumnHeader';
@@ -34,6 +35,7 @@ export function DatabaseTableView({
   onUpdateRow,
   onDeleteRow,
 }: DatabaseTableViewProps) {
+  const { t } = useTranslation('common');
   const visibleColumns = columns.filter(c => c.is_visible);
 
   const handleCellChange = (rowId: string, columnId: string, value: unknown) => {
@@ -107,7 +109,7 @@ export function DatabaseTableView({
                 onClick={() => onAddRow()}
               >
                 <Plus className="h-4 w-4 mr-2" />
-                New row
+                {t('workspace.newRow', 'New row')}
               </Button>
             </TableCell>
           </TableRow>

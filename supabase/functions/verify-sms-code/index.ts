@@ -4,16 +4,10 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.0';
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 import { hashOTP } from "../_shared/otp-hash.ts";
 import { checkIPRateLimit } from "../_shared/ip-rate-limiter.ts";
+import { getCorsHeaders } from '../_shared/cors.ts';
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-api-key, x-supabase-api-version, x-application-name, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version, traceparent, tracestate",
-  "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
-  "Access-Control-Max-Age": "86400",
-};
 
 const requestSchema = z.object({
   code: z.string().length(6, 'Invalid verification code').regex(/^[0-9]{6}$/, 'Verification code must be 6 digits'),
@@ -21,6 +15,8 @@ const requestSchema = z.object({
 });
 
 const handler = async (req: Request): Promise<Response> => {
+  const corsHeaders = getCorsHeaders(req);
+
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }

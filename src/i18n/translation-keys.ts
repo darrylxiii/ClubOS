@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 /**
  * TypeScript-safe translation keys
  * Provides autocomplete and compile-time checking for translation keys

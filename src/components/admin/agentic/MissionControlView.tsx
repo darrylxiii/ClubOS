@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatDistanceToNow, format } from 'date-fns';
 import { Clock, Zap, AlertCircle, CheckCircle2, Timer, TrendingUp } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface HeartbeatLog {
   id: string;
@@ -71,6 +72,7 @@ export default function MissionControlView() {
   }
 
   const hasErrors = (log: HeartbeatLog) => {
+  const { t } = useTranslation('admin');
     if (!log.errors) return false;
     if (Array.isArray(log.errors)) return log.errors.length > 0;
     return Object.keys(log.errors).length > 0;
@@ -132,7 +134,7 @@ export default function MissionControlView() {
         </CardHeader>
         <CardContent>
           {logs.length === 0 ? (
-            <p className="text-center text-muted-foreground py-8">No heartbeat runs yet. The system will start pulsing soon.</p>
+            <p className="text-center text-muted-foreground py-8">{t('agentic.missionControlView.noHeartbeatRunsYetTheSystem')}</p>
           ) : (
             <div className="relative space-y-0">
               {/* Vertical line */}
@@ -188,15 +190,15 @@ export default function MissionControlView() {
                         </div>
                         <div className="grid grid-cols-3 gap-2 text-xs">
                           <div>
-                            <span className="text-muted-foreground">Events:</span>{' '}
+                            <span className="text-muted-foreground">{"Events:"}</span>{' '}
                             <span className="font-mono">{log.events_processed || 0}</span>
                           </div>
                           <div>
-                            <span className="text-muted-foreground">Signals:</span>{' '}
+                            <span className="text-muted-foreground">{"Signals:"}</span>{' '}
                             <span className="font-mono">{log.signals_detected || 0}</span>
                           </div>
                           <div>
-                            <span className="text-muted-foreground">Tasks:</span>{' '}
+                            <span className="text-muted-foreground">{"Tasks:"}</span>{' '}
                             <span className="font-mono">{log.tasks_created || 0}</span>
                           </div>
                         </div>

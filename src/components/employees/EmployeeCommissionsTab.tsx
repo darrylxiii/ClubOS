@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +13,7 @@ interface EmployeeCommissionsTabProps {
 }
 
 export function EmployeeCommissionsTab({ employeeId }: EmployeeCommissionsTabProps) {
+  const { t } = useTranslation('common');
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const { data: commissions, isLoading } = useEmployeeCommissions(
     employeeId, 
@@ -38,13 +40,13 @@ export function EmployeeCommissionsTab({ employeeId }: EmployeeCommissionsTabPro
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'approved':
-        return <Badge className="bg-green-500/10 text-green-500">Approved</Badge>;
+        return <Badge className="bg-green-500/10 text-green-500">{t("approved", "Approved")}</Badge>;
       case 'pending':
-        return <Badge className="bg-amber-500/10 text-amber-500">Pending</Badge>;
+        return <Badge className="bg-amber-500/10 text-amber-500">{t("pending", "Pending")}</Badge>;
       case 'paid':
-        return <Badge className="bg-blue-500/10 text-blue-500">Paid</Badge>;
+        return <Badge className="bg-blue-500/10 text-blue-500">{t("paid", "Paid")}</Badge>;
       case 'disputed':
-        return <Badge className="bg-red-500/10 text-red-500">Disputed</Badge>;
+        return <Badge className="bg-red-500/10 text-red-500">{t("disputed", "Disputed")}</Badge>;
       default:
         return <Badge variant="secondary">{status}</Badge>;
     }
@@ -61,7 +63,7 @@ export function EmployeeCommissionsTab({ employeeId }: EmployeeCommissionsTabPro
                 <DollarSign className="h-5 w-5 text-green-500" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Total Earned</p>
+                <p className="text-sm text-muted-foreground">{t("total_earned", "Total Earned")}</p>
                 <p className="text-xl font-bold">{formatCurrency(metrics?.total_commissions || 0)}</p>
               </div>
             </div>
@@ -74,7 +76,7 @@ export function EmployeeCommissionsTab({ employeeId }: EmployeeCommissionsTabPro
                 <Clock className="h-5 w-5 text-amber-500" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Pending</p>
+                <p className="text-sm text-muted-foreground">{t("pending", "Pending")}</p>
                 <p className="text-xl font-bold">{formatCurrency(metrics?.pending_commissions || 0)}</p>
               </div>
             </div>
@@ -87,7 +89,7 @@ export function EmployeeCommissionsTab({ employeeId }: EmployeeCommissionsTabPro
                 <CheckCircle className="h-5 w-5 text-blue-500" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Paid Out</p>
+                <p className="text-sm text-muted-foreground">{t("paid_out", "Paid Out")}</p>
                 <p className="text-xl font-bold">{formatCurrency(metrics?.paid_commissions || 0)}</p>
               </div>
             </div>
@@ -100,7 +102,7 @@ export function EmployeeCommissionsTab({ employeeId }: EmployeeCommissionsTabPro
                 <TrendingUp className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Placements</p>
+                <p className="text-sm text-muted-foreground">{t("placements", "Placements")}</p>
                 <p className="text-xl font-bold">{metrics?.placement_count || 0}</p>
               </div>
             </div>
@@ -113,16 +115,16 @@ export function EmployeeCommissionsTab({ employeeId }: EmployeeCommissionsTabPro
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>Commission History</CardTitle>
-              <CardDescription>All commissions earned from placements</CardDescription>
+              <CardTitle>{t("commission_history", "Commission History")}</CardTitle>
+              <CardDescription>{t("all_commissions_earned_from", "All commissions earned from placements")}</CardDescription>
             </div>
           </div>
           <Tabs value={statusFilter} onValueChange={setStatusFilter} className="mt-4">
             <TabsList>
-              <TabsTrigger value="all">All</TabsTrigger>
-              <TabsTrigger value="pending">Pending</TabsTrigger>
-              <TabsTrigger value="approved">Approved</TabsTrigger>
-              <TabsTrigger value="paid">Paid</TabsTrigger>
+              <TabsTrigger value="all">{t("all", "All")}</TabsTrigger>
+              <TabsTrigger value="pending">{t("pending", "Pending")}</TabsTrigger>
+              <TabsTrigger value="approved">{t("approved", "Approved")}</TabsTrigger>
+              <TabsTrigger value="paid">{t("paid", "Paid")}</TabsTrigger>
             </TabsList>
           </Tabs>
         </CardHeader>

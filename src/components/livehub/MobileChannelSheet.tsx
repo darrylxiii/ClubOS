@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import {
   Sheet,
   SheetContent,
@@ -25,11 +26,12 @@ const MobileChannelSheet = ({
   onChannelSelect,
   onConversationSelect,
 }: MobileChannelSheetProps) => {
+  const { t } = useTranslation('meetings');
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="left" className="w-[85vw] p-0 flex flex-col">
         <SheetHeader className="px-4 py-3 border-b border-border">
-          <SheetTitle>The Quantum Club</SheetTitle>
+          <SheetTitle>{t('livehub.theQuantumClub')}</SheetTitle>
         </SheetHeader>
         
         <ScrollArea className="flex-1">

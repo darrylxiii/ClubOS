@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { UnifiedEntityTimeline } from '@/components/shared/UnifiedEntityTimeline';
 import { RoleGate } from '@/components/RoleGate';
@@ -56,6 +57,7 @@ import { RottingIndicator } from '@/components/crm/RottingIndicator';
 import { differenceInDays } from 'date-fns';
 
 export default function ProspectDetail() {
+  const { t } = useTranslation('common');
   const { prospectId } = useParams<{ prospectId: string }>();
   const navigate = useNavigate();
   const [prospect, setProspect] = useState<CRMProspect | null>(null);
@@ -94,7 +96,7 @@ export default function ProspectDetail() {
       setNotes(data.notes || '');
     } catch (error) {
       console.error('Error fetching prospect:', error);
-      toast.error('Failed to load prospect');
+      toast.error("Failed to load prospect");
     } finally {
       setLoading(false);
     }
@@ -130,7 +132,7 @@ export default function ProspectDetail() {
       toast.success(`Stage updated to ${newStage}`);
     } catch (error) {
       console.error('Error updating stage:', error);
-      toast.error('Failed to update stage');
+      toast.error("Failed to update stage");
     }
   };
 
@@ -145,10 +147,10 @@ export default function ProspectDetail() {
         .eq('id', prospect.id);
 
       if (error) throw error;
-      toast.success('Notes saved');
+      toast.success("Notes saved");
     } catch (error) {
       console.error('Error saving notes:', error);
-      toast.error('Failed to save notes');
+      toast.error("Failed to save notes");
     } finally {
       setSavingNotes(false);
     }
@@ -165,11 +167,11 @@ export default function ProspectDetail() {
 
       if (error) throw error;
 
-      toast.success('Prospect deleted');
+      toast.success("Prospect deleted");
       navigate('/crm/prospects');
     } catch (error) {
       console.error('Error deleting prospect:', error);
-      toast.error('Failed to delete prospect');
+      toast.error("Failed to delete prospect");
     }
   };
 
@@ -193,9 +195,9 @@ export default function ProspectDetail() {
   if (!prospect) {
     return (
       <div className="w-full px-4 sm:px-6 lg:px-8 py-6 text-center">
-        <p className="text-muted-foreground">Prospect not found</p>
+        <p className="text-muted-foreground">{t('prospectDetail.text2')}</p>
         <Button asChild className="mt-4">
-          <Link to="/crm/prospects">Back to Pipeline</Link>
+          <Link to="/crm/prospects">{t('prospectDetail.text3')}</Link>
         </Button>
       </div>
     );
@@ -250,14 +252,14 @@ export default function ProspectDetail() {
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
-                    <AlertDialogTitle>Delete Prospect?</AlertDialogTitle>
+                    <AlertDialogTitle>{t('prospectDetail.text4')}</AlertDialogTitle>
                     <AlertDialogDescription>
                       This action cannot be undone. This will permanently delete the prospect and all associated data.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
+                    <AlertDialogCancel>{t('prospectDetail.text5')}</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDelete}>{t('prospectDetail.text6')}</AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
@@ -275,7 +277,7 @@ export default function ProspectDetail() {
               >
                 <Card className="bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border-border/30">
                   <CardHeader>
-                    <CardTitle className="text-lg">Contact Information</CardTitle>
+                    <CardTitle className="text-lg">{t('prospectDetail.text7')}</CardTitle>
                   </CardHeader>
                   <CardContent className="grid sm:grid-cols-2 gap-4">
                     <div className="flex items-center gap-3">
@@ -283,7 +285,7 @@ export default function ProspectDetail() {
                         <Mail className="w-4 h-4 text-primary" />
                       </div>
                       <div>
-                        <p className="text-sm text-muted-foreground">Email</p>
+                        <p className="text-sm text-muted-foreground">{t('prospectDetail.text8')}</p>
                         <a href={`mailto:${prospect.email}`} className="text-sm hover:text-primary">
                           {prospect.email}
                         </a>
@@ -295,7 +297,7 @@ export default function ProspectDetail() {
                           <Phone className="w-4 h-4 text-green-500" />
                         </div>
                         <div>
-                          <p className="text-sm text-muted-foreground">Phone</p>
+                          <p className="text-sm text-muted-foreground">{t('prospectDetail.text9')}</p>
                           <a href={`tel:${prospect.phone}`} className="text-sm hover:text-primary">
                             {prospect.phone}
                           </a>
@@ -308,7 +310,7 @@ export default function ProspectDetail() {
                           <Linkedin className="w-4 h-4 text-blue-500" />
                         </div>
                         <div>
-                          <p className="text-sm text-muted-foreground">LinkedIn</p>
+                          <p className="text-sm text-muted-foreground">{t('prospectDetail.text10')}</p>
                           <a 
                             href={prospect.linkedin_url} 
                             target="_blank" 
@@ -326,7 +328,7 @@ export default function ProspectDetail() {
                           <Building className="w-4 h-4 text-purple-500" />
                         </div>
                         <div>
-                          <p className="text-sm text-muted-foreground">Company</p>
+                          <p className="text-sm text-muted-foreground">{t('prospectDetail.text11')}</p>
                           <p className="text-sm">{prospect.company_name}</p>
                         </div>
                       </div>
@@ -337,7 +339,7 @@ export default function ProspectDetail() {
                           <MapPin className="w-4 h-4 text-orange-500" />
                         </div>
                         <div>
-                          <p className="text-sm text-muted-foreground">Location</p>
+                          <p className="text-sm text-muted-foreground">{t('prospectDetail.text12')}</p>
                           <p className="text-sm">{prospect.location}</p>
                         </div>
                       </div>
@@ -354,7 +356,7 @@ export default function ProspectDetail() {
               >
                 <Card className="bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border-border/30">
                   <CardHeader className="flex flex-row items-center justify-between">
-                    <CardTitle className="text-lg">Notes</CardTitle>
+                    <CardTitle className="text-lg">{t('prospectDetail.text13')}</CardTitle>
                     <Button 
                       size="sm" 
                       onClick={handleSaveNotes}
@@ -367,7 +369,7 @@ export default function ProspectDetail() {
                     <Textarea
                       value={notes}
                       onChange={(e) => setNotes(e.target.value)}
-                      placeholder="Add notes about this prospect..."
+                      placeholder={t('prospectDetail.text14')}
                       className="min-h-32 bg-muted/20 border-border/30"
                     />
                   </CardContent>
@@ -460,9 +462,7 @@ export default function ProspectDetail() {
                         ))}
                       </div>
                     ) : (
-                      <p className="text-muted-foreground text-center py-8">
-                        No touchpoints recorded yet
-                      </p>
+                      <p className="text-muted-foreground text-center py-8">{t('prospectDetail.desc')}</p>
                     )}
                   </CardContent>
                 </Card>
@@ -477,7 +477,7 @@ export default function ProspectDetail() {
                 <UnifiedEntityTimeline
                   entityType="company"
                   entityId={prospectId!}
-                  title="Unified Activity"
+                  title={t('prospectDetail.text15')}
                 />
               </motion.div>
             </div>
@@ -516,7 +516,7 @@ export default function ProspectDetail() {
                 >
                   <Card className="bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border-border/30">
                     <CardHeader>
-                      <CardTitle className="text-lg">Campaign</CardTitle>
+                      <CardTitle className="text-lg">{t('prospectDetail.text16')}</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <Link 
@@ -538,7 +538,7 @@ export default function ProspectDetail() {
               >
                 <Card className="bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border-border/30">
                   <CardHeader>
-                    <CardTitle className="text-lg">Quick Actions</CardTitle>
+                    <CardTitle className="text-lg">{t('prospectDetail.text17')}</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-2">
                     <Button variant="outline" className="w-full justify-start" asChild>

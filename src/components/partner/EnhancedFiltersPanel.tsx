@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,6 +19,7 @@ export interface FilterState {
 }
 
 export function EnhancedFiltersPanel({ onFilterChange }: EnhancedFiltersPanelProps) {
+  const { t } = useTranslation('common');
   const [isExpanded, setIsExpanded] = useState(false);
   const [activeFilters, setActiveFilters] = useState<FilterState>({
     skillsMatch: [],
@@ -87,7 +89,7 @@ export function EnhancedFiltersPanel({ onFilterChange }: EnhancedFiltersPanelPro
             className="gap-2 hover:bg-background/40"
           >
             <Filter className="w-4 h-4" />
-            <span className="font-semibold">Smart Filters</span>
+            <span className="font-semibold">{t("smart_filters", "Smart Filters")}</span>
             {activeCount > 0 && (
               <Badge variant="secondary" className="ml-2 bg-primary/20 text-primary border-0">
                 {activeCount}
@@ -102,7 +104,7 @@ export function EnhancedFiltersPanel({ onFilterChange }: EnhancedFiltersPanelPro
               className="gap-2 text-muted-foreground hover:text-foreground hover:bg-background/40"
             >
               <X className="w-4 h-4" />
-              Clear All
+              {t('common:clearAll')}
             </Button>
           )}
         </div>

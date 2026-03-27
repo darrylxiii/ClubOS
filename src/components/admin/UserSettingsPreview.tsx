@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -28,6 +29,7 @@ export function UserSettingsPreview({
   candidateId,
   onViewFull 
 }: UserSettingsPreviewProps) {
+  const { t } = useTranslation('common');
   const [settings, setSettings] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -42,7 +44,7 @@ export function UserSettingsPreview({
       setSettings(data);
     } catch (error) {
       console.error('Error loading settings preview:', error);
-      toast.error('Failed to load settings preview');
+      toast.error(t("failed_to_load_settings", "Failed to load settings preview"));
     } finally {
       setLoading(false);
     }
@@ -67,7 +69,7 @@ export function UserSettingsPreview({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between mb-4">
-        <h4 className="font-semibold">Candidate Settings Preview</h4>
+        <h4 className="font-semibold">{t("candidate_settings_preview", "Candidate Settings Preview")}</h4>
         <Button variant="outline" size="sm" onClick={onViewFull}>
           <ExternalLink className="w-4 h-4 mr-2" />
           View Full Settings
@@ -80,11 +82,11 @@ export function UserSettingsPreview({
           <CardContent className="pt-6">
             <div className="flex items-center gap-2 mb-3">
               <DollarSign className="w-4 h-4 text-muted-foreground" />
-              <h5 className="font-medium text-sm">Compensation</h5>
+              <h5 className="font-medium text-sm">{t("compensation", "Compensation")}</h5>
             </div>
             {settings.desired_salary_min || settings.desired_salary_max ? (
               <div className="space-y-1">
-                <p className="text-sm text-muted-foreground">Desired</p>
+                <p className="text-sm text-muted-foreground">{t("desired", "Desired")}</p>
                 <p className="font-semibold">
                   {settings.desired_salary_min?.toLocaleString()} - {settings.desired_salary_max?.toLocaleString()}
                 </p>
@@ -93,7 +95,7 @@ export function UserSettingsPreview({
                 </Badge>
               </div>
             ) : (
-              <p className="text-sm text-muted-foreground">Not set</p>
+              <p className="text-sm text-muted-foreground">{t("not_set", "Not set")}</p>
             )}
           </CardContent>
         </Card>
@@ -103,7 +105,7 @@ export function UserSettingsPreview({
           <CardContent className="pt-6">
             <div className="flex items-center gap-2 mb-3">
               <Briefcase className="w-4 h-4 text-muted-foreground" />
-              <h5 className="font-medium text-sm">Work Style</h5>
+              <h5 className="font-medium text-sm">{t("work_style", "Work Style")}</h5>
             </div>
             <div className="space-y-2">
               {settings.remote_work_preference ? (
@@ -111,7 +113,7 @@ export function UserSettingsPreview({
                   {settings.remote_work_preference}
                 </Badge>
               ) : (
-                <p className="text-sm text-muted-foreground">Not set</p>
+                <p className="text-sm text-muted-foreground">{t("not_set", "Not set")}</p>
               )}
               {settings.preferred_work_locations && settings.preferred_work_locations.length > 0 && (
                 <div className="flex items-center gap-1 text-xs text-muted-foreground">
@@ -128,18 +130,18 @@ export function UserSettingsPreview({
           <CardContent className="pt-6">
             <div className="flex items-center gap-2 mb-3">
               <FileText className="w-4 h-4 text-muted-foreground" />
-              <h5 className="font-medium text-sm">Documents</h5>
+              <h5 className="font-medium text-sm">{t("documents", "Documents")}</h5>
             </div>
             <div className="flex items-center gap-2">
               {settings.resume_url ? (
                 <>
                   <CheckCircle className="w-4 h-4 text-green-600" />
-                  <span className="text-sm">Resume uploaded</span>
+                  <span className="text-sm">{t("resume_uploaded", "Resume uploaded")}</span>
                 </>
               ) : (
                 <>
                   <XCircle className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-sm text-muted-foreground">No resume</span>
+                  <span className="text-sm text-muted-foreground">{t("no_resume", "No resume")}</span>
                 </>
               )}
             </div>
@@ -155,7 +157,7 @@ export function UserSettingsPreview({
               ) : (
                 <Eye className="w-4 h-4 text-muted-foreground" />
               )}
-              <h5 className="font-medium text-sm">Privacy</h5>
+              <h5 className="font-medium text-sm">{t("privacy", "Privacy")}</h5>
             </div>
             <Badge variant={settings.stealth_mode_enabled ? "default" : "outline"} className="text-xs">
               {settings.stealth_mode_enabled ? 'Stealth ON' : 'Public'}
@@ -175,18 +177,18 @@ export function UserSettingsPreview({
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
             {settings.notice_period && (
               <div>
-                <p className="text-muted-foreground mb-1">Notice Period</p>
+                <p className="text-muted-foreground mb-1">{t("notice_period", "Notice Period")}</p>
                 <p className="font-medium">{settings.notice_period}</p>
               </div>
             )}
             {settings.employment_type_preference && (
               <div>
-                <p className="text-muted-foreground mb-1">Employment Type</p>
+                <p className="text-muted-foreground mb-1">{t("employment_type", "Employment Type")}</p>
                 <Badge variant="outline">{settings.employment_type_preference}</Badge>
               </div>
             )}
             <div>
-              <p className="text-muted-foreground mb-1">Email Verified</p>
+              <p className="text-muted-foreground mb-1">{t("email_verified", "Email Verified")}</p>
               <div className="flex items-center gap-1">
                 {settings.email_verified ? (
                   <CheckCircle className="w-4 h-4 text-green-600" />
@@ -196,7 +198,7 @@ export function UserSettingsPreview({
               </div>
             </div>
             <div>
-              <p className="text-muted-foreground mb-1">Phone Verified</p>
+              <p className="text-muted-foreground mb-1">{t("phone_verified", "Phone Verified")}</p>
               <div className="flex items-center gap-1">
                 {settings.phone_verified ? (
                   <CheckCircle className="w-4 h-4 text-green-600" />

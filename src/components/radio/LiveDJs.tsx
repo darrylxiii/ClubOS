@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
@@ -8,6 +9,7 @@ import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 
 export function LiveDJs() {
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
 
   const { data: liveSessions, refetch } = useQuery({
@@ -75,7 +77,7 @@ export function LiveDJs() {
     return (
       <Card className="p-8 text-center">
         <Radio className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-        <h3 className="text-xl font-bold mb-2">No DJs Live Right Now</h3>
+        <h3 className="text-xl font-bold mb-2">{t("no_djs_live_right", "No DJs Live Right Now")}</h3>
         <p className="text-muted-foreground">
           Check back later for live broadcasts from The Quantum Club DJs
         </p>
@@ -100,7 +102,7 @@ export function LiveDJs() {
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
                 <div className="h-2 w-2 rounded-full bg-red-500 animate-pulse" />
-                <span className="text-xs font-bold text-red-500 uppercase">Live</span>
+                <span className="text-xs font-bold text-red-500 uppercase">{t("live", "Live")}</span>
               </div>
               <h3 className="font-bold text-lg truncate">
                 {session.profile?.full_name || 'Anonymous DJ'}

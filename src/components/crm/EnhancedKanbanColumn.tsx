@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { useDroppable } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
@@ -87,6 +88,7 @@ export function EnhancedKanbanColumn({
   selectedIds,
   onToggleSelect,
 }: EnhancedKanbanColumnProps) {
+  const { t } = useTranslation('common');
   const { currentRole } = useRole();
   const { setNodeRef, isOver } = useDroppable({
     id: stage.value,
@@ -186,7 +188,7 @@ export function EnhancedKanbanColumn({
               </span>
             </TooltipTrigger>
             <TooltipContent side="top">
-              <div className="text-xs">Stage win probability</div>
+              <div className="text-xs">{t("stage_win_probability", "Stage win probability")}</div>
             </TooltipContent>
           </Tooltip>
           
@@ -266,7 +268,7 @@ export function EnhancedKanbanColumn({
                 <div className="w-12 h-12 rounded-full bg-muted/20 flex items-center justify-center mb-2">
                   <Plus className="w-5 h-5" />
                 </div>
-                <p>Drop prospects here</p>
+                <p>{t("drop_prospects_here", "Drop prospects here")}</p>
               </motion.div>
             )}
           </div>

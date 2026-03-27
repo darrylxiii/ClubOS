@@ -175,7 +175,7 @@ SELECT cron.schedule(
   '0 * * * *', -- Every hour
   $$
   SELECT net.http_post(
-    url:='https://dpjucecmoyfzrduhlctt.supabase.co/functions/v1/ai-monitor',
+    url:='https://chgrkvftjfibufoopmav.supabase.co/functions/v1/ai-monitor',
     headers:='{"Content-Type": "application/json", "Authorization": "Bearer YOUR_ANON_KEY"}'::jsonb
   ) as request_id;
   $$

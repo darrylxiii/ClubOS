@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -26,6 +27,7 @@ interface TeamWorkloadViewProps {
 const MAX_RECOMMENDED_TASKS = 10; // Baseline for "full" workload
 
 export const TeamWorkloadView = ({ objectiveId }: TeamWorkloadViewProps) => {
+  const { t } = useTranslation('common');
   const [workloads, setWorkloads] = useState<TeamMemberWorkload[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -136,14 +138,14 @@ export const TeamWorkloadView = ({ objectiveId }: TeamWorkloadViewProps) => {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Users className="h-5 w-5 text-primary" />
-          Team Workload
+          {t('tasks.teamWorkload', 'Team Workload')}
         </CardTitle>
       </CardHeader>
       <CardContent>
         {workloads.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
             <Users className="h-8 w-8 mx-auto mb-2 opacity-50" />
-            <p className="text-sm">No team members with assigned tasks</p>
+            <p className="text-sm">{t('tasks.noTeamMembers', 'No team members with assigned tasks')}</p>
           </div>
         ) : (
           <div className="space-y-4">

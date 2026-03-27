@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,6 +14,7 @@ import { toast } from "sonner";
 import { Loader2, Plus, Trash2, Users } from "lucide-react";
 
 export function ReferrerSplitsManager() {
+  const { t } = useTranslation('common');
   const queryClient = useQueryClient();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState<string>("");
@@ -72,14 +74,14 @@ export function ReferrerSplitsManager() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["company-referrer-splits"] });
-      toast.success("Referrer split created successfully");
+      toast.success(t("referrer_split_created_successfully", "Referrer split created successfully"));
       setIsDialogOpen(false);
       setSelectedCompany("");
       setSelectedReferrer("");
       setSplitPercentage("");
     },
     onError: (error) => {
-      toast.error("Failed to create referrer split");
+      toast.error(t("failed_to_create_referrer", "Failed to create referrer split"));
       console.error(error);
     },
   });
@@ -95,10 +97,10 @@ export function ReferrerSplitsManager() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["company-referrer-splits"] });
-      toast.success("Referrer split deleted successfully");
+      toast.success(t("referrer_split_deleted_successfully", "Referrer split deleted successfully"));
     },
     onError: (error) => {
-      toast.error("Failed to delete referrer split");
+      toast.error(t("failed_to_delete_referrer", "Failed to delete referrer split"));
       console.error(error);
     },
   });
@@ -114,14 +116,14 @@ export function ReferrerSplitsManager() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["company-referrer-splits"] });
-      toast.success("Referrer split updated successfully");
+      toast.success(t("referrer_split_updated_successfully", "Referrer split updated successfully"));
     },
   });
 
   const handleCreate = () => {
     const percentage = parseFloat(splitPercentage);
     if (!selectedCompany || !selectedReferrer || isNaN(percentage) || percentage <= 0 || percentage > 100) {
-      toast.error("Please fill in all fields with valid values");
+      toast.error(t("please_fill_in_all", "Please fill in all fields with valid values"));
       return;
     }
 
@@ -164,17 +166,17 @@ export function ReferrerSplitsManager() {
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Create Referrer Split</DialogTitle>
+                <DialogTitle>{t("create_referrer_split", "Create Referrer Split")}</DialogTitle>
                 <DialogDescription>
                   Assign a percentage of placement fees to a referrer for a specific company
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
-                  <Label htmlFor="company">Company</Label>
+                  <Label htmlFor="company">{t("company", "Company")}</Label>
                   <Select value={selectedCompany} onValueChange={setSelectedCompany}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select company" />
+                      <SelectValue placeholder={t("select_company", "Select company")} />
                     </SelectTrigger>
                     <SelectContent>
                       {companies?.map((company) => (
@@ -186,10 +188,10 @@ export function ReferrerSplitsManager() {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="referrer">Referrer</Label>
+                  <Label htmlFor="referrer">{t("referrer", "Referrer")}</Label>
                   <Select value={selectedReferrer} onValueChange={setSelectedReferrer}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select referrer" />
+                      <SelectValue placeholder={t("select_referrer", "Select referrer")} />
                     </SelectTrigger>
                     <SelectContent>
                       {referrers?.map((referrer) => (
@@ -201,7 +203,7 @@ export function ReferrerSplitsManager() {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="percentage">Split Percentage</Label>
+                  <Label htmlFor="percentage">{t("split_percentage", "Split Percentage")}</Label>
                   <div className="flex items-center gap-2">
                     <Input
                       id="percentage"
@@ -236,11 +238,11 @@ export function ReferrerSplitsManager() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Company</TableHead>
-              <TableHead>Referrer</TableHead>
-              <TableHead>Split %</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead>{t("company", "Company")}</TableHead>
+              <TableHead>{t("referrer", "Referrer")}</TableHead>
+              <TableHead>{t("split", "Split %")}</TableHead>
+              <TableHead>{t("status", "Status")}</TableHead>
+              <TableHead className="text-right">{t("actions", "Actions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

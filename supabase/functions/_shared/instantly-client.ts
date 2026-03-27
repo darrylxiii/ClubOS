@@ -3,6 +3,8 @@
  * Shared client with rate limiting and error handling
  */
 
+import { resilientFetch } from './resilient-fetch.ts';
+
 const INSTANTLY_API_BASE = 'https://api.instantly.ai/api/v2';
 const RATE_LIMIT_PER_MINUTE = 150;
 
@@ -95,11 +97,19 @@ export async function instantlyRequest<T>(
 
   try {
     console.log(`[Instantly] ${method} ${endpoint}`);
-    
-    const response = await fetch(url, {
+
+    const isIdempotent = method === 'GET' || method === 'PUT';
+
+    const { response } = await resilientFetch(url, {
       method,
       headers,
       body: body ? JSON.stringify(body) : undefined,
+    }, {
+      timeoutMs: 15_000,
+      maxRetries: isIdempotent ? 2 : 1,
+      retryNonIdempotent: false,
+      service: 'instantly',
+      operation: endpoint.replace(/^\//, '').replace(/\//g, '-'),
     });
 
     const responseData = await response.json().catch(() => null);

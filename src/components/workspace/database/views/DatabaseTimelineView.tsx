@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React, { useState, useMemo } from 'react';
 import { DatabaseColumn, DatabaseRow } from '@/hooks/useWorkspaceDatabase';
 import { Button } from '@/components/ui/button';
@@ -42,6 +43,7 @@ export function DatabaseTimelineView({
   onRowDelete,
   onAddRow,
 }: DatabaseTimelineViewProps) {
+  const { t } = useTranslation('common');
   const [zoomLevel, setZoomLevel] = useState<ZoomLevel>('week');
   const [viewStartDate, setViewStartDate] = useState(() => startOfMonth(new Date()));
   const [startDateColumn, setStartDateColumn] = useState<string>('');
@@ -156,8 +158,8 @@ export function DatabaseTimelineView({
     return (
       <div className="flex flex-col items-center justify-center h-64 text-muted-foreground">
         <Calendar className="h-12 w-12 mb-4 opacity-50" />
-        <p className="text-lg font-medium">No date columns found</p>
-        <p className="text-sm">Add a date column to use timeline view</p>
+        <p className="text-lg font-medium">{t("no_date_columns_found", "No date columns found")}</p>
+        <p className="text-sm">{t("add_a_date_column", "Add a date column to use timeline view")}</p>
       </div>
     );
   }
@@ -169,7 +171,7 @@ export function DatabaseTimelineView({
         <div className="flex items-center gap-2">
           <Select value={startDateColumn} onValueChange={setStartDateColumn}>
             <SelectTrigger className="w-40 h-8 text-xs">
-              <SelectValue placeholder="Start date" />
+              <SelectValue placeholder={t("start_date", "Start date")} />
             </SelectTrigger>
             <SelectContent>
               {dateColumns.map(col => (
@@ -182,10 +184,10 @@ export function DatabaseTimelineView({
           
           <Select value={endDateColumn} onValueChange={setEndDateColumn}>
             <SelectTrigger className="w-40 h-8 text-xs">
-              <SelectValue placeholder="End date (optional)" />
+              <SelectValue placeholder={t("end_date_optional", "End date (optional)")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">None</SelectItem>
+              <SelectItem value="">{t("none", "None")}</SelectItem>
               {dateColumns.map(col => (
                 <SelectItem key={col.id} value={col.name}>{col.name}</SelectItem>
               ))}
@@ -224,7 +226,7 @@ export function DatabaseTimelineView({
 
       {!startDateColumn ? (
         <div className="flex-1 flex items-center justify-center text-muted-foreground">
-          <p>Select a start date column to view timeline</p>
+          <p>{t("select_a_start_date", "Select a start date column to view timeline")}</p>
         </div>
       ) : (
         <ScrollArea className="flex-1">

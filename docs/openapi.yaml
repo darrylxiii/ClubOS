@@ -34,7 +34,7 @@ info:
     url: https://thequantumclub.com/terms
 
 servers:
-  - url: https://dpjucecmoyfzrduhlctt.supabase.co/functions/v1
+  - url: https://chgrkvftjfibufoopmav.supabase.co/functions/v1
     description: Production API
 
 tags:

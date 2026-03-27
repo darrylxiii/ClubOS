@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useCallback } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -55,6 +56,7 @@ export function SemanticSearchBar({
   className,
   filters,
 }: SemanticSearchBarProps) {
+  const { t } = useTranslation('common');
   const [query, setQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [searchResults, setSearchResults] = useState<SemanticSearchResult[]>([]);
@@ -83,13 +85,13 @@ export function SemanticSearchBar({
         onResults?.(data.results);
         toast.success(`Found ${data.results.length} matching candidates`);
       } else {
-        toast.info('No candidates found matching your search');
+        toast.info(t("no_candidates_found_matching", "No candidates found matching your search"));
         setSearchResults([]);
         onResults?.([]);
       }
     } catch (error) {
       console.error('Semantic search error:', error);
-      toast.error('Search failed. Falling back to basic search.');
+      toast.error(t("search_failed_falling_back", "Search failed. Falling back to basic search."));
       setSearchResults([]);
     } finally {
       setIsSearching(false);
@@ -133,7 +135,7 @@ export function SemanticSearchBar({
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Describe your ideal candidate in natural language..."
+          placeholder={t("describe_your_ideal_candidate", "Describe your ideal candidate in natural language...")}
           className="pl-12 pr-32 h-14 text-base bg-card/50 border-border/40 focus:border-primary/50"
           disabled={searching}
         />
@@ -185,7 +187,7 @@ export function SemanticSearchBar({
       {/* Suggested searches */}
       {!lastQuery && searchResults.length === 0 && (
         <div className="flex flex-wrap gap-2">
-          <span className="text-sm text-muted-foreground mr-1">Try:</span>
+          <span className="text-sm text-muted-foreground mr-1">{t("try", "Try:")}</span>
           {suggestedSearches.slice(0, 4).map((suggestion) => (
             <Badge
               key={suggestion}

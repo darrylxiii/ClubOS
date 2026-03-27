@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -51,8 +52,7 @@ const recommendationOptions = [
   { value: 'strong_no', label: 'Strong No', icon: ThumbsDown, color: 'text-red-600' },
 ] as const;
 
-function ScoreSlider({
-  value,
+function ScoreSlider({  value,
   onChange,
   label,
 }: {
@@ -60,6 +60,7 @@ function ScoreSlider({
   onChange: (value: number) => void;
   label: string;
 }) {
+const { t } = useTranslation('common');
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
@@ -113,12 +114,12 @@ export function ScorecardSubmissionForm({
 
   async function onSubmit(data: ScorecardFormData) {
     if (!user) {
-      toast.error('Please sign in to submit a scorecard.');
+      toast.error(t("please_sign_in_to", "Please sign in to submit a scorecard."));
       return;
     }
 
     if (!applicationId) {
-      toast.error('Application ID is required.');
+      toast.error(t("application_id_is_required", "Application ID is required."));
       return;
     }
 
@@ -149,11 +150,11 @@ export function ScorecardSubmissionForm({
           .eq('evaluator_id', user.id);
       }
 
-      toast.success('Scorecard submitted successfully.');
+      toast.success(t("scorecard_submitted_successfully", "Scorecard submitted successfully."));
       onSubmitSuccess?.();
     } catch (error) {
       console.error('Failed to submit scorecard:', error);
-      toast.error('Unable to submit scorecard. Please try again.');
+      toast.error(t("unable_to_submit_scorecard", "Unable to submit scorecard. Please try again."));
     } finally {
       setIsSubmitting(false);
     }
@@ -180,7 +181,7 @@ export function ScorecardSubmissionForm({
                 render={({ field }) => (
                   <FormItem>
                     <ScoreSlider
-                      label="Overall Score"
+                      label={t("overall_score", "Overall Score")}
                       value={field.value}
                       onChange={field.onChange}
                     />
@@ -194,7 +195,7 @@ export function ScorecardSubmissionForm({
                 render={({ field }) => (
                   <FormItem>
                     <ScoreSlider
-                      label="Technical Skills"
+                      label={t("technical_skills", "Technical Skills")}
                       value={field.value}
                       onChange={field.onChange}
                     />
@@ -208,7 +209,7 @@ export function ScorecardSubmissionForm({
                 render={({ field }) => (
                   <FormItem>
                     <ScoreSlider
-                      label="Cultural Fit"
+                      label={t("cultural_fit", "Cultural Fit")}
                       value={field.value}
                       onChange={field.onChange}
                     />
@@ -222,7 +223,7 @@ export function ScorecardSubmissionForm({
                 render={({ field }) => (
                   <FormItem>
                     <ScoreSlider
-                      label="Communication"
+                      label={t("communication", "Communication")}
                       value={field.value}
                       onChange={field.onChange}
                     />
@@ -238,7 +239,7 @@ export function ScorecardSubmissionForm({
               name="recommendation"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Recommendation</FormLabel>
+                  <FormLabel>{t("recommendation", "Recommendation")}</FormLabel>
                   <FormControl>
                     <RadioGroup
                       onValueChange={field.onChange}
@@ -276,10 +277,10 @@ export function ScorecardSubmissionForm({
               name="strengths"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Strengths</FormLabel>
+                  <FormLabel>{t("strengths", "Strengths")}</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="What impressed you about this candidate?"
+                      placeholder={t("what_impressed_you_about", "What impressed you about this candidate?")}
                       className="min-h-[80px]"
                       {...field}
                     />
@@ -298,10 +299,10 @@ export function ScorecardSubmissionForm({
               name="concerns"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Concerns (Optional)</FormLabel>
+                  <FormLabel>{t("concerns_optional", "Concerns (Optional)")}</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Any areas of concern or development needs?"
+                      placeholder={t("any_areas_of_concern", "Any areas of concern or development needs?")}
                       className="min-h-[80px]"
                       {...field}
                     />
@@ -317,10 +318,10 @@ export function ScorecardSubmissionForm({
               name="notes"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Additional Notes (Optional)</FormLabel>
+                  <FormLabel>{t("additional_notes_optional", "Additional Notes (Optional)")}</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Any other observations or context..."
+                      placeholder={t("any_other_observations_or", "Any other observations or context...")}
                       className="min-h-[60px]"
                       {...field}
                     />

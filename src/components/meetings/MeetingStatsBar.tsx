@@ -1,5 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { Calendar, Clock, CalendarDays, Brain, Timer } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface MeetingStatsBarProps {
   upcomingCount: number;
@@ -16,12 +17,13 @@ export function MeetingStatsBar({
   analyzedCount,
   hoursTranscribed,
 }: MeetingStatsBarProps) {
+  const { t } = useTranslation("meetings");
   const stats = [
-    { label: 'Upcoming', value: upcomingCount, icon: Calendar, color: 'text-blue-600' },
-    { label: 'Today', value: todayCount, icon: Clock, color: 'text-purple-600' },
-    { label: 'This Week', value: weekCount, icon: CalendarDays, color: 'text-green-600' },
-    { label: 'Analyzed', value: analyzedCount, icon: Brain, color: 'text-amber-600' },
-    { label: 'Hours Recorded', value: hoursTranscribed.toFixed(1), icon: Timer, color: 'text-indigo-600' },
+    { label: t('stats.upcoming'), value: upcomingCount, icon: Calendar, color: 'text-blue-600' },
+    { label: t('stats.today'), value: todayCount, icon: Clock, color: 'text-purple-600' },
+    { label: t('stats.thisWeek'), value: weekCount, icon: CalendarDays, color: 'text-green-600' },
+    { label: t('stats.analyzed'), value: analyzedCount, icon: Brain, color: 'text-amber-600' },
+    { label: t('stats.hoursRecorded'), value: hoursTranscribed.toFixed(1), icon: Timer, color: 'text-indigo-600' },
   ];
 
   return (

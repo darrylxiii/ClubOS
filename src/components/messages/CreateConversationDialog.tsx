@@ -11,6 +11,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
+import { useTranslation } from 'react-i18next';
 
 interface CreateConversationDialogProps {
   open: boolean;
@@ -32,8 +33,10 @@ export const CreateConversationDialog = ({
   onOpenChange,
   preselectedUserId,
   onConversationCreated,
-  title = "Start New Conversation",
+  title,
 }: CreateConversationDialogProps) => {
+  const { t } = useTranslation('messages');
+  const dialogTitle = title || t('createConversation.title');
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<UserResult[]>([]);
@@ -66,7 +69,7 @@ export const CreateConversationDialog = ({
       setSearchResults(data || []);
     } catch (error) {
       console.error('Error searching users:', error);
-      toast.error('Failed to search users');
+      toast.error(t('createConversation.searchFailed'));
     } finally {
       setLoading(false);
     }
@@ -105,7 +108,7 @@ export const CreateConversationDialog = ({
             otherParticipants?.length === 2 &&
             otherParticipants.some((p) => p.user_id === participantIds[0])
           ) {
-            toast.success('Opening existing conversation');
+            toast.success(t('createConversation.openingExisting'));
             onConversationCreated?.(participation.conversation_id);
             onOpenChange(false);
             return;
@@ -144,8 +147,8 @@ export const CreateConversationDialog = ({
           code: convError.code,
           details: convError,
         });
-        toast.error('Failed to create conversation', {
-          description: convError.message || 'Please try again',
+        toast.error(t('createConversation.createFailed'), {
+          description: convError.message || t('common:actions.tryAgain'),
         });
         setCreating(false);
         return;
@@ -171,8 +174,8 @@ export const CreateConversationDialog = ({
           code: participantError.code,
           details: participantError,
         });
-        toast.error('Failed to add participants to conversation', {
-          description: participantError.message || 'Please try again',
+        toast.error(t('createConversation.addParticipantsFailed'), {
+          description: participantError.message || t('common:actions.tryAgain'),
         });
         setCreating(false);
         return;
@@ -194,7 +197,7 @@ export const CreateConversationDialog = ({
         });
       }
 
-      toast.success(isGroupChat ? 'Group chat created' : 'Opening conversation');
+      toast.success(isGroupChat ? t('createConversation.groupCreated') : t('createConversation.openingConversation'));
       
       // Reset state
       setSelectedUsers([]);
@@ -212,8 +215,8 @@ export const CreateConversationDialog = ({
         hint: err?.hint,
         details: error,
       });
-      toast.error('Failed to create conversation', {
-        description: err?.message || 'Please try again',
+      toast.error(t('createConversation.createFailed'), {
+        description: err?.message || t('common:actions.tryAgain'),
       });
     } finally {
       setCreating(false);
@@ -241,7 +244,7 @@ export const CreateConversationDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px] max-h-[85vh] flex flex-col p-4 sm:p-6">
         <DialogHeader>
-          <DialogTitle className="text-lg sm:text-xl">{title}</DialogTitle>
+          <DialogTitle className="text-lg sm:text-xl">{dialogTitle}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-3 sm:space-y-4 flex-1 overflow-hidden flex flex-col min-h-0">
@@ -259,13 +262,13 @@ export const CreateConversationDialog = ({
             />
             <Label htmlFor="group-chat" className="flex items-center gap-2 cursor-pointer">
               <Users className="h-4 w-4" />
-              Group Chat
+              {t('createConversation.groupChat')}
             </Label>
           </div>
 
           {isGroupChat && (
             <Input
-              placeholder="Group name (optional)..."
+              placeholder={t('createConversation.groupNamePlaceholder')}
               value={groupName}
               onChange={(e) => setGroupName(e.target.value)}
             />
@@ -273,7 +276,7 @@ export const CreateConversationDialog = ({
 
           {isGroupChat && selectedUsers.length > 0 && (
             <div className="space-y-2">
-              <Label className="text-xs text-muted-foreground">Selected members ({selectedUsers.length})</Label>
+              <Label className="text-xs text-muted-foreground">{t('createConversation.selectedMembers', { count: selectedUsers.length })}</Label>
               <div className="flex flex-wrap gap-2 p-2 bg-muted/30 rounded-lg max-h-32 overflow-y-auto">
                 {selectedUsers.map((selectedUser) => (
                   <div
@@ -300,7 +303,7 @@ export const CreateConversationDialog = ({
           <div className="relative">
             <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search by name..."
+              placeholder={t('createConversation.searchByName')}
               value={searchQuery}
               onChange={(e) => {
                 setSearchQuery(e.target.value);
@@ -312,9 +315,9 @@ export const CreateConversationDialog = ({
 
           <div className="flex-1 overflow-y-auto border rounded-lg min-h-[200px] max-h-[350px]">
             {loading ? (
-              <p className="text-sm text-muted-foreground text-center py-8">Searching...</p>
+              <p className="text-sm text-muted-foreground text-center py-8">{t('createConversation.searching')}</p>
             ) : searchResults.length === 0 && searchQuery ? (
-              <p className="text-sm text-muted-foreground text-center py-8">No users found</p>
+              <p className="text-sm text-muted-foreground text-center py-8">{t('createConversation.noUsersFound')}</p>
             ) : searchQuery && searchResults.length > 0 ? (
               searchResults.map((result) => {
                 const isSelected = selectedUsers.some((u) => u.id === result.id);
@@ -352,18 +355,18 @@ export const CreateConversationDialog = ({
                 );
               })
             ) : (
-              <p className="text-sm text-muted-foreground text-center py-8">Search for users to start chatting</p>
+              <p className="text-sm text-muted-foreground text-center py-8">{t('createConversation.searchToChat')}</p>
             )}
           </div>
 
           {selectedUsers.length > 0 && (
             <Button onClick={handleCreateClick} disabled={creating} className="w-full">
               {creating ? (
-                'Creating...'
+                t('createConversation.creating')
               ) : isGroupChat ? (
-                `Create Group with ${selectedUsers.length} ${selectedUsers.length === 1 ? 'member' : 'members'}`
+                t('createConversation.createGroupWith', { count: selectedUsers.length })
               ) : (
-                'Start Conversation'
+                t('createConversation.startConversation')
               )}
             </Button>
           )}

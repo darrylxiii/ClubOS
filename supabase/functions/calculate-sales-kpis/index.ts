@@ -1,9 +1,4 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { createHandler } from '../_shared/handler.ts';
 
 interface SalesKPI {
   category: string;
@@ -18,16 +13,7 @@ interface SalesKPI {
   breakdown?: Record<string, any>;
 }
 
-Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
+Deno.serve(createHandler(async (req, ctx) => {
     const { period_type = 'daily', rep_id, company_id } = await req.json().catch(() => ({}));
     
     const now = new Date();
@@ -58,13 +44,13 @@ Deno.serve(async (req) => {
     console.log('[Sales KPIs] Calculating Conversational KPIs...');
     
     // Initial Conversations Started
-    const { count: currentConvos } = await supabase
+    const { count: currentConvos } = await ctx.supabase
       .from('sales_conversations')
       .select('*', { count: 'exact', head: true })
       .gte('first_message_at', periodStart.toISOString())
       .lte('first_message_at', now.toISOString());
     
-    const { count: prevConvos } = await supabase
+    const { count: prevConvos } = await ctx.supabase
       .from('sales_conversations')
       .select('*', { count: 'exact', head: true })
       .gte('first_message_at', previousPeriodStart.toISOString())
@@ -79,7 +65,7 @@ Deno.serve(async (req) => {
     });
 
     // Qualified Conversations
-    const { count: qualifiedConvos } = await supabase
+    const { count: qualifiedConvos } = await ctx.supabase
       .from('sales_conversations')
       .select('*', { count: 'exact', head: true })
       .gte('qualification_date', periodStart.toISOString())
@@ -101,7 +87,7 @@ Deno.serve(async (req) => {
     });
 
     // Conversations with Bookings
-    const { count: bookedConvos } = await supabase
+    const { count: bookedConvos } = await ctx.supabase
       .from('sales_conversations')
       .select('*', { count: 'exact', head: true })
       .gte('first_message_at', periodStart.toISOString())
@@ -116,7 +102,7 @@ Deno.serve(async (req) => {
     });
 
     // Referral Rate
-    const { count: referralConvos } = await supabase
+    const { count: referralConvos } = await ctx.supabase
       .from('sales_conversations')
       .select('*', { count: 'exact', head: true })
       .gte('first_message_at', periodStart.toISOString())
@@ -131,7 +117,7 @@ Deno.serve(async (req) => {
     });
 
     // Channel Breakdown
-    const { data: channelBreakdown } = await supabase
+    const { data: channelBreakdown } = await ctx.supabase
       .from('sales_conversations')
       .select('channel')
       .gte('first_message_at', periodStart.toISOString());
@@ -152,13 +138,13 @@ Deno.serve(async (req) => {
     console.log('[Sales KPIs] Calculating Meeting KPIs...');
     
     // Discovery Calls Held
-    const { count: discoveryCallsBooked } = await supabase
+    const { count: discoveryCallsBooked } = await ctx.supabase
       .from('bookings')
       .select('*', { count: 'exact', head: true })
       .gte('scheduled_start', periodStart.toISOString())
       .lte('scheduled_start', now.toISOString());
     
-    const { count: discoveryCallsAttended } = await supabase
+    const { count: discoveryCallsAttended } = await ctx.supabase
       .from('bookings')
       .select('*', { count: 'exact', head: true })
       .gte('scheduled_start', periodStart.toISOString())
@@ -184,7 +170,7 @@ Deno.serve(async (req) => {
     });
 
     // No Shows
-    const { count: noShows } = await supabase
+    const { count: noShows } = await ctx.supabase
       .from('bookings')
       .select('*', { count: 'exact', head: true })
       .gte('scheduled_start', periodStart.toISOString())
@@ -198,7 +184,7 @@ Deno.serve(async (req) => {
     });
 
     // Avg Call Duration from meeting_analytics
-    const { data: meetingDurations } = await supabase
+    const { data: meetingDurations } = await ctx.supabase
       .from('meeting_analytics')
       .select('duration_minutes')
       .gte('created_at', periodStart.toISOString());
@@ -215,7 +201,7 @@ Deno.serve(async (req) => {
     });
 
     // Next Step Rate (calls that resulted in proposals)
-    const { count: callsWithProposals } = await supabase
+    const { count: callsWithProposals } = await ctx.supabase
       .from('sales_proposals')
       .select('*', { count: 'exact', head: true })
       .gte('discovery_call_date', periodStart.toISOString())
@@ -233,7 +219,7 @@ Deno.serve(async (req) => {
     console.log('[Sales KPIs] Calculating Proposal KPIs...');
     
     // Proposals Sent
-    const { count: proposalsSent } = await supabase
+    const { count: proposalsSent } = await ctx.supabase
       .from('sales_proposals')
       .select('*', { count: 'exact', head: true })
       .gte('proposal_sent_at', periodStart.toISOString())
@@ -247,7 +233,7 @@ Deno.serve(async (req) => {
     });
 
     // Proposal Close Ratio
-    const { count: proposalsWon } = await supabase
+    const { count: proposalsWon } = await ctx.supabase
       .from('sales_proposals')
       .select('*', { count: 'exact', head: true })
       .gte('accepted_at', periodStart.toISOString())
@@ -264,7 +250,7 @@ Deno.serve(async (req) => {
     });
 
     // Avg Proposal Value
-    const { data: proposalValues } = await supabase
+    const { data: proposalValues } = await ctx.supabase
       .from('sales_proposals')
       .select('final_value')
       .gte('proposal_sent_at', periodStart.toISOString())
@@ -282,7 +268,7 @@ Deno.serve(async (req) => {
     });
 
     // Total Pipeline Value
-    const { data: pipelineData } = await supabase
+    const { data: pipelineData } = await ctx.supabase
       .from('sales_proposals')
       .select('final_value')
       .in('status', ['sent', 'viewed', 'negotiating']);
@@ -295,7 +281,7 @@ Deno.serve(async (req) => {
     });
 
     // Scope Change Frequency
-    const { count: proposalsWithRevisions } = await supabase
+    const { count: proposalsWithRevisions } = await ctx.supabase
       .from('sales_proposals')
       .select('*', { count: 'exact', head: true })
       .gte('proposal_sent_at', periodStart.toISOString())
@@ -313,13 +299,13 @@ Deno.serve(async (req) => {
     console.log('[Sales KPIs] Calculating Closing KPIs...');
     
     // Deals Closed (Won) - from jobs with status
-    const { count: dealsClosed } = await supabase
+    const { count: dealsClosed } = await ctx.supabase
       .from('jobs')
       .select('*', { count: 'exact', head: true })
       .gte('updated_at', periodStart.toISOString())
       .eq('status', 'closed');
     
-    const { count: prevDealsClosed } = await supabase
+    const { count: prevDealsClosed } = await ctx.supabase
       .from('jobs')
       .select('*', { count: 'exact', head: true })
       .gte('updated_at', previousPeriodStart.toISOString())
@@ -336,7 +322,7 @@ Deno.serve(async (req) => {
     });
 
     // Win Rate
-    const { count: totalDeals } = await supabase
+    const { count: totalDeals } = await ctx.supabase
       .from('jobs')
       .select('*', { count: 'exact', head: true })
       .gte('updated_at', periodStart.toISOString())
@@ -351,7 +337,7 @@ Deno.serve(async (req) => {
     });
 
     // Churned Deals (Lost)
-    const { count: dealsLost } = await supabase
+    const { count: dealsLost } = await ctx.supabase
       .from('deal_loss_reasons')
       .select('*', { count: 'exact', head: true })
       .gte('created_at', periodStart.toISOString());
@@ -363,7 +349,7 @@ Deno.serve(async (req) => {
     });
 
     // Loss Reasons Breakdown
-    const { data: lossReasons } = await supabase
+    const { data: lossReasons } = await ctx.supabase
       .from('deal_loss_reasons')
       .select('reason_category')
       .gte('created_at', periodStart.toISOString());
@@ -382,7 +368,7 @@ Deno.serve(async (req) => {
     });
 
     // Revenue from placement fees
-    const { data: placementFees } = await supabase
+    const { data: placementFees } = await ctx.supabase
       .from('placement_fees')
       .select('fee_amount')
       .gte('created_at', periodStart.toISOString());
@@ -398,7 +384,7 @@ Deno.serve(async (req) => {
     console.log('[Sales KPIs] Calculating AI Efficiency KPIs...');
     
     // AI Outreach Messages Sent
-    const { count: aiMessagesSent } = await supabase
+    const { count: aiMessagesSent } = await ctx.supabase
       .from('ai_outreach_logs')
       .select('*', { count: 'exact', head: true })
       .gte('sent_at', periodStart.toISOString());
@@ -410,7 +396,7 @@ Deno.serve(async (req) => {
     });
 
     // Reply Rate to AI Messages
-    const { count: aiMessagesReplied } = await supabase
+    const { count: aiMessagesReplied } = await ctx.supabase
       .from('ai_outreach_logs')
       .select('*', { count: 'exact', head: true })
       .gte('sent_at', periodStart.toISOString())
@@ -426,7 +412,7 @@ Deno.serve(async (req) => {
     });
 
     // AI Draft Success Rate (unedited)
-    const { count: aiUneditedDrafts } = await supabase
+    const { count: aiUneditedDrafts } = await ctx.supabase
       .from('ai_outreach_logs')
       .select('*', { count: 'exact', head: true })
       .gte('sent_at', periodStart.toISOString())
@@ -442,7 +428,7 @@ Deno.serve(async (req) => {
     });
 
     // Calls Booked via AI
-    const { count: aiBookings } = await supabase
+    const { count: aiBookings } = await ctx.supabase
       .from('ai_outreach_logs')
       .select('*', { count: 'exact', head: true })
       .gte('sent_at', periodStart.toISOString())
@@ -455,7 +441,7 @@ Deno.serve(async (req) => {
     });
 
     // AI Usage from ai_usage_logs
-    const { count: totalAiCalls } = await supabase
+    const { count: totalAiCalls } = await ctx.supabase
       .from('ai_usage_logs')
       .select('*', { count: 'exact', head: true })
       .gte('created_at', periodStart.toISOString());
@@ -470,7 +456,7 @@ Deno.serve(async (req) => {
     console.log('[Sales KPIs] Calculating Quality KPIs...');
     
     // Lead Sentiment Score
-    const { data: sentimentData } = await supabase
+    const { data: sentimentData } = await ctx.supabase
       .from('company_interactions')
       .select('sentiment_score')
       .gte('interaction_date', periodStart.toISOString())
@@ -488,7 +474,7 @@ Deno.serve(async (req) => {
     });
 
     // Intent Score from lead_scores
-    const { data: intentData } = await supabase
+    const { data: intentData } = await ctx.supabase
       .from('lead_scores')
       .select('total_score')
       .gte('updated_at', periodStart.toISOString());
@@ -505,7 +491,7 @@ Deno.serve(async (req) => {
     });
 
     // Conversation Velocity (messages in last 7 days per lead)
-    const { data: velocityData } = await supabase
+    const { data: velocityData } = await ctx.supabase
       .from('sales_conversations')
       .select('message_count')
       .gte('last_message_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString());
@@ -521,7 +507,7 @@ Deno.serve(async (req) => {
     });
 
     // Post-Call Satisfaction from call_quality_feedback
-    const { data: satisfactionData } = await supabase
+    const { data: satisfactionData } = await ctx.supabase
       .from('call_quality_feedback')
       .select('rating')
       .gte('created_at', periodStart.toISOString());
@@ -541,7 +527,7 @@ Deno.serve(async (req) => {
     console.log('[Sales KPIs] Calculating Forecasting KPIs...');
     
     // Weighted Pipeline Value
-    const { data: forecastData } = await supabase
+    const { data: forecastData } = await ctx.supabase
       .from('sales_forecasts')
       .select('weighted_value, predicted_value, confidence_score')
       .eq('is_slipping', false);
@@ -554,7 +540,7 @@ Deno.serve(async (req) => {
     });
 
     // Slipping Deals
-    const { count: slippingDeals } = await supabase
+    const { count: slippingDeals } = await ctx.supabase
       .from('sales_forecasts')
       .select('*', { count: 'exact', head: true })
       .eq('is_slipping', true);
@@ -606,7 +592,7 @@ Deno.serve(async (req) => {
 
     // Upsert KPIs (update if exists for same period/category/kpi_name)
     for (const record of kpiRecords) {
-      await supabase
+      await ctx.supabase
         .from('sales_kpi_metrics')
         .upsert(record, {
           onConflict: 'category,kpi_name,period_type,period_start',
@@ -623,17 +609,9 @@ Deno.serve(async (req) => {
         period: { start: periodStart, end: now },
         calculated_at: now.toISOString(),
       }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } }
     );
-  } catch (error: unknown) {
-    console.error('[Sales KPIs] Error:', error);
-    const message = error instanceof Error ? error.message : 'Unknown error';
-    return new Response(
-      JSON.stringify({ success: false, error: message }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-  }
-});
+}));
 
 function calculateTrend(current: number, previous: number): { trend_direction: 'up' | 'down' | 'stable'; trend_percentage: number } {
   if (previous === 0) {

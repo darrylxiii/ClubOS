@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -28,6 +29,7 @@ interface MemberTaskCount {
 }
 
 export const ClubTasksOverview = ({ objectiveId, onRefresh }: ClubTasksOverviewProps) => {
+  const { t } = useTranslation('common');
   const [statusCounts, setStatusCounts] = useState<StatusCount[]>([]);
   const [memberCounts, setMemberCounts] = useState<MemberTaskCount[]>([]);
   const [loading, setLoading] = useState(true);
@@ -99,7 +101,7 @@ export const ClubTasksOverview = ({ objectiveId, onRefresh }: ClubTasksOverviewP
       setMemberCounts(Object.values(memberMap));
     } catch (error) {
       console.error("Error loading overview data:", error);
-      toast.error("Failed to load overview");
+      toast.error(t('clubTasks.failedToLoadOverview'));
     } finally {
       setLoading(false);
     }
@@ -126,7 +128,7 @@ export const ClubTasksOverview = ({ objectiveId, onRefresh }: ClubTasksOverviewP
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Hand className="h-5 w-5 text-destructive" />
-                <CardTitle>BLOCKED</CardTitle>
+                <CardTitle>{t('clubTasks.bLOCKED')}</CardTitle>
               </div>
               <MoreHorizontal className="h-5 w-5" />
             </div>
@@ -157,7 +159,7 @@ export const ClubTasksOverview = ({ objectiveId, onRefresh }: ClubTasksOverviewP
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
                   <span className="text-4xl font-bold">{getStatusTotal("blocked")}</span>
-                  <span className="text-sm text-muted-foreground">Total</span>
+                  <span className="text-sm text-muted-foreground">{t('clubTasks.total')}</span>
                 </div>
               </div>
             </div>
@@ -169,7 +171,7 @@ export const ClubTasksOverview = ({ objectiveId, onRefresh }: ClubTasksOverviewP
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Zap className="h-5 w-5 text-cyan-500" />
-                <CardTitle>READY FOR ACTION</CardTitle>
+                <CardTitle>{t('clubTasks.rEADYFORACTION')}</CardTitle>
               </div>
               <MoreHorizontal className="h-5 w-5" />
             </div>
@@ -200,7 +202,7 @@ export const ClubTasksOverview = ({ objectiveId, onRefresh }: ClubTasksOverviewP
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
                   <span className="text-4xl font-bold">{getStatusTotal("to_do")}</span>
-                  <span className="text-sm text-muted-foreground">Total</span>
+                  <span className="text-sm text-muted-foreground">{t('clubTasks.total')}</span>
                 </div>
               </div>
             </div>
@@ -212,7 +214,7 @@ export const ClubTasksOverview = ({ objectiveId, onRefresh }: ClubTasksOverviewP
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Rocket className="h-5 w-5 text-amber-500" />
-                <CardTitle>ONGOING</CardTitle>
+                <CardTitle>{t('clubTasks.oNGOING')}</CardTitle>
               </div>
               <MoreHorizontal className="h-5 w-5" />
             </div>
@@ -244,7 +246,7 @@ export const ClubTasksOverview = ({ objectiveId, onRefresh }: ClubTasksOverviewP
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
                   <span className="text-4xl font-bold">{getStatusTotal("in_progress")}</span>
-                  <span className="text-sm text-muted-foreground">Total</span>
+                  <span className="text-sm text-muted-foreground">{t('clubTasks.total')}</span>
                 </div>
               </div>
             </div>

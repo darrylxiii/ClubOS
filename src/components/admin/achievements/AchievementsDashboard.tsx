@@ -4,8 +4,10 @@ import { MetricCard } from "../shared/MetricCard";
 import { useAchievementMetrics } from "@/hooks/useAchievementMetrics";
 import { MetricCardSkeleton } from "../shared/MetricCardSkeleton";
 import { useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from 'react-i18next';
 
 export const AchievementsDashboard = () => {
+  const { t } = useTranslation('admin');
   const queryClient = useQueryClient();
   const { metrics, topAchievements, isLoading } = useAchievementMetrics();
 
@@ -16,7 +18,7 @@ export const AchievementsDashboard = () => {
   if (isLoading || !metrics) {
     return (
       <div className="space-y-6">
-        <DashboardHeader title="Achievements" description="Platform achievements" onRefresh={handleRefresh} />
+        <DashboardHeader title={t('achievements.achievementsDashboard.achievements')} description="Platform achievements" onRefresh={handleRefresh} />
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           <MetricCardSkeleton />
           <MetricCardSkeleton />
@@ -33,7 +35,7 @@ export const AchievementsDashboard = () => {
   return (
     <div className="space-y-6">
       <DashboardHeader
-        title="Achievement System"
+        title={t('achievements.achievementsDashboard.achievementSystem')}
         description="Manage platform achievements and gamification"
         onRefresh={handleRefresh}
         isRefreshing={isLoading}
@@ -41,14 +43,14 @@ export const AchievementsDashboard = () => {
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <MetricCard
-          title="Total Achievements"
+          title={t('achievements.achievementsDashboard.totalAchievements')}
           icon={Trophy}
           iconColor="warning"
           primaryMetric={metrics.total_achievements}
           secondaryText={`${metrics.active_achievements} active • ${metrics.disabled_achievements} disabled`}
         />
         <MetricCard
-          title="User Unlocks"
+          title={t('achievements.achievementsDashboard.userUnlocks')}
           icon={Star}
           iconColor="success"
           primaryMetric={metrics.total_unlocks.toLocaleString()}
@@ -59,7 +61,7 @@ export const AchievementsDashboard = () => {
           </p>
         </MetricCard>
         <MetricCard
-          title="Most Unlocked"
+          title={t('achievements.achievementsDashboard.mostUnlocked')}
           icon={Star}
           iconColor="info"
           primaryMetric={topAchievements?.[0]?.unlock_count || 0}

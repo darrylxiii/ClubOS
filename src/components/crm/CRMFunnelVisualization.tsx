@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { motion } from "framer-motion";
 import { useCRMAnalytics } from "@/hooks/useCRMAnalytics";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -35,13 +36,14 @@ interface CRMFunnelVisualizationProps {
 }
 
 export function CRMFunnelVisualization({ dateRange = 'month' }: CRMFunnelVisualizationProps) {
+  const { t } = useTranslation('common');
   const { data, loading } = useCRMAnalytics({ dateRange });
 
   if (loading) {
     return (
       <Card className="bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border-border/50">
         <CardHeader>
-          <CardTitle className="text-lg font-semibold">Sales Funnel</CardTitle>
+          <CardTitle className="text-lg font-semibold">{t("sales_funnel", "Sales Funnel")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -117,7 +119,7 @@ export function CRMFunnelVisualization({ dateRange = 'month' }: CRMFunnelVisuali
         {closedLost && closedLost.count > 0 && (
           <div className="pt-3 border-t border-border/50">
             <div className="flex items-center justify-between text-sm">
-              <span className="text-red-400 font-medium">Lost Deals</span>
+              <span className="text-red-400 font-medium">{t("lost_deals", "Lost Deals")}</span>
               <span className="text-muted-foreground">
                 {closedLost.count} prospects (€{(closedLost.value / 1000).toFixed(0)}k)
               </span>

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Play, Square, Loader2 } from "lucide-react";
@@ -21,6 +22,7 @@ export function TimerButton({
   size = "default",
   className,
 }: TimerButtonProps) {
+  const { t } = useTranslation('common');
   const { runningEntry, startTimer, stopTimer } = useTimeTracking();
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
 
@@ -105,7 +107,7 @@ export function TimerButton({
       ) : (
         <>
           <Play className={iconSizes[size]} />
-          <span>Start Timer</span>
+          <span>{t("start_timer", "Start Timer")}</span>
         </>
       )}
     </Button>

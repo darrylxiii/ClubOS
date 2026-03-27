@@ -1,0 +1,233 @@
+{
+  "title": "Contracten",
+  "subtitle": "Beheer uw contracten en overeenkomsten",
+  "create": {
+    "title": "Contract aanmaken",
+    "fromTemplate": "Aanmaken uit sjabloon",
+    "fromScratch": "Vanaf nul aanmaken",
+    "duplicate": "Contract dupliceren"
+  },
+  "edit": {
+    "title": "Contract bewerken",
+    "save": "Wijzigingen opslaan",
+    "discard": "Wijzigingen verwerpen",
+    "preview": "Voorbeeld"
+  },
+  "sign": {
+    "title": "Contract ondertekenen",
+    "eSign": "Elektronische handtekening",
+    "uploadSignature": "Handtekening uploaden",
+    "drawSignature": "Handtekening tekenen",
+    "typeSignature": "Handtekening typen",
+    "confirm": "Handtekening bevestigen",
+    "signed": "Ondertekend",
+    "pending": "Wacht op ondertekening",
+    "requestSignature": "Ondertekening verzoeken"
+  },
+  "status": {
+    "draft": "Concept",
+    "pending": "Wacht op goedkeuring",
+    "active": "Actief",
+    "expired": "Verlopen",
+    "terminated": "Beëindigd",
+    "renewed": "Verlengd",
+    "cancelled": "Geannuleerd"
+  },
+  "types": {
+    "employment": "Arbeidsovereenkomst",
+    "freelance": "Freelance-overeenkomst",
+    "nda": "Geheimhoudingsovereenkomst",
+    "service": "Dienstverleningsovereenkomst",
+    "placement": "Plaatsingsovereenkomst",
+    "partnership": "Samenwerkingsovereenkomst"
+  },
+  "details": {
+    "title": "Contractdetails",
+    "parties": "Partijen",
+    "startDate": "Startdatum",
+    "endDate": "Einddatum",
+    "value": "Contractwaarde",
+    "currency": "Valuta",
+    "terms": "Voorwaarden",
+    "attachments": "Bijlagen",
+    "history": "Versiegeschiedenis"
+  },
+  "parties": {
+    "client": "Opdrachtgever",
+    "contractor": "Opdrachtnemer",
+    "employer": "Werkgever",
+    "employee": "Werknemer",
+    "party1": "Eerste partij",
+    "party2": "Tweede partij"
+  },
+  "templates": {
+    "title": "Contractsjablonen",
+    "browse": "Sjablonen bekijken",
+    "create": "Sjabloon aanmaken",
+    "edit": "Sjabloon bewerken",
+    "delete": "Sjabloon verwijderen",
+    "use": "Sjabloon gebruiken",
+    "preview": "Sjabloonvoorbeeld"
+  },
+  "clauses": {
+    "title": "Clausules",
+    "add": "Clausule toevoegen",
+    "edit": "Clausule bewerken",
+    "remove": "Clausule verwijderen",
+    "standard": "Standaardclausules",
+    "custom": "Aangepaste clausules",
+    "library": "Clausulebibliotheek"
+  },
+  "milestones": {
+    "title": "Mijlpalen",
+    "add": "Mijlpaal toevoegen",
+    "completed": "Voltooid",
+    "pending": "In behandeling",
+    "dueDate": "Vervaldatum",
+    "payment": "Betalingsbedrag"
+  },
+  "payments": {
+    "title": "Betalingen",
+    "schedule": "Betalingsschema",
+    "history": "Betalingsgeschiedenis",
+    "pending": "Openstaande betalingen",
+    "completed": "Voltooide betalingen",
+    "overdue": "Achterstallige betalingen",
+    "amount": "Bedrag",
+    "dueDate": "Vervaldatum"
+  },
+  "actions": {
+    "view": "Contract bekijken",
+    "edit": "Contract bewerken",
+    "delete": "Contract verwijderen",
+    "duplicate": "Contract dupliceren",
+    "send": "Ter ondertekening versturen",
+    "download": "PDF downloaden",
+    "print": "Afdrukken",
+    "archive": "Archiveren",
+    "renew": "Contract verlengen",
+    "terminate": "Contract beëindigen"
+  },
+  "notifications": {
+    "created": "Contract succesvol aangemaakt",
+    "updated": "Contract succesvol bijgewerkt",
+    "signed": "Contract succesvol ondertekend",
+    "sent": "Contract ter ondertekening verstuurd",
+    "expiringSoon": "Contract verloopt binnenkort",
+    "expired": "Contract is verlopen"
+  },
+  "filters": {
+    "all": "Alle contracten",
+    "active": "Actief",
+    "draft": "Concepten",
+    "pending": "In behandeling",
+    "expired": "Verlopen",
+    "byType": "Op type",
+    "byParty": "Op partij",
+    "byDate": "Op datum"
+  },
+  "search": {
+    "placeholder": "Contracten zoeken...",
+    "noResults": "Geen contracten gevonden",
+    "advanced": "Geavanceerd zoeken"
+  },
+  "empty": {
+    "noContracts": "Nog geen contracten",
+    "createFirst": "Maak uw eerste contract aan",
+    "noTemplates": "Geen sjablonen beschikbaar"
+  },
+  "validation": {
+    "required": "Dit veld is verplicht",
+    "invalidDate": "Ongeldige datum",
+    "endBeforeStart": "Einddatum moet na de startdatum liggen",
+    "missingParty": "Alle partijen moeten worden opgegeven"
+  },
+  "contractDetailPage": {
+    "title": "Tijdregistratie",
+    "desc": "Uren bijhouden, urenstaten indienen en goedkeuringen beheren",
+    "text2": "Totaal budget",
+    "text3": "Contracttype",
+    "text4": "Tijdlijn",
+    "text5": "Mijlpalen",
+    "text6": "Overzicht",
+    "text7": "Mijlpalen",
+    "text8": "Betalingen",
+    "text9": "Tijdregistratie",
+    "text10": "Documenten",
+    "text11": "Bedrijf Naam",
+    "text12": "Freelancer Naam",
+    "text13": "Contractdocumenten"
+  },
+  "contractListPage": {
+    "desc": "Uw freelance projectcontracten en betalingen beheren",
+    "text2": "Als freelancer",
+    "text3": "Als klant",
+    "text4": "Totaal contracten",
+    "text5": "Actief",
+    "text6": "In afwachting van ondertekening",
+    "text7": "Voltooid",
+    "text8": "contracten zoeken...",
+    "text9": "Alle",
+    "text10": "In afwachting",
+    "text11": "Actief",
+    "text12": "Voltooid"
+  },
+  "contractSignaturePage": {
+    "title": "Belangrijkste voorwaarden",
+    "desc": "Bekijk de contractvoorwaarden en voeg uw handtekening toe om door te gaan",
+    "text2": "Totale waarde",
+    "text3": "Betalingsschema",
+    "text4": "Platformkosten",
+    "text5": "Escrowbescherming",
+    "text6": "Servicevoorwaarden",
+    "text7": "Privacybeleid"
+  },
+  "retainerContractsPage": {
+    "btn": "Details bekijken",
+    "text2": "Retainercontracten",
+    "text3": "Doorlopende klantrelaties beheren",
+    "text4": "Retainer Contract aanmaken",
+    "text5": "Een terugkerende maandelijkse regeling opzetten",
+    "text6": "Maandelijkse uren",
+    "text7": "Voorwaarden & beschrijving",
+    "text8": "Beschrijf de reikwijdte van het werk...",
+    "text9": "Annuleren",
+    "text10": "Contract aanmaken",
+    "text11": "Actief",
+    "text12": "In afwachting",
+    "text13": "Voltooid",
+    "text14": "Maandelijks",
+    "text15": "Tarief",
+    "text16": "Deze maand",
+    "text17": "Geen actieve retainers",
+    "text18": "Maak een retainercontract aan om te beginnen",
+    "text19": "Retainer in afwachting",
+    "text20": "Accepteren",
+    "text21": "Weigeren",
+    "text22": "Geen voltooide retainers",
+    "text23": "Uren registreren",
+    "text24": "Bestede tijd aan deze retainer registreren",
+    "text25": "Uren",
+    "text26": "Beschrijving",
+    "text27": "Waar heeft u aan gewerkt?"
+  },
+  "management": {
+    "title": "Contractbeheer",
+    "subtitle": "Freelancecontracten, betalingen en wijzigingsopdrachten beheren",
+    "searchPlaceholder": "contracten zoeken...",
+    "createContract": "Contract aanmaken",
+    "tabContracts": "Contracten",
+    "tabBudget": "Budget & uitgaven",
+    "tabChangeOrders": "Wijzigingsopdrachten",
+    "tabInvoices": "Facturen",
+    "filterAll": "Alle",
+    "filterPending": "In afwachting",
+    "filterActive": "Actief",
+    "filterCompleted": "Voltooid",
+    "noContracts": "Nog geen contracten",
+    "noFilterMatch": "Geen contracten komen overeen met uw filters",
+    "emptyDescription": "Maak uw eerste contract aan om freelancers in te huren",
+    "contractInvoices": "Contractfacturen",
+    "noInvoices": "Nog geen facturen gegenereerd"
+  }
+}

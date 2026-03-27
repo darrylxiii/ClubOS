@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -10,6 +11,7 @@ interface NextActivityBadgeProps {
 }
 
 export function NextActivityBadge({ nextActivityAt, className }: NextActivityBadgeProps) {
+  const { t } = useTranslation('common');
   if (!nextActivityAt) {
     return (
       <Tooltip>
@@ -26,8 +28,8 @@ export function NextActivityBadge({ nextActivityAt, className }: NextActivityBad
           </Badge>
         </TooltipTrigger>
         <TooltipContent>
-          <p>No activity scheduled for this prospect</p>
-          <p className="text-xs text-muted-foreground">Schedule an activity to stay on track</p>
+          <p>{t("no_activity_scheduled_for", "No activity scheduled for this prospect")}</p>
+          <p className="text-xs text-muted-foreground">{t("schedule_an_activity_to", "Schedule an activity to stay on track")}</p>
         </TooltipContent>
       </Tooltip>
     );
@@ -74,7 +76,7 @@ export function NextActivityBadge({ nextActivityAt, className }: NextActivityBad
       </TooltipTrigger>
       <TooltipContent>
         <p>Next activity: {format(date, 'PPP p')}</p>
-        {isOverdue && <p className="text-xs text-red-400">This activity is overdue!</p>}
+        {isOverdue && <p className="text-xs text-red-400">{t("this_activity_is_overdue", "This activity is overdue!")}</p>}
       </TooltipContent>
     </Tooltip>
   );

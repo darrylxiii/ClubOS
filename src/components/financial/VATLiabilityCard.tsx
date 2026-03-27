@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -16,6 +17,7 @@ const ENTITY_CONFIG: Record<string, { vatRate: number; vatLabel: string; authori
 };
 
 export function VATLiabilityCard({ year, legalEntity }: VATLiabilityCardProps) {
+  const { t } = useTranslation('common');
   const { data, isLoading } = useVATSummary(year, legalEntity);
 
   const config = ENTITY_CONFIG[legalEntity || 'tqc_nl'] || ENTITY_CONFIG.tqc_nl;
@@ -48,32 +50,33 @@ export function VATLiabilityCard({ year, legalEntity }: VATLiabilityCardProps) {
     0
   );
 
+  const vatLabel = isConsolidated ? 'VAT' : config.vatLabel;
   const items = [
     {
-      label: 'Net Revenue',
+      label: t('financial.netRevenue'),
       value: formatCurrency(data?.netRevenue || 0),
-      description: isConsolidated ? 'Excl. mixed VAT rates' : `Excl. ${config.vatRate}% ${config.vatLabel}`,
+      description: isConsolidated ? t('financial.exclMixedVAT') : t('financial.exclVATRate', { rate: config.vatRate, label: config.vatLabel }),
       icon: TrendingUp,
       color: 'text-green-500',
     },
     {
-      label: `${isConsolidated ? 'VAT' : config.vatLabel} Collected`,
+      label: t('financial.vatCollected', { label: vatLabel }),
       value: formatCurrency(data?.vatCollectedPaid || 0),
-      description: 'From paid invoices',
+      description: t('financial.fromPaidInvoices'),
       icon: Receipt,
       color: 'text-blue-500',
     },
     {
-      label: `${isConsolidated ? 'VAT' : config.vatLabel} Outstanding`,
+      label: t('financial.vatOutstanding', { label: vatLabel }),
       value: formatCurrency(data?.vatCollectedOutstanding || 0),
-      description: 'From unpaid invoices',
+      description: t('financial.fromUnpaidInvoices'),
       icon: Clock,
       color: 'text-amber-500',
     },
     {
-      label: `Total ${isConsolidated ? 'VAT' : config.vatLabel} Liability`,
+      label: t('financial.totalVATLiability', { label: vatLabel }),
       value: formatCurrency(data?.vatCollected || 0),
-      description: isConsolidated ? 'Combined liability' : `Owed to ${config.authority}`,
+      description: isConsolidated ? t('financial.combinedLiability') : t('financial.owedTo', { authority: config.authority }),
       icon: AlertTriangle,
       color: 'text-destructive',
     },
@@ -87,13 +90,13 @@ export function VATLiabilityCard({ year, legalEntity }: VATLiabilityCardProps) {
             <CardTitle className="flex items-center gap-2">
               <Receipt className="h-5 w-5" />
               {isConsolidated
-                ? 'VAT Position (All Entities)'
-                : `${config.flag} VAT Position (${config.vatRate}% ${config.vatLabel})`}
+                ? t('financial.vatPositionAll')
+                : `${config.flag} ${t('financial.vatPosition', { rate: config.vatRate, label: config.vatLabel })}`}
             </CardTitle>
             <CardDescription>
               {isConsolidated
-                ? `Combined VAT liability from ${data?.invoiceCount || 0} invoices`
-                : `${config.vatLabel} liability from ${data?.invoiceCount || 0} invoices`}
+                ? t('financial.combinedVATLiabilityFrom', { count: data?.invoiceCount || 0 })
+                : t('financial.vatLiabilityFrom', { label: config.vatLabel, count: data?.invoiceCount || 0 })}
             </CardDescription>
           </div>
           <div className="flex items-center gap-2">
@@ -104,7 +107,7 @@ export function VATLiabilityCard({ year, legalEntity }: VATLiabilityCardProps) {
             )}
             {(!isConsolidated && legalEntity === 'tqc_nl') && (
               <Badge variant="outline" className="text-xs">
-                Next filing: Q{currentQuarter} ({nextFilingDeadline.toLocaleDateString('nl-NL', { month: 'short', day: 'numeric' })})
+                {t('financial.nextFiling', { quarter: currentQuarter, date: nextFilingDeadline.toLocaleDateString('nl-NL', { month: 'short', day: 'numeric' }) })}
               </Badge>
             )}
           </div>

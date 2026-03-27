@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React from 'react';
 import { useTeamLoadBalance } from '@/hooks/useFocusTimeDefender';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -23,6 +24,7 @@ interface TeamLoadDashboardProps {
 }
 
 export function TeamLoadDashboard({ bookingLinkId }: TeamLoadDashboardProps) {
+  const { t } = useTranslation('common');
   const {
     teamLoad,
     isLoading,
@@ -79,7 +81,7 @@ export function TeamLoadDashboard({ bookingLinkId }: TeamLoadDashboardProps) {
       <Card>
         <CardContent className="py-8 text-center">
           <AlertTriangle className="h-12 w-12 text-destructive mx-auto mb-2" />
-          <p className="text-destructive">Failed to load team data</p>
+          <p className="text-destructive">{t("failed_to_load_team", "Failed to load team data")}</p>
           <Button variant="outline" onClick={() => refetch()} className="mt-4">
             <RefreshCw className="h-4 w-4 mr-2" />
             Retry
@@ -124,19 +126,19 @@ export function TeamLoadDashboard({ bookingLinkId }: TeamLoadDashboardProps) {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
             <div className="text-center p-3 bg-muted rounded-lg">
               <p className="text-2xl font-bold">{teamMetrics.averageLoad}%</p>
-              <p className="text-xs text-muted-foreground">Avg Load</p>
+              <p className="text-xs text-muted-foreground">{t("avg_load", "Avg Load")}</p>
             </div>
             <div className="text-center p-3 bg-muted rounded-lg">
               <p className="text-2xl font-bold text-green-600">{teamMetrics.healthyMembers}</p>
-              <p className="text-xs text-muted-foreground">Healthy</p>
+              <p className="text-xs text-muted-foreground">{t("healthy", "Healthy")}</p>
             </div>
             <div className="text-center p-3 bg-muted rounded-lg">
               <p className="text-2xl font-bold text-orange-600">{teamMetrics.highBurnoutRisk}</p>
-              <p className="text-xs text-muted-foreground">High Risk</p>
+              <p className="text-xs text-muted-foreground">{t("high_risk", "High Risk")}</p>
             </div>
             <div className="text-center p-3 bg-muted rounded-lg">
               <p className="text-2xl font-bold text-destructive">{teamMetrics.criticalBurnoutRisk}</p>
-              <p className="text-xs text-muted-foreground">Critical</p>
+              <p className="text-xs text-muted-foreground">{t("critical", "Critical")}</p>
             </div>
           </div>
 
@@ -238,7 +240,7 @@ export function TeamLoadDashboard({ bookingLinkId }: TeamLoadDashboardProps) {
                     <p className="text-sm text-muted-foreground">{suggestion.reason}</p>
                   </div>
                   {suggestion.priority === 'high' && (
-                    <Badge variant="destructive" className="ml-auto">High Priority</Badge>
+                    <Badge variant="destructive" className="ml-auto">{t("high_priority", "High Priority")}</Badge>
                   )}
                 </div>
               ))}
@@ -246,7 +248,7 @@ export function TeamLoadDashboard({ bookingLinkId }: TeamLoadDashboardProps) {
           ) : (
             <div className="text-center py-8 text-muted-foreground">
               <Users className="h-12 w-12 mx-auto mb-2 opacity-50" />
-              <p>Click "Get Suggestions" to analyze team workload</p>
+              <p>{t("click_get_suggestions_to", "Click ')Get Suggestions' to analyze team workload")}</p>
             </div>
           )}
         </CardContent>

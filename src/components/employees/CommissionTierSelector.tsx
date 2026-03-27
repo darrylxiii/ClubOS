@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -43,6 +44,7 @@ export function CommissionTierSelector({
   fixedAmount = 0,
   onFixedAmountChange,
 }: CommissionTierSelectorProps) {
+  const { t } = useTranslation('common');
   const { data: companyTiers } = useCommissionTiers();
 
   const addTier = () => {
@@ -77,7 +79,7 @@ export function CommissionTierSelector({
   if (commissionStructure === 'percentage') {
     return (
       <div className="space-y-2">
-        <Label>Commission Percentage (%)</Label>
+        <Label>{t("commission_percentage", "Commission Percentage (%)")}</Label>
         <Input
           type="number"
           step="0.5"
@@ -97,7 +99,7 @@ export function CommissionTierSelector({
   if (commissionStructure === 'fixed') {
     return (
       <div className="space-y-2">
-        <Label>Fixed Commission Amount (€)</Label>
+        <Label>{t("fixed_commission_amount", "Fixed Commission Amount (€)")}</Label>
         <Input
           type="number"
           min="0"
@@ -117,7 +119,7 @@ export function CommissionTierSelector({
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Label>Commission Tiers</Label>
+            <Label>{t("commission_tiers", "Commission Tiers")}</Label>
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger>
@@ -133,7 +135,7 @@ export function CommissionTierSelector({
             </TooltipProvider>
           </div>
           <div className="flex items-center gap-2">
-            <Label htmlFor="use-defaults" className="text-sm">Use Company Defaults</Label>
+            <Label htmlFor="use-defaults" className="text-sm">{t("use_company_defaults", "Use Company Defaults")}</Label>
             <Switch
               id="use-defaults"
               checked={useCompanyDefaults}
@@ -171,7 +173,7 @@ export function CommissionTierSelector({
                 <CardContent className="pt-4">
                   <div className="flex items-end gap-3">
                     <div className="flex-1 space-y-1">
-                      <Label className="text-xs">Min Revenue (€)</Label>
+                      <Label className="text-xs">{t("min_revenue", "Min Revenue (€)")}</Label>
                       <Input
                         type="number"
                         min="0"
@@ -180,17 +182,17 @@ export function CommissionTierSelector({
                       />
                     </div>
                     <div className="flex-1 space-y-1">
-                      <Label className="text-xs">Max Revenue (€)</Label>
+                      <Label className="text-xs">{t("max_revenue", "Max Revenue (€)")}</Label>
                       <Input
                         type="number"
                         min="0"
                         value={tier.max_revenue || ''}
-                        placeholder="Unlimited"
+                        placeholder={t("unlimited", "Unlimited")}
                         onChange={(e) => updateTier(index, { max_revenue: e.target.value ? parseFloat(e.target.value) : null })}
                       />
                     </div>
                     <div className="w-24 space-y-1">
-                      <Label className="text-xs">Rate (%)</Label>
+                      <Label className="text-xs">{t("rate", "Rate (%)")}</Label>
                       <Input
                         type="number"
                         step="0.5"
@@ -233,7 +235,7 @@ export function CommissionTierSelector({
     return (
       <div className="space-y-4">
         <div className="space-y-2">
-          <Label>Base Commission Percentage (%)</Label>
+          <Label>{t("base_commission_percentage", "Base Commission Percentage (%)")}</Label>
           <Input
             type="number"
             step="0.5"
@@ -250,7 +252,7 @@ export function CommissionTierSelector({
         <div className="border-t border-border/50 pt-4">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <Label>Bonus Tiers</Label>
+              <Label>{t("bonus_tiers", "Bonus Tiers")}</Label>
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger>
@@ -265,7 +267,7 @@ export function CommissionTierSelector({
               </TooltipProvider>
             </div>
             <div className="flex items-center gap-2">
-              <Label htmlFor="use-defaults-hybrid" className="text-sm">Use Company Defaults</Label>
+              <Label htmlFor="use-defaults-hybrid" className="text-sm">{t("use_company_defaults", "Use Company Defaults")}</Label>
               <Switch
                 id="use-defaults-hybrid"
                 checked={useCompanyDefaults}
@@ -303,7 +305,7 @@ export function CommissionTierSelector({
                   <CardContent className="pt-4">
                     <div className="flex items-end gap-3">
                       <div className="flex-1 space-y-1">
-                        <Label className="text-xs">Min Revenue (€)</Label>
+                        <Label className="text-xs">{t("min_revenue", "Min Revenue (€)")}</Label>
                         <Input
                           type="number"
                           min="0"
@@ -312,17 +314,17 @@ export function CommissionTierSelector({
                         />
                       </div>
                       <div className="flex-1 space-y-1">
-                        <Label className="text-xs">Max Revenue (€)</Label>
+                        <Label className="text-xs">{t("max_revenue", "Max Revenue (€)")}</Label>
                         <Input
                           type="number"
                           min="0"
                           value={tier.max_revenue || ''}
-                          placeholder="Unlimited"
+                          placeholder={t("unlimited", "Unlimited")}
                           onChange={(e) => updateTier(index, { max_revenue: e.target.value ? parseFloat(e.target.value) : null })}
                         />
                       </div>
                       <div className="w-24 space-y-1">
-                        <Label className="text-xs">Bonus (%)</Label>
+                        <Label className="text-xs">{t("bonus", "Bonus (%)")}</Label>
                         <Input
                           type="number"
                           step="0.5"

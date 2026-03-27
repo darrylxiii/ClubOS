@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAppearance } from '@/contexts/AppearanceContext';
@@ -15,6 +16,7 @@ interface Preset {
 }
 
 export function PresetGallery() {
+  const { t } = useTranslation('common');
   const { settings, updateSettings } = useAppearance();
   const { user } = useAuth();
   const [presets, setPresets] = useState<Preset[]>([]);
@@ -63,12 +65,12 @@ export function PresetGallery() {
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-      toast.error('Please upload an image file');
+      toast.error(t("please_upload_an_image", "Please upload an image file"));
       return;
     }
 
     if (file.size > 10 * 1024 * 1024) {
-      toast.error('Image must be less than 10MB');
+      toast.error(t("image_must_be_less", "Image must be less than 10MB"));
       return;
     }
 
@@ -83,7 +85,7 @@ export function PresetGallery() {
 
   const handleEditorSave = async (blob: Blob) => {
     if (!user) {
-      toast.error('Please log in to upload custom backgrounds');
+      toast.error(t("please_log_in_to", "Please log in to upload custom backgrounds"));
       return;
     }
 
@@ -109,10 +111,10 @@ export function PresetGallery() {
         backgroundValue: publicUrl,
       });
 
-      toast.success('Custom background uploaded');
+      toast.success(t("custom_background_uploaded", "Custom background uploaded"));
     } catch (error: unknown) {
       console.error('Error uploading background:', error);
-      toast.error('Failed to upload background');
+      toast.error(t("failed_to_upload_background", "Failed to upload background"));
     } finally {
       setUploading(false);
       if (selectedImage) {

@@ -166,7 +166,8 @@ export function useMeetingFeatureSettings(): UseMeetingFeatureSettingsReturn {
       const parsed = JSON.parse(json);
       setSettings({ ...DEFAULT_SETTINGS, ...parsed });
       return true;
-    } catch {
+    } catch (error) {
+      console.error('[useMeetingFeatureSettings] Failed to import settings:', error);
       return false;
     }
   }, []);

@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { resilientFetch } from '../_shared/resilient-fetch.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -34,10 +35,15 @@ async function fathomFetch(path: string, apiKey: string, params?: Record<string,
       url.searchParams.set(k, v);
     }
   }
-  const res = await fetch(url.toString(), {
+  const { response: res } = await resilientFetch(url.toString(), {
     headers: {
       'X-Api-Key': apiKey,
     },
+  }, {
+    timeoutMs: 30_000,
+    maxRetries: 1,
+    service: 'fathom',
+    operation: `fetch-${path.replace(/^\//, '')}`,
   });
   if (!res.ok) {
     const body = await res.text();

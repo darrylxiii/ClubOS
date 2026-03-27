@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -13,13 +14,14 @@ interface PersonalMeetingRoomCardProps {
 }
 
 export function PersonalMeetingRoomCard({ pmr, onUpdate }: PersonalMeetingRoomCardProps) {
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
   const [updating, setUpdating] = useState(false);
 
   const copyRoomLink = () => {
     const url = `${window.location.origin}/meetings/${pmr.room_code}`;
     navigator.clipboard.writeText(url);
-    toast.success('Room link copied!');
+    toast.success(t("room_link_copied", "Room link copied!"));
   };
 
   const toggleActive = async () => {
@@ -35,7 +37,7 @@ export function PersonalMeetingRoomCard({ pmr, onUpdate }: PersonalMeetingRoomCa
       toast.success(pmr.is_active ? 'Room deactivated' : 'Room activated');
       onUpdate?.();
     } catch (error: unknown) {
-      toast.error('Failed to update room');
+      toast.error(t("failed_to_update_room", "Failed to update room"));
     } finally {
       setUpdating(false);
     }
@@ -49,10 +51,10 @@ export function PersonalMeetingRoomCard({ pmr, onUpdate }: PersonalMeetingRoomCa
 
       if (error) throw error;
 
-      toast.success('Starting your personal room...');
+      toast.success(t("starting_your_personal_room", "Starting your personal room..."));
       navigate(`/meetings/${pmr.room_code}`);
     } catch (error: unknown) {
-      toast.error('Failed to start meeting');
+      toast.error(t("failed_to_start_meeting", "Failed to start meeting"));
     }
   };
 

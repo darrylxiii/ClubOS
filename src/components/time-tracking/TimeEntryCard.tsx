@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -31,6 +32,7 @@ export function TimeEntryCard({
   onApprove,
   onDispute
 }: TimeEntryCardProps) {
+  const { t } = useTranslation('common');
   
   const getStatusIcon = () => {
     switch (entry.status) {
@@ -108,13 +110,13 @@ export function TimeEntryCard({
       <div className="flex items-center justify-between pt-3 border-t border-border/50">
         <div className="flex items-center gap-4 text-sm">
           <div>
-            <span className="text-muted-foreground">Hours: </span>
+            <span className="text-muted-foreground">{t("hours", "Hours:")}</span>
             <span className="font-semibold text-foreground">
               {entry.hours_worked.toFixed(2)}h
             </span>
           </div>
           <div>
-            <span className="text-muted-foreground">Rate: </span>
+            <span className="text-muted-foreground">{t("rate", "Rate:")}</span>
             <span className="font-medium text-foreground">
               €{entry.hourly_rate}/hr
             </span>

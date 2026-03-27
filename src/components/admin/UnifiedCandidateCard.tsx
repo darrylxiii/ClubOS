@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -45,6 +46,7 @@ export function UnifiedCandidateCard({
   onDelete,
   activityThresholds
 }: UnifiedCandidateCardProps) {
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteType, setDeleteType] = useState<'soft' | 'hard'>('soft');
@@ -111,7 +113,7 @@ export function UnifiedCandidateCard({
                   size="sm"
                   onClick={() => setStrategistDialogOpen(true)}
                   className="h-8 text-xs"
-                  title="Assign Strategist"
+                  title={t("assign_strategist", "Assign Strategist")}
                 >
                   <UserPlus className="w-3.5 h-3.5" />
                 </Button>
@@ -270,7 +272,7 @@ export function UnifiedCandidateCard({
             {/* Completeness Score */}
             <div className="flex items-center gap-2 mt-3">
               <CompletenessIndicator score={candidate.profile_completeness || 0} size="md" showLabel />
-              <span className="text-xs text-muted-foreground">Data Completeness</span>
+              <span className="text-xs text-muted-foreground">{t("data_completeness", "Data Completeness")}</span>
             </div>
 
             {/* Quick Actions */}

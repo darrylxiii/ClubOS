@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { X, Send } from 'lucide-react';
@@ -28,6 +29,7 @@ interface MessageThreadSidebarProps {
 }
 
 const MessageThreadSidebar = ({ parentMessage, channelId, onClose }: MessageThreadSidebarProps) => {
+  const { t } = useTranslation('meetings');
   const { user } = useAuth();
   const [replies, setReplies] = useState<Message[]>([]);
   const [newReply, setNewReply] = useState('');
@@ -119,7 +121,7 @@ const MessageThreadSidebar = ({ parentMessage, channelId, onClose }: MessageThre
 
     if (error) {
       console.error('Error sending reply:', error);
-      toast.error('Failed to send reply');
+      toast.error(t('livehub.failedToSendReply'));
       return;
     }
 
@@ -137,7 +139,7 @@ const MessageThreadSidebar = ({ parentMessage, channelId, onClose }: MessageThre
     <div className="w-96 border-l border-border flex flex-col bg-background">
       {/* Header */}
       <div className="h-12 px-4 flex items-center justify-between border-b border-border">
-        <h3 className="font-semibold text-sm">Thread</h3>
+        <h3 className="font-semibold text-sm">{t('livehub.thread')}</h3>
         <Button variant="ghost" size="icon" onClick={onClose}>
           <X className="w-4 h-4" />
         </Button>
@@ -155,7 +157,7 @@ const MessageThreadSidebar = ({ parentMessage, channelId, onClose }: MessageThre
           <div className="flex-1 min-w-0">
             <div className="flex items-baseline gap-2">
               <span className="font-semibold text-sm">
-                {parentMessage.user?.full_name || 'Unknown User'}
+                {parentMessage.user?.full_name || t('livehub.unknownUser')}
               </span>
               <span className="text-xs text-muted-foreground">
                 {format(new Date(parentMessage.created_at), 'MMM d, HH:mm')}
@@ -171,7 +173,7 @@ const MessageThreadSidebar = ({ parentMessage, channelId, onClose }: MessageThre
         <div className="p-4 space-y-4">
           {replies.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-8">
-              No replies yet. Start the conversation!
+              {t('livehub.noRepliesYet')}
             </p>
           ) : (
             replies.map((reply) => (
@@ -185,7 +187,7 @@ const MessageThreadSidebar = ({ parentMessage, channelId, onClose }: MessageThre
                 <div className="flex-1 min-w-0">
                   <div className="flex items-baseline gap-2">
                     <span className="font-semibold text-sm">
-                      {reply.user?.full_name || 'Unknown User'}
+                      {reply.user?.full_name || t('livehub.unknownUser')}
                     </span>
                     <span className="text-xs text-muted-foreground">
                       {format(new Date(reply.created_at), 'HH:mm')}
@@ -207,7 +209,7 @@ const MessageThreadSidebar = ({ parentMessage, channelId, onClose }: MessageThre
             value={newReply}
             onChange={(e) => setNewReply(e.target.value)}
             onKeyPress={handleKeyPress}
-            placeholder="Reply to thread..."
+            placeholder={t('livehub.replyToThread')}
             className="flex-1"
           />
           <Button onClick={sendReply} size="icon">

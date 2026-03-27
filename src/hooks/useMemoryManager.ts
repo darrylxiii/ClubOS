@@ -73,7 +73,8 @@ export function useMemoryManager<T = unknown>(options: UseMemoryManagerOptions =
     try {
       const str = JSON.stringify(data);
       return new Blob([str]).size;
-    } catch {
+    } catch (error) {
+      console.error('[useMemoryManager] Failed to calculate entry size, using estimate:', error);
       return 1024; // Default estimate
     }
   }, []);

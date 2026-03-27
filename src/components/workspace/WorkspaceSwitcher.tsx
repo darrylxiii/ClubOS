@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Skeleton } from "@/components/ui/skeleton";
 import { useNavigate } from 'react-router-dom';
 import { Check, ChevronDown, Lock, Building2, Users, Plus, Settings } from 'lucide-react';
@@ -27,6 +28,7 @@ export function WorkspaceSwitcher({
   onWorkspaceChange,
   className,
 }: WorkspaceSwitcherProps) {
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
   const { workspaces, personalWorkspace, companyWorkspaces, teamWorkspaces, isLoading } = useWorkspaces();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);

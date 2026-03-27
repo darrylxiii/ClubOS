@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,6 +17,7 @@ import { toast } from 'sonner';
 import { format } from 'date-fns';
 
 const ABTestPanel: React.FC = () => {
+  const { t } = useTranslation('admin');
   const queryClient = useQueryClient();
 
   const { data: variants, isLoading } = useQuery({
@@ -41,7 +43,7 @@ const ABTestPanel: React.FC = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['blog-ab-tests'] });
-      toast.success('Test paused');
+      toast.success(t('abTest.testPaused', 'Test paused'));
     },
   });
 
@@ -74,7 +76,7 @@ const ABTestPanel: React.FC = () => {
           <CardContent className="pt-4 pb-4 flex items-center gap-3">
             <FlaskConical className="h-8 w-8 text-blue-400" />
             <div>
-              <p className="text-xs text-muted-foreground uppercase">Active Tests</p>
+              <p className="text-xs text-muted-foreground uppercase">{t('abTest.activeTests', 'Active Tests')}</p>
               <p className="text-2xl font-semibold">{activeTests.length}</p>
             </div>
           </CardContent>
@@ -83,7 +85,7 @@ const ABTestPanel: React.FC = () => {
           <CardContent className="pt-4 pb-4 flex items-center gap-3">
             <Trophy className="h-8 w-8 text-amber-400" />
             <div>
-              <p className="text-xs text-muted-foreground uppercase">Winners Found</p>
+              <p className="text-xs text-muted-foreground uppercase">{t('abTest.winnersFound', 'Winners Found')}</p>
               <p className="text-2xl font-semibold">{winnersFound}</p>
             </div>
           </CardContent>
@@ -92,7 +94,7 @@ const ABTestPanel: React.FC = () => {
           <CardContent className="pt-4 pb-4 flex items-center gap-3">
             <TrendingUp className="h-8 w-8 text-emerald-400" />
             <div>
-              <p className="text-xs text-muted-foreground uppercase">Avg Lift</p>
+              <p className="text-xs text-muted-foreground uppercase">{t('abTest.avgLift', 'Avg Lift')}</p>
               <p className="text-2xl font-semibold">{avgLift}%</p>
             </div>
           </CardContent>
@@ -109,7 +111,7 @@ const ABTestPanel: React.FC = () => {
           {activeTests.length > 0 && (
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Active Tests</CardTitle>
+                <CardTitle className="text-lg">{t('abTest.activeTests', 'Active Tests')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -118,19 +120,19 @@ const ABTestPanel: React.FC = () => {
                       <div className="flex items-center justify-between">
                         <Badge variant="outline" className="capitalize">{test.variant_type}</Badge>
                         <Button size="sm" variant="ghost" onClick={() => pauseMutation.mutate(test.id)}>
-                          <Pause className="h-4 w-4 mr-1" /> Pause
+                          <Pause className="h-4 w-4 mr-1" /> {t('abTest.pause', 'Pause')}
                         </Button>
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-1">
-                          <p className="text-xs text-muted-foreground">Variant A</p>
+                          <p className="text-xs text-muted-foreground">{t('abTest.variantA', 'Variant A')}</p>
                           <p className="text-sm font-medium truncate">{test.variant_a}</p>
                           <p className="text-xs text-muted-foreground">
                             {test.views_a} views · {conversionRate(test.conversions_a, test.views_a)} CVR
                           </p>
                         </div>
                         <div className="space-y-1">
-                          <p className="text-xs text-muted-foreground">Variant B</p>
+                          <p className="text-xs text-muted-foreground">{t('abTest.variantB', 'Variant B')}</p>
                           <p className="text-sm font-medium truncate">{test.variant_b}</p>
                           <p className="text-xs text-muted-foreground">
                             {test.views_b} views · {conversionRate(test.conversions_b, test.views_b)} CVR
@@ -139,7 +141,7 @@ const ABTestPanel: React.FC = () => {
                       </div>
                       <div className="space-y-1">
                         <div className="flex justify-between text-xs text-muted-foreground">
-                          <span>Confidence</span>
+                          <span>{t('abTest.confidence', 'Confidence')}</span>
                           <span>{Number(test.confidence || 0).toFixed(0)}%</span>
                         </div>
                         <Progress value={Number(test.confidence || 0)} className="h-1.5" />
@@ -155,7 +157,7 @@ const ABTestPanel: React.FC = () => {
           {completedTests.length > 0 && (
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Completed Tests</CardTitle>
+                <CardTitle className="text-lg">{t('abTest.completedTests', 'Completed Tests')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
@@ -169,7 +171,7 @@ const ABTestPanel: React.FC = () => {
                         <Badge variant="outline" className="capitalize">{test.variant_type}</Badge>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium truncate">
-                            Winner: {test.winner === 'a' ? test.variant_a : test.variant_b}
+                            {t('abTest.winner', 'Winner')}: {test.winner === 'a' ? test.variant_a : test.variant_b}
                           </p>
                         </div>
                         <Badge className="bg-emerald-500/10 text-emerald-500">+{lift.toFixed(1)}% lift</Badge>
@@ -192,7 +194,7 @@ const ABTestPanel: React.FC = () => {
           {!variants?.length && (
             <Card>
               <CardContent className="py-8">
-                <p className="text-center text-muted-foreground">No A/B tests yet. Tests are created automatically when the engine generates headline or CTA variants.</p>
+                <p className="text-center text-muted-foreground">{t('abTest.noTests', 'No A/B tests yet. Tests are created automatically when the engine generates headline or CTA variants.')}</p>
               </CardContent>
             </Card>
           )}

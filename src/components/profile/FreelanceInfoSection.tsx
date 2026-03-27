@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -10,6 +11,7 @@ interface FreelanceInfoSectionProps {
 }
 
 export function FreelanceInfoSection({ profile, isOwnProfile }: FreelanceInfoSectionProps) {
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
 
   if (!profile?.open_to_freelance_work) {
@@ -36,7 +38,7 @@ export function FreelanceInfoSection({ profile, isOwnProfile }: FreelanceInfoSec
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-primary" />
-            <CardTitle>Available for Freelance Projects</CardTitle>
+            <CardTitle>{t("available_for_freelance_projects", "Available for Freelance Projects")}</CardTitle>
           </div>
           <Badge className={availabilityColors[status as keyof typeof availabilityColors]}>
             {availabilityLabels[status as keyof typeof availabilityLabels]}
@@ -55,7 +57,7 @@ export function FreelanceInfoSection({ profile, isOwnProfile }: FreelanceInfoSec
           <div className="flex items-start gap-3 p-3 bg-secondary/50 rounded-lg">
             <DollarSign className="h-5 w-5 text-primary mt-0.5" />
             <div>
-              <p className="text-sm font-medium text-muted-foreground">Hourly Rate</p>
+              <p className="text-sm font-medium text-muted-foreground">{t("hourly_rate", "Hourly Rate")}</p>
               <p className="text-lg font-bold">
                 €{profile.freelance_hourly_rate_min || 0} - €{profile.freelance_hourly_rate_max || 0}
               </p>
@@ -65,7 +67,7 @@ export function FreelanceInfoSection({ profile, isOwnProfile }: FreelanceInfoSec
           <div className="flex items-start gap-3 p-3 bg-secondary/50 rounded-lg">
             <Clock className="h-5 w-5 text-primary mt-0.5" />
             <div>
-              <p className="text-sm font-medium text-muted-foreground">Availability</p>
+              <p className="text-sm font-medium text-muted-foreground">{t("availability", "Availability")}</p>
               <p className="text-lg font-bold">
                 {profile.freelance_hours_per_week_min || 0}-{profile.freelance_hours_per_week_max || 0} hrs/week
               </p>
@@ -78,7 +80,7 @@ export function FreelanceInfoSection({ profile, isOwnProfile }: FreelanceInfoSec
           <div>
             <div className="flex items-center gap-2 mb-3">
               <Briefcase className="h-4 w-4 text-muted-foreground" />
-              <p className="text-sm font-medium">Specializations</p>
+              <p className="text-sm font-medium">{t("specializations", "Specializations")}</p>
             </div>
             <div className="flex flex-wrap gap-2">
               {profile.freelance_categories.map((category: string) => (
@@ -95,7 +97,7 @@ export function FreelanceInfoSection({ profile, isOwnProfile }: FreelanceInfoSec
           <div>
             <div className="flex items-center gap-2 mb-3">
               <Star className="h-4 w-4 text-muted-foreground" />
-              <p className="text-sm font-medium">Portfolio</p>
+              <p className="text-sm font-medium">{t("portfolio", "Portfolio")}</p>
             </div>
             <a 
               href={profile.portfolio_url} 

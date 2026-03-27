@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -27,6 +28,7 @@ export function WhatsAppCandidateContextCard({
   candidateName,
   compact = false 
 }: Props) {
+  const { t } = useTranslation('common');
   const { candidate, loading } = useWhatsAppCandidateContext(candidateId);
   const navigate = useNavigate();
 
@@ -47,7 +49,7 @@ export function WhatsAppCandidateContextCard({
               <p className="text-xs text-muted-foreground">{candidatePhone}</p>
             )}
           </div>
-          <Badge variant="outline" className="text-xs">Unlinked</Badge>
+          <Badge variant="outline" className="text-xs">{t("unlinked", "Unlinked")}</Badge>
         </div>
       </div>
     );

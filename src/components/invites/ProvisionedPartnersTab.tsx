@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -29,6 +30,7 @@ interface ProvisionedPartner {
 }
 
 export function ProvisionedPartnersTab() {
+  const { t } = useTranslation('common');
   const [passwordDialog, setPasswordDialog] = useState<{
     open: boolean;
     userId: string;
@@ -107,14 +109,14 @@ export function ProvisionedPartnersTab() {
 
       if (action === "regenerate_magic_link" && data?.magic_link) {
         await navigator.clipboard.writeText(data.magic_link);
-        toast.success("Magic link generated and copied to clipboard.");
+        toast.success(t("magic_link_generated_and", "Magic link generated and copied to clipboard."));
       } else if (action === "resend_welcome") {
-        toast.success("Welcome email resent.");
+        toast.success(t("welcome_email_resent", "Welcome email resent."));
       }
 
       refetch();
     } catch {
-      toast.error("An unexpected error occurred.");
+      toast.error(t("an_unexpected_error_occurred", "An unexpected error occurred."));
     } finally {
       setActionLoading(null);
     }
@@ -123,7 +125,7 @@ export function ProvisionedPartnersTab() {
   const copyInviteLink = (code: string) => {
     const url = `${window.location.origin}/auth?invite=${code}`;
     navigator.clipboard.writeText(url);
-    toast.success("Invite link copied to clipboard.");
+    toast.success(t("invite_link_copied_to", "Invite link copied to clipboard."));
   };
 
   if (isLoading) {
@@ -140,7 +142,7 @@ export function ProvisionedPartnersTab() {
     return (
       <div className="text-center py-12">
         <User className="h-12 w-12 mx-auto text-muted-foreground/30 mb-4" />
-        <h3 className="text-lg font-medium text-foreground mb-1">No provisioned partners yet</h3>
+        <h3 className="text-lg font-medium text-foreground mb-1">{t("no_provisioned_partners_yet", "No provisioned partners yet")}</h3>
         <p className="text-sm text-muted-foreground">
           Partners provisioned through the Quick Provision tool will appear here.
         </p>
@@ -194,7 +196,7 @@ export function ProvisionedPartnersTab() {
                     </span>
                   )}
                   {partner.welcome_email_sent && (
-                    <Badge variant="outline" className="text-xs">Welcome sent</Badge>
+                    <Badge variant="outline" className="text-xs">{t("welcome_sent", "Welcome sent")}</Badge>
                   )}
                 </div>
               </div>

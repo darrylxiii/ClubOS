@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -26,6 +27,7 @@ interface InterviewScoringDashboardProps {
 }
 
 export function InterviewScoringDashboard({ meetingId, userRole }: InterviewScoringDashboardProps) {
+  const { t } = useTranslation('common');
   const [intelligence, setIntelligence] = useState<InterviewIntelligence | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -86,7 +88,7 @@ export function InterviewScoringDashboard({ meetingId, userRole }: InterviewScor
       <Card className="p-4 bg-card/50 backdrop-blur-sm">
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Brain className="w-4 h-4 animate-pulse" />
-          <span>Loading Club AI Interview Intelligence...</span>
+          <span>{t("loading_club_ai_interview", "Loading Club AI Interview Intelligence...")}</span>
         </div>
       </Card>
     );
@@ -97,7 +99,7 @@ export function InterviewScoringDashboard({ meetingId, userRole }: InterviewScor
       <Card className="p-4 bg-card/50 backdrop-blur-sm">
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Brain className="w-4 h-4" />
-          <span>AI scoring will appear once the interview begins</span>
+          <span>{t("ai_scoring_will_appear", "AI scoring will appear once the interview begins")}</span>
         </div>
       </Card>
     );
@@ -122,7 +124,7 @@ export function InterviewScoringDashboard({ meetingId, userRole }: InterviewScor
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
             <Brain className="w-5 h-5 text-primary" />
-            <span className="font-semibold">Overall Interview Score</span>
+            <span className="font-semibold">{t("overall_interview_score", "Overall Interview Score")}</span>
           </div>
           <span className={`text-2xl font-bold ${getScoreColor(intelligence.overall_score)}`}>
             {intelligence.overall_score}/100
@@ -166,7 +168,7 @@ export function InterviewScoringDashboard({ meetingId, userRole }: InterviewScor
           </div>
 
           <div className="flex items-center justify-between text-sm">
-            <span>Culture Fit</span>
+            <span>{t("culture_fit", "Culture Fit")}</span>
             <div className="flex items-center gap-2">
               <Progress value={intelligence.culture_fit_score} className="h-1.5 w-24" />
               <span className={`font-medium ${getScoreColor(intelligence.culture_fit_score)}`}>
@@ -176,7 +178,7 @@ export function InterviewScoringDashboard({ meetingId, userRole }: InterviewScor
           </div>
 
           <div className="flex items-center justify-between text-sm">
-            <span>Confidence Level</span>
+            <span>{t("confidence_level", "Confidence Level")}</span>
             <div className="flex items-center gap-2">
               <Progress value={intelligence.confidence_score} className="h-1.5 w-24" />
               <span className={`font-medium ${getScoreColor(intelligence.confidence_score)}`}>

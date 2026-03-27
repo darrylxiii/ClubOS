@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -34,6 +35,7 @@ interface ViolationSummary {
 }
 
 export function PerformanceDashboard() {
+  const { t } = useTranslation('common');
   const [timeRange, setTimeRange] = useState<'1h' | '24h' | '7d'>('24h');
   const { recharts, isLoading: rechartsLoading } = useRecharts();
 
@@ -165,13 +167,13 @@ export function PerformanceDashboard() {
     const status = checkThreshold(key, value);
     
     if (status === 'good') {
-      return <Badge variant="outline" className="bg-green-500/10 text-green-500 border-green-500/20"><CheckCircle2 className="w-3 h-3 mr-1" />Good</Badge>;
+      return <Badge variant="outline" className="bg-green-500/10 text-green-500 border-green-500/20"><CheckCircle2 className="w-3 h-3 mr-1" />{t("good", "Good")}</Badge>;
     } else if (status === 'warning') {
-      return <Badge variant="outline" className="bg-yellow-500/10 text-yellow-500 border-yellow-500/20"><AlertTriangle className="w-3 h-3 mr-1" />Warning</Badge>;
+      return <Badge variant="outline" className="bg-yellow-500/10 text-yellow-500 border-yellow-500/20"><AlertTriangle className="w-3 h-3 mr-1" />{t("warning", "Warning")}</Badge>;
     } else if (status === 'critical') {
-      return <Badge variant="destructive"><AlertTriangle className="w-3 h-3 mr-1" />Critical</Badge>;
+      return <Badge variant="destructive"><AlertTriangle className="w-3 h-3 mr-1" />{t("critical", "Critical")}</Badge>;
     }
-    return <Badge variant="secondary">Unknown</Badge>;
+    return <Badge variant="secondary">{t("unknown", "Unknown")}</Badge>;
   };
 
   const warningCount = violations?.find(v => v.severity === 'warning')?.count || 0;
@@ -188,14 +190,14 @@ export function PerformanceDashboard() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold">Performance Monitoring</h2>
-          <p className="text-muted-foreground">Real-time performance metrics and SLA compliance</p>
+          <h2 className="text-2xl font-bold">{t("performance_monitoring", "Performance Monitoring")}</h2>
+          <p className="text-muted-foreground">{t("realtime_performance_metrics_and", "Real-time performance metrics and SLA compliance")}</p>
         </div>
         <Tabs value={timeRange} onValueChange={(v) => setTimeRange(v as typeof timeRange)}>
           <TabsList>
-            <TabsTrigger value="1h">1 Hour</TabsTrigger>
-            <TabsTrigger value="24h">24 Hours</TabsTrigger>
-            <TabsTrigger value="7d">7 Days</TabsTrigger>
+            <TabsTrigger value="1h">{t("1_hour", "1 Hour")}</TabsTrigger>
+            <TabsTrigger value="24h">{t("24_hours", "24 Hours")}</TabsTrigger>
+            <TabsTrigger value="7d">{t("7_days", "7 Days")}</TabsTrigger>
           </TabsList>
         </Tabs>
       </div>
@@ -281,8 +283,8 @@ export function PerformanceDashboard() {
       {/* Core Web Vitals Chart */}
       <Card>
         <CardHeader>
-          <CardTitle>Core Web Vitals Trend</CardTitle>
-          <CardDescription>LCP, FID, CLS, and TTFB over time</CardDescription>
+          <CardTitle>{t("core_web_vitals_trend", "Core Web Vitals Trend")}</CardTitle>
+          <CardDescription>{t("lcp_fid_cls_and", "LCP, FID, CLS, and TTFB over time")}</CardDescription>
         </CardHeader>
         <CardContent>
           {chartData && chartData.length > 0 ? (
@@ -314,8 +316,8 @@ export function PerformanceDashboard() {
       {/* Metrics Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Metric Details</CardTitle>
-          <CardDescription>Detailed statistics for each metric type</CardDescription>
+          <CardTitle>{t("metric_details", "Metric Details")}</CardTitle>
+          <CardDescription>{t("detailed_statistics_for_each", "Detailed statistics for each metric type")}</CardDescription>
         </CardHeader>
         <CardContent>
           {metricsLoading ? (
@@ -329,13 +331,13 @@ export function PerformanceDashboard() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b">
-                    <th className="text-left py-3 px-2 font-medium">Metric</th>
-                    <th className="text-right py-3 px-2 font-medium">Avg</th>
+                    <th className="text-left py-3 px-2 font-medium">{t("metric", "Metric")}</th>
+                    <th className="text-right py-3 px-2 font-medium">{t("avg", "Avg")}</th>
                     <th className="text-right py-3 px-2 font-medium">P95</th>
-                    <th className="text-right py-3 px-2 font-medium">Min</th>
-                    <th className="text-right py-3 px-2 font-medium">Max</th>
-                    <th className="text-right py-3 px-2 font-medium">Samples</th>
-                    <th className="text-center py-3 px-2 font-medium">Status</th>
+                    <th className="text-right py-3 px-2 font-medium">{t("min", "Min")}</th>
+                    <th className="text-right py-3 px-2 font-medium">{t("max", "Max")}</th>
+                    <th className="text-right py-3 px-2 font-medium">{t("samples", "Samples")}</th>
+                    <th className="text-center py-3 px-2 font-medium">{t("status", "Status")}</th>
                   </tr>
                 </thead>
                 <tbody>

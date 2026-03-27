@@ -4,6 +4,7 @@ import { formatDistanceToNow } from "date-fns";
 import { Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTranslation } from "react-i18next";
 import { OnlineStatusIndicator } from "./OnlineStatusIndicator";
 
 interface ConversationListItemProps {
@@ -40,6 +41,7 @@ export const ConversationListItem = ({
   isSelected,
   onClick,
 }: ConversationListItemProps) => {
+  const { t } = useTranslation('messages');
   const { user } = useAuth();
   const isGroup = conversation.metadata?.is_group;
   
@@ -50,7 +52,7 @@ export const ConversationListItem = ({
   
   const displayName = isGroup 
     ? conversation.title 
-    : otherParticipant?.profile?.full_name || "Unknown User";
+    : otherParticipant?.profile?.full_name || t('unknownUser');
     
   const avatarUrl = isGroup 
     ? conversation.metadata?.group_avatar 
@@ -64,8 +66,8 @@ export const ConversationListItem = ({
     .slice(0, 2);
 
   const lastMessagePreview = conversation.last_message?.content
-    ? `${conversation.last_message.sender?.full_name || "Someone"}: ${conversation.last_message.content.slice(0, 50)}${conversation.last_message.content.length > 50 ? "..." : ""}`
-    : "No messages yet";
+    ? `${conversation.last_message.sender?.full_name || t('someone')}: ${conversation.last_message.content.slice(0, 50)}${conversation.last_message.content.length > 50 ? "..." : ""}`
+    : t('noMessagesYet');
 
   return (
     <div
@@ -119,7 +121,7 @@ export const ConversationListItem = ({
           <div className="flex items-center gap-1 mt-0.5 sm:mt-1">
             <Users className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-muted-foreground flex-shrink-0" />
             <span className="text-[10px] sm:text-xs text-muted-foreground truncate">
-              {conversation.metadata?.participant_count || 0} members
+              {t('membersCount', { count: conversation.metadata?.participant_count || 0 })}
             </span>
           </div>
         )}

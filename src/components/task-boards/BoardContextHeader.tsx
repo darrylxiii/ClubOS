@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { useTaskBoard } from '@/contexts/TaskBoardContext';
 import { Button } from '@/components/ui/button';
@@ -15,6 +16,7 @@ import { BoardSettingsDialog } from './BoardSettingsDialog';
 import { formatDistanceToNow } from 'date-fns';
 
 export function BoardContextHeader() {
+  const { t } = useTranslation('common');
   const { currentBoard } = useTaskBoard();
   const [showMembers, setShowMembers] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -133,7 +135,7 @@ export function BoardContextHeader() {
                 className="gap-2"
               >
                 <Users className="h-4 w-4" />
-                <span className="hidden sm:inline">Members</span>
+                <span className="hidden sm:inline">{t("members", "Members")}</span>
                 {currentBoard.member_count && currentBoard.member_count > 0 && (
                   <Badge variant="secondary" className="ml-1">
                     {currentBoard.member_count}
@@ -150,7 +152,7 @@ export function BoardContextHeader() {
                 className="gap-2"
               >
                 <Settings className="h-4 w-4" />
-                <span className="hidden sm:inline">Settings</span>
+                <span className="hidden sm:inline">{t("settings", "Settings")}</span>
               </Button>
             )}
           </div>
@@ -162,7 +164,7 @@ export function BoardContextHeader() {
         <Dialog open={showMembers} onOpenChange={setShowMembers}>
           <DialogContent className="sm:max-w-[600px]">
             <DialogHeader>
-              <DialogTitle>Board Members</DialogTitle>
+              <DialogTitle>{t("board_members", "Board Members")}</DialogTitle>
             </DialogHeader>
             <BoardMembersView
               boardId={currentBoard.id}

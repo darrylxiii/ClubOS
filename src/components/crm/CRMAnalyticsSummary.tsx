@@ -5,12 +5,14 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Users, Euro, TrendingUp, Target, Scale, Briefcase } from "lucide-react";
+import { useTranslation } from 'react-i18next';
 
 interface CRMAnalyticsSummaryProps {
   dateRange?: 'week' | 'month' | '3months' | '6months' | 'year';
 }
 
 export function CRMAnalyticsSummary({ dateRange = 'month' }: CRMAnalyticsSummaryProps) {
+  const { t } = useTranslation('common');
   const { data, loading } = useCRMAnalytics({ dateRange });
   const { data: pipelineMetrics, isLoading: pipelineLoading } = useCRMPipelineMetrics();
 

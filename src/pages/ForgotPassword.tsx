@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useCallback } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,6 +17,7 @@ import { GoogleReCaptchaProvider, useGoogleReCaptcha } from "react-google-recapt
 const emailSchema = z.string().email("Invalid email address");
 
 function ForgotPasswordForm() {
+  const { t } = useTranslation('common');
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [sent, setSent] = useState(false);
@@ -28,7 +30,7 @@ function ForgotPasswordForm() {
     try {
       emailSchema.parse(email);
     } catch {
-      toast.error("Please enter a valid email address");
+      toast.error(t("please_enter_a_valid", "Please enter a valid email address"));
       return;
     }
 
@@ -81,20 +83,20 @@ function ForgotPasswordForm() {
       }
 
       setSent(true);
-      toast.success("If an account exists, you'll receive reset instructions", {
+      toast.success(t("if_an_account_exists", "If an account exists, you'll receive reset instructions"), {
         description: "Check your email inbox and spam folder"
       });
     } catch (error: unknown) {
       console.error('Password reset error:', error);
       const msg = error instanceof Error ? error.message : '';
       if (msg.includes('timeout')) {
-        toast.error("Request timed out. Please try again.");
+        toast.error(t("request_timed_out_please", "Request timed out. Please try again."));
       } else if (msg.includes('rate limit')) {
-        toast.error("Too many requests. Please try again in 15 minutes.");
+        toast.error(t("too_many_requests_please", "Too many requests. Please try again in 15 minutes."));
       } else if (msg.includes('network') || msg.includes('fetch')) {
-        toast.error("Network error. Please check your connection and try again.");
+        toast.error(t("network_error_please_check", "Network error. Please check your connection and try again."));
       } else {
-        toast.error("Something went wrong. Please try again.");
+        toast.error(t("something_went_wrong_please", "Something went wrong. Please try again."));
       }
     } finally {
       setIsLoading(false);
@@ -109,7 +111,7 @@ function ForgotPasswordForm() {
             <Lock className="w-8 h-8 text-primary" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Reset Your Password</h1>
+            <h1 className="text-2xl font-bold text-foreground">{t("reset_your_password", "Reset Your Password")}</h1>
             <p className="text-muted-foreground mt-2 text-sm">
               Enter your email and we'll send you reset instructions
             </p>
@@ -122,7 +124,7 @@ function ForgotPasswordForm() {
                 <Mail className="w-8 h-8 text-success" />
               </div>
               <div>
-                <h3 className="font-semibold text-foreground mb-2">Check your email</h3>
+                <h3 className="font-semibold text-foreground mb-2">{t("check_your_email", "Check your email")}</h3>
                 <p className="text-sm text-muted-foreground">
                   We've sent a 6-digit code to <span className="text-foreground font-medium">{email}</span>
                 </p>
@@ -148,12 +150,12 @@ function ForgotPasswordForm() {
           ) : (
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
-                <label className="text-sm font-medium text-foreground">Email Address</label>
+                <label className="text-sm font-medium text-foreground">{t("email_address", "Email Address")}</label>
                 <Input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="your@email.com"
+                  placeholder={t("youremailcom", "your@email.com")}
                   disabled={isLoading}
                   autoFocus
                   className="bg-background/50"

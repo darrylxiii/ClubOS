@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -21,6 +22,7 @@ interface ThreadViewProps {
 }
 
 export function ThreadView({ parentMessageId, conversationId, open, onOpenChange }: ThreadViewProps) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [replies, setReplies] = useState<any[]>([]);
   const [parentMessage, setParentMessage] = useState<any>(null);
@@ -71,10 +73,10 @@ export function ThreadView({ parentMessageId, conversationId, open, onOpenChange
 
       setReplyContent('');
       loadThread();
-      toast.success('Reply sent');
+      toast.success(t("reply_sent", "Reply sent"));
     } catch (error) {
       console.error('Error sending reply:', error);
-      toast.error('Failed to send reply');
+      toast.error(t("failed_to_send_reply", "Failed to send reply"));
     } finally {
       setSending(false);
     }
@@ -84,7 +86,7 @@ export function ThreadView({ parentMessageId, conversationId, open, onOpenChange
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-full sm:max-w-xl">
         <SheetHeader>
-          <SheetTitle>Thread</SheetTitle>
+          <SheetTitle>{t("thread", "Thread")}</SheetTitle>
         </SheetHeader>
 
         <ScrollArea className="h-[calc(100vh-12rem)] mt-4">
@@ -144,7 +146,7 @@ export function ThreadView({ parentMessageId, conversationId, open, onOpenChange
                       <p className="text-sm">{reply.content}</p>
                       <div className={cn('text-xs mt-1', isOwn ? 'text-primary-foreground/70' : 'text-muted-foreground')}>
                         {formatDistanceToNow(new Date(reply.created_at), { addSuffix: true })}
-                        {reply.edited_at && <span className="ml-2">(edited)</span>}
+                        {reply.edited_at && <span className="ml-2">{t("edited", "(edited)")}</span>}
                       </div>
                     </div>
                     {isOwn && (
@@ -168,7 +170,7 @@ export function ThreadView({ parentMessageId, conversationId, open, onOpenChange
         <div className="absolute bottom-0 left-0 right-0 p-6 bg-background border-t">
           <div className="flex gap-2">
             <Textarea
-              placeholder="Reply to thread..."
+              placeholder={t("reply_to_thread", "Reply to thread...")}
               value={replyContent}
               onChange={(e) => setReplyContent(e.target.value)}
               onKeyDown={(e) => {

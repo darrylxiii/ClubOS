@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Check, Star, Target } from "lucide-react";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 
@@ -7,6 +8,7 @@ interface SkillMatrixProps {
 }
 
 export function SkillMatrix({ mustHaveSkills = [], niceToHaveSkills = [] }: SkillMatrixProps) {
+  const { t } = useTranslation('common');
   if (mustHaveSkills.length === 0 && niceToHaveSkills.length === 0) {
     return null;
   }
@@ -17,7 +19,7 @@ export function SkillMatrix({ mustHaveSkills = [], niceToHaveSkills = [] }: Skil
         <div className="flex items-center gap-3">
           <Target className="w-6 h-6 text-primary flex-shrink-0" />
           <div>
-            <h3 className="text-xl font-black">Skills & Requirements</h3>
+            <h3 className="text-xl font-black">{t("skills_requirements", "Skills & Requirements")}</h3>
             <p className="text-sm text-muted-foreground">
               {mustHaveSkills.length} must-have • {niceToHaveSkills.length} nice-to-have
             </p>
@@ -29,7 +31,7 @@ export function SkillMatrix({ mustHaveSkills = [], niceToHaveSkills = [] }: Skil
             {/* Must-Have Skills */}
             {mustHaveSkills.length > 0 && (
               <div className="space-y-3">
-                <h4 className="text-lg font-semibold text-chart-2">Must-Have Skills</h4>
+                <h4 className="text-lg font-semibold text-chart-2">{t("musthave_skills", "Must-Have Skills")}</h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {mustHaveSkills.map((skill) => (
                     <div
@@ -50,7 +52,7 @@ export function SkillMatrix({ mustHaveSkills = [], niceToHaveSkills = [] }: Skil
             {niceToHaveSkills.length > 0 && (
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <h4 className="text-lg font-semibold text-accent">Nice-to-Have Skills</h4>
+                  <h4 className="text-lg font-semibold text-accent">{t("nicetohave_skills", "Nice-to-Have Skills")}</h4>
                   <span className="px-2 py-0.5 text-xs font-medium bg-accent/20 text-accent rounded-full">
                     Bonus
                   </span>

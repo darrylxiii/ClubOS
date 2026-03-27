@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 /**
  * Connection Troubleshooter Wizard
  * Step-by-step guided diagnostics for connection issues
@@ -59,6 +60,7 @@ export function ConnectionTroubleshooter({
   onReportIssue,
   meetingId
 }: ConnectionTroubleshooterProps) {
+  const { t } = useTranslation('common');
   const [currentStep, setCurrentStep] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
   const [results, setResults] = useState<Record<string, DiagnosticResult>>({});
@@ -443,7 +445,7 @@ export function ConnectionTroubleshooter({
     }).join('\n');
     
     navigator.clipboard.writeText(report);
-    toast.success('Diagnostics copied to clipboard');
+    toast.success(t("diagnostics_copied_to_clipboard", "Diagnostics copied to clipboard"));
   }, [results, diagnosticSteps]);
 
   // Get status icon

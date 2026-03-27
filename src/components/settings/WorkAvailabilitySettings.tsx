@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -71,6 +72,7 @@ export function WorkAvailabilitySettings({
   overtimeWillingness,
   onSettingsChange,
 }: WorkAvailabilitySettingsProps) {
+  const { t } = useTranslation('common');
   const [localTimezone, setLocalTimezone] = useState(workTimezone);
   const [localStartHour, setLocalStartHour] = useState(9);
   const [localEndHour, setLocalEndHour] = useState(17);
@@ -225,7 +227,7 @@ export function WorkAvailabilitySettings({
         {/* Your Timezone */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <Label className="text-base font-medium">Your Timezone</Label>
+            <Label className="text-base font-medium">{t("your_timezone", "Your Timezone")}</Label>
             <Badge variant="outline" className="gap-1.5">
               <Clock className="w-3 h-3" />
               {currentTime}
@@ -257,7 +259,7 @@ export function WorkAvailabilitySettings({
 
         {/* Working Hours */}
         <div className="space-y-4">
-          <Label className="text-base font-medium">Your Working Hours (in your timezone)</Label>
+          <Label className="text-base font-medium">{t("your_working_hours_in", "Your Working Hours (in your timezone)")}</Label>
           <div className="space-y-4">
             <div className="flex items-center justify-between text-sm">
               <span className="font-medium text-primary">{formatHour(localStartHour)}</span>
@@ -273,11 +275,11 @@ export function WorkAvailabilitySettings({
               className="py-4"
             />
             <div className="flex justify-between text-xs text-muted-foreground">
-              <span>12 AM</span>
-              <span>6 AM</span>
-              <span>12 PM</span>
-              <span>6 PM</span>
-              <span>11 PM</span>
+              <span>{t("12_am", "12 AM")}</span>
+              <span>{t("6_am", "6 AM")}</span>
+              <span>{t("12_pm", "12 PM")}</span>
+              <span>{t("6_pm", "6 PM")}</span>
+              <span>{t("11_pm", "11 PM")}</span>
             </div>
           </div>
         </div>
@@ -288,23 +290,23 @@ export function WorkAvailabilitySettings({
             <Zap className="w-5 h-5 text-accent mt-0.5" />
             <div className="flex-1 space-y-3">
               <div>
-                <Label className="text-base font-medium">Timezone Flexibility</Label>
+                <Label className="text-base font-medium">{t("timezone_flexibility", "Timezone Flexibility")}</Label>
                 <p className="text-sm text-muted-foreground mt-1">
                   Specify if you want to work for companies in a different timezone
                 </p>
               </div>
 
               <div className="space-y-2">
-                <Label className="text-sm">I want to work for companies primarily in:</Label>
+                <Label className="text-sm">{t("i_want_to_work", "I want to work for companies primarily in:")}</Label>
                 <Select
                   value={localReference || "none"}
                   onValueChange={(val) => handleReferenceChange(val === "none" ? null : val)}
                 >
                   <SelectTrigger className="bg-background/50">
-                    <SelectValue placeholder="Same as my timezone" />
+                    <SelectValue placeholder={t("same_as_my_timezone", "Same as my timezone")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="none">Same as my timezone (no flexibility needed)</SelectItem>
+                    <SelectItem value="none">{t("same_as_my_timezone", "Same as my timezone (no flexibility needed)")}</SelectItem>
                     {COMMON_TIMEZONES.map((tz) => (
                       <SelectItem key={tz.value} value={tz.value}>
                         {tz.label}
@@ -317,11 +319,11 @@ export function WorkAvailabilitySettings({
               {localReference && (
                 <>
                   <div className="space-y-3">
-                    <Label className="text-sm">I'm willing to shift my hours:</Label>
+                    <Label className="text-sm">{t("im_willing_to_shift", "I'm willing to shift my hours:")}</Label>
                     <div className="flex items-center justify-between text-sm font-medium">
-                      <span className="text-muted-foreground">0 hours</span>
+                      <span className="text-muted-foreground">{t("0_hours", "0 hours")}</span>
                       <Badge variant="secondary">±{localFlexibility} hours</Badge>
-                      <span className="text-muted-foreground">±12 hours</span>
+                      <span className="text-muted-foreground">{t("12_hours", "±12 hours")}</span>
                     </div>
                     <Slider
                       value={[localFlexibility]}
@@ -367,7 +369,7 @@ export function WorkAvailabilitySettings({
         {/* Working Days */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <Label className="text-base font-medium">Working Days</Label>
+            <Label className="text-base font-medium">{t("working_days", "Working Days")}</Label>
             <Badge variant="outline">{localWorkDays.length} days/week</Badge>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -409,7 +411,7 @@ export function WorkAvailabilitySettings({
         {/* Overtime Willingness */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <Label className="text-base font-medium">Flexibility for Overtime</Label>
+            <Label className="text-base font-medium">{t("flexibility_for_overtime", "Flexibility for Overtime")}</Label>
             <Badge variant="outline">{getOvertimeLabel(localOvertime)}</Badge>
           </div>
           <p className="text-sm text-muted-foreground">
@@ -417,8 +419,8 @@ export function WorkAvailabilitySettings({
           </p>
           <div className="space-y-3">
             <div className="flex items-center justify-between text-xs font-medium">
-              <span className="text-muted-foreground">Strict hours</span>
-              <span className="text-muted-foreground">Very flexible</span>
+              <span className="text-muted-foreground">{t("strict_hours", "Strict hours")}</span>
+              <span className="text-muted-foreground">{t("very_flexible", "Very flexible")}</span>
             </div>
             <Slider
               value={[localOvertime]}
@@ -441,7 +443,7 @@ export function WorkAvailabilitySettings({
           <div className="flex items-start gap-2">
             <Calendar className="w-5 h-5 text-primary mt-0.5" />
             <div className="flex-1 text-sm">
-              <p className="font-medium text-primary mb-2">Your Work Schedule Summary</p>
+              <p className="font-medium text-primary mb-2">{t("your_work_schedule_summary", "Your Work Schedule Summary")}</p>
               <ul className="space-y-1.5 text-muted-foreground">
                 <li>
                   • Works {formatHour(localStartHour)} - {formatHour(localEndHour)} in {COMMON_TIMEZONES.find((tz) => tz.value === localTimezone)?.label}

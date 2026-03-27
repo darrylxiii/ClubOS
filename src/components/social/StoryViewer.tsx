@@ -6,6 +6,7 @@ import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 interface Story {
   id: string;
@@ -28,6 +29,7 @@ interface StoryViewerProps {
 }
 
 export const StoryViewer = ({ stories, initialIndex, onClose }: StoryViewerProps) => {
+  const { t } = useTranslation("common");
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [progress, setProgress] = useState(0);
   const currentStory = stories[currentIndex];
@@ -151,7 +153,7 @@ export const StoryViewer = ({ stories, initialIndex, onClose }: StoryViewerProps
           ) : (
             <img
               src={currentStory.media_url}
-              alt="Story"
+              alt={t('social.story.imageAlt')}
               className="w-full max-h-[70vh] object-contain"
             />
           )}

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { lazy, Suspense } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
@@ -21,6 +22,7 @@ const TAB_MAP: Record<string, string> = {
 };
 
 export default function InventoryHub() {
+  const { t } = useTranslation('common');
   const [searchParams, setSearchParams] = useSearchParams();
   const activeTab = TAB_MAP[searchParams.get('tab') || ''] || 'dashboard';
 
@@ -35,7 +37,7 @@ export default function InventoryHub() {
           <div className="space-y-1">
             <div className="flex items-center gap-3">
               <Package className="h-8 w-8 text-primary" />
-              <h1 className="text-3xl font-bold tracking-tight">INVENTORY HUB</h1>
+              <h1 className="text-3xl font-bold tracking-tight">{t("inventory_hub", "INVENTORY HUB")}</h1>
             </div>
             <p className="text-muted-foreground">
               Asset register, depreciation schedules, intangible assets, and KIA optimization
@@ -44,10 +46,10 @@ export default function InventoryHub() {
 
           <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
             <TabsList className="h-auto flex-wrap bg-card/50 backdrop-blur-sm rounded-lg p-1">
-              <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-              <TabsTrigger value="assets">Assets</TabsTrigger>
-              <TabsTrigger value="depreciation">Depreciation</TabsTrigger>
-              <TabsTrigger value="intangible">Intangible</TabsTrigger>
+              <TabsTrigger value="dashboard">{t("dashboard", "Dashboard")}</TabsTrigger>
+              <TabsTrigger value="assets">{t("assets", "Assets")}</TabsTrigger>
+              <TabsTrigger value="depreciation">{t("depreciation", "Depreciation")}</TabsTrigger>
+              <TabsTrigger value="intangible">{t("intangible", "Intangible")}</TabsTrigger>
               <TabsTrigger value="kia">KIA</TabsTrigger>
             </TabsList>
 

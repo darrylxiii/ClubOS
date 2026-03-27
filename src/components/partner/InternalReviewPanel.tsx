@@ -22,6 +22,7 @@ import { useReviewQueue, type ReviewQueueApplication } from '@/hooks/useReviewQu
 import { CandidateReviewCard } from './CandidateReviewCard';
 import { ReviewSessionStats } from './ReviewSessionStats';
 import { ReviewShortcutOverlay } from './ReviewShortcutOverlay';
+import { useTranslation } from 'react-i18next';
 
 interface InternalReviewPanelProps {
   jobId: string;
@@ -31,6 +32,7 @@ type SortKey = 'match' | 'date' | 'name';
 type ViewMode = 'card' | 'list';
 
 export const InternalReviewPanel = ({ jobId }: InternalReviewPanelProps) => {
+  const { t } = useTranslation('partner');
   const {
     internalPending,
     isLoading,
@@ -125,7 +127,7 @@ export const InternalReviewPanel = ({ jobId }: InternalReviewPanelProps) => {
   const handleBulkApprove = async () => {
     const apps = filteredSorted.filter((a) => selectedIds.includes(a.id));
     if (apps.length === 0) {
-      toast.error('Select at least one candidate.');
+      toast.error(t('internalReviewPanel.toast.selectAtLeastOneCandidate'));
       return;
     }
 
@@ -141,7 +143,7 @@ export const InternalReviewPanel = ({ jobId }: InternalReviewPanelProps) => {
 
   const handleIndividualReject = async () => {
     if (!rejectTarget || !rejectNote.trim()) {
-      toast.error('Rejection note is required.');
+      toast.error(t('internalReviewPanel.toast.rejectionNoteIsRequired'));
       return;
     }
     await rejectInternalMutation.mutateAsync({
@@ -222,8 +224,8 @@ export const InternalReviewPanel = ({ jobId }: InternalReviewPanelProps) => {
             <Check className="h-6 w-6 text-success" />
           </div>
           <div>
-            <p className="font-semibold">All clear</p>
-            <p className="text-sm text-muted-foreground">No candidates awaiting internal review.</p>
+            <p className="font-semibold">{t('internalReviewPanel.allClear')}</p>
+            <p className="text-sm text-muted-foreground">{t('internalReviewPanel.noCandidatesAwaitingInternalReview')}</p>
           </div>
         </CardContent>
       </Card>
@@ -241,7 +243,7 @@ export const InternalReviewPanel = ({ jobId }: InternalReviewPanelProps) => {
               <Input
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search by name, title, or skill..."
+                placeholder={t('internalReviewPanel.placeholder.searchByNameTitleOrSkill')}
                 className="pl-9 h-9"
               />
             </div>
@@ -251,7 +253,7 @@ export const InternalReviewPanel = ({ jobId }: InternalReviewPanelProps) => {
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm" className="gap-1.5">
                 {sortAsc ? <SortAsc className="h-3.5 w-3.5" /> : <SortDesc className="h-3.5 w-3.5" />}
-                {sortKey === 'match' ? 'Match' : sortKey === 'date' ? 'Date' : 'Name'}
+                {sortKey === 'match' ? 'Match' : sortKey === 'date' ? t('partner.internalreviewpanel.date', 'Date') : t('partner.internalreviewpanel.name', 'Name')}
                 <ChevronDown className="h-3 w-3" />
               </Button>
             </DropdownMenuTrigger>
@@ -263,10 +265,10 @@ export const InternalReviewPanel = ({ jobId }: InternalReviewPanelProps) => {
                 Match Score (Low → High)
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => { setSortKey('date'); setSortAsc(false); }}>
-                Newest First
+                {t('partner.internalreviewpanel.newestFirst', 'Newest First')}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => { setSortKey('date'); setSortAsc(true); }}>
-                Oldest First
+                {t('partner.internalreviewpanel.oldestFirst', 'Oldest First')}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => { setSortKey('name'); setSortAsc(true); }}>
                 Name A → Z
@@ -405,15 +407,13 @@ export const InternalReviewPanel = ({ jobId }: InternalReviewPanelProps) => {
             variant="outline"
             onClick={clearSelection}
           >
-            Clear
+            {t('common:clear')}
           </Button>
           <Button
             size="sm"
             variant="outline"
             onClick={selectAll}
-          >
-            Select All
-          </Button>
+          >{t('partner.internalreviewpanel.selectAll', 'Select All')}</Button>
         </div>
       )}
 
@@ -429,7 +429,7 @@ export const InternalReviewPanel = ({ jobId }: InternalReviewPanelProps) => {
             className="gap-1"
             onClick={() => {
               // TODO: Implement undo logic via optimistic rollback
-              toast.info('Undo is not yet available for this action.');
+              toast.info(t('internalReviewPanel.toast.undoIsNotYetAvailableForThisAction'));
               setUndoAction(null);
             }}
           >
@@ -444,25 +444,25 @@ export const InternalReviewPanel = ({ jobId }: InternalReviewPanelProps) => {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Reject {rejectTarget?.candidateName}</DialogTitle>
-            <DialogDescription>Provide a reason for rejecting this candidate from the pipeline.</DialogDescription>
+            <DialogDescription>{t('internalReviewPanel.dialogDescription')}</DialogDescription>
           </DialogHeader>
           <Textarea
             value={rejectNote}
             onChange={(e) => setRejectNote(e.target.value)}
-            placeholder="Rejection reason..."
+            placeholder={t('internalReviewPanel.placeholder.rejectionReason')}
             className="min-h-24"
             autoFocus
           />
           <DialogFooter>
             <Button variant="outline" onClick={() => setRejectTarget(null)}>
-              Cancel
+              {t('common:cancel')}
             </Button>
             <Button
               variant="destructive"
               onClick={() => void handleIndividualReject()}
               disabled={!rejectNote.trim() || isSubmitting}
             >
-              Reject
+              {t('common:reject')}
             </Button>
           </DialogFooter>
         </DialogContent>

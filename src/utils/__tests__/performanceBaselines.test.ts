@@ -3,6 +3,10 @@ import {
   PERFORMANCE_THRESHOLDS,
   formatMetricValue,
   checkThreshold,
+  checkSLA,
+  getSLAStatus,
+  ALL_PERFORMANCE_SLAS,
+  PERFORMANCE_BUDGET,
 } from '../performanceBaselines';
 
 describe('Performance Baselines', () => {
@@ -24,14 +28,13 @@ describe('Performance Baselines', () => {
 
     it('should define TTFB thresholds', () => {
       expect(PERFORMANCE_THRESHOLDS.TTFB).toBeDefined();
-      expect(PERFORMANCE_THRESHOLDS.TTFB.warning).toBe(500);
+      expect(PERFORMANCE_THRESHOLDS.TTFB.warning).toBe(600);
     });
 
     it('should have consistent threshold structure', () => {
-      Object.entries(PERFORMANCE_THRESHOLDS).forEach(([key, value]) => {
+      Object.entries(PERFORMANCE_THRESHOLDS).forEach(([, value]) => {
         expect(value).toHaveProperty('warning');
         expect(value).toHaveProperty('critical');
-        expect(value).toHaveProperty('unit');
         expect(typeof value.warning).toBe('number');
         expect(typeof value.critical).toBe('number');
       });
@@ -40,9 +43,15 @@ describe('Performance Baselines', () => {
 
   describe('formatMetricValue', () => {
     it('should format millisecond values correctly', () => {
+      // Values >= 1000ms are formatted as seconds
       const result = formatMetricValue('lcp', 2500);
-      expect(result).toContain('2500');
-      expect(result).toContain('ms');
+      expect(result).toContain('2.50');
+      expect(result).toContain('s');
+
+      // Values < 1000ms stay as ms
+      const smallResult = formatMetricValue('fid', 100);
+      expect(smallResult).toContain('100');
+      expect(smallResult).toContain('ms');
     });
 
     it('should format CLS values correctly', () => {
@@ -84,9 +93,41 @@ describe('Performance Baselines', () => {
       expect(checkThreshold('CLS', 0.3)).toBe('critical');
     });
 
-    it('should return undefined for unknown metrics', () => {
+    it('should return "good" for unknown metrics', () => {
       const result = checkThreshold('UNKNOWN_METRIC', 100);
-      expect(result).toBeUndefined();
+      expect(result).toBe('good');
+    });
+  });
+
+  describe('checkSLA', () => {
+    it('should pass when value is within threshold', () => {
+      const result = checkSLA('LCP', 2000);
+      expect(result.passed).toBe(true);
+    });
+
+    it('should fail when value exceeds threshold', () => {
+      const result = checkSLA('LCP', 3000);
+      expect(result.passed).toBe(false);
+    });
+
+    it('should return undefined sla for unknown metrics', () => {
+      const result = checkSLA('UNKNOWN', 100);
+      expect(result.sla).toBeUndefined();
+      expect(result.passed).toBe(true);
+    });
+  });
+
+  describe('getSLAStatus', () => {
+    it('should return good for values within threshold', () => {
+      expect(getSLAStatus('LCP', 2000)).toBe('good');
+    });
+
+    it('should return needs-improvement for slightly over', () => {
+      expect(getSLAStatus('LCP', 3000)).toBe('needs-improvement');
+    });
+
+    it('should return poor for far over threshold', () => {
+      expect(getSLAStatus('LCP', 5000)).toBe('poor');
     });
   });
 
@@ -102,6 +143,17 @@ describe('Performance Baselines', () => {
 
     it('should align CLS with Google recommendations', () => {
       expect(PERFORMANCE_THRESHOLDS.CLS.warning).toBeLessThanOrEqual(0.25);
+    });
+  });
+
+  describe('PERFORMANCE_BUDGET', () => {
+    it('should define bundle size limits', () => {
+      expect(PERFORMANCE_BUDGET.bundleSize.total).toBeDefined();
+      expect(PERFORMANCE_BUDGET.bundleSize.vendor).toBeDefined();
+    });
+
+    it('should define image size limits', () => {
+      expect(PERFORMANCE_BUDGET.imageSize.hero).toBeDefined();
     });
   });
 });

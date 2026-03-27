@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from 'react-i18next';
 import { motion } from "framer-motion";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CRMAnalyticsSummary } from "@/components/crm/CRMAnalyticsSummary";
@@ -13,6 +14,7 @@ import { RoleGate } from "@/components/RoleGate";
 type DateRangeType = 'week' | 'month' | '3months' | '6months' | 'year';
 
 export default function CRMAnalytics() {
+  const { t } = useTranslation('common');
   const [dateRange, setDateRange] = useState<DateRangeType>('month');
   const [activeTab, setActiveTab] = useState('pipeline');
 
@@ -30,18 +32,16 @@ export default function CRMAnalytics() {
               <BarChart3 className="h-6 w-6 text-primary" />
               CRM Analytics & Learnings
             </h1>
-            <p className="text-muted-foreground text-sm mt-1">
-              Pipeline performance, team metrics, and outreach copy intelligence
-            </p>
+            <p className="text-muted-foreground text-sm mt-1">{t('cRMAnalytics.desc')}</p>
           </div>
 
           <div className="flex items-center gap-3">
             <Tabs value={dateRange} onValueChange={(v) => setDateRange(v as DateRangeType)}>
               <TabsList className="bg-muted/50">
-                <TabsTrigger value="week" className="text-xs">Week</TabsTrigger>
-                <TabsTrigger value="month" className="text-xs">Month</TabsTrigger>
-                <TabsTrigger value="3months" className="text-xs">3 Months</TabsTrigger>
-                <TabsTrigger value="year" className="text-xs">Year</TabsTrigger>
+                <TabsTrigger value="week" className="text-xs">{t('cRMAnalytics.text2')}</TabsTrigger>
+                <TabsTrigger value="month" className="text-xs">{t('cRMAnalytics.text3')}</TabsTrigger>
+                <TabsTrigger value="3months" className="text-xs">{"3 Months"}</TabsTrigger>
+                <TabsTrigger value="year" className="text-xs">{t('cRMAnalytics.text4')}</TabsTrigger>
               </TabsList>
             </Tabs>
           </div>

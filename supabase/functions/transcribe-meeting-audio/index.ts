@@ -44,7 +44,7 @@ serve(async (req) => {
       });
     }
 
-    // Use Lovable AI (Gemini Flash) for audio transcription
+    // Use Google Gemini (Gemini Flash) for audio transcription
     const aiResponse = await fetch(`${supabaseUrl}/functions/v1/ai-chat`, {
       method: 'POST',
       headers: {
@@ -52,7 +52,7 @@ serve(async (req) => {
         'Authorization': `Bearer ${supabaseAnonKey}`,
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
+        model: 'gemini-2.5-flash',
         messages: [
           {
             role: 'system',

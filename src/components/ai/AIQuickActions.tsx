@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -18,6 +19,7 @@ interface AIQuickActionsProps {
 }
 
 export function AIQuickActions({ context, contextData, onActionClick }: AIQuickActionsProps) {
+  const { t } = useTranslation('common');
   const getActionsForContext = (): QuickAction[] => {
     switch (context) {
       case 'jobs':
@@ -164,7 +166,7 @@ export function AIQuickActions({ context, contextData, onActionClick }: AIQuickA
       <CardContent className="p-4">
         <div className="flex items-center gap-2 mb-3">
           <Sparkles className="h-4 w-4 text-primary" />
-          <span className="text-sm font-medium">Quick AI Actions</span>
+          <span className="text-sm font-medium">{t("quick_ai_actions", "Quick AI Actions")}</span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">

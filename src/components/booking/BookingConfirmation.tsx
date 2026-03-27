@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -55,6 +56,7 @@ export function BookingConfirmation({
   bookingId,
   bookingLink,
 }: BookingConfirmationProps) {
+  const { t } = useTranslation('common');
   const [booking, setBooking] = useState<Booking | null>(null);
   const [loading, setLoading] = useState(true);
   const [showCancel, setShowCancel] = useState(false);
@@ -89,7 +91,7 @@ export function BookingConfirmation({
       setBooking(data);
     } catch (error: unknown) {
       console.error("Error loading booking:", error);
-      toast.error("Failed to load booking details");
+      toast.error(t("failed_to_load_booking", "Failed to load booking details"));
     } finally {
       setLoading(false);
     }
@@ -143,10 +145,10 @@ export function BookingConfirmation({
     return (
       <div className="flex flex-col items-center justify-center py-12 gap-3">
         <div className="animate-pulse">
-          <img src={logoLight} alt="The Quantum Club" className="h-10 w-auto dark:hidden" />
-          <img src={logoDark} alt="The Quantum Club" className="h-10 w-auto hidden dark:block" />
+          <img src={logoLight} alt={t("the_quantum_club", "The Quantum Club")} className="h-10 w-auto dark:hidden" />
+          <img src={logoDark} alt={t("the_quantum_club", "The Quantum Club")} className="h-10 w-auto hidden dark:block" />
         </div>
-        <p className="text-xs text-muted-foreground">Loading confirmation...</p>
+        <p className="text-xs text-muted-foreground">{t("loading_confirmation", "Loading confirmation...")}</p>
       </div>
     );
   }
@@ -154,7 +156,7 @@ export function BookingConfirmation({
   if (!booking) {
     return (
       <div className="text-center py-12">
-        <p className="text-muted-foreground">Failed to load booking details</p>
+        <p className="text-muted-foreground">{t("failed_to_load_booking", "Failed to load booking details")}</p>
       </div>
     );
   }
@@ -176,7 +178,7 @@ export function BookingConfirmation({
         </div>
         
         <div>
-          <h3 className="text-2xl font-bold mb-2">You're all set!</h3>
+          <h3 className="text-2xl font-bold mb-2">{t("youre_all_set", "You're all set!")}</h3>
           <p className="text-muted-foreground">
             A confirmation email has been sent to {booking.guest_email}
           </p>
@@ -268,7 +270,7 @@ export function BookingConfirmation({
           <div className="flex items-start gap-3">
             <Mail className="h-5 w-5 text-muted-foreground mt-0.5" />
             <div>
-              <p className="font-medium">Confirmation sent to:</p>
+              <p className="font-medium">{t("confirmation_sent_to", "Confirmation sent to:")}</p>
               <p className="text-muted-foreground">{booking.guest_email}</p>
             </div>
           </div>
@@ -276,14 +278,14 @@ export function BookingConfirmation({
 
         {booking.notes && (
           <div className="pt-3 border-t">
-            <p className="text-sm font-medium mb-1">Your notes:</p>
+            <p className="text-sm font-medium mb-1">{t("your_notes", "Your notes:")}</p>
             <p className="text-sm text-muted-foreground">{booking.notes}</p>
           </div>
         )}
       </div>
 
       <div className="space-y-3">
-        <p className="text-sm font-medium text-center">Add to your calendar:</p>
+        <p className="text-sm font-medium text-center">{t("add_to_your_calendar", "Add to your calendar:")}</p>
         <div className="grid grid-cols-3 gap-3">
           <Button
             variant="outline"
@@ -343,7 +345,7 @@ export function BookingConfirmation({
         onOpenChange={setShowCancel}
         bookingId={booking.id}
         onCancelled={() => {
-          toast.success("Booking cancelled successfully");
+          toast.success(t("booking_cancelled_successfully", "Booking cancelled successfully"));
           setShowCancel(false);
         }}
       />
@@ -360,7 +362,7 @@ export function BookingConfirmation({
           }}
           bookingLink={booking.booking_links}
           onRescheduled={() => {
-            toast.success("Booking rescheduled successfully");
+            toast.success(t("booking_rescheduled_successfully", "Booking rescheduled successfully"));
             setShowReschedule(false);
             loadBooking();
           }}

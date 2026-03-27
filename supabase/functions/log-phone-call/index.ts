@@ -1,10 +1,4 @@
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { createAuthenticatedHandler } from '../_shared/handler.ts';
 
 interface PhoneCallRequest {
   company_id: string;
@@ -19,30 +13,8 @@ interface PhoneCallRequest {
   next_action?: string;
 }
 
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
-  }
-
-  try {
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    );
-
-    // Get the authorization header
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      throw new Error('No authorization header');
-    }
-
-    // Get the user from the auth header
-    const token = authHeader.replace('Bearer ', '');
-    const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token);
-    
-    if (userError || !user) {
-      throw new Error('Unauthorized');
-    }
+Deno.serve(createAuthenticatedHandler(async (req, ctx) => {
+    const { supabase, user, corsHeaders } = ctx;
 
     const body: PhoneCallRequest = await req.json();
 
@@ -55,7 +27,7 @@ serve(async (req) => {
     }
 
     // Create the phone call interaction
-    const { data: interaction, error: interactionError } = await supabaseClient
+    const { data: interaction, error: interactionError } = await supabase
       .from('company_interactions')
       .insert({
         company_id: body.company_id,
@@ -86,7 +58,7 @@ serve(async (req) => {
       participation_type: body.direction === 'inbound' ? 'sender' : 'recipient',
     }));
 
-    const { error: participantsError } = await supabaseClient
+    const { error: participantsError } = await supabase
       .from('interaction_participants')
       .insert(participants);
 
@@ -97,18 +69,18 @@ serve(async (req) => {
     // Update stakeholder metrics
     for (const stakeholderId of body.stakeholder_ids) {
       // Increment total_interactions
-      const { data: stakeholder } = await supabaseClient
+      const { data: stakeholder } = await supabase
         .from('company_stakeholders')
         .select('total_interactions')
         .eq('id', stakeholderId)
         .single();
 
       if (stakeholder) {
-        await supabaseClient
+        await supabase
           .from('company_stakeholders')
-          .update({ 
+          .update({
             total_interactions: (stakeholder.total_interactions || 0) + 1,
-            last_contacted_at: body.call_date 
+            last_contacted_at: body.call_date
           })
           .eq('id', stakeholderId);
       }
@@ -119,16 +91,16 @@ serve(async (req) => {
     if (body.notes) {
       const positiveWords = ['great', 'excellent', 'good', 'positive', 'interested', 'excited'];
       const negativeWords = ['concern', 'issue', 'problem', 'difficult', 'challenging'];
-      
+
       const notesLower = body.notes.toLowerCase();
       const positiveCount = positiveWords.filter(word => notesLower.includes(word)).length;
       const negativeCount = negativeWords.filter(word => notesLower.includes(word)).length;
-      
+
       sentiment_score = (positiveCount - negativeCount) / 10; // Normalize to -1 to 1 range
       sentiment_score = Math.max(-1, Math.min(1, sentiment_score));
 
       // Update interaction with sentiment
-      await supabaseClient
+      await supabase
         .from('company_interactions')
         .update({ sentiment_score })
         .eq('id', interaction.id);
@@ -142,11 +114,4 @@ serve(async (req) => {
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
-  } catch (error) {
-    console.error('Error logging phone call:', error);
-    return new Response(
-      JSON.stringify({ error: (error as Error).message }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-  }
-});
+}));

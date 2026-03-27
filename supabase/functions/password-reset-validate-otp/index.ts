@@ -1,6 +1,6 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { createHandler } from '../_shared/handler.ts';
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
-import { getAuthCorsHeaders, authCorsPreFlight } from "../_shared/auth-cors.ts";
+import { checkUserRateLimit, createRateLimitResponse } from '../_shared/rate-limiter.ts';
 
 const MAX_ATTEMPTS = 5;
 
@@ -34,18 +34,22 @@ async function checkAndRaiseAlert(supabaseAdmin: any, email: string, clientIp: s
   }
 }
 
-Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") return authCorsPreFlight(req);
-
-  const corsHeaders = getAuthCorsHeaders(req);
+Deno.serve(createHandler(async (req, ctx) => {
+  // Rate limiting: 10 requests per hour per IP
+  const clientIpForRL = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+                        req.headers.get('x-real-ip') ||
+                        'unknown';
+  const rateLimitResult = await checkUserRateLimit(clientIpForRL, 'password-reset-validate-otp', 10, 3600000);
+  if (!rateLimitResult.allowed) {
+    return createRateLimitResponse(rateLimitResult.retryAfter || 3600, ctx.corsHeaders);
+  }
 
   try {
-    const supabaseAdmin = createClient(Deno.env.get("SUPABASE_URL") ?? "", Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "");
     const body = await req.json();
     const { email, otp_code } = requestSchema.parse(body);
     const clientIp = req.headers.get("x-forwarded-for") || "unknown";
 
-    const { data: tokens, error: lookupError } = await supabaseAdmin.from('password_reset_tokens')
+    const { data: tokens, error: lookupError } = await ctx.supabase.from('password_reset_tokens')
       .select('*').eq('email', email.toLowerCase()).eq('is_used', false)
       .gt('expires_at', new Date().toISOString()).order('created_at', { ascending: false }).limit(1);
     if (lookupError) throw lookupError;
@@ -54,36 +58,35 @@ Deno.serve(async (req) => {
     const correlationId = token?.correlation_id || null;
 
     if (!token) {
-      await supabaseAdmin.from('password_reset_attempts').insert({ email: email.toLowerCase(), ip_address: clientIp, success: false, attempt_type: 'validate_otp', correlation_id: correlationId });
-      return new Response(JSON.stringify({ success: false, message: "Invalid or expired code" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      await ctx.supabase.from('password_reset_attempts').insert({ email: email.toLowerCase(), ip_address: clientIp, success: false, attempt_type: 'validate_otp', correlation_id: correlationId });
+      return new Response(JSON.stringify({ success: false, message: "Invalid or expired code" }), { status: 400, headers: { ...ctx.corsHeaders, "Content-Type": "application/json" } });
     }
 
     if (token.attempts >= MAX_ATTEMPTS) {
-      await supabaseAdmin.from('password_reset_attempts').insert({ email: email.toLowerCase(), ip_address: clientIp, success: false, attempt_type: 'validate_otp', correlation_id: correlationId });
-      await checkAndRaiseAlert(supabaseAdmin, email.toLowerCase(), clientIp, correlationId);
-      return new Response(JSON.stringify({ success: false, message: "Too many failed attempts. Please request a new code.", attempts_remaining: 0 }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      await ctx.supabase.from('password_reset_attempts').insert({ email: email.toLowerCase(), ip_address: clientIp, success: false, attempt_type: 'validate_otp', correlation_id: correlationId });
+      await checkAndRaiseAlert(ctx.supabase, email.toLowerCase(), clientIp, correlationId);
+      return new Response(JSON.stringify({ success: false, message: "Too many failed attempts. Please request a new code.", attempts_remaining: 0 }), { status: 400, headers: { ...ctx.corsHeaders, "Content-Type": "application/json" } });
     }
 
-    await supabaseAdmin.from('password_reset_tokens').update({ attempts: token.attempts + 1 }).eq('id', token.id);
+    await ctx.supabase.from('password_reset_tokens').update({ attempts: token.attempts + 1 }).eq('id', token.id);
     const attemptsRemaining = MAX_ATTEMPTS - (token.attempts + 1);
 
     const otpMatches = await verifyValue(otp_code, token.otp_code);
 
     if (!otpMatches) {
-      await supabaseAdmin.from('password_reset_attempts').insert({ email: email.toLowerCase(), ip_address: clientIp, success: false, attempt_type: 'validate_otp', correlation_id: correlationId });
-      await checkAndRaiseAlert(supabaseAdmin, email.toLowerCase(), clientIp, correlationId);
+      await ctx.supabase.from('password_reset_attempts').insert({ email: email.toLowerCase(), ip_address: clientIp, success: false, attempt_type: 'validate_otp', correlation_id: correlationId });
+      await checkAndRaiseAlert(ctx.supabase, email.toLowerCase(), clientIp, correlationId);
       const message = attemptsRemaining <= 0 ? "Too many failed attempts. Please request a new code." : "Invalid code";
-      return new Response(JSON.stringify({ success: false, message, attempts_remaining: Math.max(attemptsRemaining, 0) }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      return new Response(JSON.stringify({ success: false, message, attempts_remaining: Math.max(attemptsRemaining, 0) }), { status: 400, headers: { ...ctx.corsHeaders, "Content-Type": "application/json" } });
     }
 
-    await supabaseAdmin.from('password_reset_tokens').update({ is_used: true, used_at: new Date().toISOString(), validated_by: 'otp' }).eq('id', token.id);
-    await supabaseAdmin.from('password_reset_attempts').insert({ email: email.toLowerCase(), ip_address: clientIp, success: true, attempt_type: 'validate_otp', correlation_id: correlationId });
+    await ctx.supabase.from('password_reset_tokens').update({ is_used: true, used_at: new Date().toISOString(), validated_by: 'otp' }).eq('id', token.id);
+    await ctx.supabase.from('password_reset_attempts').insert({ email: email.toLowerCase(), ip_address: clientIp, success: true, attempt_type: 'validate_otp', correlation_id: correlationId });
 
-    return new Response(JSON.stringify({ success: true, reset_token: token.magic_token, user_id: token.user_id }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    return new Response(JSON.stringify({ success: true, reset_token: token.magic_token, user_id: token.user_id }), { status: 200, headers: { ...ctx.corsHeaders, "Content-Type": "application/json" } });
   } catch (error: any) {
     console.error("[PasswordReset][validate_otp] Error:", error);
-    const h = getAuthCorsHeaders(req);
-    if (error.name === 'ZodError') return new Response(JSON.stringify({ error: "Invalid request format" }), { status: 400, headers: { ...h, "Content-Type": "application/json" } });
-    return new Response(JSON.stringify({ error: "An error occurred during validation" }), { status: 500, headers: { ...h, "Content-Type": "application/json" } });
+    if (error.name === 'ZodError') return new Response(JSON.stringify({ error: "Invalid request format" }), { status: 400, headers: { ...ctx.corsHeaders, "Content-Type": "application/json" } });
+    return new Response(JSON.stringify({ error: "An error occurred during validation" }), { status: 500, headers: { ...ctx.corsHeaders, "Content-Type": "application/json" } });
   }
-});
+}));

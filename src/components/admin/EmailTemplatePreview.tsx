@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Monitor, Smartphone } from "lucide-react";
@@ -12,6 +13,7 @@ interface EmailTemplatePreviewProps {
 }
 
 export function EmailTemplatePreview({ template, contentOverride }: EmailTemplatePreviewProps) {
+  const { t } = useTranslation('common');
   const [viewMode, setViewMode] = useState<'desktop' | 'mobile'>('desktop');
 
   // Parse content template
@@ -104,7 +106,7 @@ export function EmailTemplatePreview({ template, contentOverride }: EmailTemplat
             <div style="padding: 0; margin: 0; line-height: 0; font-size: 0;">
               <img
                 src="${EMAIL_HEADER_GIF}"
-                alt="The Quantum Club"
+                alt={t("the_quantum_club", "The Quantum Club")}
                 width="600"
                 class="header-img"
                 onerror="this.style.display='none';"
@@ -120,7 +122,7 @@ export function EmailTemplatePreview({ template, contentOverride }: EmailTemplat
 
               ${stepsHtml ? `
                 <div class="card">
-                  <p style="margin: 0 0 12px 0; font-weight: 600; color: ${GOLD};">✨ What's Next</p>
+                  <p style="margin: 0 0 12px 0; font-weight: 600; color: ${GOLD};">{t("whats_next", "✨ What's Next")}</p>
                   ${stepsHtml}
                 </div>
               ` : ''}
@@ -135,20 +137,20 @@ export function EmailTemplatePreview({ template, contentOverride }: EmailTemplat
 
               ${contentData.showReason ? `
                 <div class="card-default" style="margin-top: 24px;">
-                  <p style="margin: 0; color: #555555;"><strong>Reason:</strong> Sample feedback would appear here</p>
+                  <p style="margin: 0; color: #555555;"><strong>{t("reason", "Reason:")}</strong>{t("sample_feedback_would_appear", "Sample feedback would appear here")}</p>
                 </div>
               ` : ''}
 
               <p style="margin-top: 32px; color: #555555;">
-                Best regards,<br><strong>The Quantum Club Team</strong>
+                Best regards,<br><strong>{t("the_quantum_club_team", "The Quantum Club Team")}</strong>
               </p>
             </div>
             <div class="footer">
-              <p style="margin: 0 0 8px 0; font-weight: 500; color: #555555;">The Quantum Club</p>
+              <p style="margin: 0 0 8px 0; font-weight: 500; color: #555555;">{t("the_quantum_club", "The Quantum Club")}</p>
               <p style="margin: 0 0 8px 0;">
-                <a href="#">Email Preferences</a> &nbsp;•&nbsp;
-                <a href="#">Support</a> &nbsp;•&nbsp;
-                <a href="#">Privacy</a>
+                <a href="#">{t("email_preferences", "Email Preferences")}</a> &nbsp;•&nbsp;
+                <a href="#">{t("support", "Support")}</a> &nbsp;•&nbsp;
+                <a href="#">{t("privacy", "Privacy")}</a>
               </p>
               <p style="margin: 0; font-size: 11px;">© ${new Date().getFullYear()} The Quantum Club. All rights reserved.</p>
             </div>
@@ -177,7 +179,7 @@ export function EmailTemplatePreview({ template, contentOverride }: EmailTemplat
             <Smartphone className="h-4 w-4" />
           </Button>
         </div>
-        <span className="text-xs text-muted-foreground">Light theme preview</span>
+        <span className="text-xs text-muted-foreground">{t("light_theme_preview", "Light theme preview")}</span>
       </div>
 
       <div
@@ -190,7 +192,7 @@ export function EmailTemplatePreview({ template, contentOverride }: EmailTemplat
           srcDoc={generatePreviewHTML()}
           className="w-full"
           style={{ height: '600px' }}
-          title="Email Preview"
+          title={t("email_preview", "Email Preview")}
         />
       </div>
     </div>

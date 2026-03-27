@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from 'react-i18next';
 import { motion } from "framer-motion";
 import { useParams, useNavigate, useSearchParams, Link } from "react-router-dom";
 
@@ -50,6 +51,7 @@ import { CandidateBriefCard } from "@/components/candidate-profile/CandidateBrie
 import { EnrichmentProgressModal } from "@/components/candidate-profile/EnrichmentProgressModal";
 
 export default function CandidateProfile() {
+  const { t } = useTranslation('candidates');
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -129,7 +131,7 @@ export default function CandidateProfile() {
           <Card>
             <CardContent className="py-12 text-center">
               <User className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-              <h2 className="text-2xl font-bold mb-2">Candidate Not Found</h2>
+              <h2 className="text-2xl font-bold mb-2">{t('candidateProfile.text3')}</h2>
               <Button onClick={() => navigate(-1)}>
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Go Back
@@ -166,7 +168,7 @@ export default function CandidateProfile() {
             className="absolute top-2 left-2 sm:top-4 sm:left-4 z-20"
           >
             <ArrowLeft className="w-4 h-4 sm:mr-2" />
-            <span className="hidden sm:inline">Back</span>
+            <span className="hidden sm:inline">{t('candidateProfile.text4')}</span>
           </Button>
 
           {/* Header Media - Optional wallpaper */}
@@ -185,7 +187,7 @@ export default function CandidateProfile() {
                 ) : (
                   <img
                     src={candidate.header_media_url}
-                    alt="Profile header"
+                    alt={t('candidateProfile.text5')}
                     className="w-full h-full object-cover"
                   />
                 )}
@@ -206,8 +208,8 @@ export default function CandidateProfile() {
                     className="gap-1 sm:gap-2 bg-background/80 backdrop-blur-sm text-xs sm:text-sm px-2 sm:px-3"
                   >
                     <Edit className="w-3 h-3 sm:w-4 sm:h-4" />
-                    <span className="hidden sm:inline">Edit Profile</span>
-                    <span className="sm:hidden">Edit</span>
+                    <span className="hidden sm:inline">{t('candidateProfile.text6')}</span>
+                    <span className="sm:hidden">{t('candidateProfile.text7')}</span>
                   </Button>
 
                   {candidate.linkedin_url && (
@@ -218,8 +220,8 @@ export default function CandidateProfile() {
                       className="gap-1 sm:gap-2 bg-background/80 backdrop-blur-sm text-xs sm:text-sm px-2 sm:px-3 border-primary/20 hover:border-primary/50"
                     >
                       <Linkedin className="w-3 h-3 sm:w-4 sm:h-4" />
-                      <span className="hidden sm:inline">Sync LinkedIn</span>
-                      <span className="sm:hidden">Sync</span>
+                      <span className="hidden sm:inline">{t('candidateProfile.text8')}</span>
+                      <span className="sm:hidden">{t('candidateProfile.text9')}</span>
                     </Button>
                   )}
 
@@ -352,7 +354,7 @@ export default function CandidateProfile() {
                 <Button variant="outline" size="sm" asChild className="text-xs sm:text-sm">
                   <a href={candidate.linkedin_url} target="_blank" rel="noopener noreferrer">
                     <Linkedin className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-1" />
-                    <span className="hidden sm:inline">LinkedIn</span>
+                    <span className="hidden sm:inline">{t('candidateProfile.text10')}</span>
                   </a>
                 </Button>
               )}
@@ -360,7 +362,7 @@ export default function CandidateProfile() {
                 <Button variant="outline" size="sm" asChild className="text-xs sm:text-sm">
                   <a href={candidate.github_url} target="_blank" rel="noopener noreferrer">
                     <Github className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-1" />
-                    <span className="hidden sm:inline">GitHub</span>
+                    <span className="hidden sm:inline">{t('candidateProfile.text11')}</span>
                   </a>
                 </Button>
               )}
@@ -368,7 +370,7 @@ export default function CandidateProfile() {
                 <Button variant="outline" size="sm" asChild className="text-xs sm:text-sm">
                   <a href={candidate.portfolio_url} target="_blank" rel="noopener noreferrer">
                     <Globe className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-1" />
-                    <span className="hidden sm:inline">Portfolio</span>
+                    <span className="hidden sm:inline">{t('candidateProfile.text12')}</span>
                   </a>
                 </Button>
               )}
@@ -379,8 +381,8 @@ export default function CandidateProfile() {
               <p className="text-xs text-muted-foreground mt-3 flex items-center gap-1 flex-wrap">
                 <Clock className="w-3 h-3 flex-shrink-0" />
                 <span className="break-words">
-                  <span className="hidden sm:inline">Last updated: </span>
-                  <span className="sm:hidden">Updated: </span>
+                  <span className="hidden sm:inline">{t('candidateProfile.text13')}</span>
+                  <span className="sm:hidden">{t('candidateProfile.text14')}</span>
                   {new Date(candidate.last_profile_update).toLocaleDateString()}
                 </span>
               </p>
@@ -393,14 +395,14 @@ export default function CandidateProfile() {
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 sm:space-y-6">
             <div className="overflow-x-auto -mx-2 sm:mx-0 px-2 sm:px-0">
               <TabsList className="inline-flex w-auto min-w-full sm:grid sm:w-full sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-8 h-auto">
-                <TabsTrigger value="overview" className="text-xs sm:text-sm whitespace-nowrap">Overview</TabsTrigger>
-                <TabsTrigger value="assessments" className="text-xs sm:text-sm whitespace-nowrap">Assessments</TabsTrigger>
-                {isTeamView && <TabsTrigger value="team-assessment" className="text-xs sm:text-sm whitespace-nowrap">Team</TabsTrigger>}
-                <TabsTrigger value="experience" className="text-xs sm:text-sm whitespace-nowrap">Experience</TabsTrigger>
-                {isTeamView && <TabsTrigger value="settings" className="text-xs sm:text-sm whitespace-nowrap">Settings</TabsTrigger>}
-                {isTeamView && <TabsTrigger value="workauth" className="text-xs sm:text-sm whitespace-nowrap">Work Auth</TabsTrigger>}
-                {isTeamView && <TabsTrigger value="pipeline" className="text-xs sm:text-sm whitespace-nowrap">Pipeline</TabsTrigger>}
-                {isTeamView && <TabsTrigger value="activity" className="text-xs sm:text-sm whitespace-nowrap">Activity</TabsTrigger>}
+                <TabsTrigger value="overview" className="text-xs sm:text-sm whitespace-nowrap">{t('candidateProfile.text15')}</TabsTrigger>
+                <TabsTrigger value="assessments" className="text-xs sm:text-sm whitespace-nowrap">{t('candidateProfile.text16')}</TabsTrigger>
+                {isTeamView && <TabsTrigger value="team-assessment" className="text-xs sm:text-sm whitespace-nowrap">{t('candidateProfile.text17')}</TabsTrigger>}
+                <TabsTrigger value="experience" className="text-xs sm:text-sm whitespace-nowrap">{t('candidateProfile.text18')}</TabsTrigger>
+                {isTeamView && <TabsTrigger value="settings" className="text-xs sm:text-sm whitespace-nowrap">{t('candidateProfile.text19')}</TabsTrigger>}
+                {isTeamView && <TabsTrigger value="workauth" className="text-xs sm:text-sm whitespace-nowrap">{t('candidateProfile.text20')}</TabsTrigger>}
+                {isTeamView && <TabsTrigger value="pipeline" className="text-xs sm:text-sm whitespace-nowrap">{t('candidateProfile.text21')}</TabsTrigger>}
+                {isTeamView && <TabsTrigger value="activity" className="text-xs sm:text-sm whitespace-nowrap">{t('candidateProfile.text22')}</TabsTrigger>}
               </TabsList>
             </div>
 
@@ -434,7 +436,7 @@ export default function CandidateProfile() {
 
                 <Card>
                   <CardHeader>
-                    <CardTitle>Documents</CardTitle>
+                    <CardTitle>{t('candidateProfile.text23')}</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <ErrorBoundary>
@@ -448,7 +450,7 @@ export default function CandidateProfile() {
 
                 <Card>
                   <CardHeader>
-                    <CardTitle>Internal Notes & Rating</CardTitle>
+                    <CardTitle>{t('candidateProfile.text24')}</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-6">
                     <ErrorBoundary>
@@ -525,12 +527,12 @@ export default function CandidateProfile() {
                     >
                       <div className="flex items-center gap-2 mb-4">
                         <Star className="w-4 h-4 text-primary" />
-                        <h3 className="text-sm font-semibold tracking-tight">Interview Intelligence</h3>
+                        <h3 className="text-sm font-semibold tracking-tight">{t('candidateProfile.text25')}</h3>
                       </div>
                       <div className="space-y-3">
                         <div>
                           <div className="flex items-center justify-between mb-1">
-                            <span className="text-[11px] text-muted-foreground">Avg Score</span>
+                            <span className="text-[11px] text-muted-foreground">{t('candidateProfile.text26')}</span>
                             <span className="text-sm font-semibold tabular-nums">{candidate.interview_score_avg}/10</span>
                           </div>
                           <div className="h-2 bg-muted/50 rounded-full overflow-hidden">
@@ -542,25 +544,25 @@ export default function CandidateProfile() {
                         </div>
                         {candidate.interview_count != null && (
                           <div className="flex justify-between text-xs">
-                            <span className="text-muted-foreground">Interviews</span>
+                            <span className="text-muted-foreground">{t('candidateProfile.text27')}</span>
                             <span className="font-medium">{candidate.interview_count}</span>
                           </div>
                         )}
                         {candidate.last_interview_at && (
                           <div className="flex justify-between text-xs">
-                            <span className="text-muted-foreground">Last Interview</span>
+                            <span className="text-muted-foreground">{t('candidateProfile.text28')}</span>
                             <span className="font-medium">{new Date(candidate.last_interview_at).toLocaleDateString()}</span>
                           </div>
                         )}
                         {candidate.key_strengths_aggregated && (
                           <div>
-                            <p className="text-[11px] text-muted-foreground mb-1">Strengths</p>
+                            <p className="text-[11px] text-muted-foreground mb-1">{t('candidateProfile.text29')}</p>
                             <p className="text-xs break-words">{candidate.key_strengths_aggregated}</p>
                           </div>
                         )}
                         {candidate.key_weaknesses_aggregated && (
                           <div>
-                            <p className="text-[11px] text-muted-foreground mb-1">Areas to Develop</p>
+                            <p className="text-[11px] text-muted-foreground mb-1">{t('candidateProfile.text30')}</p>
                             <p className="text-xs break-words">{candidate.key_weaknesses_aggregated}</p>
                           </div>
                         )}
@@ -577,7 +579,7 @@ export default function CandidateProfile() {
               {candidate.skills && candidate.skills.length > 0 && (
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-lg sm:text-xl">Skills</CardTitle>
+                    <CardTitle className="text-lg sm:text-xl">{t('candidateProfile.text31')}</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="flex flex-wrap gap-1.5 sm:gap-2">
@@ -595,7 +597,7 @@ export default function CandidateProfile() {
               {candidate.languages && candidate.languages.length > 0 && (
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-lg sm:text-xl">Languages</CardTitle>
+                    <CardTitle className="text-lg sm:text-xl">{t('candidateProfile.text32')}</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="flex flex-wrap gap-1.5 sm:gap-2">
@@ -683,10 +685,8 @@ export default function CandidateProfile() {
                       <Briefcase className="h-8 w-8 text-muted-foreground" />
                     </div>
                     <div className="space-y-2">
-                      <h3 className="text-lg font-semibold">No work experience on record</h3>
-                      <p className="text-sm text-muted-foreground max-w-sm">
-                        Sync this candidate's LinkedIn profile to import their work history automatically.
-                      </p>
+                      <h3 className="text-lg font-semibold">{t('candidateProfile.text33')}</h3>
+                      <p className="text-sm text-muted-foreground max-w-sm">{t('candidateProfile.desc')}</p>
                     </div>
                     {candidate.linkedin_url && (
                       <Button onClick={openLinkedInSync} size="lg" className="mt-2 gap-2">
@@ -743,10 +743,8 @@ export default function CandidateProfile() {
                       <FileText className="h-8 w-8 text-muted-foreground" />
                     </div>
                     <div className="space-y-2">
-                      <h3 className="text-lg font-semibold">No education on record</h3>
-                      <p className="text-sm text-muted-foreground max-w-sm">
-                        Sync this candidate's LinkedIn profile to import their education history.
-                      </p>
+                      <h3 className="text-lg font-semibold">{t('candidateProfile.text34')}</h3>
+                      <p className="text-sm text-muted-foreground max-w-sm">{t('candidateProfile.desc2')}</p>
                     </div>
                     {candidate.linkedin_url && (
                       <Button onClick={openLinkedInSync} size="lg" variant="outline" className="mt-2 gap-2">
@@ -762,7 +760,7 @@ export default function CandidateProfile() {
               {candidate.certifications && candidate.certifications.length > 0 && (
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-lg sm:text-xl">Certifications</CardTitle>
+                    <CardTitle className="text-lg sm:text-xl">{t('candidateProfile.text35')}</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3">
                     {candidate.certifications.map((cert: any, index: number) => (
@@ -820,7 +818,7 @@ export default function CandidateProfile() {
               {(candidate.linkedin_url || candidate.github_url || candidate.portfolio_url) && (
                 <Card>
                   <CardHeader>
-                    <CardTitle>Social Profiles</CardTitle>
+                    <CardTitle>{t('candidateProfile.text36')}</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-2">
                     {candidate.linkedin_url && (

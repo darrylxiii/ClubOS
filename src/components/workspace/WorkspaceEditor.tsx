@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useCallback, useState, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { BlockNoteSchema, defaultBlockSpecs, PartialBlock } from '@blocknote/core';
 import { 
   useCreateBlockNote, 
@@ -47,6 +48,7 @@ export function WorkspaceEditor({
   className,
   enableCollaboration = true
 }: WorkspaceEditorProps) {
+  const { t } = useTranslation('common');
   const [isMounted, setIsMounted] = useState(false);
   const [showAIDialog, setShowAIDialog] = useState(false);
   const { resolvedTheme } = useTheme();
@@ -189,7 +191,7 @@ export function WorkspaceEditor({
           <div className="flex items-center gap-2">
             {cursors.length > 0 && (
               <span className="text-xs text-muted-foreground">
-                {cursors.length} collaborator{cursors.length !== 1 ? 's' : ''} online
+                {t('workspace.collaboratorsOnline', '{{count}} collaborator(s) online', { count: cursors.length })}
               </span>
             )}
           </div>

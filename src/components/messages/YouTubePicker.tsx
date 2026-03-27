@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,6 +12,7 @@ interface YouTubePickerProps {
 }
 
 export function YouTubePicker({ onSelect }: YouTubePickerProps) {
+  const { t } = useTranslation('common');
   const [open, setOpen] = useState(false);
   const [url, setUrl] = useState('');
   const [previewVideoId, setPreviewVideoId] = useState<string | null>(null);
@@ -23,7 +25,7 @@ export function YouTubePicker({ onSelect }: YouTubePickerProps) {
 
   const handleAdd = () => {
     if (!previewVideoId) {
-      toast.error('Invalid YouTube URL', {
+      toast.error(t("invalid_youtube_url", "Invalid YouTube URL"), {
         description: 'Please paste a valid YouTube video link',
       });
       return;
@@ -33,7 +35,7 @@ export function YouTubePicker({ onSelect }: YouTubePickerProps) {
     setUrl('');
     setPreviewVideoId(null);
     setOpen(false);
-    toast.success('YouTube video added');
+    toast.success(t("youtube_video_added", "YouTube video added"));
   };
 
   return (
@@ -43,7 +45,7 @@ export function YouTubePicker({ onSelect }: YouTubePickerProps) {
           variant="ghost" 
           size="icon" 
           className="h-9 w-9 rounded-lg hover:bg-muted flex-shrink-0"
-          title="Share YouTube video"
+          title={t("share_youtube_video", "Share YouTube video")}
         >
           <Youtube className="h-4 w-4 text-red-600" />
         </Button>
@@ -51,7 +53,7 @@ export function YouTubePicker({ onSelect }: YouTubePickerProps) {
       <PopoverContent className="w-96 p-4 glass-card" align="end">
         <div className="space-y-4">
           <div>
-            <h3 className="font-semibold text-sm mb-2">Share YouTube Video</h3>
+            <h3 className="font-semibold text-sm mb-2">{t("share_youtube_video", "Share YouTube Video")}</h3>
             <p className="text-xs text-muted-foreground mb-3">
               Paste a YouTube video URL to share
             </p>
@@ -65,11 +67,11 @@ export function YouTubePicker({ onSelect }: YouTubePickerProps) {
 
           {previewVideoId && (
             <div className="space-y-2">
-              <div className="text-xs font-medium text-muted-foreground">Preview</div>
+              <div className="text-xs font-medium text-muted-foreground">{t("preview", "Preview")}</div>
               <div className="relative rounded-lg overflow-hidden">
                 <img
                   src={getYouTubeThumbnail(previewVideoId, 'hq')}
-                  alt="Video preview"
+                  alt={t("video_preview", "Video preview")}
                   className="w-full aspect-video object-cover"
                 />
                 <div className="absolute inset-0 flex items-center justify-center bg-black/20">

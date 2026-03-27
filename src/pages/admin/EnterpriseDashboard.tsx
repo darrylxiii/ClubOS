@@ -1,4 +1,5 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useTranslation } from 'react-i18next';
 import { Shield, Clock, Palette, FileCheck, Building2 } from 'lucide-react';
 import { SLADashboard } from '@/components/admin/enterprise/SLADashboard';
 import { WhiteLabelManager } from '@/components/admin/enterprise/WhiteLabelManager';
@@ -6,14 +7,13 @@ import { ComplianceDashboard } from '@/components/admin/ComplianceDashboard';
 import { DisasterRecoveryDashboard } from '@/components/admin/DisasterRecoveryDashboard';
 
 export default function EnterpriseDashboard() {
+  const { t } = useTranslation('admin');
   return (
       <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold">Enterprise Management</h1>
-            <p className="text-muted-foreground">
-              SOC 2 compliance, SLA monitoring, disaster recovery, and white-label configuration
-            </p>
+            <h1 className="text-3xl font-bold">{t('enterpriseDashboard.text2')}</h1>
+            <p className="text-muted-foreground">{t('enterpriseDashboard.desc')}</p>
           </div>
           <Building2 className="h-12 w-12 text-primary" />
         </div>

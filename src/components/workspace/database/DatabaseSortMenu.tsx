@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React, { useState } from 'react';
 import { DatabaseColumn } from '@/hooks/useWorkspaceDatabase';
 import { Button } from '@/components/ui/button';
@@ -29,6 +30,7 @@ interface DatabaseSortMenuProps {
 }
 
 export function DatabaseSortMenu({ columns, sorts, onSortsChange }: DatabaseSortMenuProps) {
+  const { t } = useTranslation('common');
   const [isOpen, setIsOpen] = useState(false);
 
   const addSort = () => {
@@ -97,7 +99,7 @@ export function DatabaseSortMenu({ columns, sorts, onSortsChange }: DatabaseSort
       <PopoverContent align="start" className="w-[350px] p-3">
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium">Sort by</span>
+            <span className="text-sm font-medium">{t("sort_by", "Sort by")}</span>
             {sorts.length > 0 && (
               <Button
                 variant="ghost"
@@ -148,7 +150,7 @@ export function DatabaseSortMenu({ columns, sorts, onSortsChange }: DatabaseSort
                       onValueChange={(value) => updateSort(sort.id, { columnId: value })}
                     >
                       <SelectTrigger className="flex-1 h-8 text-xs">
-                        <SelectValue placeholder="Column" />
+                        <SelectValue placeholder={t("column", "Column")} />
                       </SelectTrigger>
                       <SelectContent>
                         {columns.map((col) => (

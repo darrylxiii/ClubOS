@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
+import { useTranslation } from 'react-i18next';
 
 interface ConnectionStatus {
   connected: boolean;
@@ -39,6 +40,7 @@ interface SyncLog {
 }
 
 export function InstantlySyncStatus() {
+  const { t } = useTranslation('common');
   const queryClient = useQueryClient();
   const [isTestingConnection, setIsTestingConnection] = useState(false);
 

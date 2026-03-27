@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
 import { Calendar } from '@/components/ui/calendar';
 import {
@@ -15,6 +16,7 @@ interface DateCellProps {
 }
 
 export function DateCell({ value, onChange, readOnly }: DateCellProps) {
+  const { t } = useTranslation('common');
   const [isOpen, setIsOpen] = useState(false);
 
   const date = value ? new Date(value) : undefined;
@@ -46,7 +48,7 @@ export function DateCell({ value, onChange, readOnly }: DateCellProps) {
             !displayValue && "text-muted-foreground"
           )}
         >
-          {displayValue || 'Empty'}
+          {displayValue || t('workspace.empty', 'Empty')}
         </div>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0" align="start">

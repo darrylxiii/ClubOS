@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Shield, Plus, Trash2, Edit2, ArrowUpDown, UserPlus, ArrowRight, XCircle, Eye, Linkedin, Mail, CheckCircle, Share2 } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
+import { useTranslation } from 'react-i18next';
 
 interface AuditLog {
   id: string;
@@ -42,6 +43,7 @@ const FILTER_LABELS: Record<string, string> = {
 };
 
 export const PipelineAuditLog = ({ jobId }: PipelineAuditLogProps) => {
+  const { t } = useTranslation('partner');
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState<string>('all');
@@ -188,13 +190,9 @@ export const PipelineAuditLog = ({ jobId }: PipelineAuditLogProps) => {
       <CardHeader className="border-b border-border/50">
         <div className="flex items-center gap-2">
           <Shield className="w-5 h-5 text-accent" />
-          <CardTitle className="text-lg font-black uppercase">
-            Job Audit Log
-          </CardTitle>
+          <CardTitle className="text-lg font-black uppercase">{t('pipelineAuditLog.title')}</CardTitle>
         </div>
-        <CardDescription>
-          Comprehensive tracking of all job interactions and modifications
-        </CardDescription>
+        <CardDescription>{t('pipelineAuditLog.description')}</CardDescription>
 
         {/* Filter Chips */}
         <div className="flex flex-wrap gap-2 pt-2">
@@ -289,9 +287,7 @@ export const PipelineAuditLog = ({ jobId }: PipelineAuditLogProps) => {
                                     </Badge>
                                   )}
                                   {log.metadata?.duplicate_override && (
-                                    <Badge variant="destructive" className="text-xs h-5">
-                                      Override Duplicate
-                                    </Badge>
+                                    <Badge variant="destructive" className="text-xs h-5">{t('pipelineAuditLog.badge.overrideDuplicate')}</Badge>
                                   )}
                                 </div>
                               </div>

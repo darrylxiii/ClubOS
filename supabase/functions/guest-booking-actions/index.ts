@@ -3,11 +3,8 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
 import { EMAIL_SENDERS, EMAIL_COLORS, getEmailHeaders, htmlToPlainText } from "../_shared/email-config.ts";
 import { Heading, Paragraph, Spacer, Card, StatusBadge, InfoRow, Button } from "../_shared/email-templates/components.ts";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+import { sendEmail } from '../_shared/resend-client.ts';
+import { getCorsHeaders } from '../_shared/cors.ts';
 
 interface GuestActionRequest {
   action: 'get_details' | 'cancel' | 'propose_time' | 'add_guest';
@@ -44,6 +41,7 @@ interface GuestContext {
 }
 
 serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -312,8 +310,7 @@ async function handleCancel(supabase: any, context: GuestContext, body: GuestAct
     .single();
 
   // Send cancellation notifications to all parties
-  const resendApiKey = Deno.env.get("RESEND_API_KEY");
-  if (resendApiKey && hostProfile?.email) {
+  if (hostProfile?.email) {
     const formattedDate = new Date(booking.scheduled_start).toLocaleDateString("en-US", {
       weekday: "long", year: "numeric", month: "long", day: "numeric",
     });
@@ -335,39 +332,29 @@ async function handleCancel(supabase: any, context: GuestContext, body: GuestAct
 
     const cancelHtml = baseEmailTemplate({ content: emailContent });
     // Notify host
-    await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${resendApiKey}`,
-      },
-      body: JSON.stringify({
+    try {
+      await sendEmail({
         from: EMAIL_SENDERS.bookings,
         to: [hostProfile.email],
         subject: `Booking Cancelled — ${booking.guest_name}`,
         html: cancelHtml,
-        text: htmlToPlainText(cancelHtml),
-        headers: getEmailHeaders(),
-      }),
-    });
+      });
+    } catch (e) {
+      console.error("[GuestActions] Failed to send host cancel email:", e);
+    }
 
     if (context.type === 'guest') {
       const cancelGuestHtml = baseEmailTemplate({ content: emailContent });
-      await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${resendApiKey}`,
-        },
-        body: JSON.stringify({
+      try {
+        await sendEmail({
           from: EMAIL_SENDERS.bookings,
           to: [booking.guest_email],
           subject: `Booking Cancelled by Guest — ${booking.booking_links.title}`,
           html: cancelGuestHtml,
-          text: htmlToPlainText(cancelGuestHtml),
-          headers: getEmailHeaders(),
-        }),
-      });
+        });
+      } catch (e) {
+        console.error("[GuestActions] Failed to send guest cancel email:", e);
+      }
     }
   }
 
@@ -451,8 +438,7 @@ async function handleProposeTime(supabase: any, context: GuestContext, body: Gue
       .single();
 
     // Notify host of the proposal
-    const resendApiKey = Deno.env.get("RESEND_API_KEY");
-    if (resendApiKey && hostProfile?.email) {
+    if (hostProfile?.email) {
       const formattedDate = new Date(proposedStart).toLocaleDateString("en-US", {
         weekday: "long", year: "numeric", month: "long", day: "numeric",
       });
@@ -485,21 +471,16 @@ async function handleProposeTime(supabase: any, context: GuestContext, body: Gue
             showFooter: true,
           });
 
-      await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${resendApiKey}`,
-        },
-        body: JSON.stringify({
+      try {
+        await sendEmail({
           from: EMAIL_SENDERS.bookings,
           to: [hostProfile.email],
           subject: `New Time Proposal for ${booking.booking_links.title}`,
           html: proposalHtml,
-          text: htmlToPlainText(proposalHtml),
-          headers: getEmailHeaders(),
-        }),
-      });
+        });
+      } catch (e) {
+        console.error("[GuestActions] Failed to send proposal email:", e);
+      }
     }
   }
 
@@ -589,8 +570,7 @@ async function handleAddGuest(supabase: any, context: GuestContext, body: GuestA
   }
 
   // Send invitation email to the new guest
-  const resendApiKey = Deno.env.get("RESEND_API_KEY");
-  if (resendApiKey && booking) {
+  if (booking) {
     const { data: bookingDetails } = await supabase
       .from("bookings")
       .select("scheduled_start, scheduled_end, guest_name")
@@ -643,21 +623,16 @@ async function handleAddGuest(supabase: any, context: GuestContext, body: GuestA
       `;
 
       const addGuestHtml = baseEmailTemplate({ content: emailContent });
-      await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${resendApiKey}`,
-        },
-        body: JSON.stringify({
+      try {
+        await sendEmail({
           from: EMAIL_SENDERS.bookings,
           to: [newGuestEmail],
           subject: `You're invited: ${booking.booking_links.title} — ${formattedDate}`,
           html: addGuestHtml,
-          text: htmlToPlainText(addGuestHtml),
-          headers: getEmailHeaders(),
-        }),
-      });
+        });
+      } catch (emailErr) {
+        console.error('[GuestActions] Failed to send add-guest email:', emailErr);
+      }
 
       // Update email_sent_at
       await supabase

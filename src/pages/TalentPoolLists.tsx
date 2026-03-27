@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { motion } from '@/lib/motion';
 import {
@@ -50,6 +51,7 @@ const ICON_MAP: Record<string, React.ElementType> = {
 };
 
 export default function TalentPoolLists() {
+  const { t } = useTranslation('candidates');
   const navigate = useNavigate();
   const { lists, isLoading, createList, updateList, deleteList, isCreating } = useTalentPoolLists();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -111,7 +113,7 @@ export default function TalentPoolLists() {
     const list = lists.find(l => l.id === shareDialogOpen);
     if (list) {
       await updateList({ id: shareDialogOpen, is_shared: !list.is_shared });
-      toast.success(list.is_shared ? 'List is now private' : 'List is now shared with your team');
+      toast.success(list.is_shared ? t('text.talentpoollists.listIsNowPrivate', 'List is now private') : t('text.talentpoollists.listIsNowSharedWithYour', 'List is now shared with your team'));
     }
     setShareDialogOpen(null);
   };
@@ -136,8 +138,8 @@ export default function TalentPoolLists() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Talent Lists</h1>
-          <p className="text-muted-foreground">Organize candidates into curated lists</p>
+          <h1 className="text-2xl font-bold">{t('talentPoolLists.text3')}</h1>
+          <p className="text-muted-foreground">{t('talentPoolLists.text4')}</p>
         </div>
         <Button onClick={() => setCreateDialogOpen(true)}>
           <Plus className="w-4 h-4 mr-2" />
@@ -156,10 +158,8 @@ export default function TalentPoolLists() {
             <Card className="border-dashed">
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <FolderOpen className="w-12 h-12 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-medium mb-2">No lists yet</h3>
-                <p className="text-muted-foreground text-center mb-4">
-                  Create your first list to start organizing candidates
-                </p>
+                <h3 className="text-lg font-medium mb-2">{t('talentPoolLists.text5')}</h3>
+                <p className="text-muted-foreground text-center mb-4">{t('talentPoolLists.desc')}</p>
                 <Button onClick={() => setCreateDialogOpen(true)}>
                   <Plus className="w-4 h-4 mr-2" />
                   Create List
@@ -214,7 +214,7 @@ export default function TalentPoolLists() {
                               }}
                             >
                               <Share2 className="w-4 h-4 mr-2" />
-                              {list.is_shared ? 'Unshare' : 'Share'}
+                              {list.is_shared ? t('text.talentpoollists.unshare', 'Unshare') : t('text.talentpoollists.share', 'Share')}
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem
@@ -292,7 +292,7 @@ export default function TalentPoolLists() {
 
           {/* Smart List Templates */}
           <div>
-            <h3 className="text-sm font-medium text-muted-foreground mb-3">Quick Create from Templates</h3>
+            <h3 className="text-sm font-medium text-muted-foreground mb-3">{t('talentPoolLists.text6')}</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {SMART_LIST_PRESETS.map((preset) => {
                 const Icon = ICON_MAP[preset.icon] || Sparkles;
@@ -313,7 +313,7 @@ export default function TalentPoolLists() {
                           <h4 className="font-medium">{preset.name}</h4>
                           <p className="text-sm text-muted-foreground">{preset.description}</p>
                           {alreadyExists && (
-                            <span className="text-xs text-muted-foreground mt-1 block">Already created</span>
+                            <span className="text-xs text-muted-foreground mt-1 block">{t('talentPoolLists.text7')}</span>
                           )}
                         </div>
                       </div>
@@ -330,24 +330,24 @@ export default function TalentPoolLists() {
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Create New List</DialogTitle>
-            <DialogDescription>Create a manual list to curate candidates</DialogDescription>
+            <DialogTitle>{t('talentPoolLists.text8')}</DialogTitle>
+            <DialogDescription>{t('talentPoolLists.text9')}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Name</Label>
+              <Label htmlFor="name">{t('talentPoolLists.text10')}</Label>
               <Input
                 id="name"
-                placeholder="e.g., Senior Engineers Q1"
+                placeholder={"e.g., Senior Engineers Q1"}
                 value={newList.name}
                 onChange={(e) => setNewList((prev) => ({ ...prev, name: e.target.value }))}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="description">Description (optional)</Label>
+              <Label htmlFor="description">{t('talentPoolLists.text11')}</Label>
               <Textarea
                 id="description"
-                placeholder="What's this list for?"
+                placeholder={t('talentPoolLists.text12')}
                 value={newList.description}
                 onChange={(e) => setNewList((prev) => ({ ...prev, description: e.target.value }))}
               />
@@ -355,11 +355,9 @@ export default function TalentPoolLists() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
-              Cancel
+              {t('text.talentpoollists.cancel', 'Cancel')}
             </Button>
-            <Button onClick={handleCreateList} disabled={!newList.name.trim() || isCreating}>
-              Create List
-            </Button>
+            <Button onClick={handleCreateList} disabled={!newList.name.trim() || isCreating}>{t('talentPoolLists.btn2')}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -368,17 +366,15 @@ export default function TalentPoolLists() {
       <Dialog open={!!deleteDialogOpen} onOpenChange={() => setDeleteDialogOpen(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Delete List</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete this list? This action cannot be undone.
-            </DialogDescription>
+            <DialogTitle>{t('talentPoolLists.text13')}</DialogTitle>
+            <DialogDescription>{t('text.talentpoollists.areYouSureYouWantTo', 'Are you sure you want to delete this list? This action cannot be undone.')}</DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteDialogOpen(null)}>
-              Cancel
+              {t('text.talentpoollists.cancel', 'Cancel')}
             </Button>
             <Button variant="destructive" onClick={() => deleteDialogOpen && handleDeleteList(deleteDialogOpen)}>
-              Delete
+              {t('text.talentpoollists.delete', 'Delete')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -388,12 +384,12 @@ export default function TalentPoolLists() {
       <Dialog open={!!editDialogOpen} onOpenChange={() => setEditDialogOpen(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Edit List</DialogTitle>
-            <DialogDescription>Update the list name and description</DialogDescription>
+            <DialogTitle>{t('talentPoolLists.text14')}</DialogTitle>
+            <DialogDescription>{t('talentPoolLists.text15')}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="edit-name">Name</Label>
+              <Label htmlFor="edit-name">{t('talentPoolLists.text16')}</Label>
               <Input
                 id="edit-name"
                 value={editingList.name}
@@ -401,7 +397,7 @@ export default function TalentPoolLists() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="edit-description">Description</Label>
+              <Label htmlFor="edit-description">{t('talentPoolLists.text17')}</Label>
               <Textarea
                 id="edit-description"
                 value={editingList.description}
@@ -411,7 +407,7 @@ export default function TalentPoolLists() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditDialogOpen(null)}>
-              Cancel
+              {t('text.talentpoollists.cancel', 'Cancel')}
             </Button>
             <Button onClick={handleEditList} disabled={!editingList.name.trim() || isUpdating}>
               {isUpdating && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
@@ -425,19 +421,18 @@ export default function TalentPoolLists() {
       <Dialog open={!!shareDialogOpen} onOpenChange={() => setShareDialogOpen(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Share List</DialogTitle>
+            <DialogTitle>{t('talentPoolLists.text18')}</DialogTitle>
             <DialogDescription>
               {lists.find(l => l.id === shareDialogOpen)?.is_shared 
-                ? 'This list is currently shared with your team. Would you like to make it private?'
-                : 'Share this list with your team so they can view the candidates.'}
+                ? t('text.talentpoollists.thisListIsCurrentlySharedWith', 'This list is currently shared with your team. Would you like to make it private?') : t('text.talentpoollists.shareThisListWithYourTeam', 'Share this list with your team so they can view the candidates.')}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShareDialogOpen(null)}>
-              Cancel
+              {t('text.talentpoollists.cancel', 'Cancel')}
             </Button>
             <Button onClick={handleShareList}>
-              {lists.find(l => l.id === shareDialogOpen)?.is_shared ? 'Make Private' : 'Share with Team'}
+              {lists.find(l => l.id === shareDialogOpen)?.is_shared ? t('text.talentpoollists.makePrivate', 'Make Private') : t('text.talentpoollists.shareWithTeam', 'Share with Team')}
             </Button>
           </DialogFooter>
         </DialogContent>

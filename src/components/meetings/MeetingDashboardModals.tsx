@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useCallback } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -54,6 +55,7 @@ export function MeetingDashboardModals({
   onResetSettings,
   capabilities,
 }: MeetingDashboardModalsProps) {
+  const { t } = useTranslation('common');
   const [showPerformance, setShowPerformance] = useState(false);
   const [showNetwork, setShowNetwork] = useState(false);
   const [showAnalytics, setShowAnalytics] = useState(false);
@@ -101,7 +103,7 @@ export function MeetingDashboardModals({
           className="gap-2"
         >
           <Activity className="h-4 w-4" />
-          <span className="hidden sm:inline">Performance</span>
+          <span className="hidden sm:inline">{t("performance", "Performance")}</span>
         </Button>
         <Button
           variant="ghost"
@@ -110,7 +112,7 @@ export function MeetingDashboardModals({
           className="gap-2"
         >
           <Wifi className="h-4 w-4" />
-          <span className="hidden sm:inline">Network</span>
+          <span className="hidden sm:inline">{t("network", "Network")}</span>
         </Button>
         <Button
           variant="ghost"
@@ -119,7 +121,7 @@ export function MeetingDashboardModals({
           className="gap-2"
         >
           <BarChart3 className="h-4 w-4" />
-          <span className="hidden sm:inline">Insights</span>
+          <span className="hidden sm:inline">{t("insights", "Insights")}</span>
         </Button>
         <Button
           variant="ghost"
@@ -128,7 +130,7 @@ export function MeetingDashboardModals({
           className="gap-2"
         >
           <Settings className="h-4 w-4" />
-          <span className="hidden sm:inline">Settings</span>
+          <span className="hidden sm:inline">{t("settings", "Settings")}</span>
         </Button>
       </div>
 
@@ -244,7 +246,7 @@ export function MeetingStatusBadges({
           onClick={onPerformanceClick}
         >
           <AlertTriangle className="w-3.5 h-3.5" />
-          <span className="text-xs">Alert</span>
+          <span className="text-xs">{t("alert", "Alert")}</span>
         </Button>
       )}
 
@@ -290,7 +292,7 @@ export function DashboardControlButtons({
         size="icon"
         className="h-8 w-8"
         onClick={onOpenPerformance}
-        title="Performance Monitor"
+        title={t("performance_monitor", "Performance Monitor")}
       >
         <Gauge className="w-4 h-4" />
       </Button>
@@ -300,7 +302,7 @@ export function DashboardControlButtons({
         size="icon"
         className="h-8 w-8"
         onClick={onOpenNetwork}
-        title="Network Status"
+        title={t("network_status", "Network Status")}
       >
         <Wifi className="w-4 h-4" />
       </Button>
@@ -311,7 +313,7 @@ export function DashboardControlButtons({
           size="icon"
           className="h-8 w-8"
           onClick={onOpenAnalytics}
-          title="Meeting Analytics"
+          title={t("meeting_analytics", "Meeting Analytics")}
         >
           <BarChart3 className="w-4 h-4" />
         </Button>
@@ -322,7 +324,7 @@ export function DashboardControlButtons({
         size="icon"
         className="h-8 w-8"
         onClick={onOpenSettings}
-        title="Meeting Settings"
+        title={t("meeting_settings", "Meeting Settings")}
       >
         <Settings2 className="w-4 h-4" />
       </Button>

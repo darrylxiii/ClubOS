@@ -1,5 +1,6 @@
 import { createReactBlockSpec } from '@blocknote/react';
 import { AlertCircle, AlertTriangle, CheckCircle, Info, XCircle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 
 const calloutVariants = {
@@ -62,11 +63,11 @@ export const CalloutBlock = createReactBlockSpec(
             className="text-xs bg-transparent border-none cursor-pointer opacity-50 hover:opacity-100 focus:outline-none"
             contentEditable={false}
           >
-            <option value="info">Info</option>
-            <option value="warning">Warning</option>
-            <option value="success">Success</option>
-            <option value="danger">Danger</option>
-            <option value="note">Note</option>
+            <option value="info">{t('workspace.calloutInfo', 'Info')}</option>
+            <option value="warning">{t('workspace.calloutWarning', 'Warning')}</option>
+            <option value="success">{t('workspace.calloutSuccess', 'Success')}</option>
+            <option value="danger">{t('workspace.calloutDanger', 'Danger')}</option>
+            <option value="note">{t('workspace.calloutNote', 'Note')}</option>
           </select>
         </div>
       );

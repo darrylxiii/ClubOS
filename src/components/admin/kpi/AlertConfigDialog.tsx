@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React, { useState, useEffect } from 'react';
 import {
   Dialog,
@@ -36,6 +37,7 @@ export function AlertConfigDialog({
   currentThreshold,
   onSave,
 }: AlertConfigDialogProps) {
+  const { t } = useTranslation('common');
   const [warningValue, setWarningValue] = useState('');
   const [criticalValue, setCriticalValue] = useState('');
   const [enabled, setEnabled] = useState(true);
@@ -108,7 +110,7 @@ export function AlertConfigDialog({
           {/* Enable/Disable */}
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label>Alert Notifications</Label>
+              <Label>{t("alert_notifications", "Alert Notifications")}</Label>
               <p className="text-xs text-muted-foreground">
                 Receive alerts when thresholds are crossed
               </p>
@@ -119,14 +121,14 @@ export function AlertConfigDialog({
           {/* Current Value Display */}
           <div className="p-3 bg-muted/50 rounded-lg">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Current Value</span>
+              <span className="text-sm text-muted-foreground">{t("current_value", "Current Value")}</span>
               <Badge variant="outline" className="font-mono">
                 {(typeof kpi?.value === 'number' ? kpi.value : 0).toFixed(1)} {formatLabel()}
               </Badge>
             </div>
             {kpi?.targetValue != null && (
               <div className="flex items-center justify-between mt-2">
-                <span className="text-sm text-muted-foreground">Target</span>
+                <span className="text-sm text-muted-foreground">{t("target", "Target")}</span>
                 <Badge variant="outline" className="font-mono">
                   {(typeof kpi.targetValue === 'number' ? kpi.targetValue : 0).toFixed(1)} {formatLabel()}
                 </Badge>

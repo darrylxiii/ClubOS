@@ -1,4 +1,5 @@
 import { memo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -32,6 +33,7 @@ export const CourseFilters = memo<CourseFiltersProps>(({
   onReset,
 }) => {
   const handleCategoryToggle = (category: string) => {
+  const { t } = useTranslation('common');
     if (selectedCategories.includes(category)) {
       onCategoryChange(selectedCategories.filter(c => c !== category));
     } else {
@@ -44,7 +46,7 @@ export const CourseFilters = memo<CourseFiltersProps>(({
   return (
     <Card className="p-4 space-y-6 sticky top-4">
       <div className="flex items-center justify-between">
-        <h3 className="font-semibold">Filters</h3>
+        <h3 className="font-semibold">{t('academy.filters')}</h3>
         {hasFilters && (
           <Button variant="ghost" size="sm" onClick={onReset}>
             <X className="w-4 h-4 mr-1" />
@@ -54,22 +56,22 @@ export const CourseFilters = memo<CourseFiltersProps>(({
       </div>
 
       <div className="space-y-3">
-        <Label>Sort By</Label>
+        <Label>{t('academy.sortBy')}</Label>
         <Select value={sortBy} onValueChange={onSortChange}>
           <SelectTrigger>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="newest">Newest</SelectItem>
-            <SelectItem value="popular">Most Popular</SelectItem>
-            <SelectItem value="shortest">Shortest First</SelectItem>
-            <SelectItem value="highest_rated">Highest Rated</SelectItem>
+            <SelectItem value="newest">{t('academy.coursefilters.newest', 'Newest')}</SelectItem>
+            <SelectItem value="popular">{t('academy.coursefilters.mostPopular', 'Most Popular')}</SelectItem>
+            <SelectItem value="shortest">{t('academy.coursefilters.shortestFirst', 'Shortest First')}</SelectItem>
+            <SelectItem value="highest_rated">{t('academy.coursefilters.highestRated', 'Highest Rated')}</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
       <div className="space-y-3">
-        <Label>Categories</Label>
+        <Label>{t('academy.categories')}</Label>
         <div className="space-y-2">
           {categories.map((category) => (
             <div key={category} className="flex items-center space-x-2">
@@ -90,29 +92,29 @@ export const CourseFilters = memo<CourseFiltersProps>(({
       </div>
 
       <div className="space-y-3">
-        <Label>Difficulty</Label>
+        <Label>{t('academy.difficulty')}</Label>
         <Select value={difficulty} onValueChange={onDifficultyChange}>
           <SelectTrigger>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Levels</SelectItem>
-            <SelectItem value="beginner">Beginner</SelectItem>
-            <SelectItem value="intermediate">Intermediate</SelectItem>
-            <SelectItem value="advanced">Advanced</SelectItem>
+            <SelectItem value="all">{t('academy.coursefilters.allLevels', 'All Levels')}</SelectItem>
+            <SelectItem value="beginner">{t('academy.coursefilters.beginner', 'Beginner')}</SelectItem>
+            <SelectItem value="intermediate">{t('academy.coursefilters.intermediate', 'Intermediate')}</SelectItem>
+            <SelectItem value="advanced">{t('academy.coursefilters.advanced', 'Advanced')}</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
       <div className="space-y-3">
-        <Label>Duration</Label>
+        <Label>{t('academy.duration')}</Label>
         <Select value={duration} onValueChange={onDurationChange}>
           <SelectTrigger>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Any Duration</SelectItem>
-            <SelectItem value="short">Under 2 hours</SelectItem>
+            <SelectItem value="all">{t('academy.coursefilters.anyDuration', 'Any Duration')}</SelectItem>
+            <SelectItem value="short">{t('academy.coursefilters.under2Hours', 'Under 2 hours')}</SelectItem>
             <SelectItem value="medium">2-5 hours</SelectItem>
             <SelectItem value="long">5+ hours</SelectItem>
           </SelectContent>

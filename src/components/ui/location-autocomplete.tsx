@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import * as React from "react";
 import { Check, MapPin, Loader2, Clock, X } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -36,9 +37,11 @@ interface LocationAutocompleteProps {
 export function LocationAutocomplete({
   value,
   onChange,
-  placeholder = "Type to search for your city...",
+  placeholder,
   className,
 }: LocationAutocompleteProps) {
+  const { t } = useTranslation('common');
+  const resolvedPlaceholder = placeholder ?? t("location.typeToSearch", "Type to search for your city...");
   const [open, setOpen] = React.useState(false);
   const [suggestions, setSuggestions] = React.useState<LocationSuggestion[]>([]);
   const [loading, setLoading] = React.useState(false);
@@ -215,7 +218,7 @@ export function LocationAutocomplete({
               onKeyDown={handleKeyDown}
               onFocus={handleFocus}
               onBlur={handleBlur}
-              placeholder={placeholder}
+              placeholder={resolvedPlaceholder}
               className={cn(
                 "pl-10 pr-8 transition-all duration-200",
                 isFocused && "ring-2 ring-primary/20",
@@ -277,14 +280,14 @@ export function LocationAutocomplete({
                   className="flex items-center gap-3 py-4 px-3"
                 >
                   <Loader2 className="h-4 w-4 animate-spin text-primary" />
-                  <span className="text-sm text-muted-foreground">Searching cities...</span>
+                  <span className="text-sm text-muted-foreground">{t("searching_cities", "Searching cities...")}</span>
                 </motion.div>
               )}
             </AnimatePresence>
 
             {/* Recent Searches */}
             {showRecentSearches && !loading && (
-              <CommandGroup heading="Recent Searches">
+              <CommandGroup heading={t("location.recentSearches", "Recent Searches")}>
                 {recentSearches.map((location, idx) => (
                   <CommandItem
                     key={location}
@@ -319,7 +322,7 @@ export function LocationAutocomplete({
                 >
                   <MapPin className="h-8 w-8 text-muted-foreground/50" />
                   <p className="text-sm text-muted-foreground">
-                    No cities found. You can still type manually.
+                    {t("location.noCitiesFound", "No cities found. You can still type manually.")}
                   </p>
                 </motion.div>
               </CommandEmpty>
@@ -327,7 +330,7 @@ export function LocationAutocomplete({
 
             {/* Suggestions */}
             {showSuggestions && !loading && (
-              <CommandGroup heading="Suggestions">
+              <CommandGroup heading={t("location.suggestions", "Suggestions")}>
                 {suggestions.map((suggestion, index) => {
                   const location = formatLocation(suggestion);
                   return (
@@ -368,15 +371,15 @@ export function LocationAutocomplete({
                   <span className="flex items-center gap-1">
                     <kbd className="px-1 py-0.5 bg-background rounded border text-[9px]">↑</kbd>
                     <kbd className="px-1 py-0.5 bg-background rounded border text-[9px]">↓</kbd>
-                    navigate
+                    {t("location.navigate", "navigate")}
                   </span>
                   <span className="flex items-center gap-1">
                     <kbd className="px-1.5 py-0.5 bg-background rounded border text-[9px]">↵</kbd>
-                    select
+                    {t("location.select", "select")}
                   </span>
                   <span className="flex items-center gap-1">
                     <kbd className="px-1 py-0.5 bg-background rounded border text-[9px]">esc</kbd>
-                    close
+                    {t("location.close", "close")}
                   </span>
                 </div>
               </div>

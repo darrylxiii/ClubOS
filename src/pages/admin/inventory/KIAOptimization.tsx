@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calculator, TrendingUp, AlertCircle, CheckCircle } from "lucide-react";
 import { useInventoryStats, calculateKIA, KIA_THRESHOLDS_2024 } from "@/hooks/useInventoryStats";
@@ -8,6 +9,7 @@ import { KIACalculator } from "@/components/admin/inventory/KIACalculator";
 const formatCurrency = (v: number) => new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR' }).format(v);
 
 const KIAOptimization = () => {
+  const { t } = useTranslation('admin');
   const { stats, loading } = useInventoryStats();
   const kiaTotal = stats?.kiaEligibleTotal || 0;
   const kiaDeduction = calculateKIA(kiaTotal);

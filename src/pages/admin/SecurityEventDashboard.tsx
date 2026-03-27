@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
@@ -34,6 +35,7 @@ const SEVERITY_ICONS = {
 };
 
 export default function SecurityEventDashboard() {
+  const { t } = useTranslation('common');
   const [loading, setLoading] = useState(true);
   const [events, setEvents] = useState<SecurityEvent[]>([]);
   const [stats, setStats] = useState({
@@ -84,31 +86,31 @@ export default function SecurityEventDashboard() {
     <div className="space-y-6">
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-        <Card><CardContent className="pt-6"><p className="text-sm text-muted-foreground">Total Events</p><p className="text-2xl font-bold">{stats.total}</p></CardContent></Card>
-        <Card className="border-red-500/50"><CardContent className="pt-6"><p className="text-sm text-red-500">Critical</p><p className="text-2xl font-bold text-red-500">{stats.critical}</p></CardContent></Card>
-        <Card className="border-orange-500/50"><CardContent className="pt-6"><p className="text-sm text-orange-500">High</p><p className="text-2xl font-bold text-orange-500">{stats.high}</p></CardContent></Card>
-        <Card className="border-yellow-500/50"><CardContent className="pt-6"><p className="text-sm text-yellow-500">Medium</p><p className="text-2xl font-bold text-yellow-500">{stats.medium}</p></CardContent></Card>
-        <Card><CardContent className="pt-6"><p className="text-sm text-muted-foreground">Unresolved</p><p className="text-2xl font-bold">{stats.unresolved}</p></CardContent></Card>
+        <Card><CardContent className="pt-6"><p className="text-sm text-muted-foreground">{t("total_events", "Total Events")}</p><p className="text-2xl font-bold">{stats.total}</p></CardContent></Card>
+        <Card className="border-red-500/50"><CardContent className="pt-6"><p className="text-sm text-red-500">{t("critical", "Critical")}</p><p className="text-2xl font-bold text-red-500">{stats.critical}</p></CardContent></Card>
+        <Card className="border-orange-500/50"><CardContent className="pt-6"><p className="text-sm text-orange-500">{t("high", "High")}</p><p className="text-2xl font-bold text-orange-500">{stats.high}</p></CardContent></Card>
+        <Card className="border-yellow-500/50"><CardContent className="pt-6"><p className="text-sm text-yellow-500">{t("medium", "Medium")}</p><p className="text-2xl font-bold text-yellow-500">{stats.medium}</p></CardContent></Card>
+        <Card><CardContent className="pt-6"><p className="text-sm text-muted-foreground">{t("unresolved", "Unresolved")}</p><p className="text-2xl font-bold">{stats.unresolved}</p></CardContent></Card>
       </div>
 
       <div className="grid md:grid-cols-2 gap-6">
         <Card>
-          <CardHeader><CardTitle>Severity Distribution</CardTitle></CardHeader>
+          <CardHeader><CardTitle>{t("severity_distribution", "Severity Distribution")}</CardTitle></CardHeader>
           <CardContent>
             {severityData.length > 0 ? (
               <DynamicChart type="pie" data={severityData} height={250} config={{ pie: { dataKey: 'value', nameKey: 'name', outerRadius: 80, colors: [SEVERITY_COLORS.critical, SEVERITY_COLORS.high, SEVERITY_COLORS.medium, SEVERITY_COLORS.low] }, showTooltip: true }} />
             ) : (
               <div className="h-[250px] flex flex-col items-center justify-center text-center px-4">
                 <Shield className="h-12 w-12 text-muted-foreground/30 mb-3" />
-                <p className="text-muted-foreground font-medium">All Clear</p>
-                <p className="text-sm text-muted-foreground/70 mt-1">No security incidents detected.</p>
+                <p className="text-muted-foreground font-medium">{t("all_clear", "All Clear")}</p>
+                <p className="text-sm text-muted-foreground/70 mt-1">{t("no_security_incidents_detected", "No security incidents detected.")}</p>
               </div>
             )}
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader><CardTitle>Recent Events</CardTitle><CardDescription>Latest security incidents</CardDescription></CardHeader>
+          <CardHeader><CardTitle>{t("recent_events", "Recent Events")}</CardTitle><CardDescription>{t("latest_security_incidents", "Latest security incidents")}</CardDescription></CardHeader>
           <CardContent>
             <ScrollArea className="h-[250px]">
               {events.length > 0 ? (
@@ -130,7 +132,7 @@ export default function SecurityEventDashboard() {
               ) : (
                 <div className="h-full flex flex-col items-center justify-center text-center">
                   <CheckCircle className="h-10 w-10 text-green-500/50 mb-3" />
-                  <p className="text-muted-foreground font-medium">No Incidents</p>
+                  <p className="text-muted-foreground font-medium">{t("no_incidents", "No Incidents")}</p>
                 </div>
               )}
             </ScrollArea>

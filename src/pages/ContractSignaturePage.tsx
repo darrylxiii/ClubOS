@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,6 +16,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 
 export default function ContractSignaturePage() {
+  const { t } = useTranslation('contracts');
   const { contractId } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -143,9 +145,7 @@ export default function ContractSignaturePage() {
           <div className="max-w-3xl mx-auto">
             <Card className="p-8 text-center border border-border/50">
               <CheckCircle className="h-16 w-16 mx-auto text-green-500 mb-4" />
-              <h2 className="text-2xl font-bold text-foreground mb-2">
-                Contract Already Signed
-              </h2>
+              <h2 className="text-2xl font-bold text-foreground mb-2">{t('contractSignaturePage.title')}</h2>
               <p className="text-muted-foreground mb-6">
                 You have already signed this contract on{' '}
                 {userRole === 'freelancer' 
@@ -171,21 +171,15 @@ export default function ContractSignaturePage() {
 
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">
-            Sign Contract
-          </h1>
-          <p className="text-muted-foreground">
-            Review the contract terms and add your signature to proceed
-          </p>
+          <h1 className="text-3xl font-bold text-foreground mb-2">{t('contractSignaturePage.title')}</h1>
+          <p className="text-muted-foreground">{t('contractSignaturePage.desc')}</p>
         </div>
 
         {/* Contract summary */}
         <Card className="p-6 mb-6 border border-border/50">
           <div className="flex items-start justify-between mb-6">
             <div>
-              <h2 className="text-xl font-semibold text-foreground mb-2">
-                Contract Summary
-              </h2>
+              <h2 className="text-xl font-semibold text-foreground mb-2">{t('contractSignaturePage.title')}</h2>
               <div className="text-sm text-muted-foreground space-y-1">
                 <div>Contract ID: {contract.id.slice(0, 8)}</div>
                 <div>Type: {contract.contract_type}</div>
@@ -198,7 +192,7 @@ export default function ContractSignaturePage() {
               </div>
             </div>
             <div className="text-right">
-              <div className="text-sm text-muted-foreground mb-1">Total Value</div>
+              <div className="text-sm text-muted-foreground mb-1">{t('contractSignaturePage.text2')}</div>
               <div className="text-2xl font-bold text-foreground">
                 €{contract.total_budget?.toLocaleString()}
               </div>
@@ -215,14 +209,12 @@ export default function ContractSignaturePage() {
 
         {/* Key terms */}
         <Card className="p-6 mb-6 border border-border/50">
-          <h3 className="text-lg font-semibold text-foreground mb-4">
-            Key Terms
-          </h3>
+          <h3 className="text-lg font-semibold text-foreground mb-4">{t('contractSignaturePage.title')}</h3>
           <div className="space-y-3 text-sm">
             <div className="flex items-start gap-2">
               <FileText className="h-4 w-4 text-primary mt-0.5" />
               <div>
-                <div className="font-medium text-foreground">Payment Schedule</div>
+                <div className="font-medium text-foreground">{t('contractSignaturePage.text3')}</div>
                 <div className="text-muted-foreground">
                   {contract.payment_schedule || 'Milestone-based'}
                 </div>
@@ -231,7 +223,7 @@ export default function ContractSignaturePage() {
             <div className="flex items-start gap-2">
               <FileText className="h-4 w-4 text-primary mt-0.5" />
               <div>
-                <div className="font-medium text-foreground">Platform Fee</div>
+                <div className="font-medium text-foreground">{t('contractSignaturePage.text4')}</div>
                 <div className="text-muted-foreground">
                   {contract.platform_fee_percentage}% (€{((contract.total_budget || 0) * (contract.platform_fee_percentage || 12) / 100).toLocaleString()})
                 </div>
@@ -241,7 +233,7 @@ export default function ContractSignaturePage() {
               <div className="flex items-start gap-2">
                 <FileText className="h-4 w-4 text-primary mt-0.5" />
                 <div>
-                  <div className="font-medium text-foreground">Escrow Protection</div>
+                  <div className="font-medium text-foreground">{t('contractSignaturePage.text5')}</div>
                   <div className="text-muted-foreground">
                     Funds held securely until milestone approval
                   </div>
@@ -295,9 +287,9 @@ export default function ContractSignaturePage() {
 
           <p className="text-xs text-muted-foreground text-center mt-4">
             By signing, you agree to the{' '}
-            <a href="/terms" className="text-primary hover:underline">Terms of Service</a>
+            <a href="/terms" className="text-primary hover:underline">{t('contractSignaturePage.text6')}</a>
             {' '}and{' '}
-            <a href="/privacy" className="text-primary hover:underline">Privacy Policy</a>
+            <a href="/privacy" className="text-primary hover:underline">{t('contractSignaturePage.text7')}</a>
           </p>
         </Card>
         </div>

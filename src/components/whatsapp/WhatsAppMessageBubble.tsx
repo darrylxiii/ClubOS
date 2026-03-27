@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { cn } from "@/lib/utils";
 import { Check, CheckCheck, Clock, AlertCircle, Image, FileText, Mic } from "lucide-react";
 import { format } from "date-fns";
@@ -20,6 +21,7 @@ interface WhatsAppMessageBubbleProps {
 }
 
 export function WhatsAppMessageBubble({ message, showAIBadge = true }: WhatsAppMessageBubbleProps) {
+  const { t } = useTranslation('common');
   const isOutgoing = message.direction === 'outbound';
   
   const getStatusIcon = () => {
@@ -72,7 +74,7 @@ export function WhatsAppMessageBubble({ message, showAIBadge = true }: WhatsAppM
         <div className="mb-2">
           <img 
             src={message.media_url} 
-            alt="Shared image" 
+            alt={t("shared_image", "Shared image")} 
             className="max-w-[280px] rounded-lg"
           />
         </div>
@@ -84,8 +86,8 @@ export function WhatsAppMessageBubble({ message, showAIBadge = true }: WhatsAppM
         <div className="flex items-center gap-2 p-2 bg-background/50 rounded-lg mb-2">
           <FileText className="w-8 h-8 text-primary" />
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium truncate">Document</p>
-            <p className="text-xs text-muted-foreground">Click to download</p>
+            <p className="text-sm font-medium truncate">{t("document", "Document")}</p>
+            <p className="text-xs text-muted-foreground">{t("click_to_download", "Click to download")}</p>
           </div>
         </div>
       );

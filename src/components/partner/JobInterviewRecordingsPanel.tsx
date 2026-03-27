@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 /**
  * Job Interview Recordings Panel
  * 
@@ -32,6 +33,7 @@ interface InterviewRecording {
 }
 
 export function JobInterviewRecordingsPanel({ jobId }: JobInterviewRecordingsPanelProps) {
+  const { t } = useTranslation('common');
   const [recordings, setRecordings] = useState<InterviewRecording[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -59,14 +61,14 @@ export function JobInterviewRecordingsPanel({ jobId }: JobInterviewRecordingsPan
   };
 
   const getScoreBadge = (score: string) => {
-    if (!score || score === 'pending') return <Badge variant="outline">Pending</Badge>;
+    if (!score || score === 'pending') return <Badge variant="outline">{t("pending", "Pending")}</Badge>;
     const numScore = parseFloat(score);
     if (isNaN(numScore)) {
       // String-based score
       if (score.toLowerCase().includes('strong') || score.toLowerCase().includes('excellent'))
-        return <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30">Strong</Badge>;
+        return <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30">{t("strong", "Strong")}</Badge>;
       if (score.toLowerCase().includes('good'))
-        return <Badge className="bg-green-500/20 text-green-400 border-green-500/30">Good</Badge>;
+        return <Badge className="bg-green-500/20 text-green-400 border-green-500/30">{t("good", "Good")}</Badge>;
       return <Badge variant="outline">{score}</Badge>;
     }
     if (numScore >= 0.8) return <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30">{Math.round(numScore * 100)}%</Badge>;
@@ -77,14 +79,14 @@ export function JobInterviewRecordingsPanel({ jobId }: JobInterviewRecordingsPan
   const getRecommendationBadge = (rec: string) => {
     switch (rec) {
       case 'strong_yes':
-        return <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30">Strong Hire</Badge>;
+        return <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30">{t("strong_hire", "Strong Hire")}</Badge>;
       case 'yes':
-        return <Badge className="bg-green-500/20 text-green-400 border-green-500/30">Proceed</Badge>;
+        return <Badge className="bg-green-500/20 text-green-400 border-green-500/30">{t("proceed", "Proceed")}</Badge>;
       case 'maybe':
-        return <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30">Consider</Badge>;
+        return <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30">{t("consider", "Consider")}</Badge>;
       case 'no':
       case 'strong_no':
-        return <Badge className="bg-red-500/20 text-red-400 border-red-500/30">Pass</Badge>;
+        return <Badge className="bg-red-500/20 text-red-400 border-red-500/30">{t("pass", "Pass")}</Badge>;
       default:
         return rec && rec !== 'pending' ? <Badge variant="outline">{rec}</Badge> : null;
     }
@@ -107,8 +109,8 @@ export function JobInterviewRecordingsPanel({ jobId }: JobInterviewRecordingsPan
       <Card className="border-2 border-dashed border-border/40">
         <CardContent className="py-8 text-center text-muted-foreground">
           <Video className="h-8 w-8 mx-auto mb-2 opacity-50" />
-          <p className="text-sm">No interview recordings yet</p>
-          <p className="text-xs mt-1">Recordings will appear here after interviews are analyzed</p>
+          <p className="text-sm">{t("no_interview_recordings_yet", "No interview recordings yet")}</p>
+          <p className="text-xs mt-1">{t("recordings_will_appear_here", "Recordings will appear here after interviews are analyzed")}</p>
         </CardContent>
       </Card>
     );

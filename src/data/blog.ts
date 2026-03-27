@@ -83,7 +83,7 @@ export const authors: Author[] = [
     id: 'tqc-editorial',
     name: 'TQC Editorial',
     credentials: 'Talent Strategy Team',
-    avatar: '/lovable-uploads/tqc-logo.png', // Placeholder
+    avatar: '/quantum-logo.svg',
     bio: 'Insights from The Quantum Club\'s elite talent strategists and executive search partners.',
     specialties: ['Executive Search', 'Talent Intelligence', 'Market Analysis'],
     publications: 124,

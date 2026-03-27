@@ -2,9 +2,8 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
 import { Button, Card, Heading, Paragraph, Spacer, InfoRow, StatusBadge } from "../_shared/email-templates/components.ts";
-import { EMAIL_SENDERS, EMAIL_COLORS, getEmailAppUrl, getEmailHeaders, htmlToPlainText } from "../_shared/email-config.ts";
-
-const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+import { EMAIL_SENDERS, EMAIL_COLORS, getEmailAppUrl } from "../_shared/email-config.ts";
+import { sendEmail } from '../_shared/resend-client.ts';
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -71,28 +70,12 @@ const handler = async (req: Request): Promise<Response> => {
       showFooter: true,
     });
 
-    const emailResponse = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${RESEND_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        from: EMAIL_SENDERS.referrals,
-        to: [friendEmail],
-        subject: `${referrerName} thinks you would be a great fit for ${jobTitle} at ${companyName}`,
-        html,
-        text: htmlToPlainText(html),
-        headers: getEmailHeaders(),
-      }),
+    const result = await sendEmail({
+      from: EMAIL_SENDERS.referrals,
+      to: [friendEmail],
+      subject: `${referrerName} thinks you would be a great fit for ${jobTitle} at ${companyName}`,
+      html,
     });
-
-    if (!emailResponse.ok) {
-      const errorText = await emailResponse.text();
-      throw new Error(`Resend API error: ${errorText}`);
-    }
-
-    const result = await emailResponse.json();
 
     console.log("Referral email sent successfully:", result);
 

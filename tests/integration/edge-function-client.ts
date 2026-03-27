@@ -3,8 +3,8 @@
  * Provides utilities for testing Supabase Edge Functions
  */
 
-const SUPABASE_URL = process.env.VITE_SUPABASE_URL || 'https://dpjucecmoyfzrduhlctt.supabase.co';
-const SUPABASE_ANON_KEY = process.env.VITE_SUPABASE_PUBLISHABLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRwanVjZWNtb3lmenJkdWhsY3R0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk0Mjc2MTAsImV4cCI6MjA3NTAwMzYxMH0.hdX709NlaXPUE4ohWtd3LBuAOqPKCBhVep694LC6tRw';
+const SUPABASE_URL = process.env.VITE_SUPABASE_URL || 'https://chgrkvftjfibufoopmav.supabase.co';
+const SUPABASE_ANON_KEY = process.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNoZ3JrdmZ0amZpYnVmb29wbWF2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0OTQ3NDYsImV4cCI6MjA5MDA3MDc0Nn0.gzU9FP-wAAmmQAUClSK53x6kwr_j_N2AkmBPMJ011qc';
 
 export interface EdgeFunctionResponse<T = unknown> {
   data: T | null;

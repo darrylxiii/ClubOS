@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -31,6 +32,7 @@ export function DeliverableUploadModal({
   milestoneName,
   onUploadComplete,
 }: DeliverableUploadModalProps) {
+  const { t } = useTranslation('common');
   const [files, setFiles] = useState<File[]>([]);
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [description, setDescription] = useState("");
@@ -63,7 +65,7 @@ export function DeliverableUploadModal({
 
   const handleSubmit = async () => {
     if (files.length === 0) {
-      toast.error("Please select at least one file to upload");
+      toast.error(t("please_select_at_least", "Please select at least one file to upload"));
       return;
     }
 
@@ -147,7 +149,7 @@ export function DeliverableUploadModal({
       }
     } catch (err) {
       console.error("Upload error:", err);
-      toast.error("Failed to upload deliverables");
+      toast.error(t("failed_to_upload_deliverables", "Failed to upload deliverables"));
     } finally {
       setIsUploading(false);
     }
@@ -157,7 +159,7 @@ export function DeliverableUploadModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Upload Deliverables</DialogTitle>
+          <DialogTitle>{t("upload_deliverables", "Upload Deliverables")}</DialogTitle>
           <DialogDescription>
             Submit files for milestone: <strong>{milestoneName}</strong>
           </DialogDescription>
@@ -219,12 +221,12 @@ export function DeliverableUploadModal({
 
           {/* Description */}
           <div className="space-y-2">
-            <Label htmlFor="description">Notes (optional)</Label>
+            <Label htmlFor="description">{t("notes_optional", "Notes (optional)")}</Label>
             <Textarea
               id="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Add any notes about these deliverables..."
+              placeholder={t("add_any_notes_about", "Add any notes about these deliverables...")}
               rows={3}
               disabled={isUploading}
             />
@@ -234,7 +236,7 @@ export function DeliverableUploadModal({
           {isUploading && (
             <div className="space-y-2">
               <div className="flex items-center justify-between text-sm">
-                <span>Uploading...</span>
+                <span>{t("uploading", "Uploading...")}</span>
                 <span>{Math.round(uploadProgress)}%</span>
               </div>
               <Progress value={uploadProgress} />

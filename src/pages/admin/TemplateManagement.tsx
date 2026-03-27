@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { RoleGate } from '@/components/RoleGate';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -27,6 +28,7 @@ import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 
 export default function TemplateManagement() {
+  const { t } = useTranslation('admin');
   const { templates, isLoading, deleteTemplate } = useTemplates();
   const [search, setSearch] = useState('');
   const [visibilityFilter, setVisibilityFilter] = useState<string>('all');
@@ -86,10 +88,8 @@ export default function TemplateManagement() {
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
             <div>
-              <h1 className="text-2xl font-bold">Template Management</h1>
-              <p className="text-muted-foreground">
-                Create and manage templates for your team
-              </p>
+              <h1 className="text-2xl font-bold">{t('templateManagement.text2')}</h1>
+              <p className="text-muted-foreground">{t('templateManagement.desc')}</p>
             </div>
             <div className="flex gap-2">
               <Button variant="outline" onClick={() => setShowImporter(true)}>
@@ -108,35 +108,35 @@ export default function TemplateManagement() {
             <Card className="p-4">
               <div className="flex items-center gap-2 text-muted-foreground mb-1">
                 <Layout className="h-4 w-4" />
-                <span className="text-sm">Total</span>
+                <span className="text-sm">{t('templateManagement.text3')}</span>
               </div>
               <p className="text-2xl font-bold">{stats.total}</p>
             </Card>
             <Card className="p-4">
               <div className="flex items-center gap-2 text-muted-foreground mb-1">
                 <Users className="h-4 w-4" />
-                <span className="text-sm">System</span>
+                <span className="text-sm">{t('templateManagement.text4')}</span>
               </div>
               <p className="text-2xl font-bold">{stats.system}</p>
             </Card>
             <Card className="p-4">
               <div className="flex items-center gap-2 text-muted-foreground mb-1">
                 <Building className="h-4 w-4" />
-                <span className="text-sm">Company</span>
+                <span className="text-sm">{t('templateManagement.text5')}</span>
               </div>
               <p className="text-2xl font-bold">{stats.company}</p>
             </Card>
             <Card className="p-4">
               <div className="flex items-center gap-2 text-muted-foreground mb-1">
                 <User className="h-4 w-4" />
-                <span className="text-sm">Personal</span>
+                <span className="text-sm">{t('templateManagement.text6')}</span>
               </div>
               <p className="text-2xl font-bold">{stats.personal}</p>
             </Card>
             <Card className="p-4">
               <div className="flex items-center gap-2 text-muted-foreground mb-1">
                 <TrendingUp className="h-4 w-4" />
-                <span className="text-sm">Total Uses</span>
+                <span className="text-sm">{t('templateManagement.text7')}</span>
               </div>
               <p className="text-2xl font-bold">{stats.totalUsage}</p>
             </Card>
@@ -149,16 +149,16 @@ export default function TemplateManagement() {
               <Input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search templates..."
+                placeholder={t('templateManagement.text8')}
                 className="pl-10"
               />
             </div>
             <Tabs value={visibilityFilter} onValueChange={setVisibilityFilter}>
               <TabsList>
-                <TabsTrigger value="all">All</TabsTrigger>
-                <TabsTrigger value="system">System</TabsTrigger>
-                <TabsTrigger value="company">Company</TabsTrigger>
-                <TabsTrigger value="personal">Personal</TabsTrigger>
+                <TabsTrigger value="all">{t('templateManagement.text9')}</TabsTrigger>
+                <TabsTrigger value="system">{t('templateManagement.text10')}</TabsTrigger>
+                <TabsTrigger value="company">{t('templateManagement.text11')}</TabsTrigger>
+                <TabsTrigger value="personal">{t('templateManagement.text12')}</TabsTrigger>
               </TabsList>
             </Tabs>
           </div>
@@ -173,7 +173,7 @@ export default function TemplateManagement() {
           ) : filteredTemplates.length === 0 ? (
             <Card className="p-12 text-center">
               <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No templates found</h3>
+              <h3 className="text-lg font-semibold mb-2">{t('templateManagement.text13')}</h3>
               <p className="text-muted-foreground mb-4">
                 {search ? 'Try a different search term' : 'Create your first template to get started'}
               </p>

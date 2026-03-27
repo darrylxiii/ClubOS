@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Badge } from "@/components/ui/badge";
 import { Database, Sparkles, Edit } from "lucide-react";
 

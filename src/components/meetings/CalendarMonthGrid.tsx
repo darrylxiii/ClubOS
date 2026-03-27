@@ -1,11 +1,12 @@
 import { UnifiedCalendarEvent } from "@/types/calendar";
 import { Card } from "@/components/ui/card";
-import { 
-  startOfMonth, endOfMonth, startOfWeek, endOfWeek, 
-  eachDayOfInterval, format, isSameMonth, isSameDay, isToday 
+import {
+  startOfMonth, endOfMonth, startOfWeek, endOfWeek,
+  eachDayOfInterval, format, isSameMonth, isSameDay, isToday
 } from "date-fns";
 import { getEventColor } from "@/utils/calendarLayout";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 
 interface CalendarMonthGridProps {
   events: UnifiedCalendarEvent[];
@@ -20,6 +21,7 @@ export function CalendarMonthGrid({
   onDateClick,
   onEventClick 
 }: CalendarMonthGridProps) {
+  const { t } = useTranslation("meetings");
   const monthStart = startOfMonth(selectedDate);
   const monthEnd = endOfMonth(selectedDate);
   const calendarStart = startOfWeek(monthStart, { weekStartsOn: 1 });
@@ -39,9 +41,9 @@ export function CalendarMonthGrid({
   return (
     <Card className="overflow-hidden">
       <div className="grid grid-cols-7 border-b border-border/50">
-        {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
+        {['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'].map(day => (
           <div key={day} className="p-3 text-center text-sm font-semibold border-r border-border/30 last:border-r-0">
-            {day}
+            {t(`calendar.days.${day}`)}
           </div>
         ))}
       </div>
@@ -74,7 +76,7 @@ export function CalendarMonthGrid({
                       {format(day, 'd')}
                     </span>
                     {isTodayDate && (
-                      <span className="text-[10px] font-semibold text-primary">TODAY</span>
+                      <span className="text-[10px] font-semibold text-primary">{t('calendar.today')}</span>
                     )}
                   </div>
 
@@ -97,7 +99,7 @@ export function CalendarMonthGrid({
                     ))}
                     {dayEvents.length > 3 && (
                       <div className="text-[10px] text-muted-foreground font-medium px-1.5">
-                        +{dayEvents.length - 3} more
+                        {t('calendar.moreEvents', { count: dayEvents.length - 3 })}
                       </div>
                     )}
                   </div>

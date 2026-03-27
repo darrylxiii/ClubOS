@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -22,6 +23,7 @@ interface Story {
 }
 
 export function Stories() {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [stories, setStories] = useState<Story[]>([]);
   const [viewingStory, setViewingStory] = useState<Story | null>(null);
@@ -157,7 +159,7 @@ export function Stories() {
             <div className="bg-primary rounded-full p-2">
               <Plus className="w-6 h-6 text-primary-foreground" />
             </div>
-            <span className="text-xs font-medium text-center">Create Story</span>
+            <span className="text-xs font-medium text-center">{t("create_story", "Create Story")}</span>
           </div>
         </Card>
 
@@ -182,7 +184,7 @@ export function Stories() {
               {story.media_type === 'image' ? (
                 <img 
                   src={story.media_url} 
-                  alt="Story"
+                  alt={t("story", "Story")}
                   className="w-full h-full object-cover pointer-events-none"
                   draggable="false"
                 />

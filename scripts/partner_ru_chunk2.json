@@ -1,0 +1,214 @@
+{
+  "adminBoardTools": {
+    "toast": {
+      "globalAnalytics": "Глобальная аналитика",
+      "globalAnalyticsDesc": "Межкорпоративные данные и метрики всей платформы",
+      "talentPoolAccessGranted": "Доступ к пулу талантов предоставлен",
+      "talentPoolAccessGrantedDesc": "Полный доступ к 12 847 профилям кандидатов",
+      "companyManagement": "Управление компаниями",
+      "companyManagementDesc": "Управляйте всеми партнёрскими компаниями и их уровнями доступа",
+      "bulkOperations": "Массовые операции",
+      "bulkOperationsDesc": "Выполняйте массовые действия с несколькими вакансиями и кандидатами",
+      "platformSettings": "Настройки платформы",
+      "platformSettingsDesc": "Настройте глобальные правила платформы, модели ИИ и рабочие процессы",
+      "aiConfiguration": "Конфигурация ИИ",
+      "aiConfigurationDesc": "Настройте алгоритмы подбора, весовые коэффициенты и модели ML",
+      "systemHealthOptimal": "Состояние системы: оптимальное",
+      "systemHealthOptimalDesc": "Все сервисы работают нормально. 99,97% аптайм",
+      "globalDataExport": "Глобальный экспорт данных",
+      "globalDataExportDesc": "Экспорт анонимизированной аналитики платформы...",
+      "accessControl": "Управление доступом",
+      "accessControlDesc": "Управляйте ролями, разрешениями и политиками безопасности"
+    },
+    "badge": {
+      "quantumClubAdmin": "АДМИНИСТРАТОР QUANTUM CLUB"
+    },
+    "platformwideManagementAnalytics": "Управление и аналитика всей платформы",
+    "companyManagement": "Управление компаниями",
+    "viewManageAllPartners": "Просмотр и управление всеми партнёрами",
+    "bulkOperations": "Массовые операции",
+    "crossjobActionsAtScale": "Межвакансионные действия в масштабе",
+    "aiModelConfig": "Конфигурация модели ИИ",
+    "tuneMatchingAlgorithms": "Настройка алгоритмов подбора",
+    "systemHealth": "Состояние системы",
+    "platformStatusUptime": "Статус и аптайм платформы",
+    "accessControl": "Управление доступом",
+    "rolesPermissions": "Роли и разрешения",
+    "platformSettings": "Настройки платформы",
+    "globalConfigurations": "Глобальные конфигурации",
+    "exportGlobalData": "Экспорт глобальных данных",
+    "platformwideAnalytics": "Аналитика всей платформы",
+    "refreshAllMetrics": "Обновить все метрики",
+    "recalculateEverything": "Пересчитать всё"
+  },
+  "adminJobTools": {
+    "sheetTitle": "Дамп email",
+    "toast": {
+      "metricsUpdatedSuccessfully": "Метрики успешно обновлены",
+      "aiMatchingEngine": "Движок ИИ-подбора",
+      "aiMatchingEngineDesc": "Анализ глобального пула талантов для идеальных совпадений...",
+      "found23HighpotentialCandidates": "Найдено 23 перспективных кандидата",
+      "found23HighpotentialCandidatesDesc": "Применена продвинутая ИИ-оценка. Проверьте в воронке.",
+      "bulkImport": "Массовый импорт",
+      "bulkImportDesc": "Загрузите CSV или подключите ATS для импорта кандидатов",
+      "pipelineHealth94": "Состояние воронки: 94%",
+      "pipelineHealth94Desc": "Отличный поток. Среднее время до найма: 12 дней",
+      "exportingPipelineData": "Экспорт данных воронки",
+      "exportingPipelineDataDesc": "Полный экспорт аналитики с соблюдением GDPR",
+      "recalculatingMetrics": "Пересчёт метрик...",
+      "recalculatingMetricsDesc": "Используются последние модели ИИ и алгоритмы оценки"
+    },
+    "badge": {
+      "adminJobTools": "ИНСТРУМЕНТЫ АДМИНИСТРАТОРА"
+    },
+    "joblevelOperations": "Операции на уровне вакансии"
+  },
+  "advancedJobFilters": {
+    "title": "Расширенные фильтры",
+    "status": "Статус",
+    "company": "Компания",
+    "createdDateRange": "Диапазон дат создания",
+    "fromDate": "С даты",
+    "toDate": "По дату"
+  },
+  "applicantPipeline": {
+    "noActiveJobs": "Нет активных вакансий",
+    "applicantPipeline": "Воронка кандидатов",
+    "noApplicationsYet": "Заявок пока нет",
+    "toast": {
+      "failedToLoadApplicants": "Не удалось загрузить кандидатов"
+    },
+    "publishAJobToStartReceivingApplications": "Опубликуйте вакансию, чтобы начать получать заявки",
+    "applicationsWillAppearHereOnceCandidates": "Заявки появятся здесь, когда кандидаты начнут откликаться",
+    "noCandidatesInThisStage": "На этом этапе нет кандидатов"
+  },
+  "applicationsAnalytics": {
+    "title": "Распределение по воронке",
+    "avgTimeToHire": "Среднее время до найма",
+    "conversionRate": "Конверсия",
+    "activePipelines": "Активные воронки",
+    "stalledPipelines": "Застопоренные воронки",
+    "excellent": "Отлично",
+    "needsImprovement": "Требует улучшения",
+    "inProgress": "В процессе",
+    "needAttention": "Требуют внимания"
+  },
+  "applicationsFilters": {
+    "placeholder": {
+      "allStatuses": "Все статусы",
+      "allJobs": "Все вакансии",
+      "allCompanies": "Все компании",
+      "allSources": "Все источники",
+      "allUrgency": "Любая срочность"
+    },
+    "option": {
+      "allStatuses": "Все статусы",
+      "active": "Активные",
+      "hired": "Наняты",
+      "rejected": "Отклонены",
+      "withdrawn": "Отозваны",
+      "allJobs": "Все вакансии",
+      "allCompanies": "Все компании",
+      "allSources": "Все источники",
+      "linkedin": "LinkedIn",
+      "referral": "Рекомендация",
+      "direct": "Прямой",
+      "agency": "Агентство",
+      "all": "Все",
+      "recentActivity": "Недавняя активность"
+    }
+  },
+  "applicationsTable": {
+    "badge": {
+      "noActivity": "Нет активности",
+      "urgent": "Срочно",
+      "pendingSignup": "Ожидает регистрации"
+    },
+    "noApplicationsFoundMatchingYourFilters": "Не найдено заявок, соответствующих Вашим фильтрам"
+  },
+  "benchmarkComparison": {
+    "badge": {
+      "updatedToday": "Обновлено сегодня"
+    },
+    "completeMoreHiringCyclesToUnlockBenchmar": "Завершите больше циклов найма для разблокировки сравнительных бенчмарков"
+  },
+  "calendarInterviewLinker": {
+    "badge": {
+      "tqc": "TQC"
+    },
+    "automaticallyDetectedInterviewsFromYourC": "Автоматически обнаруженные собеседования из Вашего календаря",
+    "selectACalendarEventToLinkAsAnInterview": "Выберите событие календаря для привязки как собеседование",
+    "interviewsThatHaveBeenConfirmedAndLinked": "Собеседования, которые были подтверждены и привязаны к этой вакансии",
+    "dialogDescription": "Просматривайте события календаря или автоматически обнаруженные собеседования"
+  },
+  "candidateActionDialog": {
+    "toast": {
+      "noNextStageAvailable": "Следующий этап недоступен",
+      "pleaseProvideARejectionReason": "Пожалуйста, укажите причину отклонения",
+      "failedToProcessAction": "Не удалось обработать действие"
+    },
+    "label": {
+      "rejectionReason": "Причина отклонения *"
+    },
+    "placeholder": {
+      "selectAReason": "Выберите причину"
+    },
+    "clubCheckAdvanceCandidate": "Club Check - Продвинуть кандидата",
+    "thisCandidateHasPassedClubVettingStandar": "Этот кандидат прошёл стандарты проверки Club",
+    "option": {
+      "notAFit": "Не подходит",
+      "salaryExpectations": "Зарплатные ожидания",
+      "location": "Местоположение",
+      "seniorityMismatch": "Несоответствие уровня",
+      "skillsGap": "Недостаток навыков",
+      "culturalFit": "Культурное соответствие",
+      "other": "Другое"
+    },
+    "desc": {
+      "clubCheckCompletedSuccessfully": "Club Check успешно завершён",
+      "feedbackRecordedAndCandidateNotified": "Обратная связь записана, кандидат уведомлён"
+    }
+  },
+  "candidateAnalytics": {
+    "toast": {
+      "failedToLoadAnalytics": "Не удалось загрузить аналитику"
+    },
+    "badge": {
+      "highInterest": "Высокий интерес",
+      "excellentFit": "Отличное соответствие",
+      "highlyEngaged": "Высокая вовлечённость"
+    },
+    "profileViews": "Просмотры профиля",
+    "uniqueViewers": "Уникальные просмотры",
+    "engagementScore": "Оценка вовлечённости",
+    "fitScore": "Оценка соответствия",
+    "noProfileViewsYet": "Просмотров профиля пока нет",
+    "thisCandidateHasReceivedSignificantAtten": "Этот кандидат получил значительное внимание от команды",
+    "aiAnalysisShowsStrongAlignmentWithRoleRe": "ИИ-анализ показывает сильное соответствие требованиям роли",
+    "candidateShowsStrongEngagementWithTheApp": "Кандидат демонстрирует высокую вовлечённость в процесс подачи заявки",
+    "noInsightsAvailableYetProfileViewsAndInt": "Аналитика пока недоступна. Просмотры профиля и взаимодействия сгенерируют ИИ-аналитику.",
+    "description": "Участники команды, недавно просматривавшие этот профиль"
+  },
+  "candidateDecisionDashboard": {
+    "dialogTitle": "Перевести на этап предложения",
+    "toast": {
+      "noApplicationSelected": "Заявка не выбрана",
+      "candidateMovedToOfferStage": "Кандидат переведён на этап предложения",
+      "failedToMoveCandidateToOfferStage": "Не удалось перевести кандидата на этап предложения",
+      "failedToLogVerdict": "Не удалось записать решение",
+      "openingInterviewScheduler": "Открытие планировщика собеседований..."
+    },
+    "placeholder": {
+      "addNotesAboutYourDecision": "Добавьте заметки о Вашем решении..."
+    },
+    "overall": "Общая оценка",
+    "yearsExp": "Лет опыта",
+    "salaryRange": "Диапазон зарплаты",
+    "noticePeriod": "Срок уведомления",
+    "preferredLocation": "Предпочтительное местоположение",
+    "quickActions": "Быстрые действия",
+    "alert": {
+      "thisActionWillTriggerTheOfferWorkflowAndDesc": "Это действие запустит процесс предложения и уведомит заинтересованные стороны."
+    }
+  }
+}

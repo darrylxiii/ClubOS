@@ -5,6 +5,7 @@ import { CheckCircle2, Circle, Clock, TrendingUp } from "lucide-react";
 import { motion } from "framer-motion";
 import { candidateProfileTokens } from "@/config/candidate-profile-tokens";
 import { getDefaultPipelineStages } from "@/utils/pipelineUtils";
+import { useTranslation } from 'react-i18next';
 
 interface Props {
   application?: any;
@@ -13,6 +14,7 @@ interface Props {
 }
 
 export const PipelineSidebarCard = ({ application, onAdvance, onDecline }: Props) => {
+  const { t } = useTranslation('candidates');
   if (!application) return null;
 
   // Get stages from application or job's pipeline_stages or use defaults

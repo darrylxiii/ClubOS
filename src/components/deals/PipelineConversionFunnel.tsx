@@ -1,14 +1,16 @@
+import { useTranslation } from 'react-i18next';
 import { Card } from "@/components/ui/card";
 import { usePipelineVelocity } from "@/hooks/useDealPipeline";
 import { Loader2 } from "lucide-react";
 
 export function PipelineConversionFunnel() {
+  const { t } = useTranslation('common');
   const { data, isLoading, error } = usePipelineVelocity();
 
   if (isLoading) {
     return (
       <Card className="p-6 bg-card/50 backdrop-blur-sm border-border/50">
-        <h3 className="text-lg font-semibold mb-4 text-foreground">Pipeline Funnel</h3>
+        <h3 className="text-lg font-semibold mb-4 text-foreground">{t("pipeline_funnel", "Pipeline Funnel")}</h3>
         <div className="flex items-center justify-center py-12">
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
         </div>
@@ -19,8 +21,8 @@ export function PipelineConversionFunnel() {
   if (error || !data) {
     return (
       <Card className="p-6 bg-card/50 backdrop-blur-sm border-border/50">
-        <h3 className="text-lg font-semibold mb-4 text-foreground">Pipeline Funnel</h3>
-        <p className="text-sm text-muted-foreground">Unable to load funnel data.</p>
+        <h3 className="text-lg font-semibold mb-4 text-foreground">{t("pipeline_funnel", "Pipeline Funnel")}</h3>
+        <p className="text-sm text-muted-foreground">{t("unable_to_load_funnel", "Unable to load funnel data.")}</p>
       </Card>
     );
   }
@@ -32,8 +34,8 @@ export function PipelineConversionFunnel() {
   if (stages.length === 0) {
     return (
       <Card className="p-6 bg-card/50 backdrop-blur-sm border-border/50">
-        <h3 className="text-lg font-semibold mb-4 text-foreground">Pipeline Funnel</h3>
-        <p className="text-sm text-muted-foreground">Not enough data to display funnel.</p>
+        <h3 className="text-lg font-semibold mb-4 text-foreground">{t("pipeline_funnel", "Pipeline Funnel")}</h3>
+        <p className="text-sm text-muted-foreground">{t("not_enough_data_to", "Not enough data to display funnel.")}</p>
       </Card>
     );
   }
@@ -54,7 +56,7 @@ export function PipelineConversionFunnel() {
 
   return (
     <Card className="p-6 bg-card/50 backdrop-blur-sm border-border/50">
-      <h3 className="text-lg font-semibold mb-4 text-foreground">Pipeline Funnel</h3>
+      <h3 className="text-lg font-semibold mb-4 text-foreground">{t("pipeline_funnel", "Pipeline Funnel")}</h3>
       <div className="space-y-2">
         {stages.map((stage: any, index: number) => {
           const widthPct = Math.max((stage.job_count / maxCount) * 100, 8);

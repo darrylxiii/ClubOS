@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -11,6 +12,7 @@ interface BacklinksPanelProps {
 }
 
 export function BacklinksPanel({ pageId, open, onOpenChange }: BacklinksPanelProps) {
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
   const { backlinks, isLoading } = usePageBacklinks(pageId);
 
@@ -37,7 +39,7 @@ export function BacklinksPanel({ pageId, open, onOpenChange }: BacklinksPanelPro
           ) : backlinks.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-8 text-center">
               <Link2 className="h-10 w-10 text-muted-foreground mb-2 opacity-50" />
-              <p className="text-sm text-muted-foreground">No pages link to this page yet</p>
+              <p className="text-sm text-muted-foreground">{t("no_pages_link_to", "No pages link to this page yet")}</p>
               <p className="text-xs text-muted-foreground mt-1">
                 When other pages link here, they'll appear in this list
               </p>

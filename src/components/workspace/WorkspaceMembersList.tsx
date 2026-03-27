@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Crown, MoreHorizontal, Shield, UserMinus, UserCog } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -39,6 +40,7 @@ const ROLE_CONFIG = {
 } as const;
 
 export function WorkspaceMembersList({ workspaceId, className }: WorkspaceMembersListProps) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const { members, isOwner, isAdmin, updateMemberRole, removeMember, transferOwnership } = useWorkspaceMembers(workspaceId);
   const [removeDialogOpen, setRemoveDialogOpen] = useState(false);
@@ -95,7 +97,7 @@ export function WorkspaceMembersList({ workspaceId, className }: WorkspaceMember
                 <p className="text-sm font-medium truncate">
                   {member.profile?.full_name || 'Unknown'}
                   {isCurrentUser && (
-                    <span className="text-muted-foreground ml-1">(you)</span>
+                    <span className="text-muted-foreground ml-1">{t("you", "(you)")}</span>
                   )}
                 </p>
                 <p className="text-xs text-muted-foreground truncate">
@@ -113,12 +115,12 @@ export function WorkspaceMembersList({ workspaceId, className }: WorkspaceMember
               {canManageMember(member) && (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Member options">
+                    <Button variant="ghost" size="icon" className="h-8 w-8" aria-label={t("member_options", "Member options")}>
                       <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>Change Role</DropdownMenuLabel>
+                    <DropdownMenuLabel>{t("change_role", "Change Role")}</DropdownMenuLabel>
                     {isOwner && (
                       <DropdownMenuItem
                         onClick={() => updateMemberRole.mutate({ memberId: member.id, role: 'admin' })}
@@ -186,14 +188,14 @@ export function WorkspaceMembersList({ workspaceId, className }: WorkspaceMember
       <AlertDialog open={removeDialogOpen} onOpenChange={setRemoveDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Remove Member</AlertDialogTitle>
+            <AlertDialogTitle>{t("remove_member", "Remove Member")}</AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to remove {selectedMember?.profile?.full_name || 'this member'} from the workspace?
               They will lose access to all pages in this workspace.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t("cancel", "Cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleRemove}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
@@ -208,14 +210,14 @@ export function WorkspaceMembersList({ workspaceId, className }: WorkspaceMember
       <AlertDialog open={transferDialogOpen} onOpenChange={setTransferDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Transfer Ownership</AlertDialogTitle>
+            <AlertDialogTitle>{t("transfer_ownership", "Transfer Ownership")}</AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to transfer ownership to {selectedMember?.profile?.full_name}?
               You will become an admin and they will have full control of the workspace.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t("cancel", "Cancel")}</AlertDialogCancel>
             <AlertDialogAction onClick={handleTransfer}>
               Transfer Ownership
             </AlertDialogAction>

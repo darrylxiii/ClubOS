@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4';
+import { resilientFetch } from '../_shared/resilient-fetch.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -15,18 +16,28 @@ interface GoogleTokenResponse {
 }
 
 async function refreshGoogleToken(refreshToken: string, clientId: string, clientSecret: string): Promise<GoogleTokenResponse> {
-  const response = await fetch('https://oauth2.googleapis.com/token', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
+  const { response } = await resilientFetch(
+    'https://oauth2.googleapis.com/token',
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        client_id: clientId,
+        client_secret: clientSecret,
+        refresh_token: refreshToken,
+        grant_type: 'refresh_token',
+      }),
     },
-    body: new URLSearchParams({
-      client_id: clientId,
-      client_secret: clientSecret,
-      refresh_token: refreshToken,
-      grant_type: 'refresh_token',
-    }),
-  });
+    {
+      timeoutMs: 15_000,
+      maxRetries: 3,
+      retryNonIdempotent: true,
+      service: 'google-calendar',
+      operation: 'refresh-token',
+    },
+  );
 
   if (!response.ok) {
     const error = await response.text();
@@ -169,13 +180,19 @@ serve(async (req) => {
       console.log('[Google Calendar] Attendees:', googleEvent.attendees);
 
       // Add sendUpdates=all to send calendar invites to all attendees
-      const response = await fetch(
+      const { response } = await resilientFetch(
         'https://www.googleapis.com/calendar/v3/calendars/primary/events?sendUpdates=all',
         {
           method: 'POST',
           headers,
           body: JSON.stringify(googleEvent),
-        }
+        },
+        {
+          timeoutMs: 15_000,
+          maxRetries: 1,
+          service: 'google-calendar',
+          operation: 'create-event',
+        },
       );
 
       if (!response.ok) {
@@ -208,13 +225,20 @@ serve(async (req) => {
 
       console.log('[Google Calendar] Querying free/busy with access token length:', accessToken?.length);
 
-      const response = await fetch(
+      const { response } = await resilientFetch(
         'https://www.googleapis.com/calendar/v3/freeBusy',
         {
           method: 'POST',
           headers,
           body: JSON.stringify(freeBusyQuery),
-        }
+        },
+        {
+          timeoutMs: 15_000,
+          maxRetries: 3,
+          retryNonIdempotent: true,
+          service: 'google-calendar',
+          operation: 'find-free-slots',
+        },
       );
 
       if (!response.ok) {
@@ -297,15 +321,24 @@ serve(async (req) => {
       url.searchParams.append('singleEvents', 'true');
       url.searchParams.append('orderBy', 'startTime');
 
-      const response = await fetch(url.toString(), { headers });
+      const { response } = await resilientFetch(
+        url.toString(),
+        { headers },
+        {
+          timeoutMs: 15_000,
+          maxRetries: 3,
+          service: 'google-calendar',
+          operation: 'list-events',
+        },
+      );
 
       if (!response.ok) {
         const error = await response.text();
         console.error('Failed to list events:', error);
         return new Response(
-          JSON.stringify({ 
+          JSON.stringify({
             error: 'Failed to retrieve calendar events',
-            details: error 
+            details: error
           }),
           { status: response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
@@ -330,13 +363,20 @@ serve(async (req) => {
       }
 
       // Add sendUpdates=all to notify attendees of changes
-      const response = await fetch(
+      const { response } = await resilientFetch(
         `https://www.googleapis.com/calendar/v3/calendars/primary/events/${eventId}?sendUpdates=all`,
         {
           method: 'PUT',
           headers,
           body: JSON.stringify(event),
-        }
+        },
+        {
+          timeoutMs: 15_000,
+          maxRetries: 3,
+          retryNonIdempotent: true,
+          service: 'google-calendar',
+          operation: 'update-event',
+        },
       );
 
       if (!response.ok) {
@@ -368,12 +408,19 @@ serve(async (req) => {
       }
 
       // Add sendUpdates=all to notify attendees of cancellation
-      const response = await fetch(
+      const { response } = await resilientFetch(
         `https://www.googleapis.com/calendar/v3/calendars/primary/events/${eventId}?sendUpdates=all`,
         {
           method: 'DELETE',
           headers,
-        }
+        },
+        {
+          timeoutMs: 15_000,
+          maxRetries: 3,
+          retryNonIdempotent: true,
+          service: 'google-calendar',
+          operation: 'delete-event',
+        },
       );
 
       if (!response.ok && response.status !== 204) {

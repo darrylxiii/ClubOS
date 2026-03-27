@@ -1,34 +1,28 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
 import { Heading, Paragraph, Card, Button, InfoRow, StatusBadge, Spacer, AlertBox } from "../_shared/email-templates/components.ts";
-import { EMAIL_SENDERS, getEmailHeaders, htmlToPlainText, getEmailAppUrl, EMAIL_COLORS } from "../_shared/email-config.ts";
+import { EMAIL_SENDERS, getEmailAppUrl, EMAIL_COLORS } from "../_shared/email-config.ts";
+import { sendEmail as sendEmailViaResend } from '../_shared/resend-client.ts';
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 const RECIPIENT = "darryl@thequantumclub.nl";
 
 async function sendEmail(subject: string, html: string, from: string) {
-  const res = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${RESEND_API_KEY}`,
-    },
-    body: JSON.stringify({
+  try {
+    const result = await sendEmailViaResend({
       from,
       to: [RECIPIENT],
       subject,
       html,
-      text: htmlToPlainText(html),
-      headers: getEmailHeaders(),
-    }),
-  });
-  const data = await res.json();
-  return { status: res.status, data };
+    });
+    return { status: 200, data: { id: result.id } };
+  } catch (error) {
+    return { status: 500, data: { error: error instanceof Error ? error.message : 'Unknown error' } };
+  }
 }
 
 function sleep(ms: number) {

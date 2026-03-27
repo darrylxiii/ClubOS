@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -19,6 +20,7 @@ interface ForwardMessageDialogProps {
 }
 
 export function ForwardMessageDialog({ open, onOpenChange, message }: ForwardMessageDialogProps) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [conversations, setConversations] = useState<any[]>([]);
   const [selectedConversations, setSelectedConversations] = useState<Set<string>>(new Set());
@@ -64,7 +66,7 @@ export function ForwardMessageDialog({ open, onOpenChange, message }: ForwardMes
 
   const handleForward = async () => {
     if (selectedConversations.size === 0) {
-      toast.error('Please select at least one conversation');
+      toast.error(t("please_select_at_least", "Please select at least one conversation"));
       return;
     }
 
@@ -107,7 +109,7 @@ export function ForwardMessageDialog({ open, onOpenChange, message }: ForwardMes
       setComment('');
     } catch (error) {
       console.error('Error forwarding message:', error);
-      toast.error('Failed to forward message');
+      toast.error(t("failed_to_forward_message", "Failed to forward message"));
     } finally {
       setLoading(false);
     }
@@ -121,14 +123,14 @@ export function ForwardMessageDialog({ open, onOpenChange, message }: ForwardMes
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Forward Message</DialogTitle>
+          <DialogTitle>{t("forward_message", "Forward Message")}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search conversations..."
+              placeholder={t("search_conversations", "Search conversations...")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-9"
@@ -156,7 +158,7 @@ export function ForwardMessageDialog({ open, onOpenChange, message }: ForwardMes
 
           <div>
             <Textarea
-              placeholder="Add an optional comment..."
+              placeholder={t("add_an_optional_comment", "Add an optional comment...")}
               value={comment}
               onChange={(e) => setComment(e.target.value)}
               className="min-h-[80px]"

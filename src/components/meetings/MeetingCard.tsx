@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -33,6 +34,7 @@ interface MeetingCardProps {
 }
 
 export function MeetingCard({ meeting, onEdit, onDelete }: MeetingCardProps) {
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
   const scheduledStart = new Date(meeting.scheduled_start);
   const scheduledEnd = new Date(meeting.scheduled_end);
@@ -42,7 +44,7 @@ export function MeetingCard({ meeting, onEdit, onDelete }: MeetingCardProps) {
   const handleCopyLink = () => {
     const meetingUrl = `${window.location.origin}/meetings/${meeting.meeting_code}`;
     navigator.clipboard.writeText(meetingUrl);
-    toast.success('Meeting link copied to clipboard');
+    toast.success(t("meeting_link_copied_to", "Meeting link copied to clipboard"));
   };
 
   const handleJoin = () => {
@@ -51,15 +53,15 @@ export function MeetingCard({ meeting, onEdit, onDelete }: MeetingCardProps) {
 
   const getStatusBadge = () => {
     if (meeting.status === 'cancelled') {
-      return <Badge variant="destructive">Cancelled</Badge>;
+      return <Badge variant="destructive">{t("cancelled", "Cancelled")}</Badge>;
     }
     if (isInProgress) {
-      return <Badge className="bg-green-500 animate-pulse">Live</Badge>;
+      return <Badge className="bg-green-500 animate-pulse">{t("live", "Live")}</Badge>;
     }
     if (isUpcoming) {
-      return <Badge variant="secondary">Upcoming</Badge>;
+      return <Badge variant="secondary">{t("upcoming", "Upcoming")}</Badge>;
     }
-    return <Badge variant="outline">Past</Badge>;
+    return <Badge variant="outline">{t("past", "Past")}</Badge>;
   };
 
   const getAccessIcon = () => {
@@ -156,7 +158,7 @@ export function MeetingCard({ meeting, onEdit, onDelete }: MeetingCardProps) {
 
         {meeting.agenda && (
           <div className="pt-2 border-t">
-            <p className="text-xs text-muted-foreground mb-1">Agenda:</p>
+            <p className="text-xs text-muted-foreground mb-1">{t("agenda", "Agenda:")}</p>
             <p className="text-sm line-clamp-2">{meeting.agenda}</p>
           </div>
         )}

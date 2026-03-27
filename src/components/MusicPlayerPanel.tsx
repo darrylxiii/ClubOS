@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect, RefObject } from 'react';
 import { Play, Pause, Volume2, Radio } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -15,6 +16,7 @@ interface MusicPlayerPanelProps {
 }
 
 export function MusicPlayerPanel({ audioRef }: MusicPlayerPanelProps) {
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
   const { play: managedPlay, pause: managedPause } = useAudioManager('preview');
   const [isPlaying, setIsPlaying] = useState(false);
@@ -126,7 +128,7 @@ export function MusicPlayerPanel({ audioRef }: MusicPlayerPanelProps) {
     };
     const handleError = (e: Event) => {
       console.error('Audio error:', e);
-      toast.error('Failed to load audio');
+      toast.error(t("failed_to_load_audio", "Failed to load audio"));
       setIsPlaying(false);
     };
 
@@ -153,7 +155,7 @@ export function MusicPlayerPanel({ audioRef }: MusicPlayerPanelProps) {
         await managedPlay(audioRef.current);
       } catch (err) {
         console.error('Play error:', err);
-        toast.error('Failed to play audio');
+        toast.error(t("failed_to_play_audio", "Failed to play audio"));
       }
     }
   };
@@ -180,11 +182,11 @@ export function MusicPlayerPanel({ audioRef }: MusicPlayerPanelProps) {
       <div className="rounded-3xl shadow-2xl overflow-hidden bg-card/30 backdrop-blur-[var(--blur-glass)] border border-border/20">
         <div className="px-5 py-4 flex items-center gap-2 border-b border-border/20">
           <Radio className="h-5 w-5 text-muted-foreground" />
-          <h2 className="text-base font-semibold text-foreground">The Quantum Club Radio</h2>
+          <h2 className="text-base font-semibold text-foreground">{t("the_quantum_club_radio", "The Quantum Club Radio")}</h2>
         </div>
         <div className="p-8 text-center">
           <Radio className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-          <h3 className="text-lg font-semibold mb-2">No Live Broadcast</h3>
+          <h3 className="text-lg font-semibold mb-2">{t("no_live_broadcast", "No Live Broadcast")}</h3>
           <p className="text-sm text-muted-foreground mb-4">
             No DJs are currently broadcasting. Check back later!
           </p>
@@ -204,7 +206,7 @@ export function MusicPlayerPanel({ audioRef }: MusicPlayerPanelProps) {
           <div className="h-2 w-2 rounded-full bg-red-500 animate-pulse" />
           <Radio className="h-5 w-5 text-red-500" />
         </div>
-        <h2 className="text-base font-semibold text-foreground">LIVE: The Quantum Club Radio</h2>
+        <h2 className="text-base font-semibold text-foreground">{t("live_the_quantum_club", "LIVE: The Quantum Club Radio")}</h2>
       </div>
 
       {/* Now Playing Section */}
@@ -253,7 +255,7 @@ export function MusicPlayerPanel({ audioRef }: MusicPlayerPanelProps) {
                 )}
               </>
             ) : (
-              <p className="text-sm text-muted-foreground">Waiting for track...</p>
+              <p className="text-sm text-muted-foreground">{t("waiting_for_track", "Waiting for track...")}</p>
             )}
           </div>
 

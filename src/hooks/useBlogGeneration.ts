@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { logger } from '@/lib/logger';
 
 export type ContentFormat = 
   | 'career-playbook' 
@@ -74,7 +75,7 @@ export function useBlogGeneration() {
       toast.success('Topic added to queue');
       return (data as any).id;
     } catch (error) {
-      console.error('Error adding to queue:', error);
+      logger.error('Error adding to queue', error instanceof Error ? error : new Error(String(error)));
       toast.error('Failed to add topic to queue');
       return null;
     }
@@ -89,7 +90,7 @@ export function useBlogGeneration() {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
           },
           body: JSON.stringify({
             queueId: queueItem.id,
@@ -107,7 +108,7 @@ export function useBlogGeneration() {
       toast.success(`Article generated: ${data.title}`);
       return { success: true, ...data };
     } catch (error) {
-      console.error('Generation error:', error);
+      logger.error('Generation error', error instanceof Error ? error : new Error(String(error)));
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       toast.error(`Generation failed: ${errorMessage}`);
       return { success: false, error: errorMessage };
@@ -125,7 +126,7 @@ export function useBlogGeneration() {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
           },
           body: JSON.stringify({ autoQueue }),
         }
@@ -138,7 +139,7 @@ export function useBlogGeneration() {
       if (autoQueue) toast.success(`${data.suggestions.length} topics added to queue`);
       return data.suggestions;
     } catch (error) {
-      console.error('Suggestion error:', error);
+      logger.error('Suggestion error', error instanceof Error ? error : new Error(String(error)));
       toast.error('Failed to get topic suggestions');
       return [];
     } finally {
@@ -157,7 +158,7 @@ export function useBlogGeneration() {
       if (error) throw error;
       return (data || []) as unknown as QueueItem[];
     } catch (error) {
-      console.error('Error fetching queue:', error);
+      logger.error('Error fetching queue', error instanceof Error ? error : new Error(String(error)));
       return [];
     }
   };
@@ -171,7 +172,7 @@ export function useBlogGeneration() {
       if (error) throw error;
       return true;
     } catch (error) {
-      console.error('Error updating priority:', error);
+      logger.error('Error updating priority', error instanceof Error ? error : new Error(String(error)));
       return false;
     }
   };
@@ -186,7 +187,7 @@ export function useBlogGeneration() {
       toast.success('Removed from queue');
       return true;
     } catch (error) {
-      console.error('Error deleting from queue:', error);
+      logger.error('Error deleting from queue', error instanceof Error ? error : new Error(String(error)));
       toast.error('Failed to remove from queue');
       return false;
     }

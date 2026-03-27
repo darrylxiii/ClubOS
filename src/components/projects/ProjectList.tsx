@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Project } from "@/types/projects";
@@ -15,6 +16,7 @@ interface ProjectListProps {
 }
 
 export function ProjectList({ userRole, isFreelancer }: ProjectListProps) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
@@ -123,7 +125,7 @@ export function ProjectList({ userRole, isFreelancer }: ProjectListProps) {
         <div className="bg-primary/10 border border-primary/20 rounded-lg p-4">
           <div className="flex items-center gap-2 mb-2">
             <Sparkles className="h-5 w-5 text-primary" />
-            <h3 className="font-semibold">Club AI Matching Active</h3>
+            <h3 className="font-semibold">{t("club_ai_matching_active", "Club AI Matching Active")}</h3>
           </div>
           <p className="text-sm text-muted-foreground">
             Projects are ranked by match score based on your categories, rates, and preferences. 
@@ -137,7 +139,7 @@ export function ProjectList({ userRole, isFreelancer }: ProjectListProps) {
         <div className="flex-1 relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search projects..."
+            placeholder={t("search_projects", "Search projects...")}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"
@@ -146,29 +148,29 @@ export function ProjectList({ userRole, isFreelancer }: ProjectListProps) {
 
         <Select value={categoryFilter} onValueChange={setCategoryFilter}>
           <SelectTrigger className="w-full md:w-48">
-            <SelectValue placeholder="Category" />
+            <SelectValue placeholder={t("category", "Category")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Categories</SelectItem>
-            <SelectItem value="Development">Development</SelectItem>
-            <SelectItem value="Design">Design</SelectItem>
-            <SelectItem value="Marketing">Marketing</SelectItem>
-            <SelectItem value="Strategy">Strategy</SelectItem>
-            <SelectItem value="Writing">Writing</SelectItem>
-            <SelectItem value="Data Science">Data Science</SelectItem>
+            <SelectItem value="all">{t("all_categories", "All Categories")}</SelectItem>
+            <SelectItem value="Development">{t("development", "Development")}</SelectItem>
+            <SelectItem value="Design">{t("design", "Design")}</SelectItem>
+            <SelectItem value="Marketing">{t("marketing", "Marketing")}</SelectItem>
+            <SelectItem value="Strategy">{t("strategy", "Strategy")}</SelectItem>
+            <SelectItem value="Writing">{t("writing", "Writing")}</SelectItem>
+            <SelectItem value="Data Science">{t("data_science", "Data Science")}</SelectItem>
           </SelectContent>
         </Select>
 
         <Select value={sortBy} onValueChange={setSortBy}>
           <SelectTrigger className="w-full md:w-48">
-            <SelectValue placeholder="Sort by" />
+            <SelectValue placeholder={t("sort_by", "Sort by")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="match_score">Best Match</SelectItem>
-            <SelectItem value="budget_high">Highest Budget</SelectItem>
-            <SelectItem value="budget_low">Lowest Budget</SelectItem>
-            <SelectItem value="newest">Newest First</SelectItem>
-            <SelectItem value="deadline">Deadline Soon</SelectItem>
+            <SelectItem value="match_score">{t("best_match", "Best Match")}</SelectItem>
+            <SelectItem value="budget_high">{t("highest_budget", "Highest Budget")}</SelectItem>
+            <SelectItem value="budget_low">{t("lowest_budget", "Lowest Budget")}</SelectItem>
+            <SelectItem value="newest">{t("newest_first", "Newest First")}</SelectItem>
+            <SelectItem value="deadline">{t("deadline_soon", "Deadline Soon")}</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -186,7 +188,7 @@ export function ProjectList({ userRole, isFreelancer }: ProjectListProps) {
         </div>
       ) : (
         <div className="text-center py-12">
-          <p className="text-muted-foreground">No projects found matching your criteria.</p>
+          <p className="text-muted-foreground">{t("no_projects_found_matching", "No projects found matching your criteria.")}</p>
         </div>
       )}
     </div>

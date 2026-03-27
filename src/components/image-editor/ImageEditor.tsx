@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect, useMemo, lazy, Suspense } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -55,6 +56,7 @@ export function ImageEditor({
   preset = 'avatar',
   config: customConfig,
 }: ImageEditorProps) {
+  const { t } = useTranslation('common');
   // Merge preset with custom config
   const config = useMemo(() => {
     const baseConfig = IMAGE_EDITOR_PRESETS[preset];
@@ -275,9 +277,7 @@ export function ImageEditor({
 
           {/* Action Buttons */}
           <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={handleClose} disabled={saving}>
-              Cancel
-            </Button>
+            <Button variant="outline" onClick={handleClose} disabled={saving}>{t('imageEditor.cancel')}</Button>
             <Button onClick={handleSave} disabled={saving || !croppedAreaPixels}>
               {saving ? (
                 <>

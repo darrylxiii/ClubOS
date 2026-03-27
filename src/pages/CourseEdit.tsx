@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate, Link } from "react-router-dom";
 
 import { Card } from "@/components/ui/card";
@@ -30,6 +31,7 @@ import { CourseBuilder, Module } from "@/components/academy/CourseBuilder";
 import { CreateModuleDialog } from "@/components/academy/CreateModuleDialog";
 
 export default function CourseEdit() {
+  const { t } = useTranslation('common');
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -229,9 +231,9 @@ export default function CourseEdit() {
     return (
       <>
         <div className="container max-w-6xl mx-auto p-6 text-center py-12">
-          <h2 className="text-2xl font-bold mb-4">Course not found</h2>
+          <h2 className="text-2xl font-bold mb-4">{t('courseEdit.text6')}</h2>
           <Link to="/academy/creator">
-            <Button>Back to Creator Hub</Button>
+            <Button>{t('courseEdit.text7')}</Button>
           </Link>
         </div>
       </>
@@ -283,38 +285,36 @@ export default function CourseEdit() {
               <BookOpen className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold">Edit Course</h1>
-              <p className="text-sm text-muted-foreground">
-                Update your course details and settings
-              </p>
+              <h1 className="text-2xl font-bold">{t('courseEdit.text8')}</h1>
+              <p className="text-sm text-muted-foreground">{t('courseEdit.desc')}</p>
             </div>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <Tabs defaultValue="basic" className="w-full">
               <TabsList className="squircle mb-6">
-                <TabsTrigger value="basic">Basic Info</TabsTrigger>
-                <TabsTrigger value="details">Details</TabsTrigger>
-                <TabsTrigger value="media">Media</TabsTrigger>
+                <TabsTrigger value="basic">{t('courseEdit.text9')}</TabsTrigger>
+                <TabsTrigger value="details">{t('courseEdit.text10')}</TabsTrigger>
+                <TabsTrigger value="media">{t('courseEdit.text11')}</TabsTrigger>
               </TabsList>
 
               <TabsContent value="basic" className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="title">Course Title *</Label>
+                  <Label htmlFor="title">{"Course Title *"}</Label>
                   <Input
                     id="title"
                     value={formData.title}
                     onChange={(e) =>
                       setFormData({ ...formData, title: e.target.value })
                     }
-                    placeholder="e.g., Advanced Leadership Skills"
+                    placeholder={"e.g., Advanced Leadership Skills"}
                     required
                   />
                 </div>
 
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="description">Description</Label>
+                    <Label htmlFor="description">{t('courseEdit.text12')}</Label>
                     <Button
                       type="button"
                       variant="ghost"
@@ -336,27 +336,27 @@ export default function CourseEdit() {
                     onChange={(e) =>
                       setFormData({ ...formData, description: e.target.value })
                     }
-                    placeholder="Describe what students will learn in this course..."
+                    placeholder={t('courseEdit.text13')}
                     rows={6}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="category">Category</Label>
+                  <Label htmlFor="category">{t('courseEdit.text14')}</Label>
                   <Input
                     id="category"
                     value={formData.category}
                     onChange={(e) =>
                       setFormData({ ...formData, category: e.target.value })
                     }
-                    placeholder="e.g., Leadership, Technology, Sales"
+                    placeholder={"e.g., Leadership, Technology, Sales"}
                   />
                 </div>
               </TabsContent>
 
               <TabsContent value="details" className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="difficulty">Difficulty Level</Label>
+                  <Label htmlFor="difficulty">{t('courseEdit.text15')}</Label>
                   <Select
                     value={formData.difficulty_level}
                     onValueChange={(value) =>
@@ -367,15 +367,15 @@ export default function CourseEdit() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="beginner">Beginner</SelectItem>
-                      <SelectItem value="intermediate">Intermediate</SelectItem>
-                      <SelectItem value="advanced">Advanced</SelectItem>
+                      <SelectItem value="beginner">{t('courseEdit.text16')}</SelectItem>
+                      <SelectItem value="intermediate">{t('courseEdit.text17')}</SelectItem>
+                      <SelectItem value="advanced">{t('courseEdit.text18')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="hours">Estimated Hours</Label>
+                  <Label htmlFor="hours">{t('courseEdit.text19')}</Label>
                   <Input
                     id="hours"
                     type="number"
@@ -384,17 +384,15 @@ export default function CourseEdit() {
                     onChange={(e) =>
                       setFormData({ ...formData, estimated_hours: e.target.value })
                     }
-                    placeholder="e.g., 8"
+                    placeholder={"e.g., 8"}
                   />
-                  <p className="text-xs text-muted-foreground">
-                    Approximate time to complete the course
-                  </p>
+                  <p className="text-xs text-muted-foreground">{t('courseEdit.desc2')}</p>
                 </div>
               </TabsContent>
 
               <TabsContent value="media" className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="image">Course Image URL</Label>
+                  <Label htmlFor="image">{t('courseEdit.text20')}</Label>
                   <Input
                     id="image"
                     value={formData.course_image_url}
@@ -403,13 +401,11 @@ export default function CourseEdit() {
                     }
                     placeholder="https://example.com/image.jpg"
                   />
-                  <p className="text-xs text-muted-foreground">
-                    Featured image for the course (optional)
-                  </p>
+                  <p className="text-xs text-muted-foreground">{t('courseEdit.desc3')}</p>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="video">Course Preview Video URL</Label>
+                  <Label htmlFor="video">{t('courseEdit.text21')}</Label>
                   <Input
                     id="video"
                     value={formData.course_video_url}
@@ -418,9 +414,7 @@ export default function CourseEdit() {
                     }
                     placeholder="https://youtube.com/watch?v=..."
                   />
-                  <p className="text-xs text-muted-foreground">
-                    Optional preview video for the course
-                  </p>
+                  <p className="text-xs text-muted-foreground">{t('courseEdit.desc4')}</p>
                 </div>
               </TabsContent>
             </Tabs>
@@ -431,10 +425,8 @@ export default function CourseEdit() {
 
         <Card className="p-6">
           <div className="mb-6">
-            <h3 className="font-bold text-lg">Course Modules</h3>
-            <p className="text-sm text-muted-foreground">
-              Manage your course content. Drag to reorder.
-            </p>
+            <h3 className="font-bold text-lg">{t('courseEdit.text22')}</h3>
+            <p className="text-sm text-muted-foreground">{t('courseEdit.desc5')}</p>
           </div>
 
           <CourseBuilder

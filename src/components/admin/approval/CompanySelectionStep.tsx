@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { CompanyAssignmentData } from "@/types/approval";
 import { Building2, Plus, Search, ArrowLeft, ArrowRight, Loader2, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslation } from 'react-i18next';
 
 interface CompanySelectionStepProps {
   companyNameFromRequest: string;
@@ -48,6 +49,7 @@ export const CompanySelectionStep = ({
   onSelect,
   onBack,
 }: CompanySelectionStepProps) => {
+  const { t } = useTranslation('admin');
   const [companies, setCompanies] = useState<CompanyMatch[]>([]);
   const [loading, setLoading] = useState(true);
   const [mode, setMode] = useState<'select' | 'create'>('select');
@@ -154,7 +156,7 @@ export const CompanySelectionStep = ({
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-base font-semibold">Company Assignment</h3>
+        <h3 className="text-base font-semibold">{t('approval.companySelectionStep.companyAssignment')}</h3>
         <p className="text-sm text-muted-foreground mt-1">
           The partner applied as "<span className="font-medium text-foreground">{companyNameFromRequest}</span>".
           {similarCompanies.length > 0 
@@ -199,7 +201,7 @@ export const CompanySelectionStep = ({
           {/* Company list */}
           <div className="max-h-[240px] overflow-y-auto space-y-2 pr-1">
             {filteredCompanies.length === 0 ? (
-              <p className="text-sm text-muted-foreground py-4 text-center">No companies match your search.</p>
+              <p className="text-sm text-muted-foreground py-4 text-center">{t('approval.companySelectionStep.noCompaniesMatchYourSearch')}</p>
             ) : (
               filteredCompanies.map((company) => (
                 <Card
@@ -250,13 +252,13 @@ export const CompanySelectionStep = ({
               <Input value={newCompanyName} onChange={e => setNewCompanyName(e.target.value)} />
             </div>
             <div className="space-y-2">
-              <Label className="text-sm font-medium">Industry</Label>
+              <Label className="text-sm font-medium">{t('approval.companySelectionStep.industry')}</Label>
               <Input value={newIndustry} onChange={e => setNewIndustry(e.target.value)} placeholder="e.g. Technology" />
             </div>
             <div className="space-y-2">
-              <Label className="text-sm font-medium">Company Size</Label>
+              <Label className="text-sm font-medium">{t('approval.companySelectionStep.companySize')}</Label>
               <Select value={newCompanySize} onValueChange={setNewCompanySize}>
-                <SelectTrigger><SelectValue placeholder="Select size" /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder={t('approval.companySelectionStep.selectSize')} /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="1-10">1-10</SelectItem>
                   <SelectItem value="11-50">11-50</SelectItem>
@@ -268,12 +270,12 @@ export const CompanySelectionStep = ({
               </Select>
             </div>
             <div className="space-y-2">
-              <Label className="text-sm font-medium">Website</Label>
+              <Label className="text-sm font-medium">{t('approval.companySelectionStep.website')}</Label>
               <Input value={newWebsite} onChange={e => setNewWebsite(e.target.value)} placeholder="https://" />
             </div>
             <div className="space-y-2 sm:col-span-2">
-              <Label className="text-sm font-medium">Headquarters</Label>
-              <Input value={newLocation} onChange={e => setNewLocation(e.target.value)} placeholder="e.g. Amsterdam, Netherlands" />
+              <Label className="text-sm font-medium">{t('approval.companySelectionStep.headquarters')}</Label>
+              <Input value={newLocation} onChange={e => setNewLocation(e.target.value)} placeholder="e.g. Amsterdam," Netherlands />
             </div>
           </div>
         </div>
@@ -283,7 +285,7 @@ export const CompanySelectionStep = ({
 
       {/* Company Role */}
       <div className="space-y-3">
-        <Label className="text-sm font-medium">Partner Role in Company</Label>
+        <Label className="text-sm font-medium">{t('approval.companySelectionStep.partnerRoleInCompany')}</Label>
         <RadioGroup value={companyRole} onValueChange={(v) => setCompanyRole(v as typeof companyRole)}>
           <div className="grid grid-cols-2 gap-2">
             {COMPANY_ROLES.map((role) => (

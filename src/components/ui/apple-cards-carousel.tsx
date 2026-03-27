@@ -6,6 +6,7 @@ import React, {
   useContext,
 } from "react";
 import { ArrowLeft, ArrowRight, X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import { useOutsideClick } from "@/hooks/useOutsideClick";
@@ -31,6 +32,7 @@ export const CarouselContext = createContext<{
 });
 
 export const Carousel = ({ items, initialScroll = 0 }: CarouselProps) => {
+  const { t } = useTranslation('common');
   const carouselRef = React.useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = React.useState(false);
   const [canScrollRight, setCanScrollRight] = React.useState(true);
@@ -130,7 +132,7 @@ export const Carousel = ({ items, initialScroll = 0 }: CarouselProps) => {
             className="relative z-40 flex h-10 w-10 items-center justify-center rounded-full bg-muted disabled:opacity-50 hover:bg-muted/80 transition-colors"
             onClick={scrollLeft}
             disabled={!canScrollLeft}
-            aria-label="Scroll left"
+            aria-label={t("carousel.scrollLeft", "Scroll left")}
           >
             <ArrowLeft className="h-6 w-6 text-muted-foreground" />
           </button>
@@ -138,7 +140,7 @@ export const Carousel = ({ items, initialScroll = 0 }: CarouselProps) => {
             className="relative z-40 flex h-10 w-10 items-center justify-center rounded-full bg-muted disabled:opacity-50 hover:bg-muted/80 transition-colors"
             onClick={scrollRight}
             disabled={!canScrollRight}
-            aria-label="Scroll right"
+            aria-label={t("carousel.scrollRight", "Scroll right")}
           >
             <ArrowRight className="h-6 w-6 text-muted-foreground" />
           </button>
@@ -157,6 +159,7 @@ export const Card = ({
   index: number;
   layout?: boolean;
 }) => {
+  const { t } = useTranslation('common');
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const { onCardClose } = useContext(CarouselContext);
@@ -211,7 +214,7 @@ export const Card = ({
               <button
                 className="sticky top-4 right-0 ml-auto flex h-8 w-8 items-center justify-center rounded-full bg-foreground hover:opacity-90 transition-opacity"
                 onClick={handleClose}
-                aria-label="Close"
+                aria-label={t("actions.close", "Close")}
               >
                 <X className="h-6 w-6 text-background" />
               </button>

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useCallback } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -24,6 +25,7 @@ export function MilestoneFileUploadModal({
   milestoneId,
   onUploadComplete,
 }: MilestoneFileUploadModalProps) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [file, setFile] = useState<File | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -111,7 +113,7 @@ export function MilestoneFileUploadModal({
 
       if (updateError) throw updateError;
 
-      toast.success("File uploaded successfully");
+      toast.success(t("file_uploaded_successfully", "File uploaded successfully"));
       setFile(null);
       setUploadProgress(0);
       onOpenChange(false);
@@ -129,7 +131,7 @@ export function MilestoneFileUploadModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Upload Deliverable</DialogTitle>
+          <DialogTitle>{t("upload_deliverable", "Upload Deliverable")}</DialogTitle>
           <DialogDescription>
             Upload files related to this milestone deliverable. Supported formats: PDF, DOC, DOCX, ZIP, images (Max 50MB)
           </DialogDescription>

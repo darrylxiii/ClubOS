@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -11,6 +12,7 @@ import { signInWithOAuthCustomDomain } from "@/lib/oauth-helpers";
 import { lovable } from "@/integrations/lovable/index";
 
 export default function InviteAcceptance() {
+  const { t } = useTranslation('common');
   const { token } = useParams();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
@@ -79,7 +81,7 @@ export default function InviteAcceptance() {
       }
     } catch (error) {
       console.error('Sign up error:', error);
-      toast.error('Failed to sign up');
+      toast.error("Failed to sign up");
     }
   };
 
@@ -102,7 +104,7 @@ export default function InviteAcceptance() {
               <div className="mx-auto w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center mb-4">
                 <AlertCircle className="w-6 h-6 text-destructive" />
               </div>
-              <CardTitle className="text-center">Invalid Invitation</CardTitle>
+              <CardTitle className="text-center">{t('inviteAcceptance.text3')}</CardTitle>
               <CardDescription className="text-center">{error}</CardDescription>
             </CardHeader>
             <CardContent className="text-center">
@@ -125,7 +127,7 @@ export default function InviteAcceptance() {
             <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
               <CheckCircle2 className="w-8 h-8 text-primary" />
             </div>
-            <CardTitle className="text-2xl">Welcome to The Quantum Club</CardTitle>
+            <CardTitle className="text-2xl">{t('inviteAcceptance.text4')}</CardTitle>
             <CardDescription>
               You've been invited to join our exclusive talent platform
             </CardDescription>
@@ -154,7 +156,7 @@ export default function InviteAcceptance() {
 
             {invitation?.job_context && invitation.job_context.length > 0 && (
               <div>
-                <p className="text-sm font-medium mb-2">Relevant Opportunities:</p>
+                <p className="text-sm font-medium mb-2">{t('inviteAcceptance.text5')}</p>
                 <div className="space-y-2">
                   {invitation.job_context.map((job: any, idx: number) => (
                     <Card key={idx}>
@@ -177,9 +179,7 @@ export default function InviteAcceptance() {
             )}
 
             <div className="space-y-3">
-              <p className="text-sm text-center text-muted-foreground">
-                Create your account to get started
-              </p>
+              <p className="text-sm text-center text-muted-foreground">{t('inviteAcceptance.desc')}</p>
 
               <Button
                 className="w-full"
@@ -208,9 +208,7 @@ export default function InviteAcceptance() {
               </Button>
             </div>
 
-            <p className="text-xs text-center text-muted-foreground">
-              By signing up, you agree to our Terms of Service and Privacy Policy
-            </p>
+            <p className="text-xs text-center text-muted-foreground">{t('inviteAcceptance.desc2')}</p>
           </CardContent>
         </Card>
       </div>

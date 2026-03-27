@@ -1,4 +1,5 @@
 import { memo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
 import { useValuesPokerSession } from '@/hooks/useValuesPokerSession';
@@ -10,6 +11,7 @@ import { ValuesPokerResults } from '@/components/values-poker/ValuesPokerResults
 import { ValuesPokerResult } from '@/types/assessment';
 
 const ValuesPoker = memo(() => {
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
   const [phase, setPhase] = useState<'intro' | 'allocation' | 'tradeoffs' | 'results'>('intro');
   const [results, setResults] = useState<ValuesPokerResult | null>(null);

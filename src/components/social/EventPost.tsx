@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, MapPin, ExternalLink, Users } from "lucide-react";
 import { format } from "date-fns";
+import { useTranslation } from "react-i18next";
 
 interface EventPostProps {
   title: string;
@@ -23,6 +24,7 @@ export const EventPost = ({
   attendeeCount = 0,
   imageUrl,
 }: EventPostProps) => {
+  const { t } = useTranslation("common");
   const isPastEvent = new Date(eventDate) < new Date();
 
   return (
@@ -32,7 +34,7 @@ export const EventPost = ({
           <img src={imageUrl} alt={title} className="w-full h-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
           <Badge className="absolute top-4 right-4 bg-primary">
-            {isPastEvent ? "Past Event" : "Upcoming"}
+            {isPastEvent ? t('social.events.pastEvent') : t('social.events.upcoming')}
           </Badge>
         </div>
       )}
@@ -61,20 +63,20 @@ export const EventPost = ({
           {attendeeCount > 0 && (
             <div className="flex items-center gap-3 text-sm">
               <Users className="h-4 w-4 text-primary" />
-              <span>{attendeeCount.toLocaleString()} attending</span>
+              <span>{t('social.events.attending', { count: attendeeCount.toLocaleString() })}</span>
             </div>
           )}
         </div>
 
         <div className="flex gap-3">
           <Button className="flex-1" disabled={isPastEvent}>
-            {isPastEvent ? "Event Ended" : "Interested"}
+            {isPastEvent ? t('social.events.ended') : t('social.events.interested')}
           </Button>
           {eventLink && (
             <Button variant="outline" asChild>
               <a href={eventLink} target="_blank" rel="noopener noreferrer">
                 <ExternalLink className="h-4 w-4 mr-2" />
-                Details
+                {t('social.events.details')}
               </a>
             </Button>
           )}

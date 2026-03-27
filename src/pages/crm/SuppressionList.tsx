@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { RoleGate } from '@/components/RoleGate';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -63,6 +64,7 @@ interface SuppressionEntry {
 }
 
 export default function SuppressionList() {
+  const { t } = useTranslation('common');
   const [entries, setEntries] = useState<SuppressionEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -107,7 +109,7 @@ export default function SuppressionList() {
       })));
     } catch (error) {
       console.error('Error fetching suppression list:', error);
-      toast.error('Failed to load suppression list');
+      toast.error("Failed to load suppression list");
     } finally {
       setLoading(false);
     }
@@ -172,7 +174,7 @@ export default function SuppressionList() {
 
   const handleAdd = async () => {
     if (!newEntry.value.trim()) {
-      toast.error('Please enter an email or domain');
+      toast.error("Please enter an email or domain");
       return;
     }
 
@@ -201,7 +203,7 @@ export default function SuppressionList() {
 
       if (error) throw error;
 
-      toast.success('Added to suppression list');
+      toast.success("Added to suppression list");
       setShowAddDialog(false);
       setNewEntry({ type: 'email', value: '', reason: '' });
       fetchEntries();
@@ -223,10 +225,10 @@ export default function SuppressionList() {
       if (error) throw error;
 
       setEntries(entries.filter(e => e.id !== id));
-      toast.success('Removed from suppression list');
+      toast.success("Removed from suppression list");
     } catch (error) {
       console.error('Error deleting suppression:', error);
-      toast.error('Failed to remove suppression');
+      toast.error("Failed to remove suppression");
     }
   };
 
@@ -255,24 +257,24 @@ export default function SuppressionList() {
   const getTypeBadge = (type?: string) => {
     switch (type) {
       case 'domain':
-        return <Badge variant="outline" className="bg-purple-500/20 text-purple-400">Domain</Badge>;
+        return <Badge variant="outline" className="bg-purple-500/20 text-purple-400">{t('suppressionList.text2')}</Badge>;
       case 'gdpr_request':
         return <Badge variant="outline" className="bg-red-500/20 text-red-400">GDPR</Badge>;
       default:
-        return <Badge variant="outline" className="bg-blue-500/20 text-blue-400">Email</Badge>;
+        return <Badge variant="outline" className="bg-blue-500/20 text-blue-400">{t('suppressionList.text3')}</Badge>;
     }
   };
 
   const getSourceBadge = (source?: string) => {
     switch (source) {
       case 'instantly_blocklist':
-        return <Badge variant="outline" className="bg-orange-500/20 text-orange-400">Instantly</Badge>;
+        return <Badge variant="outline" className="bg-orange-500/20 text-orange-400">{t('suppressionList.text4')}</Badge>;
       case 'webhook_bounce':
-        return <Badge variant="outline" className="bg-red-500/20 text-red-400">Bounced</Badge>;
+        return <Badge variant="outline" className="bg-red-500/20 text-red-400">{t('suppressionList.text5')}</Badge>;
       case 'webhook_unsubscribe':
-        return <Badge variant="outline" className="bg-yellow-500/20 text-yellow-400">Unsubscribed</Badge>;
+        return <Badge variant="outline" className="bg-yellow-500/20 text-yellow-400">{t('suppressionList.text6')}</Badge>;
       default:
-        return <Badge variant="outline" className="bg-muted/50 text-muted-foreground">Manual</Badge>;
+        return <Badge variant="outline" className="bg-muted/50 text-muted-foreground">{t('suppressionList.text7')}</Badge>;
     }
   };
 
@@ -318,7 +320,7 @@ export default function SuppressionList() {
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search..."
+                  placeholder={t('suppressionList.text8')}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-9 w-48 bg-muted/20"
@@ -344,31 +346,31 @@ export default function SuppressionList() {
             <Card className="bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border-border/30">
               <CardContent className="p-4 text-center">
                 <p className="text-2xl font-bold">{entries.length}</p>
-                <p className="text-xs text-muted-foreground">Total Entries</p>
+                <p className="text-xs text-muted-foreground">{t('suppressionList.text9')}</p>
               </CardContent>
             </Card>
             <Card className="bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border-border/30">
               <CardContent className="p-4 text-center">
                 <p className="text-2xl font-bold">{entries.filter(e => e.type === 'email').length}</p>
-                <p className="text-xs text-muted-foreground">Blocked Emails</p>
+                <p className="text-xs text-muted-foreground">{t('suppressionList.text10')}</p>
               </CardContent>
             </Card>
             <Card className="bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border-border/30">
               <CardContent className="p-4 text-center">
                 <p className="text-2xl font-bold">{entries.filter(e => e.type === 'domain').length}</p>
-                <p className="text-xs text-muted-foreground">Blocked Domains</p>
+                <p className="text-xs text-muted-foreground">{t('suppressionList.text11')}</p>
               </CardContent>
             </Card>
             <Card className="bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border-border/30">
               <CardContent className="p-4 text-center">
                 <p className="text-2xl font-bold">{sourceCounts.instantly_blocklist}</p>
-                <p className="text-xs text-muted-foreground">From Instantly</p>
+                <p className="text-xs text-muted-foreground">{t('suppressionList.text12')}</p>
               </CardContent>
             </Card>
             <Card className="bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border-border/30">
               <CardContent className="p-4 text-center">
                 <p className="text-2xl font-bold">{entries.filter(e => e.sync_status === 'pending').length}</p>
-                <p className="text-xs text-muted-foreground">Pending Sync</p>
+                <p className="text-xs text-muted-foreground">{t('suppressionList.text13')}</p>
               </CardContent>
             </Card>
           </div>
@@ -378,10 +380,8 @@ export default function SuppressionList() {
             <CardContent className="p-4">
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div>
-                  <h3 className="font-semibold">Instantly Integration</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Keep your suppression list in sync with Instantly's block list
-                  </p>
+                  <h3 className="font-semibold">{t('suppressionList.text14')}</h3>
+                  <p className="text-sm text-muted-foreground">{t('suppressionList.desc')}</p>
                 </div>
                 <div className="flex gap-2">
                   <Button 
@@ -488,11 +488,11 @@ export default function SuppressionList() {
         <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Add to Suppression List</DialogTitle>
+              <DialogTitle>{t('suppressionList.text15')}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <Label>Type</Label>
+                <Label>{t('suppressionList.text16')}</Label>
                 <Select
                   value={newEntry.type}
                   onValueChange={(v) => setNewEntry({ ...newEntry, type: v as 'email' | 'domain' })}
@@ -501,8 +501,8 @@ export default function SuppressionList() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="email">Email Address</SelectItem>
-                    <SelectItem value="domain">Domain</SelectItem>
+                    <SelectItem value="email">{t('suppressionList.text17')}</SelectItem>
+                    <SelectItem value="domain">{t('suppressionList.text18')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -515,9 +515,9 @@ export default function SuppressionList() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Reason</Label>
+                <Label>{t('suppressionList.text19')}</Label>
                 <Textarea
-                  placeholder="Why is this being suppressed?"
+                  placeholder={t('suppressionList.text20')}
                   value={newEntry.reason}
                   onChange={(e) => setNewEntry({ ...newEntry, reason: e.target.value })}
                   className="min-h-[80px]"

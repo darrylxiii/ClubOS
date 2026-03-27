@@ -13,8 +13,8 @@ function getRatesFromCache(): Record<string, number> {
   try {
     const cached = localStorage.getItem('exchangeRates');
     if (cached) return JSON.parse(cached);
-  } catch {
-    // ignore
+  } catch (error) {
+    console.error('[useLiveFxRate] Failed to parse cached exchange rates:', error);
   }
   return FALLBACK_RATES;
 }

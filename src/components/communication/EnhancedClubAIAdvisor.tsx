@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from '@/lib/motion';
 import { Bot, X, ChevronUp, ChevronDown, AlertTriangle, TrendingUp, Clock, MessageSquare, Lightbulb, Sparkles, Send, Loader2, Copy, Check, Wand2 } from 'lucide-react';
@@ -42,6 +43,7 @@ export function EnhancedClubAIAdvisor({
   context = 'general',
   className
 }: EnhancedClubAIAdvisorProps) {
+  const { t } = useTranslation('common');
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [question, setQuestion] = useState('');
@@ -231,7 +233,7 @@ export function EnhancedClubAIAdvisor({
                 <Bot className="h-4 w-4 text-white" />
               </div>
               <div>
-                <h3 className="text-sm font-semibold text-white">Club AI Advisor</h3>
+                <h3 className="text-sm font-semibold text-white">{t("club_ai_advisor", "Club AI Advisor")}</h3>
                 <p className="text-[10px] text-white/70">
                   {entityName ? `Helping with ${entityName}` : 'Communication Intelligence'}
                 </p>
@@ -275,7 +277,7 @@ export function EnhancedClubAIAdvisor({
                       className="mb-4 p-3 rounded-lg bg-primary/5 border border-primary/20"
                     >
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-medium text-primary">Draft Reply</span>
+                        <span className="text-xs font-medium text-primary">{t("draft_reply", "Draft Reply")}</span>
                         <Button
                           variant="ghost"
                           size="sm"
@@ -391,7 +393,7 @@ export function EnhancedClubAIAdvisor({
                   {advices.length === 0 && chatMessages.length === 0 && (
                     <div className="flex flex-col items-center justify-center h-full text-center py-8">
                       <Sparkles className="h-8 w-8 text-muted-foreground/50 mb-2" />
-                      <p className="text-sm text-muted-foreground">Ask me anything</p>
+                      <p className="text-sm text-muted-foreground">{t("ask_me_anything", "Ask me anything")}</p>
                       <p className="text-xs text-muted-foreground/70">
                         I can help draft messages, analyze relationships, and suggest next steps
                       </p>
@@ -405,7 +407,7 @@ export function EnhancedClubAIAdvisor({
                     <Input
                       value={question}
                       onChange={(e) => setQuestion(e.target.value)}
-                      placeholder="Ask Club AI or request a draft..."
+                      placeholder={t("ask_club_ai_or", "Ask Club AI or request a draft...")}
                       className="h-8 text-xs"
                       disabled={isLoading}
                     />

@@ -2,6 +2,7 @@ import { memo, useMemo } from 'react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 
 interface JobSparklineProps {
   jobId: string;
@@ -76,6 +77,7 @@ const MiniSparkline = memo(({ data, trend }: { data: number[]; trend: 'up' | 'do
 MiniSparkline.displayName = 'MiniSparkline';
 
 export const JobSparkline = memo(({ jobId, candidateCount, daysOpen }: JobSparklineProps) => {
+  const { t } = useTranslation('common');
   const data = useMemo(
     () => generateTrendData(candidateCount, daysOpen),
     [candidateCount, daysOpen]
@@ -103,8 +105,8 @@ export const JobSparkline = memo(({ jobId, candidateCount, daysOpen }: JobSparkl
           </div>
         </TooltipTrigger>
         <TooltipContent side="top" className="text-xs">
-          <div className="font-medium">7-day trend</div>
-          <div className="text-muted-foreground">{total} applications this week</div>
+          <div className="font-medium">{t('partner.sevenDayTrend', '7-day trend')}</div>
+          <div className="text-muted-foreground">{t('partner.applicationsThisWeek', '{{count}} applications this week', { count: total })}</div>
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>

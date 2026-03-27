@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Activity, UserPlus, Briefcase, Calendar, Eye } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { useTranslation } from 'react-i18next';
 
 interface ActivityEvent {
   id: string;
@@ -20,6 +21,7 @@ interface PartnerActivityFeedProps {
 }
 
 export const PartnerActivityFeed = ({ companyId }: PartnerActivityFeedProps) => {
+  const { t } = useTranslation('common');
   const [activities, setActivities] = useState<ActivityEvent[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -154,7 +156,7 @@ export const PartnerActivityFeed = ({ companyId }: PartnerActivityFeedProps) => 
             <Activity className="h-5 w-5" />
             Activity Feed
           </CardTitle>
-          <CardDescription>Recent platform activity</CardDescription>
+          <CardDescription>{t('partnerActivityFeed.description')}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
@@ -175,12 +177,12 @@ export const PartnerActivityFeed = ({ companyId }: PartnerActivityFeedProps) => 
             <Activity className="h-5 w-5" />
             Activity Feed
           </CardTitle>
-          <CardDescription>Recent platform activity</CardDescription>
+          <CardDescription>{t('partnerActivityFeed.description')}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="text-center py-8">
             <Activity className="h-12 w-12 mx-auto text-muted-foreground/50 mb-3" />
-            <p className="text-sm text-muted-foreground">No recent activity</p>
+            <p className="text-sm text-muted-foreground">{t('partnerActivityFeed.noRecentActivity')}</p>
           </div>
         </CardContent>
       </Card>

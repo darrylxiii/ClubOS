@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatDistanceToNow } from 'date-fns';
 import { Flame, Snowflake, AlertTriangle, TrendingUp, Eye, X, Signal } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface PredictiveSignal {
   id: string;
@@ -29,6 +30,7 @@ const SIGNAL_CONFIG: Record<string, { icon: typeof Flame; color: string; bg: str
 };
 
 const getSignalConfig = (type: string) => {
+  const { t } = useTranslation('admin');
   const key = Object.keys(SIGNAL_CONFIG).find((k) => type?.toLowerCase().includes(k));
   return SIGNAL_CONFIG[key || ''] || { icon: Signal, color: 'text-muted-foreground', bg: 'bg-muted/30 border-border/30', label: type || 'Unknown' };
 };
@@ -94,7 +96,7 @@ export default function IntelligenceFeedView() {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
         <Signal className="h-16 w-16 text-muted-foreground/30 mb-4" />
-        <h3 className="text-lg font-semibold text-foreground mb-2">No Active Signals</h3>
+        <h3 className="text-lg font-semibold text-foreground mb-2">{t('agentic.intelligenceFeedView.noActiveSignals')}</h3>
         <p className="text-sm text-muted-foreground max-w-md">
           Your agents are monitoring the environment. Signals will appear here when patterns are detected.
         </p>
@@ -217,7 +219,7 @@ export default function IntelligenceFeedView() {
                 )}
 
                 {signal.acknowledged && (
-                  <Badge variant="outline" className="text-xs">Acknowledged</Badge>
+                  <Badge variant="outline" className="text-xs">{t('agentic.intelligenceFeedView.acknowledged')}</Badge>
                 )}
               </CardContent>
             </Card>

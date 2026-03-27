@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useCallback, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -19,6 +20,7 @@ import { Clock, Users, Plus, Settings, Keyboard, Activity, FileText, CheckSquare
 import { toast } from "sonner";
 
 export function TimeTrackingDashboard() {
+  const { t } = useTranslation('common');
   const { currentRole } = useRole();
   const { 
     runningEntry, 
@@ -63,7 +65,7 @@ export function TimeTrackingDashboard() {
   const handleKeepTime = () => {
     setShowIdleModal(false);
     resetActivity();
-    toast.success('Idle time kept');
+    toast.success(t("idle_time_kept", "Idle time kept"));
   };
 
   // Handle discarding idle time
@@ -128,7 +130,7 @@ export function TimeTrackingDashboard() {
           {/* Header with Timer Controls */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
-              <h2 className="text-2xl font-bold text-foreground">Time Tracking</h2>
+              <h2 className="text-2xl font-bold text-foreground">{t("time_tracking", "Time Tracking")}</h2>
               <p className="text-sm text-muted-foreground">
                 Track your work hours and manage time entries
               </p>
@@ -150,7 +152,7 @@ export function TimeTrackingDashboard() {
                 variant="ghost"
                 size="icon"
                 onClick={() => setShowSettings(true)}
-                title="Timer Settings"
+                title={t("timer_settings", "Timer Settings")}
               >
                 <Settings className="h-4 w-4" />
               </Button>
@@ -161,7 +163,7 @@ export function TimeTrackingDashboard() {
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <Keyboard className="h-3 w-3" />
             <span>
-              Press <kbd className="px-1 py-0.5 bg-muted rounded text-xs">Ctrl+T</kbd> for manual entry
+              Press <kbd className="px-1 py-0.5 bg-muted rounded text-xs">{t("ctrlt", "Ctrl+T")}</kbd> for manual entry
             </span>
           </div>
 
@@ -189,32 +191,32 @@ export function TimeTrackingDashboard() {
             <TabsList className={`grid w-full max-w-2xl grid-cols-${Math.min(getTabCount(), 5)}`}>
               <TabsTrigger value="my-time" className="flex items-center gap-2">
                 <Clock className="h-4 w-4" />
-                <span className="hidden sm:inline">My Time</span>
+                <span className="hidden sm:inline">{t("my_time", "My Time")}</span>
               </TabsTrigger>
               
               <TabsTrigger value="timesheets" className="flex items-center gap-2">
                 <FileText className="h-4 w-4" />
-                <span className="hidden sm:inline">Timesheets</span>
+                <span className="hidden sm:inline">{t("timesheets", "Timesheets")}</span>
               </TabsTrigger>
 
               {isManager && (
                 <TabsTrigger value="approvals" className="flex items-center gap-2">
                   <CheckSquare className="h-4 w-4" />
-                  <span className="hidden sm:inline">Approvals</span>
+                  <span className="hidden sm:inline">{t("approvals", "Approvals")}</span>
                 </TabsTrigger>
               )}
 
               {isManager && (
                 <TabsTrigger value="team" className="flex items-center gap-2">
                   <Users className="h-4 w-4" />
-                  <span className="hidden sm:inline">Team</span>
+                  <span className="hidden sm:inline">{t("team", "Team")}</span>
                 </TabsTrigger>
               )}
 
               {isFreelancer && (
                 <TabsTrigger value="contracts" className="flex items-center gap-2">
                   <Briefcase className="h-4 w-4" />
-                  <span className="hidden sm:inline">Contracts</span>
+                  <span className="hidden sm:inline">{t("contracts", "Contracts")}</span>
                 </TabsTrigger>
               )}
             </TabsList>

@@ -22,9 +22,9 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY not configured');
+    const GOOGLE_API_KEY = Deno.env.get('GOOGLE_API_KEY');
+    if (!GOOGLE_API_KEY) {
+      throw new Error('GOOGLE_API_KEY not configured');
     }
 
     console.log(`Batch generating embeddings for ${entity_type} (limit: ${limit}, offset: ${offset})`);
@@ -118,10 +118,10 @@ serve(async (req) => {
         }
 
         // Generate embedding
-        const embeddingResponse = await fetch('https://ai.gateway.lovable.dev/v1/embeddings', {
+        const embeddingResponse = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/embeddings', {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+            'Authorization': `Bearer ${GOOGLE_API_KEY}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -17,54 +18,55 @@ interface PriorityInboxTabsProps {
 }
 
 export function PriorityInboxTabs({ activeTab, onTabChange, counts }: PriorityInboxTabsProps) {
+  const { t } = useTranslation('messages');
   const tabs = [
-    { 
-      value: "all", 
-      label: "All Emails", 
-      shortLabel: "All",
-      icon: Inbox, 
-      count: counts.all, 
-      color: "text-foreground" 
+    {
+      value: "all",
+      label: t('priority.allEmails'),
+      shortLabel: t('common:filters.all'),
+      icon: Inbox,
+      count: counts.all,
+      color: "text-foreground"
     },
-    { 
-      value: "important", 
-      label: "Important", 
-      shortLabel: "Important",
-      icon: Flame, 
-      count: counts.important, 
-      color: "text-destructive" 
+    {
+      value: "important",
+      label: t('priority.important'),
+      shortLabel: t('priority.important'),
+      icon: Flame,
+      count: counts.important,
+      color: "text-destructive"
     },
-    { 
-      value: "action", 
-      label: "Action Required", 
-      shortLabel: "Action",
-      icon: AlertCircle, 
-      count: counts.actionRequired, 
-      color: "text-warning" 
+    {
+      value: "action",
+      label: t('priority.actionRequired'),
+      shortLabel: t('priority.action'),
+      icon: AlertCircle,
+      count: counts.actionRequired,
+      color: "text-warning"
     },
-    { 
-      value: "fyi", 
-      label: "FYI", 
-      shortLabel: "FYI",
-      icon: Info, 
-      count: counts.fyi, 
-      color: "text-primary" 
+    {
+      value: "fyi",
+      label: t('priority.fyi'),
+      shortLabel: t('priority.fyi'),
+      icon: Info,
+      count: counts.fyi,
+      color: "text-primary"
     },
-    { 
-      value: "newsletters", 
-      label: "Newsletters", 
-      shortLabel: "News",
-      icon: Newspaper, 
-      count: counts.newsletters, 
-      color: "text-muted-foreground" 
+    {
+      value: "newsletters",
+      label: t('priority.newsletters'),
+      shortLabel: t('priority.news'),
+      icon: Newspaper,
+      count: counts.newsletters,
+      color: "text-muted-foreground"
     },
-    { 
-      value: "low", 
-      label: "Low Priority", 
-      shortLabel: "Low",
-      icon: Archive, 
-      count: counts.lowPriority, 
-      color: "text-muted-foreground" 
+    {
+      value: "low",
+      label: t('priority.lowPriority'),
+      shortLabel: t('priority.low'),
+      icon: Archive,
+      count: counts.lowPriority,
+      color: "text-muted-foreground"
     },
   ];
 

@@ -1,9 +1,4 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.58.0';
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { createHandler } from '../_shared/handler.ts';
 
 interface Challenge {
   name: string;
@@ -86,16 +81,7 @@ const weeklyChallengeTemplates: Challenge[] = [
   },
 ];
 
-Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
+Deno.serve(createHandler(async (_req, ctx) => {
     console.log('[Generate Daily Challenges] Starting challenge generation');
 
     const now = new Date();
@@ -105,7 +91,7 @@ Deno.serve(async (req) => {
     const weekStartStr = weekStart.toISOString().split('T')[0];
 
     // Check if daily challenges already exist for today
-    const { data: existingDaily } = await supabase
+    const { data: existingDaily } = await ctx.supabase
       .from('achievement_challenges')
       .select('id')
       .eq('challenge_type', 'daily')
@@ -118,7 +104,7 @@ Deno.serve(async (req) => {
       const selectedDaily = shuffled.slice(0, 3);
 
       for (const challenge of selectedDaily) {
-        await supabase.from('achievement_challenges').insert({
+        await ctx.supabase.from('achievement_challenges').insert({
           name: challenge.name,
           description: challenge.description,
           challenge_type: 'daily',
@@ -134,7 +120,7 @@ Deno.serve(async (req) => {
     }
 
     // Check if weekly challenges exist for this week
-    const { data: existingWeekly } = await supabase
+    const { data: existingWeekly } = await ctx.supabase
       .from('achievement_challenges')
       .select('id')
       .eq('challenge_type', 'weekly')
@@ -151,7 +137,7 @@ Deno.serve(async (req) => {
       const weekEndStr = weekEnd.toISOString().split('T')[0];
 
       for (const challenge of selectedWeekly) {
-        await supabase.from('achievement_challenges').insert({
+        await ctx.supabase.from('achievement_challenges').insert({
           name: challenge.name,
           description: challenge.description,
           challenge_type: 'weekly',
@@ -168,14 +154,6 @@ Deno.serve(async (req) => {
 
     return new Response(
       JSON.stringify({ success: true, message: 'Challenges generated successfully' }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } }
     );
-  } catch (error) {
-    console.error('[Generate Daily Challenges] Error:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    return new Response(
-      JSON.stringify({ error: errorMessage }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-  }
-});
+}));

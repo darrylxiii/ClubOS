@@ -1,10 +1,5 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { fetchAI, handleAIError, AITimeoutError, createTimeoutResponse } from "../_shared/ai-fetch.ts";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+import { createHandler } from '../_shared/handler.ts';
+import { fetchAI, handleAIError, AITimeoutError, createTimeoutResponse } from '../_shared/ai-fetch.ts';
 
 const PARTNER_FUNNEL_KNOWLEDGE = `
 # The Quantum Club - Partner Funnel FAQ
@@ -50,26 +45,21 @@ const PARTNER_FUNNEL_KNOWLEDGE = `
 - **Partnership Team**: hello@thequantumclub.com
 `;
 
-serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+Deno.serve(createHandler(async (req, ctx) => {
+  const { message, systemPrompt } = await req.json() as {
+    message: string;
+    context?: string;
+    systemPrompt?: string;
+  };
+
+  if (!message) {
+    return new Response(
+      JSON.stringify({ error: "Message is required" }),
+      { status: 400, headers: { ...ctx.corsHeaders, "Content-Type": "application/json" } }
+    );
   }
 
-  try {
-    const { message, systemPrompt } = await req.json() as {
-      message: string;
-      context?: string;
-      systemPrompt?: string;
-    };
-
-    if (!message) {
-      return new Response(
-        JSON.stringify({ error: "Message is required" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    const finalSystemPrompt = systemPrompt || `You are Club AI, the AI assistant for The Quantum Club, a luxury executive recruitment platform.
+  const finalSystemPrompt = systemPrompt || `You are Club AI, the AI assistant for The Quantum Club, a luxury executive recruitment platform.
 
 ${PARTNER_FUNNEL_KNOWLEDGE}
 
@@ -81,9 +71,10 @@ Guidelines:
 - Always maintain a premium, consultative tone
 - Offer to connect them with a strategist when appropriate`;
 
-    // Use Lovable AI Gateway
+  try {
+    // Use Google Gemini API
     const response = await fetchAI({
-      model: "google/gemini-3-flash-preview",
+      model: "gemini-3-flash-preview",
       messages: [
         { role: "system", content: finalSystemPrompt },
         { role: "user", content: message }
@@ -93,40 +84,39 @@ Guidelines:
     }, { timeoutMs: 30000 });
 
     // Handle rate limits and credit exhaustion
-    const errorResponse = handleAIError(response, corsHeaders);
+    const errorResponse = handleAIError(response, ctx.corsHeaders);
     if (errorResponse) {
       return errorResponse;
     }
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("Lovable AI error:", response.status, errorText);
+      console.error("Google Gemini error:", response.status, errorText);
       throw new Error(`AI API error: ${response.status}`);
     }
 
     const data = await response.json();
-    const aiResponse = data.choices?.[0]?.message?.content || 
+    const aiResponse = data.choices?.[0]?.message?.content ||
       "I apologize, I couldn't process that request. Please try again or submit your partner request form for direct assistance.";
 
     return new Response(
       JSON.stringify({ response: aiResponse }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      { headers: { ...ctx.corsHeaders, "Content-Type": "application/json" } }
     );
-
   } catch (error) {
     console.error("AI Chat error:", error);
-    
+
     // Handle timeout specifically
     if (error instanceof AITimeoutError) {
-      return createTimeoutResponse(corsHeaders);
+      return createTimeoutResponse(ctx.corsHeaders);
     }
-    
+
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         error: "Failed to process request",
         response: "I apologize, I'm having trouble right now. Please complete the partner request form and a strategist will reach out with detailed answers to your questions."
       }),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      { status: 200, headers: { ...ctx.corsHeaders, "Content-Type": "application/json" } }
     );
   }
-});
+}));

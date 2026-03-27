@@ -1,70 +1,58 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { publicCorsHeaders, handleCorsPreFlight } from '../_shared/cors-config.ts';
+import { createHandler } from '../_shared/handler.ts';
 import { logAIUsage, extractClientInfo } from '../_shared/ai-logger.ts';
 
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return handleCorsPreFlight(publicCorsHeaders);
-  }
-
+Deno.serve(createHandler(async (req, ctx) => {
   const startTime = Date.now();
   const clientInfo = extractClientInfo(req);
   let userId: string | undefined;
 
-  try {
-    console.log('[score-incubator] Processing request');
+  console.log('[score-incubator] Processing request');
 
-    // Authentication check
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      return new Response(
-        JSON.stringify({ error: 'Authentication required' }),
-        { status: 401, headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    const { sessionId } = await req.json();
-    if (!sessionId) {
-      return new Response(
-        JSON.stringify({ error: 'Missing sessionId' }),
-        { status: 400, headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    const supabaseAdmin = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+  // Authentication check
+  const authHeader = req.headers.get('Authorization');
+  if (!authHeader) {
+    return new Response(
+      JSON.stringify({ error: 'Authentication required' }),
+      { status: 401, headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } }
     );
+  }
 
-    // Fetch session data
-    const { data: session, error: sessionError } = await supabaseAdmin
-      .from('incubator_sessions')
-      .select('*')
-      .eq('id', sessionId)
-      .single();
+  const { sessionId } = await req.json();
+  if (!sessionId) {
+    return new Response(
+      JSON.stringify({ error: 'Missing sessionId' }),
+      { status: 400, headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
 
-    if (sessionError || !session) {
-      throw new Error(`Session not found: ${sessionError?.message}`);
-    }
+  // Fetch session data
+  const { data: session, error: sessionError } = await ctx.supabase
+    .from('incubator_sessions')
+    .select('*')
+    .eq('id', sessionId)
+    .single();
 
-    userId = session.user_id;
-    const scenario = JSON.parse(session.scenario_seed || '{}');
-    const finalPlan = session.final_plan || {};
-    const frameAnswers = {
-      problem: session.frame_problem,
-      customer: session.frame_customer,
-      successMetric: session.frame_success_metric
-    };
+  if (sessionError || !session) {
+    throw new Error(`Session not found: ${sessionError?.message}`);
+  }
 
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY not configured');
-    }
+  userId = session.user_id;
+  const scenario = JSON.parse(session.scenario_seed || '{}');
+  const finalPlan = session.final_plan || {};
+  const frameAnswers = {
+    problem: session.frame_problem,
+    customer: session.frame_customer,
+    successMetric: session.frame_success_metric
+  };
 
-    console.log('[score-incubator] Calling Lovable AI for scoring');
+  const GOOGLE_API_KEY = Deno.env.get('GOOGLE_API_KEY');
+  if (!GOOGLE_API_KEY) {
+    throw new Error('GOOGLE_API_KEY not configured');
+  }
 
-    const systemPrompt = `You are an expert venture capitalist and startup strategist. 
+  console.log('[score-incubator] Calling Google Gemini for scoring');
+
+  const systemPrompt = `You are an expert venture capitalist and startup strategist.
 Your task is to score a candidate's "Incubator:20" assessment.
 In this assessment, the candidate was given a challenging startup scenario and had 20 minutes to frame the problem and build a 6-part execution plan.
 
@@ -81,7 +69,7 @@ Title: ${scenario.title}
 Industry: ${scenario.industry}
 Target Customer: ${scenario.customer}
 Constraint: ${scenario.constraint}
-Budget: €${scenario.budget}
+Budget: \u20AC${scenario.budget}
 Twist: ${scenario.twist}
 
 CANDIDATE WORK:
@@ -116,86 +104,70 @@ RESPOND IN JSON ONLY:
 }
 `;
 
-    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash-lite',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: 'Please score the candidate work provided in the system prompt.' }
-        ],
-        response_format: { type: "json_object" }
-      }),
-    });
+  const aiResponse = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${GOOGLE_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'gemini-2.5-flash-lite',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: 'Please score the candidate work provided in the system prompt.' }
+      ],
+      response_format: { type: "json_object" }
+    }),
+  });
 
-    if (!aiResponse.ok) {
-      throw new Error(`AI API returned ${aiResponse.status}`);
-    }
-
-    const aiData = await aiResponse.json();
-    const result = JSON.parse(aiData.choices?.[0]?.message?.content || '{}');
-
-    if (!result.scores) {
-      throw new Error('Incomplete scoring result from AI');
-    }
-
-    // Update assessment result
-    if (session.assessment_result_id) {
-      const { error: updateError } = await supabaseAdmin
-        .from('assessment_results')
-        .update({
-          score: result.overall_score * 10, // Normalize to 0-100
-          results_data: {
-            ...result,
-            scenario,
-            frameAnswers,
-            finalPlan
-          }
-        })
-        .eq('id', session.assessment_result_id);
-
-      if (updateError) throw updateError;
-    }
-
-    // Update session
-    await supabaseAdmin
-      .from('incubator_sessions')
-      .update({
-        total_score: result.overall_score,
-        normalized_score: result.overall_score * 10
-      })
-      .eq('id', sessionId);
-
-    await logAIUsage({
-      userId,
-      functionName: 'score-incubator',
-      ...clientInfo,
-      responseTimeMs: Date.now() - startTime,
-      success: true
-    });
-
-    return new Response(
-      JSON.stringify({ success: true, result }),
-      { headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' } }
-    );
-
-  } catch (error) {
-    console.error('[score-incubator] Error:', error);
-    await logAIUsage({
-      userId,
-      functionName: 'score-incubator',
-      ...clientInfo,
-      responseTimeMs: Date.now() - startTime,
-      success: false,
-      errorMessage: error instanceof Error ? error.message : 'Unknown error'
-    });
-    return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
-      { status: 500, headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' } }
-    );
+  if (!aiResponse.ok) {
+    throw new Error(`AI API returned ${aiResponse.status}`);
   }
-});
+
+  const aiData = await aiResponse.json();
+  const result = JSON.parse(aiData.choices?.[0]?.message?.content || '{}');
+
+  if (!result.scores) {
+    throw new Error('Incomplete scoring result from AI');
+  }
+
+  // Update assessment result
+  if (session.assessment_result_id) {
+    const { error: updateError } = await ctx.supabase
+      .from('assessment_results')
+      .update({
+        score: result.overall_score * 10, // Normalize to 0-100
+        results_data: {
+          ...result,
+          scenario,
+          frameAnswers,
+          finalPlan
+        }
+      })
+      .eq('id', session.assessment_result_id);
+
+    if (updateError) throw updateError;
+  }
+
+  // Update session
+  await ctx.supabase
+    .from('incubator_sessions')
+    .update({
+      total_score: result.overall_score,
+      normalized_score: result.overall_score * 10
+    })
+    .eq('id', sessionId);
+
+  await logAIUsage({
+    userId,
+    functionName: 'score-incubator',
+    ...clientInfo,
+    responseTimeMs: Date.now() - startTime,
+    success: true
+  });
+
+  return new Response(
+    JSON.stringify({ success: true, result }),
+    { headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } }
+  );
+}));

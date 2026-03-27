@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -36,6 +37,7 @@ export function InterviewReportView({
   roleTitle,
   companyName
 }: InterviewReportViewProps) {
+  const { t } = useTranslation('common');
   const [report, setReport] = useState<InterviewReport | null>(null);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
@@ -66,7 +68,7 @@ export function InterviewReportView({
 
   const generateReport = async () => {
     if (!candidateId) {
-      toast.error("Candidate information required");
+      toast.error(t("candidate_information_required", "Candidate information required"));
       return;
     }
 
@@ -79,10 +81,10 @@ export function InterviewReportView({
       if (error) throw error;
       
       setReport(data.report as any);
-      toast.success("Interview report generated!");
+      toast.success(t("interview_report_generated", "Interview report generated!"));
     } catch (error) {
       console.error('Error generating report:', error);
-      toast.error("Failed to generate report");
+      toast.error(t("failed_to_generate_report", "Failed to generate report"));
     } finally {
       setGenerating(false);
     }
@@ -105,7 +107,7 @@ export function InterviewReportView({
       <Card className="p-6 bg-card/50 backdrop-blur-sm">
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Loader2 className="w-4 h-4 animate-spin" />
-          <span>Loading interview report...</span>
+          <span>{t("loading_interview_report", "Loading interview report...")}</span>
         </div>
       </Card>
     );
@@ -115,7 +117,7 @@ export function InterviewReportView({
     return (
       <Card className="p-8 bg-card/50 backdrop-blur-sm text-center">
         <FileText className="w-12 h-12 text-primary mx-auto mb-4" />
-        <h3 className="text-lg font-semibold mb-2">Post-Interview Report</h3>
+        <h3 className="text-lg font-semibold mb-2">{t("postinterview_report", "Post-Interview Report")}</h3>
         <p className="text-sm text-muted-foreground mb-6">
           Generate a comprehensive AI-powered interview report with recommendations
         </p>
@@ -209,21 +211,21 @@ export function InterviewReportView({
       {/* Detailed Assessments */}
       <Card className="p-6 bg-card/50 backdrop-blur-sm space-y-4">
         <div>
-          <h4 className="font-semibold mb-2">Technical Assessment</h4>
+          <h4 className="font-semibold mb-2">{t("technical_assessment", "Technical Assessment")}</h4>
           <p className="text-sm text-muted-foreground leading-relaxed">
             {report.technical_assessment}
           </p>
         </div>
         <Separator />
         <div>
-          <h4 className="font-semibold mb-2">Cultural Fit</h4>
+          <h4 className="font-semibold mb-2">{t("cultural_fit", "Cultural Fit")}</h4>
           <p className="text-sm text-muted-foreground leading-relaxed">
             {report.cultural_fit_assessment}
           </p>
         </div>
         <Separator />
         <div>
-          <h4 className="font-semibold mb-2">Communication Style</h4>
+          <h4 className="font-semibold mb-2">{t("communication_style", "Communication Style")}</h4>
           <p className="text-sm text-muted-foreground leading-relaxed">
             {report.communication_assessment}
           </p>
@@ -233,7 +235,7 @@ export function InterviewReportView({
       {/* Interview Highlights */}
       {report.highlights && report.highlights.length > 0 && (
         <Card className="p-6 bg-card/50 backdrop-blur-sm">
-          <h3 className="font-semibold text-lg mb-4">Notable Moments</h3>
+          <h3 className="font-semibold text-lg mb-4">{t("notable_moments", "Notable Moments")}</h3>
           <ScrollArea className="h-64">
             <div className="space-y-3">
               {report.highlights.map((highlight, idx) => (

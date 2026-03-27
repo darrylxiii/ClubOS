@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -20,6 +21,7 @@ interface ARRMetrics {
 }
 
 export function ARRTracker() {
+  const { t } = useTranslation('common');
   const { data, isLoading } = useQuery({
     queryKey: ['arr-metrics'],
     queryFn: async (): Promise<ARRMetrics> => {
@@ -151,9 +153,9 @@ export function ARRTracker() {
         ? 'Healthy expansion' 
         : 'Focus on retention',
       badge: data?.netRevenueRetention && data.netRevenueRetention >= 100 ? (
-        <Badge variant="default" className="ml-2 bg-success">Good</Badge>
+        <Badge variant="default" className="ml-2 bg-success">{t("good", "Good")}</Badge>
       ) : (
-        <Badge variant="destructive" className="ml-2">Below 100%</Badge>
+        <Badge variant="destructive" className="ml-2">{t("below_100", "Below 100%")}</Badge>
       ),
     },
     {
@@ -191,7 +193,7 @@ export function ARRTracker() {
             <TrendingUp className="h-5 w-5" />
             Monthly ARR Trend
           </CardTitle>
-          <CardDescription>Annualized revenue by month</CardDescription>
+          <CardDescription>{t("annualized_revenue_by_month", "Annualized revenue by month")}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex items-end gap-2 h-40">

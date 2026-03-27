@@ -1,4 +1,5 @@
 import { useInvestorMetrics } from "@/hooks/useInvestorMetrics";
+import { useTranslation } from 'react-i18next';
 import { ARRTracker } from "@/components/admin/revenue/ARRTracker";
 import { RevenueDistributionSummary } from "@/components/admin/revenue/RevenueDistributionSummary";
 import { RevenueCohortAnalysis } from "@/components/financial/RevenueCohortAnalysis";
@@ -15,17 +16,18 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 export default function RevenueDashboard() {
+  const { t } = useTranslation('admin');
   const { data: metrics, isLoading, refetch } = useInvestorMetrics();
 
   const handleCaptureSnapshot = async () => {
     try {
       const { error } = await supabase.rpc('capture_investor_metrics_snapshot');
       if (error) throw error;
-      toast.success('Investor metrics snapshot captured');
+      toast.success("Investor metrics snapshot captured");
       refetch();
     } catch (error) {
       console.error('Snapshot error:', error);
-      toast.error('Failed to capture snapshot');
+      toast.error("Failed to capture snapshot");
     }
   };
 
@@ -33,8 +35,8 @@ export default function RevenueDashboard() {
     <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Revenue Dashboard</h1>
-          <p className="text-muted-foreground">Track ARR, MRR, and revenue metrics for due diligence</p>
+          <h1 className="text-2xl font-bold">{t('revenueDashboard.text1')}</h1>
+          <p className="text-muted-foreground">{t('revenueDashboard.text2')}</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={handleCaptureSnapshot}>
@@ -50,10 +52,10 @@ export default function RevenueDashboard() {
 
       <Tabs defaultValue="overview" className="space-y-6">
         <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="arr">ARR Tracking</TabsTrigger>
-          <TabsTrigger value="distribution">Revenue Distribution</TabsTrigger>
-          <TabsTrigger value="cohorts">Cohort Analysis</TabsTrigger>
+          <TabsTrigger value="overview">{t('revenueDashboard.text3')}</TabsTrigger>
+          <TabsTrigger value="arr">{t('revenueDashboard.text4')}</TabsTrigger>
+          <TabsTrigger value="distribution">{t('revenueDashboard.text5')}</TabsTrigger>
+          <TabsTrigger value="cohorts">{t('revenueDashboard.text6')}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
@@ -159,26 +161,26 @@ export default function RevenueDashboard() {
                 <TrendingUp className="h-5 w-5" />
                 Valuation Indicators
               </CardTitle>
-              <CardDescription>Key metrics for $100M+ valuation readiness</CardDescription>
+              <CardDescription>{"Key metrics for $100M+ valuation readiness"}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="space-y-2">
-                  <p className="text-sm text-muted-foreground">Target ARR for $100M (10x multiple)</p>
+                  <p className="text-sm text-muted-foreground">{"Target ARR for $100M (10x multiple)"}</p>
                   <p className="text-xl font-bold">€10M</p>
                   <p className="text-xs text-muted-foreground">
                     Current: €{((metrics?.total_revenue || 0) * 12 / new Date().getMonth() / 1000000).toFixed(2)}M projected
                   </p>
                 </div>
                 <div className="space-y-2">
-                  <p className="text-sm text-muted-foreground">Target Customers</p>
+                  <p className="text-sm text-muted-foreground">{t('revenueDashboard.text7')}</p>
                   <p className="text-xl font-bold">100+</p>
                   <p className="text-xs text-muted-foreground">
                     Current: {metrics?.active_customers || 0} ({((metrics?.active_customers || 0) / 100 * 100).toFixed(0)}%)
                   </p>
                 </div>
                 <div className="space-y-2">
-                  <p className="text-sm text-muted-foreground">Target Candidates</p>
+                  <p className="text-sm text-muted-foreground">{t('revenueDashboard.text8')}</p>
                   <p className="text-xl font-bold">10,000+</p>
                   <p className="text-xs text-muted-foreground">
                     Current: {metrics?.total_candidates || 0} ({((metrics?.total_candidates || 0) / 10000 * 100).toFixed(1)}%)

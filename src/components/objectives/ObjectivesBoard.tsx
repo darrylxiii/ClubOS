@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from 'react-i18next';
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { ObjectiveCard } from "./ObjectiveCard";
@@ -118,6 +119,7 @@ const DraggableObjectiveCard = ({ objective, ownerProfiles }: any) => {
 };
 
 export const ObjectivesBoard = () => {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [objectives, setObjectives] = useState<Objective[]>([]);
   const [loading, setLoading] = useState(true);
@@ -220,7 +222,7 @@ export const ObjectivesBoard = () => {
       }
     } catch (error) {
       console.error("Error loading objectives:", error);
-      toast.error("Failed to load objectives");
+      toast.error(t('objectives.failedToLoadObjectives'));
     } finally {
       setLoading(false);
     }
@@ -258,10 +260,10 @@ export const ObjectivesBoard = () => {
         .eq("id", objectiveId);
 
       if (error) throw error;
-      toast.success("Objective status updated");
+      toast.success(t('objectives.objectiveStatusUpdated'));
     } catch (error) {
       console.error("Error updating objective:", error);
-      toast.error("Failed to update objective");
+      toast.error(t('objectives.failedToUpdateObjective'));
       // Revert on error
       loadObjectives();
     }
@@ -272,7 +274,7 @@ export const ObjectivesBoard = () => {
       <div className="flex items-center justify-center py-12">
         <div className="text-center space-y-3">
           <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent" />
-          <p className="text-sm text-muted-foreground">Loading objectives...</p>
+          <p className="text-sm text-muted-foreground">{t('objectives.loadingObjectives')}</p>
         </div>
       </div>
     );
@@ -289,10 +291,8 @@ export const ObjectivesBoard = () => {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-bold text-foreground">Objectives Board</h2>
-            <p className="text-sm text-muted-foreground mt-1">
-              Drag objectives to change their status
-            </p>
+            <h2 className="text-2xl font-bold text-foreground">{t('objectives.objectivesBoard')}</h2>
+            <p className="text-sm text-muted-foreground mt-1">{t('objectives.dragObjectivesToChangeTheirStatus')}</p>
           </div>
           <CreateObjectiveDialog open={dialogOpen} onOpenChange={setDialogOpen} onCreated={loadObjectives}>
             <Button size="lg" className="gap-2">

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -9,6 +10,7 @@ import { useRecharts } from "@/hooks/useRecharts";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export function StoryAnalytics() {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [timeRange, setTimeRange] = useState<TimeRange>("7d");
   const [customRange, setCustomRange] = useState<{ from: Date; to: Date } | undefined>(undefined);
@@ -176,7 +178,7 @@ export function StoryAnalytics() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">Story Analytics</h2>
+        <h2 className="text-2xl font-bold">{t("story_analytics", "Story Analytics")}</h2>
         <TimeRangeSelector
           value={timeRange}
           customRange={customRange}
@@ -191,7 +193,7 @@ export function StoryAnalytics() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Views</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("total_views", "Total Views")}</CardTitle>
             <Eye className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -201,7 +203,7 @@ export function StoryAnalytics() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Reactions</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("reactions", "Reactions")}</CardTitle>
             <Heart className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -211,7 +213,7 @@ export function StoryAnalytics() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Shares</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("shares", "Shares")}</CardTitle>
             <Share2 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -221,7 +223,7 @@ export function StoryAnalytics() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Saves</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("saves", "Saves")}</CardTitle>
             <Bookmark className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -234,7 +236,7 @@ export function StoryAnalytics() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Avg Watch Time</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("avg_watch_time", "Avg Watch Time")}</CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -244,7 +246,7 @@ export function StoryAnalytics() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Completion Rate</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("completion_rate", "Completion Rate")}</CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -254,7 +256,7 @@ export function StoryAnalytics() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Engagement Rate</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("engagement_rate", "Engagement Rate")}</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -270,14 +272,14 @@ export function StoryAnalytics() {
       {/* Tabs for detailed views */}
       <Tabs defaultValue="trend" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="trend">Engagement Trend</TabsTrigger>
-          <TabsTrigger value="stories">Per Story</TabsTrigger>
+          <TabsTrigger value="trend">{t("engagement_trend", "Engagement Trend")}</TabsTrigger>
+          <TabsTrigger value="stories">{t("per_story", "Per Story")}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="trend">
           <Card>
             <CardHeader>
-              <CardTitle>Engagement Over Time</CardTitle>
+              <CardTitle>{t("engagement_over_time", "Engagement Over Time")}</CardTitle>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
@@ -298,7 +300,7 @@ export function StoryAnalytics() {
         <TabsContent value="stories">
           <Card>
             <CardHeader>
-              <CardTitle>Story Performance</CardTitle>
+              <CardTitle>{t("story_performance", "Story Performance")}</CardTitle>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate } from "react-router-dom";
 
 import { Card } from "@/components/ui/card";
@@ -14,6 +15,7 @@ import { InlineLoader, SectionLoader } from "@/components/ui/unified-loader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function ModuleEdit() {
+  const { t } = useTranslation('common');
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -268,7 +270,7 @@ export default function ModuleEdit() {
   if (!module) {
     return (
       <div className="w-full px-4 sm:px-6 lg:px-8 py-6 text-center py-12">
-        <h2 className="text-2xl font-bold mb-4">Module not found</h2>
+        <h2 className="text-2xl font-bold mb-4">{t('moduleEdit.text3')}</h2>
         <Button onClick={() => navigate("/academy/creator")}>
           Back to Creator Hub
         </Button>
@@ -320,50 +322,48 @@ export default function ModuleEdit() {
               <BookOpen className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold">Edit Module</h1>
-              <p className="text-sm text-muted-foreground">
-                Update your module details
-              </p>
+              <h1 className="text-2xl font-bold">{t('moduleEdit.text4')}</h1>
+              <p className="text-sm text-muted-foreground">{t('moduleEdit.desc')}</p>
             </div>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <Tabs defaultValue="basic" className="w-full">
               <TabsList className="squircle mb-6">
-                <TabsTrigger value="basic">Basic Info</TabsTrigger>
-                <TabsTrigger value="media">Media</TabsTrigger>
+                <TabsTrigger value="basic">{t('moduleEdit.text5')}</TabsTrigger>
+                <TabsTrigger value="media">{t('moduleEdit.text6')}</TabsTrigger>
               </TabsList>
 
               <TabsContent value="basic" className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="title">Module Title *</Label>
+                  <Label htmlFor="title">{"Module Title *"}</Label>
                   <Input
                     id="title"
                     value={formData.title}
                     onChange={(e) =>
                       setFormData({ ...formData, title: e.target.value })
                     }
-                    placeholder="e.g., Introduction to React Hooks"
+                    placeholder={"e.g., Introduction to React Hooks"}
                     required
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="description">Description *</Label>
+                  <Label htmlFor="description">{"Description *"}</Label>
                   <Textarea
                     id="description"
                     value={formData.description}
                     onChange={(e) =>
                       setFormData({ ...formData, description: e.target.value })
                     }
-                    placeholder="What will students learn in this module?"
+                    placeholder={t('moduleEdit.text7')}
                     rows={6}
                     required
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="estimated_minutes">Estimated Time (minutes)</Label>
+                  <Label htmlFor="estimated_minutes">{t('moduleEdit.text8')}</Label>
                   <Input
                     id="estimated_minutes"
                     type="number"
@@ -372,11 +372,9 @@ export default function ModuleEdit() {
                     onChange={(e) =>
                       setFormData({ ...formData, estimated_minutes: e.target.value })
                     }
-                    placeholder="e.g., 45"
+                    placeholder={"e.g., 45"}
                   />
-                  <p className="text-xs text-muted-foreground">
-                    Approximate time to complete the module
-                  </p>
+                  <p className="text-xs text-muted-foreground">{t('moduleEdit.desc2')}</p>
                 </div>
               </TabsContent>
 
@@ -384,7 +382,7 @@ export default function ModuleEdit() {
                 {/* Video Section */}
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <Label>Video Content</Label>
+                    <Label>{t('moduleEdit.text9')}</Label>
                     <Button
                       type="button"
                       variant="outline"
@@ -502,7 +500,7 @@ export default function ModuleEdit() {
                   {formData.video_url && (
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
-                        <Label className="text-sm">Current Video</Label>
+                        <Label className="text-sm">{t('moduleEdit.text10')}</Label>
                         <Button
                           type="button"
                           variant="ghost"
@@ -518,7 +516,7 @@ export default function ModuleEdit() {
                             src={formData.video_url}
                             className="w-full h-full"
                             allowFullScreen
-                            title="Video preview"
+                            title={t('moduleEdit.text11')}
                           />
                         </div>
                       ) : (
@@ -534,7 +532,7 @@ export default function ModuleEdit() {
 
                 {/* Image Section */}
                 <div className="space-y-4">
-                  <Label>Module Image</Label>
+                  <Label>{t('moduleEdit.text12')}</Label>
 
                   <div className="space-y-2">
                     <Input
@@ -554,7 +552,7 @@ export default function ModuleEdit() {
                   {formData.image_url && (
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
-                        <Label className="text-sm">Current Image</Label>
+                        <Label className="text-sm">{t('moduleEdit.text13')}</Label>
                         <Button
                           type="button"
                           variant="ghost"
@@ -566,7 +564,7 @@ export default function ModuleEdit() {
                       </div>
                       <img
                         src={formData.image_url}
-                        alt="Module"
+                        alt={t('moduleEdit.text14')}
                         className="w-full aspect-video object-cover rounded-lg border"
                       />
                     </div>

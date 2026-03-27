@@ -33,7 +33,8 @@ export function useImpersonation() {
         } else {
           sessionStorage.removeItem(IMPERSONATION_STORAGE_KEY);
         }
-      } catch {
+      } catch (error) {
+        console.error('[useImpersonation] Failed to parse stored impersonation session:', error);
         sessionStorage.removeItem(IMPERSONATION_STORAGE_KEY);
       }
     }

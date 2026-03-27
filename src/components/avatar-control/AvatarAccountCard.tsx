@@ -11,6 +11,7 @@ import { AvatarSocialTarget } from '@/hooks/useAvatarSocialTargets';
 import { format, formatDistanceToNow } from 'date-fns';
 import { formatLocation } from '@/lib/format-location';
 import { versionedAvatarUrl } from '@/lib/avatar-url';
+import { useTranslation } from 'react-i18next';
 
 interface AvatarAccountCardProps {
   account: AvatarAccount;
@@ -37,6 +38,7 @@ const riskColors: Record<string, string> = {
 };
 
 function formatCompact(n: number | null | undefined): string {
+  const { t } = useTranslation('common');
   if (n == null) return '—';
   if (n >= 1000) return `${(n / 1000).toFixed(n >= 10000 ? 0 : 1)}k`;
   return n.toLocaleString();
@@ -86,13 +88,13 @@ export function AvatarAccountCard({ account, activeSession, socialTargets, onSta
             <div className="flex items-center gap-0.5 shrink-0">
               {onView && (
                 <Button variant="ghost" size="icon" className="h-7 w-7"
-                  onClick={(e) => { e.stopPropagation(); onView(account); }} title="View profile">
+                  onClick={(e) => { e.stopPropagation(); onView(account); }} title={"View profile"}>
                   <Eye className="h-3.5 w-3.5" />
                 </Button>
               )}
               {onEdit && (
                 <Button variant="ghost" size="icon" className="h-7 w-7"
-                  onClick={(e) => { e.stopPropagation(); onEdit(account); }} title="Edit account">
+                  onClick={(e) => { e.stopPropagation(); onEdit(account); }} title={"Edit account"}>
                   <Pencil className="h-3.5 w-3.5" />
                 </Button>
               )}
@@ -191,7 +193,7 @@ export function AvatarAccountCard({ account, activeSession, socialTargets, onSta
                   </span>
                   <span className={`font-mono font-medium ${colorClass}`}>
                     {remaining}/{limit}
-                    {isDepleted && <span className="ml-1 text-red-400 font-semibold">Depleted</span>}
+                    {isDepleted && <span className="ml-1 text-red-400 font-semibold">{"Depleted"}</span>}
                   </span>
                 </div>
                 <Progress value={pct} className={`h-1.5 ${barColor}`} />
@@ -202,7 +204,7 @@ export function AvatarAccountCard({ account, activeSession, socialTargets, onSta
           {/* Social Status Dots */}
           {socialTargets && socialTargets.length > 0 && (
             <div className="flex items-center gap-2">
-              <span className="text-[11px] text-muted-foreground">Social:</span>
+              <span className="text-[11px] text-muted-foreground">{"Social:"}</span>
               <div className="flex items-center gap-1.5">
                 {(['linkedin', 'twitter', 'reddit', 'instagram'] as const).map(p => {
                   const t = socialTargets.find(st => st.platform === p && st.is_active);
@@ -242,7 +244,7 @@ export function AvatarAccountCard({ account, activeSession, socialTargets, onSta
 
           {/* Not synced hint */}
           {hasLinkedInUrl && !hasBeenSynced && (
-            <p className="text-[11px] text-muted-foreground/60 italic">Not synced yet — tap the refresh icon to pull LinkedIn data.</p>
+            <p className="text-[11px] text-muted-foreground/60 italic">{"Not synced yet — tap the refresh icon to pull LinkedIn data."}</p>
           )}
 
           {/* Risk + Status badges */}

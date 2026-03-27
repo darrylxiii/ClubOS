@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,6 +20,7 @@ interface User {
 }
 
 export function UserCompanyAssignment() {
+  const { t } = useTranslation('common');
   const [users, setUsers] = useState<User[]>([]);
   const [companies, setCompanies] = useState<CompanyBasic[]>([]);
   const [members, setMembers] = useState<CompanyMember[]>([]);
@@ -72,7 +74,7 @@ export function UserCompanyAssignment() {
 
     } catch (error) {
       console.error('[UserCompanyAssignment] Error fetching data:', error);
-      toast.error("Failed to load data");
+      toast.error(t("failed_to_load_data", "Failed to load data"));
     } finally {
       setLoading(false);
     }
@@ -108,7 +110,7 @@ export function UserCompanyAssignment() {
 
       if (profileError) throw profileError;
 
-      toast.success("User assigned to company successfully");
+      toast.success(t("user_assigned_to_company", "User assigned to company successfully"));
       setDialogOpen(false);
       resetForm();
       fetchData();
@@ -116,9 +118,9 @@ export function UserCompanyAssignment() {
       console.error('Error assigning user:', error);
       const pgError = error as { code?: string };
       if (pgError.code === '23505') {
-        toast.error("User is already a member of this company");
+        toast.error(t("user_is_already_a", "User is already a member of this company"));
       } else {
-        toast.error("Failed to assign user");
+        toast.error(t("failed_to_assign_user", "Failed to assign user"));
       }
     }
   };
@@ -142,11 +144,11 @@ export function UserCompanyAssignment() {
 
       if (profileError) throw profileError;
 
-      toast.success("User removed from company");
+      toast.success(t("user_removed_from_company", "User removed from company"));
       fetchData();
     } catch (error) {
       console.error('Error removing user:', error);
-      toast.error("Failed to remove user");
+      toast.error(t("failed_to_remove_user", "Failed to remove user"));
     }
   };
 
@@ -167,8 +169,8 @@ export function UserCompanyAssignment() {
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle>User-Company Assignment</CardTitle>
-            <CardDescription>Assign users to companies with specific roles</CardDescription>
+            <CardTitle>{t("usercompany_assignment", "User-Company Assignment")}</CardTitle>
+            <CardDescription>{t("assign_users_to_companies", "Assign users to companies with specific roles")}</CardDescription>
           </div>
           <Dialog open={dialogOpen} onOpenChange={(open) => {
             setDialogOpen(open);
@@ -182,7 +184,7 @@ export function UserCompanyAssignment() {
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Assign User to Company</DialogTitle>
+                <DialogTitle>{t("assign_user_to_company", "Assign User to Company")}</DialogTitle>
                 <DialogDescription>
                   Select a user, company, and role
                 </DialogDescription>
@@ -190,14 +192,14 @@ export function UserCompanyAssignment() {
               <form onSubmit={handleSubmit}>
                 <div className="space-y-4 py-4">
                   <div className="space-y-2">
-                    <Label htmlFor="user">User *</Label>
+                    <Label htmlFor="user">{t("user", "User *")}</Label>
                     <Select
                       required
                       value={formData.userId}
                       onValueChange={(value) => setFormData({ ...formData, userId: value })}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Select user" />
+                        <SelectValue placeholder={t("select_user", "Select user")} />
                       </SelectTrigger>
                       <SelectContent>
                         {users.map((user) => (
@@ -209,14 +211,14 @@ export function UserCompanyAssignment() {
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="company">Company *</Label>
+                    <Label htmlFor="company">{t("company", "Company *")}</Label>
                     <Select
                       required
                       value={formData.companyId}
                       onValueChange={(value) => setFormData({ ...formData, companyId: value })}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Select company" />
+                        <SelectValue placeholder={t("select_company", "Select company")} />
                       </SelectTrigger>
                       <SelectContent>
                         {companies.map((company) => (
@@ -228,7 +230,7 @@ export function UserCompanyAssignment() {
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="role">Role *</Label>
+                    <Label htmlFor="role">{t("role", "Role *")}</Label>
                     <Select
                       required
                       value={formData.role}
@@ -248,7 +250,7 @@ export function UserCompanyAssignment() {
                   </div>
                 </div>
                 <DialogFooter>
-                  <Button type="submit">Assign</Button>
+                  <Button type="submit">{t("assign", "Assign")}</Button>
                 </DialogFooter>
               </form>
             </DialogContent>
@@ -259,10 +261,10 @@ export function UserCompanyAssignment() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>User</TableHead>
-              <TableHead>Company</TableHead>
-              <TableHead>Role</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead>{t("user", "User")}</TableHead>
+              <TableHead>{t("company", "Company")}</TableHead>
+              <TableHead>{t("role", "Role")}</TableHead>
+              <TableHead className="text-right">{t("actions", "Actions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

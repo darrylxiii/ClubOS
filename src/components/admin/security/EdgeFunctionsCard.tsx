@@ -3,8 +3,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useTranslation } from 'react-i18next';
 
 export const EdgeFunctionsCard = () => {
+  const { t } = useTranslation('admin');
   // Hardcoded values based on current edge functions configuration
   // In a production system, this would be fetched from a metadata table
   const totalFunctions = 225;
@@ -31,8 +33,8 @@ export const EdgeFunctionsCard = () => {
     <Card className="border-blue-500/20">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <div>
-          <CardTitle className="text-sm font-medium">Edge Functions</CardTitle>
-          <CardDescription>API endpoint security</CardDescription>
+          <CardTitle className="text-sm font-medium">{t('security.edgeFunctionsCard.edgeFunctions')}</CardTitle>
+          <CardDescription>{t('security.edgeFunctionsCard.apiEndpointSecurity')}</CardDescription>
         </div>
         <Code className="h-4 w-4 text-blue-500" />
       </CardHeader>
@@ -44,7 +46,7 @@ export const EdgeFunctionsCard = () => {
 
         <div className="space-y-2">
           <div className="flex items-center justify-between text-xs">
-            <span>Security Score</span>
+            <span>{t('security.edgeFunctionsCard.securityScore')}</span>
             <Badge variant="default" className="bg-blue-500">
               {securityScore}%
             </Badge>

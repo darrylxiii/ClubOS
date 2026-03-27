@@ -1,94 +1,81 @@
-import { createClient } from "npm:@supabase/supabase-js@2";
+import { createHandler } from '../_shared/handler.ts';
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+Deno.serve(createHandler(async (req, ctx) => {
+  const GOOGLE_API_KEY = Deno.env.get("GOOGLE_API_KEY");
 
-Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+  const { conversationId, tone = "professional" } = await req.json();
+
+  if (!conversationId) {
+    return new Response(
+      JSON.stringify({ error: "conversationId is required" }),
+      { status: 400, headers: { ...ctx.corsHeaders, "Content-Type": "application/json" } }
+    );
   }
 
-  try {
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    const supabase = createClient(supabaseUrl, supabaseKey);
+  // Fetch recent messages
+  const { data: messages, error: messagesError } = await ctx.supabase
+    .from("whatsapp_messages")
+    .select("*")
+    .eq("conversation_id", conversationId)
+    .order("created_at", { ascending: false })
+    .limit(10);
 
-    const { conversationId, tone = "professional" } = await req.json();
+  if (messagesError) throw messagesError;
 
-    if (!conversationId) {
-      return new Response(
-        JSON.stringify({ error: "conversationId is required" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
+  // Fetch conversation context
+  const { data: conversation, error: convError } = await ctx.supabase
+    .from("whatsapp_conversations")
+    .select("*, candidate_profiles(*)")
+    .eq("id", conversationId)
+    .single();
 
-    // Fetch recent messages
-    const { data: messages, error: messagesError } = await supabase
-      .from("whatsapp_messages")
-      .select("*")
-      .eq("conversation_id", conversationId)
-      .order("created_at", { ascending: false })
-      .limit(10);
+  if (convError) throw convError;
 
-    if (messagesError) throw messagesError;
-
-    // Fetch conversation context
-    const { data: conversation, error: convError } = await supabase
-      .from("whatsapp_conversations")
-      .select("*, candidate_profiles(*)")
-      .eq("id", conversationId)
+  // Get candidate context if linked
+  let candidateContext = "";
+  if (conversation.candidate_id) {
+    const { data: candidate } = await ctx.supabase
+      .from("candidate_profiles")
+      .select("full_name, current_title, skills, desired_roles")
+      .eq("id", conversation.candidate_id)
       .single();
 
-    if (convError) throw convError;
-
-    // Get candidate context if linked
-    let candidateContext = "";
-    if (conversation.candidate_id) {
-      const { data: candidate } = await supabase
-        .from("candidate_profiles")
-        .select("full_name, current_title, skills, desired_roles")
-        .eq("id", conversation.candidate_id)
-        .single();
-
-      if (candidate) {
-        candidateContext = `
+    if (candidate) {
+      candidateContext = `
 Candidate: ${candidate.full_name}
 Current Role: ${candidate.current_title || "Not specified"}
 Skills: ${Array.isArray(candidate.skills) ? candidate.skills.slice(0, 5).join(", ") : "Not specified"}
 Looking for: ${Array.isArray(candidate.desired_roles) ? candidate.desired_roles.join(", ") : "Not specified"}`;
-      }
     }
+  }
 
-    // Build conversation history
-    const conversationHistory = messages
-      ?.reverse()
-      .map((m) => `${m.direction === "inbound" ? "Candidate" : "TQC"}: ${m.content}`)
-      .join("\n") || "";
+  // Build conversation history
+  const conversationHistory = messages
+    ?.reverse()
+    .map((m) => `${m.direction === "inbound" ? "Candidate" : "TQC"}: ${m.content}`)
+    .join("\n") || "";
 
-    const lastMessage = messages?.[0];
-    const intent = lastMessage?.intent_classification || "general";
-    const sentiment = lastMessage?.sentiment_score || 0;
+  const lastMessage = messages?.[0];
+  const intent = lastMessage?.intent_classification || "general";
+  const sentiment = lastMessage?.sentiment_score || 0;
 
-    let replies: { text: string; tone: string; confidence: number }[] = [];
+  let replies: { text: string; tone: string; confidence: number }[] = [];
 
-    // Use Lovable AI Gateway with flash-lite (replaces broken OpenAI direct call)
-    if (LOVABLE_API_KEY) {
-      try {
-        const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            "Authorization": `Bearer ${LOVABLE_API_KEY}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            model: "google/gemini-2.5-flash-lite",
-            messages: [
-              {
-                role: "system",
-                content: `You are a recruiting assistant for The Quantum Club, an elite talent platform. Generate 3 smart reply suggestions for WhatsApp messages.
+  // Use Google Gemini API with flash-lite (replaces broken OpenAI direct call)
+  if (GOOGLE_API_KEY) {
+    try {
+      const response = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${GOOGLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "gemini-2.5-flash-lite",
+          messages: [
+            {
+              role: "system",
+              content: `You are a recruiting assistant for The Quantum Club, an elite talent platform. Generate 3 smart reply suggestions for WhatsApp messages.
 
 Context:
 ${candidateContext}
@@ -108,66 +95,58 @@ Respond in JSON format:
     { "text": "Reply 3", "tone": "brief", "confidence": 0.75 }
   ]
 }`
-              },
-              {
-                role: "user",
-                content: `Conversation history:
+            },
+            {
+              role: "user",
+              content: `Conversation history:
 ${conversationHistory}
 
 Last message intent: ${intent}
 Sentiment score: ${sentiment}
 
 Generate 3 appropriate reply suggestions.`
-              }
-            ],
-            temperature: 0.7,
-            max_tokens: 400,
-          }),
-        });
-
-        if (response.ok) {
-          const aiResult = await response.json();
-          if (aiResult.choices?.[0]?.message?.content) {
-            try {
-              const jsonMatch = aiResult.choices[0].message.content.match(/\{[\s\S]*\}/);
-              const parsed = JSON.parse(jsonMatch ? jsonMatch[0] : aiResult.choices[0].message.content);
-              replies = parsed.replies || [];
-            } catch {
-              // Fall through to static fallback
             }
+          ],
+          temperature: 0.7,
+          max_tokens: 400,
+        }),
+      });
+
+      if (response.ok) {
+        const aiResult = await response.json();
+        if (aiResult.choices?.[0]?.message?.content) {
+          try {
+            const jsonMatch = aiResult.choices[0].message.content.match(/\{[\s\S]*\}/);
+            const parsed = JSON.parse(jsonMatch ? jsonMatch[0] : aiResult.choices[0].message.content);
+            replies = parsed.replies || [];
+          } catch {
+            // Fall through to static fallback
           }
         }
-      } catch (aiError) {
-        console.warn("[WhatsApp Smart Replies] AI call failed, using fallback:", aiError);
       }
+    } catch (aiError) {
+      console.warn("[WhatsApp Smart Replies] AI call failed, using fallback:", aiError);
     }
-
-    // Fallback smart replies if AI fails
-    if (replies.length === 0) {
-      replies = generateFallbackReplies(intent, sentiment, conversation.candidate_name);
-    }
-
-    return new Response(
-      JSON.stringify({
-        success: true,
-        replies,
-        context: {
-          intent,
-          sentiment,
-          candidateName: conversation.candidate_name,
-        },
-      }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Unknown error";
-    console.error("Error generating smart replies:", message);
-    return new Response(
-      JSON.stringify({ error: message }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
   }
-});
+
+  // Fallback smart replies if AI fails
+  if (replies.length === 0) {
+    replies = generateFallbackReplies(intent, sentiment, conversation.candidate_name);
+  }
+
+  return new Response(
+    JSON.stringify({
+      success: true,
+      replies,
+      context: {
+        intent,
+        sentiment,
+        candidateName: conversation.candidate_name,
+      },
+    }),
+    { headers: { ...ctx.corsHeaders, "Content-Type": "application/json" } }
+  );
+}));
 
 function generateFallbackReplies(
   intent: string,

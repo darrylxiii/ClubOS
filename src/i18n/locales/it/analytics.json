@@ -1,0 +1,145 @@
+{
+  "overview": {
+    "title": "Panoramica analytics",
+    "subtitle": "Monitorizzi le metriche chiave e le prestazioni"
+  },
+  "metrics": {
+    "totalUsers": "Utenti totali",
+    "activeUsers": "Utenti attivi",
+    "newUsers": "Nuovi utenti",
+    "retention": "Tasso di fidelizzazione",
+    "engagement": "Tasso di coinvolgimento",
+    "conversion": "Tasso di conversione",
+    "revenue": "Fatturato",
+    "growth": "Crescita"
+  },
+  "dashboard": {
+    "title": "Dashboard Analytics",
+    "filters": "Filtri",
+    "export": "Esporta dati",
+    "refresh": "Aggiorna",
+    "customize": "Personalizza dashboard",
+    "widgets": "Widget",
+    "addWidget": "Aggiungi widget"
+  },
+  "charts": {
+    "lineChart": "Grafico a linee",
+    "barChart": "Grafico a barre",
+    "pieChart": "Grafico a torta",
+    "areaChart": "Grafico ad area",
+    "funnelChart": "Grafico a imbuto",
+    "heatmap": "Mappa di calore",
+    "noData": "Nessun dato disponibile"
+  },
+  "periods": {
+    "today": "Oggi",
+    "yesterday": "Ieri",
+    "last7Days": "Ultimi 7 giorni",
+    "last30Days": "Ultimi 30 giorni",
+    "last90Days": "Ultimi 90 giorni",
+    "thisMonth": "Questo mese",
+    "lastMonth": "Mese scorso",
+    "thisQuarter": "Questo trimestre",
+    "thisYear": "Quest'anno",
+    "custom": "Personalizzato"
+  },
+  "hiring": {
+    "title": "Analytics assunzioni",
+    "timeToHire": "Tempo per l'assunzione",
+    "costPerHire": "Costo per assunzione",
+    "qualityOfHire": "Qualita dell'assunzione",
+    "sourcingEfficiency": "Efficienza di sourcing",
+    "diversityMetrics": "Metriche di diversita",
+    "offerAcceptanceRate": "Tasso di accettazione delle offerte"
+  },
+  "pipeline": {
+    "title": "Analytics pipeline",
+    "conversionRates": "Tassi di conversione",
+    "stageDistribution": "Distribuzione per fase",
+    "bottlenecks": "Colli di bottiglia",
+    "velocity": "Velocita della pipeline",
+    "dropOffRate": "Tasso di abbandono"
+  },
+  "engagement": {
+    "title": "Analytics coinvolgimento",
+    "emailOpenRate": "Tasso di apertura email",
+    "responseRate": "Tasso di risposta",
+    "meetingRate": "Tasso di riunioni",
+    "touchpoints": "Punti di contatto",
+    "satisfaction": "Soddisfazione"
+  },
+  "revenue": {
+    "title": "Analytics fatturato",
+    "totalRevenue": "Fatturato totale",
+    "recurringRevenue": "Fatturato ricorrente",
+    "avgDealSize": "Dimensione media dell'accordo",
+    "revenuePerClient": "Fatturato per cliente",
+    "forecast": "Previsione",
+    "growth": "Crescita"
+  },
+  "reports": {
+    "title": "Report",
+    "generate": "Genera report",
+    "schedule": "Pianifica report",
+    "export": "Esporta report",
+    "templates": "Modelli di report",
+    "custom": "Report personalizzato",
+    "saved": "Report salvati"
+  },
+  "insights": {
+    "title": "Approfondimenti",
+    "aiInsights": "Approfondimenti AI",
+    "trends": "Tendenze",
+    "recommendations": "Raccomandazioni",
+    "anomalies": "Anomalie",
+    "predictions": "Previsioni"
+  },
+  "comparison": {
+    "title": "Confronto",
+    "periodOverPeriod": "Confronto tra periodi",
+    "benchmark": "Benchmark",
+    "vsTarget": "Rispetto all'obiettivo",
+    "teamComparison": "Confronto team"
+  },
+  "export": {
+    "title": "Esporta",
+    "csv": "Esporta CSV",
+    "pdf": "Esporta PDF",
+    "excel": "Esporta Excel",
+    "image": "Esporta immagine"
+  },
+  "empty": {
+    "noData": "Ancora nessun dato analytics",
+    "collectingData": "Raccolta dati in corso...",
+    "checkBackSoon": "Torni a controllare presto"
+  },
+  "analyticsHome": {
+    "desc": "Le metriche aziendali compariranno una volta che le attivita inizieranno ad essere tracciate.",
+    "text2": "Analytics & Intelligence",
+    "text3": "Monitorizzi prestazioni, tendenze e approfondimenti alimentati dall'AI",
+    "text4": "Panoramica",
+    "text5": "Attivita",
+    "text6": "Predittivo",
+    "text7": "Report"
+  },
+  "analyticsOverview": {
+    "text1": "Ancora nessun dato",
+    "text2": "Panoramica rapida",
+    "text3": "Metriche chiave per il periodo selezionato",
+    "text4": "Candidati totali",
+    "text5": "Candidature attive",
+    "text6": "Colloqui",
+    "text7": "Assunzioni"
+  },
+  "analyticsPredictive": {
+    "text1": "ML Model",
+    "text2": "Rischio di abbandono",
+    "text3": "Coinvolgimento",
+    "text4": "Previsioni"
+  },
+  "analyticsReports": {
+    "text1": "Report esportazione",
+    "text2": "Report pianificati",
+    "text3": "Nessun report pianificato ancora configurato"
+  }
+}

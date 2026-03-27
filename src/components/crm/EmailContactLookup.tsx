@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,6 +19,7 @@ interface MatchedProspect {
 }
 
 export function EmailContactLookup() {
+  const { t } = useTranslation('common');
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [matches, setMatches] = useState<MatchedProspect[]>([]);
@@ -25,7 +27,7 @@ export function EmailContactLookup() {
 
   const handleSearch = async () => {
     if (!email.trim()) {
-      toast.error("Please enter an email address");
+      toast.error(t("please_enter_an_email", "Please enter an email address"));
       return;
     }
 
@@ -41,7 +43,7 @@ export function EmailContactLookup() {
       .limit(10);
 
     if (error) {
-      toast.error("Failed to search prospects");
+      toast.error(t("failed_to_search_prospects", "Failed to search prospects"));
       setLoading(false);
       return;
     }
@@ -50,7 +52,7 @@ export function EmailContactLookup() {
     setLoading(false);
 
     if (data?.length === 0) {
-      toast.info("No matching prospects found");
+      toast.info(t("no_matching_prospects_found", "No matching prospects found"));
     }
   };
 
@@ -74,12 +76,12 @@ export function EmailContactLookup() {
           <Mail className="h-5 w-5 text-primary" />
           Email Contact Lookup
         </CardTitle>
-        <CardDescription>Link emails from your inbox to CRM prospects</CardDescription>
+        <CardDescription>{t("link_emails_from_your", "Link emails from your inbox to CRM prospects")}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex gap-2">
           <Input
-            placeholder="Enter email address to search"
+            placeholder={t("enter_email_address_to", "Enter email address to search")}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSearch()}
@@ -122,7 +124,7 @@ export function EmailContactLookup() {
                         </div>
                         <div className="flex items-center gap-2">
                           <Badge className={getStageColor(prospect.stage)}>{prospect.stage}</Badge>
-                          <Button size="sm" variant="ghost" onClick={() => toast.success("Email linked")}>
+                          <Button size="sm" variant="ghost" onClick={() => toast.success(t("email_linked", "Email linked"))}>
                             <Link2 className="h-4 w-4" />
                           </Button>
                         </div>
@@ -133,7 +135,7 @@ export function EmailContactLookup() {
               ) : (
                 <div className="text-center py-8 text-muted-foreground">
                   <Mail className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                  <p>No matching prospects found</p>
+                  <p>{t("no_matching_prospects_found", "No matching prospects found")}</p>
                 </div>
               )}
             </motion.div>

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
@@ -26,6 +27,7 @@ interface AIModuleAssistantProps {
 }
 
 export function AIModuleAssistant({ moduleContext }: AIModuleAssistantProps) {
+  const { t } = useTranslation('common');
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -176,7 +178,7 @@ export function AIModuleAssistant({ moduleContext }: AIModuleAssistantProps) {
           <Bot className="h-5 w-5 text-primary" />
         </div>
         <div className="flex-1">
-          <h3 className="font-semibold">AI Learning Assistant</h3>
+          <h3 className="font-semibold">{t("ai_learning_assistant", "AI Learning Assistant")}</h3>
           <p className="text-xs text-muted-foreground">
             {!user ? 'Try 1 free demo question' : 'Ask anything about this module'}
           </p>
@@ -273,7 +275,7 @@ export function AIModuleAssistant({ moduleContext }: AIModuleAssistantProps) {
         <div className="absolute inset-0 bg-background/95 backdrop-blur-sm flex items-center justify-center p-4 rounded-lg z-10">
           <Card className="p-6 text-center max-w-sm">
             <Sparkles className="w-12 h-12 mx-auto mb-4 text-primary" />
-            <h3 className="text-xl font-semibold mb-2">Continue with AI Assistant</h3>
+            <h3 className="text-xl font-semibold mb-2">{t("continue_with_ai_assistant", "Continue with AI Assistant")}</h3>
             <p className="text-muted-foreground mb-4">
               Sign in to unlock unlimited AI conversations and full learning capabilities
             </p>

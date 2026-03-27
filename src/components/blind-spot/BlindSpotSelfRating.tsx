@@ -1,4 +1,5 @@
 import { memo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
@@ -13,6 +14,7 @@ interface BlindSpotSelfRatingProps {
 }
 
 export const BlindSpotSelfRating = memo(({ dimensions, session, onComplete }: BlindSpotSelfRatingProps) => {
+  const { t } = useTranslation('common');
   const [ratings, setRatings] = useState<{ [key: string]: SelfRating }>({});
 
   const handleRatingChange = (dimensionId: string, value: number) => {
@@ -60,16 +62,14 @@ export const BlindSpotSelfRating = memo(({ dimensions, session, onComplete }: Bl
     <div className="container mx-auto p-6 max-w-4xl space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Rate Yourself</CardTitle>
-          <p className="text-sm text-muted-foreground">
-            How would you rate your abilities in these areas? Be honest!
-          </p>
+          <CardTitle>{t('blindSpot.rateYourself')}</CardTitle>
+          <p className="text-sm text-muted-foreground">{t('blindSpot.howWouldYouRateYourAbilitiesInTheseAreas')}</p>
         </CardHeader>
         <CardContent>
           <div className="space-y-2 mb-4">
             <div className="flex justify-between text-sm">
-              <span>{Object.keys(ratings).length} of {dimensions.length} rated</span>
-              <span>{Math.round(progress)}% complete</span>
+              <span>{t('blindSpot.ratedOf', { count: Object.keys(ratings).length, total: dimensions.length })}</span>
+              <span>{t('blindSpot.percentComplete', { percent: Math.round(progress) })}</span>
             </div>
             <Progress value={progress} className="h-2" />
           </div>
@@ -95,7 +95,7 @@ export const BlindSpotSelfRating = memo(({ dimensions, session, onComplete }: Bl
 
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
-                      <span>Your Rating</span>
+                      <span>{t('blindSpot.yourRating')}</span>
                       <span className="font-bold">
                         {rating?.selfRating || 5}/10
                       </span>
@@ -109,14 +109,14 @@ export const BlindSpotSelfRating = memo(({ dimensions, session, onComplete }: Bl
                       className="w-full"
                     />
                     <div className="flex justify-between text-xs text-muted-foreground">
-                      <span>Beginner</span>
-                      <span>Expert</span>
+                      <span>{t('blindSpot.beginner')}</span>
+                      <span>{t('blindSpot.expert')}</span>
                     </div>
                   </div>
 
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
-                      <span>Confidence in Rating</span>
+                      <span>{t('blindSpot.confidenceInRating')}</span>
                       <span className="font-bold">
                         {rating?.confidence || 3}/5
                       </span>
@@ -130,8 +130,8 @@ export const BlindSpotSelfRating = memo(({ dimensions, session, onComplete }: Bl
                       className="w-full"
                     />
                     <div className="flex justify-between text-xs text-muted-foreground">
-                      <span>Unsure</span>
-                      <span>Very Sure</span>
+                      <span>{t('blindSpot.unsure')}</span>
+                      <span>{t('blindSpot.verySure')}</span>
                     </div>
                   </div>
                 </div>
@@ -146,9 +146,7 @@ export const BlindSpotSelfRating = memo(({ dimensions, session, onComplete }: Bl
         className="w-full" 
         size="lg"
         disabled={!isComplete}
-      >
-        Continue to Scenarios
-      </Button>
+      >{t('blindSpot.continueToScenarios')}</Button>
     </div>
   );
 });

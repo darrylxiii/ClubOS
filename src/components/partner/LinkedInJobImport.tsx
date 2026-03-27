@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Linkedin, Upload, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -18,6 +19,7 @@ interface LinkedInJobImportProps {
 }
 
 export function LinkedInJobImport({ companyId }: LinkedInJobImportProps) {
+  const { t } = useTranslation('common');
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -99,19 +101,14 @@ export function LinkedInJobImport({ companyId }: LinkedInJobImportProps) {
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Import Jobs from LinkedIn</DialogTitle>
-          <DialogDescription>
-            Connect your LinkedIn account to automatically import your company's job postings.
-          </DialogDescription>
+          <DialogTitle>{t("import_jobs_from_linkedin", "Import Jobs from LinkedIn")}</DialogTitle>
+          <DialogDescription>{t('linkedInJobImport.dialogDescription')}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
           <Alert>
             <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              This will import all active job postings from your LinkedIn company page. 
-              Make sure you have admin access to your company's LinkedIn page.
-            </AlertDescription>
+            <AlertDescription>{t('linkedInJobImport.alert.thisWillImportAllActiveJobPostingsFromYoDesc')}</AlertDescription>
           </Alert>
 
           {error && (
@@ -131,10 +128,7 @@ export function LinkedInJobImport({ companyId }: LinkedInJobImportProps) {
               {loading ? 'Connecting...' : 'Connect LinkedIn'}
             </Button>
 
-            <p className="text-xs text-muted-foreground text-center">
-              By connecting, you authorize The Quantum Club to access your company's 
-              job postings on LinkedIn.
-            </p>
+            <p className="text-xs text-muted-foreground text-center">{t('linkedInJobImport.byConnectingYouAuthorizeTheQuantumClubTo')}</p>
           </div>
         </div>
       </DialogContent>

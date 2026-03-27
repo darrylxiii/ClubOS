@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useMemo, useRef } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { cn } from "@/lib/utils";
@@ -43,6 +44,7 @@ export function WhatsAppConversationList({
   loading,
   sortBySla = false
 }: WhatsAppConversationListProps) {
+  const { t } = useTranslation('common');
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<FilterType>('all');
 
@@ -184,7 +186,7 @@ export function WhatsAppConversationList({
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
-            placeholder="Search conversations..."
+            placeholder={t("search_conversations", "Search conversations...")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-10 bg-background/50"
@@ -230,7 +232,7 @@ export function WhatsAppConversationList({
             <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-[#25d366]/20 to-[#128c7e]/20 flex items-center justify-center">
               <MessageSquare className="w-8 h-8 text-[#25d366]" />
             </div>
-            <p className="font-semibold text-foreground mb-1">No conversations yet</p>
+            <p className="font-semibold text-foreground mb-1">{t("no_conversations_yet", "No conversations yet")}</p>
             <p className="text-sm text-muted-foreground mb-4">
               {filter !== 'all' ? 'Try adjusting your filters' : 'Import chats or wait for incoming messages'}
             </p>
@@ -313,7 +315,7 @@ export function WhatsAppConversationList({
                     <div className="flex items-center gap-2 mt-0.5">
                       <p className="text-sm text-muted-foreground truncate flex-1">
                         {conversation.last_message_direction === 'outbound' && (
-                          <span className="text-muted-foreground/70">You: </span>
+                          <span className="text-muted-foreground/70">{t("you", "You:")}</span>
                         )}
                         {conversation.last_message_preview || 'No messages yet'}
                       </p>

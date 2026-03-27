@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -16,6 +17,7 @@ interface InvoiceGeneratorProps {
 }
 
 export function InvoiceGenerator({ fees, open, onOpenChange }: InvoiceGeneratorProps) {
+  const { t } = useTranslation('common');
   const [invoiceNumber, setInvoiceNumber] = useState(`TQC-${format(new Date(), 'yyyyMMdd')}-001`);
   const [paymentTerms, setPaymentTerms] = useState('30');
   const [isGenerating, setIsGenerating] = useState(false);
@@ -112,11 +114,11 @@ export function InvoiceGenerator({ fees, open, onOpenChange }: InvoiceGeneratorP
       doc.text(`Payment terms: ${paymentTerms} days net`, 20, 285);
 
       doc.save(`invoice-${invoiceNumber}.pdf`);
-      toast.success('Invoice PDF generated and downloaded.');
+      toast.success(t("invoice_pdf_generated_and", "Invoice PDF generated and downloaded."));
       onOpenChange(false);
     } catch (err) {
       console.error('PDF generation failed:', err);
-      toast.error('Failed to generate invoice PDF.');
+      toast.error(t("failed_to_generate_invoice", "Failed to generate invoice PDF."));
     } finally {
       setIsGenerating(false);
     }
@@ -137,17 +139,17 @@ export function InvoiceGenerator({ fees, open, onOpenChange }: InvoiceGeneratorP
 
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label>Invoice Number</Label>
+            <Label>{t("invoice_number", "Invoice Number")}</Label>
             <Input value={invoiceNumber} onChange={(e) => setInvoiceNumber(e.target.value)} />
           </div>
           <div className="space-y-2">
-            <Label>Payment Terms (days)</Label>
+            <Label>{t("payment_terms_days", "Payment Terms (days)")}</Label>
             <Input type="number" value={paymentTerms} onChange={(e) => setPaymentTerms(e.target.value)} />
           </div>
 
           <div className="border rounded-lg p-3 space-y-1 bg-muted/30">
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Subtotal</span>
+              <span className="text-muted-foreground">{t("subtotal", "Subtotal")}</span>
               <span>{formatCurrency(totalNet)}</span>
             </div>
             <div className="flex justify-between text-sm">
@@ -155,14 +157,14 @@ export function InvoiceGenerator({ fees, open, onOpenChange }: InvoiceGeneratorP
               <span>{formatCurrency(vatAmount)}</span>
             </div>
             <div className="flex justify-between font-bold pt-1 border-t">
-              <span>Total</span>
+              <span>{t("total", "Total")}</span>
               <span>{formatCurrency(totalGross)}</span>
             </div>
           </div>
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>{t("cancel", "Cancel")}</Button>
           <Button onClick={handleGenerate} disabled={isGenerating}>
             <Download className="h-4 w-4 mr-2" />
             {isGenerating ? 'Generating...' : 'Download PDF'}

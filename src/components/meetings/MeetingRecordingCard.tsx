@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -37,6 +38,7 @@ export function MeetingRecordingCard({
   onDownload,
   onRefresh
 }: MeetingRecordingCardProps) {
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
   const [isReanalyzing, setIsReanalyzing] = useState(false);
 
@@ -47,10 +49,10 @@ export function MeetingRecordingCard({
         body: { recordingId: recording.id, reanalyze: true }
       });
       if (error) throw error;
-      toast.success('Re-analysis started');
+      toast.success(t("reanalysis_started", "Re-analysis started"));
       onRefresh?.();
     } catch (err) {
-      toast.error('Failed to start re-analysis');
+      toast.error(t("failed_to_start_reanalysis", "Failed to start re-analysis"));
       console.error(err);
     } finally {
       setIsReanalyzing(false);
@@ -115,15 +117,15 @@ export function MeetingRecordingCard({
     const sourceType = recording.source_type as string;
     switch (sourceType) {
       case 'tqc_meeting':
-        return <Badge variant="secondary">TQC Meeting</Badge>;
+        return <Badge variant="secondary">{t("tqc_meeting", "TQC Meeting")}</Badge>;
       case 'live_hub':
-        return <Badge variant="secondary" className="bg-purple-500/10 text-purple-500">Live Hub</Badge>;
+        return <Badge variant="secondary" className="bg-purple-500/10 text-purple-500">{t("live_hub", "Live Hub")}</Badge>;
       case 'conversation_call':
-        return <Badge variant="secondary" className="bg-blue-500/10 text-blue-500">Call</Badge>;
+        return <Badge variant="secondary" className="bg-blue-500/10 text-blue-500">{t("call", "Call")}</Badge>;
       case 'fathom':
-        return <Badge variant="secondary" className="bg-amber-500/10 text-amber-500">Fathom</Badge>;
+        return <Badge variant="secondary" className="bg-amber-500/10 text-amber-500">{t("fathom", "Fathom")}</Badge>;
       case 'fireflies':
-        return <Badge variant="secondary" className="bg-green-500/10 text-green-500">Fireflies</Badge>;
+        return <Badge variant="secondary" className="bg-green-500/10 text-green-500">{t("fireflies", "Fireflies")}</Badge>;
       default:
         return null;
     }
@@ -205,13 +207,13 @@ export function MeetingRecordingCard({
               {hasTranscript && (
                 <div className="flex items-center gap-1 text-emerald-500">
                   <FileText className="h-3.5 w-3.5" />
-                  <span>Transcript</span>
+                  <span>{t("transcript", "Transcript")}</span>
                 </div>
               )}
               {hasAnalysis && (
                 <div className="flex items-center gap-1 text-purple-500">
                   <Sparkles className="h-3.5 w-3.5" />
-                  <span>AI Analysis</span>
+                  <span>{t("ai_analysis", "AI Analysis")}</span>
                 </div>
               )}
             </div>

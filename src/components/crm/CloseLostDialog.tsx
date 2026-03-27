@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -40,6 +41,7 @@ const LOST_REASONS = [
 ];
 
 export function CloseLostDialog({ open, onClose, prospect, onConfirm }: CloseLostDialogProps) {
+  const { t } = useTranslation('common');
   const [reasonCategory, setReasonCategory] = useState('');
   const [competitorName, setCompetitorName] = useState('');
   const [notes, setNotes] = useState('');
@@ -52,17 +54,17 @@ export function CloseLostDialog({ open, onClose, prospect, onConfirm }: CloseLos
 
   const handleConfirm = async () => {
     if (!reasonCategory) {
-      toast.error('Please select a reason for losing');
+      toast.error(t("please_select_a_reason", "Please select a reason for losing"));
       return;
     }
 
     if (requiresCompetitor && !competitorName.trim()) {
-      toast.error('Please enter the competitor name');
+      toast.error(t("please_enter_the_competitor", "Please enter the competitor name"));
       return;
     }
 
     if (scheduleFollowUp && !followUpDate) {
-      toast.error('Please select a follow-up date');
+      toast.error(t("please_select_a_followup", "Please select a follow-up date"));
       return;
     }
 
@@ -77,11 +79,11 @@ export function CloseLostDialog({ open, onClose, prospect, onConfirm }: CloseLos
         followUpDate: scheduleFollowUp ? followUpDate : undefined,
       });
       
-      toast.success('Prospect closed as lost');
+      toast.success(t("prospect_closed_as_lost", "Prospect closed as lost"));
       onClose();
     } catch (error) {
       console.error('Error closing deal:', error);
-      toast.error('Failed to close deal');
+      toast.error(t("failed_to_close_deal", "Failed to close deal"));
     } finally {
       setLoading(false);
     }
@@ -113,10 +115,10 @@ export function CloseLostDialog({ open, onClose, prospect, onConfirm }: CloseLos
           </div>
 
           <div className="space-y-2">
-            <Label>Why did we lose? *</Label>
+            <Label>{t("why_did_we_lose", "Why did we lose? *")}</Label>
             <Select value={reasonCategory} onValueChange={setReasonCategory}>
               <SelectTrigger className="bg-muted/20">
-                <SelectValue placeholder="Select primary reason" />
+                <SelectValue placeholder={t("select_primary_reason", "Select primary reason")} />
               </SelectTrigger>
               <SelectContent>
                 {LOST_REASONS.map((reason) => (
@@ -136,24 +138,24 @@ export function CloseLostDialog({ open, onClose, prospect, onConfirm }: CloseLos
               exit={{ opacity: 0, height: 0 }}
               className="space-y-2"
             >
-              <Label htmlFor="competitor">Competitor Name *</Label>
+              <Label htmlFor="competitor">{t("competitor_name", "Competitor Name *")}</Label>
               <Input
                 id="competitor"
                 value={competitorName}
                 onChange={(e) => setCompetitorName(e.target.value)}
-                placeholder="Enter competitor name"
+                placeholder={t("enter_competitor_name", "Enter competitor name")}
                 className="bg-muted/20"
               />
             </motion.div>
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="notes">What happened?</Label>
+            <Label htmlFor="notes">{t("what_happened", "What happened?")}</Label>
             <Textarea
               id="notes"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="Any details about why this didn't work out..."
+              placeholder={t("any_details_about_why", "Any details about why this didn't work out...")}
               className="bg-muted/20 min-h-[80px]"
             />
           </div>

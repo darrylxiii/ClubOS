@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { candidateProfileTokens } from "@/config/candidate-profile-tokens";
 import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useTranslation } from 'react-i18next';
 
 interface Experience {
   id: string;
@@ -114,6 +115,7 @@ function OrgLogo({ name, logoUrl, size = 'md' }: { name: string; logoUrl?: strin
 }
 
 export const ExperienceTimeline = ({ experiences, education, certifications }: Props) => {
+  const { t } = useTranslation('candidates');
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
 
   const toggleExpand = (id: string) => {
@@ -134,8 +136,8 @@ export const ExperienceTimeline = ({ experiences, education, certifications }: P
         <Card className={candidateProfileTokens.glass.card}>
           <CardContent className="py-8 text-center">
             <Briefcase className="w-10 h-10 mx-auto mb-3 text-muted-foreground/40" />
-            <p className="text-sm font-medium text-muted-foreground">No work experience recorded</p>
-            <p className="text-xs text-muted-foreground/60 mt-1">Sync from LinkedIn or add manually</p>
+            <p className="text-sm font-medium text-muted-foreground">{"No work experience recorded"}</p>
+            <p className="text-xs text-muted-foreground/60 mt-1">{"Sync from LinkedIn or add manually"}</p>
           </CardContent>
         </Card>
       )}
@@ -145,8 +147,8 @@ export const ExperienceTimeline = ({ experiences, education, certifications }: P
         <Card className={candidateProfileTokens.glass.card}>
           <CardContent className="py-8 text-center">
             <GraduationCap className="w-10 h-10 mx-auto mb-3 text-muted-foreground/40" />
-            <p className="text-sm font-medium text-muted-foreground">No education recorded</p>
-            <p className="text-xs text-muted-foreground/60 mt-1">Sync from LinkedIn or add manually</p>
+            <p className="text-sm font-medium text-muted-foreground">{"No education recorded"}</p>
+            <p className="text-xs text-muted-foreground/60 mt-1">{"Sync from LinkedIn or add manually"}</p>
           </CardContent>
         </Card>
       )}
@@ -189,7 +191,7 @@ export const ExperienceTimeline = ({ experiences, education, certifications }: P
                           )}
                         </div>
                         {group.isCurrent && (
-                          <Badge className={candidateProfileTokens.badges.success}>Current</Badge>
+                          <Badge className={candidateProfileTokens.badges.success}>{"Current"}</Badge>
                         )}
                       </div>
 
@@ -361,7 +363,7 @@ function SingleRoleCard({
               <p className="text-sm text-muted-foreground">{exp.company}</p>
             </div>
             {exp.current && (
-              <Badge className={candidateProfileTokens.badges.success}>Current</Badge>
+              <Badge className={candidateProfileTokens.badges.success}>{"Current"}</Badge>
             )}
           </div>
 

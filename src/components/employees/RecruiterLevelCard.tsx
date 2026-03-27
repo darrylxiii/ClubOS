@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Flame, Trophy } from 'lucide-react';
@@ -21,6 +22,7 @@ export function RecruiterLevelCard({
   currentStreak,
   isLoading,
 }: RecruiterLevelCardProps) {
+  const { t } = useTranslation('common');
   if (isLoading) {
     return (
       <Card>
@@ -60,7 +62,7 @@ export function RecruiterLevelCard({
 
         <div className="space-y-2">
           <div className="flex justify-between text-xs text-muted-foreground">
-            <span>Progress to next level</span>
+            <span>{t("progress_to_next_level", "Progress to next level")}</span>
             <span>{xpToNextLevel.toLocaleString()} XP to go</span>
           </div>
           <Progress value={levelProgress} className="h-2" />

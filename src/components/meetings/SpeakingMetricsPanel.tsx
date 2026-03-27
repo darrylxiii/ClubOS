@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
@@ -23,6 +24,7 @@ interface SpeakingMetricsPanelProps {
 }
 
 export function SpeakingMetricsPanel({ metrics, participants }: SpeakingMetricsPanelProps) {
+  const { t } = useTranslation('common');
   if (!metrics) {
     return (
       <Card>
@@ -62,7 +64,7 @@ export function SpeakingMetricsPanel({ metrics, participants }: SpeakingMetricsP
           <CardContent className="pt-4">
             <div className="flex items-center gap-2 text-muted-foreground mb-1">
               <Clock className="h-4 w-4" />
-              <span className="text-xs">Duration</span>
+              <span className="text-xs">{t("duration", "Duration")}</span>
             </div>
             <p className="text-2xl font-bold">
               {formatDuration(metrics.totalDurationSeconds)}
@@ -74,7 +76,7 @@ export function SpeakingMetricsPanel({ metrics, participants }: SpeakingMetricsP
           <CardContent className="pt-4">
             <div className="flex items-center gap-2 text-muted-foreground mb-1">
               <Mic className="h-4 w-4" />
-              <span className="text-xs">Active Speaking</span>
+              <span className="text-xs">{t("active_speaking", "Active Speaking")}</span>
             </div>
             <p className="text-2xl font-bold">
               {Math.round((1 - metrics.silencePercentage / 100) * 100)}%
@@ -86,7 +88,7 @@ export function SpeakingMetricsPanel({ metrics, participants }: SpeakingMetricsP
           <CardContent className="pt-4">
             <div className="flex items-center gap-2 text-muted-foreground mb-1">
               <MessageSquare className="h-4 w-4" />
-              <span className="text-xs">Questions Asked</span>
+              <span className="text-xs">{t("questions_asked", "Questions Asked")}</span>
             </div>
             <p className="text-2xl font-bold">
               {Object.values(metrics.questionsAsked).reduce((a, b) => a + b, 0)}
@@ -98,7 +100,7 @@ export function SpeakingMetricsPanel({ metrics, participants }: SpeakingMetricsP
           <CardContent className="pt-4">
             <div className="flex items-center gap-2 text-muted-foreground mb-1">
               <AlertTriangle className="h-4 w-4" />
-              <span className="text-xs">Interruptions</span>
+              <span className="text-xs">{t("interruptions", "Interruptions")}</span>
             </div>
             <p className="text-2xl font-bold">
               {Object.values(metrics.interruptionCount).reduce((a, b) => a + b, 0)}
@@ -184,15 +186,15 @@ export function SpeakingMetricsPanel({ metrics, participants }: SpeakingMetricsP
                 <p className="font-medium mb-3">{getParticipantName(speakerId)}</p>
                 <div className="grid grid-cols-3 gap-4 text-sm">
                   <div>
-                    <p className="text-muted-foreground text-xs">Questions</p>
+                    <p className="text-muted-foreground text-xs">{t("questions", "Questions")}</p>
                     <p className="font-semibold">{metrics.questionsAsked[speakerId] || 0}</p>
                   </div>
                   <div>
-                    <p className="text-muted-foreground text-xs">Interruptions</p>
+                    <p className="text-muted-foreground text-xs">{t("interruptions", "Interruptions")}</p>
                     <p className="font-semibold">{metrics.interruptionCount[speakerId] || 0}</p>
                   </div>
                   <div>
-                    <p className="text-muted-foreground text-xs">Avg Response</p>
+                    <p className="text-muted-foreground text-xs">{t("avg_response", "Avg Response")}</p>
                     <p className="font-semibold">
                       {metrics.averageResponseTimeMs[speakerId] 
                         ? `${Math.round(metrics.averageResponseTimeMs[speakerId] / 1000)}s`
@@ -213,12 +215,12 @@ export function SpeakingMetricsPanel({ metrics, participants }: SpeakingMetricsP
             <div className="flex items-start gap-3">
               <Zap className="h-5 w-5 text-yellow-500 mt-0.5" />
               <div>
-                <p className="font-medium">Long Monologue Detected</p>
+                <p className="font-medium">{t("long_monologue_detected", "Long Monologue Detected")}</p>
                 <p className="text-sm text-muted-foreground">
                   {getParticipantName(metrics.longestMonologue.speaker)} spoke for{' '}
                   {formatDuration(metrics.longestMonologue.durationSeconds)} uninterrupted.
                   {metrics.longestMonologue.durationSeconds > 180 && (
-                    <span className="text-yellow-600"> Consider more interactive dialogue.</span>
+                    <span className="text-yellow-600">{t("consider_more_interactive_dialogue", "Consider more interactive dialogue.")}</span>
                   )}
                 </p>
               </div>

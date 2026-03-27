@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card } from '@/components/ui/card';
@@ -31,6 +32,7 @@ interface CompanyPost {
 }
 
 export function CompanyLatestActivity({ companyId, isCompanyMember }: CompanyLatestActivityProps) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [posts, setPosts] = useState<CompanyPost[]>([]);
   const [loading, setLoading] = useState(true);
@@ -92,7 +94,7 @@ export function CompanyLatestActivity({ companyId, isCompanyMember }: CompanyLat
 
   const handleLike = async (postId: string, currentlyLiked: boolean) => {
     if (!user) {
-      toast.error('Please sign in to like posts');
+      toast.error(t("please_sign_in_to", "Please sign in to like posts"));
       return;
     }
 
@@ -112,7 +114,7 @@ export function CompanyLatestActivity({ companyId, isCompanyMember }: CompanyLat
       fetchPosts();
     } catch (error) {
       console.error('Error toggling like:', error);
-      toast.error('Failed to update like');
+      toast.error(t("failed_to_update_like", "Failed to update like"));
     }
   };
 
@@ -120,16 +122,16 @@ export function CompanyLatestActivity({ companyId, isCompanyMember }: CompanyLat
     <>
       <Tabs defaultValue="posts" className="w-full">
         <TabsList className="w-full">
-          <TabsTrigger value="posts" className="flex-1">Posts</TabsTrigger>
-          <TabsTrigger value="stories" className="flex-1">Stories</TabsTrigger>
-          <TabsTrigger value="activity" className="flex-1">Activity</TabsTrigger>
+          <TabsTrigger value="posts" className="flex-1">{t("posts", "Posts")}</TabsTrigger>
+          <TabsTrigger value="stories" className="flex-1">{t("stories", "Stories")}</TabsTrigger>
+          <TabsTrigger value="activity" className="flex-1">{t("activity", "Activity")}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="posts" className="space-y-4">
           {loading ? (
-            <div className="text-center py-8 text-muted-foreground">Loading posts...</div>
+            <div className="text-center py-8 text-muted-foreground">{t("loading_posts", "Loading posts...")}</div>
           ) : posts.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">No posts yet</div>
+            <div className="text-center py-8 text-muted-foreground">{t("no_posts_yet", "No posts yet")}</div>
           ) : (
             posts.map((post) => (
               <Card key={post.id} className="p-6 space-y-4">
@@ -182,7 +184,7 @@ export function CompanyLatestActivity({ companyId, isCompanyMember }: CompanyLat
 
         <TabsContent value="activity">
           <Card className="p-6">
-            <h3 className="font-semibold mb-4">Recent Activity</h3>
+            <h3 className="font-semibold mb-4">{t("recent_activity", "Recent Activity")}</h3>
             <div className="space-y-3 text-sm">
               <div className="flex items-center gap-2 text-muted-foreground">
                 <Clock className="h-4 w-4" />

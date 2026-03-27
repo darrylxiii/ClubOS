@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -25,6 +26,7 @@ const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
 
 export function SendTimeHeatmap() {
+  const { t } = useTranslation('common');
   const queryClient = useQueryClient();
   const [metric, setMetric] = useState<'open_rate' | 'reply_rate'>('reply_rate');
   const [calculating, setCalculating] = useState(false);
@@ -103,8 +105,8 @@ export function SendTimeHeatmap() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="reply_rate">Reply Rate</SelectItem>
-                <SelectItem value="open_rate">Open Rate</SelectItem>
+                <SelectItem value="reply_rate">{t("reply_rate", "Reply Rate")}</SelectItem>
+                <SelectItem value="open_rate">{t("open_rate", "Open Rate")}</SelectItem>
               </SelectContent>
             </Select>
             <Button 
@@ -168,7 +170,7 @@ export function SendTimeHeatmap() {
 
                 {/* Legend */}
                 <div className="flex items-center justify-center gap-2 mt-4">
-                  <span className="text-xs text-muted-foreground">Low</span>
+                  <span className="text-xs text-muted-foreground">{t("low", "Low")}</span>
                   <div className="flex gap-0.5">
                     <div className="w-4 h-4 rounded-sm bg-red-400/50" />
                     <div className="w-4 h-4 rounded-sm bg-orange-400" />
@@ -176,7 +178,7 @@ export function SendTimeHeatmap() {
                     <div className="w-4 h-4 rounded-sm bg-green-400" />
                     <div className="w-4 h-4 rounded-sm bg-green-500" />
                   </div>
-                  <span className="text-xs text-muted-foreground">High</span>
+                  <span className="text-xs text-muted-foreground">{t("high", "High")}</span>
                 </div>
               </div>
             </div>

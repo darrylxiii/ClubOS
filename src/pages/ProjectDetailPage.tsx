@@ -1,4 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
+import { useTranslation } from 'react-i18next';
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -27,6 +28,7 @@ import { formatDistanceToNow } from "date-fns";
 import { ProjectCard } from "@/components/projects/ProjectCard";
 
 export default function ProjectDetailPage() {
+  const { t } = useTranslation('common');
   const { projectId } = useParams();
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -181,10 +183,8 @@ export default function ProjectDetailPage() {
         <Card>
           <CardContent className="py-12 text-center">
             <AlertCircle className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-            <h2 className="text-2xl font-bold mb-2">Project Not Found</h2>
-            <p className="text-muted-foreground mb-6">
-              This project may have been removed or is no longer available.
-            </p>
+            <h2 className="text-2xl font-bold mb-2">{t('projectDetailPage.text2')}</h2>
+            <p className="text-muted-foreground mb-6">{t('projectDetailPage.desc')}</p>
             <Button onClick={() => navigate("/projects")}>
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Projects
@@ -248,7 +248,7 @@ export default function ProjectDetailPage() {
                 <div className="flex items-center gap-2">
                   <DollarSign className="h-5 w-5 text-muted-foreground" />
                   <div>
-                    <p className="text-sm text-muted-foreground">Budget</p>
+                    <p className="text-sm text-muted-foreground">{t('projectDetailPage.text3')}</p>
                     <p className="font-semibold">
                       €{project.budget_min?.toLocaleString()} - €{project.budget_max?.toLocaleString()}
                     </p>
@@ -258,7 +258,7 @@ export default function ProjectDetailPage() {
                 <div className="flex items-center gap-2">
                   <Clock className="h-5 w-5 text-muted-foreground" />
                   <div>
-                    <p className="text-sm text-muted-foreground">Duration</p>
+                    <p className="text-sm text-muted-foreground">{t('projectDetailPage.text4')}</p>
                     <p className="font-semibold">
                       {project.timeline_weeks ? `${project.timeline_weeks} weeks` : "Flexible"}
                     </p>
@@ -268,7 +268,7 @@ export default function ProjectDetailPage() {
                 <div className="flex items-center gap-2">
                   <Briefcase className="h-5 w-5 text-muted-foreground" />
                   <div>
-                    <p className="text-sm text-muted-foreground">Type</p>
+                    <p className="text-sm text-muted-foreground">{t('projectDetailPage.text5')}</p>
                     <p className="font-semibold capitalize">{project.engagement_type}</p>
                   </div>
                 </div>
@@ -276,7 +276,7 @@ export default function ProjectDetailPage() {
                 <div className="flex items-center gap-2">
                   <MapPin className="h-5 w-5 text-muted-foreground" />
                   <div>
-                    <p className="text-sm text-muted-foreground">Location</p>
+                    <p className="text-sm text-muted-foreground">{t('projectDetailPage.text6')}</p>
                     <p className="font-semibold capitalize">{project.remote_policy}</p>
                   </div>
                 </div>
@@ -287,7 +287,7 @@ export default function ProjectDetailPage() {
           {/* Project Description */}
           <Card>
             <CardHeader>
-              <CardTitle>Project Description</CardTitle>
+              <CardTitle>{t('projectDetailPage.text7')}</CardTitle>
             </CardHeader>
             <CardContent className="prose prose-sm max-w-none">
               <p className="text-muted-foreground whitespace-pre-wrap">
@@ -299,12 +299,12 @@ export default function ProjectDetailPage() {
           {/* Requirements */}
           <Card>
             <CardHeader>
-              <CardTitle>Requirements & Skills</CardTitle>
+              <CardTitle>{t('projectDetailPage.text8')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {project.required_skills && project.required_skills.length > 0 && (
                 <div>
-                  <h4 className="font-medium mb-3">Required Skills</h4>
+                  <h4 className="font-medium mb-3">{t('projectDetailPage.text9')}</h4>
                   <div className="flex flex-wrap gap-2">
                     {project.required_skills.map((skill: string) => (
                       <Badge key={skill} variant="default">
@@ -317,7 +317,7 @@ export default function ProjectDetailPage() {
 
               {project.preferred_skills && project.preferred_skills.length > 0 && (
                 <div>
-                  <h4 className="font-medium mb-3">Nice to Have</h4>
+                  <h4 className="font-medium mb-3">{t('projectDetailPage.text10')}</h4>
                   <div className="flex flex-wrap gap-2">
                     {project.preferred_skills.map((skill: string) => (
                       <Badge key={skill} variant="outline">
@@ -330,7 +330,7 @@ export default function ProjectDetailPage() {
 
               {project.experience_level && (
                 <div>
-                  <h4 className="font-medium mb-2">Experience Level</h4>
+                  <h4 className="font-medium mb-2">{t('projectDetailPage.text11')}</h4>
                   <Badge variant="secondary" className="capitalize">
                     {project.experience_level}
                   </Badge>
@@ -371,7 +371,7 @@ export default function ProjectDetailPage() {
           {/* Similar Projects */}
           {similarProjects && similarProjects.length > 0 && (
             <div>
-              <h3 className="text-xl font-semibold mb-4">Similar Projects</h3>
+              <h3 className="text-xl font-semibold mb-4">{t('projectDetailPage.text12')}</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {similarProjects.slice(0, 2).map((similarProject: any) => (
                   <ProjectCard 
@@ -391,7 +391,7 @@ export default function ProjectDetailPage() {
           {isFreelancer && (
             <Card className="sticky top-6">
               <CardHeader>
-                <CardTitle>Ready to Apply?</CardTitle>
+                <CardTitle>{t('projectDetailPage.text13')}</CardTitle>
                 <CardDescription>
                   Submit your proposal and stand out with Club AI
                 </CardDescription>
@@ -410,7 +410,7 @@ export default function ProjectDetailPage() {
                   <div className="flex items-start gap-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                     <AlertCircle className="h-4 w-4 text-yellow-600 mt-0.5 flex-shrink-0" />
                     <div className="text-xs">
-                      <p className="font-medium text-yellow-900 mb-1">Lower Match Score</p>
+                      <p className="font-medium text-yellow-900 mb-1">{t('projectDetailPage.text14')}</p>
                       <p className="text-yellow-700">
                         Your profile has a {matchBreakdown.total}% match. Consider highlighting relevant experience in your proposal.
                       </p>

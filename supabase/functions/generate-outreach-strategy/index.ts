@@ -1,40 +1,27 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { createHandler } from '../_shared/handler.ts';
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+Deno.serve(createHandler(async (req, ctx) => {
+    const googleApiKey = Deno.env.get('GOOGLE_API_KEY');
 
-Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
-    const { 
-      industry, 
-      target_persona, 
-      company_size, 
+    const {
+      industry,
+      target_persona,
+      company_size,
       goal,
-      existing_campaigns 
+      existing_campaigns
     } = await req.json();
 
-    if (!lovableApiKey) {
+    if (!googleApiKey) {
       return new Response(JSON.stringify({ error: 'AI API key not configured' }), {
         status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
     // --- 2h TTL CACHE GUARD ---
     const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
     const cacheKey = `outreach_strategy_${industry || 'default'}_${target_persona || 'default'}`;
-    const { data: cached } = await supabase
+    const { data: cached } = await ctx.supabase
       .from('ai_generated_content')
       .select('generated_content, created_at')
       .eq('content_type', cacheKey)
@@ -45,26 +32,26 @@ Deno.serve(async (req) => {
     if (cached) {
       console.log('[outreach-strategy] Cache HIT from', cached.created_at);
       return new Response(cached.generated_content, {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
     // Get performance benchmarks
-    const { data: benchmarks } = await supabase
+    const { data: benchmarks } = await ctx.supabase
       .from('crm_campaign_benchmarks')
       .select('*')
       .ilike('industry', `%${industry || 'Technology'}%`)
       .limit(1);
 
     // Get top performing campaigns for context
-    const { data: topCampaigns } = await supabase
+    const { data: topCampaigns } = await ctx.supabase
       .from('crm_campaigns')
       .select('*, crm_email_replies(count)')
       .order('total_replied', { ascending: false })
       .limit(3);
 
     // Get proven outreach learnings from the ML loop
-    const { data: outreachLearnings } = await supabase
+    const { data: outreachLearnings } = await ctx.supabase
       .from('crm_outreach_learnings')
       .select('learning_type, pattern, evidence, confidence_score, performance_lift')
       .eq('is_active', true)
@@ -131,14 +118,14 @@ Respond with a JSON object:
   "key_recommendations": ["string"]
 }`;
 
-    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    const aiResponse = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${lovableApiKey}`,
+        'Authorization': `Bearer ${googleApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash-lite',
+        model: 'gemini-2.5-flash-lite',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: `Create an outreach strategy for ${industry || 'technology companies'} targeting ${target_persona || 'decision makers'}. Goal: ${goal || 'book meetings'}.` },
@@ -169,20 +156,12 @@ Respond with a JSON object:
     const resultJson = JSON.stringify({ success: true, strategy });
 
     // Cache result for 2 hours
-    await supabase.from('ai_generated_content').insert({ content_type: cacheKey, generated_content: resultJson, prompt: 'outreach_strategy_auto' }).then(({ error: e }) => { if (e) console.warn('Cache write failed:', e.message); });
+    await ctx.supabase.from('ai_generated_content').insert({ content_type: cacheKey, generated_content: resultJson, prompt: 'outreach_strategy_auto' }).then(({ error: e }) => { if (e) console.warn('Cache write failed:', e.message); });
 
     return new Response(resultJson, {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' },
     });
-  } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    console.error('Outreach strategy generation error:', error);
-    return new Response(JSON.stringify({ error: errorMessage }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-  }
-});
+}));
 
 function generateFallbackStrategy(industry?: string, target?: string) {
   return {
@@ -193,7 +172,7 @@ function generateFallbackStrategy(industry?: string, target?: string) {
         step: 1,
         delay_days: 0,
         subject_template: "Quick question about {{company}}'s {{department}}",
-        body_framework: "Hook → Pain Point → Soft CTA",
+        body_framework: "Hook -> Pain Point -> Soft CTA",
         personalization_tokens: ["first_name", "company", "industry"],
         purpose: "Initial contact - establish relevance"
       },
@@ -201,7 +180,7 @@ function generateFallbackStrategy(industry?: string, target?: string) {
         step: 2,
         delay_days: 3,
         subject_template: "Re: {{company}} + The Quantum Club",
-        body_framework: "Reference → Value Add → Question",
+        body_framework: "Reference -> Value Add -> Question",
         personalization_tokens: ["first_name", "pain_point"],
         purpose: "Follow-up with value"
       },
@@ -209,7 +188,7 @@ function generateFallbackStrategy(industry?: string, target?: string) {
         step: 3,
         delay_days: 4,
         subject_template: "Thought you'd find this relevant",
-        body_framework: "Case Study → Similar Result → Interest Check",
+        body_framework: "Case Study -> Similar Result -> Interest Check",
         personalization_tokens: ["industry", "competitor_insight"],
         purpose: "Social proof"
       },
@@ -217,7 +196,7 @@ function generateFallbackStrategy(industry?: string, target?: string) {
         step: 4,
         delay_days: 5,
         subject_template: "One more thing, {{first_name}}",
-        body_framework: "New Angle → Quick Win → Easy CTA",
+        body_framework: "New Angle -> Quick Win -> Easy CTA",
         personalization_tokens: ["first_name", "recent_news"],
         purpose: "Different approach"
       },
@@ -225,7 +204,7 @@ function generateFallbackStrategy(industry?: string, target?: string) {
         step: 5,
         delay_days: 7,
         subject_template: "Closing the loop",
-        body_framework: "Last Touch → Summary → Future Option",
+        body_framework: "Last Touch -> Summary -> Future Option",
         personalization_tokens: ["first_name"],
         purpose: "Breakup email"
       }

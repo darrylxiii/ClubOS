@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -21,6 +22,7 @@ const TRACKER_STEPS = [
 ];
 
 export function CandidateApplicationTracker() {
+  const { t } = useTranslation('common');
   const [strategist, setStrategist] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -71,7 +73,7 @@ export function CandidateApplicationTracker() {
 
       {!loading && strategist && (
         <Card className="p-6 glass-effect border-primary/20">
-          <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-4">Your Talent Strategist</div>
+          <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-4">{t("your_talent_strategist", "Your Talent Strategist")}</div>
           <div className="flex items-start gap-4">
             <Avatar className="w-16 h-16 border-2 border-primary/20">
               <AvatarImage src={strategist.avatar_url || undefined} />
@@ -81,10 +83,10 @@ export function CandidateApplicationTracker() {
             </Avatar>
             <div className="flex-1">
               <h4 className="font-semibold text-lg">{strategist.full_name}</h4>
-              <p className="text-sm text-muted-foreground mb-3">Talent Strategist</p>
+              <p className="text-sm text-muted-foreground mb-3">{t("talent_strategist", "Talent Strategist")}</p>
               <div className="flex items-center gap-2 text-sm">
                 <Clock className="w-4 h-4 text-primary" />
-                <span className="text-muted-foreground">Avg. response time: <span className="font-semibold text-foreground">19 minutes</span></span>
+                <span className="text-muted-foreground">Avg. response time: <span className="font-semibold text-foreground">{t("19_minutes", "19 minutes")}</span></span>
               </div>
             </div>
           </div>
@@ -94,7 +96,7 @@ export function CandidateApplicationTracker() {
       <Card className="p-6 glass-effect border-primary/20">
         <div className="flex items-center gap-4 mb-4">
           <div className="flex-1">
-            <h3 className="text-lg font-semibold mb-2">Membership Journey</h3>
+            <h3 className="text-lg font-semibold mb-2">{t("membership_journey", "Membership Journey")}</h3>
             <p className="text-sm text-muted-foreground">Step {completedSteps + 1} of {TRACKER_STEPS.length}</p>
           </div>
           <Badge variant="secondary" className="text-lg px-4 py-2">{Math.round(progress)}%</Badge>
@@ -103,7 +105,7 @@ export function CandidateApplicationTracker() {
       </Card>
 
       <Card className="p-6 glass-effect">
-        <h3 className="text-lg font-semibold mb-6">Next Steps</h3>
+        <h3 className="text-lg font-semibold mb-6">{t("next_steps", "Next Steps")}</h3>
         <div className="space-y-6">
           {TRACKER_STEPS.map((step, index) => (
             <div key={step.id} className="flex gap-4">
@@ -128,7 +130,7 @@ export function CandidateApplicationTracker() {
               <div className="flex-1 pb-4">
                 <div className="flex items-center gap-2 mb-1">
                   <h4 className="font-semibold">{step.name}</h4>
-                  {step.status === "in_progress" && <Badge variant="outline" className="text-xs">In Progress</Badge>}
+                  {step.status === "in_progress" && <Badge variant="outline" className="text-xs">{t("in_progress", "In Progress")}</Badge>}
                 </div>
                 <p className="text-sm text-muted-foreground">{step.description}</p>
               </div>

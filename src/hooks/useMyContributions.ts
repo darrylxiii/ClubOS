@@ -154,8 +154,8 @@ export const useMyContributions = (year?: number) => {
       // Process contributions
       const contributions: PersonalContribution[] = (contributionsResult.data || []).map(c => ({
         milestoneId: c.milestone_id,
-        milestoneName: (c.revenue_milestones as any)?.display_name || 'Unknown',
-        milestoneStatus: (c.revenue_milestones as any)?.status || 'unknown',
+        milestoneName: (c.revenue_milestones as { display_name?: string; status?: string } | null)?.display_name || 'Unknown',
+        milestoneStatus: (c.revenue_milestones as { display_name?: string; status?: string } | null)?.status || 'unknown',
         revenueAttributed: c.revenue_attributed || 0,
         contributionType: c.contribution_type,
         contributionRole: c.contribution_role || 'owner',
@@ -165,12 +165,12 @@ export const useMyContributions = (year?: number) => {
 
       // Commission earned (paid only)
       const commissionEarned = (commissionsResult.data || [])
-        .filter((c: any) => c.status === 'paid')
+        .filter((c) => c.status === 'paid')
         .reduce((sum: number, c: any) => sum + (Number(c.net_amount) || 0), 0);
 
       // Projected commission (pending)
       const projectedCommission = (commissionsResult.data || [])
-        .filter((c: any) => c.status === 'pending')
+        .filter((c) => c.status === 'pending')
         .reduce((sum: number, c: any) => sum + (Number(c.net_amount) || 0), 0);
 
       // Referral earnings

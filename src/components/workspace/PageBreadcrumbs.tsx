@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { WorkspacePage } from '@/hooks/useWorkspacePages';
 import { ChevronRight, Home } from 'lucide-react';
@@ -11,6 +12,7 @@ interface PageBreadcrumbsProps {
 }
 
 export function PageBreadcrumbs({ page, pages, className }: PageBreadcrumbsProps) {
+  const { t } = useTranslation('common');
   // Build breadcrumb trail by traversing up parent_page_id
   const breadcrumbs = useMemo(() => {
     const trail: WorkspacePage[] = [];
@@ -52,7 +54,7 @@ export function PageBreadcrumbs({ page, pages, className }: PageBreadcrumbsProps
             {isLast ? (
               <span className="flex items-center gap-1 font-medium truncate max-w-[200px]">
                 <span className="text-sm">{crumb.icon_emoji || '📄'}</span>
-                <span>{crumb.title || 'Untitled'}</span>
+                <span>{crumb.title || t('workspace.untitled', 'Untitled')}</span>
               </span>
             ) : (
               <Link
@@ -60,7 +62,7 @@ export function PageBreadcrumbs({ page, pages, className }: PageBreadcrumbsProps
                 className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors truncate max-w-[150px]"
               >
                 <span className="text-sm">{crumb.icon_emoji || '📄'}</span>
-                <span>{crumb.title || 'Untitled'}</span>
+                <span>{crumb.title || t('workspace.untitled', 'Untitled')}</span>
               </Link>
             )}
           </div>

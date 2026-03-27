@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { AdminTableSkeleton } from "@/components/LoadingSkeletons";
 import { useQuery } from "@tanstack/react-query";
@@ -27,6 +28,7 @@ const CLOSURE_TYPE_CONFIG = {
 };
 
 export default function ClosedJobs({ embedded = false }: { embedded?: boolean }) {
+  const { t } = useTranslation('common');
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState<string>("all");
   const [selectedClosure, setSelectedClosure] = useState<any>(null);
@@ -99,7 +101,7 @@ export default function ClosedJobs({ embedded = false }: { embedded?: boolean })
   };
 
   const renderStars = (rating: number | null) => {
-    if (!rating) return <span className="text-muted-foreground text-sm">Not rated</span>;
+    if (!rating) return <span className="text-muted-foreground text-sm">{t("not_rated", "Not rated")}</span>;
     return (
       <div className="flex gap-0.5">
         {[...Array(5)].map((_, i) => (
@@ -123,8 +125,8 @@ export default function ClosedJobs({ embedded = false }: { embedded?: boolean })
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold">Closed Jobs Archive</h1>
-            <p className="text-muted-foreground">Review past placements and learn from outcomes</p>
+            <h1 className="text-3xl font-bold">{t("closed_jobs_archive", "Closed Jobs Archive")}</h1>
+            <p className="text-muted-foreground">{t("review_past_placements_and", "Review past placements and learn from outcomes")}</p>
           </div>
           <Button variant="outline" className="w-fit">
             <Download className="w-4 h-4 mr-2" />
@@ -142,7 +144,7 @@ export default function ClosedJobs({ embedded = false }: { embedded?: boolean })
                 </div>
                 <div>
                   <p className="text-2xl font-bold">{stats.total}</p>
-                  <p className="text-sm text-muted-foreground">Total Closed</p>
+                  <p className="text-sm text-muted-foreground">{t("total_closed", "Total Closed")}</p>
                 </div>
               </div>
             </CardContent>
@@ -155,7 +157,7 @@ export default function ClosedJobs({ embedded = false }: { embedded?: boolean })
                 </div>
                 <div>
                   <p className="text-2xl font-bold">{successRate}%</p>
-                  <p className="text-sm text-muted-foreground">Success Rate</p>
+                  <p className="text-sm text-muted-foreground">{t("success_rate", "Success Rate")}</p>
                 </div>
               </div>
             </CardContent>
@@ -168,7 +170,7 @@ export default function ClosedJobs({ embedded = false }: { embedded?: boolean })
                 </div>
                 <div>
                   <p className="text-2xl font-bold">{Math.round(stats.avgTimeToFill)}</p>
-                  <p className="text-sm text-muted-foreground">Avg Days to Fill</p>
+                  <p className="text-sm text-muted-foreground">{t("avg_days_to_fill", "Avg Days to Fill")}</p>
                 </div>
               </div>
             </CardContent>
@@ -181,7 +183,7 @@ export default function ClosedJobs({ embedded = false }: { embedded?: boolean })
                 </div>
                 <div>
                   <p className="text-2xl font-bold">{stats.notFilled}</p>
-                  <p className="text-sm text-muted-foreground">Not Filled</p>
+                  <p className="text-sm text-muted-foreground">{t("not_filled", "Not Filled")}</p>
                 </div>
               </div>
             </CardContent>
@@ -195,7 +197,7 @@ export default function ClosedJobs({ embedded = false }: { embedded?: boolean })
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search by job title or company..."
+                  placeholder={t("search_by_job_title", "Search by job title or company...")}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-9"
@@ -203,14 +205,14 @@ export default function ClosedJobs({ embedded = false }: { embedded?: boolean })
               </div>
               <Select value={filterType} onValueChange={setFilterType}>
                 <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Filter by type" />
+                  <SelectValue placeholder={t("filter_by_type", "Filter by type")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Types</SelectItem>
-                  <SelectItem value="hired">Hired</SelectItem>
-                  <SelectItem value="not_filled">Not Filled</SelectItem>
-                  <SelectItem value="cancelled">Cancelled</SelectItem>
-                  <SelectItem value="on_hold">On Hold</SelectItem>
+                  <SelectItem value="all">{t("all_types", "All Types")}</SelectItem>
+                  <SelectItem value="hired">{t("hired", "Hired")}</SelectItem>
+                  <SelectItem value="not_filled">{t("not_filled", "Not Filled")}</SelectItem>
+                  <SelectItem value="cancelled">{t("cancelled", "Cancelled")}</SelectItem>
+                  <SelectItem value="on_hold">{t("on_hold", "On Hold")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -223,13 +225,13 @@ export default function ClosedJobs({ embedded = false }: { embedded?: boolean })
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Job</TableHead>
-                  <TableHead>Company</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Closed Date</TableHead>
-                  <TableHead>Time to Fill</TableHead>
-                  <TableHead>Ratings</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead>{t("job", "Job")}</TableHead>
+                  <TableHead>{t("company", "Company")}</TableHead>
+                  <TableHead>{t("status", "Status")}</TableHead>
+                  <TableHead>{t("closed_date", "Closed Date")}</TableHead>
+                  <TableHead>{t("time_to_fill", "Time to Fill")}</TableHead>
+                  <TableHead>{t("ratings", "Ratings")}</TableHead>
+                  <TableHead className="text-right">{t("actions", "Actions")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -378,7 +380,7 @@ export default function ClosedJobs({ embedded = false }: { embedded?: boolean })
                   {selectedClosure.closure_type === 'not_filled' && selectedClosure.loss_reason && (
                     <Card>
                       <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-medium">Loss Reason</CardTitle>
+                        <CardTitle className="text-sm font-medium">{t("loss_reason", "Loss Reason")}</CardTitle>
                       </CardHeader>
                       <CardContent>
                         <Badge variant="secondary">
@@ -392,24 +394,24 @@ export default function ClosedJobs({ embedded = false }: { embedded?: boolean })
                   {(selectedClosure.candidate_quality_rating || selectedClosure.client_responsiveness_rating || selectedClosure.market_difficulty_rating) && (
                     <Card>
                       <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-medium">Ratings</CardTitle>
+                        <CardTitle className="text-sm font-medium">{t("ratings", "Ratings")}</CardTitle>
                       </CardHeader>
                       <CardContent className="space-y-3">
                         {selectedClosure.candidate_quality_rating && (
                           <div className="flex justify-between items-center">
-                            <span className="text-sm">Candidate Quality</span>
+                            <span className="text-sm">{t("candidate_quality", "Candidate Quality")}</span>
                             {renderStars(selectedClosure.candidate_quality_rating)}
                           </div>
                         )}
                         {selectedClosure.client_responsiveness_rating && (
                           <div className="flex justify-between items-center">
-                            <span className="text-sm">Client Responsiveness</span>
+                            <span className="text-sm">{t("client_responsiveness", "Client Responsiveness")}</span>
                             {renderStars(selectedClosure.client_responsiveness_rating)}
                           </div>
                         )}
                         {selectedClosure.market_difficulty_rating && (
                           <div className="flex justify-between items-center">
-                            <span className="text-sm">Market Difficulty</span>
+                            <span className="text-sm">{t("market_difficulty", "Market Difficulty")}</span>
                             {renderStars(selectedClosure.market_difficulty_rating)}
                           </div>
                         )}
@@ -429,15 +431,15 @@ export default function ClosedJobs({ embedded = false }: { embedded?: boolean })
                       <div className="grid grid-cols-3 gap-4 text-center">
                         <div>
                           <div className="text-2xl font-bold">{selectedClosure.total_applicants || 0}</div>
-                          <div className="text-xs text-muted-foreground">Total</div>
+                          <div className="text-xs text-muted-foreground">{t("total", "Total")}</div>
                         </div>
                         <div>
                           <div className="text-2xl font-bold">{selectedClosure.candidates_interviewed || 0}</div>
-                          <div className="text-xs text-muted-foreground">Interviewed</div>
+                          <div className="text-xs text-muted-foreground">{t("interviewed", "Interviewed")}</div>
                         </div>
                         <div>
                           <div className="text-2xl font-bold">{selectedClosure.candidates_final_round || 0}</div>
-                          <div className="text-xs text-muted-foreground">Final Round</div>
+                          <div className="text-xs text-muted-foreground">{t("final_round", "Final Round")}</div>
                         </div>
                       </div>
                     </CardContent>
@@ -447,18 +449,18 @@ export default function ClosedJobs({ embedded = false }: { embedded?: boolean })
                   {(selectedClosure.what_went_well || selectedClosure.what_could_improve) && (
                     <Card>
                       <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-medium">Takeaways</CardTitle>
+                        <CardTitle className="text-sm font-medium">{t("takeaways", "Takeaways")}</CardTitle>
                       </CardHeader>
                       <CardContent className="space-y-4">
                         {selectedClosure.what_went_well && (
                           <div>
-                            <div className="text-xs font-medium text-green-600 mb-1">What went well</div>
+                            <div className="text-xs font-medium text-green-600 mb-1">{t("what_went_well", "What went well")}</div>
                             <p className="text-sm">{selectedClosure.what_went_well}</p>
                           </div>
                         )}
                         {selectedClosure.what_could_improve && (
                           <div>
-                            <div className="text-xs font-medium text-amber-600 mb-1">What could improve</div>
+                            <div className="text-xs font-medium text-amber-600 mb-1">{t("what_could_improve", "What could improve")}</div>
                             <p className="text-sm">{selectedClosure.what_could_improve}</p>
                           </div>
                         )}
@@ -470,7 +472,7 @@ export default function ClosedJobs({ embedded = false }: { embedded?: boolean })
                   {selectedClosure.key_learnings && selectedClosure.key_learnings.length > 0 && (
                     <Card>
                       <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-medium">Key Learnings</CardTitle>
+                        <CardTitle className="text-sm font-medium">{t("key_learnings", "Key Learnings")}</CardTitle>
                       </CardHeader>
                       <CardContent>
                         <div className="flex flex-wrap gap-2">
@@ -488,7 +490,7 @@ export default function ClosedJobs({ embedded = false }: { embedded?: boolean })
                   {selectedClosure.recommendations_for_future && (
                     <Card>
                       <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-medium">Recommendations for Future</CardTitle>
+                        <CardTitle className="text-sm font-medium">{t("recommendations_for_future", "Recommendations for Future")}</CardTitle>
                       </CardHeader>
                       <CardContent>
                         <p className="text-sm">{selectedClosure.recommendations_for_future}</p>
@@ -500,7 +502,7 @@ export default function ClosedJobs({ embedded = false }: { embedded?: boolean })
                   {selectedClosure.notes && (
                     <Card>
                       <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-medium">Additional Notes</CardTitle>
+                        <CardTitle className="text-sm font-medium">{t("additional_notes", "Additional Notes")}</CardTitle>
                       </CardHeader>
                       <CardContent>
                         <p className="text-sm">{selectedClosure.notes}</p>

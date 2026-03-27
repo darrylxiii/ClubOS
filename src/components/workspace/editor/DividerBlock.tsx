@@ -1,4 +1,5 @@
 import { createReactBlockSpec } from '@blocknote/react';
+import { useTranslation } from 'react-i18next';
 
 export const DividerBlock = createReactBlockSpec(
   {
@@ -33,9 +34,9 @@ export const DividerBlock = createReactBlockSpec(
             className="text-xs bg-transparent border-none cursor-pointer opacity-0 group-hover:opacity-50 hover:!opacity-100 focus:outline-none transition-opacity"
             contentEditable={false}
           >
-            <option value="solid">Solid</option>
-            <option value="dashed">Dashed</option>
-            <option value="dotted">Dotted</option>
+            <option value="solid">{t('workspace.dividerSolid', 'Solid')}</option>
+            <option value="dashed">{t('workspace.dividerDashed', 'Dashed')}</option>
+            <option value="dotted">{t('workspace.dividerDotted', 'Dotted')}</option>
           </select>
         </div>
       );

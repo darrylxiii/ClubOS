@@ -1,9 +1,5 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { createHandler } from '../_shared/handler.ts';
+import { SupabaseClient } from "npm:@supabase/supabase-js@2";
 
 interface AgendaItem {
   id: string;
@@ -12,54 +8,38 @@ interface AgendaItem {
   status: 'pending' | 'active' | 'completed' | 'skipped';
 }
 
-Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
+Deno.serve(createHandler(async (req, ctx) => {
+  const { action, meetingId, agendaItems, currentTranscript, itemId } = await req.json();
 
-  try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
-    const { action, meetingId, agendaItems, currentTranscript, itemId } = await req.json();
-
-    if (!meetingId) {
-      return new Response(
-        JSON.stringify({ error: 'Meeting ID required' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
-      );
-    }
-
-    switch (action) {
-      case 'create':
-        return await createAgenda(supabase, meetingId, agendaItems);
-      case 'start_item':
-        return await startAgendaItem(supabase, meetingId, itemId);
-      case 'complete_item':
-        return await completeAgendaItem(supabase, meetingId, itemId);
-      case 'skip_item':
-        return await skipAgendaItem(supabase, meetingId, itemId);
-      case 'detect_topic':
-        return await detectTopicChange(supabase, meetingId, currentTranscript);
-      case 'get_status':
-        return await getAgendaStatus(supabase, meetingId);
-      default:
-        return new Response(
-          JSON.stringify({ error: 'Invalid action' }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
-        );
-    }
-  } catch (error) {
-    console.error('[track-meeting-agenda] Error:', error);
+  if (!meetingId) {
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+      JSON.stringify({ error: 'Meeting ID required' }),
+      { headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
     );
   }
-});
 
-async function createAgenda(supabase: any, meetingId: string, items: Array<{ title: string; minutes: number; description?: string }>) {
+  switch (action) {
+    case 'create':
+      return await createAgenda(ctx.supabase, meetingId, agendaItems, ctx.corsHeaders);
+    case 'start_item':
+      return await startAgendaItem(ctx.supabase, meetingId, itemId, ctx.corsHeaders);
+    case 'complete_item':
+      return await completeAgendaItem(ctx.supabase, meetingId, itemId, ctx.corsHeaders);
+    case 'skip_item':
+      return await skipAgendaItem(ctx.supabase, meetingId, itemId, ctx.corsHeaders);
+    case 'detect_topic':
+      return await detectTopicChange(ctx.supabase, meetingId, currentTranscript, ctx.corsHeaders);
+    case 'get_status':
+      return await getAgendaStatus(ctx.supabase, meetingId, ctx.corsHeaders);
+    default:
+      return new Response(
+        JSON.stringify({ error: 'Invalid action' }),
+        { headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+      );
+  }
+}));
+
+async function createAgenda(supabase: SupabaseClient, meetingId: string, items: Array<{ title: string; minutes: number; description?: string }>, corsHeaders: Record<string, string>) {
   // Delete existing agenda items
   await supabase
     .from('meeting_agenda_items')
@@ -91,11 +71,11 @@ async function createAgenda(supabase: any, meetingId: string, items: Array<{ tit
   );
 }
 
-async function startAgendaItem(supabase: any, meetingId: string, itemId: string) {
+async function startAgendaItem(supabase: SupabaseClient, meetingId: string, itemId: string, corsHeaders: Record<string, string>) {
   // Mark any currently active item as completed
   await supabase
     .from('meeting_agenda_items')
-    .update({ 
+    .update({
       status: 'completed',
       completed_at: new Date().toISOString()
     })
@@ -105,7 +85,7 @@ async function startAgendaItem(supabase: any, meetingId: string, itemId: string)
   // Start the new item
   const { data, error } = await supabase
     .from('meeting_agenda_items')
-    .update({ 
+    .update({
       status: 'active',
       started_at: new Date().toISOString()
     })
@@ -123,7 +103,7 @@ async function startAgendaItem(supabase: any, meetingId: string, itemId: string)
   );
 }
 
-async function completeAgendaItem(supabase: any, meetingId: string, itemId: string) {
+async function completeAgendaItem(supabase: SupabaseClient, meetingId: string, itemId: string, corsHeaders: Record<string, string>) {
   // Get the item to calculate actual duration
   const { data: item } = await supabase
     .from('meeting_agenda_items')
@@ -140,7 +120,7 @@ async function completeAgendaItem(supabase: any, meetingId: string, itemId: stri
 
   const { data, error } = await supabase
     .from('meeting_agenda_items')
-    .update({ 
+    .update({
       status: 'completed',
       completed_at: new Date().toISOString(),
       actual_minutes: actualMinutes
@@ -167,7 +147,7 @@ async function completeAgendaItem(supabase: any, meetingId: string, itemId: stri
   if (nextItem) {
     await supabase
       .from('meeting_agenda_items')
-      .update({ 
+      .update({
         status: 'active',
         started_at: new Date().toISOString()
       })
@@ -176,19 +156,19 @@ async function completeAgendaItem(supabase: any, meetingId: string, itemId: stri
   }
 
   return new Response(
-    JSON.stringify({ 
-      success: true, 
+    JSON.stringify({
+      success: true,
       item: data,
       startedNextItem: startedNext,
-      overTime: actualMinutes && item?.allocated_minutes 
-        ? actualMinutes > item.allocated_minutes 
+      overTime: actualMinutes && item?.allocated_minutes
+        ? actualMinutes > item.allocated_minutes
         : false
     }),
     { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
   );
 }
 
-async function skipAgendaItem(supabase: any, meetingId: string, itemId: string) {
+async function skipAgendaItem(supabase: SupabaseClient, meetingId: string, itemId: string, corsHeaders: Record<string, string>) {
   const { data, error } = await supabase
     .from('meeting_agenda_items')
     .update({ status: 'skipped' })
@@ -206,7 +186,7 @@ async function skipAgendaItem(supabase: any, meetingId: string, itemId: string) 
   );
 }
 
-async function detectTopicChange(supabase: any, meetingId: string, transcript: string) {
+async function detectTopicChange(supabase: SupabaseClient, meetingId: string, transcript: string, corsHeaders: Record<string, string>) {
   // Get current agenda
   const { data: agenda } = await supabase
     .from('meeting_agenda_items')
@@ -221,8 +201,8 @@ async function detectTopicChange(supabase: any, meetingId: string, transcript: s
     );
   }
 
-  const activeItem = agenda.find((item: any) => item.status === 'active');
-  const pendingItems = agenda.filter((item: any) => item.status === 'pending');
+  const activeItem = agenda.find((item: Record<string, unknown>) => item.status === 'active');
+  const pendingItems = agenda.filter((item: Record<string, unknown>) => item.status === 'pending');
 
   if (!activeItem || pendingItems.length === 0) {
     return new Response(
@@ -237,7 +217,7 @@ async function detectTopicChange(supabase: any, meetingId: string, transcript: s
 "${transcript.slice(-500)}"
 
 Does the conversation suggest we've moved on to a new topic? The next agenda items are:
-${pendingItems.map((item: any) => `- ${item.title}`).join('\n')}
+${pendingItems.map((item: Record<string, unknown>) => `- ${item.title}`).join('\n')}
 
 Respond with JSON:
 {
@@ -248,11 +228,11 @@ Respond with JSON:
 }`;
 
   try {
-    const response = await fetch('https://dpjucecmoyfzrduhlctt.functions.supabase.co/lovable-ai', {
+    const response = await fetch('https://chgrkvftjfibufoopmav.functions.supabase.co/google-gemini', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash-lite',
+        model: 'gemini-2.5-flash-lite',
         messages: [
           { role: 'system', content: 'You are a meeting assistant that detects topic transitions.' },
           { role: 'user', content: prompt }
@@ -270,7 +250,7 @@ Respond with JSON:
 
     if (parsed.topicChanged && parsed.confidence > 70) {
       // Find the matching next item
-      const matchingItem = pendingItems.find((item: any) => 
+      const matchingItem = pendingItems.find((item: Record<string, unknown>) =>
         item.title.toLowerCase().includes(parsed.suggestedNextItem?.toLowerCase() || '')
       );
 
@@ -301,7 +281,7 @@ Respond with JSON:
   }
 }
 
-async function getAgendaStatus(supabase: any, meetingId: string) {
+async function getAgendaStatus(supabase: SupabaseClient, meetingId: string, corsHeaders: Record<string, string>) {
   const { data: agenda, error } = await supabase
     .from('meeting_agenda_items')
     .select('*')
@@ -312,7 +292,7 @@ async function getAgendaStatus(supabase: any, meetingId: string) {
     throw new Error(`Failed to get agenda: ${error.message}`);
   }
 
-  const activeItem = agenda?.find((item: any) => item.status === 'active');
+  const activeItem = agenda?.find((item: Record<string, unknown>) => item.status === 'active');
   let timeRemaining = null;
   let isOverTime = false;
 
@@ -323,10 +303,10 @@ async function getAgendaStatus(supabase: any, meetingId: string) {
     isOverTime = timeRemaining < 0;
   }
 
-  const totalAllocated = agenda?.reduce((sum: number, item: any) => sum + (item.allocated_minutes || 0), 0) || 0;
+  const totalAllocated = agenda?.reduce((sum: number, item: Record<string, unknown>) => sum + ((item.allocated_minutes as number) || 0), 0) || 0;
   const completedMinutes = agenda
-    ?.filter((item: any) => item.status === 'completed')
-    .reduce((sum: number, item: any) => sum + (item.actual_minutes || item.allocated_minutes || 0), 0) || 0;
+    ?.filter((item: Record<string, unknown>) => item.status === 'completed')
+    .reduce((sum: number, item: Record<string, unknown>) => sum + ((item.actual_minutes as number) || (item.allocated_minutes as number) || 0), 0) || 0;
 
   return new Response(
     JSON.stringify({
@@ -336,7 +316,7 @@ async function getAgendaStatus(supabase: any, meetingId: string) {
       timeRemaining,
       isOverTime,
       progress: {
-        completed: agenda?.filter((item: any) => item.status === 'completed').length || 0,
+        completed: agenda?.filter((item: Record<string, unknown>) => item.status === 'completed').length || 0,
         total: agenda?.length || 0,
         completedMinutes,
         totalAllocated

@@ -21,8 +21,10 @@ import { Button } from "@/components/ui/button";
 import { Building, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { RainbowButton } from "@/components/ui/rainbow-button";
+import { useTranslation } from 'react-i18next';
 
 export const PartnerHome = () => {
+  const { t } = useTranslation('common');
   const { companyId } = useRole();
   const { user } = useAuth();
   const { stats, loading } = useRoleStats('partner', undefined, companyId || undefined);
@@ -83,10 +85,8 @@ export const PartnerHome = () => {
               <div className="h-14 w-14 rounded-full bg-primary/10 flex items-center justify-center mb-4">
                 <Building className="h-7 w-7 text-primary" />
               </div>
-              <h3 className="text-lg font-semibold mb-2">Welcome to The Quantum Club</h3>
-              <p className="text-sm text-muted-foreground mb-6 max-w-md">
-                Complete your account setup to get started with your partner portal
-              </p>
+              <h3 className="text-lg font-semibold mb-2">{t('partnerHome.welcomeToTheQuantumClub')}</h3>
+              <p className="text-sm text-muted-foreground mb-6 max-w-md">{t('partnerHome.completeYourAccountSetupToGetStartedWith')}</p>
               <Link to="/partner-setup">
                 <RainbowButton className="h-11 px-6 text-sm">
                   Complete Setup
@@ -105,10 +105,8 @@ export const PartnerHome = () => {
               <div className="h-14 w-14 rounded-full bg-primary/10 flex items-center justify-center mb-4">
                 <Building className="h-7 w-7 text-primary" />
               </div>
-              <h3 className="text-lg font-semibold mb-2">Company Setup in Progress</h3>
-              <p className="text-sm text-muted-foreground max-w-md">
-                Your strategist is finalising your company profile. You will see your dashboard here shortly.
-              </p>
+              <h3 className="text-lg font-semibold mb-2">{t('partnerHome.companySetupInProgress')}</h3>
+              <p className="text-sm text-muted-foreground max-w-md">{t('partnerHome.yourStrategistIsFinalisingYourCompanyPro')}</p>
             </CardContent>
           </Card>
         </ScrollReveal>

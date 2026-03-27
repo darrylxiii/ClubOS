@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -29,6 +30,7 @@ const DEPARTMENT_TYPES = [
 ];
 
 export function DepartmentManager({ companyId }: DepartmentManagerProps) {
+  const { t } = useTranslation('common');
   const { departments, loading, createDepartment, updateDepartment, deleteDepartment, seedStandardDepartments } = useDepartments(companyId);
   
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -108,8 +110,8 @@ export function DepartmentManager({ companyId }: DepartmentManagerProps) {
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle>Department Management</CardTitle>
-            <CardDescription>Create and manage organizational departments</CardDescription>
+            <CardTitle>{t("department_management", "Department Management")}</CardTitle>
+            <CardDescription>{t("create_and_manage_organizational", "Create and manage organizational departments")}</CardDescription>
           </div>
           <div className="flex gap-2">
             {departments.length === 0 && (
@@ -134,29 +136,29 @@ export function DepartmentManager({ companyId }: DepartmentManagerProps) {
                 </DialogHeader>
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div>
-                    <Label htmlFor="name">Department Name</Label>
+                    <Label htmlFor="name">{t("department_name", "Department Name")}</Label>
                     <Input
                       id="name"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      placeholder="e.g., Engineering, Sales, Marketing"
+                      placeholder={t("eg_engineering_sales_marketing", "e.g., Engineering, Sales, Marketing")}
                       required
                     />
                   </div>
 
                   <div>
-                    <Label htmlFor="description">Description</Label>
+                    <Label htmlFor="description">{t("description", "Description")}</Label>
                     <Textarea
                       id="description"
                       value={formData.description}
                       onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                      placeholder="Brief description of this department's role"
+                      placeholder={t("brief_description_of_this", "Brief description of this department's role")}
                       rows={3}
                     />
                   </div>
 
                   <div>
-                    <Label htmlFor="type">Department Type</Label>
+                    <Label htmlFor="type">{t("department_type", "Department Type")}</Label>
                     <Select
                       value={formData.department_type}
                       onValueChange={(value: any) => setFormData({ ...formData, department_type: value })}
@@ -175,7 +177,7 @@ export function DepartmentManager({ companyId }: DepartmentManagerProps) {
                   </div>
 
                   <div>
-                    <Label htmlFor="icon">Icon</Label>
+                    <Label htmlFor="icon">{t("icon", "Icon")}</Label>
                     <Select
                       value={formData.icon_name}
                       onValueChange={(value) => setFormData({ ...formData, icon_name: value })}
@@ -200,7 +202,7 @@ export function DepartmentManager({ companyId }: DepartmentManagerProps) {
                   </div>
 
                   <div>
-                    <Label htmlFor="color">Color</Label>
+                    <Label htmlFor="color">{t("color", "Color")}</Label>
                     <div className="flex gap-2">
                       <Input
                         id="color"
@@ -212,7 +214,7 @@ export function DepartmentManager({ companyId }: DepartmentManagerProps) {
                       <Input
                         value={formData.color_hex}
                         onChange={(e) => setFormData({ ...formData, color_hex: e.target.value })}
-                        placeholder="#C9A24E"
+                        placeholder={t("c9a24e", "#C9A24E")}
                         className="flex-1"
                       />
                     </div>
@@ -235,7 +237,7 @@ export function DepartmentManager({ companyId }: DepartmentManagerProps) {
       <CardContent>
         {departments.length === 0 ? (
           <div className="text-center py-12 text-muted-foreground">
-            <p>No departments yet. Create your first department to get started.</p>
+            <p>{t("no_departments_yet_create", "No departments yet. Create your first department to get started.")}</p>
           </div>
         ) : (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">

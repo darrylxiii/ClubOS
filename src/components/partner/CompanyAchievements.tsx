@@ -13,6 +13,7 @@ import * as LucideIcons from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Switch } from "@/components/ui/switch";
+import { useTranslation } from 'react-i18next';
 
 interface CompanyAchievement {
   id: string;
@@ -29,6 +30,7 @@ interface CompanyAchievementsProps {
 }
 
 export const CompanyAchievements = ({ companyId }: CompanyAchievementsProps) => {
+  const { t } = useTranslation('partner');
   const [achievements, setAchievements] = useState<CompanyAchievement[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -47,12 +49,12 @@ export const CompanyAchievements = ({ companyId }: CompanyAchievementsProps) => 
   const iconOptions = ["Award", "Trophy", "Star", "Medal", "Crown", "Target", "Zap", "Heart", "Sparkles", "Rocket"];
   
   const interactionTypes = [
-    { value: "posts_created", label: "Posts Created" },
-    { value: "comments_made", label: "Comments Made" },
-    { value: "likes_given", label: "Likes Given" },
-    { value: "shares_made", label: "Shares Made" },
-    { value: "profile_views", label: "Profile Views" },
-    { value: "connections_made", label: "Connections Made" },
+    { value: "posts_created", label: t('partner.companyachievements.postsCreated', 'Posts Created') },
+    { value: "comments_made", label: t('partner.companyachievements.commentsMade', 'Comments Made') },
+    { value: "likes_given", label: t('partner.companyachievements.likesGiven', 'Likes Given') },
+    { value: "shares_made", label: t('partner.companyachievements.sharesMade', 'Shares Made') },
+    { value: "profile_views", label: t('partner.companyachievements.profileViews', 'Profile Views') },
+    { value: "connections_made", label: t('partner.companyachievements.connectionsMade', 'Connections Made') },
   ];
 
   useEffect(() => {
@@ -80,7 +82,7 @@ export const CompanyAchievements = ({ companyId }: CompanyAchievementsProps) => 
       setAchievements(achievementsWithCount);
     } catch (error) {
       console.error("Error loading achievements:", error);
-      toast({ title: "Error loading achievements", variant: "destructive" });
+      toast({ title: t('partner.companyachievements.errorLoadingAchievements', 'Error loading achievements'), variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -109,7 +111,7 @@ export const CompanyAchievements = ({ companyId }: CompanyAchievementsProps) => 
           .eq("id", editingAchievement.id);
 
         if (error) throw error;
-        toast({ title: "Achievement updated successfully" });
+        toast({ title: t('partner.companyachievements.achievementUpdatedSuccessfully', 'Achievement updated successfully') });
       } else {
         const { error } = await supabase
           .from("company_achievements")
@@ -121,7 +123,7 @@ export const CompanyAchievements = ({ companyId }: CompanyAchievementsProps) => 
           });
 
         if (error) throw error;
-        toast({ title: "Achievement created successfully" });
+        toast({ title: t('partner.companyachievements.achievementCreatedSuccessfully', 'Achievement created successfully') });
       }
 
       setDialogOpen(false);
@@ -134,8 +136,8 @@ export const CompanyAchievements = ({ companyId }: CompanyAchievementsProps) => 
       loadAchievements();
     } catch (error: unknown) {
       toast({ 
-        title: "Error saving achievement", 
-        description: error instanceof Error ? error.message : 'An unexpected error occurred',
+        title: t('partner.companyachievements.errorSavingAchievement', 'Error saving achievement'), 
+        description: error instanceof Error ? error.message : t('partner.companyachievements.anUnexpectedErrorOccurred', 'An unexpected error occurred'),
         variant: "destructive" 
       });
     }
@@ -151,10 +153,10 @@ export const CompanyAchievements = ({ companyId }: CompanyAchievementsProps) => 
         .eq("id", id);
 
       if (error) throw error;
-      toast({ title: "Achievement deleted successfully" });
+      toast({ title: t('partner.companyachievements.achievementDeletedSuccessfully', 'Achievement deleted successfully') });
       loadAchievements();
     } catch (error) {
-      toast({ title: "Error deleting achievement", variant: "destructive" });
+      toast({ title: t('partner.companyachievements.errorDeletingAchievement', 'Error deleting achievement'), variant: "destructive" });
     }
   };
 
@@ -191,9 +193,7 @@ export const CompanyAchievements = ({ companyId }: CompanyAchievementsProps) => 
         <CardHeader className="bg-gradient-to-r from-primary/10 via-purple-500/10 to-pink-500/10 border-b">
           <div className="flex items-start justify-between">
             <div>
-              <CardTitle className="text-3xl font-black uppercase tracking-tight mb-2">
-                Custom Achievements
-              </CardTitle>
+              <CardTitle className="text-3xl font-black uppercase tracking-tight mb-2">{t('companyAchievements.title')}</CardTitle>
               <CardDescription className="text-base">
                 Create up to 3 custom achievements with specific criteria ({customAchievements.length}/3 used)
               </CardDescription>
@@ -201,7 +201,7 @@ export const CompanyAchievements = ({ companyId }: CompanyAchievementsProps) => 
             <div className="flex gap-3">
               <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-background/60 border">
                 <BarChart3 className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm font-medium">Analytics</span>
+                <span className="text-sm font-medium">{t('companyAchievements.analytics')}</span>
                 <Switch checked={showAnalytics} onCheckedChange={setShowAnalytics} />
               </div>
               <Button 
@@ -231,19 +231,19 @@ export const CompanyAchievements = ({ companyId }: CompanyAchievementsProps) => 
             <div className="grid grid-cols-4 gap-4 mb-8 p-6 rounded-xl bg-gradient-to-br from-primary/5 to-purple-500/5 border border-primary/20">
               <div className="text-center">
                 <div className="text-3xl font-black text-primary mb-1">{customAchievements.length}</div>
-                <div className="text-xs text-muted-foreground uppercase tracking-wide">Created</div>
+                <div className="text-xs text-muted-foreground uppercase tracking-wide">{t('companyAchievements.created')}</div>
               </div>
               <div className="text-center">
                 <div className="text-3xl font-black text-primary mb-1">
                   {customAchievements.reduce((sum, a) => sum + (a.earner_count || 0), 0)}
                 </div>
-                <div className="text-xs text-muted-foreground uppercase tracking-wide">Total Awarded</div>
+                <div className="text-xs text-muted-foreground uppercase tracking-wide">{t('companyAchievements.totalAwarded')}</div>
               </div>
               <div className="text-center">
                 <div className="text-3xl font-black text-primary mb-1">
                   {customAchievements.filter(a => a.is_active).length}
                 </div>
-                <div className="text-xs text-muted-foreground uppercase tracking-wide">Active</div>
+                <div className="text-xs text-muted-foreground uppercase tracking-wide">{t('companyAchievements.active')}</div>
               </div>
               <div className="text-center">
                 <div className="flex items-center justify-center gap-2 mb-1">
@@ -254,7 +254,7 @@ export const CompanyAchievements = ({ companyId }: CompanyAchievementsProps) => 
                       : 0}
                   </span>
                 </div>
-                <div className="text-xs text-muted-foreground uppercase tracking-wide">Avg per Achievement</div>
+                <div className="text-xs text-muted-foreground uppercase tracking-wide">{t('companyAchievements.avgPerAchievement')}</div>
               </div>
             </div>
           )}
@@ -264,21 +264,19 @@ export const CompanyAchievements = ({ companyId }: CompanyAchievementsProps) => 
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-2xl">
-              {editingAchievement ? "Edit Achievement" : "Create Custom Achievement"}
+              {editingAchievement ? t('partner.companyachievements.editAchievement', 'Edit Achievement') : t('partner.companyachievements.createCustomAchievement', 'Create Custom Achievement')}
             </DialogTitle>
-            <DialogDescription>
-              Define criteria and rewards for exceptional team contributions
-            </DialogDescription>
+            <DialogDescription>{t('companyAchievements.dialogDescription')}</DialogDescription>
           </DialogHeader>
           
           <div className="space-y-6">
             {/* Basic Info */}
             <div className="space-y-4 p-4 rounded-lg bg-muted/30 border">
-              <h3 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">Basic Information</h3>
+              <h3 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">{t('companyAchievements.basicInformation')}</h3>
               
               <div className="grid gap-4">
                 <div>
-                  <Label htmlFor="name">Achievement Name *</Label>
+                  <Label htmlFor="name">{t('companyAchievements.label.achievementName')}</Label>
                   <Input
                     id="name"
                     value={formData.name}
@@ -288,18 +286,18 @@ export const CompanyAchievements = ({ companyId }: CompanyAchievementsProps) => 
                 </div>
                 
                 <div>
-                  <Label htmlFor="description">Description *</Label>
+                  <Label htmlFor="description">{t('companyAchievements.label.description')}</Label>
                   <Textarea
                     id="description"
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    placeholder="Describe what this achievement represents and how to earn it"
+                    placeholder={t('companyAchievements.placeholder.describeWhatThisAchievementRepresentsAnd')}
                     rows={3}
                   />
                 </div>
                 
                 <div>
-                  <Label htmlFor="icon">Icon</Label>
+                  <Label htmlFor="icon">{t('companyAchievements.label.icon')}</Label>
                   <Select
                     value={formData.icon}
                     onValueChange={(value) => setFormData({ ...formData, icon: value })}
@@ -327,11 +325,11 @@ export const CompanyAchievements = ({ companyId }: CompanyAchievementsProps) => 
 
             {/* Criteria Setup */}
             <div className="space-y-4 p-4 rounded-lg bg-muted/30 border">
-              <h3 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">Unlock Criteria</h3>
+              <h3 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">{t('companyAchievements.unlockCriteria')}</h3>
               
               <div className="grid gap-4">
                 <div>
-                  <Label htmlFor="interaction">Interaction Type *</Label>
+                  <Label htmlFor="interaction">{t('companyAchievements.label.interactionType')}</Label>
                   <Select
                     value={interactionType}
                     onValueChange={setInteractionType}
@@ -350,7 +348,7 @@ export const CompanyAchievements = ({ companyId }: CompanyAchievementsProps) => 
                 </div>
                 
                 <div>
-                  <Label htmlFor="amount">Required Amount *</Label>
+                  <Label htmlFor="amount">{t('companyAchievements.label.requiredAmount')}</Label>
                   <Input
                     id="amount"
                     type="number"
@@ -363,10 +361,8 @@ export const CompanyAchievements = ({ companyId }: CompanyAchievementsProps) => 
                 
                 <div className="flex items-center justify-between p-3 rounded-lg bg-background border">
                   <div>
-                    <Label htmlFor="timebound" className="cursor-pointer">Time-Bound Challenge</Label>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Require completion within a specific timeframe
-                    </p>
+                    <Label htmlFor="timebound" className="cursor-pointer">{t('companyAchievements.label.timeboundChallenge')}</Label>
+                    <p className="text-xs text-muted-foreground mt-1">{t('companyAchievements.requireCompletionWithinASpecificTimefram')}</p>
                   </div>
                   <Switch
                     id="timebound"
@@ -377,7 +373,7 @@ export const CompanyAchievements = ({ companyId }: CompanyAchievementsProps) => 
                 
                 {isTimeBound && (
                   <div>
-                    <Label htmlFor="days">Days to Complete *</Label>
+                    <Label htmlFor="days">{t('companyAchievements.label.daysToComplete')}</Label>
                     <Input
                       id="days"
                       type="number"
@@ -393,13 +389,13 @@ export const CompanyAchievements = ({ companyId }: CompanyAchievementsProps) => 
               {/* Criteria Summary */}
               <div className="p-3 rounded-lg bg-primary/10 border border-primary/30">
                 <p className="text-sm font-medium text-primary">
-                  <strong>Unlock Condition:</strong> Complete{" "}
+                  <strong>{t('partner.companyachievements.unlockCondition', 'Unlock Condition:')}</strong> Complete{" "}
                   <span className="font-bold">{criteriaAmount}</span>{" "}
                   {interactionTypes.find(t => t.value === interactionType)?.label.toLowerCase()}
                   {isTimeBound && (
                     <span> within <span className="font-bold">{timeBoundDays}</span> days</span>
                   )}
-                  {!isTimeBound && <span> (lifetime)</span>}
+                  {!isTimeBound && <span>(lifetime)</span>}
                 </p>
               </div>
             </div>
@@ -407,14 +403,14 @@ export const CompanyAchievements = ({ companyId }: CompanyAchievementsProps) => 
           
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setDialogOpen(false)}>
-              Cancel
+              {t('common:cancel')}
             </Button>
             <Button 
               onClick={handleSubmit} 
               disabled={!formData.name || !formData.description || criteriaAmount <= 0}
               className="min-w-[120px]"
             >
-              {editingAchievement ? "Update Achievement" : "Create Achievement"}
+              {editingAchievement ? t('partner.companyachievements.updateAchievement', 'Update Achievement') : t('partner.companyachievements.createAchievement', 'Create Achievement')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -448,15 +444,13 @@ export const CompanyAchievements = ({ companyId }: CompanyAchievementsProps) => 
                             </AlertDialogTrigger>
                             <AlertDialogContent>
                               <AlertDialogHeader>
-                                <AlertDialogTitle>Delete Achievement</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  Are you sure you want to delete this achievement? This action cannot be undone.
-                                </AlertDialogDescription>
+                                <AlertDialogTitle>{t('partner.companyachievements.deleteAchievement', 'Delete Achievement')}</AlertDialogTitle>
+                                <AlertDialogDescription>{t('partner.companyachievements.areYouSureYouWantTo', 'Are you sure you want to delete this achievement? This action cannot be undone.')}</AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogCancel>{t('common:cancel')}</AlertDialogCancel>
                                 <AlertDialogAction onClick={() => handleDelete(achievement.id)}>
-                                  Delete
+                                  {t('common:delete')}
                                 </AlertDialogAction>
                               </AlertDialogFooter>
                             </AlertDialogContent>
@@ -473,7 +467,7 @@ export const CompanyAchievements = ({ companyId }: CompanyAchievementsProps) => 
                           </span>
                         </div>
                         <Badge variant={achievement.is_active ? "default" : "secondary"} className="text-xs">
-                          {achievement.is_active ? "Active" : "Inactive"}
+                          {achievement.is_active ? t('partner.companyachievements.active', 'Active') : t('partner.companyachievements.inactive', 'Inactive')}
                         </Badge>
                       </div>
                     </CardContent>
@@ -487,10 +481,8 @@ export const CompanyAchievements = ({ companyId }: CompanyAchievementsProps) => 
                 <div className="p-4 rounded-full bg-primary/10 mb-4">
                   <Award className="h-12 w-12 text-primary" />
                 </div>
-                <h4 className="text-lg font-semibold mb-2">No custom achievements yet</h4>
-                <p className="text-muted-foreground mb-6 max-w-sm">
-                  Create your first custom achievement to recognize and reward exceptional contributions from your team.
-                </p>
+                <h4 className="text-lg font-semibold mb-2">{t('companyAchievements.noCustomAchievementsYet')}</h4>
+                <p className="text-muted-foreground mb-6 max-w-sm">{t('companyAchievements.createYourFirstCustomAchievementToRecogn')}</p>
                 <Button 
                   onClick={() => {
                     setEditingAchievement(null);
@@ -515,10 +507,8 @@ export const CompanyAchievements = ({ companyId }: CompanyAchievementsProps) => 
       {/* Platform Achievements Section */}
       <Card>
         <CardHeader>
-          <CardTitle>Platform Achievements</CardTitle>
-          <CardDescription>
-            Standard achievements earned by your team members across the platform
-          </CardDescription>
+          <CardTitle>{t('companyAchievements.title')}</CardTitle>
+          <CardDescription>{t('companyAchievements.description')}</CardDescription>
         </CardHeader>
         <CardContent className="pt-6">
           {platformAchievements.length > 0 ? (
@@ -548,7 +538,7 @@ export const CompanyAchievements = ({ companyId }: CompanyAchievementsProps) => 
           ) : (
             <div className="text-center py-12 text-muted-foreground">
               <Award className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>No platform achievements earned by team members yet</p>
+              <p>{t('companyAchievements.noPlatformAchievementsEarnedByTeamMember')}</p>
             </div>
           )}
         </CardContent>

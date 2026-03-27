@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useParams, Link, useLocation } from 'react-router-dom';
 import { ChevronRight, Calendar, Clock, ArrowLeft } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
@@ -27,6 +28,7 @@ import { useDynamicBlogPost, useDynamicBlogPosts } from '@/hooks/useDynamicBlogP
 import { useBlogAnalytics } from '@/hooks/useBlogAnalytics';
 
 const BlogPost: React.FC = () => {
+  const { t } = useTranslation('common');
   const { category, slug } = useParams<{ category: string; slug: string }>();
   const location = useLocation();
 
@@ -91,7 +93,7 @@ const BlogPost: React.FC = () => {
       <main className="flex-1 flex items-center justify-center pt-32">
         <div className="text-center">
           <div className="h-8 w-8 border-2 border-foreground/20 border-t-foreground rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-muted-foreground text-sm">Loading article...</p>
+          <p className="text-muted-foreground text-sm">{t('blogPost.desc')}</p>
         </div>
       </main>
     );
@@ -106,8 +108,8 @@ const BlogPost: React.FC = () => {
         </Helmet>
         <main className="flex-1 flex items-center justify-center pt-32">
           <div className="text-center">
-            <h1 className="text-2xl font-semibold text-foreground mb-4">Article Not Found</h1>
-            <p className="text-muted-foreground mb-6">The article you're looking for doesn't exist.</p>
+            <h1 className="text-2xl font-semibold text-foreground mb-4">{t('blogPost.title')}</h1>
+            <p className="text-muted-foreground mb-6">{t('blogPost.desc2')}</p>
             <Link to="/blog">
               <Button className="rounded-full">
                 <ArrowLeft className="h-4 w-4 mr-2" />
@@ -225,7 +227,7 @@ const BlogPost: React.FC = () => {
                 {/* FAQ Section */}
                 {post.faqSchema && post.faqSchema.length > 0 && (
                   <section className="mt-12 pt-8 border-t border-border" id="faq">
-                    <h2 className="text-xl font-semibold text-foreground mb-6">Frequently Asked Questions</h2>
+                    <h2 className="text-xl font-semibold text-foreground mb-6">{t('blogPost.title')}</h2>
                     <div className="space-y-4">
                       {post.faqSchema.map((faq, i) => (
                         <details key={i} className="group rounded-lg border border-border bg-muted/20 open:bg-muted/40 transition-colors">

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
@@ -45,6 +46,7 @@ export function LowLightControls({
   onReset,
   className,
 }: LowLightControlsProps) {
+  const { t } = useTranslation('common');
   const [isExpanded, setIsExpanded] = useState(false);
 
   const getLightingStatusColor = () => {
@@ -67,7 +69,7 @@ export function LowLightControls({
         <CardTitle className="flex items-center justify-between text-sm">
           <div className="flex items-center gap-2">
             <Sun className="h-4 w-4" />
-            <span>Low Light Enhancement</span>
+            <span>{t("low_light_enhancement", "Low Light Enhancement")}</span>
           </div>
           <Switch
             checked={isEnabled}
@@ -126,7 +128,7 @@ export function LowLightControls({
               {/* Brightness */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label className="text-xs">Brightness</Label>
+                  <Label className="text-xs">{t("brightness", "Brightness")}</Label>
                   <span className="text-xs text-muted-foreground">
                     {Math.round(settings.brightness * 100)}%
                   </span>
@@ -143,7 +145,7 @@ export function LowLightControls({
               {/* Contrast */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label className="text-xs">Contrast</Label>
+                  <Label className="text-xs">{t("contrast", "Contrast")}</Label>
                   <span className="text-xs text-muted-foreground">
                     {Math.round(settings.contrast * 100)}%
                   </span>
@@ -160,7 +162,7 @@ export function LowLightControls({
               {/* Gamma */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label className="text-xs">Gamma</Label>
+                  <Label className="text-xs">{t("gamma", "Gamma")}</Label>
                   <span className="text-xs text-muted-foreground">
                     {settings.gamma.toFixed(2)}
                   </span>
@@ -177,7 +179,7 @@ export function LowLightControls({
               {/* Saturation */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label className="text-xs">Saturation</Label>
+                  <Label className="text-xs">{t("saturation", "Saturation")}</Label>
                   <span className="text-xs text-muted-foreground">
                     {Math.round(settings.saturation * 100)}%
                   </span>

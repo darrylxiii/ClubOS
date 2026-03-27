@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -38,6 +39,7 @@ interface CommissionTier {
 }
 
 export function CommissionTiersManager() {
+  const { t } = useTranslation('common');
   const queryClient = useQueryClient();
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedTier, setSelectedTier] = useState<CommissionTier | null>(null);
@@ -99,7 +101,7 @@ export function CommissionTiersManager() {
     },
     onError: (error) => {
       console.error("Save error:", error);
-      toast.error("Failed to save tier");
+      toast.error(t("failed_to_save_tier", "Failed to save tier"));
     },
   });
 
@@ -112,12 +114,12 @@ export function CommissionTiersManager() {
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success("Tier deleted");
+      toast.success(t("tier_deleted", "Tier deleted"));
       queryClient.invalidateQueries({ queryKey: ["commission-tiers"] });
     },
     onError: (error) => {
       console.error("Delete error:", error);
-      toast.error("Failed to delete tier");
+      toast.error(t("failed_to_delete_tier", "Failed to delete tier"));
     },
   });
 
@@ -180,11 +182,11 @@ export function CommissionTiersManager() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Tier Name</TableHead>
-                <TableHead>Revenue Range</TableHead>
-                <TableHead>Commission %</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead>{t("tier_name", "Tier Name")}</TableHead>
+                <TableHead>{t("revenue_range", "Revenue Range")}</TableHead>
+                <TableHead>{t("commission", "Commission %")}</TableHead>
+                <TableHead>{t("status", "Status")}</TableHead>
+                <TableHead className="text-right">{t("actions", "Actions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -249,18 +251,18 @@ export function CommissionTiersManager() {
 
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Tier Name</Label>
+              <Label htmlFor="name">{t("tier_name", "Tier Name")}</Label>
               <Input
                 id="name"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                placeholder="e.g., Gold, Platinum, Diamond"
+                placeholder={t("eg_gold_platinum_diamond", "e.g., Gold, Platinum, Diamond")}
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="min_revenue">Min Revenue (€)</Label>
+                <Label htmlFor="min_revenue">{t("min_revenue", "Min Revenue (€)")}</Label>
                 <Input
                   id="min_revenue"
                   type="number"
@@ -269,7 +271,7 @@ export function CommissionTiersManager() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="max_revenue">Max Revenue (€)</Label>
+                <Label htmlFor="max_revenue">{t("max_revenue", "Max Revenue (€)")}</Label>
                 <Input
                   id="max_revenue"
                   type="number"
@@ -278,13 +280,13 @@ export function CommissionTiersManager() {
                     ...formData, 
                     max_revenue: e.target.value ? Number(e.target.value) : null 
                   })}
-                  placeholder="Leave empty for unlimited"
+                  placeholder={t("leave_empty_for_unlimited", "Leave empty for unlimited")}
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="percentage">Commission Percentage</Label>
+              <Label htmlFor="percentage">{t("commission_percentage", "Commission Percentage")}</Label>
               <Input
                 id="percentage"
                 type="number"
@@ -296,7 +298,7 @@ export function CommissionTiersManager() {
             </div>
 
             <div className="flex items-center justify-between">
-              <Label htmlFor="is_active">Active</Label>
+              <Label htmlFor="is_active">{t("active", "Active")}</Label>
               <Switch
                 id="is_active"
                 checked={formData.is_active}

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card } from '@/components/ui/card';
@@ -16,6 +17,7 @@ import { toast } from 'sonner';
 import { getEdgeFunctionErrorMessage } from '@/utils/edgeFunctionErrors';
 
 export function AdminPartnerRequestsTab() {
+  const { t } = useTranslation('common');
   const [requests, setRequests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [provisioning, setProvisioning] = useState<string | null>(null);
@@ -34,7 +36,7 @@ export function AdminPartnerRequestsTab() {
       setRequests(data || []);
     } catch (error) {
       console.error('Failed to load requests:', error);
-      toast.error('Failed to load requests');
+      toast.error(t("failed_to_load_requests", "Failed to load requests"));
     } finally {
       setLoading(false);
     }
@@ -79,11 +81,11 @@ export function AdminPartnerRequestsTab() {
 
       if (error) throw error;
 
-      toast.success('Request declined');
+      toast.success(t("request_declined", "Request declined"));
       loadRequests();
     } catch (error) {
       console.error('Decline error:', error);
-      toast.error('Failed to decline request');
+      toast.error(t("failed_to_decline_request", "Failed to decline request"));
     }
   };
 
@@ -103,7 +105,7 @@ export function AdminPartnerRequestsTab() {
   if (loading) {
     return (
       <div className="text-center py-12">
-        <p className="text-muted-foreground">Loading requests...</p>
+        <p className="text-muted-foreground">{t("loading_requests", "Loading requests...")}</p>
       </div>
     );
   }
@@ -114,19 +116,19 @@ export function AdminPartnerRequestsTab() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Company</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Submitted</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead>{t("name", "Name")}</TableHead>
+              <TableHead>{t("email", "Email")}</TableHead>
+              <TableHead>{t("company", "Company")}</TableHead>
+              <TableHead>{t("status", "Status")}</TableHead>
+              <TableHead>{t("submitted", "Submitted")}</TableHead>
+              <TableHead className="text-right">{t("actions", "Actions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {requests.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={6} className="text-center py-8">
-                  <p className="text-muted-foreground">No partner requests</p>
+                  <p className="text-muted-foreground">{t("no_partner_requests", "No partner requests")}</p>
                 </TableCell>
               </TableRow>
             ) : (

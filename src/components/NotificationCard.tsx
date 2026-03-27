@@ -1,19 +1,19 @@
 import { motion } from '@/lib/motion';
 import { formatDistanceToNow } from 'date-fns';
 import { 
-  Bell, Mail, Calendar, Briefcase, CheckCircle, 
-  AlertCircle, Info, Archive, ExternalLink, Trash2, AtSign, Gift
+  CheckCircle, 
+  AlertCircle, Info, Archive, ExternalLink, Trash2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { useTranslation } from 'react-i18next';
 
 interface Notification {
   id: string;
   title: string;
   message: string;
   type: string;
-  category: string;
+  category: string | null;
   is_read: boolean;
   action_url: string | null;
   created_at: string;
@@ -27,41 +27,24 @@ interface NotificationCardProps {
   onClick: () => void;
 }
 
-const getNotificationIcon = (type: string) => {
-  switch (type) {
-    case 'mention':
-      return <AtSign className="w-5 h-5" />;
-    case 'message':
-      return <Mail className="w-5 h-5" />;
-    case 'interview':
-      return <Calendar className="w-5 h-5" />;
-    case 'application':
-      return <Briefcase className="w-5 h-5" />;
-    case 'referral':
-      return <Gift className="w-5 h-5" />;
-    case 'system':
-      return <Bell className="w-5 h-5" />;
-    default:
-      return <Info className="w-5 h-5" />;
-  }
-};
 
-const getCategoryStyles = (category: string) => {
+const getCategoryStyles = (category: string | null) => {
+  const { t } = useTranslation('common');
   switch (category) {
     case 'success':
-      return 'bg-green-500/10 text-green-500 border-green-500/20';
+      return 'bg-green-500/10 text-green-500 border-green-500/20 shadow-[0_0_15px_rgba(34,197,94,0.15)]';
     case 'warning':
-      return 'bg-orange-500/10 text-orange-500 border-orange-500/20';
+      return 'bg-orange-500/10 text-orange-500 border-orange-500/20 shadow-[0_0_15px_rgba(249,115,22,0.15)]';
     case 'error':
-      return 'bg-red-500/10 text-red-500 border-red-500/20';
+      return 'bg-red-500/10 text-red-500 border-red-500/20 shadow-[0_0_15px_rgba(239,68,68,0.15)]';
     case 'update':
-      return 'bg-blue-500/10 text-blue-500 border-blue-500/20';
+      return 'bg-blue-500/10 text-blue-500 border-blue-500/20 shadow-[0_0_15px_rgba(59,130,246,0.15)]';
     default:
-      return 'bg-primary/10 text-primary border-primary/20';
+      return 'bg-white/5 text-muted-foreground border-white/10 shadow-[0_0_15px_rgba(255,255,255,0.05)]';
   }
 };
 
-const getCategoryIcon = (category: string) => {
+const getCategoryIcon = (category: string | null) => {
   switch (category) {
     case 'success':
       return <CheckCircle className="w-5 h-5" />;
@@ -87,9 +70,9 @@ export function NotificationCard({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, x: -100 }}
       className={cn(
-        "group relative p-4 rounded-lg border transition-all cursor-pointer",
-        "hover:shadow-md hover:border-primary/50",
-        !notification.is_read && "bg-primary/5 border-l-4 border-l-primary"
+        "group relative p-4 rounded-xl border border-b-0 border-l-0 border-r-0 border-t-white/5 backdrop-blur-md bg-white/[0.02] transition-all duration-300 cursor-pointer overflow-hidden",
+        "hover:bg-white-[0.04] hover:shadow-[0_8px_30px_rgba(0,0,0,0.12)]",
+        !notification.is_read ? "bg-primary/5 border-l-2 border-l-primary border-t-primary/20" : ""
       )}
       onClick={onClick}
     >
@@ -110,69 +93,77 @@ export function NotificationCard({
               {notification.title}
             </h3>
             
-            <Badge variant="outline" className="text-xs whitespace-nowrap shrink-0">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60 whitespace-nowrap shrink-0 mt-0.5">
               {formatDistanceToNow(new Date(notification.created_at), { 
                 addSuffix: true 
               })}
-            </Badge>
+            </span>
           </div>
           
-          <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
+          <p className="text-sm text-muted-foreground/80 line-clamp-2 md:pl-0 pr-12">
             {notification.message}
           </p>
           
-          {/* Action buttons (show on hover) */}
-          <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          {/* Floating Action Dock */}
+          <div className="absolute right-3 bottom-3 flex items-center gap-1 opacity-0 translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300 bg-background/80 backdrop-blur-md rounded-full border border-white/5 shadow-lg p-0.5">
             {!notification.is_read && (
               <Button 
                 variant="ghost" 
-                size="sm"
+                size="icon"
+                className="w-7 h-7 rounded-full hover:bg-white/10"
                 onClick={(e) => {
                   e.stopPropagation();
                   onMarkAsRead(notification.id);
                 }}
+                title="Mark as read"
               >
-                <CheckCircle className="w-3 h-3 mr-1" />
-                Mark read
+                <CheckCircle className="w-3.5 h-3.5" />
+                <span className="sr-only">Mark read</span>
               </Button>
             )}
             
             {notification.action_url && (
               <Button 
                 variant="ghost" 
-                size="sm"
+                size="icon"
+                className="w-7 h-7 rounded-full hover:bg-white/10"
                 onClick={(e) => {
                   e.stopPropagation();
                   onClick();
                 }}
+                title="Open link"
               >
-                <ExternalLink className="w-3 h-3 mr-1" />
-                Open
+                <ExternalLink className="w-3.5 h-3.5" />
+                <span className="sr-only">Open</span>
               </Button>
             )}
             
             <Button 
               variant="ghost" 
-              size="sm"
+              size="icon"
+              className="w-7 h-7 rounded-full hover:bg-white/10"
               onClick={(e) => {
                 e.stopPropagation();
                 onArchive(notification.id);
               }}
+              title="Archive"
             >
-              <Archive className="w-3 h-3 mr-1" />
-              Archive
+              <Archive className="w-3.5 h-3.5" />
+              <span className="sr-only">Archive</span>
             </Button>
             
             <Button 
               variant="ghost" 
-              size="sm"
+              size="icon"
+              className="w-7 h-7 rounded-full hover:bg-red-500/20 hover:text-red-400"
               onClick={(e) => {
                 e.stopPropagation();
                 onDelete(notification.id);
               }}
+              title="Delete"
             >
-              <Trash2 className="w-3 h-3 mr-1" />
-              Delete
+              <Trash2 className="w-3.5 h-3.5" />
+              <span className="sr-only">Delete</span>
             </Button>
           </div>
         </div>

@@ -7,12 +7,14 @@ import { AlertTriangle, ArrowRight, Clock, X } from 'lucide-react';
 import { useKPIActions, KPIImprovementAction } from '@/hooks/useKPIOwnership';
 import { formatDistanceToNow, isPast, differenceInDays } from 'date-fns';
 import { motion, AnimatePresence } from '@/lib/motion';
+import { useTranslation } from 'react-i18next';
 
 interface KPIEscalationBannerProps {
   onDismiss?: () => void;
 }
 
 export function KPIEscalationBanner({ onDismiss }: KPIEscalationBannerProps) {
+  const { t } = useTranslation('admin');
   const { pendingActions } = useKPIActions();
 
   // Find critically overdue actions (overdue by more than 2 days)

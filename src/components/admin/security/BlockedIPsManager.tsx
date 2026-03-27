@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -37,6 +38,7 @@ const blockTypeLabels: Record<string, { label: string; color: string }> = {
 };
 
 export function BlockedIPsManager() {
+  const { t } = useTranslation('common');
   const { data: blockedIPs, isLoading } = useBlockedIPs();
   const blockIP = useBlockIP();
   const unblockIP = useUnblockIP();
@@ -69,7 +71,7 @@ export function BlockedIPsManager() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Blocked IPs</CardTitle>
+          <CardTitle>{t("blocked_ips", "Blocked IPs")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
@@ -99,7 +101,7 @@ export function BlockedIPsManager() {
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Block IP Address</DialogTitle>
+                <DialogTitle>{t("block_ip_address", "Block IP Address")}</DialogTitle>
                 <DialogDescription>
                   Manually block an IP address from accessing the platform
                 </DialogDescription>
@@ -107,7 +109,7 @@ export function BlockedIPsManager() {
               
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="ip">IP Address</Label>
+                  <Label htmlFor="ip">{t("ip_address", "IP Address")}</Label>
                   <Input
                     id="ip"
                     placeholder="192.168.1.1"
@@ -117,28 +119,28 @@ export function BlockedIPsManager() {
                 </div>
                 
                 <div>
-                  <Label htmlFor="reason">Reason</Label>
+                  <Label htmlFor="reason">{t("reason", "Reason")}</Label>
                   <Input
                     id="reason"
-                    placeholder="Reason for blocking..."
+                    placeholder={t("reason_for_blocking", "Reason for blocking...")}
                     value={reason}
                     onChange={(e) => setReason(e.target.value)}
                   />
                 </div>
                 
                 <div>
-                  <Label htmlFor="expires">Block Duration</Label>
+                  <Label htmlFor="expires">{t("block_duration", "Block Duration")}</Label>
                   <Select value={expiresHours} onValueChange={setExpiresHours}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="1">1 hour</SelectItem>
-                      <SelectItem value="6">6 hours</SelectItem>
-                      <SelectItem value="24">24 hours</SelectItem>
-                      <SelectItem value="168">1 week</SelectItem>
-                      <SelectItem value="720">30 days</SelectItem>
-                      <SelectItem value="permanent">Permanent</SelectItem>
+                      <SelectItem value="1">{t("1_hour", "1 hour")}</SelectItem>
+                      <SelectItem value="6">{t("6_hours", "6 hours")}</SelectItem>
+                      <SelectItem value="24">{t("24_hours", "24 hours")}</SelectItem>
+                      <SelectItem value="168">{t("1_week", "1 week")}</SelectItem>
+                      <SelectItem value="720">{t("30_days", "30 days")}</SelectItem>
+                      <SelectItem value="permanent">{t("permanent", "Permanent")}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -162,7 +164,7 @@ export function BlockedIPsManager() {
           {!blockedIPs?.length ? (
             <div className="flex flex-col items-center justify-center h-32 text-muted-foreground">
               <Shield className="h-8 w-8 mb-2" />
-              <span>No blocked IPs</span>
+              <span>{t("no_blocked_ips", "No blocked IPs")}</span>
             </div>
           ) : (
             <div className="space-y-2">

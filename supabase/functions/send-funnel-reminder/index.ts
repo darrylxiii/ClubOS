@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { sendEmail } from '../_shared/resend-client.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -18,11 +19,6 @@ serve(async (req) => {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
-    }
-
-    const resendApiKey = Deno.env.get('RESEND_API_KEY');
-    if (!resendApiKey) {
-      throw new Error('RESEND_API_KEY not configured');
     }
 
     const name = contactName || 'there';
@@ -91,30 +87,16 @@ No fees until you hire.
 The Quantum Club
 Pieter Cornelisz. Hooftstraat 41-2, Amsterdam, The Netherlands`;
 
-    const res = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
+    const result = await sendEmail({
+      from: 'The Quantum Club <partners@thequantumclub.nl>',
+      to: [email],
+      subject,
+      html: htmlBody,
+      text: plainText,
       headers: {
-        'Authorization': `Bearer ${resendApiKey}`,
-        'Content-Type': 'application/json',
+        'List-Unsubscribe': '<mailto:unsubscribe@thequantumclub.nl>',
       },
-      body: JSON.stringify({
-        from: 'The Quantum Club <partners@thequantumclub.nl>',
-        to: [email],
-        subject,
-        html: htmlBody,
-        text: plainText,
-        headers: {
-          'List-Unsubscribe': '<mailto:unsubscribe@thequantumclub.nl>',
-        },
-      }),
     });
-
-    if (!res.ok) {
-      const errorText = await res.text();
-      throw new Error(`Resend API error: ${res.status} ${errorText}`);
-    }
-
-    const result = await res.json();
 
     return new Response(JSON.stringify({ success: true, id: result.id }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

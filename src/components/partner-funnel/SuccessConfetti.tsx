@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from "react";
 import confetti from "canvas-confetti";
 import { CheckCircle, Calendar, Clock, ArrowRight } from "lucide-react";
@@ -16,6 +17,7 @@ export function SuccessConfetti({
   sessionId,
   onTrackRequest,
 }: SuccessConfettiProps) {
+  const { t } = useTranslation('common');
   const [showContent, setShowContent] = useState(false);
   const navigate = useNavigate();
 
@@ -66,7 +68,7 @@ export function SuccessConfetti({
           <div className="w-20 h-20 mx-auto bg-primary/10 rounded-full flex items-center justify-center animate-pulse">
             <CheckCircle className="w-10 h-10 text-primary" />
           </div>
-          <p className="text-lg font-medium animate-pulse">Processing your request...</p>
+          <p className="text-lg font-medium animate-pulse">{t("processing_your_request", "Processing your request...")}</p>
         </div>
       </div>
     );
@@ -79,7 +81,7 @@ export function SuccessConfetti({
         <div className="w-24 h-24 mx-auto bg-primary/10 rounded-full flex items-center justify-center mb-4">
           <CheckCircle className="w-12 h-12 text-primary" />
         </div>
-        <h2 className="text-3xl font-bold mb-2">Request Submitted!</h2>
+        <h2 className="text-3xl font-bold mb-2">{t("request_submitted", "Request Submitted!")}</h2>
         <p className="text-muted-foreground max-w-md mx-auto">
           Thank you, {companyName}. Your partnership request has been received and assigned to a dedicated strategist.
         </p>
@@ -87,14 +89,14 @@ export function SuccessConfetti({
 
       {/* What happens next */}
       <Card className="p-6 glass-effect">
-        <h3 className="font-semibold mb-4 text-center">What happens next?</h3>
+        <h3 className="font-semibold mb-4 text-center">{t("what_happens_next", "What happens next?")}</h3>
         <div className="space-y-4">
           <div className="flex items-start gap-3">
             <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
               <Clock className="w-4 h-4 text-primary" />
             </div>
             <div>
-              <p className="font-medium">Response within 24 hours</p>
+              <p className="font-medium">{t("response_within_24_hours", "Response within 24 hours")}</p>
               <p className="text-sm text-muted-foreground">
                 Your strategist will review your request and reach out promptly.
               </p>
@@ -106,7 +108,7 @@ export function SuccessConfetti({
               <Calendar className="w-4 h-4 text-primary" />
             </div>
             <div>
-              <p className="font-medium">Discovery call scheduled</p>
+              <p className="font-medium">{t("discovery_call_scheduled", "Discovery call scheduled")}</p>
               <p className="text-sm text-muted-foreground">
                 Your strategist will reach out to schedule a 15-minute discovery call.
               </p>
@@ -118,7 +120,7 @@ export function SuccessConfetti({
               <CheckCircle className="w-4 h-4 text-primary" />
             </div>
             <div>
-              <p className="font-medium">You only pay for results</p>
+              <p className="font-medium">{t("you_only_pay_for", "You only pay for results")}</p>
               <p className="text-sm text-muted-foreground">
                 No upfront fees. You only pay when we successfully place a candidate.
               </p>

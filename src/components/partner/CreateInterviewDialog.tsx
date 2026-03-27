@@ -29,6 +29,7 @@ import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Switch } from '@/components/ui/switch';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTranslation } from 'react-i18next';
 
 interface CreateInterviewDialogProps {
   open: boolean;
@@ -49,6 +50,7 @@ export const CreateInterviewDialog = ({
   stageName,
   onInterviewCreated,
 }: CreateInterviewDialogProps) => {
+  const { t } = useTranslation('partner');
   const { user } = useAuth();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -267,12 +269,12 @@ Keep it concise (3-4 sentences) and professional.`;
 
   const handleSubmit = async () => {
     if (!title || !date || !time) {
-      toast.error('Please fill in all required fields');
+      toast.error(t('createInterviewDialog.toast.pleaseFillInAllRequiredFields'));
       return;
     }
 
     if (selectedInterviewers.length === 0) {
-      toast.error('Please select at least one interviewer');
+      toast.error(t('createInterviewDialog.toast.pleaseSelectAtLeastOneInterviewer'));
       return;
     }
 
@@ -310,8 +312,8 @@ Keep it concise (3-4 sentences) and professional.`;
           .insert({
             user_id: authUser.id,
             slug: 'system-interviews',
-            title: 'Interview Bookings',
-            description: 'System-generated booking link for interview scheduling',
+            title: t('partner.createinterviewdialog.interviewBookings', 'Interview Bookings'),
+            description: t('partner.createinterviewdialog.systemgeneratedBookingLinkForInterviewScheduling', 'System-generated booking link for interview scheduling'),
             duration_minutes: 60,
             is_active: true,
           })
@@ -396,7 +398,7 @@ Keep it concise (3-4 sentences) and professional.`;
 
           if (calError) {
             console.error('Failed to add to Google Calendar:', calError);
-            toast.warning('Interview scheduled, but failed to add to Google Calendar');
+            toast.warning(t('createInterviewDialog.toast.interviewScheduledButFailedToAddToGoogle'));
           } else if (calData?.event?.id) {
             // Update booking with calendar event ID
             await supabase
@@ -404,20 +406,20 @@ Keep it concise (3-4 sentences) and professional.`;
               .update({ calendar_event_id: calData.event.id })
               .eq('id', booking.id);
             
-            toast.success('Interview scheduled and added to your Google Calendar!');
+            toast.success(t('createInterviewDialog.toast.interviewScheduledAndAddedToYourGoogleCa'));
           }
         } catch (calErr) {
           console.error('Google Calendar sync error:', calErr);
-          toast.warning('Interview scheduled, but calendar sync failed');
+          toast.warning(t('createInterviewDialog.toast.interviewScheduledButCalendarSyncFailed'));
         }
       } else {
-        toast.success('Interview scheduled successfully');
+        toast.success(t('createInterviewDialog.toast.interviewScheduledSuccessfully'));
       }
 
       onInterviewCreated?.();
     } catch (error: unknown) {
       console.error('Error creating interview:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to schedule interview');
+      toast.error(error instanceof Error ? error.message : t('partner.createinterviewdialog.failedToScheduleInterview', 'Failed to schedule interview'));
     } finally {
       setSubmitting(false);
     }
@@ -460,19 +462,15 @@ Keep it concise (3-4 sentences) and professional.`;
                 <>
                   <CheckCircle2 className="w-5 h-5 text-green-600 mt-0.5" />
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-green-700">Google Calendar Connected</p>
-                    <p className="text-xs text-green-600/80">
-                      Interview will be synced to your calendar and attendees will receive invites
-                    </p>
+                    <p className="text-sm font-medium text-green-700">{t('createInterviewDialog.googleCalendarConnected')}</p>
+                    <p className="text-xs text-green-600/80">{t('createInterviewDialog.interviewWillBeSyncedToYourCalendarAndAt')}</p>
                     <div className="flex items-center gap-2 mt-2">
                       <Switch
                         checked={syncToCalendar}
                         onCheckedChange={setSyncToCalendar}
                         id="sync-calendar"
                       />
-                      <Label htmlFor="sync-calendar" className="text-sm cursor-pointer">
-                        Add to Google Calendar
-                      </Label>
+                      <Label htmlFor="sync-calendar" className="text-sm cursor-pointer">{t('createInterviewDialog.label.addToGoogleCalendar')}</Label>
                     </div>
                   </div>
                 </>
@@ -480,10 +478,8 @@ Keep it concise (3-4 sentences) and professional.`;
                 <>
                   <AlertCircle className="w-5 h-5 text-yellow-600 mt-0.5" />
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-yellow-700">Google Calendar Not Connected</p>
-                    <p className="text-xs text-yellow-600/80">
-                      Connect your Google Calendar to automatically sync interviews and send calendar invites
-                    </p>
+                    <p className="text-sm font-medium text-yellow-700">{t('createInterviewDialog.googleCalendarNotConnected')}</p>
+                    <p className="text-xs text-yellow-600/80">{t('createInterviewDialog.connectYourGoogleCalendarToAutomatically')}</p>
                     <Button
                       variant="outline"
                       size="sm"
@@ -503,40 +499,38 @@ Keep it concise (3-4 sentences) and professional.`;
           <div className="p-4 rounded-lg bg-muted/50 border border-border/50">
             <div className="flex items-center gap-2 mb-2">
               <Sparkles className="w-4 h-4 text-primary" />
-              <span className="text-sm font-semibold">AI-Powered Auto-Fill</span>
+              <span className="text-sm font-semibold">{t('createInterviewDialog.aipoweredAutofill')}</span>
               {generatingAI && <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />}
             </div>
-            <p className="text-xs text-muted-foreground">
-              Title and description auto-generated with company, candidate, and interviewer details
-            </p>
+            <p className="text-xs text-muted-foreground">{t('createInterviewDialog.titleAndDescriptionAutogeneratedWithComp')}</p>
           </div>
 
           {/* Interview Type */}
           <div className="space-y-2">
-            <Label>Interview Type *</Label>
+            <Label>{t('createInterviewDialog.label.interviewType')}</Label>
             <Select value={interviewType} onValueChange={handleInterviewTypeChange}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="screening">Screening (30 min)</SelectItem>
-                <SelectItem value="technical">Technical Interview (60 min)</SelectItem>
-                <SelectItem value="behavioral">Behavioral Interview (60 min)</SelectItem>
-                <SelectItem value="culture_fit">Culture Fit (45 min)</SelectItem>
-                <SelectItem value="panel">Panel Interview (90 min)</SelectItem>
-                <SelectItem value="founder">Founder Interview (90 min)</SelectItem>
-                <SelectItem value="final">Final Round (120 min)</SelectItem>
+                <SelectItem value="screening">{t('partner.createinterviewdialog.screening30Min', 'Screening (30 min)')}</SelectItem>
+                <SelectItem value="technical">{t('partner.createinterviewdialog.technicalInterview60Min', 'Technical Interview (60 min)')}</SelectItem>
+                <SelectItem value="behavioral">{t('partner.createinterviewdialog.behavioralInterview60Min', 'Behavioral Interview (60 min)')}</SelectItem>
+                <SelectItem value="culture_fit">{t('partner.createinterviewdialog.cultureFit45Min', 'Culture Fit (45 min)')}</SelectItem>
+                <SelectItem value="panel">{t('partner.createinterviewdialog.panelInterview90Min', 'Panel Interview (90 min)')}</SelectItem>
+                <SelectItem value="founder">{t('partner.createinterviewdialog.founderInterview90Min', 'Founder Interview (90 min)')}</SelectItem>
+                <SelectItem value="final">{t('partner.createinterviewdialog.finalRound120Min', 'Final Round (120 min)')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           {/* Title */}
           <div className="space-y-2">
-            <Label>Meeting Title *</Label>
+            <Label>{t('createInterviewDialog.label.meetingTitle')}</Label>
             <Input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Company - Candidate Name - Interview Stage"
+              placeholder={t('createInterviewDialog.placeholder.companyCandidateNameInterviewStage')}
             />
             <p className="text-xs text-muted-foreground">
               Format: {job?.companies?.name || 'Company'} - {application.candidate_full_name || 'Candidate'} - {stageName}
@@ -554,14 +548,14 @@ Keep it concise (3-4 sentences) and professional.`;
                 <Input
                   value={candidateEmail}
                   onChange={(e) => setCandidateEmail(e.target.value)}
-                  placeholder="Candidate email"
+                  placeholder={t('createInterviewDialog.placeholder.candidateEmail')}
                   className="flex-1"
                 />
-                <Badge variant="outline" className="shrink-0">Candidate</Badge>
+                <Badge variant="outline" className="shrink-0">{t('createInterviewDialog.badge.candidate')}</Badge>
               </div>
               {selectedInterviewerNames.length > 0 && (
                 <div className="text-xs text-muted-foreground">
-                  <span className="font-medium">Interviewers: </span>
+                  <span className="font-medium">{t('partner.createinterviewdialog.interviewers', 'Interviewers:')}</span>
                   {interviewerEmails
                     .filter((e) => selectedInterviewers.includes(e.id))
                     .map((e) => `${e.name} (${e.email})`)
@@ -573,11 +567,11 @@ Keep it concise (3-4 sentences) and professional.`;
 
           {/* Description */}
           <div className="space-y-2">
-            <Label>Description</Label>
+            <Label>{t('createInterviewDialog.label.description')}</Label>
             <Textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Meeting description and agenda"
+              placeholder={t('createInterviewDialog.placeholder.meetingDescriptionAndAgenda')}
               rows={4}
             />
           </div>
@@ -590,9 +584,7 @@ Keep it concise (3-4 sentences) and professional.`;
             </Label>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-48 overflow-y-auto p-2 border rounded-lg">
               {teamMembers.length === 0 ? (
-                <p className="text-sm text-muted-foreground col-span-2 text-center py-4">
-                  No team members assigned to this job
-                </p>
+                <p className="text-sm text-muted-foreground col-span-2 text-center py-4">{t('createInterviewDialog.noTeamMembersAssignedToThisJob')}</p>
               ) : (
                 teamMembers.map((member) => (
                   <div
@@ -627,7 +619,7 @@ Keep it concise (3-4 sentences) and professional.`;
             className="w-full"
           >
             <Sparkles className="w-4 h-4 mr-2" />
-            {showSmartScheduling ? 'Hide' : 'Show'} Smart Scheduling Assistant
+            {showSmartScheduling ? t('partner.createinterviewdialog.hide', 'Hide') : t('partner.createinterviewdialog.show', 'Show')} Smart Scheduling Assistant
           </Button>
 
           {/* Smart Scheduling Panel */}
@@ -648,7 +640,7 @@ Keep it concise (3-4 sentences) and professional.`;
           {/* Date & Time */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Date *</Label>
+              <Label>{t('createInterviewDialog.label.date')}</Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
@@ -669,14 +661,14 @@ Keep it concise (3-4 sentences) and professional.`;
             </div>
 
             <div className="space-y-2">
-              <Label>Time *</Label>
+              <Label>{t('createInterviewDialog.label.time')}</Label>
               <Input type="time" value={time} onChange={(e) => setTime(e.target.value)} />
             </div>
           </div>
 
           {/* Duration */}
           <div className="space-y-2">
-            <Label>Duration (minutes)</Label>
+            <Label>{t('createInterviewDialog.label.durationMinutes')}</Label>
             <Select value={duration.toString()} onValueChange={(v) => setDuration(Number(v))}>
               <SelectTrigger>
                 <SelectValue />
@@ -695,7 +687,7 @@ Keep it concise (3-4 sentences) and professional.`;
 
         <div className="flex justify-end gap-2">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+            {t('common:cancel')}
           </Button>
           <Button onClick={handleSubmit} disabled={submitting || !title || !date || !time}>
             {submitting ? (

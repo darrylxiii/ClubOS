@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { motion } from "framer-motion";
 import { useCRMAnalytics } from "@/hooks/useCRMAnalytics";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,13 +11,14 @@ interface CRMCohortAnalysisProps {
 }
 
 export function CRMCohortAnalysis({ dateRange = 'month' }: CRMCohortAnalysisProps) {
+  const { t } = useTranslation('common');
   const { data, loading } = useCRMAnalytics({ dateRange });
 
   if (loading) {
     return (
       <Card className="bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border-border/50">
         <CardHeader>
-          <CardTitle className="text-lg font-semibold">Campaign Performance</CardTitle>
+          <CardTitle className="text-lg font-semibold">{t("campaign_performance", "Campaign Performance")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { UseFormReturn, useFormState } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -25,6 +26,7 @@ const FIELD_TO_STEP: Record<string, number> = {
 };
 
 function Row({ label, value, onEdit }: { label: string; value: string; onEdit?: () => void }) {
+  const { t } = useTranslation('common');
   return (
     <div className="flex items-center justify-between py-1.5">
       <span className="text-sm text-muted-foreground">{label}</span>
@@ -114,14 +116,14 @@ export function ReviewStep({
       <Card className="bg-muted/30">
         <CardContent className="pt-4 space-y-1">
           <div className="flex items-center justify-between mb-2">
-            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Contact</h4>
-            <Badge variant="outline" className="text-xs cursor-pointer" onClick={() => onGoToStep(1)}>Edit</Badge>
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t("contact", "Contact")}</h4>
+            <Badge variant="outline" className="text-xs cursor-pointer" onClick={() => onGoToStep(1)}>{t("edit", "Edit")}</Badge>
           </div>
-          <Row label="Name" value={v.fullName} onEdit={() => onGoToStep(1)} />
-          <Row label="Email" value={v.email} onEdit={() => onGoToStep(1)} />
-          {v.phoneNumber && <Row label="Phone" value={v.phoneNumber} />}
-          {v.linkedinUrl && <Row label="LinkedIn" value={v.linkedinUrl} />}
-          <Row label="Email Verified" value={v.markEmailVerified ? 'Yes' : 'No'} />
+          <Row label={t("name", "Name")} value={v.fullName} onEdit={() => onGoToStep(1)} />
+          <Row label={t("email", "Email")} value={v.email} onEdit={() => onGoToStep(1)} />
+          {v.phoneNumber && <Row label={t("phone", "Phone")} value={v.phoneNumber} />}
+          {v.linkedinUrl && <Row label={t("linkedin", "LinkedIn")} value={v.linkedinUrl} />}
+          <Row label={t("email_verified", "Email Verified")} value={v.markEmailVerified ? 'Yes' : 'No'} />
         </CardContent>
       </Card>
 
@@ -129,21 +131,21 @@ export function ReviewStep({
       <Card className="bg-muted/30">
         <CardContent className="pt-4 space-y-1">
           <div className="flex items-center justify-between mb-2">
-            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Company</h4>
-            <Badge variant="outline" className="text-xs cursor-pointer" onClick={() => onGoToStep(2)}>Edit</Badge>
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t("company", "Company")}</h4>
+            <Badge variant="outline" className="text-xs cursor-pointer" onClick={() => onGoToStep(2)}>{t("edit", "Edit")}</Badge>
           </div>
-          <Row label="Company" value={companyName} onEdit={() => onGoToStep(2)} />
-          <Row label="Role" value={v.companyRole} />
+          <Row label={t("company", "Company")} value={companyName} onEdit={() => onGoToStep(2)} />
+          <Row label={t("role", "Role")} value={v.companyRole} />
           {v.companyMode === 'new' && (
             <>
-              {v.industry && <Row label="Industry" value={v.industry} />}
-              {v.companySize && <Row label="Size" value={v.companySize} />}
-              <Row label="Fee" value={feeLabel} />
-              <Row label="Payment Terms" value={`Net ${v.defaultPaymentTermsDays || 30}`} />
+              {v.industry && <Row label={t("industry", "Industry")} value={v.industry} />}
+              {v.companySize && <Row label={t("size", "Size")} value={v.companySize} />}
+              <Row label={t("fee", "Fee")} value={feeLabel} />
+              <Row label={t("payment_terms", "Payment Terms")} value={`Net ${v.defaultPaymentTermsDays || 30}`} />
             </>
           )}
           {v.companyDomain && (
-            <Row label="Domain Provisioning" value={v.enableDomainAutoProvisioning ? `@${v.companyDomain} enabled` : 'Disabled'} />
+            <Row label={t("domain_provisioning", "Domain Provisioning")} value={v.enableDomainAutoProvisioning ? `@${v.companyDomain} enabled` : 'Disabled'} />
           )}
         </CardContent>
       </Card>
@@ -152,11 +154,11 @@ export function ReviewStep({
       <Card className="bg-muted/30">
         <CardContent className="pt-4 space-y-1">
           <div className="flex items-center justify-between mb-2">
-            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Access</h4>
-            <Badge variant="outline" className="text-xs cursor-pointer" onClick={() => onGoToStep(3)}>Edit</Badge>
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t("access", "Access")}</h4>
+            <Badge variant="outline" className="text-xs cursor-pointer" onClick={() => onGoToStep(3)}>{t("edit", "Edit")}</Badge>
           </div>
-          <Row label="Method" value={methodLabel[v.provisionMethod]} onEdit={() => onGoToStep(3)} />
-          {v.welcomeMessage && <Row label="Welcome Message" value={v.welcomeMessage.substring(0, 60) + (v.welcomeMessage.length > 60 ? '...' : '')} />}
+          <Row label={t("method", "Method")} value={methodLabel[v.provisionMethod]} onEdit={() => onGoToStep(3)} />
+          {v.welcomeMessage && <Row label={t("welcome_message", "Welcome Message")} value={v.welcomeMessage.substring(0, 60) + (v.welcomeMessage.length > 60 ? '...' : '')} />}
         </CardContent>
       </Card>
 
@@ -173,7 +175,7 @@ export function ReviewStep({
       </div>
 
       <div className="flex justify-between">
-        <Button type="button" variant="outline" onClick={onBack}>Back</Button>
+        <Button type="button" variant="outline" onClick={onBack}>{t("back", "Back")}</Button>
         <Button type="button" onClick={onSubmit} disabled={isProvisioning}>
           {isProvisioning ? (
             <>

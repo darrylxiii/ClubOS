@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from "react";
 import { candidateAuditService, AuditLogEntry } from "@/services/candidateAuditService";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -17,6 +18,7 @@ interface CandidateEditHistoryProps {
 }
 
 export function CandidateEditHistory({ candidateId }: CandidateEditHistoryProps) {
+  const { t } = useTranslation('common');
   const [history, setHistory] = useState<AuditLogEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -87,7 +89,7 @@ export function CandidateEditHistory({ candidateId }: CandidateEditHistoryProps)
     return (
       <Card>
         <CardContent className="py-12 text-center">
-          <p className="text-muted-foreground">No edit history available</p>
+          <p className="text-muted-foreground">{t("no_edit_history_available", "No edit history available")}</p>
         </CardContent>
       </Card>
     );
@@ -125,7 +127,7 @@ export function CandidateEditHistory({ candidateId }: CandidateEditHistoryProps)
           <CardContent className="space-y-4">
             {entry.reason && (
               <div>
-                <p className="text-sm font-semibold mb-1">Reason:</p>
+                <p className="text-sm font-semibold mb-1">{t("reason", "Reason:")}</p>
                 <p className="text-sm text-muted-foreground">{entry.reason}</p>
               </div>
             )}
@@ -145,13 +147,13 @@ export function CandidateEditHistory({ candidateId }: CandidateEditHistoryProps)
                         {field}
                       </div>
                       <div>
-                        <span className="text-xs text-muted-foreground block mb-1">Before:</span>
+                        <span className="text-xs text-muted-foreground block mb-1">{t("before", "Before:")}</span>
                         <span className="text-destructive line-through">
                           {formatFieldValue(entry.before_data?.[field])}
                         </span>
                       </div>
                       <div>
-                        <span className="text-xs text-muted-foreground block mb-1">After:</span>
+                        <span className="text-xs text-muted-foreground block mb-1">{t("after", "After:")}</span>
                         <span className="text-green-600 font-medium">
                           {formatFieldValue(entry.after_data?.[field])}
                         </span>
@@ -164,7 +166,7 @@ export function CandidateEditHistory({ candidateId }: CandidateEditHistoryProps)
 
             {entry.metadata && Object.keys(entry.metadata).length > 0 && (
               <div>
-                <p className="text-sm font-semibold mb-2">Additional Info:</p>
+                <p className="text-sm font-semibold mb-2">{t("additional_info", "Additional Info:")}</p>
                 <div className="text-xs text-muted-foreground space-y-1">
                   {Object.entries(entry.metadata).map(([key, value]) => (
                     <div key={key}>

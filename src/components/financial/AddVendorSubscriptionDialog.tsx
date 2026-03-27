@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useEffect } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -52,6 +53,7 @@ export function AddVendorSubscriptionDialog({
   onOpenChange,
   editingSubscription 
 }: AddVendorSubscriptionDialogProps) {
+  const { t } = useTranslation('common');
   const createMutation = useCreateVendorSubscription();
   const updateMutation = useUpdateVendorSubscription();
   const isEditing = !!editingSubscription;
@@ -175,9 +177,9 @@ export function AddVendorSubscriptionDialog({
                 name="vendor_name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Vendor Name *</FormLabel>
+                    <FormLabel>{t("vendor_name", "Vendor Name *")}</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g. Slack" {...field} />
+                      <Input placeholder={t("eg_slack", "e.g. Slack")} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -188,7 +190,7 @@ export function AddVendorSubscriptionDialog({
                 name="vendor_website"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Website</FormLabel>
+                    <FormLabel>{t("website", "Website")}</FormLabel>
                     <FormControl>
                       <Input placeholder="https://..." {...field} />
                     </FormControl>
@@ -204,7 +206,7 @@ export function AddVendorSubscriptionDialog({
                 name="category"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Category *</FormLabel>
+                    <FormLabel>{t("category", "Category *")}</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
@@ -212,13 +214,13 @@ export function AddVendorSubscriptionDialog({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="Software & SaaS">Software & SaaS</SelectItem>
-                        <SelectItem value="Infrastructure">Infrastructure</SelectItem>
-                        <SelectItem value="Professional Services">Professional Services</SelectItem>
-                        <SelectItem value="Office & Facilities">Office & Facilities</SelectItem>
-                        <SelectItem value="Marketing & Sales">Marketing & Sales</SelectItem>
-                        <SelectItem value="HR & Benefits">HR & Benefits</SelectItem>
-                        <SelectItem value="Other">Other</SelectItem>
+                        <SelectItem value="Software & SaaS">{t("software_saas", "Software & SaaS")}</SelectItem>
+                        <SelectItem value="Infrastructure">{t("infrastructure", "Infrastructure")}</SelectItem>
+                        <SelectItem value="Professional Services">{t("professional_services", "Professional Services")}</SelectItem>
+                        <SelectItem value="Office & Facilities">{t("office_facilities", "Office & Facilities")}</SelectItem>
+                        <SelectItem value="Marketing & Sales">{t("marketing_sales", "Marketing & Sales")}</SelectItem>
+                        <SelectItem value="HR & Benefits">{t("hr_benefits", "HR & Benefits")}</SelectItem>
+                        <SelectItem value="Other">{t("other", "Other")}</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -230,22 +232,22 @@ export function AddVendorSubscriptionDialog({
                 name="department"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Department</FormLabel>
+                    <FormLabel>{t("department", "Department")}</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select department" />
+                          <SelectValue placeholder={t("select_department", "Select department")} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="Engineering">Engineering</SelectItem>
-                        <SelectItem value="Operations">Operations</SelectItem>
-                        <SelectItem value="Sales">Sales</SelectItem>
-                        <SelectItem value="Finance">Finance</SelectItem>
+                        <SelectItem value="Engineering">{t("engineering", "Engineering")}</SelectItem>
+                        <SelectItem value="Operations">{t("operations", "Operations")}</SelectItem>
+                        <SelectItem value="Sales">{t("sales", "Sales")}</SelectItem>
+                        <SelectItem value="Finance">{t("finance", "Finance")}</SelectItem>
                         <SelectItem value="HR">HR</SelectItem>
-                        <SelectItem value="Marketing">Marketing</SelectItem>
-                        <SelectItem value="Executive">Executive</SelectItem>
-                        <SelectItem value="All">All</SelectItem>
+                        <SelectItem value="Marketing">{t("marketing", "Marketing")}</SelectItem>
+                        <SelectItem value="Executive">{t("executive", "Executive")}</SelectItem>
+                        <SelectItem value="All">{t("all", "All")}</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -261,7 +263,7 @@ export function AddVendorSubscriptionDialog({
                 name="monthly_cost"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Monthly Cost *</FormLabel>
+                    <FormLabel>{t("monthly_cost", "Monthly Cost *")}</FormLabel>
                     <FormControl>
                       <div className="relative">
                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
@@ -279,7 +281,7 @@ export function AddVendorSubscriptionDialog({
                 name="currency"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Currency</FormLabel>
+                    <FormLabel>{t("currency", "Currency")}</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
@@ -287,10 +289,10 @@ export function AddVendorSubscriptionDialog({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="EUR">€ EUR</SelectItem>
-                        <SelectItem value="USD">$ USD</SelectItem>
-                        <SelectItem value="GBP">£ GBP</SelectItem>
-                        <SelectItem value="AED">د.إ AED</SelectItem>
+                        <SelectItem value="EUR">{t("eur", "€ EUR")}</SelectItem>
+                        <SelectItem value="USD">{t("usd", "$ USD")}</SelectItem>
+                        <SelectItem value="GBP">{t("gbp", "£ GBP")}</SelectItem>
+                        <SelectItem value="AED">{t("دإ_aed", "د.إ AED")}</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -302,7 +304,7 @@ export function AddVendorSubscriptionDialog({
                 name="billing_cycle"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Billing Cycle</FormLabel>
+                    <FormLabel>{t("billing_cycle", "Billing Cycle")}</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
@@ -310,10 +312,10 @@ export function AddVendorSubscriptionDialog({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="monthly">Monthly</SelectItem>
-                        <SelectItem value="quarterly">Quarterly</SelectItem>
-                        <SelectItem value="annually">Annually</SelectItem>
-                        <SelectItem value="one-time">One-time</SelectItem>
+                        <SelectItem value="monthly">{t("monthly", "Monthly")}</SelectItem>
+                        <SelectItem value="quarterly">{t("quarterly", "Quarterly")}</SelectItem>
+                        <SelectItem value="annually">{t("annually", "Annually")}</SelectItem>
+                        <SelectItem value="one-time">{t("onetime", "One-time")}</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -355,7 +357,7 @@ export function AddVendorSubscriptionDialog({
                 name="contract_start_date"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Contract Start *</FormLabel>
+                    <FormLabel>{t("contract_start", "Contract Start *")}</FormLabel>
                     <FormControl>
                       <Input type="date" {...field} />
                     </FormControl>
@@ -368,7 +370,7 @@ export function AddVendorSubscriptionDialog({
                 name="contract_end_date"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Contract End</FormLabel>
+                    <FormLabel>{t("contract_end", "Contract End")}</FormLabel>
                     <FormControl>
                       <Input type="date" {...field} />
                     </FormControl>
@@ -381,7 +383,7 @@ export function AddVendorSubscriptionDialog({
                 name="next_renewal_date"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Next Renewal</FormLabel>
+                    <FormLabel>{t("next_renewal", "Next Renewal")}</FormLabel>
                     <FormControl>
                       <Input type="date" {...field} />
                     </FormControl>
@@ -398,7 +400,7 @@ export function AddVendorSubscriptionDialog({
                 name="status"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Status</FormLabel>
+                    <FormLabel>{t("status", "Status")}</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
@@ -406,11 +408,11 @@ export function AddVendorSubscriptionDialog({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="active">Active</SelectItem>
-                        <SelectItem value="trial">Trial</SelectItem>
-                        <SelectItem value="paused">Paused</SelectItem>
-                        <SelectItem value="cancelled">Cancelled</SelectItem>
-                        <SelectItem value="pending">Pending</SelectItem>
+                        <SelectItem value="active">{t("active", "Active")}</SelectItem>
+                        <SelectItem value="trial">{t("trial", "Trial")}</SelectItem>
+                        <SelectItem value="paused">{t("paused", "Paused")}</SelectItem>
+                        <SelectItem value="cancelled">{t("cancelled", "Cancelled")}</SelectItem>
+                        <SelectItem value="pending">{t("pending", "Pending")}</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -422,7 +424,7 @@ export function AddVendorSubscriptionDialog({
                 name="business_criticality"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Criticality</FormLabel>
+                    <FormLabel>{t("criticality", "Criticality")}</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
@@ -430,10 +432,10 @@ export function AddVendorSubscriptionDialog({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="low">Low</SelectItem>
-                        <SelectItem value="medium">Medium</SelectItem>
-                        <SelectItem value="high">High</SelectItem>
-                        <SelectItem value="critical">Critical</SelectItem>
+                        <SelectItem value="low">{t("low", "Low")}</SelectItem>
+                        <SelectItem value="medium">{t("medium", "Medium")}</SelectItem>
+                        <SelectItem value="high">{t("high", "High")}</SelectItem>
+                        <SelectItem value="critical">{t("critical", "Critical")}</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -445,20 +447,20 @@ export function AddVendorSubscriptionDialog({
                 name="payment_method"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Payment Method</FormLabel>
+                    <FormLabel>{t("payment_method", "Payment Method")}</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select method" />
+                          <SelectValue placeholder={t("select_method", "Select method")} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="credit_card">Credit Card</SelectItem>
-                        <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
-                        <SelectItem value="revolut">Revolut</SelectItem>
+                        <SelectItem value="credit_card">{t("credit_card", "Credit Card")}</SelectItem>
+                        <SelectItem value="bank_transfer">{t("bank_transfer", "Bank Transfer")}</SelectItem>
+                        <SelectItem value="revolut">{t("revolut", "Revolut")}</SelectItem>
                         <SelectItem value="ing">ING</SelectItem>
-                        <SelectItem value="paypal">PayPal</SelectItem>
-                        <SelectItem value="other">Other</SelectItem>
+                        <SelectItem value="paypal">{t("paypal", "PayPal")}</SelectItem>
+                        <SelectItem value="other">{t("other", "Other")}</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -474,9 +476,9 @@ export function AddVendorSubscriptionDialog({
                 name="seats_licensed"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Seats Licensed</FormLabel>
+                    <FormLabel>{t("seats_licensed", "Seats Licensed")}</FormLabel>
                     <FormControl>
-                      <Input type="number" placeholder="e.g. 10" {...field} />
+                      <Input type="number" placeholder={t("eg_10", "e.g. 10")} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -487,9 +489,9 @@ export function AddVendorSubscriptionDialog({
                 name="seats_used"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Seats Used</FormLabel>
+                    <FormLabel>{t("seats_used", "Seats Used")}</FormLabel>
                     <FormControl>
-                      <Input type="number" placeholder="e.g. 7" {...field} />
+                      <Input type="number" placeholder={t("eg_7", "e.g. 7")} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -500,7 +502,7 @@ export function AddVendorSubscriptionDialog({
                 name="cancellation_notice_days"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Cancellation Notice (days)</FormLabel>
+                    <FormLabel>{t("cancellation_notice_days", "Cancellation Notice (days)")}</FormLabel>
                     <FormControl>
                       <Input type="number" {...field} />
                     </FormControl>
@@ -519,7 +521,7 @@ export function AddVendorSubscriptionDialog({
                   <FormControl>
                     <Switch checked={field.value} onCheckedChange={field.onChange} />
                   </FormControl>
-                  <FormLabel className="!mt-0">Auto-renewal enabled</FormLabel>
+                  <FormLabel className="!mt-0">{t("autorenewal_enabled", "Auto-renewal enabled")}</FormLabel>
                 </FormItem>
               )}
             />
@@ -531,9 +533,9 @@ export function AddVendorSubscriptionDialog({
                 name="expected_bank_reference"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Bank Reference Pattern</FormLabel>
+                    <FormLabel>{t("bank_reference_pattern", "Bank Reference Pattern")}</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g. REVOLUT*SLACK" {...field} />
+                      <Input placeholder={t("eg_revolutslack", "e.g. REVOLUT*SLACK")} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -544,17 +546,17 @@ export function AddVendorSubscriptionDialog({
                 name="linked_bank_account"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Linked Bank Account</FormLabel>
+                    <FormLabel>{t("linked_bank_account", "Linked Bank Account")}</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select account" />
+                          <SelectValue placeholder={t("select_account", "Select account")} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="revolut">Revolut</SelectItem>
+                        <SelectItem value="revolut">{t("revolut", "Revolut")}</SelectItem>
                         <SelectItem value="ing">ING</SelectItem>
-                        <SelectItem value="other">Other</SelectItem>
+                        <SelectItem value="other">{t("other", "Other")}</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -569,9 +571,9 @@ export function AddVendorSubscriptionDialog({
               name="notes"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Notes</FormLabel>
+                  <FormLabel>{t("notes", "Notes")}</FormLabel>
                   <FormControl>
-                    <Textarea placeholder="Additional notes..." {...field} />
+                    <Textarea placeholder={t("additional_notes", "Additional notes...")} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

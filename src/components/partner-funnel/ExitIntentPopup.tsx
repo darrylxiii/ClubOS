@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect, useCallback } from "react";
 import {
   AlertDialog,
@@ -26,6 +27,7 @@ export function ExitIntentPopup({
   currentStep,
   totalSteps,
 }: ExitIntentPopupProps) {
+  const { t } = useTranslation('common');
   const progressPercent = Math.round(((currentStep + 1) / totalSteps) * 100);
   const isStepZero = currentStep === 0;
 
@@ -41,21 +43,21 @@ export function ExitIntentPopup({
             {isStepZero ? (
               <>
                 <p>
-                  This takes <span className="font-semibold text-primary">less than two minutes</span> — and there is no commitment involved.
+                  This takes <span className="font-semibold text-primary">{t("less_than_two_minutes", "less than two minutes")}</span> — and there is no commitment involved.
                 </p>
 
                 <div className="bg-muted/50 rounded-lg p-4 space-y-2">
                   <div className="flex items-center gap-2 text-sm">
                     <Clock className="w-4 h-4 text-primary" />
-                    <span>Under two minutes to complete</span>
+                    <span>{t("under_two_minutes_to", "Under two minutes to complete")}</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <Shield className="w-4 h-4 text-primary" />
-                    <span>No contracts required</span>
+                    <span>{t("no_contracts_required", "No contracts required")}</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <CheckCircle className="w-4 h-4 text-primary" />
-                    <span>Shortlist delivered within two weeks</span>
+                    <span>{t("shortlist_delivered_within_two", "Shortlist delivered within two weeks")}</span>
                   </div>
                 </div>
               </>
@@ -69,15 +71,15 @@ export function ExitIntentPopup({
                 <div className="bg-muted/50 rounded-lg p-4 space-y-2">
                   <div className="flex items-center gap-2 text-sm">
                     <CheckCircle className="w-4 h-4 text-primary" />
-                    <span>Your progress is saved</span>
+                    <span>{t("your_progress_is_saved", "Your progress is saved")}</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <Shield className="w-4 h-4 text-primary" />
-                    <span>Data encrypted and private</span>
+                    <span>{t("data_encrypted_and_private", "Data encrypted and private")}</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <Clock className="w-4 h-4 text-primary" />
-                    <span>Less than a minute to finish</span>
+                    <span>{t("less_than_a_minute", "Less than a minute to finish")}</span>
                   </div>
                 </div>
               </>

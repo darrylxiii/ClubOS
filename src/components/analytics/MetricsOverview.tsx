@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TrendingUp, TrendingDown, Users, Clock, Target, Award } from "lucide-react";
 import { HiringMetrics } from "@/hooks/useAnalytics";
@@ -9,6 +10,7 @@ interface MetricsOverviewProps {
 }
 
 export function MetricsOverview({ hiringMetrics, isLoading }: MetricsOverviewProps) {
+  const { t } = useTranslation('analytics');
   if (isLoading) {
     return (
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -47,32 +49,32 @@ export function MetricsOverview({ hiringMetrics, isLoading }: MetricsOverviewPro
 
   const metrics = [
     {
-      title: "Total Applications",
+      title: t('totalApplications'),
       value: totalApplications,
       change: applicationsTrend,
       icon: Users,
-      description: "Last 4 weeks",
+      description: t('lastFourWeeks'),
     },
     {
-      title: "Successful Hires",
+      title: t('successfulHires'),
       value: totalHires,
       change: hiresTrend,
       icon: Award,
-      description: "Last 4 weeks",
+      description: t('lastFourWeeks'),
     },
     {
-      title: "Avg. Time to Hire",
+      title: t('avgTimeToHire'),
       value: `${Math.round(avgTimeToHire)}d`,
       change: 0,
       icon: Clock,
-      description: "Current period",
+      description: t('currentPeriod'),
     },
     {
-      title: "Active Jobs",
+      title: t('activeJobs'),
       value: activeJobs,
       change: 0,
       icon: Target,
-      description: "Currently open",
+      description: t('currentlyOpen'),
     },
   ];
 

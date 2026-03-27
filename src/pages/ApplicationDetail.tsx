@@ -1,4 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
+import { useTranslation } from 'react-i18next';
 import { useQuery } from "@tanstack/react-query";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -58,6 +59,7 @@ interface ApplicationDetail {
 }
 
 export default function ApplicationDetail() {
+  const { t } = useTranslation('common');
   const { applicationId } = useParams();
   const navigate = useNavigate();
 
@@ -201,7 +203,7 @@ export default function ApplicationDetail() {
         <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
           <Card>
             <CardContent className="py-12 text-center">
-              <p className="text-muted-foreground">Application not found</p>
+              <p className="text-muted-foreground">{t('applicationDetail.text1')}</p>
               <Button onClick={() => navigate("/applications")} className="mt-4">
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back to Applications
@@ -297,7 +299,7 @@ export default function ApplicationDetail() {
             {/* All Pipeline Stages with Preparation Info */}
             <Card>
               <CardHeader>
-                <CardTitle>Application Pipeline & Preparation</CardTitle>
+                <CardTitle>{t('applicationDetail.text2')}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
                 {/* Talent Strategist - At Top */}
@@ -320,9 +322,9 @@ export default function ApplicationDetail() {
                       )}
                     </div>
                     <div className="flex-1">
-                      <div className="text-xs text-muted-foreground mb-1">Your Talent Strategist</div>
+                      <div className="text-xs text-muted-foreground mb-1">{t('applicationDetail.text3')}</div>
                       <div className="text-base font-semibold">{application.talent_strategist.full_name}</div>
-                      <div className="text-xs text-muted-foreground">Click to view profile</div>
+                      <div className="text-xs text-muted-foreground">{t('applicationDetail.text4')}</div>
                     </div>
                   </div>
                 )}
@@ -331,7 +333,7 @@ export default function ApplicationDetail() {
                 <div>
                   <h3 className="text-sm font-semibold mb-3 text-muted-foreground flex items-center gap-2">
                     PIPELINE PROGRESS
-                    <span className="text-xs font-normal opacity-60">(Swipe to see all stages →)</span>
+                    <span className="text-xs font-normal opacity-60">{"(Swipe to see all stages →)"}</span>
                   </h3>
                   <div className="flex items-center justify-start gap-2 overflow-x-auto pb-4 scrollbar-hide cursor-grab active:cursor-grabbing">
                     {application.stages.map((stage: PipelineStageData, index: number) => {
@@ -433,7 +435,7 @@ export default function ApplicationDetail() {
                                   )}
                                   {stage.preparation.resources && stage.preparation.resources.length > 0 && (
                                     <div className="space-y-1 mt-2">
-                                      <p className="text-xs font-medium text-muted-foreground">Resources:</p>
+                                      <p className="text-xs font-medium text-muted-foreground">{t('applicationDetail.text5')}</p>
                                       {stage.preparation.resources.map((resource: any, idx: number) => (
                                         <a
                                           key={idx}
@@ -459,7 +461,7 @@ export default function ApplicationDetail() {
                                       <div className="flex items-start gap-2 mb-1">
                                         <Calendar className="w-4 h-4 mt-0.5 flex-shrink-0" />
                                         <div className="flex-1 min-w-0">
-                                          <p className="text-sm font-medium">Scheduled</p>
+                                          <p className="text-sm font-medium">{t('applicationDetail.text6')}</p>
                                           <p className="text-sm text-muted-foreground truncate">{stage.scheduledDate}</p>
                                           {stage.duration && (
                                             <p className="text-xs text-muted-foreground">Duration: {stage.duration}</p>
@@ -509,7 +511,7 @@ export default function ApplicationDetail() {
             {application.job?.description && (
               <Card>
                 <CardHeader>
-                  <CardTitle>About the Role</CardTitle>
+                  <CardTitle>{t('applicationDetail.text7')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-muted-foreground whitespace-pre-wrap">
@@ -523,7 +525,7 @@ export default function ApplicationDetail() {
             {application.job?.requirements && application.job.requirements.length > 0 && (
               <Card>
                 <CardHeader>
-                  <CardTitle>Requirements</CardTitle>
+                  <CardTitle>{t('applicationDetail.text8')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <ul className="space-y-2">
@@ -542,7 +544,7 @@ export default function ApplicationDetail() {
             {application.job?.benefits && application.job.benefits.length > 0 && (
               <Card>
                 <CardHeader>
-                  <CardTitle>Benefits</CardTitle>
+                  <CardTitle>{t('applicationDetail.text9')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="flex flex-wrap gap-2">
@@ -560,7 +562,7 @@ export default function ApplicationDetail() {
             {/* Next Step Actions */}
             {currentStage && (
               <div>
-                <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-3">Next Step</h3>
+                <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-3">{t('applicationDetail.text10')}</h3>
                 <NextStepHelper
                   stageName={currentStage.title}
                   scheduledDate={currentStage.scheduledDate}
@@ -574,7 +576,7 @@ export default function ApplicationDetail() {
 
             {/* Comprehensive Stats Grid */}
             <div className="space-y-3">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Application Insights</h3>
+              <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">{t('applicationDetail.text11')}</h3>
               
               {/* Progression Heatmap */}
               <ProgressionHeatmap
@@ -600,7 +602,7 @@ export default function ApplicationDetail() {
             {application.talent_strategist && (
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base">Your Talent Strategist</CardTitle>
+                  <CardTitle className="text-base">{t('applicationDetail.text12')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div 
@@ -622,7 +624,7 @@ export default function ApplicationDetail() {
                     </div>
                     <div className="flex-1">
                       <p className="font-semibold text-base">{application.talent_strategist.full_name}</p>
-                      <p className="text-xs text-muted-foreground">Click to view profile</p>
+                      <p className="text-xs text-muted-foreground">{t('applicationDetail.text13')}</p>
                     </div>
                   </div>
                   <Button

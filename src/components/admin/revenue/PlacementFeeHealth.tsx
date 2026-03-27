@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -24,6 +25,7 @@ interface HealthMetric {
 }
 
 export function PlacementFeeHealth() {
+  const { t } = useTranslation('common');
   const { data: healthData, isLoading, refetch } = useQuery({
     queryKey: ['placement-fee-health'],
     queryFn: async () => {
@@ -163,7 +165,7 @@ export function PlacementFeeHealth() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <h3 className="text-lg font-semibold">Placement Fee Health</h3>
+          <h3 className="text-lg font-semibold">{t("placement_fee_health", "Placement Fee Health")}</h3>
           <Badge 
             variant={overallHealth === 'good' ? 'default' : overallHealth === 'warning' ? 'secondary' : 'destructive'}
           >
@@ -206,25 +208,25 @@ export function PlacementFeeHealth() {
         <CardContent>
           <div className="grid grid-cols-4 gap-4">
             <div className="text-center p-3 rounded-lg bg-green-500/10">
-              <div className="text-sm text-muted-foreground">Current (0-30 days)</div>
+              <div className="text-sm text-muted-foreground">{t("current_030_days", "Current (0-30 days)")}</div>
               <div className="text-xl font-bold text-green-500">
                 {formatCurrency(healthData?.agingBuckets.current || 0)}
               </div>
             </div>
             <div className="text-center p-3 rounded-lg bg-yellow-500/10">
-              <div className="text-sm text-muted-foreground">31-60 days</div>
+              <div className="text-sm text-muted-foreground">{t("3160_days", "31-60 days")}</div>
               <div className="text-xl font-bold text-yellow-500">
                 {formatCurrency(healthData?.agingBuckets.days30 || 0)}
               </div>
             </div>
             <div className="text-center p-3 rounded-lg bg-orange-500/10">
-              <div className="text-sm text-muted-foreground">61-90 days</div>
+              <div className="text-sm text-muted-foreground">{t("6190_days", "61-90 days")}</div>
               <div className="text-xl font-bold text-orange-500">
                 {formatCurrency(healthData?.agingBuckets.days60 || 0)}
               </div>
             </div>
             <div className="text-center p-3 rounded-lg bg-destructive/10">
-              <div className="text-sm text-muted-foreground">90+ days</div>
+              <div className="text-sm text-muted-foreground">{t("90_days", "90+ days")}</div>
               <div className="text-xl font-bold text-destructive">
                 {formatCurrency(healthData?.agingBuckets.days90Plus || 0)}
               </div>
@@ -237,7 +239,7 @@ export function PlacementFeeHealth() {
       {overallHealth !== 'good' && (
         <Alert variant={overallHealth === 'critical' ? 'destructive' : 'default'}>
           <TrendingDown className="h-4 w-4" />
-          <AlertTitle>Action Required</AlertTitle>
+          <AlertTitle>{t("action_required", "Action Required")}</AlertTitle>
           <AlertDescription>
             {metrics.filter(m => m.status !== 'good').map(m => m.label).join(', ')} need attention.
             Review and resolve these issues to maintain financial health.

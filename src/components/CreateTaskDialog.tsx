@@ -15,6 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { useTranslation } from 'react-i18next';
 
 interface CreateTaskDialogProps {
   trigger?: React.ReactNode;
@@ -22,27 +23,28 @@ interface CreateTaskDialogProps {
 }
 
 const taskTypes = [
-  { value: 'interview_prep', label: 'Interview Prep', icon: '📝' },
-  { value: 'application', label: 'Application', icon: '📄' },
-  { value: 'follow_up', label: 'Follow Up', icon: '📧' },
-  { value: 'research', label: 'Company Research', icon: '🔍' },
-  { value: 'meeting', label: 'Meeting', icon: '👥' },
-  { value: 'networking', label: 'Networking', icon: '🤝' },
-  { value: 'skill_development', label: 'Skill Development', icon: '📚' },
-  { value: 'portfolio', label: 'Portfolio Update', icon: '💼' },
-  { value: 'custom', label: 'Custom', icon: '✓' },
+  { value: 'interview_prep', label: t('createtaskdialog.interviewPrep', 'Interview Prep'), icon: '📝' },
+  { value: 'application', label: t('createtaskdialog.application', 'Application'), icon: '📄' },
+  { value: 'follow_up', label: t('createtaskdialog.followUp', 'Follow Up'), icon: '📧' },
+  { value: 'research', label: t('createtaskdialog.companyResearch', 'Company Research'), icon: '🔍' },
+  { value: 'meeting', label: t('createtaskdialog.meeting', 'Meeting'), icon: '👥' },
+  { value: 'networking', label: t('createtaskdialog.networking', 'Networking'), icon: '🤝' },
+  { value: 'skill_development', label: t('createtaskdialog.skillDevelopment', 'Skill Development'), icon: '📚' },
+  { value: 'portfolio', label: t('createtaskdialog.portfolioUpdate', 'Portfolio Update'), icon: '💼' },
+  { value: 'custom', label: t('createtaskdialog.custom', 'Custom'), icon: '✓' },
 ];
 
 const priorities = [
-  { value: 'urgent', label: 'Urgent', color: 'destructive' },
-  { value: 'high', label: 'High', color: 'default' },
-  { value: 'medium', label: 'Medium', color: 'secondary' },
-  { value: 'low', label: 'Low', color: 'outline' },
+  { value: 'urgent', label: t('createtaskdialog.urgent', 'Urgent'), color: 'destructive' },
+  { value: 'high', label: t('createtaskdialog.high', 'High'), color: 'default' },
+  { value: 'medium', label: t('createtaskdialog.medium', 'Medium'), color: 'secondary' },
+  { value: 'low', label: t('createtaskdialog.low', 'Low'), color: 'outline' },
 ];
 
 const durations = [15, 30, 45, 60, 90, 120, 180, 240];
 
 export const CreateTaskDialog = ({ trigger, onTaskCreated }: CreateTaskDialogProps) => {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -66,7 +68,7 @@ export const CreateTaskDialog = ({ trigger, onTaskCreated }: CreateTaskDialogPro
     if (!user) return;
 
     if (!formData.title.trim()) {
-      toast.error('Please enter a task title');
+      toast.error(t('createtaskdialog.pleaseEnterATaskTitle', 'Please enter a task title'));
       return;
     }
 
@@ -96,8 +98,7 @@ export const CreateTaskDialog = ({ trigger, onTaskCreated }: CreateTaskDialogPro
 
       toast.success(
         formData.auto_schedule 
-          ? 'Task created! AI will schedule it automatically.' 
-          : 'Task created successfully!'
+          ? t('createtaskdialog.taskCreatedAiWillScheduleIt', 'Task created! AI will schedule it automatically.') : t('createtaskdialog.taskCreatedSuccessfully', 'Task created successfully!')
       );
       
       // Reset form
@@ -119,7 +120,7 @@ export const CreateTaskDialog = ({ trigger, onTaskCreated }: CreateTaskDialogPro
       onTaskCreated?.();
     } catch (error: unknown) {
       console.error('Error creating task:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to create task');
+      toast.error(error instanceof Error ? error.message : t('createtaskdialog.failedToCreateTask', 'Failed to create task'));
     } finally {
       setLoading(false);
     }
@@ -138,16 +139,14 @@ export const CreateTaskDialog = ({ trigger, onTaskCreated }: CreateTaskDialogPro
       
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Create New Task</DialogTitle>
-          <DialogDescription>
-            Add a task to your pipeline. Motion-style AI will automatically schedule it based on your priorities and calendar.
-          </DialogDescription>
+          <DialogTitle>{t('createtaskdialog.createNewTask', 'Create New Task')}</DialogTitle>
+          <DialogDescription>{t('createtaskdialog.addATaskToYourPipeline', 'Add a task to your pipeline. Motion-style AI will automatically schedule it based on your priorities and calendar.')}</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Title */}
           <div className="space-y-2">
-            <Label htmlFor="title">Task Title *</Label>
+            <Label htmlFor="title">{t('createtaskdialog.taskTitle', 'Task Title *')}</Label>
             <Input
               id="title"
               placeholder="e.g., Prepare for Google interview"
@@ -159,10 +158,10 @@ export const CreateTaskDialog = ({ trigger, onTaskCreated }: CreateTaskDialogPro
 
           {/* Description */}
           <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
+            <Label htmlFor="description">{t('createtaskdialog.description', 'Description')}</Label>
             <Textarea
               id="description"
-              placeholder="Add notes, requirements, or any additional details..."
+              placeholder={t('createtaskdialog.addNotesRequirementsOrAnyAdditional', 'Add notes, requirements, or any additional details...')}
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               rows={3}
@@ -172,7 +171,7 @@ export const CreateTaskDialog = ({ trigger, onTaskCreated }: CreateTaskDialogPro
           {/* Type and Priority */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="task_type">Task Type</Label>
+              <Label htmlFor="task_type">{t('createtaskdialog.taskType', 'Task Type')}</Label>
               <Select
                 value={formData.task_type}
                 onValueChange={(value) => setFormData({ ...formData, task_type: value })}
@@ -194,7 +193,7 @@ export const CreateTaskDialog = ({ trigger, onTaskCreated }: CreateTaskDialogPro
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="priority">Priority</Label>
+              <Label htmlFor="priority">{t('createtaskdialog.priority', 'Priority')}</Label>
               <Select
                 value={formData.priority}
                 onValueChange={(value) => setFormData({ ...formData, priority: value })}
@@ -216,7 +215,7 @@ export const CreateTaskDialog = ({ trigger, onTaskCreated }: CreateTaskDialogPro
           {/* Duration and Due Date */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Estimated Duration</Label>
+              <Label>{t('createtaskdialog.estimatedDuration', 'Estimated Duration')}</Label>
               <Select
                 value={formData.estimated_duration_minutes.toString()}
                 onValueChange={(value) => setFormData({ ...formData, estimated_duration_minutes: parseInt(value) })}
@@ -238,7 +237,7 @@ export const CreateTaskDialog = ({ trigger, onTaskCreated }: CreateTaskDialogPro
             </div>
 
             <div className="space-y-2">
-              <Label>Due Date (Optional)</Label>
+              <Label>{t('createtaskdialog.dueDateOptional', 'Due Date (Optional)')}</Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
@@ -267,7 +266,7 @@ export const CreateTaskDialog = ({ trigger, onTaskCreated }: CreateTaskDialogPro
           {/* Company & Position (Optional) */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="company_name">Company (Optional)</Label>
+              <Label htmlFor="company_name">{t('createtaskdialog.companyOptional', 'Company (Optional)')}</Label>
               <Input
                 id="company_name"
                 placeholder="e.g., Google"
@@ -277,7 +276,7 @@ export const CreateTaskDialog = ({ trigger, onTaskCreated }: CreateTaskDialogPro
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="position">Position (Optional)</Label>
+              <Label htmlFor="position">{t('createtaskdialog.positionOptional', 'Position (Optional)')}</Label>
               <Input
                 id="position"
                 placeholder="e.g., Senior Engineer"
@@ -292,8 +291,8 @@ export const CreateTaskDialog = ({ trigger, onTaskCreated }: CreateTaskDialogPro
             <div className="flex items-center gap-3">
               <Repeat className="w-5 h-5 text-muted-foreground" />
               <div>
-                <Label className="text-base font-semibold">Recurring Task</Label>
-                <p className="text-sm text-muted-foreground">Automatically create this task on a schedule</p>
+                <Label className="text-base font-semibold">{t('createtaskdialog.recurringTask', 'Recurring Task')}</Label>
+                <p className="text-sm text-muted-foreground">{t('createtaskdialog.automaticallyCreateThisTaskOnA', 'Automatically create this task on a schedule')}</p>
               </div>
             </div>
             <Switch
@@ -304,7 +303,7 @@ export const CreateTaskDialog = ({ trigger, onTaskCreated }: CreateTaskDialogPro
 
           {formData.recurring && (
             <div className="space-y-2 pl-8">
-              <Label>Recurrence Pattern</Label>
+              <Label>{t('createtaskdialog.recurrencePattern', 'Recurrence Pattern')}</Label>
               <Select
                 value={formData.recurrence_pattern}
                 onValueChange={(value) => setFormData({ ...formData, recurrence_pattern: value })}
@@ -313,10 +312,10 @@ export const CreateTaskDialog = ({ trigger, onTaskCreated }: CreateTaskDialogPro
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="daily">Daily</SelectItem>
-                  <SelectItem value="weekly">Weekly</SelectItem>
-                  <SelectItem value="biweekly">Bi-weekly</SelectItem>
-                  <SelectItem value="monthly">Monthly</SelectItem>
+                  <SelectItem value="daily">{t('createtaskdialog.daily', 'Daily')}</SelectItem>
+                  <SelectItem value="weekly">{t('createtaskdialog.weekly', 'Weekly')}</SelectItem>
+                  <SelectItem value="biweekly">{t('createtaskdialog.biweekly', 'Bi-weekly')}</SelectItem>
+                  <SelectItem value="monthly">{t('createtaskdialog.monthly', 'Monthly')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -327,10 +326,8 @@ export const CreateTaskDialog = ({ trigger, onTaskCreated }: CreateTaskDialogPro
             <div className="flex items-center gap-3">
               <Sparkles className="w-5 h-5 text-accent" />
               <div>
-                <Label className="text-base font-semibold">AI Auto-Schedule</Label>
-                <p className="text-sm text-muted-foreground">
-                  Let Motion-style AI find the best time for this task
-                </p>
+                <Label className="text-base font-semibold">{t('createtaskdialog.aiAutoschedule', 'AI Auto-Schedule')}</Label>
+                <p className="text-sm text-muted-foreground">{t('createtaskdialog.letMotionstyleAiFindTheBest', 'Let Motion-style AI find the best time for this task')}</p>
               </div>
             </div>
             <Switch
@@ -341,10 +338,10 @@ export const CreateTaskDialog = ({ trigger, onTaskCreated }: CreateTaskDialogPro
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
-              Cancel
+              {t('createtaskdialog.cancel', 'Cancel')}
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? 'Creating...' : 'Create Task'}
+              {loading ? t('createtaskdialog.creating', 'Creating...') : t('createtaskdialog.createTask', 'Create Task')}
             </Button>
           </DialogFooter>
         </form>

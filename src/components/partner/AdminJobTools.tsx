@@ -35,6 +35,7 @@ import { AddCandidateDialog } from "./AddCandidateDialog";
 import { PipelineLinkedInSync } from "./PipelineLinkedInSync";
 import { EmailDumpTab } from "@/components/jobs/email-dump";
 import { toast } from "sonner";
+import { useTranslation } from 'react-i18next';
 
 interface AdminJobToolsProps {
   jobId: string;
@@ -44,46 +45,41 @@ interface AdminJobToolsProps {
 }
 
 export const AdminJobTools = ({ jobId, jobTitle, companyName = '', onRefresh }: AdminJobToolsProps) => {
+  const { t } = useTranslation('partner');
   const [showAddCandidate, setShowAddCandidate] = useState(false);
   const [showEmailDump, setShowEmailDump] = useState(false);
 
   const handleAIRecommendations = () => {
-    toast.info("AI Matching Engine", {
-      description: "Analyzing global talent pool for perfect matches...",
+    toast.info(t('adminJobTools.toast.aiMatchingEngine'), { description: t('adminJobTools.toast.aiMatchingEngineDesc'),
       duration: 3000,
     });
     setTimeout(() => {
-      toast.success("Found 23 high-potential candidates", {
-        description: "Advanced AI scoring applied. Review in pipeline.",
+      toast.success(t('adminJobTools.toast.found23HighpotentialCandidates'), { description: t('adminJobTools.toast.found23HighpotentialCandidatesDesc'),
       });
     }, 3000);
   };
 
   const handleBulkImport = () => {
-    toast.info("Bulk Import", {
-      description: "Upload CSV or connect ATS to import candidates",
+    toast.info(t('adminJobTools.toast.bulkImport'), { description: t('adminJobTools.toast.bulkImportDesc'),
     });
   };
 
   const handlePipelineHealth = () => {
-    toast.success("Pipeline Health: 94%", {
-      description: "Excellent flow. Avg time-to-hire: 12 days",
+    toast.success(t('adminJobTools.toast.pipelineHealth94'), { description: t('adminJobTools.toast.pipelineHealth94Desc'),
     });
   };
 
   const handleExportData = () => {
-    toast.success("Exporting pipeline data", {
-      description: "Full analytics export with GDPR compliance",
+    toast.success(t('adminJobTools.toast.exportingPipelineData'), { description: t('adminJobTools.toast.exportingPipelineDataDesc'),
     });
   };
 
   const handleRecalculateMetrics = () => {
-    toast.info("Recalculating metrics...", {
-      description: "Using latest AI models and scoring algorithms",
+    toast.info(t('adminJobTools.toast.recalculatingMetrics'), { description: t('adminJobTools.toast.recalculatingMetricsDesc'),
     });
     setTimeout(() => {
       onRefresh();
-      toast.success("Metrics updated successfully");
+      toast.success(t('adminJobTools.toast.metricsUpdatedSuccessfully'));
     }, 2000);
   };
 
@@ -92,10 +88,8 @@ export const AdminJobTools = ({ jobId, jobTitle, companyName = '', onRefresh }: 
       <div className="flex flex-wrap items-center gap-3 p-4 rounded-xl border border-border/40 bg-card/50 backdrop-blur-sm">
         <div className="flex items-center gap-2">
           <Shield className="w-5 h-5 text-muted-foreground" />
-          <Badge variant="outline" className="border-accent/50 text-foreground font-bold">
-            ADMIN JOB TOOLS
-          </Badge>
-          <span className="text-xs text-muted-foreground">Job-level operations</span>
+          <Badge variant="outline" className="border-accent/50 text-foreground font-bold">{t('adminJobTools.badge.adminJobTools')}</Badge>
+          <span className="text-xs text-muted-foreground">{t('adminJobTools.joblevelOperations')}</span>
         </div>
         
         <div className="flex-1" />
@@ -186,7 +180,7 @@ export const AdminJobTools = ({ jobId, jobTitle, companyName = '', onRefresh }: 
       <Sheet open={showEmailDump} onOpenChange={setShowEmailDump}>
         <SheetContent side="right" className="w-full sm:max-w-2xl overflow-y-auto">
           <SheetHeader>
-            <SheetTitle className="text-sm font-bold uppercase tracking-wide">Email Dump</SheetTitle>
+            <SheetTitle className="text-sm font-bold uppercase tracking-wide">{t('adminJobTools.sheetTitle')}</SheetTitle>
           </SheetHeader>
           <div className="mt-4">
             <EmailDumpTab

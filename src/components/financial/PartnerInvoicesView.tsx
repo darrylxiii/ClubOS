@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -10,6 +11,7 @@ interface PartnerInvoicesViewProps {
 }
 
 export function PartnerInvoicesView({ invoices }: PartnerInvoicesViewProps) {
+  const { t } = useTranslation('common');
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'paid': return 'bg-green-500/10 text-green-700 dark:text-green-400';
@@ -39,12 +41,12 @@ export function PartnerInvoicesView({ invoices }: PartnerInvoicesViewProps) {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Invoice #</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Due Date</TableHead>
-                <TableHead>Amount</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Actions</TableHead>
+                <TableHead>{t("invoice", "Invoice #")}</TableHead>
+                <TableHead>{t("date", "Date")}</TableHead>
+                <TableHead>{t("due_date", "Due Date")}</TableHead>
+                <TableHead>{t("amount", "Amount")}</TableHead>
+                <TableHead>{t("status", "Status")}</TableHead>
+                <TableHead>{t("actions", "Actions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

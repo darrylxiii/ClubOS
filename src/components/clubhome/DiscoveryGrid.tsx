@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,6 +13,7 @@ import { useEffect } from "react";
 
 // ── For You column ──
 function ForYouColumn() {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -51,7 +53,7 @@ function ForYouColumn() {
   return (
     <Column
       icon={<Sparkles className="h-3.5 w-3.5" />}
-      title="For you"
+      title={t("for_you", "For you")}
       seeAllPath="/jobs"
       loading={isLoading}
       empty={!jobs?.length}
@@ -111,7 +113,7 @@ function SavedColumn() {
   return (
     <Column
       icon={<Bookmark className="h-3.5 w-3.5" />}
-      title="Saved"
+      title={t("saved", "Saved")}
       count={count}
       seeAllPath="/jobs?filter=saved"
       loading={isLoading}
@@ -200,7 +202,7 @@ function MessagesColumn() {
   return (
     <Column
       icon={<MessageSquare className="h-3.5 w-3.5" />}
-      title="Messages"
+      title={t("messages", "Messages")}
       count={unread || undefined}
       countVariant="unread"
       seeAllPath="/messages"

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -44,6 +45,7 @@ interface ThoughtProcess {
 
 /* Sub-component for Testing Retrieval */
 function AgentRetrievalSimulator({ selectedCompany, companyName }: { selectedCompany: string | null, companyName?: string }) {
+  const { t } = useTranslation('common');
     const [query, setQuery] = useState("");
     const [results, setResults] = useState<any[]>([]);
     const [thoughtProcess, setThoughtProcess] = useState<ThoughtProcess | null>(null);
@@ -74,7 +76,7 @@ function AgentRetrievalSimulator({ selectedCompany, companyName }: { selectedCom
     return (
         <Card className="h-full border-purple-100 flex flex-col">
             <CardHeader>
-                <CardTitle className="text-lg">Test Agent Recall & Logic</CardTitle>
+                <CardTitle className="text-lg">{t("test_agent_recall_logic", "Test Agent Recall & Logic")}</CardTitle>
                 <CardDescription>
                     Test the RAG pipeline: Query Expansion → Hybrid Search → Reranking.
                     {companyName && <span className="block text-purple-600 font-medium mt-1">Focusing on: {companyName}</span>}
@@ -83,7 +85,7 @@ function AgentRetrievalSimulator({ selectedCompany, companyName }: { selectedCom
             <CardContent className="flex-1 flex flex-col gap-4 overflow-hidden">
                 <div className="flex gap-2">
                     <Input
-                        placeholder="e.g. What is the company mission?"
+                        placeholder={t("eg_what_is_the", "e.g. What is the company mission?")}
                         value={query}
                         onChange={(e) => setQuery(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
@@ -101,17 +103,17 @@ function AgentRetrievalSimulator({ selectedCompany, companyName }: { selectedCom
                             </div>
                             <div className="grid grid-cols-2 gap-2">
                                 <div>
-                                    <span className="text-muted-foreground">Strategy:</span> {thoughtProcess.strategy}
+                                    <span className="text-muted-foreground">{t("strategy", "Strategy:")}</span> {thoughtProcess.strategy}
                                 </div>
                                 <div>
-                                    <span className="text-muted-foreground">Original:</span> "{thoughtProcess.original_query}"
+                                    <span className="text-muted-foreground">{t("original", "Original:")}</span> "{thoughtProcess.original_query}"
                                 </div>
                                 <div className="col-span-2">
-                                    <span className="text-muted-foreground">Optimized Query:</span>
+                                    <span className="text-muted-foreground">{t("optimized_query", "Optimized Query:")}</span>
                                     <span className="font-mono text-purple-700 ml-1">"{thoughtProcess.optimized_query}"</span>
                                 </div>
                                 <div>
-                                    <span className="text-muted-foreground">Candidates:</span> {thoughtProcess.candidate_count} → {thoughtProcess.final_count}
+                                    <span className="text-muted-foreground">{t("candidates", "Candidates:")}</span> {thoughtProcess.candidate_count} → {thoughtProcess.final_count}
                                 </div>
                             </div>
                         </div>
@@ -228,7 +230,7 @@ export default function AgentBrain() {
                         <Brain className="h-8 w-8 text-purple-500" />
                         Agent Brain
                     </h1>
-                    <p className="text-muted-foreground">Manage the "Universal Context" for the Quantum Recruiter.</p>
+                    <p className="text-muted-foreground">{t("manage_the_universal_context", "Manage the ')Universal Context' for the Quantum Recruiter.")}</p>
                 </div>
             </div>
 
@@ -239,7 +241,7 @@ export default function AgentBrain() {
                         <CardTitle className="flex items-center gap-2 text-lg">
                             <Database className="h-5 w-5" /> Companies
                         </CardTitle>
-                        <CardDescription>Select a company to manage context.</CardDescription>
+                        <CardDescription>{t("select_a_company_to", "Select a company to manage context.")}</CardDescription>
                     </CardHeader>
                     <CardContent className="flex-1 overflow-auto">
                         {isLoading ? (
@@ -267,8 +269,8 @@ export default function AgentBrain() {
                     <Tabs defaultValue="view" className="h-full flex flex-col">
                         <div className="flex justify-between items-center mb-4">
                             <TabsList>
-                                <TabsTrigger value="view"><Eye className="h-4 w-4 mr-2" /> View Memory</TabsTrigger>
-                                <TabsTrigger value="test"><MessageSquare className="h-4 w-4 mr-2" /> Test Recall</TabsTrigger>
+                                <TabsTrigger value="view"><Eye className="h-4 w-4 mr-2" />{t("view_memory", "View Memory")}</TabsTrigger>
+                                <TabsTrigger value="test"><MessageSquare className="h-4 w-4 mr-2" />{t("test_recall", "Test Recall")}</TabsTrigger>
                             </TabsList>
 
                             {selectedCompany && (
@@ -281,7 +283,7 @@ export default function AgentBrain() {
                                     {isIngesting ? (
                                         <InlineLoader text="Ingesting DNA..." />
                                     ) : (
-                                        <><RefreshCw className="mr-2 h-4 w-4" /> Re-Ingest Context</>
+                                        <><RefreshCw className="mr-2 h-4 w-4" />{t("reingest_context", "Re-Ingest Context")}</>
                                     )}
                                 </Button>
                             )}
@@ -302,21 +304,21 @@ export default function AgentBrain() {
                                 <CardContent className="flex-1 overflow-auto">
                                     {!selectedCompany ? (
                                         <div className="flex h-full items-center justify-center text-muted-foreground">
-                                            <p>Select a company to view generated embeddings.</p>
+                                            <p>{t("select_a_company_to", "Select a company to view generated embeddings.")}</p>
                                         </div>
                                     ) : embeddings.length === 0 ? (
                                         <div className="flex h-full flex-col items-center justify-center text-muted-foreground gap-4">
                                             <Brain className="h-12 w-12 text-gray-200" />
-                                            <p>No knowledge context found for this company.</p>
-                                            <Button variant="outline" onClick={() => handleIngest(selectedCompany)}>Initialize Memory</Button>
+                                            <p>{t("no_knowledge_context_found", "No knowledge context found for this company.")}</p>
+                                            <Button variant="outline" onClick={() => handleIngest(selectedCompany)}>{t("initialize_memory", "Initialize Memory")}</Button>
                                         </div>
                                     ) : (
                                         <Table>
                                             <TableHeader>
                                                 <TableRow>
-                                                    <TableHead className="w-[100px]">Type</TableHead>
-                                                    <TableHead>Content Chunk</TableHead>
-                                                    <TableHead className="w-[150px]">Created</TableHead>
+                                                    <TableHead className="w-[100px]">{t("type", "Type")}</TableHead>
+                                                    <TableHead>{t("content_chunk", "Content Chunk")}</TableHead>
+                                                    <TableHead className="w-[150px]">{t("created", "Created")}</TableHead>
                                                 </TableRow>
                                             </TableHeader>
                                             <TableBody>

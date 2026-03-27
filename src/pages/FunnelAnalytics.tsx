@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from 'react-i18next';
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -10,6 +11,7 @@ import { notify } from "@/lib/notify";
 import { format } from "date-fns";
 
 export default function FunnelAnalytics() {
+  const { t } = useTranslation('partner');
   const [isActive, setIsActive] = useState(true);
   const [requests, setRequests] = useState<any[]>([]);
   const [analytics, setAnalytics] = useState<any[]>([]);
@@ -129,8 +131,8 @@ export default function FunnelAnalytics() {
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h2 className="text-2xl font-bold">Funnel Analytics</h2>
-          <p className="text-muted-foreground">Real-time partner request tracking and insights</p>
+          <h2 className="text-2xl font-bold">{t('funnelAnalytics.text1')}</h2>
+          <p className="text-muted-foreground">{t('funnelAnalytics.text2')}</p>
         </div>
         <div className="flex gap-3">
           <Button variant="outline" onClick={exportData}>
@@ -162,34 +164,34 @@ export default function FunnelAnalytics() {
         <Card className="p-6">
           <Eye className="w-8 h-8 text-primary mb-3" />
           <div className="text-3xl font-bold mb-1">{stats.totalViews}</div>
-          <div className="text-sm text-muted-foreground">Total Views</div>
+          <div className="text-sm text-muted-foreground">{t('funnelAnalytics.text3')}</div>
         </Card>
         <Card className="p-6">
           <Users className="w-8 h-8 text-primary mb-3" />
           <div className="text-3xl font-bold mb-1">{stats.uniqueSessions}</div>
-          <div className="text-sm text-muted-foreground">Unique Sessions</div>
+          <div className="text-sm text-muted-foreground">{t('funnelAnalytics.text4')}</div>
         </Card>
         <Card className="p-6">
           <CheckCircle className="w-8 h-8 text-primary mb-3" />
           <div className="text-3xl font-bold mb-1">{stats.submissions}</div>
-          <div className="text-sm text-muted-foreground">Submissions</div>
+          <div className="text-sm text-muted-foreground">{t('funnelAnalytics.text5')}</div>
         </Card>
         <Card className="p-6">
           <TrendingUp className="w-8 h-8 text-primary mb-3" />
           <div className="text-3xl font-bold mb-1">{stats.conversionRate.toFixed(1)}%</div>
-          <div className="text-sm text-muted-foreground">Conversion Rate</div>
+          <div className="text-sm text-muted-foreground">{t('funnelAnalytics.text6')}</div>
         </Card>
         <Card className="p-6">
           <MousePointerClick className="w-8 h-8 text-primary mb-3" />
           <div className="text-3xl font-bold mb-1">{((stats.uniqueSessions - stats.submissions) / stats.uniqueSessions * 100 || 0).toFixed(1)}%</div>
-          <div className="text-sm text-muted-foreground">Drop-off Rate</div>
+          <div className="text-sm text-muted-foreground">{t('funnelAnalytics.text7')}</div>
         </Card>
       </div>
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-4">Funnel Step Progression</h3>
+          <h3 className="text-lg font-semibold mb-4">{t('funnelAnalytics.text8')}</h3>
           <DynamicChart
             type="bar"
             data={stepData}
@@ -204,7 +206,7 @@ export default function FunnelAnalytics() {
         </Card>
 
         <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-4">Request Status Distribution</h3>
+          <h3 className="text-lg font-semibold mb-4">{t('funnelAnalytics.text9')}</h3>
           <DynamicChart
             type="pie"
             data={statusData}
@@ -224,21 +226,21 @@ export default function FunnelAnalytics() {
       {/* Requests Table */}
       <Card className="p-6">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-          <h3 className="text-lg font-semibold">Partner Requests</h3>
+          <h3 className="text-lg font-semibold">{t('funnelAnalytics.text10')}</h3>
           <div className="flex gap-3 w-full md:w-auto">
             <Select value={filterStatus} onValueChange={(value) => {
               setFilterStatus(value);
               loadRequests();
             }}>
               <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Filter by status" />
+                <SelectValue placeholder={t('funnelAnalytics.text11')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="in_review">In Review</SelectItem>
-                <SelectItem value="approved">Approved</SelectItem>
-                <SelectItem value="rejected">Rejected</SelectItem>
+                <SelectItem value="all">{t('funnelAnalytics.text12')}</SelectItem>
+                <SelectItem value="pending">{t('funnelAnalytics.text13')}</SelectItem>
+                <SelectItem value="in_review">{t('funnelAnalytics.text14')}</SelectItem>
+                <SelectItem value="approved">{t('funnelAnalytics.text15')}</SelectItem>
+                <SelectItem value="rejected">{t('funnelAnalytics.text16')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -248,13 +250,13 @@ export default function FunnelAnalytics() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-border">
-                <th className="text-left py-3 px-4">Date</th>
-                <th className="text-left py-3 px-4">Company</th>
-                <th className="text-left py-3 px-4">Contact</th>
-                <th className="text-left py-3 px-4">Industry</th>
-                <th className="text-left py-3 px-4">Type</th>
-                <th className="text-left py-3 px-4">Status</th>
-                <th className="text-left py-3 px-4">Source</th>
+                <th className="text-left py-3 px-4">{t('funnelAnalytics.text17')}</th>
+                <th className="text-left py-3 px-4">{t('funnelAnalytics.text18')}</th>
+                <th className="text-left py-3 px-4">{t('funnelAnalytics.text19')}</th>
+                <th className="text-left py-3 px-4">{t('funnelAnalytics.text20')}</th>
+                <th className="text-left py-3 px-4">{t('funnelAnalytics.text21')}</th>
+                <th className="text-left py-3 px-4">{t('funnelAnalytics.text22')}</th>
+                <th className="text-left py-3 px-4">{t('funnelAnalytics.text23')}</th>
               </tr>
             </thead>
             <tbody>

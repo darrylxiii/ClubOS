@@ -1,26 +1,23 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
-import { corsHeaders } from "../_shared/cors.ts";
+import { createHandler } from '../_shared/handler.ts';
 
 /**
  * admin-fix-user-metadata
- * 
+ *
  * Admin-only recovery tool to clear stuck metadata flags (e.g. force_password_change).
  * Requires the caller to be an admin (verified via user_roles table).
  */
-Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
+Deno.serve(createHandler(async (req, ctx) => {
+    const corsHeaders = ctx.corsHeaders;
 
-  try {
     // Accept auth from Authorization header OR apikey header (for service-role calls via curl tool)
     const authHeader = req.headers.get("Authorization");
     const apikeyHeader = req.headers.get("apikey");
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    
+
     // If apikey matches service role key, allow directly
     const isServiceRoleViaApikey = apikeyHeader === serviceRoleKey;
-    
+
     if (!isServiceRoleViaApikey && !authHeader?.startsWith("Bearer ")) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
@@ -30,10 +27,7 @@ Deno.serve(async (req) => {
 
     const token = authHeader?.replace("Bearer ", "") || "";
 
-    const adminClient = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      serviceRoleKey
-    );
+    const adminClient = ctx.supabase;
 
     let callerId = "service-role";
 
@@ -121,10 +115,4 @@ Deno.serve(async (req) => {
       JSON.stringify({ success: true, updated_fields: Object.keys(metadata_updates) }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
-  } catch (err) {
-    return new Response(JSON.stringify({ error: err.message || "Internal error" }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  }
-});
+}));

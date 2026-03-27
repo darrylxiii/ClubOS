@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 /**
  * Keyboard Shortcuts Display Component
  * Shows available keyboard navigation hints
@@ -16,12 +17,12 @@ interface KeyboardShortcutsProps {
   totalSteps: number;
 }
 
-export function KeyboardShortcuts({
-  visible,
+export function KeyboardShortcuts({  visible,
   onDismiss,
   currentStep,
   totalSteps,
 }: KeyboardShortcutsProps) {
+const { t } = useTranslation('common');
   const [show, setShow] = useState(visible);
 
   useEffect(() => {
@@ -117,7 +118,7 @@ export function KeyboardHintToast({ onDismiss }: { onDismiss: () => void }) {
       <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-primary/10 border border-primary/20 text-sm">
         <Keyboard className="w-4 h-4 text-primary" />
         <span>
-          Pro tip: Use <kbd className="px-1 py-0.5 rounded bg-muted text-xs font-mono">Enter</kbd> to continue
+          Pro tip: Use <kbd className="px-1 py-0.5 rounded bg-muted text-xs font-mono">{t("enter", "Enter")}</kbd> to continue
         </span>
         <Button
           variant="ghost"

@@ -1,0 +1,233 @@
+{
+  "title": "Contrats",
+  "subtitle": "Gérez vos contrats et accords",
+  "create": {
+    "title": "Créer un contrat",
+    "fromTemplate": "Créer à partir d'un modèle",
+    "fromScratch": "Créer de zéro",
+    "duplicate": "Dupliquer le contrat"
+  },
+  "edit": {
+    "title": "Modifier le contrat",
+    "save": "Enregistrer les modifications",
+    "discard": "Annuler les modifications",
+    "preview": "Aperçu"
+  },
+  "sign": {
+    "title": "Signer le contrat",
+    "eSign": "Signature électronique",
+    "uploadSignature": "Téléverser une signature",
+    "drawSignature": "Dessiner une signature",
+    "typeSignature": "Saisir une signature",
+    "confirm": "Confirmer la signature",
+    "signed": "Signé",
+    "pending": "En attente de signature",
+    "requestSignature": "Demander une signature"
+  },
+  "status": {
+    "draft": "Brouillon",
+    "pending": "En attente d'approbation",
+    "active": "Actif",
+    "expired": "Expiré",
+    "terminated": "Résilié",
+    "renewed": "Renouvelé",
+    "cancelled": "Annulé"
+  },
+  "types": {
+    "employment": "Contrat de travail",
+    "freelance": "Convention de prestation indépendante",
+    "nda": "Accord de non-divulgation",
+    "service": "Contrat de service",
+    "placement": "Accord de placement",
+    "partnership": "Accord de partenariat"
+  },
+  "details": {
+    "title": "Détails du contrat",
+    "parties": "Parties",
+    "startDate": "Date de début",
+    "endDate": "Date de fin",
+    "value": "Valeur du contrat",
+    "currency": "Devise",
+    "terms": "Conditions générales",
+    "attachments": "Pièces jointes",
+    "history": "Historique des versions"
+  },
+  "parties": {
+    "client": "Client",
+    "contractor": "Prestataire",
+    "employer": "Employeur",
+    "employee": "Employé",
+    "party1": "Première partie",
+    "party2": "Deuxième partie"
+  },
+  "templates": {
+    "title": "Modèles de contrats",
+    "browse": "Parcourir les modèles",
+    "create": "Créer un modèle",
+    "edit": "Modifier le modèle",
+    "delete": "Supprimer le modèle",
+    "use": "Utiliser le modèle",
+    "preview": "Aperçu du modèle"
+  },
+  "clauses": {
+    "title": "Clauses",
+    "add": "Ajouter une clause",
+    "edit": "Modifier la clause",
+    "remove": "Supprimer la clause",
+    "standard": "Clauses standard",
+    "custom": "Clauses personnalisées",
+    "library": "Bibliothèque de clauses"
+  },
+  "milestones": {
+    "title": "Jalons",
+    "add": "Ajouter un jalon",
+    "completed": "Terminé",
+    "pending": "En attente",
+    "dueDate": "Date d'échéance",
+    "payment": "Montant du paiement"
+  },
+  "payments": {
+    "title": "Paiements",
+    "schedule": "Échéancier de paiement",
+    "history": "Historique des paiements",
+    "pending": "Paiements en attente",
+    "completed": "Paiements effectués",
+    "overdue": "Paiements en retard",
+    "amount": "Montant",
+    "dueDate": "Date d'échéance"
+  },
+  "actions": {
+    "view": "Voir le contrat",
+    "edit": "Modifier le contrat",
+    "delete": "Supprimer le contrat",
+    "duplicate": "Dupliquer le contrat",
+    "send": "Envoyer pour signature",
+    "download": "Télécharger en PDF",
+    "print": "Imprimer",
+    "archive": "Archiver",
+    "renew": "Renouveler le contrat",
+    "terminate": "Résilier le contrat"
+  },
+  "notifications": {
+    "created": "Contrat créé avec succès",
+    "updated": "Contrat mis à jour avec succès",
+    "signed": "Contrat signé avec succès",
+    "sent": "Contrat envoyé pour signature",
+    "expiringSoon": "Contrat bientôt expiré",
+    "expired": "Le contrat a expiré"
+  },
+  "filters": {
+    "all": "Tous les contrats",
+    "active": "Actifs",
+    "draft": "Brouillons",
+    "pending": "En attente",
+    "expired": "Expirés",
+    "byType": "Par type",
+    "byParty": "Par partie",
+    "byDate": "Par date"
+  },
+  "search": {
+    "placeholder": "Rechercher des contrats...",
+    "noResults": "Aucun contrat trouvé",
+    "advanced": "Recherche avancée"
+  },
+  "empty": {
+    "noContracts": "Aucun contrat pour le moment",
+    "createFirst": "Créez votre premier contrat",
+    "noTemplates": "Aucun modèle disponible"
+  },
+  "validation": {
+    "required": "Ce champ est obligatoire",
+    "invalidDate": "Date invalide",
+    "endBeforeStart": "La date de fin doit être postérieure à la date de début",
+    "missingParty": "Toutes les parties doivent être spécifiées"
+  },
+  "contractDetailPage": {
+    "title": "Suivi du temps",
+    "desc": "Suivez les heures, soumettez des feuilles de temps et gérez les approbations",
+    "text2": "Budget total",
+    "text3": "Type de contrat",
+    "text4": "Calendrier",
+    "text5": "Jalons",
+    "text6": "Aperçu",
+    "text7": "Jalons",
+    "text8": "Paiements",
+    "text9": "Suivi du temps",
+    "text10": "Documents",
+    "text11": "Nom de l'entreprise",
+    "text12": "Nom du freelance",
+    "text13": "Documents contractuels"
+  },
+  "contractListPage": {
+    "desc": "Gérez vos contrats de projets freelance et vos paiements",
+    "text2": "En tant que freelance",
+    "text3": "En tant que client",
+    "text4": "Total des contrats",
+    "text5": "Actifs",
+    "text6": "En attente de signature",
+    "text7": "Terminés",
+    "text8": "Rechercher des contrats...",
+    "text9": "Tous",
+    "text10": "En attente",
+    "text11": "Actifs",
+    "text12": "Terminés"
+  },
+  "contractSignaturePage": {
+    "title": "Conditions clés",
+    "desc": "Examinez les conditions du contrat et ajoutez votre signature pour continuer",
+    "text2": "Valeur totale",
+    "text3": "Échéancier de paiement",
+    "text4": "Frais de plateforme",
+    "text5": "Protection par séquestre",
+    "text6": "Conditions d'utilisation",
+    "text7": "Politique de confidentialité"
+  },
+  "retainerContractsPage": {
+    "btn": "Voir les détails",
+    "text2": "Contrats de prestations récurrentes",
+    "text3": "Gérez les relations clients en cours",
+    "text4": "Créer un contrat de prestation récurrente",
+    "text5": "Configurez un arrangement mensuel récurrent",
+    "text6": "Heures mensuelles",
+    "text7": "Conditions et description",
+    "text8": "Décrivez le périmètre du travail...",
+    "text9": "Annuler",
+    "text10": "Créer le contrat",
+    "text11": "Actif",
+    "text12": "En attente",
+    "text13": "Terminé",
+    "text14": "Mensuel",
+    "text15": "Tarif",
+    "text16": "Ce mois-ci",
+    "text17": "Aucune prestation récurrente active",
+    "text18": "Créez un contrat de prestation récurrente pour commencer",
+    "text19": "Prestation récurrente en attente",
+    "text20": "Accepter",
+    "text21": "Refuser",
+    "text22": "Aucune prestation récurrente terminée",
+    "text23": "Enregistrer des heures",
+    "text24": "Enregistrez le temps passé sur cette prestation récurrente",
+    "text25": "Heures",
+    "text26": "Description",
+    "text27": "Sur quoi avez-vous travaillé ?"
+  },
+  "management": {
+    "title": "Gestion des contrats",
+    "subtitle": "Gérez les contrats freelance, les paiements et les avenants",
+    "searchPlaceholder": "Rechercher des contrats...",
+    "createContract": "Créer un contrat",
+    "tabContracts": "Contrats",
+    "tabBudget": "Budget et dépenses",
+    "tabChangeOrders": "Avenants",
+    "tabInvoices": "Factures",
+    "filterAll": "Tous",
+    "filterPending": "En attente",
+    "filterActive": "Actifs",
+    "filterCompleted": "Terminés",
+    "noContracts": "Aucun contrat pour le moment",
+    "noFilterMatch": "Aucun contrat ne correspond à vos filtres",
+    "emptyDescription": "Créez votre premier contrat pour commencer à recruter des freelances",
+    "contractInvoices": "Factures de contrats",
+    "noInvoices": "Aucune facture générée pour le moment"
+  }
+}

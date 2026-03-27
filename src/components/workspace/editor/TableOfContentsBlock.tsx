@@ -1,6 +1,7 @@
 import { createReactBlockSpec } from '@blocknote/react';
 import { List } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface HeadingItem {
   id: string;
@@ -19,6 +20,7 @@ export const TableOfContentsBlock = createReactBlockSpec(
       const [headings, setHeadings] = useState<HeadingItem[]>([]);
 
       useEffect(() => {
+  const { t } = useTranslation('common');
         const extractHeadings = () => {
           const blocks = props.editor.document;
           const extracted: HeadingItem[] = [];
@@ -65,11 +67,11 @@ export const TableOfContentsBlock = createReactBlockSpec(
         <div className="my-4 p-4 rounded-lg bg-muted/50 border border-border">
           <div className="flex items-center gap-2 mb-3 text-sm font-medium text-muted-foreground">
             <List className="h-4 w-4" />
-            <span>Table of Contents</span>
+            <span>{t('workspace.tableOfContents', 'Table of Contents')}</span>
           </div>
           {headings.length === 0 ? (
             <p className="text-sm text-muted-foreground italic">
-              No headings found. Add headings to generate table of contents.
+              {t('workspace.noHeadingsFound', 'No headings found. Add headings to generate table of contents.')}
             </p>
           ) : (
             <nav className="space-y-1">

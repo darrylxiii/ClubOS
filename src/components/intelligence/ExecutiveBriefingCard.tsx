@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -13,6 +14,7 @@ interface ExecutiveBriefingCardProps {
 }
 
 export function ExecutiveBriefingCard({ candidateId, jobId, compact = false }: ExecutiveBriefingCardProps) {
+  const { t } = useTranslation('common');
   const [loading, setLoading] = useState(false);
   const [briefing, setBriefing] = useState<any>(null);
 
@@ -27,19 +29,19 @@ export function ExecutiveBriefingCard({ candidateId, jobId, compact = false }: E
         // supabase.functions.invoke wraps non-2xx as FunctionsHttpError
         const msg = typeof data?.error === 'string' ? data.error : 'Failed to generate briefing';
         if (msg.includes('credits exhausted') || msg.includes('402')) {
-          toast.error("AI credits exhausted. Please top up your workspace usage in Settings.");
+          toast.error(t("ai_credits_exhausted_please", "AI credits exhausted. Please top up your workspace usage in Settings."));
         } else if (msg.includes('rate limit') || msg.includes('429')) {
-          toast.error("AI rate limit reached. Please try again in a moment.");
+          toast.error(t("ai_rate_limit_reached", "AI rate limit reached. Please try again in a moment."));
         } else {
           toast.error(msg);
         }
         return;
       }
       setBriefing(data.briefing);
-      toast.success("Executive briefing generated");
+      toast.success(t("executive_briefing_generated", "Executive briefing generated"));
     } catch (error: unknown) {
       console.error('Error loading briefing:', error);
-      toast.error("Failed to generate briefing");
+      toast.error(t("failed_to_generate_briefing", "Failed to generate briefing"));
     } finally {
       setLoading(false);
     }
@@ -53,7 +55,7 @@ export function ExecutiveBriefingCard({ candidateId, jobId, compact = false }: E
         <CardContent className="pt-6 flex items-center justify-center py-8">
           <div className="flex flex-col items-center gap-2">
             <Loader2 className="h-6 w-6 animate-spin text-primary" />
-            <p className="text-xs text-muted-foreground">Generating 30-second briefing...</p>
+            <p className="text-xs text-muted-foreground">{t("generating_30second_briefing", "Generating 30-second briefing...")}</p>
           </div>
         </CardContent>
       </Card>
@@ -96,7 +98,7 @@ export function ExecutiveBriefingCard({ candidateId, jobId, compact = false }: E
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Sparkles className="h-4 w-4 text-primary" />
-              <span className="text-xs font-medium">AI Quick Brief</span>
+              <span className="text-xs font-medium">{t("ai_quick_brief", "AI Quick Brief")}</span>
             </div>
             <Clock className="h-3 w-3 text-muted-foreground" />
           </div>
@@ -145,7 +147,7 @@ export function ExecutiveBriefingCard({ candidateId, jobId, compact = false }: E
         {/* Recommendation */}
         <div className="flex items-center justify-between p-3 rounded-lg bg-background border border-border">
           <div className="flex-1">
-            <p className="text-xs text-muted-foreground mb-1">AI Recommendation</p>
+            <p className="text-xs text-muted-foreground mb-1">{t("ai_recommendation", "AI Recommendation")}</p>
             <p className="text-sm">{briefing.aiRecommendationReasoning}</p>
           </div>
               <Badge className={getRecommendationColor(briefing.aiRecommendation) + " ml-3"}>
@@ -156,17 +158,17 @@ export function ExecutiveBriefingCard({ candidateId, jobId, compact = false }: E
         {/* Team Consensus */}
         <div className="grid grid-cols-3 gap-3">
           <div className="p-3 rounded-lg bg-background border border-border">
-            <p className="text-xs text-muted-foreground mb-1">Consensus</p>
+            <p className="text-xs text-muted-foreground mb-1">{t("consensus", "Consensus")}</p>
             <p className="text-lg font-semibold">{briefing.teamConsensus.score}%</p>
           </div>
           <div className="p-3 rounded-lg bg-background border border-border">
-            <p className="text-xs text-muted-foreground mb-1">Confidence</p>
+            <p className="text-xs text-muted-foreground mb-1">{t("confidence", "Confidence")}</p>
             <Badge variant="outline" className={getConfidenceColor(briefing.teamConsensus.confidence)}>
               {briefing.teamConsensus.confidence.toUpperCase()}
             </Badge>
           </div>
           <div className="p-3 rounded-lg bg-background border border-border">
-            <p className="text-xs text-muted-foreground mb-1">Alignment</p>
+            <p className="text-xs text-muted-foreground mb-1">{t("alignment", "Alignment")}</p>
             <Badge variant="outline">
               {briefing.teamConsensus.alignment.toUpperCase()}
             </Badge>
@@ -208,7 +210,7 @@ export function ExecutiveBriefingCard({ candidateId, jobId, compact = false }: E
         {/* Risk Factors */}
         {briefing.riskFactors && briefing.riskFactors.length > 0 && (
           <div className="p-3 rounded-lg bg-red-500/5 border border-red-500/20">
-            <p className="text-xs font-medium text-red-500 mb-2">Risk Factors</p>
+            <p className="text-xs font-medium text-red-500 mb-2">{t("risk_factors", "Risk Factors")}</p>
             <ul className="space-y-1">
               {briefing.riskFactors.map((risk: string, idx: number) => (
                 <li key={idx} className="text-xs text-red-500/80">• {risk}</li>
@@ -219,14 +221,14 @@ export function ExecutiveBriefingCard({ candidateId, jobId, compact = false }: E
 
         {/* Next Step */}
         <div className="p-3 rounded-lg bg-primary/10 border border-primary/20">
-          <p className="text-xs font-medium text-primary mb-1">Next Step</p>
+          <p className="text-xs font-medium text-primary mb-1">{t("next_step", "Next Step")}</p>
           <p className="text-sm">{briefing.nextStep}</p>
         </div>
 
         {/* Opportunity Cost */}
         {briefing.opportunityCost && (
           <div className="p-3 rounded-lg bg-background/60 border border-border/40">
-            <p className="text-xs font-medium mb-1">Opportunity Cost</p>
+            <p className="text-xs font-medium mb-1">{t("opportunity_cost", "Opportunity Cost")}</p>
             <p className="text-xs text-muted-foreground italic">{briefing.opportunityCost}</p>
           </div>
         )}

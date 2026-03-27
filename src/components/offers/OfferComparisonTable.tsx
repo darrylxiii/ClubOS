@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -44,6 +45,7 @@ export function OfferComparisonTable({
   onSelectOffer,
   highlightBest = true 
 }: OfferComparisonTableProps) {
+  const { t } = useTranslation('common');
   const formatValue = (value: any, type: ComparisonRow['type']): string => {
     if (value === null || value === undefined) return '—';
     
@@ -103,7 +105,7 @@ export function OfferComparisonTable({
     return (
       <Card>
         <CardContent className="py-12 text-center">
-          <p className="text-muted-foreground">No offers to compare</p>
+          <p className="text-muted-foreground">{t("no_offers_to_compare", "No offers to compare")}</p>
         </CardContent>
       </Card>
     );
@@ -161,7 +163,7 @@ export function OfferComparisonTable({
               <td className="p-4 bg-muted/50 sticky left-0">
                 <div className="flex items-center gap-2">
                   <MapPin className="h-4 w-4 text-muted-foreground" />
-                  <span className="font-medium">Location</span>
+                  <span className="font-medium">{t("location", "Location")}</span>
                 </div>
               </td>
               {offers.map((offer) => (
@@ -218,7 +220,7 @@ export function OfferComparisonTable({
               <td className="p-4 bg-muted/50 sticky left-0">
                 <div className="flex items-center gap-2">
                   <Calendar className="h-4 w-4 text-muted-foreground" />
-                  <span className="font-medium">Status</span>
+                  <span className="font-medium">{t("status", "Status")}</span>
                 </div>
               </td>
               {offers.map((offer) => (
@@ -240,7 +242,7 @@ export function OfferComparisonTable({
             {onSelectOffer && (
               <tr>
                 <td className="p-4 bg-muted/50 sticky left-0">
-                  <span className="font-medium">Action</span>
+                  <span className="font-medium">{t("action", "Action")}</span>
                 </td>
                 {offers.map((offer) => (
                   <td 

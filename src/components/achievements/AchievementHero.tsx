@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -17,6 +18,7 @@ interface TopAchievement {
 }
 
 export const AchievementHero = () => {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [topAchievements, setTopAchievements] = useState<TopAchievement[]>([]);
   const [profile, setProfile] = useState<any>(null);
@@ -122,18 +124,18 @@ export const AchievementHero = () => {
               <div className="flex-1 text-center md:text-left">
                 <div className="flex items-center gap-3 justify-center md:justify-start mb-2">
                   <h1 className="text-4xl font-bold text-foreground">
-                    {profile?.full_name || "Quantum Member"}
+                    {profile?.full_name || t('achievements.quantumMember')}
                   </h1>
                   <Crown className="h-6 w-6 text-primary animate-pulse" />
                 </div>
-                <p className="text-muted-foreground mb-4">{profile?.title || "Achievement Hunter"}</p>
+                <p className="text-muted-foreground mb-4">{profile?.title || t('achievements.achievementHunter')}</p>
 
                 {/* XP Progress */}
                 <div className="mb-6 max-w-md">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-sm text-muted-foreground flex items-center gap-2">
                       <Zap className="h-4 w-4 text-primary" />
-                      Quantum Energy
+                      {t('achievements.quantumEnergy')}
                     </span>
                     <Badge variant="secondary" className="gap-1">
                       <Sparkles className="h-3 w-3" />
@@ -142,7 +144,7 @@ export const AchievementHero = () => {
                   </div>
                   <Progress value={progressPercentage} className="h-3 glass" />
                   <p className="text-xs text-muted-foreground mt-2">
-                    {nextMilestone - totalXP} XP to next milestone
+                    {t('achievements.xpToNextMilestone', { count: nextMilestone - totalXP })}
                   </p>
                 </div>
 
@@ -171,7 +173,7 @@ export const AchievementHero = () => {
                   ))}
                   {topAchievements.length === 0 && (
                     <p className="text-sm text-muted-foreground">
-                      Unlock achievements to showcase them here
+                      {t('achievements.unlockToShowcase')}
                     </p>
                   )}
                 </div>

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import {
   Dialog,
@@ -35,6 +36,7 @@ export function CreateTargetDialog({
   employees,
   preselectedEmployeeId,
 }: CreateTargetDialogProps) {
+  const { t } = useTranslation('common');
   const [employeeId, setEmployeeId] = useState(preselectedEmployeeId || "");
   const [periodType, setPeriodType] = useState<'monthly' | 'quarterly' | 'annual'>('quarterly');
   const [revenueTarget, setRevenueTarget] = useState("");
@@ -98,10 +100,10 @@ export function CreateTargetDialog({
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label>Employee</Label>
+            <Label>{t("employee", "Employee")}</Label>
             <Select value={employeeId} onValueChange={setEmployeeId} required>
               <SelectTrigger>
-                <SelectValue placeholder="Select employee" />
+                <SelectValue placeholder={t("select_employee", "Select employee")} />
               </SelectTrigger>
               <SelectContent>
                 {employees.map(emp => (
@@ -114,15 +116,15 @@ export function CreateTargetDialog({
           </div>
 
           <div className="space-y-2">
-            <Label>Period Type</Label>
+            <Label>{t("period_type", "Period Type")}</Label>
             <Select value={periodType} onValueChange={(v) => setPeriodType(v as any)}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="monthly">Monthly</SelectItem>
-                <SelectItem value="quarterly">Quarterly</SelectItem>
-                <SelectItem value="annual">Annual</SelectItem>
+                <SelectItem value="monthly">{t("monthly", "Monthly")}</SelectItem>
+                <SelectItem value="quarterly">{t("quarterly", "Quarterly")}</SelectItem>
+                <SelectItem value="annual">{t("annual", "Annual")}</SelectItem>
               </SelectContent>
             </Select>
             <p className="text-xs text-muted-foreground">
@@ -132,58 +134,58 @@ export function CreateTargetDialog({
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Revenue Target (€)</Label>
+              <Label>{t("revenue_target", "Revenue Target (€)")}</Label>
               <Input
                 type="number"
                 value={revenueTarget}
                 onChange={(e) => setRevenueTarget(e.target.value)}
-                placeholder="e.g., 50000"
+                placeholder={t("eg_50000", "e.g., 50000")}
               />
             </div>
             <div className="space-y-2">
-              <Label>Placements Target</Label>
+              <Label>{t("placements_target", "Placements Target")}</Label>
               <Input
                 type="number"
                 value={placementsTarget}
                 onChange={(e) => setPlacementsTarget(e.target.value)}
-                placeholder="e.g., 5"
+                placeholder={t("eg_5", "e.g., 5")}
               />
             </div>
             <div className="space-y-2">
-              <Label>Hours Target</Label>
+              <Label>{t("hours_target", "Hours Target")}</Label>
               <Input
                 type="number"
                 value={hoursTarget}
                 onChange={(e) => setHoursTarget(e.target.value)}
-                placeholder="e.g., 160"
+                placeholder={t("eg_160", "e.g., 160")}
               />
             </div>
             <div className="space-y-2">
-              <Label>Interviews Target</Label>
+              <Label>{t("interviews_target", "Interviews Target")}</Label>
               <Input
                 type="number"
                 value={interviewsTarget}
                 onChange={(e) => setInterviewsTarget(e.target.value)}
-                placeholder="e.g., 20"
+                placeholder={t("eg_20", "e.g., 20")}
               />
             </div>
             <div className="space-y-2 col-span-2">
-              <Label>Candidates Sourced Target</Label>
+              <Label>{t("candidates_sourced_target", "Candidates Sourced Target")}</Label>
               <Input
                 type="number"
                 value={candidatesSourcedTarget}
                 onChange={(e) => setCandidatesSourcedTarget(e.target.value)}
-                placeholder="e.g., 50"
+                placeholder={t("eg_50", "e.g., 50")}
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label>Notes (optional)</Label>
+            <Label>{t("notes_optional", "Notes (optional)")}</Label>
             <Textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="Any additional expectations or context..."
+              placeholder={t("any_additional_expectations_or", "Any additional expectations or context...")}
               rows={3}
             />
           </div>

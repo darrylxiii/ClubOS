@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -28,6 +29,7 @@ interface MessageReactionsProps {
 }
 
 export function MessageReactions({ messageId, reactions, onReactionsChange }: MessageReactionsProps) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
 
   // Group reactions by emoji
@@ -81,7 +83,7 @@ export function MessageReactions({ messageId, reactions, onReactionsChange }: Me
       onReactionsChange();
     } catch (error) {
       console.error('Error toggling reaction:', error);
-      toast.error('Failed to react to message');
+      toast.error(t("failed_to_react_to", "Failed to react to message"));
     }
   };
 

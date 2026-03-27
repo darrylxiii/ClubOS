@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
@@ -5,6 +6,7 @@ import { DynamicChart } from "@/components/charts/DynamicChart";
 import { Loader2 } from "lucide-react";
 
 export function RevenueCharts() {
+  const { t } = useTranslation('common');
   const { data: revenueData, isLoading } = useQuery({
     queryKey: ['revenue-trend'],
     queryFn: async () => {
@@ -105,7 +107,7 @@ export function RevenueCharts() {
   return (
     <div className="grid gap-6 lg:grid-cols-2">
       <Card className="p-6 bg-card/50 backdrop-blur-sm border-border/50">
-        <h3 className="text-lg font-semibold mb-4 text-foreground">Revenue Trend</h3>
+        <h3 className="text-lg font-semibold mb-4 text-foreground">{t("revenue_trend", "Revenue Trend")}</h3>
         <DynamicChart
           type="line"
           data={revenueData || []}
@@ -128,7 +130,7 @@ export function RevenueCharts() {
       </Card>
 
       <Card className="p-6 bg-card/50 backdrop-blur-sm border-border/50">
-        <h3 className="text-lg font-semibold mb-4 text-foreground">Pipeline Velocity</h3>
+        <h3 className="text-lg font-semibold mb-4 text-foreground">{t("pipeline_velocity", "Pipeline Velocity")}</h3>
         <DynamicChart
           type="bar"
           data={pipelineVelocity || []}

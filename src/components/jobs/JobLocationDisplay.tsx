@@ -8,6 +8,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useTranslation } from 'react-i18next';
 
 export interface JobLocationItem {
   id?: string;
@@ -64,6 +65,7 @@ export const JobLocationDisplay = memo(({
   size = "sm",
   className,
 }: JobLocationDisplayProps) => {
+  const { t } = useTranslation('jobs');
   // Normalize locations to get unique country codes
   const normalizedLocations = locations.map((loc) => ({
     ...loc,
@@ -141,7 +143,7 @@ export const JobLocationDisplay = memo(({
               </div>
             </TooltipTrigger>
             <TooltipContent>
-              <p>{isRemoteOnly ? "Fully remote" : "Remote available"}</p>
+              <p>{isRemoteOnly ? t('location.fullyRemote', 'Fully remote') : t('location.remoteAvailable', 'Remote available')}</p>
             </TooltipContent>
           </Tooltip>
         )}
@@ -165,7 +167,7 @@ export const JobLocationDisplay = memo(({
               </span>
             </TooltipTrigger>
             <TooltipContent>
-              <p>{extraFlagsCount} more {extraFlagsCount === 1 ? "location" : "locations"}</p>
+              <p>{t('location.moreLocations', '{{count}} more location', { count: extraFlagsCount })}</p>
             </TooltipContent>
           </Tooltip>
         )}
@@ -180,7 +182,7 @@ export const JobLocationDisplay = memo(({
         
         {/* Remote-only label */}
         {isRemoteOnly && (
-          <span className="text-muted-foreground font-medium">Remote</span>
+          <span className="text-muted-foreground font-medium">{t('location.remote', 'Remote')}</span>
         )}
       </div>
     </TooltipProvider>

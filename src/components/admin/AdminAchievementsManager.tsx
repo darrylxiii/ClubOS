@@ -16,6 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import * as LucideIcons from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useTranslation } from 'react-i18next';
 
 interface CompanyAchievement {
   id: string;
@@ -58,6 +59,7 @@ interface Earner {
 }
 
 export const AdminAchievementsManager = () => {
+  const { t } = useTranslation('admin');
   const [companyAchievements, setCompanyAchievements] = useState<CompanyAchievement[]>([]);
   const [quantumAchievements, setQuantumAchievements] = useState<QuantumAchievement[]>([]);
   const [earners, setEarners] = useState<Earner[]>([]);
@@ -113,14 +115,14 @@ export const AdminAchievementsManager = () => {
   const categoryOptions = ["engagement", "milestone", "special", "social", "career"];
   const rarityOptions = ["common", "uncommon", "rare", "epic", "legendary"];
   const interactionTypes = [
-    { value: 'posts', label: 'Posts' },
-    { value: 'comments', label: 'Comments' },
-    { value: 'likes', label: 'Likes' },
-    { value: 'shares', label: 'Shares' },
-    { value: 'profile_views', label: 'Profile Views' },
-    { value: 'connections', label: 'Connections' },
-    { value: 'applications', label: 'Applications' },
-    { value: 'jobs_posted', label: 'Jobs Posted' },
+    { value: 'posts', label: t('adminachievementsmanagertsx.adminachievementsmanager.posts', 'Posts') },
+    { value: 'comments', label: t('adminachievementsmanagertsx.adminachievementsmanager.comments', 'Comments') },
+    { value: 'likes', label: t('adminachievementsmanagertsx.adminachievementsmanager.likes', 'Likes') },
+    { value: 'shares', label: t('adminachievementsmanagertsx.adminachievementsmanager.shares', 'Shares') },
+    { value: 'profile_views', label: t('adminachievementsmanagertsx.adminachievementsmanager.profileViews', 'Profile Views') },
+    { value: 'connections', label: t('adminachievementsmanagertsx.adminachievementsmanager.connections', 'Connections') },
+    { value: 'applications', label: t('adminachievementsmanagertsx.adminachievementsmanager.applications', 'Applications') },
+    { value: 'jobs_posted', label: t('adminachievementsmanagertsx.adminachievementsmanager.jobsPosted', 'Jobs Posted') },
   ];
 
   useEffect(() => {
@@ -159,7 +161,7 @@ export const AdminAchievementsManager = () => {
       setCompanyAchievements(achievementsWithData);
     } catch (error) {
       console.error("Error loading company achievements:", error);
-      toast({ title: "Error loading company achievements", variant: "destructive" });
+      toast({ title: t('adminachievementsmanagertsx.adminachievementsmanager.errorLoadingCompanyAchievements', 'Error loading company achievements'), variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -185,7 +187,7 @@ export const AdminAchievementsManager = () => {
       setQuantumAchievements(achievementsWithData);
     } catch (error) {
       console.error("Error loading quantum achievements:", error);
-      toast({ title: "Error loading platform achievements", variant: "destructive" });
+      toast({ title: t('adminachievementsmanagertsx.adminachievementsmanager.errorLoadingPlatformAchievements', 'Error loading platform achievements'), variant: "destructive" });
     }
   };
 
@@ -267,7 +269,7 @@ export const AdminAchievementsManager = () => {
 
       setEarners(earnersData);
     } catch (error) {
-      toast({ title: "Error loading earners", variant: "destructive" });
+      toast({ title: t('adminachievementsmanagertsx.adminachievementsmanager.errorLoadingEarners', 'Error loading earners'), variant: "destructive" });
     }
   };
 
@@ -298,7 +300,7 @@ export const AdminAchievementsManager = () => {
 
       setEarners(earnersData);
     } catch (error) {
-      toast({ title: "Error loading earners", variant: "destructive" });
+      toast({ title: t('adminachievementsmanagertsx.adminachievementsmanager.errorLoadingEarners', 'Error loading earners'), variant: "destructive" });
     }
   };
 
@@ -344,13 +346,13 @@ export const AdminAchievementsManager = () => {
         if (error) throw error;
       }
 
-      toast({ title: 'Achievement created successfully' });
+      toast({ title: t('adminachievementsmanagertsx.adminachievementsmanager.achievementCreatedSuccessfully', 'Achievement created successfully') });
       setShowCreateDialog(false);
       resetCreateForm();
       loadData();
     } catch (error: unknown) {
       console.error('Error creating achievement:', error);
-      toast({ title: "Error creating achievement", description: error instanceof Error ? error.message : 'An unexpected error occurred', variant: "destructive" });
+      toast({ title: t('adminachievementsmanagertsx.adminachievementsmanager.errorCreatingAchievement', 'Error creating achievement'), description: error instanceof Error ? error.message : t('adminachievementsmanagertsx.adminachievementsmanager.anUnexpectedErrorOccurred', 'An unexpected error occurred'), variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -376,12 +378,12 @@ export const AdminAchievementsManager = () => {
 
       if (error) throw error;
 
-      toast({ title: "Achievement updated successfully" });
+      toast({ title: t('adminachievementsmanagertsx.adminachievementsmanager.achievementUpdatedSuccessfully', 'Achievement updated successfully') });
       setEditCompanyDialogOpen(false);
       setSelectedCompanyAchievement(null);
       loadCompanyAchievements();
     } catch (error: unknown) {
-      toast({ title: "Error updating achievement", description: error instanceof Error ? error.message : 'An unexpected error occurred', variant: "destructive" });
+      toast({ title: t('adminachievementsmanagertsx.adminachievementsmanager.errorUpdatingAchievement', 'Error updating achievement'), description: error instanceof Error ? error.message : t('adminachievementsmanagertsx.adminachievementsmanager.anUnexpectedErrorOccurred', 'An unexpected error occurred'), variant: "destructive" });
     }
   };
 
@@ -401,12 +403,12 @@ export const AdminAchievementsManager = () => {
 
       if (error) throw error;
 
-      toast({ title: "Achievement updated successfully" });
+      toast({ title: t('adminachievementsmanagertsx.adminachievementsmanager.achievementUpdatedSuccessfully', 'Achievement updated successfully') });
       setEditQuantumDialogOpen(false);
       setSelectedQuantumAchievement(null);
       loadQuantumAchievements();
     } catch (error: unknown) {
-      toast({ title: "Error updating achievement", description: error instanceof Error ? error.message : 'An unexpected error occurred', variant: "destructive" });
+      toast({ title: t('adminachievementsmanagertsx.adminachievementsmanager.errorUpdatingAchievement', 'Error updating achievement'), description: error instanceof Error ? error.message : t('adminachievementsmanagertsx.adminachievementsmanager.anUnexpectedErrorOccurred', 'An unexpected error occurred'), variant: "destructive" });
     }
   };
 
@@ -423,12 +425,12 @@ export const AdminAchievementsManager = () => {
 
       if (error) throw error;
 
-      toast({ title: "Achievement granted successfully" });
+      toast({ title: t('adminachievementsmanagertsx.adminachievementsmanager.achievementGrantedSuccessfully', 'Achievement granted successfully') });
       setGrantDialogOpen(false);
       setGrantForm({ achievementId: "", userId: "", companyId: "" });
       loadData();
     } catch (error: unknown) {
-      toast({ title: "Error granting achievement", description: error instanceof Error ? error.message : 'An unexpected error occurred', variant: "destructive" });
+      toast({ title: t('adminachievementsmanagertsx.adminachievementsmanager.errorGrantingAchievement', 'Error granting achievement'), description: error instanceof Error ? error.message : t('adminachievementsmanagertsx.adminachievementsmanager.anUnexpectedErrorOccurred', 'An unexpected error occurred'), variant: "destructive" });
     }
   };
 
@@ -443,12 +445,12 @@ export const AdminAchievementsManager = () => {
 
       if (error) throw error;
 
-      toast({ title: "Achievement granted successfully" });
+      toast({ title: t('adminachievementsmanagertsx.adminachievementsmanager.achievementGrantedSuccessfully', 'Achievement granted successfully') });
       setGrantQuantumDialogOpen(false);
       setGrantQuantumForm({ achievementId: "", userId: "" });
       loadData();
     } catch (error: unknown) {
-      toast({ title: "Error granting achievement", description: error instanceof Error ? error.message : 'An unexpected error occurred', variant: "destructive" });
+      toast({ title: t('adminachievementsmanagertsx.adminachievementsmanager.errorGrantingAchievement', 'Error granting achievement'), description: error instanceof Error ? error.message : t('adminachievementsmanagertsx.adminachievementsmanager.anUnexpectedErrorOccurred', 'An unexpected error occurred'), variant: "destructive" });
     }
   };
 
@@ -464,7 +466,7 @@ export const AdminAchievementsManager = () => {
       toast({ title: `Achievement ${!currentState ? 'activated' : 'deactivated'}` });
       loadCompanyAchievements();
     } catch (error) {
-      toast({ title: "Error updating achievement", variant: "destructive" });
+      toast({ title: t('adminachievementsmanagertsx.adminachievementsmanager.errorUpdatingAchievement', 'Error updating achievement'), variant: "destructive" });
     }
   };
 
@@ -480,7 +482,7 @@ export const AdminAchievementsManager = () => {
       toast({ title: `Achievement ${!currentState ? 'activated' : 'deactivated'}` });
       loadQuantumAchievements();
     } catch (error) {
-      toast({ title: "Error updating achievement", variant: "destructive" });
+      toast({ title: t('adminachievementsmanagertsx.adminachievementsmanager.errorUpdatingAchievement', 'Error updating achievement'), variant: "destructive" });
     }
   };
 
@@ -495,10 +497,10 @@ export const AdminAchievementsManager = () => {
 
       if (error) throw error;
 
-      toast({ title: "Achievement deleted successfully" });
+      toast({ title: t('adminachievementsmanagertsx.adminachievementsmanager.achievementDeletedSuccessfully', 'Achievement deleted successfully') });
       loadData();
     } catch (error) {
-      toast({ title: "Error deleting achievement", variant: "destructive" });
+      toast({ title: t('adminachievementsmanagertsx.adminachievementsmanager.errorDeletingAchievement', 'Error deleting achievement'), variant: "destructive" });
     }
   };
 
@@ -513,10 +515,10 @@ export const AdminAchievementsManager = () => {
 
       if (error) throw error;
 
-      toast({ title: "Achievement deleted successfully" });
+      toast({ title: t('adminachievementsmanagertsx.adminachievementsmanager.achievementDeletedSuccessfully', 'Achievement deleted successfully') });
       loadData();
     } catch (error) {
-      toast({ title: "Error deleting achievement", variant: "destructive" });
+      toast({ title: t('adminachievementsmanagertsx.adminachievementsmanager.errorDeletingAchievement', 'Error deleting achievement'), variant: "destructive" });
     }
   };
 
@@ -532,7 +534,7 @@ export const AdminAchievementsManager = () => {
 
       if (error) throw error;
 
-      toast({ title: "Achievement revoked successfully" });
+      toast({ title: t('adminachievementsmanagertsx.adminachievementsmanager.achievementRevokedSuccessfully', 'Achievement revoked successfully') });
       if (isQuantum && selectedQuantumAchievement) {
         loadQuantumEarners(selectedQuantumAchievement.id);
       } else if (selectedCompanyAchievement) {
@@ -540,7 +542,7 @@ export const AdminAchievementsManager = () => {
       }
       loadData();
     } catch (error) {
-      toast({ title: "Error revoking achievement", variant: "destructive" });
+      toast({ title: t('adminachievementsmanagertsx.adminachievementsmanager.errorRevokingAchievement', 'Error revoking achievement'), variant: "destructive" });
     }
   };
 
@@ -612,8 +614,8 @@ export const AdminAchievementsManager = () => {
       {/* Header with Create Button */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold">Achievements Management</h2>
-          <p className="text-muted-foreground">Manage platform and company achievements</p>
+          <h2 className="text-2xl font-bold">{t('adminachievementsmanagertsx.adminachievementsmanager.achievementsManagement', 'Achievements Management')}</h2>
+          <p className="text-muted-foreground">{t('adminachievementsmanagertsx.adminachievementsmanager.managePlatformAndCompanyAchievements', 'Manage platform and company achievements')}</p>
         </div>
         <Button onClick={() => setShowCreateDialog(true)}>
           <Plus className="mr-2 h-4 w-4" />
@@ -625,7 +627,7 @@ export const AdminAchievementsManager = () => {
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Company Achievements</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('adminachievementsmanagertsx.adminachievementsmanager.companyAchievements', 'Company Achievements')}</CardTitle>
             <Building2 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -635,7 +637,7 @@ export const AdminAchievementsManager = () => {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Platform Achievements</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('adminachievementsmanagertsx.adminachievementsmanager.platformAchievements', 'Platform Achievements')}</CardTitle>
             <Sparkles className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -645,22 +647,22 @@ export const AdminAchievementsManager = () => {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('adminachievementsmanagertsx.adminachievementsmanager.active', 'Active')}</CardTitle>
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.activeCompanyAchievements + stats.activeQuantumAchievements}</div>
-            <p className="text-xs text-muted-foreground">Across all types</p>
+            <p className="text-xs text-muted-foreground">{t('adminachievementsmanagertsx.adminachievementsmanager.acrossAllTypes', 'Across all types')}</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Companies</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('adminachievementsmanagertsx.adminachievementsmanager.companies', 'Companies')}</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.companiesWithAchievements}</div>
-            <p className="text-xs text-muted-foreground">With achievements</p>
+            <p className="text-xs text-muted-foreground">{t('adminachievementsmanagertsx.adminachievementsmanager.withAchievements', 'With achievements')}</p>
           </CardContent>
         </Card>
       </div>
@@ -671,16 +673,14 @@ export const AdminAchievementsManager = () => {
             <Award className="w-5 h-5" />
             Admin Achievements Manager
           </CardTitle>
-          <CardDescription>
-            Comprehensive management of all platform and company achievements
-          </CardDescription>
+          <CardDescription>{t('adminachievementsmanagertsx.adminachievementsmanager.comprehensiveManagementOfAllPlatformAnd', 'Comprehensive management of all platform and company achievements')}</CardDescription>
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="company" className="w-full">
             <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="company">Company Achievements</TabsTrigger>
-              <TabsTrigger value="platform">Platform Achievements</TabsTrigger>
-              <TabsTrigger value="analytics">Analytics</TabsTrigger>
+              <TabsTrigger value="company">{t('adminachievementsmanagertsx.adminachievementsmanager.companyAchievements', 'Company Achievements')}</TabsTrigger>
+              <TabsTrigger value="platform">{t('adminachievementsmanagertsx.adminachievementsmanager.platformAchievements', 'Platform Achievements')}</TabsTrigger>
+              <TabsTrigger value="analytics">{t('adminachievementsmanagertsx.adminachievementsmanager.analytics', 'Analytics')}</TabsTrigger>
             </TabsList>
 
             {/* Company Achievements Tab */}
@@ -696,20 +696,18 @@ export const AdminAchievementsManager = () => {
                     </DialogTrigger>
                     <DialogContent>
                       <DialogHeader>
-                        <DialogTitle>Grant Company Achievement</DialogTitle>
-                        <DialogDescription>
-                          Manually grant a company achievement to a user or company
-                        </DialogDescription>
+                        <DialogTitle>{t('adminachievementsmanagertsx.adminachievementsmanager.grantCompanyAchievement', 'Grant Company Achievement')}</DialogTitle>
+                        <DialogDescription>{t('adminachievementsmanagertsx.adminachievementsmanager.manuallyGrantACompanyAchievementTo', 'Manually grant a company achievement to a user or company')}</DialogDescription>
                       </DialogHeader>
                       <div className="space-y-4">
                         <div>
-                          <Label>Achievement</Label>
+                          <Label>{t('adminachievementsmanagertsx.adminachievementsmanager.achievement', 'Achievement')}</Label>
                           <Select
                             value={grantForm.achievementId}
                             onValueChange={(value) => setGrantForm({ ...grantForm, achievementId: value })}
                           >
                             <SelectTrigger>
-                              <SelectValue placeholder="Select achievement" />
+                              <SelectValue placeholder={t('adminachievementsmanagertsx.adminachievementsmanager.selectAchievement', 'Select achievement')} />
                             </SelectTrigger>
                             <SelectContent>
                               {companyAchievements.map((a) => (
@@ -721,13 +719,13 @@ export const AdminAchievementsManager = () => {
                           </Select>
                         </div>
                         <div>
-                          <Label>User (Optional)</Label>
+                          <Label>{t('adminachievementsmanagertsx.adminachievementsmanager.userOptional', 'User (Optional)')}</Label>
                           <Select
                             value={grantForm.userId}
                             onValueChange={(value) => setGrantForm({ ...grantForm, userId: value, companyId: "" })}
                           >
                             <SelectTrigger>
-                              <SelectValue placeholder="Select user" />
+                              <SelectValue placeholder={t('adminachievementsmanagertsx.adminachievementsmanager.selectUser', 'Select user')} />
                             </SelectTrigger>
                             <SelectContent>
                               <ScrollArea className="h-48">
@@ -741,13 +739,13 @@ export const AdminAchievementsManager = () => {
                           </Select>
                         </div>
                         <div>
-                          <Label>Company (Optional)</Label>
+                          <Label>{t('adminachievementsmanagertsx.adminachievementsmanager.companyOptional', 'Company (Optional)')}</Label>
                           <Select
                             value={grantForm.companyId}
                             onValueChange={(value) => setGrantForm({ ...grantForm, companyId: value, userId: "" })}
                           >
                             <SelectTrigger>
-                              <SelectValue placeholder="Select company" />
+                              <SelectValue placeholder={t('adminachievementsmanagertsx.adminachievementsmanager.selectCompany', 'Select company')} />
                             </SelectTrigger>
                             <SelectContent>
                               {companies.map((c) => (
@@ -760,13 +758,11 @@ export const AdminAchievementsManager = () => {
                         </div>
                       </div>
                       <DialogFooter>
-                        <Button variant="outline" onClick={() => setGrantDialogOpen(false)}>Cancel</Button>
+                        <Button variant="outline" onClick={() => setGrantDialogOpen(false)}>{t('adminachievementsmanagertsx.adminachievementsmanager.cancel', 'Cancel')}</Button>
                         <Button 
                           onClick={handleGrantCompanyAchievement}
                           disabled={!grantForm.achievementId || (!grantForm.userId && !grantForm.companyId)}
-                        >
-                          Grant
-                        </Button>
+                        >{t('adminachievementsmanagertsx.adminachievementsmanager.grant', 'Grant')}</Button>
                       </DialogFooter>
                     </DialogContent>
                   </Dialog>
@@ -778,7 +774,7 @@ export const AdminAchievementsManager = () => {
                 <div className="flex-1 relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
-                    placeholder="Search company achievements..."
+                    placeholder={t('adminachievementsmanagertsx.adminachievementsmanager.searchCompanyAchievements', 'Search company achievements...')}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="pl-9"
@@ -790,9 +786,9 @@ export const AdminAchievementsManager = () => {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Types</SelectItem>
-                    <SelectItem value="custom">Custom</SelectItem>
-                    <SelectItem value="platform_generated">Platform Generated</SelectItem>
+                    <SelectItem value="all">{t('adminachievementsmanagertsx.adminachievementsmanager.allTypes', 'All Types')}</SelectItem>
+                    <SelectItem value="custom">{t('adminachievementsmanagertsx.adminachievementsmanager.custom', 'Custom')}</SelectItem>
+                    <SelectItem value="platform_generated">{t('adminachievementsmanagertsx.adminachievementsmanager.platformGenerated', 'Platform Generated')}</SelectItem>
                   </SelectContent>
                 </Select>
                 <Select value={filterCompany} onValueChange={setFilterCompany}>
@@ -801,7 +797,7 @@ export const AdminAchievementsManager = () => {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Companies</SelectItem>
+                    <SelectItem value="all">{t('adminachievementsmanagertsx.adminachievementsmanager.allCompanies', 'All Companies')}</SelectItem>
                     {companies.map((c) => (
                       <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
                     ))}
@@ -831,9 +827,9 @@ export const AdminAchievementsManager = () => {
                               <div className="flex items-center gap-2 mb-1">
                                 <h4 className="font-semibold">{achievement.name}</h4>
                                 <Badge variant={achievement.achievement_type === 'platform_generated' ? 'default' : 'secondary'}>
-                                  {achievement.achievement_type === 'platform_generated' ? 'Platform' : 'Custom'}
+                                  {achievement.achievement_type === 'platform_generated' ? t('adminachievementsmanagertsx.adminachievementsmanager.platform', 'Platform') : t('adminachievementsmanagertsx.adminachievementsmanager.custom', 'Custom')}
                                 </Badge>
-                                {!achievement.is_active && <Badge variant="outline">Inactive</Badge>}
+                                {!achievement.is_active && <Badge variant="outline">{t('adminachievementsmanagertsx.adminachievementsmanager.inactive', 'Inactive')}</Badge>}
                               </div>
                               <p className="text-sm text-muted-foreground">{achievement.description}</p>
                               <p className="text-xs text-muted-foreground mt-1">{achievement.company_name}</p>
@@ -902,20 +898,18 @@ export const AdminAchievementsManager = () => {
                     </DialogTrigger>
                     <DialogContent>
                       <DialogHeader>
-                        <DialogTitle>Grant Platform Achievement</DialogTitle>
-                        <DialogDescription>
-                          Manually grant a platform achievement to a user
-                        </DialogDescription>
+                        <DialogTitle>{t('adminachievementsmanagertsx.adminachievementsmanager.grantPlatformAchievement', 'Grant Platform Achievement')}</DialogTitle>
+                        <DialogDescription>{t('adminachievementsmanagertsx.adminachievementsmanager.manuallyGrantAPlatformAchievementTo', 'Manually grant a platform achievement to a user')}</DialogDescription>
                       </DialogHeader>
                       <div className="space-y-4">
                         <div>
-                          <Label>Achievement</Label>
+                          <Label>{t('adminachievementsmanagertsx.adminachievementsmanager.achievement', 'Achievement')}</Label>
                           <Select
                             value={grantQuantumForm.achievementId}
                             onValueChange={(value) => setGrantQuantumForm({ ...grantQuantumForm, achievementId: value })}
                           >
                             <SelectTrigger>
-                              <SelectValue placeholder="Select achievement" />
+                              <SelectValue placeholder={t('adminachievementsmanagertsx.adminachievementsmanager.selectAchievement', 'Select achievement')} />
                             </SelectTrigger>
                             <SelectContent>
                               {quantumAchievements.map((a) => (
@@ -927,13 +921,13 @@ export const AdminAchievementsManager = () => {
                           </Select>
                         </div>
                         <div>
-                          <Label>User</Label>
+                          <Label>{t('adminachievementsmanagertsx.adminachievementsmanager.user', 'User')}</Label>
                           <Select
                             value={grantQuantumForm.userId}
                             onValueChange={(value) => setGrantQuantumForm({ ...grantQuantumForm, userId: value })}
                           >
                             <SelectTrigger>
-                              <SelectValue placeholder="Select user" />
+                              <SelectValue placeholder={t('adminachievementsmanagertsx.adminachievementsmanager.selectUser', 'Select user')} />
                             </SelectTrigger>
                             <SelectContent>
                               <ScrollArea className="h-48">
@@ -948,13 +942,11 @@ export const AdminAchievementsManager = () => {
                         </div>
                       </div>
                       <DialogFooter>
-                        <Button variant="outline" onClick={() => setGrantQuantumDialogOpen(false)}>Cancel</Button>
+                        <Button variant="outline" onClick={() => setGrantQuantumDialogOpen(false)}>{t('adminachievementsmanagertsx.adminachievementsmanager.cancel', 'Cancel')}</Button>
                         <Button 
                           onClick={handleGrantQuantumAchievement}
                           disabled={!grantQuantumForm.achievementId || !grantQuantumForm.userId}
-                        >
-                          Grant
-                        </Button>
+                        >{t('adminachievementsmanagertsx.adminachievementsmanager.grant', 'Grant')}</Button>
                       </DialogFooter>
                     </DialogContent>
                   </Dialog>
@@ -966,7 +958,7 @@ export const AdminAchievementsManager = () => {
                 <div className="flex-1 relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
-                    placeholder="Search platform achievements..."
+                    placeholder={t('adminachievementsmanagertsx.adminachievementsmanager.searchPlatformAchievements', 'Search platform achievements...')}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="pl-9"
@@ -978,7 +970,7 @@ export const AdminAchievementsManager = () => {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Categories</SelectItem>
+                    <SelectItem value="all">{t('adminachievementsmanagertsx.adminachievementsmanager.allCategories', 'All Categories')}</SelectItem>
                     {categoryOptions.map((cat) => (
                       <SelectItem key={cat} value={cat}>{cat}</SelectItem>
                     ))}
@@ -990,7 +982,7 @@ export const AdminAchievementsManager = () => {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Rarities</SelectItem>
+                    <SelectItem value="all">{t('adminachievementsmanagertsx.adminachievementsmanager.allRarities', 'All Rarities')}</SelectItem>
                     {rarityOptions.map((rarity) => (
                       <SelectItem key={rarity} value={rarity}>{rarity}</SelectItem>
                     ))}
@@ -1013,7 +1005,7 @@ export const AdminAchievementsManager = () => {
                               <h4 className="font-semibold">{achievement.name}</h4>
                               <Badge variant="outline">{achievement.category}</Badge>
                               <Badge variant="secondary">{achievement.rarity}</Badge>
-                              {!achievement.is_active && <Badge variant="outline">Inactive</Badge>}
+                              {!achievement.is_active && <Badge variant="outline">{t('adminachievementsmanagertsx.adminachievementsmanager.inactive', 'Inactive')}</Badge>}
                             </div>
                             <p className="text-sm text-muted-foreground">{achievement.description}</p>
                             <p className="text-xs text-muted-foreground mt-1">{achievement.points} XP</p>
@@ -1072,14 +1064,14 @@ export const AdminAchievementsManager = () => {
             <TabsContent value="analytics" className="space-y-4 mt-4">
               <Card>
                 <CardHeader>
-                  <CardTitle>Achievement Analytics</CardTitle>
-                  <CardDescription>Overview of achievement distribution and engagement</CardDescription>
+                  <CardTitle>{t('adminachievementsmanagertsx.adminachievementsmanager.achievementAnalytics', 'Achievement Analytics')}</CardTitle>
+                  <CardDescription>{t('adminachievementsmanagertsx.adminachievementsmanager.overviewOfAchievementDistributionAndEngagement', 'Overview of achievement distribution and engagement')}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <h4 className="font-semibold mb-2">Top Company Achievements</h4>
+                        <h4 className="font-semibold mb-2">{t('adminachievementsmanagertsx.adminachievementsmanager.topCompanyAchievements', 'Top Company Achievements')}</h4>
                         <div className="space-y-2">
                           {companyAchievements
                             .sort((a, b) => (b.earner_count || 0) - (a.earner_count || 0))
@@ -1093,7 +1085,7 @@ export const AdminAchievementsManager = () => {
                         </div>
                       </div>
                       <div>
-                        <h4 className="font-semibold mb-2">Top Platform Achievements</h4>
+                        <h4 className="font-semibold mb-2">{t('adminachievementsmanagertsx.adminachievementsmanager.topPlatformAchievements', 'Top Platform Achievements')}</h4>
                         <div className="space-y-2">
                           {quantumAchievements
                             .sort((a, b) => (b.unlock_count || 0) - (a.unlock_count || 0))
@@ -1119,28 +1111,28 @@ export const AdminAchievementsManager = () => {
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Create New Achievement</DialogTitle>
+            <DialogTitle>{t('adminachievementsmanagertsx.adminachievementsmanager.createNewAchievement', 'Create New Achievement')}</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleCreateSubmit} className="space-y-4">
             <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
-              <Label htmlFor="create-type">Achievement Type</Label>
+              <Label htmlFor="create-type">{t('adminachievementsmanagertsx.adminachievementsmanager.achievementType', 'Achievement Type')}</Label>
               <div className="flex items-center gap-2">
-                <span className={createType === 'user' ? 'font-semibold' : 'text-muted-foreground'}>User</span>
+                <span className={createType === 'user' ? 'font-semibold' : 'text-muted-foreground'}>{t('adminachievementsmanagertsx.adminachievementsmanager.user', 'User')}</span>
                 <Switch
                   id="create-type"
                   checked={createType === 'company'}
                   onCheckedChange={(checked) => setCreateType(checked ? 'company' : 'user')}
                 />
-                <span className={createType === 'company' ? 'font-semibold' : 'text-muted-foreground'}>Company</span>
+                <span className={createType === 'company' ? 'font-semibold' : 'text-muted-foreground'}>{t('adminachievementsmanagertsx.adminachievementsmanager.company', 'Company')}</span>
               </div>
             </div>
 
             {createType === 'company' && (
               <div>
-                <Label htmlFor="company">Company</Label>
+                <Label htmlFor="company">{t('adminachievementsmanagertsx.adminachievementsmanager.company', 'Company')}</Label>
                 <Select value={selectedCompanyId} onValueChange={setSelectedCompanyId} required>
                   <SelectTrigger id="company">
-                    <SelectValue placeholder="Select company" />
+                    <SelectValue placeholder={t('adminachievementsmanagertsx.adminachievementsmanager.selectCompany', 'Select company')} />
                   </SelectTrigger>
                   <SelectContent>
                     {companies.map((c) => (
@@ -1152,12 +1144,12 @@ export const AdminAchievementsManager = () => {
             )}
 
             <div>
-              <Label htmlFor="name">Name</Label>
+              <Label htmlFor="name">{t('adminachievementsmanagertsx.adminachievementsmanager.name', 'Name')}</Label>
               <Input id="name" name="name" required />
             </div>
 
             <div>
-              <Label htmlFor="description">Description</Label>
+              <Label htmlFor="description">{t('adminachievementsmanagertsx.adminachievementsmanager.description', 'Description')}</Label>
               <Textarea id="description" name="description" required />
             </div>
 
@@ -1167,11 +1159,11 @@ export const AdminAchievementsManager = () => {
             </div>
 
             <div className="border-t pt-4">
-              <h4 className="font-semibold mb-4">Unlock Criteria</h4>
+              <h4 className="font-semibold mb-4">{t('adminachievementsmanagertsx.adminachievementsmanager.unlockCriteria', 'Unlock Criteria')}</h4>
               
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="interaction-type">Interaction Type</Label>
+                  <Label htmlFor="interaction-type">{t('adminachievementsmanagertsx.adminachievementsmanager.interactionType', 'Interaction Type')}</Label>
                   <Select value={interactionType} onValueChange={setInteractionType}>
                     <SelectTrigger id="interaction-type">
                       <SelectValue />
@@ -1187,7 +1179,7 @@ export const AdminAchievementsManager = () => {
                 </div>
 
                 <div>
-                  <Label htmlFor="amount">Amount Required</Label>
+                  <Label htmlFor="amount">{t('adminachievementsmanagertsx.adminachievementsmanager.amountRequired', 'Amount Required')}</Label>
                   <Input 
                     id="amount" 
                     type="number" 
@@ -1201,8 +1193,8 @@ export const AdminAchievementsManager = () => {
 
               <div className="flex items-center justify-between p-4 bg-muted rounded-lg mt-4">
                 <div>
-                  <Label htmlFor="time-bound">Time Bound</Label>
-                  <p className="text-sm text-muted-foreground">Require completion within a specific timeframe</p>
+                  <Label htmlFor="time-bound">{t('adminachievementsmanagertsx.adminachievementsmanager.timeBound', 'Time Bound')}</Label>
+                  <p className="text-sm text-muted-foreground">{t('adminachievementsmanagertsx.adminachievementsmanager.requireCompletionWithinASpecificTimeframe', 'Require completion within a specific timeframe')}</p>
                 </div>
                 <Switch
                   id="time-bound"
@@ -1213,7 +1205,7 @@ export const AdminAchievementsManager = () => {
 
               {isTimeBound && (
                 <div className="mt-4">
-                  <Label htmlFor="days">Duration (days)</Label>
+                  <Label htmlFor="days">{t('adminachievementsmanagertsx.adminachievementsmanager.durationDays', 'Duration (days)')}</Label>
                   <Input 
                     id="days" 
                     type="number" 
@@ -1238,7 +1230,7 @@ export const AdminAchievementsManager = () => {
             {createType === 'user' && (
               <>
                 <div>
-                  <Label htmlFor="category">Category</Label>
+                  <Label htmlFor="category">{t('adminachievementsmanagertsx.adminachievementsmanager.category', 'Category')}</Label>
                   <Select name="category" defaultValue="engagement">
                     <SelectTrigger id="category">
                       <SelectValue />
@@ -1252,7 +1244,7 @@ export const AdminAchievementsManager = () => {
                 </div>
 
                 <div>
-                  <Label htmlFor="rarity">Rarity</Label>
+                  <Label htmlFor="rarity">{t('adminachievementsmanagertsx.adminachievementsmanager.rarity', 'Rarity')}</Label>
                   <Select name="rarity" defaultValue="common">
                     <SelectTrigger id="rarity">
                       <SelectValue />
@@ -1266,7 +1258,7 @@ export const AdminAchievementsManager = () => {
                 </div>
 
                 <div>
-                  <Label htmlFor="xp_reward">XP Reward</Label>
+                  <Label htmlFor="xp_reward">{t('adminachievementsmanagertsx.adminachievementsmanager.xpReward', 'XP Reward')}</Label>
                   <Input id="xp_reward" name="xp_reward" type="number" defaultValue="100" required />
                 </div>
               </>
@@ -1274,10 +1266,10 @@ export const AdminAchievementsManager = () => {
 
             <div className="flex justify-end gap-2">
               <Button type="button" variant="outline" onClick={() => { setShowCreateDialog(false); resetCreateForm(); }}>
-                Cancel
+                {t('adminachievementsmanagertsx.adminachievementsmanager.cancel', 'Cancel')}
               </Button>
               <Button type="submit" disabled={loading || (createType === 'company' && !selectedCompanyId)}>
-                {loading ? 'Creating...' : 'Create Achievement'}
+                {loading ? t('adminachievementsmanagertsx.adminachievementsmanager.creating', 'Creating...') : t('adminachievementsmanagertsx.adminachievementsmanager.createAchievement', 'Create Achievement')}
               </Button>
             </div>
           </form>
@@ -1288,18 +1280,18 @@ export const AdminAchievementsManager = () => {
       <Dialog open={editCompanyDialogOpen} onOpenChange={setEditCompanyDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Edit Company Achievement</DialogTitle>
+            <DialogTitle>{t('adminachievementsmanagertsx.adminachievementsmanager.editCompanyAchievement', 'Edit Company Achievement')}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label>Name</Label>
+              <Label>{t('adminachievementsmanagertsx.adminachievementsmanager.name', 'Name')}</Label>
               <Input
                 value={editCompanyForm.name}
                 onChange={(e) => setEditCompanyForm({ ...editCompanyForm, name: e.target.value })}
               />
             </div>
             <div>
-              <Label>Description</Label>
+              <Label>{t('adminachievementsmanagertsx.adminachievementsmanager.description', 'Description')}</Label>
               <Textarea
                 value={editCompanyForm.description}
                 onChange={(e) => setEditCompanyForm({ ...editCompanyForm, description: e.target.value })}
@@ -1330,8 +1322,8 @@ export const AdminAchievementsManager = () => {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setEditCompanyDialogOpen(false)}>Cancel</Button>
-            <Button onClick={handleEditCompanyAchievement}>Save Changes</Button>
+            <Button variant="outline" onClick={() => setEditCompanyDialogOpen(false)}>{t('adminachievementsmanagertsx.adminachievementsmanager.cancel', 'Cancel')}</Button>
+            <Button onClick={handleEditCompanyAchievement}>{t('adminachievementsmanagertsx.adminachievementsmanager.saveChanges', 'Save Changes')}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -1340,18 +1332,18 @@ export const AdminAchievementsManager = () => {
       <Dialog open={editQuantumDialogOpen} onOpenChange={setEditQuantumDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Edit Platform Achievement</DialogTitle>
+            <DialogTitle>{t('adminachievementsmanagertsx.adminachievementsmanager.editPlatformAchievement', 'Edit Platform Achievement')}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label>Name</Label>
+              <Label>{t('adminachievementsmanagertsx.adminachievementsmanager.name', 'Name')}</Label>
               <Input
                 value={editQuantumForm.name}
                 onChange={(e) => setEditQuantumForm({ ...editQuantumForm, name: e.target.value })}
               />
             </div>
             <div>
-              <Label>Description</Label>
+              <Label>{t('adminachievementsmanagertsx.adminachievementsmanager.description', 'Description')}</Label>
               <Textarea
                 value={editQuantumForm.description}
                 onChange={(e) => setEditQuantumForm({ ...editQuantumForm, description: e.target.value })}
@@ -1366,7 +1358,7 @@ export const AdminAchievementsManager = () => {
               />
             </div>
             <div>
-              <Label>XP Points</Label>
+              <Label>{t('adminachievementsmanagertsx.adminachievementsmanager.xpPoints', 'XP Points')}</Label>
               <Input
                 type="number"
                 value={editQuantumForm.points}
@@ -1375,8 +1367,8 @@ export const AdminAchievementsManager = () => {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setEditQuantumDialogOpen(false)}>Cancel</Button>
-            <Button onClick={handleEditQuantumAchievement}>Save Changes</Button>
+            <Button variant="outline" onClick={() => setEditQuantumDialogOpen(false)}>{t('adminachievementsmanagertsx.adminachievementsmanager.cancel', 'Cancel')}</Button>
+            <Button onClick={handleEditQuantumAchievement}>{t('adminachievementsmanagertsx.adminachievementsmanager.saveChanges', 'Save Changes')}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -1385,7 +1377,7 @@ export const AdminAchievementsManager = () => {
       <Dialog open={earnersDialogOpen} onOpenChange={setEarnersDialogOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Achievement Earners</DialogTitle>
+            <DialogTitle>{t('adminachievementsmanagertsx.adminachievementsmanager.achievementEarners', 'Achievement Earners')}</DialogTitle>
             <DialogDescription>
               {selectedCompanyAchievement?.name || selectedQuantumAchievement?.name}
             </DialogDescription>
@@ -1394,9 +1386,9 @@ export const AdminAchievementsManager = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>User/Company</TableHead>
-                  <TableHead>Date Earned</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead>{t('adminachievementsmanagertsx.adminachievementsmanager.usercompany', 'User/Company')}</TableHead>
+                  <TableHead>{t('adminachievementsmanagertsx.adminachievementsmanager.dateEarned', 'Date Earned')}</TableHead>
+                  <TableHead className="text-right">{t('adminachievementsmanagertsx.adminachievementsmanager.actions', 'Actions')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

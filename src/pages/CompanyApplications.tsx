@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -144,6 +145,7 @@ async function fetchApplicationsData(userId: string, currentRole: string | null,
 }
 
 export default function CompanyApplications({ embedded = false }: { embedded?: boolean }) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const { currentRole, companyId } = useRole();
   const queryClient = useQueryClient();
@@ -222,13 +224,13 @@ export default function CompanyApplications({ embedded = false }: { embedded?: b
     a.href = url;
     a.download = `applications-${new Date().toISOString().split('T')[0]}.csv`;
     a.click();
-    toast.success('Applications exported');
+    toast.success("Applications exported");
   };
 
   if (isLoading) {
     return (
       <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
-        <p className="text-center text-muted-foreground">Loading applications...</p>
+        <p className="text-center text-muted-foreground">{t('companyApplications.text1')}</p>
       </div>
     );
   }
@@ -236,15 +238,15 @@ export default function CompanyApplications({ embedded = false }: { embedded?: b
   return (
     <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
       <PartnerPageHeader
-        title="Applications Hub"
-        subtitle="Manage all candidates across your company jobs"
+        title={t('companyApplications.text2')}
+        subtitle={t('companyApplications.text3')}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
         searchPlaceholder="Search by name, email, or job..."
         actions={
           <Button onClick={handleExport} variant="outline" size="sm" className="h-9 border-border/30">
             <Download className="w-4 h-4 mr-2" />
-            <span className="hidden sm:inline">Export</span>
+            <span className="hidden sm:inline">{t('companyApplications.text4')}</span>
           </Button>
         }
       />
@@ -271,8 +273,8 @@ export default function CompanyApplications({ embedded = false }: { embedded?: b
 
       <Tabs defaultValue="table" className="w-full">
         <TabsList className="bg-card/30 backdrop-blur-sm border border-border/20">
-          <TabsTrigger value="table">Candidates Table</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
+          <TabsTrigger value="table">{t('companyApplications.text5')}</TabsTrigger>
+          <TabsTrigger value="analytics">{t('companyApplications.text6')}</TabsTrigger>
         </TabsList>
         <TabsContent value="table" className="mt-6">
           <ApplicationsTable

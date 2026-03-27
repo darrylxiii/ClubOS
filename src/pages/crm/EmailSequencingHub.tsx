@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 // AppLayout removed
 
 import { RoleGate } from '@/components/RoleGate';
@@ -40,13 +41,14 @@ import { useCRMEmailReplies } from '@/hooks/useCRMEmailReplies';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function EmailSequencingHub() {
+  const { t } = useTranslation('common');
   const [activeTab, setActiveTab] = useState('command-center');
   const { campaigns, loading: campaignsLoading, refetch: refetchCampaigns } = useCRMCampaigns({ limit: 100 });
   const { replies, loading: repliesLoading } = useCRMEmailReplies({ isActioned: false, limit: 100 });
 
   // Keyboard shortcuts
   const { shortcuts, showHelp, setShowHelp } = useCRMKeyboardShortcuts({
-    onSearch: () => toast.info('Search: Press Cmd+K'),
+    onSearch: () => toast.info("Search: Press Cmd+K"),
     onRefresh: () => refetchCampaigns(),
     enabled: true,
   });
@@ -117,13 +119,9 @@ export default function EmailSequencingHub() {
                     <div className="p-2 rounded-xl bg-primary/20">
                       <Brain className="w-8 h-8 text-primary" />
                     </div>
-                    <h1 className="text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-                      Email Intelligence Hub
-                    </h1>
+                    <h1 className="text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">{t('emailSequencingHub.title')}</h1>
                   </div>
-                  <p className="text-muted-foreground max-w-xl">
-                    AI-powered email sequencing with smart reply analysis, predictive lead scoring, and optimal send timing
-                  </p>
+                  <p className="text-muted-foreground max-w-xl">{t('emailSequencingHub.desc')}</p>
                 </div>
                 <Button onClick={() => refetchCampaigns()} variant="outline" className="gap-2">
                   <RefreshCw className="w-4 h-4" />

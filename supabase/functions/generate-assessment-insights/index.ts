@@ -65,15 +65,15 @@ Provide your analysis in the following JSON structure:
 
 Be specific, actionable, and encouraging. Tailor recommendations to the luxury executive recruitment context of The Quantum Club.`
 
-    // Call Lovable AI (Gemini 2.5 Flash for speed)
-    const aiResponse = await fetch('https://dpjucecmoyfzrduhlctt.supabase.co/functions/v1/proxy-ai-request', {
+    // Call Google Gemini (Gemini 2.5 Flash for speed)
+    const aiResponse = await fetch('https://chgrkvftjfibufoopmav.supabase.co/functions/v1/proxy-ai-request', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': req.headers.get('Authorization') || '',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash-lite',
+        model: 'gemini-2.5-flash-lite',
         messages: [
           {
             role: 'system',

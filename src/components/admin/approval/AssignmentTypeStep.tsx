@@ -7,6 +7,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Briefcase, Users, UserPlus, Loader2, Building2, GitBranch, AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useTranslation } from 'react-i18next';
 
 interface Company {
   id: string;
@@ -32,12 +33,12 @@ interface AssignmentTypeStepProps {
 }
 
 const AVAILABLE_ROLES: { value: AppRole; label: string; description: string }[] = [
-  { value: 'admin', label: 'Admin', description: 'Full platform access and management' },
-  { value: 'strategist', label: 'Strategist', description: 'Manage candidates and client relationships' },
-  { value: 'partner', label: 'Partner', description: 'Company representative with hiring access' },
-  { value: 'recruiter', label: 'Recruiter', description: 'Source and manage candidates' },
-  { value: 'hiring_manager', label: 'Hiring Manager', description: 'Review and hire for specific roles' },
-  { value: 'user', label: 'User', description: 'Basic platform access' },
+  { value: 'admin', label: t('approval.assignmenttypestep.admin', 'Admin'), description: t('approval.assignmenttypestep.fullPlatformAccessAndManagement', 'Full platform access and management') },
+  { value: 'strategist', label: t('approval.assignmenttypestep.strategist', 'Strategist'), description: t('approval.assignmenttypestep.manageCandidatesAndClientRelationships', 'Manage candidates and client relationships') },
+  { value: 'partner', label: t('approval.assignmenttypestep.partner', 'Partner'), description: t('approval.assignmenttypestep.companyRepresentativeWithHiringAccess', 'Company representative with hiring access') },
+  { value: 'recruiter', label: t('approval.assignmenttypestep.recruiter', 'Recruiter'), description: t('approval.assignmenttypestep.sourceAndManageCandidates', 'Source and manage candidates') },
+  { value: 'hiring_manager', label: t('approval.assignmenttypestep.hiringManager', 'Hiring Manager'), description: t('approval.assignmenttypestep.reviewAndHireForSpecificRoles', 'Review and hire for specific roles') },
+  { value: 'user', label: t('approval.assignmenttypestep.user', 'User'), description: t('approval.assignmenttypestep.basicPlatformAccess', 'Basic platform access') },
 ];
 
 const DEFAULT_STAGES = [
@@ -54,6 +55,7 @@ export const AssignmentTypeStep = ({
   onAssign, 
   onBack 
 }: AssignmentTypeStepProps) => {
+  const { t } = useTranslation('admin');
   const [assignmentType, setAssignmentType] = useState<AssignmentType>(
     requestType === 'partner' ? 'staff' : 'candidate'
   );
@@ -194,7 +196,7 @@ export const AssignmentTypeStep = ({
     <div className="space-y-6">
       <div className="flex items-center gap-2 mb-6">
         <Users className="w-5 h-5 text-primary" />
-        <h3 className="text-lg font-semibold">Assign Role or Pipeline</h3>
+        <h3 className="text-lg font-semibold">{t('approval.assignmentTypeStep.assignRoleOrPipeline')}</h3>
       </div>
 
       {/* Show existing applications warning */}
@@ -225,18 +227,16 @@ export const AssignmentTypeStep = ({
               <RadioGroupItem value="staff" id="staff" />
               <Label htmlFor="staff" className="flex items-center gap-2 cursor-pointer">
                 <UserPlus className="w-4 h-4 text-primary" />
-                <CardTitle className="text-base">Assign as Partner/Staff</CardTitle>
+                <CardTitle className="text-base">{t('approval.assignmentTypeStep.assignAsPartnerstaff')}</CardTitle>
               </Label>
             </div>
-            <p className="text-sm text-muted-foreground ml-7">
-              Grant platform access with a specific role (admin, strategist, partner, etc.)
-            </p>
+            <p className="text-sm text-muted-foreground ml-7">{t('approval.assignmenttypestep.grantPlatformAccessWithASpecific', 'Grant platform access with a specific role (admin, strategist, partner, etc.)')}</p>
           </CardHeader>
           
           {assignmentType === 'staff' && (
             <CardContent className="space-y-4 pt-0">
               <div className="space-y-2">
-                <Label htmlFor="role">Platform Role</Label>
+                <Label htmlFor="role">{t('approval.assignmentTypeStep.platformRole')}</Label>
                 <select
                   id="role"
                   value={selectedRole}
@@ -263,7 +263,7 @@ export const AssignmentTypeStep = ({
                     onChange={(e) => setStaffCompanyId(e.target.value)}
                     className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
                   >
-                    <option value="">Select a company...</option>
+                    <option value="">{t('approval.assignmenttypestep.selectACompany', 'Select a company...')}</option>
                     {companies.map((company) => (
                       <option key={company.id} value={company.id}>
                         {company.name}
@@ -283,12 +283,10 @@ export const AssignmentTypeStep = ({
               <RadioGroupItem value="candidate" id="candidate" />
               <Label htmlFor="candidate" className="flex items-center gap-2 cursor-pointer">
                 <Briefcase className="w-4 h-4 text-primary" />
-                <CardTitle className="text-base">Assign as Candidate to Pipeline</CardTitle>
+                <CardTitle className="text-base">{t('approval.assignmentTypeStep.assignAsCandidateToPipeline')}</CardTitle>
               </Label>
             </div>
-            <p className="text-sm text-muted-foreground ml-7">
-              Add to a job pipeline for hiring consideration (auto-creates candidate profile)
-            </p>
+            <p className="text-sm text-muted-foreground ml-7">{t('approval.assignmenttypestep.addToAJobPipelineFor', 'Add to a job pipeline for hiring consideration (auto-creates candidate profile)')}</p>
           </CardHeader>
           
           {assignmentType === 'candidate' && (
@@ -304,7 +302,7 @@ export const AssignmentTypeStep = ({
                   onChange={(e) => setPipelineCompanyId(e.target.value)}
                   className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
                 >
-                  <option value="">Select a company...</option>
+                  <option value="">{t('approval.assignmenttypestep.selectACompany', 'Select a company...')}</option>
                   {companies.map((company) => (
                     <option key={company.id} value={company.id}>
                       {company.name}
@@ -325,7 +323,7 @@ export const AssignmentTypeStep = ({
                     onChange={(e) => setSelectedJobId(e.target.value)}
                     className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
                   >
-                    <option value="">Select a job...</option>
+                    <option value="">{t('approval.assignmenttypestep.selectAJob', 'Select a job...')}</option>
                     {jobs.map((job) => {
                       const existingApp = getExistingAppForJob(job.id);
                       const isDisabled = !!existingApp;
@@ -338,16 +336,12 @@ export const AssignmentTypeStep = ({
                     })}
                   </select>
                   {jobs.length === 0 && (
-                    <p className="text-sm text-muted-foreground">
-                      No active jobs found for this company
-                    </p>
+                    <p className="text-sm text-muted-foreground">{t('approval.assignmenttypestep.noActiveJobsFoundForThis', 'No active jobs found for this company')}</p>
                   )}
                   {selectedJobId && isJobAlreadyAssigned(selectedJobId) && (
                     <Alert variant="destructive" className="mt-2">
                       <AlertTriangle className="h-4 w-4" />
-                      <AlertDescription>
-                        Candidate is already in this pipeline. Please select a different job.
-                      </AlertDescription>
+                      <AlertDescription>{t('approval.assignmenttypestep.candidateIsAlreadyInThisPipeline', 'Candidate is already in this pipeline. Please select a different job.')}</AlertDescription>
                     </Alert>
                   )}
                 </div>
@@ -383,23 +377,17 @@ export const AssignmentTypeStep = ({
             <div className="flex items-center gap-3">
               <RadioGroupItem value="skip" id="skip" />
               <Label htmlFor="skip" className="cursor-pointer">
-                <CardTitle className="text-base">Skip Assignment</CardTitle>
+                <CardTitle className="text-base">{t('approval.assignmentTypeStep.skipAssignment')}</CardTitle>
               </Label>
             </div>
-            <p className="text-sm text-muted-foreground ml-7">
-              Approve without assigning a role or adding to a pipeline. Can be done later.
-            </p>
+            <p className="text-sm text-muted-foreground ml-7">{t('approval.assignmenttypestep.approveWithoutAssigningARoleOr', 'Approve without assigning a role or adding to a pipeline. Can be done later.')}</p>
           </CardHeader>
         </Card>
       </RadioGroup>
 
       <div className="flex items-center justify-between pt-4">
-        <Button variant="outline" onClick={onBack}>
-          Back
-        </Button>
-        <Button onClick={handleContinue} disabled={!canContinue()}>
-          Continue to Confirmation
-        </Button>
+        <Button variant="outline" onClick={onBack}>{t('approval.assignmenttypestep.back', 'Back')}</Button>
+        <Button onClick={handleContinue} disabled={!canContinue()}>{t('approval.assignmenttypestep.continueToConfirmation', 'Continue to Confirmation')}</Button>
       </div>
     </div>
   );

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -28,6 +29,7 @@ interface SavedJob {
 }
 
 export function SavedJobsWidget() {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -106,10 +108,10 @@ export function SavedJobsWidget() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['saved-jobs-widget'] });
-      toast.success('Job removed from saved');
+      toast.success(t("job_removed_from_saved", "Job removed from saved"));
     },
     onError: () => {
-      toast.error('Failed to remove job');
+      toast.error(t("failed_to_remove_job", "Failed to remove job"));
     },
   });
 
@@ -122,7 +124,7 @@ export function SavedJobsWidget() {
             Saved Jobs
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3" role="status" aria-label="Loading saved jobs">
+        <CardContent className="space-y-3" role="status" aria-label={t("loading_saved_jobs", "Loading saved jobs")}>
           {[1, 2, 3].map((i) => (
             <Skeleton key={i} className="h-16 w-full" />
           ))}
@@ -143,14 +145,12 @@ export function SavedJobsWidget() {
         <CardContent>
           <div className="text-center py-6">
             <Briefcase className="h-10 w-10 mx-auto text-muted-foreground/50 mb-3" aria-hidden="true" />
-            <p className="text-sm text-muted-foreground mb-3">
-              No saved jobs yet
-            </p>
+            <p className="text-sm text-muted-foreground mb-3">{t('savedJobsWidget.noSavedJobsYet')}</p>
             <Button 
               variant="outline" 
               size="sm"
               onClick={() => navigate('/jobs')}
-              aria-label="Browse available jobs"
+              aria-label={t("browse_available_jobs", "Browse available jobs")}
             >
               Browse Jobs
             </Button>
@@ -161,7 +161,7 @@ export function SavedJobsWidget() {
   }
 
   return (
-    <Card className="glass-subtle rounded-2xl" role="region" aria-label="Saved jobs">
+    <Card className="glass-subtle rounded-2xl" role="region" aria-label={t("saved_jobs", "Saved jobs")}>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-base flex items-center gap-2">
@@ -176,14 +176,14 @@ export function SavedJobsWidget() {
             size="sm" 
             className="text-xs"
             onClick={() => navigate('/jobs?filter=saved')}
-            aria-label="View all saved jobs"
+            aria-label={t("view_all_saved_jobs", "View all saved jobs")}
           >
-            View All
+            {t('common:viewAll')}
           </Button>
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
-        <ul className="space-y-3" role="list" aria-label="Your saved jobs">
+        <ul className="space-y-3" role="list" aria-label={t("your_saved_jobs", "Your saved jobs")}>
           {savedJobs.map((saved) => (
             <li key={saved.id}>
               <div 

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
@@ -27,6 +28,7 @@ interface HostSettingsPanelProps {
 }
 
 export function HostSettingsPanel({ open, onOpenChange, meetingId, settings }: HostSettingsPanelProps) {
+  const { t } = useTranslation('common');
   const [localSettings, setLocalSettings] = useState(settings);
   const [saving, setSaving] = useState(false);
   const [isLocked, setIsLocked] = useState(false);
@@ -51,7 +53,7 @@ export function HostSettingsPanel({ open, onOpenChange, meetingId, settings }: H
       .update({ is_locked: locked } as any)
       .eq('id', meetingId);
     if (error) {
-      toast.error('Failed to update meeting lock');
+      toast.error(t("failed_to_update_meeting", "Failed to update meeting lock"));
       setIsLocked(!locked);
     } else {
       toast.success(locked ? 'Meeting locked — no new participants can join' : 'Meeting unlocked');
@@ -72,9 +74,9 @@ export function HostSettingsPanel({ open, onOpenChange, meetingId, settings }: H
     
     if (error) {
       console.error('[HostSettings] Failed to update:', error);
-      toast.error('Failed to update settings');
+      toast.error(t("failed_to_update_settings", "Failed to update settings"));
     } else {
-      toast.success('Settings updated');
+      toast.success(t("settings_updated", "Settings updated"));
     }
   };
 
@@ -82,7 +84,7 @@ export function HostSettingsPanel({ open, onOpenChange, meetingId, settings }: H
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto z-[10200]">
         <DialogHeader>
-          <DialogTitle>Host Options</DialogTitle>
+          <DialogTitle>{t("host_options", "Host Options")}</DialogTitle>
           <p className="text-sm text-muted-foreground">
             Use these host settings to organize your meeting. Only hosts have access to these options.
           </p>
@@ -91,11 +93,11 @@ export function HostSettingsPanel({ open, onOpenChange, meetingId, settings }: H
         <div className="space-y-6 py-4">
           {/* Meeting Management */}
           <div className="space-y-4">
-            <h3 className="font-semibold">Meeting Management</h3>
+            <h3 className="font-semibold">{t("meeting_management", "Meeting Management")}</h3>
             
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label>Host Control</Label>
+                <Label>{t("host_control", "Host Control")}</Label>
                 <p className="text-sm text-muted-foreground">
                   Control what participants can do, such as turn on Gemini notes and recordings (if available)
                 </p>
@@ -118,14 +120,14 @@ export function HostSettingsPanel({ open, onOpenChange, meetingId, settings }: H
             </h3>
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label>Lock Meeting</Label>
+                <Label>{t("lock_meeting", "Lock Meeting")}</Label>
                 <p className="text-sm text-muted-foreground">
                   Prevent new participants from joining. Currently in the meeting can stay.
                 </p>
               </div>
               <div className="flex items-center gap-2">
                 {isLocked && (
-                  <Badge variant="destructive" className="text-xs">Locked</Badge>
+                  <Badge variant="destructive" className="text-xs">{t("locked", "Locked")}</Badge>
                 )}
                 <Switch
                   checked={isLocked}
@@ -139,10 +141,10 @@ export function HostSettingsPanel({ open, onOpenChange, meetingId, settings }: H
 
           {/* Participant Permissions */}
           <div className="space-y-4">
-            <h3 className="font-semibold">Allow Participants</h3>
+            <h3 className="font-semibold">{t("allow_participants", "Allow Participants")}</h3>
             
             <div className="flex items-center justify-between">
-              <Label>Share screen</Label>
+              <Label>{t("share_screen", "Share screen")}</Label>
               <Switch
                 checked={localSettings.allowScreenShare}
                 onCheckedChange={(checked) => updateSetting('allowScreenShare', checked)}
@@ -151,7 +153,7 @@ export function HostSettingsPanel({ open, onOpenChange, meetingId, settings }: H
             </div>
 
             <div className="flex items-center justify-between">
-              <Label>Send reactions</Label>
+              <Label>{t("send_reactions", "Send reactions")}</Label>
               <Switch
                 checked={localSettings.allowReactions}
                 onCheckedChange={(checked) => updateSetting('allowReactions', checked)}
@@ -161,7 +163,7 @@ export function HostSettingsPanel({ open, onOpenChange, meetingId, settings }: H
 
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label>Turn on microphone</Label>
+                <Label>{t("turn_on_microphone", "Turn on microphone")}</Label>
                 <p className="text-sm text-muted-foreground">
                   If turned on, you may be removing people who use an outdated version of the Meet app or meeting hardware that isn't from Google
                 </p>
@@ -175,7 +177,7 @@ export function HostSettingsPanel({ open, onOpenChange, meetingId, settings }: H
 
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label>Turn on video</Label>
+                <Label>{t("turn_on_video", "Turn on video")}</Label>
                 <p className="text-sm text-muted-foreground">
                   If turned on, you may be removing people who use an outdated version of the Meet app or meeting hardware that isn't from Google
                 </p>
@@ -194,7 +196,7 @@ export function HostSettingsPanel({ open, onOpenChange, meetingId, settings }: H
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label>Allow participants to send messages</Label>
+                <Label>{t("allow_participants_to_send", "Allow participants to send messages")}</Label>
                 <p className="text-sm text-muted-foreground">
                   If turned on, everyone can send messages in the call
                 </p>
@@ -211,13 +213,13 @@ export function HostSettingsPanel({ open, onOpenChange, meetingId, settings }: H
 
           {/* Access Type */}
           <div className="space-y-4">
-            <h3 className="font-semibold">Meeting Access</h3>
+            <h3 className="font-semibold">{t("meeting_access", "Meeting Access")}</h3>
             <p className="text-sm text-muted-foreground">
               These settings also apply to future instances of this meeting
             </p>
 
             <div className="space-y-2">
-              <Label>Host must join before others can participate</Label>
+              <Label>{t("host_must_join_before", "Host must join before others can participate")}</Label>
               <Switch
                 checked={localSettings.requireHostApproval}
                 onCheckedChange={(checked) => updateSetting('requireHostApproval', checked)}
@@ -226,7 +228,7 @@ export function HostSettingsPanel({ open, onOpenChange, meetingId, settings }: H
             </div>
 
             <div className="space-y-3">
-              <Label>Meeting access type</Label>
+              <Label>{t("meeting_access_type", "Meeting access type")}</Label>
               <RadioGroup
                 value={localSettings.accessType}
                 onValueChange={(value) => updateSetting('accessType', value)}
@@ -274,11 +276,11 @@ export function HostSettingsPanel({ open, onOpenChange, meetingId, settings }: H
 
           {/* Meeting Activities */}
           <div className="space-y-4">
-            <h3 className="font-semibold">Meeting Activities</h3>
+            <h3 className="font-semibold">{t("meeting_activities", "Meeting Activities")}</h3>
             
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label>Allow participants to share add-on activities</Label>
+                <Label>{t("allow_participants_to_share", "Allow participants to share add-on activities")}</Label>
                 <p className="text-sm text-muted-foreground">
                   If turned on, only activities started by a host can be shared with others
                 </p>
@@ -292,7 +294,7 @@ export function HostSettingsPanel({ open, onOpenChange, meetingId, settings }: H
 
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label>Allow third-party apps to collect audio and video</Label>
+                <Label>{t("allow_thirdparty_apps_to", "Allow third-party apps to collect audio and video")}</Label>
                 <p className="text-sm text-muted-foreground">
                   If turned on, third-party apps have no access to Meet call audio and video when users ask about it
                 </p>

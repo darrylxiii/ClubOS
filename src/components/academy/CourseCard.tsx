@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Link } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -9,6 +10,7 @@ interface CourseCardProps {
 }
 
 export function CourseCard({ course }: CourseCardProps) {
+  const { t } = useTranslation('common');
   const difficultyColors = {
     beginner: "bg-success/10 text-success hover:bg-success/20",
     intermediate: "bg-warning/10 text-warning hover:bg-warning/20",
@@ -79,7 +81,7 @@ export function CourseCard({ course }: CourseCardProps) {
             </div>
             <div className="flex items-center gap-1">
               <Star className="h-4 w-4 fill-warning text-warning" />
-              <span>New</span>
+              <span>{t("new", "New")}</span>
             </div>
           </div>
 
@@ -96,7 +98,7 @@ export function CourseCard({ course }: CourseCardProps) {
                 <p className="text-sm font-medium truncate">
                   {course.profiles.full_name || 'Expert Instructor'}
                 </p>
-                <p className="text-xs text-muted-foreground">Course Creator</p>
+                <p className="text-xs text-muted-foreground">{t("course_creator", "Course Creator")}</p>
               </div>
             </div>
           )}

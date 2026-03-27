@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,6 +26,7 @@ interface TaskTemplatesProps {
 }
 
 export function TaskTemplates({ onApply, currentTask }: TaskTemplatesProps) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [templates, setTemplates] = useState<TaskTemplate[]>([]);
   const [loading, setLoading] = useState(false);
@@ -58,9 +60,9 @@ export function TaskTemplates({ onApply, currentTask }: TaskTemplatesProps) {
       created_by: user.id,
     });
     if (error) {
-      toast.error("Failed to save template");
+      toast.error(t("failed_to_save_template", "Failed to save template"));
     } else {
-      toast.success("Template saved");
+      toast.success(t("template_saved", "Template saved"));
       setNewName("");
       loadTemplates();
     }
@@ -84,18 +86,18 @@ export function TaskTemplates({ onApply, currentTask }: TaskTemplatesProps) {
               </Button>
             </PopoverTrigger>
           </TooltipTrigger>
-          <TooltipContent>Task Templates</TooltipContent>
+          <TooltipContent>{t("task_templates", "Task Templates")}</TooltipContent>
         </Tooltip>
       </TooltipProvider>
 
       <PopoverContent className="w-72 p-3" align="end">
         <div className="space-y-3">
-          <h4 className="text-sm font-semibold">Task Templates</h4>
+          <h4 className="text-sm font-semibold">{t("task_templates", "Task Templates")}</h4>
 
           {loading ? (
             <div className="flex justify-center py-4"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>
           ) : templates.length === 0 ? (
-            <p className="text-xs text-muted-foreground py-2">No templates yet. Save a task as a template to reuse it.</p>
+            <p className="text-xs text-muted-foreground py-2">{t("no_templates_yet_save", "No templates yet. Save a task as a template to reuse it.")}</p>
           ) : (
             <div className="space-y-1.5 max-h-48 overflow-y-auto">
               {templates.map((tpl) => (
@@ -124,10 +126,10 @@ export function TaskTemplates({ onApply, currentTask }: TaskTemplatesProps) {
 
           {currentTask && (
             <div className="border-t pt-2 space-y-2">
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Save current as template</p>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">{t("save_current_as_template", "Save current as template")}</p>
               <div className="flex gap-1.5">
                 <Input
-                  placeholder="Template name..."
+                  placeholder={t("template_name", "Template name...")}
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
                   className="h-8 text-xs"

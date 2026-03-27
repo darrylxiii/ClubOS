@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,7 +22,6 @@ import { EnhancedFreelanceSettings } from "@/components/settings/freelance";
 import { TimeTrackingSettings } from "@/components/settings/TimeTrackingSettings";
 import { APIIntegrationSettings } from "@/components/settings/APIIntegrationSettings";
 import { CommunicationSettings } from "@/components/settings/CommunicationSettings";
-import { useTranslation } from 'react-i18next';
 import { EntityKnowledgeProfile } from "@/components/intelligence/EntityKnowledgeProfile";
 import { signInWithOAuthCustomDomain } from "@/lib/oauth-helpers";
 import { useSettingsData } from "@/hooks/useSettingsData";
@@ -113,27 +113,27 @@ const Settings = () => {
         <div className="flex items-center gap-3 mb-8">
           <SettingsIcon className="w-8 h-8 text-foreground" />
           <div>
-            <h1 className="text-4xl font-semibold uppercase tracking-tight text-foreground">Settings</h1>
-            <p className="text-muted-foreground">Manage your profile and preferences</p>
+            <h1 className="text-4xl font-semibold uppercase tracking-tight text-foreground">{t('text.settings.settings', 'Settings')}</h1>
+            <p className="text-muted-foreground">{t('text.settings.manageYourProfileAndPreferences', 'Manage your profile and preferences')}</p>
           </div>
         </div>
 
         <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
           <TabsList className="flex flex-wrap gap-1 h-auto p-1">
-            <TabsTrigger value="profile">Profile</TabsTrigger>
-            <TabsTrigger value="ai-persona">AI Persona</TabsTrigger>
-            <TabsTrigger value="compensation">Compensation</TabsTrigger>
-            <TabsTrigger value="freelance">Freelance</TabsTrigger>
-            <TabsTrigger value="time-tracking">Time</TabsTrigger>
-            <TabsTrigger value="connections">Connections</TabsTrigger>
-            <TabsTrigger value="calendar">Calendar</TabsTrigger>
-            <TabsTrigger value="communication">Comms</TabsTrigger>
-            <TabsTrigger value="notifications">Alerts</TabsTrigger>
-            <TabsTrigger value="privacy">Privacy</TabsTrigger>
-            <TabsTrigger value="security">Security</TabsTrigger>
-            <TabsTrigger value="api">API</TabsTrigger>
-            <TabsTrigger value="preferences">Preferences</TabsTrigger>
-            <TabsTrigger value="company">Company</TabsTrigger>
+            <TabsTrigger value="profile">{t('text.settings.profile', 'Profile')}</TabsTrigger>
+            <TabsTrigger value="ai-persona">{t('text.settings.aiPersona', 'AI Persona')}</TabsTrigger>
+            <TabsTrigger value="compensation">{t('text.settings.compensation', 'Compensation')}</TabsTrigger>
+            <TabsTrigger value="freelance">{t('text.settings.freelance', 'Freelance')}</TabsTrigger>
+            <TabsTrigger value="time-tracking">{t('text.settings.time', 'Time')}</TabsTrigger>
+            <TabsTrigger value="connections">{t('text.settings.connections', 'Connections')}</TabsTrigger>
+            <TabsTrigger value="calendar">{t('text.settings.calendar', 'Calendar')}</TabsTrigger>
+            <TabsTrigger value="communication">{t('text.settings.comms', 'Comms')}</TabsTrigger>
+            <TabsTrigger value="notifications">{t('text.settings.alerts', 'Alerts')}</TabsTrigger>
+            <TabsTrigger value="privacy">{t('text.settings.privacy', 'Privacy')}</TabsTrigger>
+            <TabsTrigger value="security">{t('text.settings.security', 'Security')}</TabsTrigger>
+            <TabsTrigger value="api">{t('text.settings.api', 'API')}</TabsTrigger>
+            <TabsTrigger value="preferences">{t('text.settings.preferences', 'Preferences')}</TabsTrigger>
+            <TabsTrigger value="company">{t('text.settings.company', 'Company')}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="profile" className="space-y-4">
@@ -172,8 +172,8 @@ const Settings = () => {
               <EntityKnowledgeProfile
                 entityId={state.profile.id}
                 entityType="user"
-                title="My AI Persona"
-                description="Teach the AI your personal communication style and preferences."
+                title={t('text.settings.myAiPersona', 'My AI Persona')}
+                description={t('text.settings.teachTheAiYourPersonalCommunication', 'Teach the AI your personal communication style and preferences.')}
               />
             )}
           </TabsContent>
@@ -257,14 +257,12 @@ const Settings = () => {
             <SecuritySettings />
             <Card>
               <CardHeader>
-                <CardTitle>Documents</CardTitle>
-                <CardDescription>
-                  Upload and manage your resumes, cover letters, and certificates
-                </CardDescription>
+                <CardTitle>{t('text.settings.documents', 'Documents')}</CardTitle>
+                <CardDescription>{t('text.settings.uploadAndManageYourResumesCover', 'Upload and manage your resumes, cover letters, and certificates')}</CardDescription>
               </CardHeader>
               <CardContent>
                 <Button onClick={() => setResumeModalOpen(true)}>
-                  Upload Document
+                  {t('text.settings.uploadDocument', 'Upload Document')}
                 </Button>
               </CardContent>
             </Card>
@@ -302,17 +300,15 @@ const Settings = () => {
           <TabsContent value="company" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>Company Settings</CardTitle>
-                <CardDescription>
-                  Manage your company profile, branding, and team members
-                </CardDescription>
+                <CardTitle>{t('text.settings.companySettings', 'Company Settings')}</CardTitle>
+                <CardDescription>{t('text.settings.manageYourCompanyProfileBrandingAnd', 'Manage your company profile, branding, and team members')}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-muted-foreground">
                   Company settings have been consolidated here. If you're a company admin, you can manage your company profile, team members, and branding from this section.
                 </p>
                 <Button variant="outline" onClick={() => navigate('/companies')}>
-                  Go to Company Management
+                  {t('text.settings.goToCompanyManagement', 'Go to Company Management')}
                 </Button>
               </CardContent>
             </Card>
@@ -324,7 +320,7 @@ const Settings = () => {
         open={resumeModalOpen}
         onOpenChange={setResumeModalOpen}
         onUploadComplete={() => {
-          toast.success('Document uploaded successfully');
+          toast.success(t('text.settings.documentUploadedSuccessfully', 'Document uploaded successfully'));
           setResumeModalOpen(false);
         }}
       />

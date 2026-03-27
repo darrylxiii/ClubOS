@@ -1,12 +1,12 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { moneybirdRequest } from '../_shared/moneybird-client.ts';
+import { createHandler } from '../_shared/handler.ts';
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
-};
-
-const MONEYBIRD_API_BASE = 'https://moneybird.com/api/v2';
+/** Generate a short SHA-256 hex key for idempotency */
+async function makeIdempotencyKey(source: string): Promise<string> {
+  const data = new TextEncoder().encode(source);
+  const hash = await crypto.subtle.digest('SHA-256', data);
+  return Array.from(new Uint8Array(hash)).slice(0, 16).map(b => b.toString(16).padStart(2, '0')).join('');
+}
 
 // EU countries for VAT handling
 const EU_COUNTRIES = [
@@ -26,25 +26,13 @@ interface InvoiceDetails {
   vatNumber?: string;
 }
 
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
+Deno.serve(createHandler(async (req, ctx) => {
+    const { supabase, corsHeaders } = ctx;
 
-  const startTime = Date.now();
-  const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-  const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-  const accessToken = Deno.env.get('MONEYBIRD_ACCESS_TOKEN')!;
-  const administrationId = Deno.env.get('MONEYBIRD_ADMINISTRATION_ID')!;
-  const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const startTime = Date.now();
+    const administrationId = Deno.env.get('MONEYBIRD_ADMINISTRATION_ID')!;
 
-  try {
-    if (!accessToken || !administrationId) {
-      return new Response(
-        JSON.stringify({ error: 'Moneybird not configured' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
+    try {
 
     const body: InvoiceDetails = await req.json();
     const { partnerInvoiceId, companyId, amount, description, invoiceNumber, dueDate, countryCode, vatNumber } = body;
@@ -85,41 +73,35 @@ serve(async (req) => {
       }
 
       // Create contact in Moneybird
-      const createContactResponse = await fetch(
-        `${MONEYBIRD_API_BASE}/${administrationId}/contacts.json`,
-        {
+      let newContact: Record<string, unknown>;
+      try {
+        newContact = await moneybirdRequest<Record<string, unknown>>('contacts.json', {
           method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${accessToken}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
+          body: {
             contact: {
               company_name: company.name,
               address1: company.headquarters_location || '',
               customer_id: companyId,
             },
-          }),
-        }
-      );
-
-      if (!createContactResponse.ok) {
-        const errorText = await createContactResponse.text();
+          },
+          operation: 'create-invoice-contact',
+          idempotencyKey: await makeIdempotencyKey(`contact:${companyId}:${company.name}`),
+        });
+      } catch (err: unknown) {
+        const errorText = err instanceof Error ? err.message : String(err);
         console.error('[Moneybird Create Invoice] Failed to create contact:', errorText);
         return new Response(
           JSON.stringify({ error: 'Failed to create contact in Moneybird' }),
           { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
-
-      const newContact = await createContactResponse.json();
       
       // Store the sync record
       await supabase
         .from('moneybird_contact_sync')
         .upsert({
           company_id: companyId,
-          moneybird_contact_id: newContact.id,
+          moneybird_contact_id: newContact.id as string,
           moneybird_administration_id: administrationId,
           sync_status: 'synced',
           last_synced_at: new Date().toISOString(),
@@ -127,7 +109,7 @@ serve(async (req) => {
           onConflict: 'company_id,moneybird_administration_id',
         });
 
-      contactSync = { moneybird_contact_id: newContact.id };
+      contactSync = { moneybird_contact_id: newContact.id as string };
     }
 
     // Determine VAT rate based on location
@@ -160,10 +142,11 @@ serve(async (req) => {
     ];
 
     // Create invoice in Moneybird
+    const reference = invoiceNumber || `TQC-${partnerInvoiceId.substring(0, 8)}`;
     const invoicePayload = {
       sales_invoice: {
         contact_id: contactSync!.moneybird_contact_id,
-        reference: invoiceNumber || `TQC-${partnerInvoiceId.substring(0, 8)}`,
+        reference,
         due_date: dueDate || undefined,
         details_attributes: invoiceLines,
         prices_are_incl_tax: false,
@@ -171,23 +154,18 @@ serve(async (req) => {
     };
 
     console.log('[Moneybird Create Invoice] Creating invoice with payload:', JSON.stringify(invoicePayload));
-
-    const invoiceResponse = await fetch(
-      `${MONEYBIRD_API_BASE}/${administrationId}/sales_invoices.json`,
-      {
+    let moneybirdInvoice: Record<string, unknown>;
+    try {
+      moneybirdInvoice = await moneybirdRequest<Record<string, unknown>>('sales_invoices.json', {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(invoicePayload),
-      }
-    );
-
-    if (!invoiceResponse.ok) {
-      const errorText = await invoiceResponse.text();
+        body: invoicePayload,
+        operation: 'create-invoice',
+        idempotencyKey: await makeIdempotencyKey(`invoice:${contactSync!.moneybird_contact_id}:${amount}:${reference}`),
+      });
+    } catch (err: unknown) {
+      const errorText = err instanceof Error ? err.message : String(err);
       console.error('[Moneybird Create Invoice] Failed to create invoice:', errorText);
-      
+
       await supabase.from('moneybird_sync_logs').insert({
         operation_type: 'create_invoice',
         entity_type: 'invoice',
@@ -204,8 +182,6 @@ serve(async (req) => {
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
-
-    const moneybirdInvoice = await invoiceResponse.json();
     console.log('[Moneybird Create Invoice] Invoice created:', moneybirdInvoice.id);
 
     // Store the sync record
@@ -251,4 +227,4 @@ serve(async (req) => {
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
-});
+}));

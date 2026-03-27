@@ -23,7 +23,8 @@ export async function parseEdgeFunctionError(
     try {
       const body = await error.context.json();
       return body as EdgeFunctionErrorBody;
-    } catch {
+    } catch (parseError) {
+      console.error('[EdgeFunctionErrors] Failed to parse error response body:', parseError);
       return null;
     }
   }

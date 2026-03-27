@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { motion } from '@/lib/motion';
 import { Mail, Zap, Users, ArrowRight, TrendingUp, AlertTriangle } from 'lucide-react';
 import { useInstantlyData } from '@/hooks/useInstantlyData';
@@ -18,6 +19,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { UnifiedLoader } from '@/components/ui/unified-loader';
 
 export default function EmailSequencingHub() {
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
   const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(null);
   const {
@@ -43,13 +45,11 @@ export default function EmailSequencingHub() {
       <div className="w-full px-4 sm:px-6 lg:px-8 py-8 flex flex-col items-center justify-center min-h-[60vh]">
         <Alert variant="destructive" className="max-w-md">
           <AlertTriangle className="h-4 w-4" />
-          <AlertTitle>Error loading data</AlertTitle>
+          <AlertTitle>{t('emailSequencingHub.text3')}</AlertTitle>
           <AlertDescription>
             {error.message || "Failed to load Instantly data. Please try again."}
           </AlertDescription>
-          <Button onClick={refetch} variant="outline" className="mt-4 w-full bg-background/50">
-            Retry
-          </Button>
+          <Button onClick={refetch} variant="outline" className="mt-4 w-full bg-background/50">{t('emailSequencingHub.btn2')}</Button>
         </Alert>
       </div>
     );
@@ -74,9 +74,7 @@ export default function EmailSequencingHub() {
             </div>
             Email Sequencing
           </h1>
-          <p className="text-muted-foreground mt-1">
-            Manage cold outreach campaigns via Instantly
-          </p>
+          <p className="text-muted-foreground mt-1">{t('emailSequencingHub.desc')}</p>
         </div>
 
         <Button
@@ -106,7 +104,7 @@ export default function EmailSequencingHub() {
             <Users className="h-5 w-5 text-blue-500" />
           </div>
           <div className="flex-1">
-            <h3 className="font-medium">Cold Outreach → Hot Leads Flow</h3>
+            <h3 className="font-medium">{"Cold Outreach → Hot Leads Flow"}</h3>
             <p className="text-sm text-muted-foreground">
               Leads that reply or show interest are automatically promoted to the CRM Pipeline.
               Only qualified leads appear in your CRM for focused follow-up.
@@ -139,7 +137,7 @@ export default function EmailSequencingHub() {
           {campaigns.length === 0 && !loading ? (
             <Card className="p-8 text-center bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border-border/30">
               <Zap className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-              <h3 className="text-lg font-semibold mb-2">No Campaigns Yet</h3>
+              <h3 className="text-lg font-semibold mb-2">{t('emailSequencingHub.text4')}</h3>
               <p className="text-muted-foreground mb-4">
                 Click "Sync Now" to import your campaigns from Instantly
               </p>
@@ -166,7 +164,7 @@ export default function EmailSequencingHub() {
           <SequencePerformanceChart />
           {campaigns.length > 0 && (
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Per-Campaign Breakdown</h3>
+              <h3 className="text-lg font-semibold">{t('emailSequencingHub.text5')}</h3>
               {campaigns.slice(0, 3).map((campaign) => (
                 <SequencePerformanceChart
                   key={campaign.id}

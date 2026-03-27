@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -38,6 +39,7 @@ import {
 } from '@/components/ui/alert-dialog';
 
 export function SessionSecurityPanel() {
+  const { t } = useTranslation('common');
   const { data: activeSessions, isLoading: activeLoading } = useActiveSessions();
   const { data: suspiciousSessions, isLoading: suspiciousLoading } = useSuspiciousSessions();
   const { data: stats } = useSessionStats();
@@ -54,18 +56,18 @@ export function SessionSecurityPanel() {
       {/* Stats Overview */}
       <div className="grid gap-4 md:grid-cols-3">
         <StatsCard
-          title="Active Sessions"
+          title={t("active_sessions", "Active Sessions")}
           value={stats?.activeSessions ?? 0}
           icon={<Users className="h-5 w-5 text-primary" />}
         />
         <StatsCard
-          title="Suspicious Sessions"
+          title={t("suspicious_sessions", "Suspicious Sessions")}
           value={stats?.suspiciousSessions ?? 0}
           icon={<AlertTriangle className="h-5 w-5 text-destructive" />}
           variant="destructive"
         />
         <StatsCard
-          title="Countries"
+          title={t("countries", "Countries")}
           value={stats?.uniqueCountries ?? 0}
           icon={<Globe className="h-5 w-5 text-blue-500" />}
         />
@@ -93,7 +95,7 @@ export function SessionSecurityPanel() {
           <div className="relative w-64">
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search by email, IP, country..."
+              placeholder={t("search_by_email_ip", "Search by email, IP, country...")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-8"
@@ -104,7 +106,7 @@ export function SessionSecurityPanel() {
         <TabsContent value="all">
           <Card className="bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border-border/30">
             <CardHeader className="pb-2">
-              <CardTitle className="text-base">Active Sessions</CardTitle>
+              <CardTitle className="text-base">{t("active_sessions", "Active Sessions")}</CardTitle>
               <CardDescription>
                 Currently active user sessions across the platform
               </CardDescription>
@@ -222,7 +224,7 @@ function SessionRow({ session, showReason = false }: { session: UserSession; sho
           <div className="flex items-center gap-2 mb-1">
             <p className="font-medium truncate">{session.user_email}</p>
             {session.is_suspicious && (
-              <Badge variant="destructive" className="text-xs">Suspicious</Badge>
+              <Badge variant="destructive" className="text-xs">{t("suspicious", "Suspicious")}</Badge>
             )}
           </div>
           
@@ -265,13 +267,13 @@ function SessionRow({ session, showReason = false }: { session: UserSession; sho
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>Terminate Session</AlertDialogTitle>
+                <AlertDialogTitle>{t("terminate_session", "Terminate Session")}</AlertDialogTitle>
                 <AlertDialogDescription>
                   This will immediately terminate this session. The user will be logged out and need to sign in again.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogCancel>{t("cancel", "Cancel")}</AlertDialogCancel>
                 <AlertDialogAction
                   onClick={() => terminateSession.mutate(session.id)}
                   className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
@@ -294,13 +296,13 @@ function SessionRow({ session, showReason = false }: { session: UserSession; sho
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>Terminate All User Sessions</AlertDialogTitle>
+                <AlertDialogTitle>{t("terminate_all_user_sessions", "Terminate All User Sessions")}</AlertDialogTitle>
                 <AlertDialogDescription>
                   This will terminate ALL active sessions for {session.user_email}. They will need to sign in again on all devices.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogCancel>{t("cancel", "Cancel")}</AlertDialogCancel>
                 <AlertDialogAction
                   onClick={() => terminateAllUserSessions.mutate(session.user_id)}
                   className="bg-destructive text-destructive-foreground hover:bg-destructive/90"

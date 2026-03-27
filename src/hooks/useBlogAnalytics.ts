@@ -1,5 +1,6 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { getAnonymousId, getSessionId } from '@/lib/anonymous-id';
+import { logger } from '@/lib/logger';
 
 interface UseBlogAnalyticsOptions {
   postSlug: string;
@@ -7,7 +8,7 @@ interface UseBlogAnalyticsOptions {
 }
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const ANON_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+const ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 // Detect device type
 const getDeviceType = (): string => {
@@ -50,7 +51,7 @@ export function useBlogAnalytics({ postSlug, enabled = true }: UseBlogAnalyticsO
       });
     } catch (error) {
       // Silent fail for analytics — don't disrupt user experience
-      console.debug('Blog analytics event failed:', error);
+      logger.debug('Blog analytics event failed', { error });
     }
   }, [postSlug, enabled]);
 

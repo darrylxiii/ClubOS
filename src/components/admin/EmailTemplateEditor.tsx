@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,6 +25,7 @@ interface EmailTemplateEditorProps {
 }
 
 export function EmailTemplateEditor({ template, onClose }: EmailTemplateEditorProps) {
+  const { t } = useTranslation('common');
   const [formData, setFormData] = useState({
     name: template.name,
     description: template.description || '',
@@ -43,7 +45,7 @@ export function EmailTemplateEditor({ template, onClose }: EmailTemplateEditorPr
       try {
         contentJson = JSON.parse(formData.content_template);
       } catch (e) {
-        toast.error('Invalid JSON in content template');
+        toast.error(t("invalid_json_in_content", "Invalid JSON in content template"));
         setSaving(false);
         return;
       }
@@ -61,11 +63,11 @@ export function EmailTemplateEditor({ template, onClose }: EmailTemplateEditorPr
 
       if (error) throw error;
 
-      toast.success('Template updated successfully');
+      toast.success(t("template_updated_successfully", "Template updated successfully"));
       onClose();
     } catch (error) {
       console.error('Error saving template:', error);
-      toast.error('Failed to save template');
+      toast.error(t("failed_to_save_template", "Failed to save template"));
     } finally {
       setSaving(false);
     }
@@ -73,7 +75,7 @@ export function EmailTemplateEditor({ template, onClose }: EmailTemplateEditorPr
 
   const handleSendTest = async () => {
     if (!testEmail) {
-      toast.error('Please enter a test email address');
+      toast.error(t("please_enter_a_test", "Please enter a test email address"));
       return;
     }
 
@@ -92,7 +94,7 @@ export function EmailTemplateEditor({ template, onClose }: EmailTemplateEditorPr
       setTestEmail('');
     } catch (error) {
       console.error('Error sending test email:', error);
-      toast.error('Failed to send test email');
+      toast.error(t("failed_to_send_test", "Failed to send test email"));
     }
   };
 
@@ -106,7 +108,7 @@ export function EmailTemplateEditor({ template, onClose }: EmailTemplateEditorPr
               Back
             </Button>
             <div>
-              <h1 className="text-3xl font-bold">Edit Template</h1>
+              <h1 className="text-3xl font-bold">{t("edit_template", "Edit Template")}</h1>
               <p className="text-muted-foreground">{template.template_key}</p>
             </div>
           </div>
@@ -130,11 +132,11 @@ export function EmailTemplateEditor({ template, onClose }: EmailTemplateEditorPr
           <div className="lg:col-span-2 space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Template Details</CardTitle>
+                <CardTitle>{t("template_details", "Template Details")}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <Label htmlFor="name">Name</Label>
+                  <Label htmlFor="name">{t("name", "Name")}</Label>
                   <Input
                     id="name"
                     value={formData.name}
@@ -143,7 +145,7 @@ export function EmailTemplateEditor({ template, onClose }: EmailTemplateEditorPr
                 </div>
 
                 <div>
-                  <Label htmlFor="description">Description</Label>
+                  <Label htmlFor="description">{t("description", "Description")}</Label>
                   <Input
                     id="description"
                     value={formData.description}
@@ -152,7 +154,7 @@ export function EmailTemplateEditor({ template, onClose }: EmailTemplateEditorPr
                 </div>
 
                 <div>
-                  <Label htmlFor="subject">Subject Template</Label>
+                  <Label htmlFor="subject">{t("subject_template", "Subject Template")}</Label>
                   <Input
                     id="subject"
                     value={formData.subject_template}
@@ -166,22 +168,21 @@ export function EmailTemplateEditor({ template, onClose }: EmailTemplateEditorPr
                     checked={formData.is_enabled}
                     onCheckedChange={(checked) => setFormData({ ...formData, is_enabled: checked })}
                   />
-                  <Label htmlFor="enabled">Template Enabled</Label>
+                  <Label htmlFor="enabled">{t("template_enabled", "Template Enabled")}</Label>
                 </div>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader>
-                <CardTitle>Content Template (JSON)</CardTitle>
+                <CardTitle>{t("content_template_json", "Content Template (JSON)")}</CardTitle>
               </CardHeader>
               <CardContent>
                 <Textarea
                   value={formData.content_template}
                   onChange={(e) => setFormData({ ...formData, content_template: e.target.value })}
                   className="font-mono text-sm min-h-[400px]"
-                  placeholder='{"heading": "...", "intro": "..."}'
-                />
+                  placeholder='{"heading": "...", "intro": "..."}' />
               </CardContent>
             </Card>
           </div>
@@ -189,7 +190,7 @@ export function EmailTemplateEditor({ template, onClose }: EmailTemplateEditorPr
           <div className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Variables</CardTitle>
+                <CardTitle>{t("variables", "Variables")}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
@@ -205,17 +206,17 @@ export function EmailTemplateEditor({ template, onClose }: EmailTemplateEditorPr
 
             <Card>
               <CardHeader>
-                <CardTitle>Metadata</CardTitle>
+                <CardTitle>{t("metadata", "Metadata")}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2 text-sm">
                 <div>
-                  <strong>Category:</strong> {template.category}
+                  <strong>{t("category", "Category:")}</strong> {template.category}
                 </div>
                 <div>
-                  <strong>Edge Function:</strong> {template.edge_function}
+                  <strong>{t("edge_function", "Edge Function:")}</strong> {template.edge_function}
                 </div>
                 <div>
-                  <strong>Last Modified:</strong>{' '}
+                  <strong>{t("last_modified", "Last Modified:")}</strong>{' '}
                   {new Date(template.last_modified_at).toLocaleString()}
                 </div>
               </CardContent>
@@ -227,7 +228,7 @@ export function EmailTemplateEditor({ template, onClose }: EmailTemplateEditorPr
       <Dialog open={showPreview} onOpenChange={setShowPreview}>
         <DialogContent className="max-w-4xl max-h-[80vh]">
           <DialogHeader>
-            <DialogTitle>Email Preview</DialogTitle>
+            <DialogTitle>{t("email_preview", "Email Preview")}</DialogTitle>
             <DialogDescription>
               Preview how this email will look to recipients
             </DialogDescription>
@@ -242,18 +243,18 @@ export function EmailTemplateEditor({ template, onClose }: EmailTemplateEditorPr
       <Dialog open={showTestDialog} onOpenChange={setShowTestDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Send Test Email</DialogTitle>
+            <DialogTitle>{t("send_test_email", "Send Test Email")}</DialogTitle>
             <DialogDescription>
               Enter an email address to receive a test version of this template
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>
-              <Label htmlFor="testEmail">Email Address</Label>
+              <Label htmlFor="testEmail">{t("email_address", "Email Address")}</Label>
               <Input
                 id="testEmail"
                 type="email"
-                placeholder="test@example.com"
+                placeholder={t("testexamplecom", "test@example.com")}
                 value={testEmail}
                 onChange={(e) => setTestEmail(e.target.value)}
               />

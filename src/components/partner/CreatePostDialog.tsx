@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { AudiencePickerButton, AudienceSelection } from "@/components/audience/AudiencePickerButton";
+import { useTranslation } from 'react-i18next';
 
 interface CreatePostDialogProps {
   open: boolean;
@@ -19,6 +20,7 @@ interface CreatePostDialogProps {
 }
 
 export const CreatePostDialog = ({ open, onOpenChange, companyId, onPostCreated }: CreatePostDialogProps) => {
+  const { t } = useTranslation('partner');
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -37,7 +39,7 @@ export const CreatePostDialog = ({ open, onOpenChange, companyId, onPostCreated 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) {
-      toast.error("You must be logged in to create a post");
+      toast.error(t('createPostDialog.toast.youMustBeLoggedInToCreateAPost'));
       return;
     }
 
@@ -80,7 +82,7 @@ export const CreatePostDialog = ({ open, onOpenChange, companyId, onPostCreated 
         });
       }
 
-      toast.success("Post created successfully");
+      toast.success(t('createPostDialog.toast.postCreatedSuccessfully'));
       setFormData({
         title: '',
         content: '',
@@ -93,7 +95,7 @@ export const CreatePostDialog = ({ open, onOpenChange, companyId, onPostCreated 
       onPostCreated();
     } catch (error) {
       console.error('Error creating post:', error);
-      toast.error("Failed to create post");
+      toast.error(t('createPostDialog.toast.failedToCreatePost'));
     } finally {
       setLoading(false);
     }
@@ -103,26 +105,23 @@ export const CreatePostDialog = ({ open, onOpenChange, companyId, onPostCreated 
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-black uppercase">Create Post</DialogTitle>
-          <DialogDescription>
-            Share news, updates, or announcements with your followers
-          </DialogDescription>
+          <DialogTitle className="text-2xl font-black uppercase">{t('createPostDialog.dialogTitle')}</DialogTitle>
+          <DialogDescription>{t('createPostDialog.dialogDescription')}</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="title">Title</Label>
+            <Label htmlFor="title">{t('createPostDialog.label.title')}</Label>
             <Input
               id="title"
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              placeholder="Exciting news to share..."
-              required
+              placeholder={t('createPostDialog.placeholder.excitingNewsToShareRequired')}
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="post_type">Post Type</Label>
+            <Label htmlFor="post_type">{t('createPostDialog.label.postType')}</Label>
             <Select
               value={formData.post_type}
               onValueChange={(value) => setFormData({ ...formData, post_type: value })}
@@ -131,29 +130,29 @@ export const CreatePostDialog = ({ open, onOpenChange, companyId, onPostCreated 
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="news">News</SelectItem>
-                <SelectItem value="milestone">Milestone</SelectItem>
-                <SelectItem value="event">Event</SelectItem>
-                <SelectItem value="update">Update</SelectItem>
-                <SelectItem value="media">Media</SelectItem>
+                <SelectItem value="news">{t('createPostDialog.option.news')}</SelectItem>
+                <SelectItem value="milestone">{t('createPostDialog.option.milestone')}</SelectItem>
+                <SelectItem value="event">{t('createPostDialog.option.event')}</SelectItem>
+                <SelectItem value="update">{t('common:update')}</SelectItem>
+                <SelectItem value="media">{t('createPostDialog.option.media')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="content">Content</Label>
+            <Label htmlFor="content">{t('createPostDialog.label.content')}</Label>
             <Textarea
               id="content"
               value={formData.content}
               onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-              placeholder="Share your story..."
+              placeholder={t('createPostDialog.placeholder.shareYourStory')}
               rows={6}
               required
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="tags">Tags (comma separated)</Label>
+            <Label htmlFor="tags">{t('createPostDialog.label.tagsCommaSeparated')}</Label>
             <Input
               id="tags"
               value={formData.tags}
@@ -164,7 +163,7 @@ export const CreatePostDialog = ({ open, onOpenChange, companyId, onPostCreated 
 
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label>Audience</Label>
+              <Label>{t('createPostDialog.label.audience')}</Label>
               <AudiencePickerButton
                 value={audienceSelection}
                 onChange={setAudienceSelection}
@@ -173,7 +172,7 @@ export const CreatePostDialog = ({ open, onOpenChange, companyId, onPostCreated 
             </div>
 
             <div className="flex items-center justify-between">
-              <Label htmlFor="is_public">Public Post</Label>
+              <Label htmlFor="is_public">{t('createPostDialog.label.publicPost')}</Label>
               <Switch
                 id="is_public"
                 checked={formData.is_public}
@@ -182,7 +181,7 @@ export const CreatePostDialog = ({ open, onOpenChange, companyId, onPostCreated 
             </div>
 
             <div className="flex items-center justify-between">
-              <Label htmlFor="is_featured">Featured</Label>
+              <Label htmlFor="is_featured">{t('createPostDialog.label.featured')}</Label>
               <Switch
                 id="is_featured"
                 checked={formData.is_featured}
@@ -191,7 +190,7 @@ export const CreatePostDialog = ({ open, onOpenChange, companyId, onPostCreated 
             </div>
 
             <div className="flex items-center justify-between">
-              <Label htmlFor="publish_now">Publish Now</Label>
+              <Label htmlFor="publish_now">{t('createPostDialog.label.publishNow')}</Label>
               <Switch
                 id="publish_now"
                 checked={formData.publish_now}
@@ -202,7 +201,7 @@ export const CreatePostDialog = ({ open, onOpenChange, companyId, onPostCreated 
 
           <div className="flex gap-2 justify-end">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
+              {t('common:cancel')}
             </Button>
             <Button type="submit" disabled={loading}>
               {loading ? "Creating..." : "Create Post"}

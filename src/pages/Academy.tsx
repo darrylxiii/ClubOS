@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useTranslation } from 'react-i18next';
 import { useParams, Link, useNavigate } from "react-router-dom";
 
 import { Card } from "@/components/ui/card";
@@ -43,6 +44,7 @@ import { CourseAppleCarousel } from "@/components/academy/CourseAppleCarousel";
 import { useAcademyData, type AcademyCourse } from "@/hooks/useAcademyData";
 
 export default function Academy() {
+  const { t } = useTranslation('common');
   const { slug } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -93,7 +95,7 @@ export default function Academy() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-pulse text-muted-foreground">Loading academy...</div>
+        <div className="animate-pulse text-muted-foreground">{t('academy.text1')}</div>
       </div>
     );
   }
@@ -101,9 +103,9 @@ export default function Academy() {
   if (!academy) {
     return (
       <div className="w-full px-4 sm:px-6 lg:px-8 py-12 text-center">
-        <h1 className="text-4xl font-bold mb-4">Academy Not Found</h1>
+        <h1 className="text-4xl font-bold mb-4">{t('academy.text2')}</h1>
         <Link to="/home">
-          <Button>Return Home</Button>
+          <Button>{t('academy.text3')}</Button>
         </Link>
       </div>
     );
@@ -142,9 +144,9 @@ export default function Academy() {
             </div>
 
             <TabsList className="squircle">
-              <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-              <TabsTrigger value="my-courses">My Courses</TabsTrigger>
-              <TabsTrigger value="explore">Explore</TabsTrigger>
+              <TabsTrigger value="dashboard">{t('academy.text4')}</TabsTrigger>
+              <TabsTrigger value="my-courses">{t('academy.text5')}</TabsTrigger>
+              <TabsTrigger value="explore">{t('academy.text6')}</TabsTrigger>
             </TabsList>
 
             <TabsContent value="dashboard" className="space-y-8">
@@ -156,7 +158,7 @@ export default function Academy() {
                 <main className="flex-1 min-w-0 space-y-8">
                   {/* Featured Courses - Apple Carousel Style */}
                   <CourseAppleCarousel
-                    title="Featured Courses"
+                    title={t('academy.text7')}
                     courses={courses.slice(0, 8)}
                   />
 
@@ -169,7 +171,7 @@ export default function Academy() {
                   {/* Continue Learning */}
                   {courses.some((c: any) => c.progress && c.progress > 0) && (
                     <CourseCarousel
-                      title="Continue Learning"
+                      title={t('academy.text8')}
                       courses={courses.filter((c: any) => c.progress && c.progress > 0)}
                       showProgress={true}
                     />
@@ -177,13 +179,13 @@ export default function Academy() {
 
                   {/* Trending Courses - Apple Carousel Style */}
                   <CourseAppleCarousel
-                    title="Trending Now"
+                    title={t('academy.text9')}
                     courses={courses.sort((a: any, b: any) => (b.trending_score || 0) - (a.trending_score || 0)).slice(0, 6)}
                   />
 
                   {/* New Releases */}
                   <CourseCarousel
-                    title="New Releases"
+                    title={t('academy.text10')}
                     courses={courses.sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 6)}
                   />
                 </main>
@@ -195,20 +197,20 @@ export default function Academy() {
 
             <TabsContent value="my-courses" className="space-y-6">
               <div className="space-y-4">
-                <h2 className="text-2xl font-bold">All Materials</h2>
+                <h2 className="text-2xl font-bold">{t('academy.text11')}</h2>
 
                 {/* Filters */}
                 <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
                   <div className="flex gap-2">
-                    <Button variant="secondary" className="squircle-sm">All Status</Button>
-                    <Button variant="ghost" className="squircle-sm">Not Started</Button>
-                    <Button variant="ghost" className="squircle-sm">In Progress</Button>
-                    <Button variant="ghost" className="squircle-sm">Completed</Button>
+                    <Button variant="secondary" className="squircle-sm">{t('academy.text12')}</Button>
+                    <Button variant="ghost" className="squircle-sm">{t('academy.text13')}</Button>
+                    <Button variant="ghost" className="squircle-sm">{t('academy.text14')}</Button>
+                    <Button variant="ghost" className="squircle-sm">{t('academy.text15')}</Button>
                   </div>
                   <div className="flex gap-2">
                     <div className="relative">
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input placeholder="Search..." className="pl-9 squircle-sm" />
+                      <Input placeholder={t('academy.text16')} className="pl-9 squircle-sm" />
                     </div>
                     <Button variant="outline" className="squircle-sm">
                       <Filter className="mr-2 h-4 w-4" />
@@ -226,7 +228,7 @@ export default function Academy() {
                   {courses.length === 0 ? (
                     <Card className="p-12 text-center squircle col-span-full">
                       <BookOpen className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                      <h3 className="text-xl font-semibold mb-2">No courses yet</h3>
+                      <h3 className="text-xl font-semibold mb-2">{t('academy.text17')}</h3>
                       <p className="text-muted-foreground mb-6">
                         {isExpert
                           ? "Be the first to create a course for this academy!"
@@ -348,7 +350,7 @@ export default function Academy() {
                 <EnhancedSearchBar
                   value={searchQuery}
                   onChange={setSearchQuery}
-                  placeholder="Search courses..."
+                  placeholder={t('academy.text18')}
                 />
               </div>
 
@@ -356,7 +358,7 @@ export default function Academy() {
               {filteredCourses.length === 0 ? (
                 <Card className="p-12 text-center squircle">
                   <BookOpen className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                  <h3 className="text-xl font-semibold mb-2">No courses yet</h3>
+                  <h3 className="text-xl font-semibold mb-2">{t('academy.text19')}</h3>
                   <p className="text-muted-foreground mb-6">
                     {isExpert
                       ? "Be the first to create a course for this academy!"

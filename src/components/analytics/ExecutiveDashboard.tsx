@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useHiringMetrics, useRecruiterPerformance, usePipelineHealth } from "@/hooks/useAnalytics";
@@ -15,6 +16,7 @@ interface ExecutiveDashboardProps {
 }
 
 export function ExecutiveDashboard({ companyId }: ExecutiveDashboardProps) {
+  const { t } = useTranslation('common');
   const [refreshing, setRefreshing] = useState(false);
   
   const { data: hiringMetrics, isLoading: hiringLoading, refetch: refetchHiring } = useHiringMetrics(companyId);
@@ -54,7 +56,7 @@ export function ExecutiveDashboard({ companyId }: ExecutiveDashboardProps) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Executive Dashboard</h2>
+          <h2 className="text-3xl font-bold tracking-tight">{t("executive_dashboard", "Executive Dashboard")}</h2>
           <p className="text-muted-foreground">
             Real-time insights into your hiring performance and team metrics
           </p>
@@ -89,15 +91,15 @@ export function ExecutiveDashboard({ companyId }: ExecutiveDashboardProps) {
       {/* Detailed Charts */}
       <Tabs defaultValue="velocity" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="velocity">Hiring Velocity</TabsTrigger>
-          <TabsTrigger value="pipeline">Pipeline Health</TabsTrigger>
-          <TabsTrigger value="performance">Recruiter Performance</TabsTrigger>
+          <TabsTrigger value="velocity">{t("hiring_velocity", "Hiring Velocity")}</TabsTrigger>
+          <TabsTrigger value="pipeline">{t("pipeline_health", "Pipeline Health")}</TabsTrigger>
+          <TabsTrigger value="performance">{t("recruiter_performance", "Recruiter Performance")}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="velocity" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Hiring Velocity Trends</CardTitle>
+              <CardTitle>{t("hiring_velocity_trends", "Hiring Velocity Trends")}</CardTitle>
               <CardDescription>
                 Track time-to-hire, application volume, and conversion rates over time
               </CardDescription>
@@ -114,7 +116,7 @@ export function ExecutiveDashboard({ companyId }: ExecutiveDashboardProps) {
         <TabsContent value="pipeline" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Pipeline Health Analysis</CardTitle>
+              <CardTitle>{t("pipeline_health_analysis", "Pipeline Health Analysis")}</CardTitle>
               <CardDescription>
                 Monitor candidate distribution across stages and identify bottlenecks
               </CardDescription>
@@ -131,7 +133,7 @@ export function ExecutiveDashboard({ companyId }: ExecutiveDashboardProps) {
         <TabsContent value="performance" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Recruiter Performance</CardTitle>
+              <CardTitle>{t("recruiter_performance", "Recruiter Performance")}</CardTitle>
               <CardDescription>
                 Compare individual recruiter metrics and team productivity
               </CardDescription>

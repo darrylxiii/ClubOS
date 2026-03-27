@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
@@ -39,12 +40,13 @@ export default function ExpenseFilters({
   onClear,
   hasActiveFilters,
 }: ExpenseFiltersProps) {
+  const { t } = useTranslation('common');
   return (
     <div className="flex flex-wrap items-center gap-3">
       <div className="relative flex-1 min-w-[200px]">
         <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="Search vendor or description..."
+          placeholder={t('financial.searchVendorOrDesc')}
           className="pl-8"
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
@@ -53,10 +55,10 @@ export default function ExpenseFilters({
 
       <Select value={category} onValueChange={onCategoryChange}>
         <SelectTrigger className="w-[180px]">
-          <SelectValue placeholder="All Categories" />
+          <SelectValue placeholder={t('financial.allCategories')} />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="all">All Categories</SelectItem>
+          <SelectItem value="all">{t('financial.allCategories')}</SelectItem>
           {categories.map((c) => (
             <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>
           ))}
@@ -65,12 +67,12 @@ export default function ExpenseFilters({
 
       <Select value={recurringFilter} onValueChange={onRecurringFilterChange}>
         <SelectTrigger className="w-[140px]">
-          <SelectValue placeholder="All Types" />
+          <SelectValue placeholder={t('financial.allTypes')} />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="all">All Types</SelectItem>
-          <SelectItem value="recurring">Recurring</SelectItem>
-          <SelectItem value="one-time">One-Time</SelectItem>
+          <SelectItem value="all">{t('financial.allTypes')}</SelectItem>
+          <SelectItem value="recurring">{t('financial.recurring')}</SelectItem>
+          <SelectItem value="one-time">{t('financial.oneTime')}</SelectItem>
         </SelectContent>
       </Select>
 
@@ -79,7 +81,7 @@ export default function ExpenseFilters({
         className="w-[140px]"
         value={dateFrom}
         onChange={(e) => onDateFromChange(e.target.value)}
-        placeholder="From"
+        placeholder={"From"}
       />
       <Input
         type="date"
@@ -92,7 +94,7 @@ export default function ExpenseFilters({
       {hasActiveFilters && (
         <Button variant="ghost" size="sm" onClick={onClear} className="h-9">
           <X className="h-4 w-4 mr-1" />
-          Clear
+          {t('actions.clear')}
         </Button>
       )}
     </div>

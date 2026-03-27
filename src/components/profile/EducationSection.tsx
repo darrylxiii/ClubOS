@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -35,6 +36,7 @@ interface EducationSectionProps {
 }
 
 export const EducationSection = ({ userId, isReadOnly = false }: EducationSectionProps = {}) => {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const targetUserId = userId || user?.id;
   const [educations, setEducations] = useState<Education[]>([]);
@@ -88,20 +90,20 @@ export const EducationSection = ({ userId, isReadOnly = false }: EducationSectio
         .eq('id', editingId);
       
       if (error) {
-        toast.error('Failed to update education');
+        toast.error("Failed to update education");
         return;
       }
-      toast.success('Education updated');
+      toast.success("Education updated");
     } else {
       const { error } = await supabase
         .from('profile_education')
         .insert(payload);
       
       if (error) {
-        toast.error('Failed to add education');
+        toast.error("Failed to add education");
         return;
       }
-      toast.success('Education added');
+      toast.success("Education added");
     }
 
     setIsDialogOpen(false);
@@ -116,10 +118,10 @@ export const EducationSection = ({ userId, isReadOnly = false }: EducationSectio
       .eq('id', id);
 
     if (error) {
-      toast.error('Failed to delete education');
+      toast.error("Failed to delete education");
       return;
     }
-    toast.success('Education deleted');
+    toast.success("Education deleted");
     loadEducations();
   };
 
@@ -162,7 +164,7 @@ export const EducationSection = ({ userId, isReadOnly = false }: EducationSectio
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-2">
             <GraduationCap className="w-5 h-5" />
-            <CardTitle>Education</CardTitle>
+            <CardTitle>{t('profile.education')}</CardTitle>
           </div>
           <Dialog open={isDialogOpen} onOpenChange={(open) => {
             setIsDialogOpen(open);
@@ -172,17 +174,17 @@ export const EducationSection = ({ userId, isReadOnly = false }: EducationSectio
               <DialogTrigger asChild>
                 <Button size="sm">
                   <Plus className="w-4 h-4 mr-2" />
-                  Add Education
+                  {t('profile.addEducation')}
                 </Button>
               </DialogTrigger>
             )}
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>{editingId ? 'Edit' : 'Add'} Education</DialogTitle>
+                <DialogTitle>{editingId ? t('common:actions.edit') : t('common:actions.add')} {t('profile.education')}</DialogTitle>
               </DialogHeader>
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label>Institution Name *</Label>
+                  <Label>{t('profile.institutionName')} *</Label>
                   <Input 
                     value={formData.institution_name}
                     onChange={(e) => setFormData({...formData, institution_name: e.target.value})}
@@ -192,22 +194,22 @@ export const EducationSection = ({ userId, isReadOnly = false }: EducationSectio
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>Degree Type</Label>
+                    <Label>{t('profile.degreeType')}</Label>
                     <Select value={formData.degree_type} onValueChange={(value) => setFormData({...formData, degree_type: value})}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="bachelor">Bachelor's Degree</SelectItem>
-                        <SelectItem value="master">Master's Degree</SelectItem>
-                        <SelectItem value="phd">Ph.D.</SelectItem>
-                        <SelectItem value="certificate">Certificate</SelectItem>
-                        <SelectItem value="bootcamp">Bootcamp</SelectItem>
+                        <SelectItem value="bachelor">{t('profile.bachelors')}</SelectItem>
+                        <SelectItem value="master">{t('profile.masters')}</SelectItem>
+                        <SelectItem value="phd">{t('profile.phd')}</SelectItem>
+                        <SelectItem value="certificate">{t('profile.certificate')}</SelectItem>
+                        <SelectItem value="bootcamp">{t('profile.bootcamp')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label>Field of Study</Label>
+                    <Label>{t('profile.fieldOfStudy')}</Label>
                     <Input 
                       value={formData.field_of_study}
                       onChange={(e) => setFormData({...formData, field_of_study: e.target.value})}
@@ -217,7 +219,7 @@ export const EducationSection = ({ userId, isReadOnly = false }: EducationSectio
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Grade / GPA</Label>
+                  <Label>{t('profile.gradeGpa')}</Label>
                   <Input 
                     value={formData.grade}
                     onChange={(e) => setFormData({...formData, grade: e.target.value})}
@@ -227,7 +229,7 @@ export const EducationSection = ({ userId, isReadOnly = false }: EducationSectio
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>Start Date</Label>
+                    <Label>{t('profile.startDate')}</Label>
                     <Input 
                       type="date"
                       value={formData.start_date}
@@ -236,7 +238,7 @@ export const EducationSection = ({ userId, isReadOnly = false }: EducationSectio
                   </div>
                   {!formData.is_current && (
                     <div className="space-y-2">
-                      <Label>End Date</Label>
+                      <Label>{t('profile.endDate')}</Label>
                       <Input 
                         type="date"
                         value={formData.end_date}
@@ -251,21 +253,21 @@ export const EducationSection = ({ userId, isReadOnly = false }: EducationSectio
                     checked={formData.is_current}
                     onCheckedChange={(checked) => setFormData({...formData, is_current: checked})}
                   />
-                  <Label>Currently studying here</Label>
+                  <Label>{t('profile.currentlyStudying')}</Label>
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Description</Label>
-                  <Textarea 
+                  <Label>{t('profile.description')}</Label>
+                  <Textarea
                     value={formData.description}
                     onChange={(e) => setFormData({...formData, description: e.target.value})}
-                    placeholder="Activities, awards, and other details..."
+                    placeholder={t('profile.educationDescPlaceholder')}
                     rows={4}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Certificate URL</Label>
+                  <Label>{t('profile.certificateUrl')}</Label>
                   <Input 
                     value={formData.certificate_url}
                     onChange={(e) => setFormData({...formData, certificate_url: e.target.value})}
@@ -274,20 +276,20 @@ export const EducationSection = ({ userId, isReadOnly = false }: EducationSectio
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Visibility</Label>
+                  <Label>{t('profile.visibility')}</Label>
                   <Select value={formData.visibility} onValueChange={(value) => setFormData({...formData, visibility: value})}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="public">Public</SelectItem>
-                      <SelectItem value="private">Private</SelectItem>
+                      <SelectItem value="public">{t('profile.public')}</SelectItem>
+                      <SelectItem value="private">{t('profile.private')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <Button onClick={handleSave} className="w-full">
-                  {editingId ? 'Update' : 'Add'} Education
+                  {editingId ? t('common:actions.update') : t('common:actions.add')} {t('profile.education')}
                 </Button>
               </div>
             </DialogContent>
@@ -298,7 +300,7 @@ export const EducationSection = ({ userId, isReadOnly = false }: EducationSectio
         <div className="space-y-6">
           {educations.length === 0 ? (
             <p className="text-muted-foreground text-center py-8">
-              No education added yet. Click "Add Education" to get started.
+              {t('profile.noEducationYet')}
             </p>
           ) : (
             educations.map((edu) => (
@@ -332,7 +334,7 @@ export const EducationSection = ({ userId, isReadOnly = false }: EducationSectio
                   {edu.certificate_verified && (
                     <Badge variant="default" className="flex items-center gap-1">
                       <CheckCircle2 className="w-3 h-3" />
-                      Verified
+                      {t('profile.verified')}
                     </Badge>
                   )}
                 </div>

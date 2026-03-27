@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -24,6 +25,7 @@ interface AnalysisResult {
 }
 
 export function LiveInterviewAnalysis({ meetingId, transcript }: LiveInterviewAnalysisProps) {
+  const { t } = useTranslation('common');
     const [isExpanded, setIsExpanded] = useState(true);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [result, setResult] = useState<AnalysisResult | null>(null);
@@ -38,7 +40,7 @@ export function LiveInterviewAnalysis({ meetingId, transcript }: LiveInterviewAn
 
     const handleAnalyze = async () => {
         if (!transcript || transcript.length < 50) {
-            toast.error("Not enough data - wait for more conversation before analyzing.");
+            toast.error(t("not_enough_data_wait", "Not enough data - wait for more conversation before analyzing."));
             return;
         }
 
@@ -55,7 +57,7 @@ export function LiveInterviewAnalysis({ meetingId, transcript }: LiveInterviewAn
 
             if (data?.scores) {
                 setResult(data.scores);
-                toast.success("Analysis complete - AI insights generated successfully.");
+                toast.success(t("analysis_complete_ai_insights", "Analysis complete - AI insights generated successfully."));
             }
         } catch (error: unknown) {
             console.error('Analysis failed:', error);
@@ -109,7 +111,7 @@ export function LiveInterviewAnalysis({ meetingId, transcript }: LiveInterviewAn
                     <div className="p-4 border-b border-white/10 flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             <Brain className="w-5 h-5 text-purple-400" />
-                            <h3 className="font-semibold text-white">AI Coach</h3>
+                            <h3 className="font-semibold text-white">{t("ai_coach", "AI Coach")}</h3>
                         </div>
                         <Button
                             size="sm"
@@ -134,22 +136,22 @@ export function LiveInterviewAnalysis({ meetingId, transcript }: LiveInterviewAn
                                 {/* Scores */}
                                 <div className="space-y-3">
                                     <div className="flex justify-between items-center text-sm">
-                                        <span className="text-white/70">Overall Fit</span>
+                                        <span className="text-white/70">{t("overall_fit", "Overall Fit")}</span>
                                         <Badge variant={result.overall_score > 80 ? "default" : "secondary"} className="bg-green-500/20 text-green-300 border-green-500/30">
                                             {result.overall_score}%
                                         </Badge>
                                     </div>
                                     <div className="grid grid-cols-3 gap-2 text-center">
                                         <div className="bg-white/5 rounded p-2">
-                                            <div className="text-xs text-white/50 mb-1">Tech</div>
+                                            <div className="text-xs text-white/50 mb-1">{t("tech", "Tech")}</div>
                                             <div className="font-bold text-blue-400">{result.technical_depth}</div>
                                         </div>
                                         <div className="bg-white/5 rounded p-2">
-                                            <div className="text-xs text-white/50 mb-1">Comms</div>
+                                            <div className="text-xs text-white/50 mb-1">{t("comms", "Comms")}</div>
                                             <div className="font-bold text-purple-400">{result.communication_clarity}</div>
                                         </div>
                                         <div className="bg-white/5 rounded p-2">
-                                            <div className="text-xs text-white/50 mb-1">Culture</div>
+                                            <div className="text-xs text-white/50 mb-1">{t("culture", "Culture")}</div>
                                             <div className="font-bold text-pink-400">{result.culture_fit}</div>
                                         </div>
                                     </div>

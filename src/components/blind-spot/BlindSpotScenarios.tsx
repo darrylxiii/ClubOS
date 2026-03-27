@@ -1,4 +1,5 @@
 import { memo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -13,6 +14,7 @@ interface BlindSpotScenariosProps {
 }
 
 export const BlindSpotScenarios = memo(({ scenarios, session, onComplete }: BlindSpotScenariosProps) => {
+  const { t } = useTranslation('common');
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedChoice, setSelectedChoice] = useState<string | null>(null);
   const [startTime, setStartTime] = useState(Date.now());
@@ -41,8 +43,8 @@ export const BlindSpotScenarios = memo(({ scenarios, session, onComplete }: Blin
         <CardHeader>
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
-              <span>Scenario {currentIndex + 1} of {scenarios.length}</span>
-              <span>{Math.round(progress)}% complete</span>
+              <span>{t('blindSpot.scenarioOf', { current: currentIndex + 1, total: scenarios.length })}</span>
+              <span>{t('blindSpot.percentComplete', { percent: Math.round(progress) })}</span>
             </div>
             <Progress value={progress} className="h-2" />
           </div>
@@ -83,7 +85,7 @@ export const BlindSpotScenarios = memo(({ scenarios, session, onComplete }: Blin
             className="w-full"
             size="lg"
           >
-            {currentIndex < scenarios.length - 1 ? 'Next Scenario' : 'Finish Assessment'}
+            {currentIndex < scenarios.length - 1 ? t('blindSpot.nextScenario') : t('blindSpot.finishAssessment')}
           </Button>
         </CardContent>
       </Card>

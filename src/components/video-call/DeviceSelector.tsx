@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -23,6 +24,7 @@ export function DeviceSelector({
   noiseSuppression = true,
   onNoiseSuppressionChange,
 }: DeviceSelectorProps) {
+  const { t } = useTranslation('common');
   const [videoDevices, setVideoDevices] = useState<MediaDeviceInfo[]>([]);
   const [audioDevices, setAudioDevices] = useState<MediaDeviceInfo[]>([]);
   const [speakerDevices, setSpeakerDevices] = useState<MediaDeviceInfo[]>([]);
@@ -75,13 +77,13 @@ export function DeviceSelector({
         </div>
         
         <div className="space-y-2">
-          <Label>Select Camera</Label>
+          <Label>{t("select_camera", "Select Camera")}</Label>
           <Select value={selectedVideo} onValueChange={(value) => {
             setSelectedVideo(value);
             onDeviceChange?.('video', value);
           }}>
             <SelectTrigger>
-              <SelectValue placeholder="Choose camera" />
+              <SelectValue placeholder={t("choose_camera", "Choose camera")} />
             </SelectTrigger>
             <SelectContent>
               {videoDevices.map(device => (
@@ -100,13 +102,13 @@ export function DeviceSelector({
         </h3>
         
         <div className="space-y-2">
-          <Label>Select Microphone</Label>
+          <Label>{t("select_microphone", "Select Microphone")}</Label>
           <Select value={selectedAudio} onValueChange={(value) => {
             setSelectedAudio(value);
             onDeviceChange?.('audio', value);
           }}>
             <SelectTrigger>
-              <SelectValue placeholder="Choose microphone" />
+              <SelectValue placeholder={t("choose_microphone", "Choose microphone")} />
             </SelectTrigger>
             <SelectContent>
               {audioDevices.map(device => (
@@ -121,8 +123,8 @@ export function DeviceSelector({
         {/* Noise Suppression Toggle */}
         <div className="flex items-center justify-between">
           <div className="space-y-0.5">
-            <Label className="text-sm">Noise Suppression</Label>
-            <p className="text-xs text-muted-foreground">Reduce background noise</p>
+            <Label className="text-sm">{t("noise_suppression", "Noise Suppression")}</Label>
+            <p className="text-xs text-muted-foreground">{t("reduce_background_noise", "Reduce background noise")}</p>
           </div>
           <Switch
             checked={noiseSuppression}
@@ -137,13 +139,13 @@ export function DeviceSelector({
         </h3>
         
         <div className="space-y-2">
-          <Label>Select Speaker</Label>
+          <Label>{t("select_speaker", "Select Speaker")}</Label>
           <Select value={selectedSpeaker} onValueChange={(value) => {
             setSelectedSpeaker(value);
             onDeviceChange?.('speaker', value);
           }}>
             <SelectTrigger>
-              <SelectValue placeholder="Choose speaker" />
+              <SelectValue placeholder={t("choose_speaker", "Choose speaker")} />
             </SelectTrigger>
             <SelectContent>
               {speakerDevices.map(device => (
@@ -162,7 +164,7 @@ export function DeviceSelector({
           <Gauge className="h-5 w-5" /> Video Quality
         </h3>
         <div className="space-y-2">
-          <Label>Bandwidth Preset</Label>
+          <Label>{t("bandwidth_preset", "Bandwidth Preset")}</Label>
           <Select value={bandwidthPreset} onValueChange={(value) => onBandwidthPresetChange?.(value as BandwidthPreset)}>
             <SelectTrigger>
               <SelectValue />

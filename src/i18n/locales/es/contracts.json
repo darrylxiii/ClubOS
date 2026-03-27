@@ -1,0 +1,233 @@
+{
+  "title": "Contratos",
+  "subtitle": "Administre sus contratos y acuerdos",
+  "create": {
+    "title": "Crear contrato",
+    "fromTemplate": "Crear desde plantilla",
+    "fromScratch": "Crear desde cero",
+    "duplicate": "Duplicar contrato"
+  },
+  "edit": {
+    "title": "Editar contrato",
+    "save": "Guardar cambios",
+    "discard": "Descartar cambios",
+    "preview": "Vista previa"
+  },
+  "sign": {
+    "title": "Firmar contrato",
+    "eSign": "Firma electrónica",
+    "uploadSignature": "Subir firma",
+    "drawSignature": "Dibujar firma",
+    "typeSignature": "Escribir firma",
+    "confirm": "Confirmar firma",
+    "signed": "Firmado",
+    "pending": "Firma pendiente",
+    "requestSignature": "Solicitar firma"
+  },
+  "status": {
+    "draft": "Borrador",
+    "pending": "Aprobación pendiente",
+    "active": "Activo",
+    "expired": "Vencido",
+    "terminated": "Terminado",
+    "renewed": "Renovado",
+    "cancelled": "Cancelado"
+  },
+  "types": {
+    "employment": "Contrato de empleo",
+    "freelance": "Acuerdo freelance",
+    "nda": "Acuerdo de confidencialidad",
+    "service": "Acuerdo de servicio",
+    "placement": "Acuerdo de colocación",
+    "partnership": "Acuerdo de asociación"
+  },
+  "details": {
+    "title": "Detalles del contrato",
+    "parties": "Partes",
+    "startDate": "Fecha de inicio",
+    "endDate": "Fecha de finalización",
+    "value": "Valor del contrato",
+    "currency": "Moneda",
+    "terms": "Términos y condiciones",
+    "attachments": "Archivos adjuntos",
+    "history": "Historial de versiones"
+  },
+  "parties": {
+    "client": "Cliente",
+    "contractor": "Contratista",
+    "employer": "Empleador",
+    "employee": "Empleado",
+    "party1": "Primera parte",
+    "party2": "Segunda parte"
+  },
+  "templates": {
+    "title": "Plantillas de contratos",
+    "browse": "Explorar plantillas",
+    "create": "Crear plantilla",
+    "edit": "Editar plantilla",
+    "delete": "Eliminar plantilla",
+    "use": "Usar plantilla",
+    "preview": "Vista previa de plantilla"
+  },
+  "clauses": {
+    "title": "Cláusulas",
+    "add": "Agregar cláusula",
+    "edit": "Editar cláusula",
+    "remove": "Eliminar cláusula",
+    "standard": "Cláusulas estándar",
+    "custom": "Cláusulas personalizadas",
+    "library": "Biblioteca de cláusulas"
+  },
+  "milestones": {
+    "title": "Hitos",
+    "add": "Agregar hito",
+    "completed": "Completado",
+    "pending": "Pendiente",
+    "dueDate": "Fecha de vencimiento",
+    "payment": "Monto del pago"
+  },
+  "payments": {
+    "title": "Pagos",
+    "schedule": "Calendario de pagos",
+    "history": "Historial de pagos",
+    "pending": "Pagos pendientes",
+    "completed": "Pagos completados",
+    "overdue": "Pagos vencidos",
+    "amount": "Monto",
+    "dueDate": "Fecha de vencimiento"
+  },
+  "actions": {
+    "view": "Ver contrato",
+    "edit": "Editar contrato",
+    "delete": "Eliminar contrato",
+    "duplicate": "Duplicar contrato",
+    "send": "Enviar para firma",
+    "download": "Descargar PDF",
+    "print": "Imprimir",
+    "archive": "Archivar",
+    "renew": "Renovar contrato",
+    "terminate": "Terminar contrato"
+  },
+  "notifications": {
+    "created": "Contrato creado exitosamente",
+    "updated": "Contrato actualizado exitosamente",
+    "signed": "Contrato firmado exitosamente",
+    "sent": "Contrato enviado para firma",
+    "expiringSoon": "El contrato vence pronto",
+    "expired": "El contrato ha vencido"
+  },
+  "filters": {
+    "all": "Todos los contratos",
+    "active": "Activos",
+    "draft": "Borradores",
+    "pending": "Pendientes",
+    "expired": "Vencidos",
+    "byType": "Por tipo",
+    "byParty": "Por parte",
+    "byDate": "Por fecha"
+  },
+  "search": {
+    "placeholder": "Buscar contratos...",
+    "noResults": "No se encontraron contratos",
+    "advanced": "Búsqueda avanzada"
+  },
+  "empty": {
+    "noContracts": "No contracts yet",
+    "createFirst": "Cree su primer contrato",
+    "noTemplates": "No hay plantillas disponibles"
+  },
+  "validation": {
+    "required": "Este campo es obligatorio",
+    "invalidDate": "Fecha no válida",
+    "endBeforeStart": "La fecha de finalización debe ser posterior a la fecha de inicio",
+    "missingParty": "Todas las partes deben ser especificadas"
+  },
+  "contractDetailPage": {
+    "title": "Seguimiento de tiempo",
+    "desc": "Registre horas, envíe hojas de tiempo y administre aprobaciones",
+    "text2": "Total Presupuesto",
+    "text3": "Tipo de contrato",
+    "text4": "Cronograma",
+    "text5": "Hitos",
+    "text6": "Resumen",
+    "text7": "Hitos",
+    "text8": "Pagos",
+    "text9": "Seguimiento de tiempo",
+    "text10": "Documentos",
+    "text11": "Nombre de la empresa",
+    "text12": "Nombre del freelancer",
+    "text13": "Documentos del contrato"
+  },
+  "contractListPage": {
+    "desc": "Administre sus contratos de proyectos freelance y pagos",
+    "text2": "Como freelancer",
+    "text3": "Como cliente",
+    "text4": "Total Contracts",
+    "text5": "Activos",
+    "text6": "Firma pendiente",
+    "text7": "Completados",
+    "text8": "Buscar contratos...",
+    "text9": "Todos",
+    "text10": "Pendientes",
+    "text11": "Activos",
+    "text12": "Completados"
+  },
+  "contractSignaturePage": {
+    "title": "Términos clave",
+    "desc": "Revise los términos del contrato y agregue su firma para continuar",
+    "text2": "Total Value",
+    "text3": "Calendario de pagos",
+    "text4": "Tarifa de la plataforma",
+    "text5": "Protección de custodia",
+    "text6": "Términos de servicio",
+    "text7": "Política de privacidad"
+  },
+  "retainerContractsPage": {
+    "btn": "Ver detalles",
+    "text2": "Contratos de retención",
+    "text3": "Administre relaciones continuas con clientes",
+    "text4": "Crear contrato de retención",
+    "text5": "Configure un acuerdo mensual recurrente",
+    "text6": "Horas mensuales",
+    "text7": "Términos y descripción",
+    "text8": "Describa el alcance del trabajo...",
+    "text9": "Cancelar",
+    "text10": "Crear contrato",
+    "text11": "Activo",
+    "text12": "Pendiente",
+    "text13": "Completado",
+    "text14": "Mensual",
+    "text15": "Tarifa",
+    "text16": "Este mes",
+    "text17": "Sin contratos de retención activos",
+    "text18": "Cree un contrato de retención para comenzar",
+    "text19": "Retención pendiente",
+    "text20": "Aceptar",
+    "text21": "Rechazar",
+    "text22": "Sin contratos de retención completados",
+    "text23": "Registrar horas",
+    "text24": "Registre el tiempo dedicado a esta retención",
+    "text25": "Horas",
+    "text26": "Descripción",
+    "text27": "¿En qué trabajó?"
+  },
+  "management": {
+    "title": "Gestión de contratos",
+    "subtitle": "Administre contratos freelance, pagos y órdenes de cambio",
+    "searchPlaceholder": "Buscar contratos...",
+    "createContract": "Crear contrato",
+    "tabContracts": "Contratos",
+    "tabBudget": "Presupuesto y gastos",
+    "tabChangeOrders": "Órdenes de cambio",
+    "tabInvoices": "Facturas",
+    "filterAll": "Todos",
+    "filterPending": "Pendientes",
+    "filterActive": "Activos",
+    "filterCompleted": "Completados",
+    "noContracts": "No contracts yet",
+    "noFilterMatch": "Ningún contrato coincide con sus filtros",
+    "emptyDescription": "Cree su primer contrato para comenzar a contratar freelancers",
+    "contractInvoices": "Facturas del contrato",
+    "noInvoices": "No invoices generated yet"
+  }
+}

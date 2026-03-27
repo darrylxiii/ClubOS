@@ -1,4 +1,5 @@
 import { memo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Check, ChevronRight, Loader2 } from 'lucide-react';
@@ -23,6 +24,7 @@ export const ModuleCompletionCard = memo<ModuleCompletionCardProps>(({
   nextModuleId,
   onNavigateToNext,
 }) => {
+  const { t } = useTranslation('common');
   const [loading, setLoading] = useState(false);
 
   const handleMarkComplete = async () => {
@@ -51,12 +53,12 @@ export const ModuleCompletionCard = memo<ModuleCompletionCardProps>(({
         origin: { y: 0.6 },
       });
 
-      notify.success('Module completed!', { description: `Great job finishing "${moduleName}"` });
+      notify.success(t('academy.moduleCompletedSuccess'), { description: t('academy.greatJobFinishing', { name: moduleName }) });
 
       onComplete();
     } catch (error) {
       console.error('Error marking complete:', error);
-      notify.error('Failed to mark module as complete');
+      notify.error(t('academy.failedToMarkComplete'));
     } finally {
       setLoading(false);
     }
@@ -70,11 +72,11 @@ export const ModuleCompletionCard = memo<ModuleCompletionCardProps>(({
             <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
               <Check className="w-5 h-5 text-primary-foreground" />
             </div>
-            <span className="font-medium text-foreground">Module completed!</span>
+            <span className="font-medium text-foreground">{t('academy.moduleCompleted')}</span>
           </div>
           {nextModuleId && onNavigateToNext && (
             <Button onClick={onNavigateToNext} variant="outline">
-              Next Module
+              {t('academy.nextModule')}
               <ChevronRight className="w-4 h-4 ml-2" />
             </Button>
           )}
@@ -86,12 +88,10 @@ export const ModuleCompletionCard = memo<ModuleCompletionCardProps>(({
   return (
     <Card className="p-4">
       <div className="flex items-center justify-between">
-        <span className="text-sm text-muted-foreground">
-          Finished watching? Mark this module as complete
-        </span>
+        <span className="text-sm text-muted-foreground">{t('academy.finishedWatchingMarkThisModuleAsComplete')}</span>
         <Button onClick={handleMarkComplete} disabled={loading}>
           {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-          Mark as Complete
+          {t('academy.markAsComplete')}
         </Button>
       </div>
     </Card>

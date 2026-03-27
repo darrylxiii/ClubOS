@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -22,6 +23,7 @@ interface CompanyWithAssignment {
 }
 
 export function StrategistCompanyTab() {
+  const { t } = useTranslation('common');
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
   const [unassignedOnly, setUnassignedOnly] = useState(false);
@@ -124,10 +126,10 @@ export function StrategistCompanyTab() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['companies-with-assignments'] });
       queryClient.invalidateQueries({ queryKey: ['strategist-workload'] });
-      toast.success("Strategist assigned successfully");
+      toast.success(t("strategist_assigned_successfully", "Strategist assigned successfully"));
     },
     onError: (error) => {
-      toast.error("Failed to assign strategist");
+      toast.error(t("failed_to_assign_strategist", "Failed to assign strategist"));
       console.error(error);
     },
   });
@@ -144,10 +146,10 @@ export function StrategistCompanyTab() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['companies-with-assignments'] });
       queryClient.invalidateQueries({ queryKey: ['strategist-workload'] });
-      toast.success("Assignment removed");
+      toast.success(t("assignment_removed", "Assignment removed"));
     },
     onError: () => {
-      toast.error("Failed to remove assignment");
+      toast.error(t("failed_to_remove_assignment", "Failed to remove assignment"));
     },
   });
 
@@ -183,10 +185,10 @@ export function StrategistCompanyTab() {
       queryClient.invalidateQueries({ queryKey: ['strategist-workload'] });
       setSelectedCompanies(new Set());
       setBulkStrategist("");
-      toast.success("Bulk assignment completed");
+      toast.success(t("bulk_assignment_completed", "Bulk assignment completed"));
     },
     onError: () => {
-      toast.error("Failed to complete bulk assignment");
+      toast.error(t("failed_to_complete_bulk", "Failed to complete bulk assignment"));
     },
   });
 
@@ -233,7 +235,7 @@ export function StrategistCompanyTab() {
         <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search companies..."
+            placeholder={t("search_companies", "Search companies...")}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-9"
@@ -254,7 +256,7 @@ export function StrategistCompanyTab() {
           <span className="text-sm font-medium">{selectedCompanies.size} selected</span>
           <Select value={bulkStrategist} onValueChange={setBulkStrategist}>
             <SelectTrigger className="w-[200px]">
-              <SelectValue placeholder="Select strategist..." />
+              <SelectValue placeholder={t("select_strategist", "Select strategist...")} />
             </SelectTrigger>
             <SelectContent>
               {strategists?.map((s) => (
@@ -331,7 +333,7 @@ export function StrategistCompanyTab() {
                     )}
                   </>
                 ) : (
-                  <Badge variant="secondary" className="text-xs">Unassigned</Badge>
+                  <Badge variant="secondary" className="text-xs">{t("unassigned", "Unassigned")}</Badge>
                 )}
               </div>
 
@@ -346,7 +348,7 @@ export function StrategistCompanyTab() {
                   }}
                 >
                   <SelectTrigger className="w-[150px] h-8">
-                    <SelectValue placeholder="Assign..." />
+                    <SelectValue placeholder={t("assign", "Assign...")} />
                   </SelectTrigger>
                   <SelectContent>
                     {strategists?.map((s) => (

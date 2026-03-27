@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Package, X, Plus } from 'lucide-react';
 
@@ -8,13 +9,14 @@ interface EmptyAssetStateProps {
 }
 
 export function EmptyAssetState({ hasFilters, onClearFilters, onAddAsset }: EmptyAssetStateProps) {
+  const { t } = useTranslation('common');
   if (hasFilters) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">
         <div className="rounded-full bg-muted p-4 mb-4">
           <Package className="h-8 w-8 text-muted-foreground" />
         </div>
-        <h3 className="text-lg font-medium mb-2">No assets match your filters</h3>
+        <h3 className="text-lg font-medium mb-2">{t("no_assets_match_your", "No assets match your filters")}</h3>
         <p className="text-muted-foreground text-sm mb-4 max-w-sm">
           Try adjusting your search criteria or clearing the filters to see all assets.
         </p>
@@ -31,7 +33,7 @@ export function EmptyAssetState({ hasFilters, onClearFilters, onAddAsset }: Empt
       <div className="rounded-full bg-muted p-4 mb-4">
         <Package className="h-8 w-8 text-muted-foreground" />
       </div>
-      <h3 className="text-lg font-medium mb-2">No assets yet</h3>
+      <h3 className="text-lg font-medium mb-2">{t("no_assets_yet", "No assets yet")}</h3>
       <p className="text-muted-foreground text-sm mb-4 max-w-sm">
         Start by adding your first asset to track depreciation and manage your inventory.
       </p>

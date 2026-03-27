@@ -1,30 +1,16 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.58.0';
+import { createHandler } from '../_shared/handler.ts';
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
-
-Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  try {
+Deno.serve(createHandler(async (req, ctx) => {
     const { userId, eventType, eventData } = await req.json();
 
     if (!userId) {
       throw new Error('User ID is required');
     }
 
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
     console.log('[Check Secret Achievements] Checking for user:', userId);
 
     // Fetch all secret achievements
-    const { data: secretAchievements } = await supabase
+    const { data: secretAchievements } = await ctx.supabase
       .from('quantum_achievements')
       .select('*')
       .eq('is_secret', true)
@@ -33,12 +19,12 @@ Deno.serve(async (req) => {
     if (!secretAchievements || secretAchievements.length === 0) {
       return new Response(
         JSON.stringify({ unlockedAchievements: [] }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     // Check which secret achievements are already unlocked
-    const { data: userAchievements } = await supabase
+    const { data: userAchievements } = await ctx.supabase
       .from('user_quantum_achievements')
       .select('achievement_id')
       .eq('user_id', userId);
@@ -72,7 +58,7 @@ Deno.serve(async (req) => {
 
       // Unicorn - be the first to unlock a new achievement
       if (criteria.type === 'unicorn' && eventType === 'achievement_unlocked') {
-        const { count } = await supabase
+        const { count } = await ctx.supabase
           .from('user_quantum_achievements')
           .select('*', { count: 'exact', head: true })
           .eq('achievement_id', eventData?.achievementId);
@@ -82,7 +68,7 @@ Deno.serve(async (req) => {
 
       if (shouldUnlock) {
         // Unlock the secret achievement
-        const { data: newAchievement } = await supabase
+        const { data: newAchievement } = await ctx.supabase
           .from('user_quantum_achievements')
           .insert({
             user_id: userId,
@@ -93,11 +79,20 @@ Deno.serve(async (req) => {
           .single();
 
         if (newAchievement) {
-          // Update user XP
-          await supabase.rpc('increment_user_xp', {
-            p_user_id: userId,
-            p_xp_amount: achievement.points,
-          });
+          // Update user XP via direct upsert
+          const { data: engagement } = await ctx.supabase
+            .from('user_engagement')
+            .select('total_xp')
+            .eq('user_id', userId)
+            .single();
+
+          const newXp = (engagement?.total_xp || 0) + (achievement.points || 0);
+          await ctx.supabase.from('user_engagement').upsert({
+            user_id: userId,
+            total_xp: newXp,
+            level: Math.floor(newXp / 100) + 1,
+            updated_at: new Date().toISOString(),
+          }, { onConflict: 'user_id' });
 
           unlockedAchievements.push({
             ...achievement,
@@ -111,14 +106,6 @@ Deno.serve(async (req) => {
 
     return new Response(
       JSON.stringify({ unlockedAchievements }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } }
     );
-  } catch (error) {
-    console.error('[Check Secret Achievements] Error:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    return new Response(
-      JSON.stringify({ error: errorMessage }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-  }
-});
+}));

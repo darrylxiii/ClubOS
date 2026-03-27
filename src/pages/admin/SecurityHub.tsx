@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { lazy, Suspense } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
@@ -23,6 +24,7 @@ const TAB_MAP: Record<string, string> = {
 };
 
 export default function SecurityHub() {
+  const { t } = useTranslation('common');
   const [searchParams, setSearchParams] = useSearchParams();
   const activeTab = TAB_MAP[searchParams.get('tab') || ''] || 'anti-hacking';
 
@@ -37,7 +39,7 @@ export default function SecurityHub() {
           <div className="space-y-1">
             <div className="flex items-center gap-3">
               <Shield className="h-8 w-8 text-primary" />
-              <h1 className="text-3xl font-bold tracking-tight">SECURITY HUB</h1>
+              <h1 className="text-3xl font-bold tracking-tight">{t("security_hub", "SECURITY HUB")}</h1>
             </div>
             <p className="text-muted-foreground">
               Threat monitoring, audit trails, and incident response
@@ -46,12 +48,12 @@ export default function SecurityHub() {
 
           <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
             <TabsList className="h-auto flex-wrap bg-card/50 backdrop-blur-sm rounded-lg p-1">
-              <TabsTrigger value="anti-hacking">Anti-Hacking</TabsTrigger>
-              <TabsTrigger value="events">Security Events</TabsTrigger>
-              <TabsTrigger value="audit-log">Audit Log</TabsTrigger>
-              <TabsTrigger value="error-logs">Error Logs</TabsTrigger>
-              <TabsTrigger value="god-mode">God Mode</TabsTrigger>
-              <TabsTrigger value="disaster-recovery">Disaster Recovery</TabsTrigger>
+              <TabsTrigger value="anti-hacking">{t("antihacking", "Anti-Hacking")}</TabsTrigger>
+              <TabsTrigger value="events">{t("security_events", "Security Events")}</TabsTrigger>
+              <TabsTrigger value="audit-log">{t("audit_log", "Audit Log")}</TabsTrigger>
+              <TabsTrigger value="error-logs">{t("error_logs", "Error Logs")}</TabsTrigger>
+              <TabsTrigger value="god-mode">{t("god_mode", "God Mode")}</TabsTrigger>
+              <TabsTrigger value="disaster-recovery">{t("disaster_recovery", "Disaster Recovery")}</TabsTrigger>
             </TabsList>
 
             <Suspense fallback={<PageLoader />}>

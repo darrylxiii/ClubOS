@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -16,6 +17,7 @@ interface EngagementMetrics {
 }
 
 export default function UserEngagementDashboard() {
+  const { t } = useTranslation('admin');
   const [loading, setLoading] = useState(true);
   const [metrics, setMetrics] = useState<EngagementMetrics>({
     totalUsers: 0,
@@ -106,8 +108,8 @@ export default function UserEngagementDashboard() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold">User Engagement</h2>
-        <p className="text-muted-foreground">Platform usage and engagement metrics</p>
+        <h2 className="text-2xl font-bold">{t('userEngagementDashboard.text1')}</h2>
+        <p className="text-muted-foreground">{t('userEngagementDashboard.text2')}</p>
       </div>
 
       {/* Key Metrics */}
@@ -118,7 +120,7 @@ export default function UserEngagementDashboard() {
               <div className="p-3 bg-primary/10 rounded-lg"><Users className="h-6 w-6" /></div>
               <div>
                 <p className="text-2xl font-bold">{metrics.totalUsers}</p>
-                <p className="text-sm text-muted-foreground">Active Users (30d)</p>
+                <p className="text-sm text-muted-foreground">{t('userEngagementDashboard.text3')}</p>
               </div>
             </div>
           </CardContent>
@@ -130,7 +132,7 @@ export default function UserEngagementDashboard() {
               <div className="p-3 bg-primary/10 rounded-lg"><Clock className="h-6 w-6" /></div>
               <div>
                 <p className="text-2xl font-bold">{metrics.avgSessionTime}m</p>
-                <p className="text-sm text-muted-foreground">Avg Session Time</p>
+                <p className="text-sm text-muted-foreground">{t('userEngagementDashboard.text4')}</p>
               </div>
             </div>
           </CardContent>
@@ -142,7 +144,7 @@ export default function UserEngagementDashboard() {
               <div className="p-3 bg-primary/10 rounded-lg"><Activity className="h-6 w-6" /></div>
               <div>
                 <p className="text-2xl font-bold">{metrics.totalPageViews.toLocaleString()}</p>
-                <p className="text-sm text-muted-foreground">Page Views</p>
+                <p className="text-sm text-muted-foreground">{t('userEngagementDashboard.text5')}</p>
               </div>
             </div>
           </CardContent>
@@ -154,7 +156,7 @@ export default function UserEngagementDashboard() {
               <div className="p-3 bg-primary/10 rounded-lg"><MousePointer className="h-6 w-6" /></div>
               <div>
                 <p className="text-2xl font-bold">{metrics.totalActions.toLocaleString()}</p>
-                <p className="text-sm text-muted-foreground">Actions Performed</p>
+                <p className="text-sm text-muted-foreground">{t('userEngagementDashboard.text6')}</p>
               </div>
             </div>
           </CardContent>
@@ -165,8 +167,8 @@ export default function UserEngagementDashboard() {
       <div className="grid md:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>Daily Active Users</CardTitle>
-            <CardDescription>User activity trend over time</CardDescription>
+            <CardTitle>{t('userEngagementDashboard.text7')}</CardTitle>
+            <CardDescription>{t('userEngagementDashboard.text8')}</CardDescription>
           </CardHeader>
           <CardContent>
             <DynamicChart
@@ -188,8 +190,8 @@ export default function UserEngagementDashboard() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Top Features</CardTitle>
-            <CardDescription>Most used platform features</CardDescription>
+            <CardTitle>{t('userEngagementDashboard.text9')}</CardTitle>
+            <CardDescription>{t('userEngagementDashboard.text10')}</CardDescription>
           </CardHeader>
           <CardContent>
             {metrics.featureUsage.length > 0 ? (

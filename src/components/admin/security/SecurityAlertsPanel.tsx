@@ -5,8 +5,10 @@ import { Button } from "@/components/ui/button";
 import { AlertTriangle, X } from "lucide-react";
 import type { SecurityAlert } from "@/types/security";
 import { toast } from "sonner";
+import { useTranslation } from 'react-i18next';
 
 export const SecurityAlertsPanel = () => {
+  const { t } = useTranslation('admin');
   const queryClient = useQueryClient();
   
   const { data: alerts } = useQuery({
@@ -43,10 +45,10 @@ export const SecurityAlertsPanel = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['security-alerts'] });
-      toast.success('Alert dismissed');
+      toast.success(t('security.securityAlertsPanel.alertDismissed'));
     },
     onError: () => {
-      toast.error('Failed to dismiss alert');
+      toast.error(t('security.securityAlertsPanel.failedToDismissAlert'));
     }
   });
 

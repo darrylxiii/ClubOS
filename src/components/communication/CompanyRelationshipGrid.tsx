@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { motion } from '@/lib/motion';
 import { Building2, AlertTriangle, CheckCircle, TrendingUp, Filter } from 'lucide-react';
@@ -30,6 +31,7 @@ export function CompanyRelationshipGrid({
   onCompanyChange,
   onSendMessage
 }: CompanyRelationshipGridProps) {
+  const { t } = useTranslation('common');
   const [statusFilter, setStatusFilter] = useState<FilterStatus>('all');
 
   const filteredRelationships = relationships.filter(r => {
@@ -46,13 +48,13 @@ export function CompanyRelationshipGrid({
       {/* Stats Row */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         <StatsCard
-          title="Total Companies"
+          title={t("total_companies", "Total Companies")}
           value={stats.total}
           icon={Building2}
           color="text-primary"
         />
         <StatsCard
-          title="Healthy"
+          title={t("healthy", "Healthy")}
           value={stats.healthy}
           icon={CheckCircle}
           color="text-green-500"
@@ -60,7 +62,7 @@ export function CompanyRelationshipGrid({
           active={statusFilter === 'healthy'}
         />
         <StatsCard
-          title="Needs Attention"
+          title={t("needs_attention", "Needs Attention")}
           value={stats.needsAttention}
           icon={AlertTriangle}
           color="text-yellow-500"
@@ -68,7 +70,7 @@ export function CompanyRelationshipGrid({
           active={statusFilter === 'attention'}
         />
         <StatsCard
-          title="At Risk"
+          title={t("at_risk", "At Risk")}
           value={stats.atRisk}
           icon={AlertTriangle}
           color="text-orange-500"
@@ -76,7 +78,7 @@ export function CompanyRelationshipGrid({
           active={statusFilter === 'at-risk'}
         />
         <StatsCard
-          title="Critical"
+          title={t("critical", "Critical")}
           value={stats.critical}
           icon={AlertTriangle}
           color="text-red-500"
@@ -89,7 +91,7 @@ export function CompanyRelationshipGrid({
       <div className="flex flex-wrap items-center gap-4">
         <div className="flex items-center gap-2">
           <Filter className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm font-medium">Filters:</span>
+          <span className="text-sm font-medium">{t("filters", "Filters:")}</span>
         </div>
         
         <Select
@@ -97,10 +99,10 @@ export function CompanyRelationshipGrid({
           onValueChange={(value) => onCompanyChange(value === 'all' ? null : value)}
         >
           <SelectTrigger className="w-[250px]">
-            <SelectValue placeholder="All Companies" />
+            <SelectValue placeholder={t("all_companies", "All Companies")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Companies</SelectItem>
+            <SelectItem value="all">{t("all_companies", "All Companies")}</SelectItem>
             {companies.map((company) => (
               <SelectItem key={company.id} value={company.id}>
                 {company.name}
@@ -133,7 +135,7 @@ export function CompanyRelationshipGrid({
         <Card>
           <CardContent className="py-12 text-center">
             <Building2 className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
-            <p className="text-lg font-medium">No companies found</p>
+            <p className="text-lg font-medium">{t("no_companies_found", "No companies found")}</p>
             <p className="text-sm text-muted-foreground mt-1">
               {statusFilter !== 'all' 
                 ? 'Try adjusting your filters'

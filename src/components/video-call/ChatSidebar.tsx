@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,6 +14,7 @@ interface ChatSidebarProps {
 }
 
 export function ChatSidebar({ conversationId, onClose }: ChatSidebarProps) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [messages, setMessages] = useState<any[]>([]);
   const [newMessage, setNewMessage] = useState('');
@@ -67,7 +69,7 @@ export function ChatSidebar({ conversationId, onClose }: ChatSidebarProps) {
     });
 
     if (error) {
-      toast.error('Failed to send message');
+      toast.error(t("failed_to_send_message", "Failed to send message"));
     } else {
       setNewMessage('');
     }
@@ -77,8 +79,8 @@ export function ChatSidebar({ conversationId, onClose }: ChatSidebarProps) {
     <div className="absolute right-0 top-0 bottom-0 w-96 glass-card border-l border-border/20 flex flex-col z-[10001]">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-border/20">
-        <h3 className="font-semibold text-lg">Chat</h3>
-        <Button variant="ghost" size="icon" onClick={onClose} aria-label="Close chat panel">
+        <h3 className="font-semibold text-lg">{t("chat", "Chat")}</h3>
+        <Button variant="ghost" size="icon" onClick={onClose} aria-label={t("close_chat_panel", "Close chat panel")}>
           <X className="h-5 w-5" aria-hidden="true" />
         </Button>
       </div>
@@ -118,10 +120,10 @@ export function ChatSidebar({ conversationId, onClose }: ChatSidebarProps) {
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-            placeholder="Type a message..."
+            placeholder={t("type_a_message", "Type a message...")}
             className="flex-1"
           />
-          <Button onClick={sendMessage} size="icon" aria-label="Send message">
+          <Button onClick={sendMessage} size="icon" aria-label={t("send_message", "Send message")}>
             <Send className="h-4 w-4" aria-hidden="true" />
           </Button>
         </div>

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Eye, EyeOff, Sparkles } from 'lucide-react';
@@ -27,6 +28,7 @@ interface SecretAchievementCardProps {
 }
 
 export const SecretAchievementCard = ({ achievement }: SecretAchievementCardProps) => {
+  const { t } = useTranslation('common');
   const rarityColors: Record<string, string> = {
     rare: 'from-blue-500/20 to-cyan-500/20 border-blue-500/30',
     epic: 'from-purple-500/20 to-pink-500/20 border-purple-500/30',
@@ -44,9 +46,9 @@ export const SecretAchievementCard = ({ achievement }: SecretAchievementCardProp
                 <EyeOff className="h-8 w-8 text-muted-foreground" />
               </div>
               <div className="flex-1 space-y-1">
-                <h4 className="font-semibold text-lg">??? Secret Achievement</h4>
-                <p className="text-sm text-muted-foreground">Locked and hidden</p>
-                <Badge variant="outline" className="mt-2">Secret</Badge>
+                <h4 className="font-semibold text-lg">{t('achievements.secretAchievement')}</h4>
+                <p className="text-sm text-muted-foreground">{t('achievements.lockedAndHidden')}</p>
+                <Badge variant="outline" className="mt-2">{t('achievements.secret')}</Badge>
               </div>
             </div>
           </Card>
@@ -56,10 +58,10 @@ export const SecretAchievementCard = ({ achievement }: SecretAchievementCardProp
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <EyeOff className="h-5 w-5" />
-              Secret Achievement
+              {t('achievements.secretAchievement')}
             </DialogTitle>
             <DialogDescription>
-              This achievement is hidden until unlocked. Here's a hint...
+              {t('achievements.hiddenUntilUnlocked')}
             </DialogDescription>
           </DialogHeader>
 
@@ -69,7 +71,7 @@ export const SecretAchievementCard = ({ achievement }: SecretAchievementCardProp
             </div>
 
             <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Reward</span>
+              <span className="text-muted-foreground">{t('achievements.reward')}</span>
               <Badge variant="secondary" className="gap-1">
                 <Sparkles className="h-3 w-3" />
                 {achievement.points} XP
@@ -78,7 +80,7 @@ export const SecretAchievementCard = ({ achievement }: SecretAchievementCardProp
 
             <div className="p-3 rounded-lg bg-primary/5 border border-primary/20 text-center">
               <p className="text-xs text-muted-foreground">
-                Keep exploring The Quantum Club to uncover this secret!
+                {t('achievements.keepExploring')}
               </p>
             </div>
           </div>
@@ -102,7 +104,7 @@ export const SecretAchievementCard = ({ achievement }: SecretAchievementCardProp
             <div className="flex items-center justify-between">
               <Badge variant="secondary" className="gap-1">
                 <Eye className="h-3 w-3" />
-                Secret Unlocked
+                {t('achievements.secretUnlocked')}
               </Badge>
               <Badge variant="outline" className="capitalize">
                 {achievement.rarity}
@@ -120,7 +122,7 @@ export const SecretAchievementCard = ({ achievement }: SecretAchievementCardProp
             </div>
 
             <div className="flex items-center justify-between pt-2 border-t border-border/50">
-              <span className="text-xs text-muted-foreground">You discovered this secret!</span>
+              <span className="text-xs text-muted-foreground">{t('achievements.youDiscoveredSecret')}</span>
               <Badge variant="secondary" className="gap-1">
                 <Sparkles className="h-3 w-3" />
                 +{achievement.points} XP
@@ -149,14 +151,14 @@ export const SecretAchievementCard = ({ achievement }: SecretAchievementCardProp
           </div>
 
           <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">Rarity</span>
+            <span className="text-muted-foreground">{t('achievements.rarity')}</span>
             <Badge variant="outline" className="capitalize">
               {achievement.rarity}
             </Badge>
           </div>
 
           <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">Points Earned</span>
+            <span className="text-muted-foreground">{t('achievements.pointsEarned')}</span>
             <Badge variant="secondary" className="gap-1">
               <Sparkles className="h-3 w-3" />
               {achievement.points} XP
@@ -165,7 +167,7 @@ export const SecretAchievementCard = ({ achievement }: SecretAchievementCardProp
 
           {achievement.unlocked_at && (
             <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Unlocked</span>
+              <span className="text-muted-foreground">{t('achievements.unlocked')}</span>
               <span>{new Date(achievement.unlocked_at).toLocaleDateString()}</span>
             </div>
           )}

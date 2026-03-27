@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,6 +16,7 @@ interface TaskCSVExportProps {
 }
 
 export function TaskCSVExport({ objectiveId }: TaskCSVExportProps) {
+  const { t } = useTranslation('common');
   const handleExport = async () => {
     try {
       let query = supabase
@@ -44,7 +46,7 @@ export function TaskCSVExport({ objectiveId }: TaskCSVExportProps) {
       const { data, error } = await query;
       if (error) throw error;
       if (!data || data.length === 0) {
-        toast.error("No tasks to export");
+        toast.error(t("no_tasks_to_export", "No tasks to export"));
         return;
       }
 
@@ -102,7 +104,7 @@ export function TaskCSVExport({ objectiveId }: TaskCSVExportProps) {
       toast.success(`Exported ${data.length} tasks`);
     } catch (error) {
       console.error("CSV export error:", error);
-      toast.error("Export failed");
+      toast.error(t("export_failed", "Export failed"));
     }
   };
 
@@ -119,7 +121,7 @@ export function TaskCSVExport({ objectiveId }: TaskCSVExportProps) {
             <Download className="h-4 w-4" />
           </Button>
         </TooltipTrigger>
-        <TooltipContent>Export CSV</TooltipContent>
+        <TooltipContent>{t("export_csv", "Export CSV")}</TooltipContent>
       </Tooltip>
     </TooltipProvider>
   );

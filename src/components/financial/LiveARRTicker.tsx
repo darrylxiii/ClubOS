@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -9,6 +10,7 @@ import { TrendingUp, TrendingDown, Activity } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 export function LiveARRTicker() {
+  const { t } = useTranslation('common');
   const [tick, setTick] = useState(0);
 
   useEffect(() => {
@@ -71,22 +73,22 @@ export function LiveARRTicker() {
 
   const metrics = [
     {
-      label: 'Annualized Revenue (ARR)',
+      label: t('financial.annualizedRevenue'),
       value: formatCurrency(data?.annualized || 0, 'EUR'),
       icon: Activity,
     },
     {
-      label: 'Monthly Run Rate (MRR)',
+      label: t('financial.monthlyRunRate'),
       value: formatCurrency(data?.mrr || 0, 'EUR'),
       icon: Activity,
     },
     {
-      label: `YTD Revenue (${data?.month || 0}mo)`,
+      label: t('financial.ytdRevenue', { months: data?.month || 0 }),
       value: formatCurrency(data?.ytdRevenue || 0, 'EUR'),
       icon: TrendingUp,
     },
     {
-      label: 'YoY Growth Rate',
+      label: t('financial.yoyGrowthRate'),
       value: `${(data?.yoyGrowth || 0).toFixed(1)}%`,
       icon: (data?.yoyGrowth || 0) >= 0 ? TrendingUp : TrendingDown,
       color: (data?.yoyGrowth || 0) >= 0 ? 'text-success' : 'text-destructive',

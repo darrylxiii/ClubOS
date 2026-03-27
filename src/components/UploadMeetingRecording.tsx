@@ -9,12 +9,14 @@ import { toast } from "sonner";
 import { Upload, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTranslation } from 'react-i18next';
 
 interface UploadMeetingRecordingProps {
   onUploadComplete: () => void;
 }
 
 export const UploadMeetingRecording = ({ onUploadComplete }: UploadMeetingRecordingProps) => {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -37,14 +39,14 @@ export const UploadMeetingRecording = ({ onUploadComplete }: UploadMeetingRecord
       
       // Validate file size (max 500MB)
       if (selectedFile.size > 500 * 1024 * 1024) {
-        toast.error("File size must be less than 500MB");
+        toast.error(t('uploadmeetingrecording.fileSizeMustBeLessThan', 'File size must be less than 500MB'));
         return;
       }
 
       // Validate file type
       const allowedTypes = ['video/mp4', 'video/webm', 'video/quicktime', 'audio/mpeg', 'audio/wav', 'audio/webm'];
       if (!allowedTypes.includes(selectedFile.type)) {
-        toast.error("Please upload a valid video or audio file");
+        toast.error(t('uploadmeetingrecording.pleaseUploadAValidVideoOr', 'Please upload a valid video or audio file'));
         return;
       }
 
@@ -56,7 +58,7 @@ export const UploadMeetingRecording = ({ onUploadComplete }: UploadMeetingRecord
     e.preventDefault();
     
     if (!user || !file) {
-      toast.error("Please select a file to upload");
+      toast.error(t('uploadmeetingrecording.pleaseSelectAFileToUpload', 'Please select a file to upload'));
       return;
     }
 
@@ -97,7 +99,7 @@ export const UploadMeetingRecording = ({ onUploadComplete }: UploadMeetingRecord
 
       if (dbError) throw dbError;
 
-      toast.success("Meeting recording uploaded successfully!");
+      toast.success(t('uploadmeetingrecording.meetingRecordingUploadedSuccessfully', 'Meeting recording uploaded successfully!'));
       setOpen(false);
       setFile(null);
       setFormData({
@@ -114,7 +116,7 @@ export const UploadMeetingRecording = ({ onUploadComplete }: UploadMeetingRecord
       onUploadComplete();
     } catch (error) {
       console.error('Error uploading recording:', error);
-      toast.error('Failed to upload recording');
+      toast.error(t('uploadmeetingrecording.failedToUploadRecording', 'Failed to upload recording'));
     } finally {
       setIsUploading(false);
     }
@@ -130,15 +132,13 @@ export const UploadMeetingRecording = ({ onUploadComplete }: UploadMeetingRecord
       </DialogTrigger>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Upload Interview Recording</DialogTitle>
-          <DialogDescription>
-            Add a recording of your interview to review later
-          </DialogDescription>
+          <DialogTitle>{t('uploadmeetingrecording.uploadInterviewRecording', 'Upload Interview Recording')}</DialogTitle>
+          <DialogDescription>{t('uploadmeetingrecording.addARecordingOfYourInterview', 'Add a recording of your interview to review later')}</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <Label htmlFor="file">Recording File *</Label>
+            <Label htmlFor="file">{t('uploadmeetingrecording.recordingFile', 'Recording File *')}</Label>
             <Input
               id="file"
               type="file"
@@ -154,7 +154,7 @@ export const UploadMeetingRecording = ({ onUploadComplete }: UploadMeetingRecord
           </div>
 
           <div>
-            <Label htmlFor="title">Title *</Label>
+            <Label htmlFor="title">{t('uploadmeetingrecording.title', 'Title *')}</Label>
             <Input
               id="title"
               placeholder="e.g., Technical Interview Round 2"
@@ -166,19 +166,19 @@ export const UploadMeetingRecording = ({ onUploadComplete }: UploadMeetingRecord
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="companyName">Company</Label>
+              <Label htmlFor="companyName">{t('uploadmeetingrecording.company', 'Company')}</Label>
               <Input
                 id="companyName"
-                placeholder="Company name"
+                placeholder={t('uploadmeetingrecording.companyName', 'Company name')}
                 value={formData.companyName}
                 onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
               />
             </div>
             <div>
-              <Label htmlFor="position">Position</Label>
+              <Label htmlFor="position">{t('uploadmeetingrecording.position', 'Position')}</Label>
               <Input
                 id="position"
-                placeholder="Job title"
+                placeholder={t('uploadmeetingrecording.jobTitle', 'Job title')}
                 value={formData.position}
                 onChange={(e) => setFormData({ ...formData, position: e.target.value })}
               />
@@ -187,7 +187,7 @@ export const UploadMeetingRecording = ({ onUploadComplete }: UploadMeetingRecord
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="meetingDate">Meeting Date *</Label>
+              <Label htmlFor="meetingDate">{t('uploadmeetingrecording.meetingDate', 'Meeting Date *')}</Label>
               <Input
                 id="meetingDate"
                 type="datetime-local"
@@ -197,7 +197,7 @@ export const UploadMeetingRecording = ({ onUploadComplete }: UploadMeetingRecord
               />
             </div>
             <div>
-              <Label htmlFor="durationMinutes">Duration (minutes)</Label>
+              <Label htmlFor="durationMinutes">{t('uploadmeetingrecording.durationMinutes', 'Duration (minutes)')}</Label>
               <Input
                 id="durationMinutes"
                 type="number"
@@ -209,26 +209,26 @@ export const UploadMeetingRecording = ({ onUploadComplete }: UploadMeetingRecord
           </div>
 
           <div>
-            <Label htmlFor="meetingType">Interview Type</Label>
+            <Label htmlFor="meetingType">{t('uploadmeetingrecording.interviewType', 'Interview Type')}</Label>
             <Select value={formData.meetingType} onValueChange={(value) => setFormData({ ...formData, meetingType: value })}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="screening">Screening</SelectItem>
-                <SelectItem value="technical">Technical</SelectItem>
-                <SelectItem value="behavioral">Behavioral</SelectItem>
-                <SelectItem value="final">Final Round</SelectItem>
-                <SelectItem value="other">Other</SelectItem>
+                <SelectItem value="screening">{t('uploadmeetingrecording.screening', 'Screening')}</SelectItem>
+                <SelectItem value="technical">{t('uploadmeetingrecording.technical', 'Technical')}</SelectItem>
+                <SelectItem value="behavioral">{t('uploadmeetingrecording.behavioral', 'Behavioral')}</SelectItem>
+                <SelectItem value="final">{t('uploadmeetingrecording.finalRound', 'Final Round')}</SelectItem>
+                <SelectItem value="other">{t('uploadmeetingrecording.other', 'Other')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <div>
-            <Label htmlFor="description">Description</Label>
+            <Label htmlFor="description">{t('uploadmeetingrecording.description', 'Description')}</Label>
             <Textarea
               id="description"
-              placeholder="Brief description of the interview..."
+              placeholder={t('uploadmeetingrecording.briefDescriptionOfTheInterview', 'Brief description of the interview...')}
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               rows={3}
@@ -236,10 +236,10 @@ export const UploadMeetingRecording = ({ onUploadComplete }: UploadMeetingRecord
           </div>
 
           <div>
-            <Label htmlFor="notes">Personal Notes</Label>
+            <Label htmlFor="notes">{t('uploadmeetingrecording.personalNotes', 'Personal Notes')}</Label>
             <Textarea
               id="notes"
-              placeholder="Your thoughts, key takeaways, areas to improve..."
+              placeholder={t('uploadmeetingrecording.yourThoughtsKeyTakeawaysAreasTo', 'Your thoughts, key takeaways, areas to improve...')}
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
               rows={3}
@@ -247,7 +247,7 @@ export const UploadMeetingRecording = ({ onUploadComplete }: UploadMeetingRecord
           </div>
 
           <div>
-            <Label htmlFor="tags">Tags (comma-separated)</Label>
+            <Label htmlFor="tags">{t('uploadmeetingrecording.tagsCommaseparated', 'Tags (comma-separated)')}</Label>
             <Input
               id="tags"
               placeholder="e.g., system-design, coding, leadership"
@@ -264,7 +264,7 @@ export const UploadMeetingRecording = ({ onUploadComplete }: UploadMeetingRecord
               className="flex-1"
               disabled={isUploading}
             >
-              Cancel
+              {t('uploadmeetingrecording.cancel', 'Cancel')}
             </Button>
             <Button
               type="submit"

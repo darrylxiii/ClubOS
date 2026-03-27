@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from '@/lib/motion';
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,6 +24,7 @@ import { TagFilterSidebar } from "@/components/candidates/TagFilterSidebar";
 import { BatchProcessingPanel } from "@/components/candidates/BatchProcessingPanel";
 
 export default function AdminCandidates() {
+  const { t } = useTranslation('candidates');
   const [candidates, setCandidates] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -79,7 +81,7 @@ export default function AdminCandidates() {
       setCandidates(data || []);
     } catch (error) {
       console.error('Error loading candidates:', error);
-      toast.error('Failed to load candidates');
+      toast.error(t('text.admincandidates.failedToLoadCandidates', 'Failed to load candidates'));
     } finally {
       setLoading(false);
     }
@@ -127,7 +129,7 @@ export default function AdminCandidates() {
     const ids = filteredCandidates.map(c => c.id);
     const { data, error } = await adminCandidateService.exportCandidatesCSV(ids);
     if (error) {
-      toast.error('Export failed');
+      toast.error(t('text.admincandidates.exportFailed', 'Export failed'));
       return;
     }
     const blob = new Blob([data], { type: 'text/csv' });
@@ -136,7 +138,7 @@ export default function AdminCandidates() {
     a.href = url;
     a.download = `candidates-${new Date().toISOString().split('T')[0]}.csv`;
     a.click();
-    toast.success('Exported successfully');
+    toast.success(t('text.admincandidates.exportedSuccessfully', 'Exported successfully'));
   };
 
   const handleSelectionChange = (id: string, checked: boolean) => {
@@ -158,7 +160,7 @@ export default function AdminCandidates() {
   const handleBulkAssignStrategist = async (strategistId: string) => {
     const { error } = await adminCandidateService.bulkAssignStrategist(selectedIds, strategistId);
     if (error) {
-      toast.error('Failed to assign strategist');
+      toast.error(t('text.admincandidates.failedToAssignStrategist', 'Failed to assign strategist'));
     } else {
       toast.success(`Assigned strategist to ${selectedIds.length} candidates`);
       setSelectedIds([]);
@@ -174,7 +176,7 @@ export default function AdminCandidates() {
   const handleExportSelected = async () => {
     const { data, error } = await adminCandidateService.exportCandidatesCSV(selectedIds);
     if (error) {
-      toast.error('Export failed');
+      toast.error(t('text.admincandidates.exportFailed', 'Export failed'));
       return;
     }
     const blob = new Blob([data], { type: 'text/csv' });
@@ -183,7 +185,7 @@ export default function AdminCandidates() {
     a.href = url;
     a.download = `selected-candidates-${new Date().toISOString().split('T')[0]}.csv`;
     a.click();
-    toast.success('Exported successfully');
+    toast.success(t('text.admincandidates.exportedSuccessfully', 'Exported successfully'));
   };
 
   return (
@@ -191,10 +193,8 @@ export default function AdminCandidates() {
       <div className="w-full px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-4xl font-bold">All Candidates</h1>
-            <p className="text-muted-foreground mt-2">
-              Unified view of all candidate profiles and user data
-            </p>
+            <h1 className="text-4xl font-bold">{t('adminCandidates.text2')}</h1>
+            <p className="text-muted-foreground mt-2">{t('adminCandidates.desc')}</p>
           </div>
           <div className="flex items-center gap-3">
             <ActivitySettingsDialog onThresholdsChange={setActivityThresholds} />
@@ -210,7 +210,7 @@ export default function AdminCandidates() {
         {/* Improved Glass Card for Filters */}
         <div className="glass-card">
           <div className="flex flex-row items-center justify-between mb-6">
-            <CardTitle>Search & Filter</CardTitle>
+            <CardTitle>{t('adminCandidates.text3')}</CardTitle>
             <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as 'grid' | 'table')}>
               <TabsList>
                 <TabsTrigger value="grid">
@@ -229,7 +229,7 @@ export default function AdminCandidates() {
             <div className="flex gap-4">
               <div className="flex-1">
                 <Input
-                  placeholder="Search by name or email..."
+                  placeholder={t('adminCandidates.text4')}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full glass-input"
@@ -237,21 +237,21 @@ export default function AdminCandidates() {
               </div>
               <Select value={mergeStatusFilter} onValueChange={setMergeStatusFilter}>
                 <SelectTrigger className="w-[180px] glass-input">
-                  <SelectValue placeholder="Merge Status" />
+                  <SelectValue placeholder={t('adminCandidates.text5')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="merged">Merged</SelectItem>
-                  <SelectItem value="invited">Invited</SelectItem>
-                  <SelectItem value="unlinked">Unlinked</SelectItem>
+                  <SelectItem value="all">{t('adminCandidates.text6')}</SelectItem>
+                  <SelectItem value="merged">{t('adminCandidates.text7')}</SelectItem>
+                  <SelectItem value="invited">{t('adminCandidates.text8')}</SelectItem>
+                  <SelectItem value="unlinked">{t('adminCandidates.text9')}</SelectItem>
                 </SelectContent>
               </Select>
               <Select value={completenessFilter} onValueChange={setCompletenessFilter}>
                 <SelectTrigger className="w-[180px] glass-input">
-                  <SelectValue placeholder="Completeness" />
+                  <SelectValue placeholder={t('adminCandidates.text10')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Scores</SelectItem>
+                  <SelectItem value="all">{t('adminCandidates.text11')}</SelectItem>
                   <SelectItem value="80">80%+</SelectItem>
                   <SelectItem value="50">50%+</SelectItem>
                   <SelectItem value="0">0%+</SelectItem>
@@ -304,9 +304,9 @@ export default function AdminCandidates() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="20">20 per page</SelectItem>
-                  <SelectItem value="50">50 per page</SelectItem>
-                  <SelectItem value="100">100 per page</SelectItem>
+                  <SelectItem value="20">{"20 per page"}</SelectItem>
+                  <SelectItem value="50">{"50 per page"}</SelectItem>
+                  <SelectItem value="100">{"100 per page"}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -417,7 +417,7 @@ export default function AdminCandidates() {
                       disabled={page === totalPages}
                       className="glass-input"
                     >
-                      Next
+                      {t('text.admincandidates.next', 'Next')}
                       <ChevronRight className="w-4 h-4" />
                     </Button>
                   </div>

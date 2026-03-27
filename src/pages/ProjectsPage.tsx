@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from 'react-i18next';
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -13,6 +14,7 @@ import { useNavigate } from "react-router-dom";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 
 export default function ProjectsPage() {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<string>("browse");
@@ -71,12 +73,8 @@ export default function ProjectsPage() {
         <div className="mb-8">
           <div className="flex items-start justify-between mb-6">
             <div>
-              <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-                Club Projects
-              </h1>
-              <p className="text-muted-foreground text-lg">
-                Premium freelance marketplace powered by Club AI
-              </p>
+              <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">{t('projectsPage.title')}</h1>
+              <p className="text-muted-foreground text-lg">{t('projectsPage.desc')}</p>
             </div>
 
             <div className="flex gap-3">
@@ -113,7 +111,7 @@ export default function ProjectsPage() {
                   <Briefcase className="h-5 w-5 text-primary" />
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Active Projects</p>
+                  <p className="text-sm text-muted-foreground">{t('projectsPage.text2')}</p>
                   <p className="text-2xl font-bold">247</p>
                 </div>
               </div>
@@ -125,7 +123,7 @@ export default function ProjectsPage() {
                   <TrendingUp className="h-5 w-5 text-green-500" />
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Avg. Match Score</p>
+                  <p className="text-sm text-muted-foreground">{t('projectsPage.text3')}</p>
                   <p className="text-2xl font-bold">87%</p>
                 </div>
               </div>
@@ -137,8 +135,8 @@ export default function ProjectsPage() {
                   <Rocket className="h-5 w-5 text-blue-500" />
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Avg. Time to Hire</p>
-                  <p className="text-2xl font-bold">&lt;24h</p>
+                  <p className="text-sm text-muted-foreground">{t('projectsPage.text4')}</p>
+                  <p className="text-2xl font-bold">{"&lt;24h"}</p>
                 </div>
               </div>
             </div>
@@ -148,9 +146,9 @@ export default function ProjectsPage() {
         {/* Main Content Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="grid w-full max-w-md grid-cols-3">
-            <TabsTrigger value="browse">Browse Projects</TabsTrigger>
-            {isFreelancer && <TabsTrigger value="dashboard">My Dashboard</TabsTrigger>}
-            {isPartnerOrAdmin && <TabsTrigger value="client">Client View</TabsTrigger>}
+            <TabsTrigger value="browse">{t('projectsPage.text5')}</TabsTrigger>
+            {isFreelancer && <TabsTrigger value="dashboard">{t('projectsPage.text6')}</TabsTrigger>}
+            {isPartnerOrAdmin && <TabsTrigger value="client">{t('projectsPage.text7')}</TabsTrigger>}
           </TabsList>
 
           <TabsContent value="browse" className="space-y-6">

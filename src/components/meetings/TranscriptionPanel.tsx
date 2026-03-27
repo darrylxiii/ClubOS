@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -79,6 +80,7 @@ export function TranscriptionPanel({
   onUpdateSettings,
   onSearch,
 }: TranscriptionPanelProps) {
+  const { t } = useTranslation('common');
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<TranscriptSegment[]>([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -115,7 +117,7 @@ export function TranscriptionPanel({
       <div className="flex items-center justify-between p-3 border-b">
         <div className="flex items-center gap-2">
           <FileText className="h-4 w-4 text-muted-foreground" />
-          <span className="font-medium text-sm">Live Transcription</span>
+          <span className="font-medium text-sm">{t("live_transcription", "Live Transcription")}</span>
           {isTranscribing && (
             <Badge variant="default" className="animate-pulse">
               Recording
@@ -167,7 +169,7 @@ export function TranscriptionPanel({
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="punctuation">Auto-punctuation</Label>
+                  <Label htmlFor="punctuation">{t("autopunctuation", "Auto-punctuation")}</Label>
                   <Switch
                     id="punctuation"
                     checked={settings.enablePunctuation}
@@ -178,7 +180,7 @@ export function TranscriptionPanel({
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="speaker-labels">Speaker labels</Label>
+                  <Label htmlFor="speaker-labels">{t("speaker_labels", "Speaker labels")}</Label>
                   <Switch
                     id="speaker-labels"
                     checked={settings.enableSpeakerLabels}
@@ -242,7 +244,7 @@ export function TranscriptionPanel({
         <div className="relative">
           <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search transcripts..."
+            placeholder={t("search_transcripts", "Search transcripts...")}
             value={searchQuery}
             onChange={(e) => handleSearch(e.target.value)}
             className="pl-8 h-8"

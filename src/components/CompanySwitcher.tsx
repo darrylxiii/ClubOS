@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRole } from "@/contexts/RoleContext";
@@ -14,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 
 export function CompanySwitcher() {
+  const { t } = useTranslation('common');
   const { companyId, companies, switchCompany } = useRole();
   const { open } = useSidebar();
 
@@ -29,7 +31,7 @@ export function CompanySwitcher() {
       const target = companies.find((c) => c.company_id === newCompanyId);
       toast.success(`Switched to ${target?.company_name || 'company'}`);
     } catch {
-      toast.error('Failed to switch company');
+      toast.error(t("failed_to_switch_company", "Failed to switch company"));
     }
   };
 
@@ -67,7 +69,7 @@ export function CompanySwitcher() {
           sideOffset={8}
         >
           <div className="px-2 py-1.5">
-            <p className="text-xs font-medium text-muted-foreground">Switch organization</p>
+            <p className="text-xs font-medium text-muted-foreground">{t("switch_organization", "Switch organization")}</p>
           </div>
           {companies.map((company) => {
             const isActive = company.company_id === companyId;

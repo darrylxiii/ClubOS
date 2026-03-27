@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { Calendar } from "@/components/ui/calendar";
 import { supabase } from "@/integrations/supabase/client";
@@ -23,6 +24,7 @@ export function AvailabilityCalendar({
   bookingLink,
   onDateSelect,
 }: AvailabilityCalendarProps) {
+  const { t } = useTranslation('common');
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [availability, setAvailability] = useState<Map<string, number>>(new Map());
   const [loading, setLoading] = useState(true);
@@ -161,11 +163,11 @@ export function AvailabilityCalendar({
       <div className="flex items-center gap-4 text-xs text-muted-foreground">
         <div className="flex items-center gap-2">
           <div className="w-2 h-2 rounded-full bg-yellow-500" />
-          <span>Limited availability</span>
+          <span>{t("limited_availability", "Limited availability")}</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-2 h-2 rounded-full bg-green-500" />
-          <span>Good availability</span>
+          <span>{t("good_availability", "Good availability")}</span>
         </div>
       </div>
     </div>

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -87,6 +88,7 @@ export function ScreenShareControls({
   onOptimize,
   className,
 }: ScreenShareControlsProps) {
+  const { t } = useTranslation('common');
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   const getMotionBadgeVariant = (): "default" | "secondary" | "outline" => {
@@ -113,7 +115,7 @@ export function ScreenShareControls({
         <CardTitle className="flex items-center justify-between text-sm">
           <div className="flex items-center gap-2">
             <Monitor className="h-4 w-4" />
-            <span>Screen Share</span>
+            <span>{t("screen_share", "Screen Share")}</span>
           </div>
           {isSharing && (
             <Badge variant="default" className="bg-red-500">
@@ -140,7 +142,7 @@ export function ScreenShareControls({
             {analysis && (
               <div className="space-y-2 rounded-md bg-muted/50 p-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-medium">Detected Content</span>
+                  <span className="text-xs font-medium">{t("detected_content", "Detected Content")}</span>
                   <Badge variant={getMotionBadgeVariant() as "default" | "secondary" | "outline"}>
                     {analysis.motionLevel} motion
                   </Badge>
@@ -175,7 +177,7 @@ export function ScreenShareControls({
             {/* Content Type Selection */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label className="text-xs font-medium">Content Type</Label>
+                <Label className="text-xs font-medium">{t("content_type", "Content Type")}</Label>
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger>
@@ -235,11 +237,11 @@ export function ScreenShareControls({
               </div>
               <div className="rounded-md bg-muted/50 p-2">
                 <div className="text-lg font-semibold">{config.height}p</div>
-                <div className="text-[10px] text-muted-foreground">Resolution</div>
+                <div className="text-[10px] text-muted-foreground">{t("resolution", "Resolution")}</div>
               </div>
               <div className="rounded-md bg-muted/50 p-2">
                 <div className="text-sm font-semibold">{formatBitrate(config.bitrate)}</div>
-                <div className="text-[10px] text-muted-foreground">Bitrate</div>
+                <div className="text-[10px] text-muted-foreground">{t("bitrate", "Bitrate")}</div>
               </div>
             </div>
 
@@ -268,7 +270,7 @@ export function ScreenShareControls({
                 </div>
                 
                 <div className="text-xs text-muted-foreground">
-                  <p>Current encoding:</p>
+                  <p>{t("current_encoding", "Current encoding:")}</p>
                   <ul className="mt-1 list-inside list-disc">
                     <li>Resolution: {config.width}x{config.height}</li>
                     <li>Target bitrate: {formatBitrate(config.bitrate)}</li>

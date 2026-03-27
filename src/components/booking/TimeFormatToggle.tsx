@@ -1,6 +1,7 @@
 import { Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { TimeFormat } from '@/hooks/useTimeFormatPreference';
+import { useTranslation } from 'react-i18next';
 
 interface TimeFormatToggleProps {
   format: TimeFormat;
@@ -9,6 +10,7 @@ interface TimeFormatToggleProps {
 }
 
 export function TimeFormatToggle({ format, onToggle, className }: TimeFormatToggleProps) {
+  const { t } = useTranslation('common');
   return (
     <button
       type="button"
@@ -20,8 +22,8 @@ export function TimeFormatToggle({ format, onToggle, className }: TimeFormatTogg
         "text-muted-foreground hover:text-foreground",
         className
       )}
-      title={`Switch to ${format === '12h' ? '24-hour' : '12-hour'} format`}
-      aria-label={`Currently using ${format === '12h' ? '12-hour' : '24-hour'} format. Click to switch.`}
+      title={t('booking.switchToFormat', 'Switch to {{format}} format', { format: format === '12h' ? '24-hour' : '12-hour' })}
+      aria-label={t('booking.currentFormat', 'Currently using {{format}} format. Click to switch.', { format: format === '12h' ? '12-hour' : '24-hour' })}
     >
       <Clock className="h-3 w-3" />
       <span className="font-medium tabular-nums">

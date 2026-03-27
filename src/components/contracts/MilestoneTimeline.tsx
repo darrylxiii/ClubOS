@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -34,6 +35,7 @@ export function MilestoneTimeline({
   onRequestRevision,
   onViewComments
 }: MilestoneTimelineProps) {
+  const { t } = useTranslation('common');
   
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -118,7 +120,7 @@ export function MilestoneTimeline({
               {/* Deliverable description */}
               {milestone.deliverable_description && (
                 <div className="mb-3 p-3 bg-muted/30 rounded-md">
-                  <div className="text-xs text-muted-foreground mb-1">Deliverables:</div>
+                  <div className="text-xs text-muted-foreground mb-1">{t("deliverables", "Deliverables:")}</div>
                   <div className="text-sm text-foreground">
                     {milestone.deliverable_description}
                   </div>

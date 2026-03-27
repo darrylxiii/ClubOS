@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Card } from "@/components/ui/card";
@@ -44,6 +45,7 @@ export function VideoPlatformSelector({
   availablePlatforms = ['quantum_club'],
   onAvailablePlatformsChange,
 }: VideoPlatformSelectorProps) {
+  const { t } = useTranslation('common');
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   const handlePlatformToggle = (platform: string, checked: boolean) => {
@@ -61,7 +63,7 @@ export function VideoPlatformSelector({
 
   return (
     <div className="space-y-4">
-      <Label className="text-base font-semibold">Video Conferencing Platform</Label>
+      <Label className="text-base font-semibold">{t("video_conferencing_platform", "Video Conferencing Platform")}</Label>
       
       <RadioGroup value={value} onValueChange={onChange}>
         {/* Option 1: TQC Meetings (Default, Recommended) */}
@@ -74,8 +76,8 @@ export function VideoPlatformSelector({
             <div className="flex-1 space-y-2">
               <Label htmlFor="quantum" className="flex items-center gap-2 cursor-pointer text-base">
                 <Video className="h-5 w-5 text-primary" />
-                <span className="font-semibold">TQC Meetings</span>
-                <Badge variant="secondary" className="ml-auto">Recommended</Badge>
+                <span className="font-semibold">{t("tqc_meetings", "TQC Meetings")}</span>
+                <Badge variant="secondary" className="ml-auto">{t("recommended", "Recommended")}</Badge>
               </Label>
               <p className="text-sm text-muted-foreground leading-relaxed">
                 Full-featured video calls with AI intelligence, recording, breakout rooms, and advanced interview features.
@@ -108,7 +110,7 @@ export function VideoPlatformSelector({
             <div className="flex-1 space-y-2">
               <Label htmlFor="google_meet" className="flex items-center gap-2 cursor-pointer text-base">
                 <Video className="h-5 w-5 text-blue-500" />
-                <span className="font-semibold">Google Meet</span>
+                <span className="font-semibold">{t("google_meet", "Google Meet")}</span>
               </Label>
               <p className="text-sm text-muted-foreground leading-relaxed">
                 Use Google Meet for video calls. Automatically creates Meet links via your Google Calendar.
@@ -118,7 +120,7 @@ export function VideoPlatformSelector({
                 <Alert variant="destructive" className="mt-2">
                   <AlertTriangle className="h-4 w-4" />
                   <AlertDescription className="flex items-center justify-between">
-                    <span className="text-sm">Connect Google Calendar to use Google Meet</span>
+                    <span className="text-sm">{t("connect_google_calendar_to", "Connect Google Calendar to use Google Meet")}</span>
                     {onConnectGoogle && (
                       <Button 
                         variant="link" 
@@ -180,7 +182,7 @@ export function VideoPlatformSelector({
           {/* Platform Selection for Guests */}
           {allowGuestChoice && onAvailablePlatformsChange && (
             <div className="space-y-3 pl-4 border-l-2 border-muted">
-              <Label className="text-sm font-medium">Available Platforms for Guests</Label>
+              <Label className="text-sm font-medium">{t("available_platforms_for_guests", "Available Platforms for Guests")}</Label>
               <div className="space-y-2">
                 <div className="flex items-center space-x-2">
                   <Checkbox 
@@ -194,7 +196,7 @@ export function VideoPlatformSelector({
                   >
                     <Video className="h-4 w-4 text-primary" />
                     TQC Meetings
-                    <Badge variant="secondary" className="text-xs">AI-Powered</Badge>
+                    <Badge variant="secondary" className="text-xs">{t("aipowered", "AI-Powered")}</Badge>
                   </Label>
                 </div>
                 

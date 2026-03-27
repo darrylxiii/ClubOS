@@ -1,33 +1,19 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createHandler } from '../_shared/handler.ts';
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+Deno.serve(createHandler(async (req, ctx) => {
+  const { text, sourceId, sourceType } = await req.json();
 
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  try {
-    const { text, sourceId, sourceType } = await req.json();
-    
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const lovableKey = Deno.env.get('LOVABLE_API_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+  const googleApiKey = Deno.env.get('GOOGLE_API_KEY')!;
 
     // Use LLM for NER extraction
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    const response = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${lovableKey}`,
+        'Authorization': `Bearer ${googleApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash-lite',
+        model: 'gemini-2.5-flash-lite',
         messages: [
           {
             role: 'system',
@@ -61,7 +47,7 @@ serve(async (req) => {
     
     if (!toolCall) {
       return new Response(JSON.stringify({ entities: [], relationships: [] }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
@@ -83,7 +69,7 @@ serve(async (req) => {
       const target = entityMap.get(rel.target);
       
       if (source && target) {
-        await supabase.from('ner_entity_relationships').insert({
+        await ctx.supabase.from('ner_entity_relationships').insert({
           source_entity_id: source.id,
           source_entity_type: source.type,
           source_entity_name: source.name,
@@ -104,14 +90,7 @@ serve(async (req) => {
       relationships: extracted.relationships,
       stored: true
     }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' },
     });
 
-  } catch (error) {
-    console.error('NER extraction error:', error);
-    return new Response(JSON.stringify({ error: (error as Error).message }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-  }
-});
+}));

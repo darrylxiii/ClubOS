@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { FileText, Loader2 } from 'lucide-react';
@@ -11,6 +12,7 @@ import { grossToNet } from '@/lib/vatRates';
 import { useAuth } from '@/contexts/AuthContext';
 
 export function InvestorPDFExport() {
+  const { t } = useTranslation('common');
   const [isExporting, setIsExporting] = useState(false);
   const { user } = useAuth();
 
@@ -79,7 +81,7 @@ export function InvestorPDFExport() {
 
   const generatePDF = async () => {
     if (!reportData) {
-      toast.error('Report data not loaded yet');
+      toast.error(t("report_data_not_loaded", "Report data not loaded yet"));
       return;
     }
 
@@ -375,10 +377,10 @@ export function InvestorPDFExport() {
       }
 
       doc.save(`TQC_Investor_Report_${format(now, 'yyyy-MM-dd')}.pdf`);
-      toast.success('Branded investor PDF exported (7 pages)');
+      toast.success(t("branded_investor_pdf_exported", "Branded investor PDF exported (7 pages)"));
     } catch (error) {
       console.error('PDF export error:', error);
-      toast.error('Failed to generate PDF');
+      toast.error(t("failed_to_generate_pdf", "Failed to generate PDF"));
     } finally {
       setIsExporting(false);
     }

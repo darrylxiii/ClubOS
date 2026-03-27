@@ -26,7 +26,6 @@ import { PageLoader } from "@/components/PageLoader";
  * - Responsive design
  */
 export default function CandidateOnboarding() {
-  const { t } = useTranslation('onboarding');
   const navigate = useNavigate();
   const [isActive, setIsActive] = useState(true);
   const [checkingAuth, setCheckingAuth] = useState(true);
@@ -98,14 +97,14 @@ export default function CandidateOnboarding() {
     return (
       <>
         <Helmet>
-          <title>Already a Member | The Quantum Club</title>
+          <title>{"Already a Member | The Quantum Club"}</title>
           <meta name="robots" content="noindex" />
         </Helmet>
         <div className="min-h-screen bg-background">
           <div className="border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
             <div className="container mx-auto px-2 py-1 relative flex justify-center items-center">
-              <img src={quantumLogoDark} alt="Quantum Club" className="h-20 w-auto dark:hidden" />
-              <img src={quantumLogoLight} alt="Quantum Club" className="h-20 w-auto hidden dark:block" />
+              <img src={quantumLogoDark} alt={"Quantum Club"} className="h-20 w-auto dark:hidden" />
+              <img src={quantumLogoLight} alt={"Quantum Club"} className="h-20 w-auto hidden dark:block" />
               <div className="absolute right-4 flex items-center gap-4">
                 <ThemeToggle />
               </div>
@@ -124,11 +123,11 @@ export default function CandidateOnboarding() {
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <Button variant="primary" onClick={() => navigate('/home')}>
                   <Home className="w-4 h-4" />
-                  {t('candidate.alreadyMember.dashboard', 'Go to Dashboard')}
+                  {'Go to Dashboard'}
                 </Button>
                 <Button variant="outline" onClick={() => navigate('/invite')}>
                   <UserPlus className="w-4 h-4" />
-                  {t('candidate.alreadyMember.invite', 'Invite a Friend')}
+                  {'Invite a Friend'}
                 </Button>
               </div>
             </Card>
@@ -142,7 +141,7 @@ export default function CandidateOnboarding() {
     return (
       <>
         <Helmet>
-          <title>{t('candidate.paused.title', 'Applications Paused')} | The Quantum Club</title>
+          <title>{'Applications Paused'} | The Quantum Club</title>
           <meta name="robots" content="noindex" />
         </Helmet>
         <div className="min-h-screen bg-background">
@@ -150,12 +149,12 @@ export default function CandidateOnboarding() {
             <div className="container mx-auto px-2 py-1 relative flex justify-center items-center">
               <img 
                 src={quantumLogoDark} 
-                alt="Quantum Club" 
+                alt={"Quantum Club"} 
                 className="h-20 w-auto dark:hidden"
               />
               <img 
                 src={quantumLogoLight} 
-                alt="Quantum Club" 
+                alt={"Quantum Club"} 
                 className="h-20 w-auto hidden dark:block"
               />
               <div className="absolute right-4 flex items-center gap-4">
@@ -163,7 +162,7 @@ export default function CandidateOnboarding() {
                   to="/auth" 
                   className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  {t('candidate.header.backToLogin', 'Back to Login')}
+                  {'Back to Login'}
                 </Link>
                 <OnboardingLanguageSelector />
                 <ThemeToggle />
@@ -175,7 +174,7 @@ export default function CandidateOnboarding() {
             <Card className="max-w-2xl w-full p-12 text-center glass-effect">
               <Sparkles className="w-16 h-16 mx-auto mb-6 text-primary" />
               <h1 className="text-4xl font-bold mb-4">
-                {t('candidate.paused.title', 'Applications Temporarily Paused')}
+                {'Applications Temporarily Paused'}
               </h1>
               <p className="text-muted-foreground text-lg">
                 {t('candidate.paused.message', "We're currently at capacity and not accepting new applications. Please check back soon or join our waitlist.")}
@@ -190,16 +189,16 @@ export default function CandidateOnboarding() {
   return (
     <>
       <Helmet>
-        <title>{t('candidate.header.applyForMembership', 'Apply for Elite Membership')} | The Quantum Club</title>
+        <title>{'Apply for Elite Membership'} | The Quantum Club</title>
         <meta 
           name="description" 
-          content={t('candidate.subtitle', 'Join The Quantum Club - an exclusive community for the top 3% of professionals. Complete your application in 5 minutes.')} 
+          content={'Join The Quantum Club - an exclusive community for the top 3% of professionals. Complete your application in 5 minutes.'} 
         />
         <meta property="og:type" content="website" />
-        <meta property="og:title" content={`${t('candidate.header.applyForMembership', 'Apply for Elite Membership')} | The Quantum Club`} />
+        <meta property="og:title" content={`${'Apply for Elite Membership'} | The Quantum Club`} />
         <meta 
           property="og:description" 
-          content={t('candidate.header.joinProfessionals', 'Join 2,500+ exceptional professionals in The Quantum Club. Only 3% of applicants are accepted.')} 
+          content={'Join 2,500+ exceptional professionals in The Quantum Club. Only 3% of applicants are accepted.'} 
         />
         <meta property="og:image" content="https://os.thequantumclub.com/og-image.gif" />
         <meta property="og:image:width" content="432" />
@@ -207,10 +206,10 @@ export default function CandidateOnboarding() {
         <meta property="og:url" content="https://os.thequantumclub.com/onboarding" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:site" content="@thequantumclub" />
-        <meta name="twitter:title" content={`${t('candidate.header.applyForMembership', 'Apply for Elite Membership')} | The Quantum Club`} />
+        <meta name="twitter:title" content={`${'Apply for Elite Membership'} | The Quantum Club`} />
         <meta 
           name="twitter:description" 
-          content={t('candidate.header.joinProfessionals', 'Join 2,500+ exceptional professionals. Only 3% of applicants are accepted.')} 
+          content={'Join 2,500+ exceptional professionals. Only 3% of applicants are accepted.'} 
         />
         <meta name="twitter:image" content="https://os.thequantumclub.com/og-image-twitter-v3.gif" />
         <link rel="canonical" href="https://os.thequantumclub.com/onboarding" />
@@ -221,12 +220,12 @@ export default function CandidateOnboarding() {
           <div className="container mx-auto px-2 py-1 relative flex justify-center items-center">
             <img 
               src={quantumLogoDark} 
-              alt="Quantum Club" 
+              alt={"Quantum Club"} 
               className="h-20 w-auto dark:hidden"
             />
             <img 
               src={quantumLogoLight} 
-              alt="Quantum Club" 
+              alt={"Quantum Club"} 
               className="h-20 w-auto hidden dark:block"
             />
             <div className="absolute right-4 flex items-center gap-4">
@@ -234,7 +233,7 @@ export default function CandidateOnboarding() {
                 to="/auth" 
                 className="text-sm text-muted-foreground hover:text-foreground transition-colors"
               >
-                {t('candidate.header.backToLogin', 'Back to Login')}
+                {'Back to Login'}
               </Link>
               <OnboardingLanguageSelector />
               <ThemeToggle />
@@ -247,17 +246,17 @@ export default function CandidateOnboarding() {
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6">
               <Sparkles className="w-4 h-4 text-primary" />
               <span className="text-sm font-medium text-primary">
-                {t('candidate.header.onlyAccepted', 'Only 3% of applicants are accepted')}
+                {'Only 3% of applicants are accepted'}
               </span>
             </div>
             <h1 className="text-5xl md:text-6xl font-bold text-foreground">
-              {t('candidate.header.applyForMembership', 'Apply for Elite Membership')}
+              {'Apply for Elite Membership'}
             </h1>
             <p className="text-xl text-muted-foreground mt-4">
-              {t('candidate.header.joinProfessionals', 'Join 2,500+ exceptional professionals in The Quantum Club')}
+              {'Join 2,500+ exceptional professionals in The Quantum Club'}
             </p>
             <p className="text-sm text-muted-foreground mt-2">
-              {t('candidate.header.timeToComplete', '~5 minutes to complete • Your data is encrypted and secure')}
+              {'~5 minutes to complete • Your data is encrypted and secure'}
             </p>
           </div>
 

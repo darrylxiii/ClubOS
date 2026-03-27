@@ -1,0 +1,1751 @@
+{
+  "title": "بوابة الشركاء",
+  "subtitle": "إدارة التوظيف والاستقطاب",
+  "dashboard": {
+    "title": "لوحة التحكم",
+    "welcome": "مرحباً بعودتك",
+    "overview": "نظرة عامة",
+    "recentActivity": "النشاط الأخير",
+    "quickActions": "إجراءات سريعة",
+    "stats": "إحصاءاتك"
+  },
+  "candidates": {
+    "title": "المرشحون",
+    "active": "المرشحون النشطون",
+    "pipeline": "خط سير المرشحين",
+    "shortlisted": "في القائمة المختصرة",
+    "interviewed": "تمت مقابلتهم",
+    "offered": "عروض مقدمة",
+    "hired": "تم توظيفهم",
+    "viewAll": "عرض جميع المرشحين",
+    "addCandidate": "إضافة مرشح",
+    "searchCandidates": "البحث عن مرشحين"
+  },
+  "jobs": {
+    "title": "الوظائف",
+    "activeJobs": "الوظائف النشطة",
+    "draftJobs": "الوظائف المسودة",
+    "closedJobs": "الوظائف المغلقة",
+    "createJob": "إنشاء وظيفة",
+    "viewAll": "عرض جميع الوظائف",
+    "applicationsReceived": "الطلبات المستلمة",
+    "positionsFilled": "الوظائف المشغولة"
+  },
+  "analytics": {
+    "title": "التحليلات",
+    "hiringMetrics": "مقاييس التوظيف",
+    "timeToHire": "مدة التوظيف",
+    "costPerHire": "تكلفة التوظيف",
+    "offerAcceptance": "معدل قبول العروض",
+    "sourceEffectiveness": "فعالية المصادر",
+    "pipelineHealth": "صحة خط سير التوظيف"
+  },
+  "team": {
+    "title": "الفريق",
+    "members": "أعضاء الفريق",
+    "addMember": "إضافة عضو فريق",
+    "roles": "الأدوار والصلاحيات",
+    "activity": "نشاط الفريق",
+    "inviteMember": "دعوة عضو"
+  },
+  "settings": {
+    "title": "الإعدادات",
+    "company": "ملف الشركة",
+    "branding": "العلامة التجارية",
+    "integrations": "التكاملات",
+    "notifications": "الإشعارات",
+    "billing": "الفوترة",
+    "apiAccess": "الوصول إلى API"
+  },
+  "company": {
+    "title": "ملف الشركة",
+    "name": "اسم الشركة",
+    "logo": "شعار الشركة",
+    "description": "الوصف",
+    "industry": "القطاع",
+    "size": "حجم الشركة",
+    "location": "المقر الرئيسي",
+    "website": "الموقع الإلكتروني",
+    "culture": "ثقافة الشركة",
+    "benefits": "المزايا والامتيازات"
+  },
+  "pipeline": {
+    "title": "خط سير التوظيف",
+    "stages": "مراحل خط سير التوظيف",
+    "customize": "تخصيص المراحل",
+    "metrics": "مقاييس المراحل",
+    "bottlenecks": "نقاط الاختناق",
+    "velocity": "سرعة خط سير التوظيف"
+  },
+  "interviews": {
+    "title": "المقابلات",
+    "scheduled": "المقابلات المجدولة",
+    "pending": "بانتظار الملاحظات",
+    "completed": "مكتملة",
+    "schedule": "جدولة مقابلة",
+    "feedback": "إرسال الملاحظات",
+    "scorecards": "بطاقات التقييم"
+  },
+  "offers": {
+    "title": "العروض",
+    "pending": "عروض معلقة",
+    "accepted": "مقبولة",
+    "declined": "مرفوضة",
+    "createOffer": "إنشاء عرض",
+    "template": "قوالب العروض",
+    "approval": "سير عمل الموافقة"
+  },
+  "reports": {
+    "title": "التقارير",
+    "generate": "إنشاء تقرير",
+    "scheduled": "التقارير المجدولة",
+    "download": "تنزيل",
+    "share": "مشاركة التقرير",
+    "types": {
+      "hiring": "تقرير التوظيف",
+      "diversity": "تقرير التنوع",
+      "pipeline": "تقرير خط سير التوظيف",
+      "source": "تقرير المصادر"
+    }
+  },
+  "integrations": {
+    "title": "التكاملات",
+    "ats": "تكامل نظام تتبع المتقدمين",
+    "calendar": "مزامنة التقويم",
+    "email": "تكامل البريد الإلكتروني",
+    "linkedin": "LinkedIn",
+    "slack": "Slack",
+    "teams": "Microsoft Teams"
+  },
+  "notifications": {
+    "newApplication": "تم استلام طلب جديد",
+    "interviewScheduled": "تمت جدولة مقابلة",
+    "feedbackPending": "ملاحظات معلقة",
+    "offerAccepted": "تم قبول العرض",
+    "candidateUpdate": "تحديث المرشح"
+  },
+  "actions": {
+    "viewDetails": "عرض التفاصيل",
+    "edit": "تعديل",
+    "delete": "حذف",
+    "archive": "أرشفة",
+    "export": "تصدير",
+    "share": "مشاركة"
+  },
+  "filters": {
+    "all": "الكل",
+    "byJob": "حسب الوظيفة",
+    "byStage": "حسب المرحلة",
+    "byDate": "حسب التاريخ",
+    "bySource": "حسب المصدر",
+    "byRecruiter": "حسب المسؤول عن التوظيف"
+  },
+  "empty": {
+    "noCandidates": "لا يوجد مرشحون بعد",
+    "noJobs": "لا توجد وظائف منشورة",
+    "noInterviews": "لا توجد مقابلات مجدولة",
+    "noOffers": "لا توجد عروض معلقة"
+  },
+  "status": {
+    "active": "نشط",
+    "inactive": "غير نشط",
+    "pending": "معلّق",
+    "verified": "موثّق"
+  },
+  "referrals": {
+    "title": "الإحالات",
+    "myReferrals": "إحالاتي",
+    "earnings": "أرباح الإحالات",
+    "pending": "مكافآت معلقة",
+    "refer": "إحالة مرشح",
+    "referCompany": "إحالة شركة"
+  },
+  "support": {
+    "title": "الدعم",
+    "helpCenter": "مركز المساعدة",
+    "contact": "التواصل مع الدعم",
+    "documentation": "الوثائق",
+    "faq": "الأسئلة الشائعة"
+  },
+  "funnel": {
+    "steps": {
+      "aboutYou": "عنك",
+      "yourBrief": "ملخصك",
+      "review": "المراجعة"
+    },
+    "partnerRequest": "طلب شراكة",
+    "briefsThisWeek": "{{count}} ملخصات تم إرسالها هذا الأسبوع",
+    "beginYourSearch": "ابدأ بحثك",
+    "andYourName": "وما اسمك؟",
+    "followUpAtAddress": "سنتواصل معك على هذا العنوان",
+    "soWeKnowWho": "حتى نعرف مع من نتواصل",
+    "workEmail": "البريد الإلكتروني المهني",
+    "dataNeverShared": "لن تتم مشاركة بياناتك مع أطراف ثالثة.",
+    "continue": "متابعة",
+    "verifying": "جارٍ التحقق...",
+    "couldNotVerifyEmail": "لم نتمكن من التحقق من عنوان البريد الإلكتروني هذا. يمكنك تجربة عنوان آخر أو التحقق برمز.",
+    "useDifferentEmail": "استخدام بريد إلكتروني آخر",
+    "verifyWithCode": "التحقق برمز",
+    "enterOtpCode": "أدخل الرمز المكون من 6 أرقام المرسل إلى",
+    "didntReceive": "لم تستلمه؟",
+    "resendCode": "إعادة إرسال الرمز",
+    "yourName": "اسمك",
+    "tellUsAboutRole": "أخبرنا عن الدور المطلوب",
+    "tellUsAboutRoleSubtitle": "كلما شاركت سياقاً أكثر كانت قائمتك المختصرة أفضل.",
+    "roleTitle": "ما الدور الذي تتطلع لشغله؟",
+    "roleTitlePlaceholder": "مثال: نائب رئيس الهندسة، المدير المالي، رئيس المنتجات",
+    "hiringDriver": "ما الذي يدفع هذا التوظيف؟",
+    "hiringDriverGrowth": "النمو - توسيع الفريق",
+    "hiringDriverReplacement": "الاستبدال - غادر شخص ما",
+    "hiringDriverNewFunction": "وظيفة جديدة - البناء من الصفر",
+    "hiringDriverConfidential": "سري - بحث حصري",
+    "seniorityLevel": "مستوى الأقدمية",
+    "seniorityDirector": "مدير / نائب رئيس",
+    "seniorityCSuite": "C-Suite",
+    "seniorityHead": "رئيس قسم / قائد أول",
+    "senioritySpecialist": "أخصائي مستقل",
+    "additionalContext": "هل هناك شيء آخر يجب أن نعرفه؟",
+    "additionalContextPlaceholder": "حجم الفريق، التقارير، تحديات التوظيف السابقة، مهارات محددة...",
+    "optional": "اختياري",
+    "website": "الموقع الإلكتروني",
+    "whereAreYouBased": "أين يقع مقركم؟",
+    "almostThere": "أوشكت على الانتهاء",
+    "helpsUsReachYou": "أضف أي تفاصيل نهائية وراجع ملخصك.",
+    "phoneNumber": "أفضل رقم للتواصل معك",
+    "phoneHint": "قد يتصل بك المستشار لمناقشة ملخصك. WhatsApp أو هاتف.",
+    "yourDetails": "تفاصيلك",
+    "summary": {
+      "name": "الاسم",
+      "email": "البريد الإلكتروني",
+      "company": "الشركة",
+      "industry": "القطاع",
+      "role": "الدور",
+      "seniority": "الأقدمية",
+      "hiringDriver": "دافع التوظيف",
+      "website": "الموقع الإلكتروني",
+      "location": "الموقع",
+      "phone": "الهاتف",
+      "context": "سياق إضافي"
+    },
+    "restoringProgress": "جارٍ استعادة تقدمك...",
+    "back": "رجوع",
+    "submitting": "جارٍ الإرسال...",
+    "submitBrief": "احصل على قائمتي المختصرة",
+    "welcomeBack": "مرحباً بعودتك!",
+    "progressRestored": "تم استعادة تقدمك.",
+    "resumingProgress": "جارٍ استئناف تقدمك...",
+    "validEmailRequired": "يرجى إدخال عنوان بريد إلكتروني صالح",
+    "verificationCodeSent": "تم إرسال رمز التحقق",
+    "checkEmail": "تحقق من {{email}} للحصول على رمزك",
+    "couldNotSendCode": "لم نتمكن من إرسال رمز التحقق",
+    "invalidCode": "رمز تحقق غير صالح",
+    "verificationFailed": "فشل التحقق",
+    "completeRequiredFields": "يرجى إكمال جميع الحقول المطلوبة",
+    "roleRequired": "يرجى إدخال الدور الذي تتطلع لشغله",
+    "requestSubmitted": "تم إرسال الطلب!",
+    "strategistInTouch": "سيتواصل معك مستشار قريباً.",
+    "strategistInTouch24h": "سيتواصل معك مستشار خلال 24 ساعة.",
+    "couldNotVerifyRequest": "لم نتمكن من التحقق من طلبك",
+    "somethingWentWrong": "حدث خطأ ما"
+  },
+  "funnelAnalytics": {
+    "text1": "تحليلات القمع",
+    "text2": "تتبع طلبات الشراكة والرؤى في الوقت الفعلي",
+    "text3": "إجمالي المشاهدات",
+    "text4": "الجلسات الفريدة",
+    "text5": "عمليات الإرسال",
+    "text6": "معدل التحويل",
+    "text7": "معدل التسرب",
+    "text8": "تقدم خطوات القمع",
+    "text9": "توزيع حالة الطلبات",
+    "text10": "طلبات الشراكة",
+    "text11": "تصفية حسب الحالة",
+    "text12": "جميع الحالات",
+    "text13": "معلّق",
+    "text14": "قيد المراجعة",
+    "text15": "موافق عليه",
+    "text16": "مرفوض",
+    "text17": "التاريخ",
+    "text18": "الشركة",
+    "text19": "جهة الاتصال",
+    "text20": "القطاع",
+    "text21": "النوع",
+    "text22": "الحالة",
+    "text23": "المصدر"
+  },
+  "partnerAnalyticsDashboard": {
+    "text1": "لا توجد شركة مرتبطة بحسابك",
+    "text2": "نظرة عامة",
+    "text3": "خط سير التوظيف",
+    "text4": "الاتجاهات",
+    "text5": "المعايير المرجعية"
+  },
+  "partnerFunnel": {
+    "desc": "صف الدور. نحن نتولى الباقي.",
+    "desc2": "لا رسوم حتى التوظيف. لا عقود طويلة الأجل.",
+    "text3": "Quantum Club",
+    "text4": "Quantum Club",
+    "text5": "طلبات الشراكة متوقفة مؤقتاً",
+    "text6": "Quantum Club",
+    "text7": "Quantum Club",
+    "text8": "شارك ملخصك",
+    "text9": "تحدث مع مستشار",
+    "text10": "راجع قائمتك المختصرة"
+  },
+  "partnerRejections": {
+    "text1": "فرصة مجمع المواهب",
+    "text2": "البحث عن مرشحين...",
+    "text3": "جميع الوظائف",
+    "text4": "جميع الوظائف",
+    "text5": "جميع الأسباب",
+    "text6": "جميع الأسباب"
+  },
+  "partnerRelationships": {
+    "text1": "علاقات المرشحين",
+    "text2": "مراقبة ورعاية علاقاتك مع المرشحين"
+  },
+  "partnerSetup": {
+    "desc": "انقر على أيقونة الكاميرا للرفع",
+    "desc2": "يمكننا استيراد صورة ملفك الشخصي من LinkedIn تلقائياً."
+  },
+  "partnerWelcome": {
+    "title": "ما التالي",
+    "desc": "مؤسستك",
+    "desc2": "مستشارك المخصص",
+    "desc3": "استكشف الأدوار المفتوحة",
+    "desc4": "تصفح الفرص الحصرية المختارة لشبكتك",
+    "desc5": "تقديم المرشحين",
+    "desc6": "قدّم أفضل المواهب من خلال عمليتنا المبسطة",
+    "desc7": "جدولة مكالمة الإعداد"
+  },
+  "addCandidateDialog": {
+    "toast": {
+      "duplicateEmailDetected": "تم اكتشاف بريد إلكتروني مكرر",
+      "duplicateEmailDetectedDesc": "يوجد مرشح بهذا البريد الإلكتروني مسبقاً. يرجى البحث عن المرشح الموجود أو استخدام بريد إلكتروني مختلف.",
+      "databaseError": "خطأ في قاعدة البيانات",
+      "databaseErrorDesc": "تعذر ربط بيانات المرشح. يرجى المحاولة مرة أخرى أو التواصل مع الدعم إذا استمرت المشكلة.",
+      "permissionDenied": "تم رفض الإذن",
+      "permissionDeniedDesc": "ليس لديك صلاحية إضافة مرشحين. يرجى التواصل مع المسؤول.",
+      "duplicateCandidate": "مرشح مكرر",
+      "duplicateCandidateDesc": "هذا المرشح موجود مسبقاً في النظام. يرجى التحقق من الطلبات الموجودة."
+    },
+    "placeholder": {
+      "johnDoe": "John Doe",
+      "techCorp": "Tech Corp",
+      "seniorDeveloper": "مطور أول",
+      "whyThisCandidateSourceSpecialConsiderati": "لماذا هذا المرشح؟ المصدر؟ اعتبارات خاصة؟"
+    }
+  },
+  "addJobTeamMemberDialog": {
+    "dialogTitle": "إضافة عضو فريق",
+    "toast": {
+      "failedToLoadTeamMembers": "فشل في تحميل أعضاء الفريق",
+      "failedToLoadTqcTeamMembers": "فشل في تحميل أعضاء فريق TQC",
+      "pleaseSelectATeamMember": "يرجى اختيار عضو فريق",
+      "pleaseSelectAUser": "يرجى اختيار مستخدم",
+      "pleaseProvideAReasonForThisAssignment": "يرجى تقديم سبب لهذا التعيين",
+      "teamMemberAddedSuccessfully": "تمت إضافة عضو الفريق بنجاح"
+    },
+    "label": {
+      "teamMember": "عضو الفريق",
+      "role": "الدور",
+      "permissions": "الصلاحيات",
+      "selectTqcTeamMember": "اختر عضو فريق TQC",
+      "assignmentReason": "سبب التعيين"
+    },
+    "placeholder": {
+      "selectATeamMember": "اختر عضو فريق",
+      "searchTqcTeamByNameOrEmail": "البحث في فريق TQC بالاسم أو البريد الإلكتروني...",
+      "whyIsThisPersonBeingAssignedToThisJob": "لماذا يتم تعيين هذا الشخص لهذه الوظيفة؟"
+    },
+    "badge": {
+      "admin": "مسؤول",
+      "strategist": "مستشار"
+    },
+    "noMatchingTeamMembersFound": "لم يتم العثور على أعضاء فريق مطابقين",
+    "externalUsersReceiveLimitedTimeboxedAcce": "المستخدمون الخارجيون يحصلون على وصول محدود ومؤقت مع تسجيل التدقيق",
+    "dialogDescription": "تعيين عضو فريق أو مستخدم خارجي لهذه الوظيفة بدور وصلاحيات محددة.",
+    "option": {
+      "hiringManager": "مدير التوظيف",
+      "founderexecutiveReviewer": "مراجع مؤسس/تنفيذي",
+      "technicalInterviewer": "محاور تقني",
+      "behavioralInterviewer": "محاور سلوكي",
+      "panelMember": "عضو لجنة",
+      "interviewCoordinator": "منسق المقابلات",
+      "observer": "مراقب"
+    }
+  },
+  "addStageDialog": {
+    "dialogTitle": "إضافة مرحلة جديدة",
+    "placeholder": {
+      "buildingroomNumberReceptionInstructionsP": "رقم المبنى/الغرفة، تعليمات الاستقبال، معلومات مواقف السيارات، ملاحظات إمكانية الوصول...",
+      "listMaterialsCandidatesShouldPreparePort": "قائمة المواد التي يجب على المرشحين إعدادها (معرض أعمال، مراجع، شهادات، إلخ.)"
+    },
+    "configureEveryDetailForALuxuryTailoredCa": "تكوين كل التفاصيل لتجربة مرشح فاخرة ومخصصة",
+    "candidatesCanChooseBetweenOnlineOrInpers": "يمكن للمرشحين الاختيار بين الحضور عبر الإنترنت أو شخصياً. كوّن كلا الخيارين أعلاه أو قدم تعليمات مرنة.",
+    "thisHelpsEvaluatorsProvideConsistentStru": "يساعد هذا المقيّمين في تقديم ملاحظات منظمة ومتسقة",
+    "quickstartWithPreconfiguredStageTemplate": "بداية سريعة مع قوالب مراحل مُعدّة مسبقاً",
+    "option": {
+      "noTeamMembersAvailable": "لا يتوفر أعضاء فريق"
+    },
+    "desc": {
+      "stageConfigurationSavedAndAuditLogged": "تم حفظ تكوين المرحلة وتسجيل التدقيق"
+    }
+  },
+  "addToJobDialog": {
+    "dialogTitle": "إضافة إلى خط سير الوظيفة",
+    "toast": {
+      "candidateAddedButInteractionLogFailed": "تمت إضافة المرشح لكن فشل تسجيل التفاعل",
+      "candidateAddedButAuditLogFailed": "تمت إضافة المرشح لكن فشل سجل التدقيق",
+      "failedToAddCandidate": "فشل في إضافة المرشح إلى الوظيفة"
+    },
+    "label": {
+      "startingStage": "المرحلة البدائية",
+      "notesOptional": "ملاحظات (اختياري)"
+    },
+    "placeholder": {
+      "searchJobsByTitleOrCompany": "البحث في الوظائف بالعنوان أو الشركة...",
+      "whyAreYouAddingThisCandidate": "لماذا تضيف هذا المرشح؟"
+    },
+    "badge": {
+      "alreadyInPipeline": "موجود في خط سير التوظيف"
+    },
+    "noActiveJobsFound": "لم يتم العثور على وظائف نشطة."
+  },
+  "adminBoardTools": {
+    "toast": {
+      "globalAnalytics": "التحليلات العالمية",
+      "globalAnalyticsDesc": "رؤى عبر الشركات ومقاييس على مستوى المنصة",
+      "talentPoolAccessGranted": "تم منح الوصول لمجمع المواهب",
+      "talentPoolAccessGrantedDesc": "وصول كامل إلى 12,847 ملف مرشح",
+      "companyManagement": "إدارة الشركات",
+      "companyManagementDesc": "إدارة جميع شركات الشركاء ومستويات وصولهم",
+      "bulkOperations": "العمليات الجماعية",
+      "bulkOperationsDesc": "تنفيذ إجراءات جماعية عبر وظائف ومرشحين متعددين",
+      "platformSettings": "إعدادات المنصة",
+      "platformSettingsDesc": "تكوين قواعد المنصة العالمية ونماذج الذكاء الاصطناعي وسير العمل",
+      "aiConfiguration": "تكوين الذكاء الاصطناعي",
+      "aiConfigurationDesc": "ضبط خوارزميات التطابق وأوزان التقييم ونماذج التعلم الآلي",
+      "systemHealthOptimal": "صحة النظام: مثالية",
+      "systemHealthOptimalDesc": "جميع الخدمات تعمل بشكل طبيعي. وقت تشغيل 99.97%",
+      "globalDataExport": "تصدير البيانات العالمية",
+      "globalDataExportDesc": "جارٍ تصدير تحليلات المنصة المجهولة...",
+      "accessControl": "التحكم في الوصول",
+      "accessControlDesc": "إدارة الأدوار والصلاحيات وسياسات الأمان"
+    },
+    "badge": {
+      "quantumClubAdmin": "مسؤول QUANTUM CLUB"
+    },
+    "platformwideManagementAnalytics": "إدارة وتحليلات على مستوى المنصة",
+    "companyManagement": "إدارة الشركات",
+    "viewManageAllPartners": "عرض وإدارة جميع الشركاء",
+    "bulkOperations": "العمليات الجماعية",
+    "crossjobActionsAtScale": "إجراءات عبر الوظائف على نطاق واسع",
+    "aiModelConfig": "تكوين نموذج الذكاء الاصطناعي",
+    "tuneMatchingAlgorithms": "ضبط خوارزميات التطابق",
+    "systemHealth": "صحة النظام",
+    "platformStatusUptime": "حالة المنصة ووقت التشغيل",
+    "accessControl": "التحكم في الوصول",
+    "rolesPermissions": "الأدوار والصلاحيات",
+    "platformSettings": "إعدادات المنصة",
+    "globalConfigurations": "التكوينات العالمية",
+    "exportGlobalData": "تصدير البيانات العالمية",
+    "platformwideAnalytics": "تحليلات على مستوى المنصة",
+    "refreshAllMetrics": "تحديث جميع المقاييس",
+    "recalculateEverything": "إعادة حساب كل شيء"
+  },
+  "adminJobTools": {
+    "sheetTitle": "تفريغ البريد الإلكتروني",
+    "toast": {
+      "metricsUpdatedSuccessfully": "تم تحديث المقاييس بنجاح",
+      "aiMatchingEngine": "محرك التطابق بالذكاء الاصطناعي",
+      "aiMatchingEngineDesc": "جارٍ تحليل مجمع المواهب العالمي للتطابقات المثالية...",
+      "found23HighpotentialCandidates": "تم العثور على 23 مرشحاً ذوي إمكانات عالية",
+      "found23HighpotentialCandidatesDesc": "تم تطبيق تقييم الذكاء الاصطناعي المتقدم. راجعهم في خط سير التوظيف.",
+      "bulkImport": "استيراد جماعي",
+      "bulkImportDesc": "رفع ملف CSV أو ربط نظام تتبع المتقدمين لاستيراد المرشحين",
+      "pipelineHealth94": "صحة خط سير التوظيف: 94%",
+      "pipelineHealth94Desc": "تدفق ممتاز. متوسط مدة التوظيف: 12 يوماً",
+      "exportingPipelineData": "جارٍ تصدير بيانات خط سير التوظيف",
+      "exportingPipelineDataDesc": "تصدير تحليلات كامل مع الامتثال لـ GDPR",
+      "recalculatingMetrics": "جارٍ إعادة حساب المقاييس...",
+      "recalculatingMetricsDesc": "باستخدام أحدث نماذج الذكاء الاصطناعي وخوارزميات التقييم"
+    },
+    "badge": {
+      "adminJobTools": "أدوات إدارة الوظائف"
+    },
+    "joblevelOperations": "عمليات على مستوى الوظيفة"
+  },
+  "advancedJobFilters": {
+    "title": "عوامل تصفية متقدمة",
+    "status": "الحالة",
+    "company": "الشركة",
+    "createdDateRange": "نطاق تاريخ الإنشاء",
+    "fromDate": "من تاريخ",
+    "toDate": "إلى تاريخ"
+  },
+  "applicantPipeline": {
+    "noActiveJobs": "لا توجد وظائف نشطة",
+    "applicantPipeline": "خط سير المتقدمين",
+    "noApplicationsYet": "لا توجد طلبات بعد",
+    "toast": {
+      "failedToLoadApplicants": "فشل في تحميل المتقدمين"
+    },
+    "publishAJobToStartReceivingApplications": "انشر وظيفة لبدء استقبال الطلبات",
+    "applicationsWillAppearHereOnceCandidates": "ستظهر الطلبات هنا بمجرد بدء المرشحين في التقديم",
+    "noCandidatesInThisStage": "لا يوجد مرشحون في هذه المرحلة"
+  },
+  "applicationsAnalytics": {
+    "title": "توزيع خط سير التوظيف",
+    "avgTimeToHire": "متوسط مدة التوظيف",
+    "conversionRate": "معدل التحويل",
+    "activePipelines": "خطوط التوظيف النشطة",
+    "stalledPipelines": "خطوط التوظيف المتوقفة",
+    "excellent": "ممتاز",
+    "needsImprovement": "يحتاج تحسين",
+    "inProgress": "قيد التنفيذ",
+    "needAttention": "يحتاج اهتمام"
+  },
+  "applicationsFilters": {
+    "placeholder": {
+      "allStatuses": "جميع الحالات",
+      "allJobs": "جميع الوظائف",
+      "allCompanies": "جميع الشركات",
+      "allSources": "جميع المصادر",
+      "allUrgency": "جميع الاستعجالات"
+    },
+    "option": {
+      "allStatuses": "جميع الحالات",
+      "active": "نشط",
+      "hired": "تم التوظيف",
+      "rejected": "مرفوض",
+      "withdrawn": "تم السحب",
+      "allJobs": "جميع الوظائف",
+      "allCompanies": "جميع الشركات",
+      "allSources": "جميع المصادر",
+      "linkedin": "LinkedIn",
+      "referral": "إحالة",
+      "direct": "مباشر",
+      "agency": "وكالة",
+      "all": "الكل",
+      "recentActivity": "النشاط الأخير"
+    }
+  },
+  "applicationsTable": {
+    "badge": {
+      "noActivity": "لا يوجد نشاط",
+      "urgent": "عاجل",
+      "pendingSignup": "بانتظار التسجيل"
+    },
+    "noApplicationsFoundMatchingYourFilters": "لم يتم العثور على طلبات تطابق عوامل التصفية"
+  },
+  "benchmarkComparison": {
+    "badge": {
+      "updatedToday": "تم التحديث اليوم"
+    },
+    "completeMoreHiringCyclesToUnlockBenchmar": "أكمل المزيد من دورات التوظيف لفتح مقارنات المعايير المرجعية"
+  },
+  "calendarInterviewLinker": {
+    "badge": {
+      "tqc": "TQC"
+    },
+    "automaticallyDetectedInterviewsFromYourC": "مقابلات تم اكتشافها تلقائياً من تقويمك",
+    "selectACalendarEventToLinkAsAnInterview": "اختر حدث تقويم لربطه كمقابلة",
+    "interviewsThatHaveBeenConfirmedAndLinked": "المقابلات التي تم تأكيدها وربطها بهذه الوظيفة",
+    "dialogDescription": "تصفح أحداث تقويمك أو عرض المقابلات المكتشفة تلقائياً"
+  },
+  "candidateActionDialog": {
+    "toast": {
+      "noNextStageAvailable": "لا توجد مرحلة تالية متاحة",
+      "pleaseProvideARejectionReason": "يرجى تقديم سبب الرفض",
+      "failedToProcessAction": "فشل في معالجة الإجراء"
+    },
+    "label": {
+      "rejectionReason": "سبب الرفض *"
+    },
+    "placeholder": {
+      "selectAReason": "اختر سبباً"
+    },
+    "clubCheckAdvanceCandidate": "فحص النادي - نقل المرشح",
+    "thisCandidateHasPassedClubVettingStandar": "اجتاز هذا المرشح معايير فحص النادي",
+    "option": {
+      "notAFit": "غير مناسب",
+      "salaryExpectations": "توقعات الراتب",
+      "location": "الموقع",
+      "seniorityMismatch": "عدم تطابق الأقدمية",
+      "skillsGap": "فجوة في المهارات",
+      "culturalFit": "التوافق الثقافي",
+      "other": "أخرى"
+    },
+    "desc": {
+      "clubCheckCompletedSuccessfully": "تم إكمال فحص النادي بنجاح",
+      "feedbackRecordedAndCandidateNotified": "تم تسجيل الملاحظات وإشعار المرشح"
+    }
+  },
+  "candidateAnalytics": {
+    "toast": {
+      "failedToLoadAnalytics": "فشل في تحميل التحليلات"
+    },
+    "badge": {
+      "highInterest": "اهتمام عالٍ",
+      "excellentFit": "تطابق ممتاز",
+      "highlyEngaged": "تفاعل عالٍ"
+    },
+    "profileViews": "مشاهدات الملف الشخصي",
+    "uniqueViewers": "المشاهدون الفريدون",
+    "engagementScore": "درجة التفاعل",
+    "fitScore": "درجة التطابق",
+    "noProfileViewsYet": "لا توجد مشاهدات للملف الشخصي بعد",
+    "thisCandidateHasReceivedSignificantAtten": "تلقى هذا المرشح اهتماماً كبيراً من الفريق",
+    "aiAnalysisShowsStrongAlignmentWithRoleRe": "يُظهر تحليل الذكاء الاصطناعي توافقاً قوياً مع متطلبات الدور",
+    "candidateShowsStrongEngagementWithTheApp": "يُظهر المرشح تفاعلاً قوياً مع عملية التقديم",
+    "noInsightsAvailableYetProfileViewsAndInt": "لا تتوفر رؤى بعد. ستولّد مشاهدات الملف والتفاعلات رؤى الذكاء الاصطناعي.",
+    "description": "أعضاء الفريق الذين شاهدوا هذا الملف مؤخراً"
+  },
+  "candidateDecisionDashboard": {
+    "dialogTitle": "الانتقال إلى مرحلة العرض",
+    "toast": {
+      "noApplicationSelected": "لم يتم اختيار طلب",
+      "candidateMovedToOfferStage": "تم نقل المرشح إلى مرحلة العرض",
+      "failedToMoveCandidateToOfferStage": "فشل في نقل المرشح إلى مرحلة العرض",
+      "failedToLogVerdict": "فشل في تسجيل القرار",
+      "openingInterviewScheduler": "جارٍ فتح جدولة المقابلات..."
+    },
+    "placeholder": {
+      "addNotesAboutYourDecision": "أضف ملاحظات حول قرارك..."
+    },
+    "overall": "الإجمالي",
+    "yearsExp": "سنوات الخبرة",
+    "salaryRange": "نطاق الراتب",
+    "noticePeriod": "فترة الإشعار",
+    "preferredLocation": "الموقع المفضل",
+    "quickActions": "إجراءات سريعة",
+    "alert": {
+      "thisActionWillTriggerTheOfferWorkflowAndDesc": "سيؤدي هذا الإجراء إلى تشغيل سير عمل العرض وإشعار أصحاب المصلحة المعنيين."
+    }
+  },
+  "candidateDetailDialog": {
+    "title": "معلومات المرشح",
+    "toast": {
+      "failedToAddComment": "فشل في إضافة التعليق",
+      "commentAdded": "تمت إضافة التعليق",
+      "failedToSubmitScorecard": "فشل في إرسال بطاقة التقييم",
+      "scorecardSubmitted": "تم إرسال بطاقة التقييم",
+      "failedToMoveCandidate": "فشل في نقل المرشح",
+      "candidateMoved": "تم نقل المرشح"
+    },
+    "placeholder": {
+      "moveToStage": "نقل إلى مرحلة...",
+      "whatAreTheirStrengths": "ما نقاط قوتهم؟",
+      "anyConcerns": "أي ملاحظات؟",
+      "additionalNotes": "ملاحظات إضافية..."
+    },
+    "tab": {
+      "overview": "نظرة عامة",
+      "scorecard": "بطاقة التقييم",
+      "comments": "التعليقات",
+      "activity": "النشاط"
+    },
+    "activityTimelineComingSoon": "الجدول الزمني للنشاط قريباً",
+    "pipelineStage": "مرحلة خط سير التوظيف",
+    "option": {
+      "strongYes": "نعم بقوة",
+      "yes": "نعم",
+      "neutral": "محايد",
+      "strongNo": "لا بقوة"
+    }
+  },
+  "candidateDocumentsViewer": {
+    "dialogTitle": "اختر نوع المستند",
+    "toast": {
+      "failedToLoadDocuments": "فشل في تحميل المستندات",
+      "failedToUpdateDocument": "فشل في تحديث المستند",
+      "documentDeleted": "تم حذف المستند",
+      "failedToDeleteDocument": "فشل في حذف المستند"
+    },
+    "label": {
+      "documentType": "نوع المستند",
+      "expiryDateOptional": "تاريخ الانتهاء (اختياري)"
+    },
+    "loadingDocuments": "جارٍ تحميل المستندات",
+    "releaseToUpload": "أفلت للرفع",
+    "noDocumentsYet": "لا توجد مستندات بعد",
+    "uploadTheFirstDocumentToGetStarted": "ارفع المستند الأول للبدء",
+    "documentsWillBeAutomaticallyArchivedAfte": "سيتم أرشفة المستندات تلقائياً بعد هذا التاريخ للامتثال لـ GDPR",
+    "verified": "موثّق",
+    "title": {
+      "documentPreview": "معاينة المستند"
+    }
+  },
+  "candidateInteractionLog": {
+    "title": "الجدول الزمني للتفاعلات",
+    "toast": {
+      "pleaseEnterNoteContent": "يرجى إدخال محتوى الملاحظة",
+      "noteAddedSuccessfully": "تمت إضافة الملاحظة بنجاح",
+      "failedToAddNote": "فشل في إضافة الملاحظة"
+    },
+    "label": {
+      "logNewInteraction": "تسجيل تفاعل جديد"
+    },
+    "placeholder": {
+      "enterInteractionDetails": "أدخل تفاصيل التفاعل..."
+    },
+    "noInteractionsLoggedYet": "لم يتم تسجيل تفاعلات بعد",
+    "description": "جارٍ تحميل تفاعلات المرشح...",
+    "option": {
+      "note": "ملاحظة",
+      "phoneCall": "مكالمة هاتفية",
+      "email": "بريد إلكتروني",
+      "message": "رسالة",
+      "meeting": "اجتماع"
+    }
+  },
+  "candidateInternalRatingCard": {
+    "title": "سجل التقييمات",
+    "toast": {
+      "ratingsUpdatedSuccessfully": "تم تحديث التقييمات بنجاح",
+      "failedToUpdateRatings": "فشل في تحديث التقييمات"
+    },
+    "placeholder": {
+      "addContextForTheseRatings": "أضف سياقاً لهذه التقييمات..."
+    },
+    "overallTeamAssessmentOfCandidateQuality": "التقييم العام للفريق لجودة المرشح",
+    "candidateResponsivenessAndInterestLevel": "استجابة المرشح ومستوى اهتمامه",
+    "skillsAndExperienceAlignmentWithOpportun": "توافق المهارات والخبرة مع الفرص",
+    "viewAllRatingChangesAndTeamMemberAssessm": "عرض جميع تغييرات التقييم وتقييمات أعضاء الفريق عبر الزمن",
+    "description": "مقاييس تقييم الفريق (غير مرئية للمرشح)"
+  },
+  "candidateInvitationDialog": {
+    "toast": {
+      "invitationSentSuccessfully": "تم إرسال الدعوة بنجاح!",
+      "failedToSendInvitation": "فشل في إرسال الدعوة"
+    },
+    "label": {
+      "emailAddress": "عنوان البريد الإلكتروني",
+      "linkToSpecificJobsOptional": "ربط بوظائف محددة (اختياري)",
+      "personalMessage": "رسالة شخصية"
+    },
+    "selectedJobsWillBeMentionedInTheInvitati": "سيتم ذكر الوظائف المختارة في بريد الدعوة",
+    "thisMessageWillBeIncludedInTheInvitation": "ستُضمّن هذه الرسالة في بريد الدعوة",
+    "whatHappensNext": "ماذا يحدث بعد ذلك؟"
+  },
+  "candidateLinkedJobs": {
+    "toast": {
+      "failedToLoadLinkedJobs": "فشل في تحميل الوظائف المرتبطة"
+    },
+    "applied": "تم التقديم",
+    "lastUpdated": "آخر تحديث",
+    "salaryRange": "نطاق الراتب",
+    "stageProgress": "تقدم المرحلة",
+    "description": "لم يتم العثور على طلبات وظائف"
+  },
+  "candidateNotesManager": {
+    "toast": {
+      "noteContentIsRequired": "محتوى الملاحظة مطلوب",
+      "youMustBeLoggedInToCreateNotes": "يجب تسجيل الدخول لإنشاء ملاحظات",
+      "noteSaved": "تم حفظ الملاحظة",
+      "failedToDeleteNote": "فشل في حذف الملاحظة",
+      "noteDeleted": "تم حذف الملاحظة",
+      "failedToUpdateNote": "فشل في تحديث الملاحظة"
+    },
+    "placeholder": {
+      "noteTitle": "عنوان الملاحظة...",
+      "addYourNotesHere": "أضف ملاحظاتك هنا..."
+    },
+    "tab": {
+      "allNotes": "جميع الملاحظات",
+      "tqcInternal": "داخلي TQC",
+      "partnerShared": "مشترك مع الشريك",
+      "general": "عام"
+    },
+    "loadingNotes": "جارٍ تحميل الملاحظات...",
+    "tqcInternal": "داخلي TQC",
+    "visibleOnlyToTqcTeam": "مرئي فقط لفريق TQC",
+    "general": "عام",
+    "visibleToEveryone": "مرئي للجميع"
+  },
+  "candidatePipelineStatus": {
+    "toast": {
+      "failedToLoadPipelineStatus": "فشل في تحميل حالة خط سير التوظيف",
+      "pipelineStageUpdated": "تم تحديث مرحلة خط سير التوظيف",
+      "failedToUpdateStage": "فشل في تحديث المرحلة"
+    },
+    "currentStage": "المرحلة الحالية",
+    "progress": "التقدم",
+    "description": "لم يتم العثور على طلبات نشطة"
+  },
+  "candidateQuickActions": {
+    "dialogTitle": "استيراد من LinkedIn",
+    "toast": {
+      "pleaseEnterALinkedinUrl": "يرجى إدخال رابط LinkedIn",
+      "linkedinProfileImportedSuccessfully": "تم استيراد ملف LinkedIn بنجاح.",
+      "failedToImportLinkedinProfile": "فشل في استيراد ملف LinkedIn",
+      "profileExportedSuccessfully": "تم تصدير الملف الشخصي بنجاح",
+      "failedToExportProfile": "فشل في تصدير الملف الشخصي"
+    },
+    "label": {
+      "linkedinProfileUrl": "رابط ملف LinkedIn"
+    },
+    "dialogDescription": "أدخل رابط ملف LinkedIn لإثراء ملف هذا المرشح تلقائياً"
+  },
+  "companyAchievements": {
+    "title": "الإنجازات المخصصة",
+    "basicInformation": "المعلومات الأساسية",
+    "unlockCriteria": "معايير الفتح",
+    "noCustomAchievementsYet": "لا توجد إنجازات مخصصة بعد",
+    "label": {
+      "achievementName": "اسم الإنجاز *",
+      "description": "الوصف *",
+      "icon": "الأيقونة",
+      "interactionType": "نوع التفاعل *",
+      "requiredAmount": "المقدار المطلوب *",
+      "timeboundChallenge": "تحدٍّ محدد بوقت",
+      "daysToComplete": "أيام الإنجاز *"
+    },
+    "placeholder": {
+      "describeWhatThisAchievementRepresentsAnd": "صف ما يمثله هذا الإنجاز وكيفية الحصول عليه"
+    },
+    "requireCompletionWithinASpecificTimefram": "يتطلب الإنجاز ضمن إطار زمني محدد",
+    "createYourFirstCustomAchievementToRecogn": "أنشئ إنجازك المخصص الأول لتقدير ومكافأة المساهمات الاستثنائية من فريقك.",
+    "noPlatformAchievementsEarnedByTeamMember": "لم يحصل أعضاء الفريق على إنجازات المنصة بعد",
+    "analytics": "التحليلات",
+    "description": "الإنجازات المعيارية التي حصل عليها أعضاء فريقك عبر المنصة",
+    "dialogDescription": "حدد المعايير والمكافآت للمساهمات الاستثنائية للفريق",
+    "created": "تم الإنشاء",
+    "totalAwarded": "إجمالي المنح",
+    "avgPerAchievement": "المتوسط لكل إنجاز",
+    "active": "نشط"
+  },
+  "companyAnalyticsChart": {
+    "toast": {
+      "failedToLoadAnalytics": "فشل في تحميل التحليلات"
+    },
+    "desc": {
+      "last30Days": "آخر 30 يوماً",
+      "currentFollowers": "المتابعون الحاليون",
+      "reactionsComments": "التفاعلات والتعليقات"
+    }
+  },
+  "companyBranding": {
+    "brandColors": "ألوان العلامة التجارية",
+    "typography": "الخطوط",
+    "logosAssets": "الشعارات والأصول",
+    "brandPreview": "معاينة العلامة التجارية",
+    "toast": {
+      "failedToLoadBranding": "فشل في تحميل العلامة التجارية",
+      "brandingUpdatedSuccessfully": "تم تحديث العلامة التجارية بنجاح",
+      "failedToUpdateBranding": "فشل في تحديث العلامة التجارية"
+    },
+    "label": {
+      "primaryColor": "اللون الأساسي",
+      "secondaryColor": "اللون الثانوي",
+      "accentColor": "لون التمييز",
+      "headingFont": "خط العناوين",
+      "bodyFont": "خط النص",
+      "lightLogoUrl": "رابط الشعار الفاتح",
+      "darkLogoUrl": "رابط الشعار الداكن",
+      "faviconUrl": "رابط الأيقونة المفضلة",
+      "socialPreviewImage": "صورة المعاينة الاجتماعية"
+    },
+    "description": "تخصيص الهوية البصرية لشركتك"
+  },
+  "companyBrandingEditor": {
+    "preview": "معاينة",
+    "headingExample": "مثال على العنوان",
+    "toast": {
+      "failedToLoadBrandingSettings": "فشل في تحميل إعدادات العلامة التجارية",
+      "brandingUpdatedSuccessfully": "تم تحديث العلامة التجارية بنجاح",
+      "failedToUpdateBranding": "فشل في تحديث العلامة التجارية"
+    },
+    "label": {
+      "primaryColor": "اللون الأساسي",
+      "secondaryColor": "اللون الثانوي",
+      "accentColor": "لون التمييز",
+      "headingFont": "خط العناوين",
+      "bodyFont": "خط النص"
+    },
+    "placeholder": {
+      "interRobotoEtc": "Inter, Roboto, إلخ."
+    },
+    "bodyTextExampleWithYourSelectedFontAndCo": "مثال على نص النص الأساسي بالخط والألوان المختارة.",
+    "description": "تخصيص الهوية البصرية لشركتك"
+  },
+  "companyFollowers": {
+    "toast": {
+      "failedToLoadFollowers": "فشل في تحميل المتابعين"
+    },
+    "badge": {
+      "notificationsOn": "الإشعارات مفعّلة"
+    },
+    "noFollowersYet": "لا يوجد متابعون بعد"
+  },
+  "companyPosts": {
+    "companyPosts": "منشورات الشركة",
+    "toast": {
+      "failedToLoadPosts": "فشل في تحميل المنشورات",
+      "postUpdatedSuccessfully": "تم تحديث المنشور بنجاح",
+      "postCreatedSuccessfully": "تم إنشاء المنشور بنجاح",
+      "failedToSavePost": "فشل في حفظ المنشور",
+      "postDeletedSuccessfully": "تم حذف المنشور بنجاح",
+      "failedToDeletePost": "فشل في حذف المنشور"
+    },
+    "label": {
+      "title": "العنوان",
+      "content": "المحتوى",
+      "postType": "نوع المنشور",
+      "tagsCommaSeparated": "الوسوم (مفصولة بفواصل)"
+    },
+    "badge": {
+      "featured": "مميز",
+      "private": "خاص"
+    },
+    "manageYourCompanyNewsAndUpdates": "إدارة أخبار وتحديثات شركتك",
+    "noPostsYetCreateYourFirstPostToGetStarte": "لا توجد منشورات بعد. أنشئ منشورك الأول للبدء.",
+    "public": "عام",
+    "featured": "مميز",
+    "dialogDescription": "شارك الأخبار والإنجازات والفعاليات والتحديثات مع جمهورك",
+    "option": {
+      "news": "أخبار",
+      "milestone": "إنجاز",
+      "event": "فعالية",
+      "media": "وسائط"
+    }
+  },
+  "companyProfile": {
+    "title": "ملف الشركة",
+    "toast": {
+      "failedToLoadCompanyProfile": "فشل في تحميل ملف الشركة",
+      "companyProfileUpdated": "تم تحديث ملف الشركة",
+      "failedToUpdateCompanyProfile": "فشل في تحديث ملف الشركة"
+    },
+    "label": {
+      "companyName": "اسم الشركة",
+      "tagline": "الشعار",
+      "description": "الوصف",
+      "website": "الموقع الإلكتروني",
+      "linkedinUrl": "رابط LinkedIn",
+      "headquartersLocation": "موقع المقر الرئيسي",
+      "industry": "القطاع",
+      "companySize": "حجم الشركة"
+    },
+    "description": "إدارة معلومات شركتك وعلامتك التجارية"
+  },
+  "companyWall": {
+    "title": "جدار الشركة",
+    "toast": {
+      "failedToLoadCompanyPosts": "فشل في تحميل منشورات الشركة"
+    },
+    "badge": {
+      "featured": "مميز"
+    },
+    "noPostsYetBeTheFirstToShareSomething": "لا توجد منشورات بعد. كن أول من يشارك شيئاً!",
+    "description": "آخر الأخبار والتحديثات والإعلانات"
+  },
+  "contractDeadlineAlerts": {
+    "badge": {
+      "breached": "تم الانتهاك"
+    },
+    "milestoneDeadlineHasPassed": "انتهى الموعد النهائي للمرحلة",
+    "milestoneDeadlineApproaching": "يقترب الموعد النهائي للمرحلة"
+  },
+  "createInterviewDialog": {
+    "toast": {
+      "pleaseFillInAllRequiredFields": "يرجى ملء جميع الحقول المطلوبة",
+      "pleaseSelectAtLeastOneInterviewer": "يرجى اختيار محاور واحد على الأقل",
+      "interviewScheduledButFailedToAddToGoogle": "تمت جدولة المقابلة لكن فشلت الإضافة إلى تقويم Google",
+      "interviewScheduledAndAddedToYourGoogleCa": "تمت جدولة المقابلة وإضافتها إلى تقويم Google!",
+      "interviewScheduledButCalendarSyncFailed": "تمت جدولة المقابلة لكن فشلت مزامنة التقويم",
+      "interviewScheduledSuccessfully": "تمت جدولة المقابلة بنجاح"
+    },
+    "label": {
+      "addToGoogleCalendar": "إضافة إلى تقويم Google",
+      "interviewType": "نوع المقابلة *",
+      "meetingTitle": "عنوان الاجتماع *",
+      "description": "الوصف",
+      "date": "التاريخ *",
+      "time": "الوقت *",
+      "durationMinutes": "المدة (بالدقائق)"
+    },
+    "placeholder": {
+      "companyCandidateNameInterviewStage": "الشركة - اسم المرشح - مرحلة المقابلة",
+      "candidateEmail": "بريد المرشح الإلكتروني",
+      "meetingDescriptionAndAgenda": "وصف الاجتماع وجدول الأعمال"
+    },
+    "badge": {
+      "candidate": "مرشح"
+    },
+    "googleCalendarConnected": "تقويم Google متصل",
+    "interviewWillBeSyncedToYourCalendarAndAt": "ستتم مزامنة المقابلة مع تقويمك وسيتلقى الحاضرون دعوات",
+    "googleCalendarNotConnected": "تقويم Google غير متصل",
+    "connectYourGoogleCalendarToAutomatically": "اربط تقويم Google لمزامنة المقابلات تلقائياً وإرسال دعوات التقويم",
+    "titleAndDescriptionAutogeneratedWithComp": "يتم إنشاء العنوان والوصف تلقائياً بتفاصيل الشركة والمرشح والمحاورين",
+    "noTeamMembersAssignedToThisJob": "لم يتم تعيين أعضاء فريق لهذه الوظيفة",
+    "aipoweredAutofill": "الملء التلقائي بالذكاء الاصطناعي"
+  },
+  "createJobDialog": {
+    "toast": {
+      "jobCreatedButFailedToAddSomeViewers": "تم إنشاء الوظيفة لكن فشلت إضافة بعض المشاهدين"
+    },
+    "selectACompanyFirstToChooseFromSavedOffi": "اختر شركة أولاً للاختيار من المكاتب المحفوظة",
+    "compensationDetailsAreSharedOnlyWithShor": "تُشارك تفاصيل التعويضات فقط مع المرشحين في القائمة المختصرة ما لم تُعرض في الإعلان."
+  },
+  "createPostDialog": {
+    "dialogTitle": "إنشاء منشور",
+    "toast": {
+      "youMustBeLoggedInToCreateAPost": "يجب تسجيل الدخول لإنشاء منشور",
+      "postCreatedSuccessfully": "تم إنشاء المنشور بنجاح",
+      "failedToCreatePost": "فشل في إنشاء المنشور"
+    },
+    "label": {
+      "title": "العنوان",
+      "postType": "نوع المنشور",
+      "content": "المحتوى",
+      "tagsCommaSeparated": "الوسوم (مفصولة بفواصل)",
+      "audience": "الجمهور",
+      "publicPost": "منشور عام",
+      "featured": "مميز",
+      "publishNow": "نشر الآن"
+    },
+    "placeholder": {
+      "excitingNewsToShareRequired": "أخبار مثيرة للمشاركة... مطلوب",
+      "shareYourStory": "شارك قصتك..."
+    },
+    "dialogDescription": "شارك الأخبار والتحديثات أو الإعلانات مع متابعيك",
+    "option": {
+      "news": "أخبار",
+      "milestone": "إنجاز",
+      "event": "فعالية",
+      "media": "وسائط"
+    }
+  },
+  "duplicateCandidateDialog": {
+    "dialogTitle": "المرشح موجود مسبقاً في خط سير التوظيف",
+    "badge": {
+      "nameMatch": "تطابق الاسم",
+      "linkedinMatch": "تطابق LinkedIn"
+    }
+  },
+  "editJobDialog": {
+    "dialogTitle": "تعديل الوظيفة",
+    "toast": {
+      "failedToLoadCompanies": "فشل في تحميل الشركات",
+      "jobUpdatedSuccessfully": "تم تحديث الوظيفة بنجاح",
+      "failedToUpdateJob": "فشل في تحديث الوظيفة"
+    },
+    "label": {
+      "company": "الشركة *",
+      "jobTitle": "المسمى الوظيفي *",
+      "description": "الوصف",
+      "location": "الموقع",
+      "employmentType": "نوع التوظيف",
+      "currency": "العملة",
+      "minSalary": "الحد الأدنى للراتب",
+      "maxSalary": "الحد الأقصى للراتب",
+      "addSupportingDocuments": "إضافة مستندات داعمة",
+      "nicetohaveTools": "أدوات مستحسنة"
+    },
+    "placeholder": {
+      "selectACompany": "اختر شركة",
+      "searchToolsEgNotionFigmaPython": "البحث عن أدوات (مثل Notion, Figma, Python)...",
+      "searchAdditionalTools": "البحث عن أدوات إضافية..."
+    },
+    "currentDocumentUploadedUploadANewFileToR": "مستند حالي مرفوع. ارفع ملفاً جديداً لاستبداله.",
+    "selectToolsCandidatesMustBeProficientWit": "اختر الأدوات التي يجب أن يكون المرشحون متقنين لها",
+    "bonusSkillsThatWouldBeBeneficial": "مهارات إضافية مفيدة",
+    "option": {
+      "fulltime": "دوام كامل",
+      "parttime": "دوام جزئي",
+      "contract": "تعاقد",
+      "freelance": "عمل حر"
+    }
+  },
+  "editJobSheet": {
+    "title": "تفاصيل الوظيفة",
+    "toast": {
+      "failedToLoadCompanies": "فشل في تحميل الشركات",
+      "documentWillBeRemovedWhenYouSave": "سيتم إزالة المستند عند الحفظ",
+      "failedToRemoveDocument": "فشل في إزالة المستند",
+      "failedToDownloadDocument": "فشل في تنزيل المستند",
+      "jobUpdatedSuccessfully": "تم تحديث الوظيفة بنجاح",
+      "failedToUpdateJob": "فشل في تحديث الوظيفة",
+      "youHaveUnsavedChanges": "لديك تغييرات غير محفوظة"
+    },
+    "label": {
+      "company": "الشركة *",
+      "jobTitle": "المسمى الوظيفي *",
+      "description": "الوصف",
+      "location": "الموقع",
+      "employmentType": "نوع التوظيف",
+      "currency": "العملة",
+      "minSalaryAnnual": "الحد الأدنى للراتب (سنوي)",
+      "maxSalaryAnnual": "الحد الأقصى للراتب (سنوي)",
+      "existingDocuments": "المستندات الموجودة",
+      "newDocumentsWillBeUploadedOnSave": "المستندات الجديدة (سيتم رفعها عند الحفظ)"
+    },
+    "placeholder": {
+      "selectACompany": "اختر شركة",
+      "briefOverviewOfTheRole": "نظرة عامة موجزة عن الدور...",
+      "searchRequiredToolsEgFigmaReactPython": "البحث عن أدوات مطلوبة (مثل Figma, React, Python)...",
+      "searchNicetohaveTools": "البحث عن أدوات مستحسنة..."
+    },
+    "badge": {
+      "active": "نشط"
+    },
+    "linkToWhereThisJobIsPostedOnlineLinkedin": "رابط مكان نشر هذه الوظيفة عبر الإنترنت (LinkedIn، موقع الشركة، إلخ.)",
+    "noRequiredToolsSelectedAddToolsThatAreEs": "لم يتم اختيار أدوات مطلوبة. أضف الأدوات الأساسية لهذا الدور.",
+    "noNicetohaveToolsSelectedAddToolsThatWou": "لم يتم اختيار أدوات مستحسنة. أضف أدوات ستكون ميزة إضافية.",
+    "currentDocumentUploaded": "مستند حالي مرفوع",
+    "uploadANewFileToReplaceIt": "ارفع ملفاً جديداً لاستبداله",
+    "dragDropOrClickToUpload": "اسحب وأفلت أو انقر للرفع",
+    "uploadMultipleFilesAtOnce": "ارفع ملفات متعددة دفعة واحدة",
+    "description": "تحديث المعلومات الأساسية لهذه الوظيفة",
+    "option": {
+      "fulltime": "دوام كامل",
+      "parttime": "دوام جزئي",
+      "contract": "تعاقد",
+      "freelance": "عمل حر",
+      "internship": "تدريب"
+    }
+  },
+  "enhancedAnalytics": {
+    "title": "إجمالي الطلبات",
+    "enhancedAnalytics": "تحليلات متقدمة"
+  },
+  "internalReviewPanel": {
+    "toast": {
+      "selectAtLeastOneCandidate": "اختر مرشحاً واحداً على الأقل.",
+      "rejectionNoteIsRequired": "ملاحظة الرفض مطلوبة.",
+      "undoIsNotYetAvailableForThisAction": "التراجع غير متاح بعد لهذا الإجراء."
+    },
+    "placeholder": {
+      "searchByNameTitleOrSkill": "البحث بالاسم أو المسمى أو المهارة...",
+      "rejectionReason": "سبب الرفض..."
+    },
+    "allClear": "تم الانتهاء",
+    "noCandidatesAwaitingInternalReview": "لا يوجد مرشحون بانتظار المراجعة الداخلية.",
+    "dialogDescription": "قدّم سبباً لرفض هذا المرشح من خط سير التوظيف."
+  },
+  "interviewFeedbackDialog": {
+    "dialogTitle": "ملاحظات المقابلة",
+    "toast": {
+      "pleaseSelectARecommendation": "يرجى اختيار توصية",
+      "feedbackSubmittedSuccessfully": "تم إرسال الملاحظات بنجاح"
+    },
+    "label": {
+      "recommendation": "التوصية *",
+      "keyStrengths": "نقاط القوة الرئيسية",
+      "concernsAreasForImprovement": "الملاحظات / مجالات التحسين",
+      "keyObservations": "الملاحظات الرئيسية",
+      "detailedNotes": "ملاحظات تفصيلية"
+    },
+    "placeholder": {
+      "egStrongProblemsolvingSkills": "مثال: مهارات قوية في حل المشكلات",
+      "egLimitedExperienceWithXTechnology": "مثال: خبرة محدودة في تقنية X",
+      "egHandledPressureWellDuringTechnicalChal": "مثال: تعامل جيد مع الضغط أثناء التحدي التقني",
+      "provideComprehensiveNotesAboutTheIntervi": "قدّم ملاحظات شاملة حول المقابلة..."
+    },
+    "strongYesExceptionalCandidate": "نعم بقوة - مرشح استثنائي",
+    "yesGoodFitRecommendToProceed": "نعم - مناسب، يُنصح بالمتابعة",
+    "maybeHasPotentialButConcernsExist": "ربما - لديه إمكانات لكن توجد ملاحظات",
+    "noNotTheRightFit": "لا - غير مناسب",
+    "strongNoDefinitelyNotSuitable": "لا بقوة - غير مناسب بالتأكيد"
+  },
+  "jobAnalytics": {
+    "title": "معدلات التحويل بين المراحل",
+    "noAnalyticsDataAvailable": "لا تتوفر بيانات تحليلية",
+    "totalApplications": "إجمالي الطلبات",
+    "active": "نشط",
+    "hires": "التعيينات",
+    "avgTimeToHire": "متوسط مدة التوظيف",
+    "fastestHire": "أسرع توظيف",
+    "average": "المتوسط",
+    "slowestHire": "أبطأ توظيف",
+    "avgFitScore": "متوسط درجة التطابق",
+    "engagementRate": "معدل التفاعل",
+    "interviewPass": "نسبة اجتياز المقابلة",
+    "offerAcceptance": "معدل قبول العروض",
+    "clubSync": "Club Sync",
+    "directApply": "تقديم مباشر",
+    "referrals": "الإحالات",
+    "description": "مصادر المرشحين"
+  },
+  "jobCard": {
+    "toast": {
+      "headhunterAgentActivatedAnalyzingJobRequ": "تم تفعيل وكيل Headhunter... جارٍ تحليل متطلبات الوظيفة.",
+      "agentFinishedSearchButFoundNoNewStrongMa": "أنهى الوكيل البحث لكن لم يجد تطابقات قوية جديدة."
+    },
+    "viewOriginalPosting": "عرض الإعلان الأصلي"
+  },
+  "jobDashboardCandidates": {
+    "noApplicationsYet": "لا توجد طلبات بعد",
+    "toast": {
+      "failedToLoadCandidates": "فشل في تحميل المرشحين"
+    },
+    "applicationsWillAppearHereOnceCandidates": "ستظهر الطلبات هنا بمجرد بدء المرشحين في التقديم",
+    "reviewAndAdvancePremiumCandidatesFasterW": "راجع وأقدم المرشحين المميزين بشكل أسرع من خلال فحصنا الحصري",
+    "noCandidatesInThisStage": "لا يوجد مرشحون في هذه المرحلة"
+  },
+  "jobDocuments": {
+    "toast": {
+      "failedToLoadDocuments": "فشل في تحميل المستندات",
+      "jobDescriptionUploadedSuccessfully": "تم رفع وصف الوظيفة بنجاح",
+      "documentRemovedSuccessfully": "تمت إزالة المستند بنجاح",
+      "failedToRemoveDocument": "فشل في إزالة المستند",
+      "downloadStarted": "بدأ التنزيل",
+      "failedToDownloadDocument": "فشل في تنزيل المستند",
+      "failedToOpenDocumentViewer": "فشل في فتح عارض المستندات"
+    },
+    "label": {
+      "existingDocuments": "المستندات الموجودة",
+      "addMoreDocuments": "إضافة مستندات أخرى"
+    },
+    "currentJobDescription": "وصف الوظيفة الحالي",
+    "uploadedDocumentReadyToView": "المستند المرفوع جاهز للعرض",
+    "noJobDescriptionUploadedYet": "لم يتم رفع وصف وظيفة بعد",
+    "fileWillBeUploadedAutomaticallyWhenSelec": "سيتم رفع الملف تلقائياً عند اختياره",
+    "noSupportingDocumentsUploadedYet": "لم يتم رفع مستندات داعمة بعد",
+    "filesWillBeUploadedAutomaticallyWhenSele": "سيتم رفع الملفات تلقائياً عند اختيارها",
+    "poweredByGoogleDocsViewer": "مدعوم بعارض Google Docs",
+    "previewNotAvailableForThisFileType": "المعاينة غير متاحة لهذا النوع من الملفات",
+    "uploadInProgress": "جارٍ الرفع"
+  },
+  "jobManagement": {
+    "jobPostings": "إعلانات الوظائف",
+    "noJobsYet": "لا توجد وظائف بعد",
+    "toast": {
+      "failedToLoadJobs": "فشل في تحميل الوظائف",
+      "jobArchived": "تم أرشفة الوظيفة",
+      "jobDeleted": "تم حذف الوظيفة",
+      "failedToUpdateJobStatus": "فشل في تحديث حالة الوظيفة"
+    },
+    "createYourFirstJobPostingToStartReceivin": "أنشئ إعلان وظيفتك الأول لبدء استقبال الطلبات"
+  },
+  "jobTeamPanel": {
+    "toast": {
+      "failedToLoadTeamMembers": "فشل في تحميل أعضاء الفريق",
+      "teamMemberRemoved": "تمت إزالة عضو الفريق",
+      "failedToRemoveTeamMember": "فشل في إزالة عضو الفريق"
+    },
+    "badge": {
+      "primary": "أساسي"
+    },
+    "noTeamMembersYet": "لا يوجد أعضاء فريق بعد",
+    "menu": {
+      "removeFromTeam": "إزالة من الفريق"
+    },
+    "teamMemberOptions": "خيارات عضو الفريق"
+  },
+  "offerPipelineWidget": {
+    "badge": {
+      "urgent": "عاجل"
+    }
+  },
+  "partnerAnalytics": {
+    "title": "إجمالي المرشحين",
+    "tab": {
+      "pipelineHealth": "صحة خط سير التوظيف",
+      "conversionRates": "معدلات التحويل"
+    },
+    "description": "التوزيع الحالي عبر مراحل خط سير التوظيف"
+  },
+  "partnerConciergeCard": {
+    "badge": {
+      "inProgress": "قيد التنفيذ"
+    },
+    "yourDedicatedConcierge": "مستشارك المخصص",
+    "directContact": "تواصل مباشر"
+  },
+  "partnerDomainSettings": {
+    "toast": {
+      "pleaseEnterAValidDomainEgExamplecom": "يرجى إدخال نطاق صالح (مثال: example.com)",
+      "thisDomainIsAlreadyConfigured": "هذا النطاق مُعدّ مسبقاً",
+      "domainRequestSubmittedForAdminApproval": "تم إرسال طلب النطاق لموافقة المسؤول",
+      "failedToSubmitDomainRequest": "فشل في إرسال طلب النطاق"
+    },
+    "label": {
+      "requestNewDomain": "طلب نطاق جديد"
+    },
+    "noDomainsConfiguredYet": "لم يتم تكوين نطاقات بعد",
+    "contactYourAdministratorToSetUpAuthorize": "تواصل مع المسؤول لإعداد النطاقات المعتمدة",
+    "domainRequestsRequireAdminApprovalBefore": "تتطلب طلبات النطاقات موافقة المسؤول قبل تفعيلها",
+    "description": "يمكن دعوة أعضاء الفريق فقط من نطاقات البريد الإلكتروني هذه",
+    "loadingDomainSettings": "جارٍ تحميل إعدادات النطاق..."
+  },
+  "partnerFirstReviewPanel": {
+    "toast": {
+      "selectARejectionReason": "اختر سبب الرفض.",
+      "rejectionNotesAreRequired": "ملاحظات الرفض مطلوبة."
+    }
+  },
+  "partnerJobsHome": {
+    "noJobsFound": "لم يتم العثور على وظائف",
+    "toast": {
+      "failedToLoadJobs": "فشل في تحميل الوظائف",
+      "noDraftJobsSelectedToPublish": "لم يتم اختيار وظائف مسودة للنشر",
+      "failedToPublishSelectedJobs": "فشل في نشر الوظائف المختارة",
+      "noPublishedJobsSelectedToClose": "لم يتم اختيار وظائف منشورة للإغلاق",
+      "failedToCloseSelectedJobs": "فشل في إغلاق الوظائف المختارة",
+      "noJobsSelectedToArchive": "لم يتم اختيار وظائف للأرشفة",
+      "failedToArchiveSelectedJobs": "فشل في أرشفة الوظائف المختارة",
+      "failedToPublishJob": "فشل في نشر الوظيفة",
+      "failedToUnpublishJob": "فشل في إلغاء نشر الوظيفة",
+      "failedToCloseJob": "فشل في إغلاق الوظيفة",
+      "failedToReopenJob": "فشل في إعادة فتح الوظيفة",
+      "failedToArchiveJob": "فشل في أرشفة الوظيفة",
+      "failedToRestoreJob": "فشل في استعادة الوظيفة"
+    },
+    "yourPremiumHiringAccelerator": "مسرّع التوظيف المميز الخاص بك.",
+    "getVettedCandidatesInDaysNotWeeks": "احصل على مرشحين معتمدين في أيام وليس أسابيع",
+    "prevettedTalent": "مواهب معتمدة مسبقاً",
+    "everyCandidateIsClubverifiedForQuality": "كل مرشح موثّق من النادي للجودة",
+    "dedicatedSupport": "دعم مخصص",
+    "personalRecruiterAssistanceIncluded": "مساعدة شخصية من المسؤول عن التوظيف مشمولة",
+    "liveUpdatesEnabled": "التحديثات المباشرة مفعّلة",
+    "desc": {
+      "candidatesCanNowSeeAndApplyToThisJob": "يمكن للمرشحين الآن رؤية هذه الوظيفة والتقديم عليها"
+    }
+  },
+  "pipelineAuditLog": {
+    "title": "سجل تدقيق الوظيفة",
+    "badge": {
+      "overrideDuplicate": "تجاوز التكرار"
+    },
+    "description": "تتبع شامل لجميع تفاعلات الوظيفة والتعديلات"
+  },
+  "pipelineCustomizer": {
+    "title": "محرر خط سير التوظيف المميز",
+    "toast": {
+      "stageRemoved": "تمت إزالة المرحلة",
+      "selectAReviewerFirst": "اختر مراجعاً أولاً.",
+      "reviewerAssigned": "تم تعيين المراجع",
+      "failedToAssignReviewer": "فشل في تعيين المراجع",
+      "failedToRemoveReviewer": "فشل في إزالة المراجع",
+      "reviewerRemoved": "تمت إزالة المراجع",
+      "pipelineSaved": "تم حفظ خط سير التوظيف",
+      "signatureSecure": "التوقيع مؤمّن"
+    },
+    "label": {
+      "stageOwner": "مالك المرحلة",
+      "format": "الصيغة",
+      "description": "الوصف",
+      "primary": "أساسي"
+    },
+    "placeholder": {
+      "describeWhatHappensInThisStage": "صف ما يحدث في هذه المرحلة..."
+    },
+    "reviewGateAssignments": "تعيينات بوابة المراجعة",
+    "onlyAdminAndStrategistRolesCanChangeRevi": "يمكن فقط لأدوار المسؤول والمستشار تغيير تعيينات المراجعين.",
+    "primary": "أساسي",
+    "description": "تخصيص مراحل خط سير التوظيف الحصري الخاص بك",
+    "option": {
+      "online": "عبر الإنترنت",
+      "inperson": "شخصياً",
+      "hybrid": "هجين",
+      "noReviewersAvailable": "لا يتوفر مراجعون"
+    }
+  },
+  "pipelineDisplaySettings": {
+    "label": {
+      "showOwnershipIcons": "إظهار أيقونات الملكية",
+      "showFormatDetails": "إظهار تفاصيل الصيغة",
+      "showTeamAssignments": "إظهار تعيينات الفريق",
+      "showLocationmeetingInfo": "إظهار معلومات الموقع/الاجتماع",
+      "showEvaluationSetup": "إظهار إعداد التقييم",
+      "showSchedulingDetails": "إظهار تفاصيل الجدولة",
+      "showAdvancedMetadata": "إظهار البيانات الوصفية المتقدمة"
+    },
+    "customizeWhatInformationIsShownInThePipe": "تخصيص المعلومات المعروضة في تفصيل خط سير التوظيف"
+  },
+  "pipelineMeetingCard": {
+    "badge": {
+      "scheduled": "مجدول"
+    },
+    "prepSent": "تم إرسال التحضير",
+    "prepPending": "التحضير معلّق"
+  },
+  "scheduleInterviewButton": {
+    "toast": {
+      "interviewScheduledSuccessfully": "تمت جدولة المقابلة بنجاح"
+    }
+  },
+  "smartSchedulingPanel": {
+    "badge": {
+      "excellent": "ممتاز",
+      "good": "جيد",
+      "fair": "مقبول",
+      "limited": "محدود",
+      "googleCalendar": "تقويم Google",
+      "bestMatch": "أفضل تطابق"
+    },
+    "noAvailableSlotsFound": "لم يتم العثور على مواعيد متاحة",
+    "tryAdjustingTheDurationOrSelectingDiffer": "حاول تعديل المدة أو اختيار محاورين مختلفين"
+  },
+  "teamActivityCard": {
+    "title": "نشاط الفريق",
+    "noTeamActivityYet": "لا يوجد نشاط للفريق بعد"
+  },
+  "teamInviteWidget": {
+    "label": {
+      "recentInvitations": "الدعوات الأخيرة",
+      "allInvitations": "جميع الدعوات"
+    },
+    "dialogDescription": "إرسال دعوة للانضمام إلى مؤسستك"
+  },
+  "teamManagement": {
+    "teamMembers": "أعضاء الفريق",
+    "noTeamMembersYet": "لا يوجد أعضاء فريق بعد",
+    "toast": {
+      "failedToLoadTeamMembers": "فشل في تحميل أعضاء الفريق",
+      "teamMemberRemoved": "تمت إزالة عضو الفريق",
+      "failedToRemoveTeamMember": "فشل في إزالة عضو الفريق"
+    },
+    "inviteTeamMembersToCollaborateOnJobPosti": "ادعُ أعضاء الفريق للتعاون في إعلانات الوظائف"
+  },
+  "textDocumentCreator": {
+    "toast": {
+      "pleaseEnterSomeContent": "يرجى إدخال بعض المحتوى",
+      "pleaseEnterADocumentTitle": "يرجى إدخال عنوان المستند"
+    },
+    "label": {
+      "documentTitle": "عنوان المستند *",
+      "documentContent": "محتوى المستند *"
+    },
+    "placeholder": {
+      "typeOrPasteYourContentHere1010youCanIncl": "اكتب أو الصق محتواك هنا...&#10;&#10;يمكنك تضمين:&#10;- أسئلة المقابلة&#10;- معلومات الشركة&#10;- تفاصيل المزايا&#10;- المتطلبات التقنية&#10;- أي نص آخر ذي صلة"
+    },
+    "giveYourDocumentADescriptiveName": "أعطِ مستندك اسماً وصفياً",
+    "plainTextFormatPerfectForQuickReferenceD": "تنسيق نص عادي - مثالي لمستندات المرجع السريع"
+  },
+  "upcomingInterviewsWidget": {
+    "dialogTitle": "مستند تحضير المقابلة",
+    "today": "اليوم",
+    "thisWeek": "هذا الأسبوع",
+    "upcoming": "القادمة",
+    "toast": {
+      "pleaseEnterFeedback": "يرجى إدخال الملاحظات",
+      "feedbackSubmittedSuccessfully": "تم إرسال الملاحظات بنجاح"
+    },
+    "label": {
+      "currentDocument": "المستند الحالي",
+      "feedback": "الملاحظات"
+    },
+    "placeholder": {
+      "enterYourFeedbackAboutTheCandidateAndInt": "أدخل ملاحظاتك حول المرشح والمقابلة..."
+    },
+    "loadingInterviews": "جارٍ تحميل المقابلات...",
+    "pleaseSubmitFeedbackToKeepThePipelineMov": "يرجى إرسال الملاحظات للحفاظ على تقدم خط سير التوظيف",
+    "noPrepDocumentUploadedYetUseTheManualEnt": "لم يتم رفع مستند تحضير بعد. استخدم الإدخال اليدوي أو رابط التقويم لإضافة واحد."
+  },
+  "bulkEmailDialog": {
+    "dialogDescription": "إرسال بريد إلكتروني لجميع المرشحين المختارين"
+  },
+  "candidateReviewCard": {
+    "internalReviewNotes": "ملاحظات المراجعة الداخلية"
+  },
+  "candidateShortlistWidget": {
+    "starCandidatesFromApplicationsToAccessTh": "قم بتمييز المرشحين من الطلبات للوصول إليهم بسرعة"
+  },
+  "candidateWorkAuthCard": {
+    "noWorkAuthorizationDataAvailable": "لا تتوفر بيانات تصريح العمل",
+    "requiresSponsorship": "يتطلب كفالة",
+    "noSponsorshipRequired": "لا يتطلب كفالة"
+  },
+  "changeOrdersPanel": {
+    "noChangeOrdersYet": "لا توجد أوامر تغيير بعد",
+    "noProcessedChangeOrdersYet": "لا توجد أوامر تغيير معالجة بعد"
+  },
+  "contractBudgetDashboard": {
+    "awaitingYourApproval": "بانتظار موافقتك",
+    "activeMilestoneWork": "أعمال المراحل النشطة"
+  },
+  "dailyBriefing": {
+    "letQuinAnalyzeYourHiringActivity": "دع QUIN يحلل نشاط التوظيف الخاص بك"
+  },
+  "dossierActivityWidget": {
+    "browseCandidatesToSeeTheirProfilesHere": "تصفح المرشحين لعرض ملفاتهم الشخصية هنا"
+  },
+  "editCandidateDialog": {
+    "dialogDescription": "تحديث معلومات المرشح. سيتم تسجيل جميع التغييرات."
+  },
+  "enhancedCandidateActionDialog": {
+    "selectWhichStageToMoveThisCandidateTo": "اختر المرحلة التي ستنقل هذا المرشح إليها",
+    "selectWhichPreviousStageToMoveThisCandid": "اختر المرحلة السابقة التي ستنقل هذا المرشح إليها",
+    "aReasonIsRequiredForAccountability": "السبب مطلوب للمساءلة"
+  },
+  "enhancedCandidateDetails": {
+    "alert": {
+      "limitedCandidateInformationAvailableFullDesc": "معلومات المرشح محدودة. ستظهر التفاصيل الكاملة عند تقديم المرشح على وظائفك."
+    }
+  },
+  "interviewSuccessWidget": {
+    "noApplicationsYetPostAJobToStartHiring": "لا توجد طلبات بعد. انشر وظيفة لبدء التوظيف."
+  },
+  "linkedInJobImport": {
+    "byConnectingYouAuthorizeTheQuantumClubTo": "بالاتصال، تفوّض The Quantum Club بالوصول إلى \n              إعلانات وظائف شركتك على LinkedIn.",
+    "dialogDescription": "اربط حساب LinkedIn لاستيراد إعلانات وظائف شركتك تلقائياً.",
+    "alert": {
+      "thisWillImportAllActiveJobPostingsFromYoDesc": "سيتم استيراد جميع إعلانات الوظائف النشطة من صفحة شركتك على LinkedIn. \n              تأكد من أن لديك صلاحية المسؤول على صفحة LinkedIn الخاصة بشركتك."
+    }
+  },
+  "manualInterviewEntryDialog": {
+    "dialogDescription": "إضافة مقابلة مجدولة مسبقاً ولكنها غير موجودة في النظام بعد"
+  },
+  "partnerInterviewHub": {
+    "noUpcomingInterviewsScheduled": "لا توجد مقابلات قادمة مجدولة",
+    "noCompletedInterviewsYet": "لا توجد مقابلات مكتملة بعد",
+    "noCandidatesReadyForDecision": "لا يوجد مرشحون جاهزون للقرار",
+    "interviewsNeedScorecardsBeforeDecisions": "تحتاج المقابلات إلى بطاقات تقييم قبل القرارات",
+    "description": "تتبع المقابلات ومراجعة الرؤى واتخاذ قرارات التوظيف",
+    "allEvaluatorsHaveSubmittedScorecards": "قدّم جميع المقيّمين بطاقات التقييم"
+  },
+  "positionFillCountdown": {
+    "allPositionsFilledGreatWork": "تم شغل جميع الوظائف! عمل رائع."
+  },
+  "reviewShortcutOverlay": {
+    "dialogDescription": "سرّع سير عمل المراجعة باستخدام هذه الاختصارات."
+  },
+  "targetCompanies": {
+    "beheerBedrijvenVoorHeadhuntingKandidaten": "Beheer bedrijven voor headhunting kandidaten"
+  },
+  "targetCompanyDetailDialog": {
+    "nogGeenComments": "Nog geen comments"
+  },
+  "targetCompanyDialog": {
+    "zoekBestaandeBedrijvenNaamEnWebsiteWorde": "Zoek bestaande bedrijven - naam en website worden automatisch ingevuld",
+    "selecteerDeJobWaarvoorDitBedrijfGetarget": "Selecteer de job waarvoor dit bedrijf getarget wordt, of laat leeg voor alle jobs"
+  },
+  "targetCompanyTable": {
+    "laden": "Laden...",
+    "geenBedrijvenGevonden": "Geen bedrijven gevonden"
+  },
+  "executiveDashboard": {
+    "noCandidatesInFinalStageYet": "لا يوجد مرشحون في المرحلة النهائية بعد"
+  },
+  "hiringManagerDashboard": {
+    "feedbackManagementComingSoon": "إدارة الملاحظات قريباً"
+  },
+  "observerDashboard": {
+    "youHaveObserverAccessToThisRoleViewPipel": "لديك صلاحية مراقب لهذا الدور. اعرض خط سير التوظيف في علامة التبويب أعلاه."
+  },
+  "adminNotesEditor": {
+    "theseNotesAreForInternalUseOnlyAndWillNo": "هذه الملاحظات للاستخدام الداخلي فقط ولن تتم مشاركتها مع المرشح أو الشركاء."
+  },
+  "jobBulkActionBar": {
+    "menu": {
+      "bulkActions": "إجراءات جماعية"
+    },
+    "publish": "نشر"
+  },
+  "jobTableView": {
+    "menu": {
+      "visibleColumns": "الأعمدة المرئية"
+    },
+    "tooltip": {
+      "confidential": "سري"
+    },
+    "noJobsFound": "لم يتم العثور على وظائف"
+  },
+  "jobsAIInsightsWidget": {
+    "title": "رؤى QUIN",
+    "noInsightsAvailableYet": "لا تتوفر رؤى بعد",
+    "addMoreJobsToGenerateAiPredictions": "أضف المزيد من الوظائف لإنشاء تنبؤات الذكاء الاصطناعي",
+    "quinInsightsTemporarilyUnavailable": "رؤى QUIN غير متاحة مؤقتاً",
+    "hiringForecast": "توقعات التوظيف",
+    "strategicRecommendations": "التوصيات الاستراتيجية"
+  },
+  "keyboardShortcutsDialog": {
+    "dialogTitle": "اختصارات لوحة المفاتيح",
+    "dialogDescription": "تصفح وإدارة الوظائف بكفاءة باستخدام هذه الاختصارات"
+  },
+  "savedFilterPresets": {
+    "dialogTitle": "حفظ إعداد مسبق للتصفية",
+    "toast": {
+      "pleaseEnterANameForYourPreset": "يرجى إدخال اسم للإعداد المسبق"
+    },
+    "noSavedPresets": "لا توجد إعدادات مسبقة محفوظة",
+    "saveYourCurrentFiltersForQuickAccess": "احفظ عوامل التصفية الحالية للوصول السريع",
+    "presets": "الإعدادات المسبقة",
+    "savedViews": "العروض المحفوظة",
+    "dialogDescription": "احفظ عوامل التصفية الحالية للوصول السريع لاحقاً."
+  },
+  "jobsCompactHeader": {
+    "placeholder": {
+      "searchJobs": "البحث عن وظائف..."
+    },
+    "menu": {
+      "navigation": "التنقل",
+      "adminTools": "أدوات المسؤول"
+    },
+    "newJob": "وظيفة جديدة",
+    "jobs": "الوظائف"
+  },
+  "jobsUnifiedFilterBar": {
+    "menu": {
+      "company": "الشركة",
+      "createdDate": "تاريخ الإنشاء",
+      "layout": "التخطيط",
+      "savedViews": "العروض المحفوظة"
+    },
+    "advancedFilters": "عوامل تصفية متقدمة",
+    "views": "العروض"
+  },
+  "jobListView": {
+    "noActivity": "لا يوجد نشاط",
+    "dashboard": "لوحة التحكم",
+    "tooltip": {
+      "confidential": "سري"
+    },
+    "noJobsFound": "لم يتم العثور على وظائف"
+  },
+  "jobStatusSummaryBar": {
+    "publishedJobsWillAppearInSearchResultsAn": "ستظهر الوظائف المنشورة في نتائج البحث ويمكن للمرشحين التقديم عليها."
+  },
+  "jobsAnalyticsWidget": {
+    "openJobs": "الوظائف المفتوحة",
+    "avgDaysOpen": "متوسط أيام الفتح",
+    "fillRate": "معدل الشغل",
+    "activePipeline": "خط سير التوظيف النشط"
+  },
+  "jobCardHeader": {
+    "viewOriginalPosting": "عرض الإعلان الأصلي",
+    "thisJobIsOnlyVisibleToSelectedUsers": "هذه الوظيفة مرئية فقط للمستخدمين المختارين"
+  },
+  "jobCardLastActivity": {
+    "lastActivity": "آخر نشاط"
+  },
+  "jobCardMetrics": {
+    "hiringProgress": "تقدم التوظيف",
+    "conversion": "التحويل",
+    "interviews": "المقابلات"
+  },
+  "compactJobCard": {
+    "tooltip": {
+      "confidential": "سري"
+    }
+  },
+  "jobsInlineStats": {
+    "clubSync": "Club Sync"
+  },
+  "addCandidate": {
+    "addedButAuditFailed": "تمت الإضافة لكن فشل سجل التدقيق",
+    "addedButLogFailed": "تمت الإضافة لكن فشل التسجيل",
+    "addedSuccessfully": "تمت الإضافة بنجاح",
+    "addedToPipeline": "تمت الإضافة إلى خط سير التوظيف",
+    "adding": "جارٍ الإضافة",
+    "addToPipeline": "إضافة إلى خط سير التوظيف",
+    "adminNotes": "ملاحظات المسؤول",
+    "aiFillDetails": "ملء التفاصيل بالذكاء الاصطناعي",
+    "alreadyInPipeline": "موجود مسبقاً في خط سير التوظيف",
+    "contactRequired": "بيانات الاتصال مطلوبة",
+    "contactRequiredDesc": "وصف بيانات الاتصال المطلوبة",
+    "creditAssignment": "تعيين الرصيد",
+    "creditDescription": "وصف الرصيد",
+    "currentCompany": "الشركة الحالية",
+    "currentTitle": "المسمى الوظيفي الحالي",
+    "duplicateCheckFailed": "فشل فحص التكرار",
+    "emailOptional": "البريد الإلكتروني (اختياري)",
+    "enterDetailsManually": "إدخال التفاصيل يدوياً",
+    "enterLinkedInUrl": "أدخل رابط LinkedIn",
+    "existing": "موجود",
+    "existingProfileLinked": "تم ربط ملف موجود",
+    "failedImportLinkedIn": "فشل استيراد LinkedIn",
+    "failedToAdd": "فشل في الإضافة",
+    "fullName": "الاسم الكامل",
+    "fullNameRequired": "الاسم الكامل مطلوب",
+    "importing": "جارٍ الاستيراد",
+    "importProfile": "استيراد الملف الشخصي",
+    "linkedinImporter": "مستورد LinkedIn",
+    "linkedinImporterDesc": "وصف مستورد LinkedIn",
+    "linkedinProfileImported": "تم استيراد ملف LinkedIn",
+    "linkedinProfileRecommended": "ملف LinkedIn موصى به",
+    "linkedinProfileUrl": "رابط ملف LinkedIn",
+    "linkedinRecommended": "LinkedIn موصى به",
+    "linkedinRecommendedDesc": "وصف توصية LinkedIn",
+    "linkedinTimedOut": "انتهت مهلة LinkedIn",
+    "linkedinUrlFormat": "صيغة رابط LinkedIn",
+    "linkExisting": "ربط ملف موجود",
+    "linkExistingDesc": "وصف ربط ملف موجود",
+    "nameAndPhotoExtracted": "تم استخراج الاسم والصورة",
+    "nameExtractedManual": "تم استخراج الاسم يدوياً",
+    "nameExtractedVerify": "تم استخراج الاسم للتحقق",
+    "nameFromLinkedIn": "الاسم من LinkedIn",
+    "noCandidatesFound": "لم يتم العثور على مرشحين",
+    "noTeamMemberFound": "لم يتم العثور على عضو فريق",
+    "notesOptional": "ملاحظات (اختياري)",
+    "phoneOptional": "الهاتف (اختياري)",
+    "profileImported": "تم استيراد الملف الشخصي",
+    "resumeCV": "السيرة الذاتية",
+    "searchPlaceholder": "نص البحث",
+    "searchTeamMembers": "البحث عن أعضاء الفريق",
+    "selectedCount": "العدد المختار",
+    "selectTeamMembers": "اختيار أعضاء الفريق",
+    "startingPipelineStage": "مرحلة البداية في خط سير التوظيف",
+    "startTypingToSearch": "ابدأ بالكتابة للبحث",
+    "step1Description": "وصف الخطوة 1",
+    "step1Title": "عنوان الخطوة 1",
+    "title": "العنوان",
+    "toast": {
+      "failedToAdd": "فشل في إضافة المرشح",
+      "unexpectedError": "حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى أو التواصل مع الدعم."
+    },
+    "tryAgainOrManual": "حاول مرة أخرى أو أدخل يدوياً",
+    "validEmailRequired": "بريد إلكتروني صالح مطلوب",
+    "verifyManually": "تحقق يدوياً",
+    "whyAddingCandidate": "لماذا تضيف هذا المرشح"
+  },
+  "billing": {
+    "title": "الفوترة والفواتير",
+    "description": "إدارة تفاصيل الفوترة وعرض الفواتير",
+    "tabDetails": "تفاصيل الفوترة",
+    "tabInvoices": "الفواتير",
+    "billingInfo": "معلومات الفوترة",
+    "billingInfoDesc": "تحديث تفاصيل فوترة شركتك للفواتير",
+    "yourInvoices": "فواتيرك",
+    "yourInvoicesDesc": "عرض وتنزيل فواتير رسوم التعيين"
+  },
+  "sla": {
+    "responseTime": "وقت الاستجابة",
+    "responseTimeDesc": "وقت الاستجابة الأولى",
+    "shortlistDelivery": "تسليم القائمة المختصرة",
+    "shortlistDeliveryDesc": "تسليم قائمة المرشحين المختصرة",
+    "interviewScheduling": "جدولة المقابلات",
+    "interviewSchedulingDesc": "وقت إعداد المقابلة",
+    "replacementGuarantee": "ضمان الاستبدال",
+    "replacementGuaranteeDesc": "فترة استبدال المرشح",
+    "target": "الهدف",
+    "belowTarget": "أداء أقل من الهدف. راجع العمليات لتحسين الأداء.",
+    "recentPerformance": "أداء SLA الأخير",
+    "last30Days": "آخر 30 يوماً من تتبع SLA",
+    "noMetrics": "لم تُسجّل مقاييس SLA بعد"
+  },
+  "billingDashboard": {
+    "recentInvoices": "الفواتير الأخيرة",
+    "viewDownload": "عرض وتنزيل فواتيرك",
+    "download": "تنزيل",
+    "noInvoices": "لم يتم العثور على فواتير"
+  },
+  "auditLog": {
+    "searchPlaceholder": "البحث بالمستخدم أو الإجراء...",
+    "allActions": "جميع الإجراءات",
+    "candidateMoved": "تم نقل المرشح",
+    "jobCreated": "تم إنشاء وظيفة",
+    "teamInvited": "تمت دعوة فريق",
+    "applicationRejected": "تم رفض الطلب",
+    "noEntries": "لم يتم العثور على سجلات تدقيق"
+  },
+  "liveInterview": {
+    "title": "حارس المقابلة",
+    "subtitle": "التحقق من الحقائق والمساعد في الوقت الفعلي",
+    "micDenied": "تم رفض الوصول إلى الميكروفون.",
+    "noSpeechSupport": "المتصفح لا يدعم التعرف على الكلام.",
+    "listening": "الحارس يستمع...",
+    "stop": "إيقاف",
+    "start": "بدء",
+    "liveTranscript": "النص المباشر",
+    "speechToText": "تحويل الكلام إلى نص في الوقت الفعلي",
+    "waitingForSpeech": "بانتظار الكلام...",
+    "sentinelHud": "واجهة الحارس",
+    "liveAiInsights": "رؤى الذكاء الاصطناعي المباشرة",
+    "noAlerts": "لا توجد تنبيهات بعد. النظام يراقب..."
+  }
+}

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Progress } from "@/components/ui/progress";
@@ -7,6 +8,7 @@ interface ProfileStrengthMeterProps {
 }
 
 export function ProfileStrengthMeter({ userId }: ProfileStrengthMeterProps) {
+  const { t } = useTranslation('common');
   const [completion, setCompletion] = useState<number | null>(null);
 
   useEffect(() => {
@@ -38,7 +40,7 @@ export function ProfileStrengthMeter({ userId }: ProfileStrengthMeterProps) {
   return (
     <div className="space-y-2">
       <div className="flex justify-between text-sm">
-        <span>Profile Completeness</span>
+        <span>{t("profile_completeness", "Profile Completeness")}</span>
         <span className="font-semibold">{completion}%</span>
       </div>
       <Progress value={completion} className="h-2" />

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -17,6 +18,7 @@ interface AnalyticsMetric {
 }
 
 export function ActivityAnalyticsDashboard() {
+  const { t } = useTranslation('common');
   const { activities: allActivities, loading } = useCRMActivities({ limit: 500 });
 
   const analytics = useMemo(() => {
@@ -201,7 +203,7 @@ export function ActivityAnalyticsDashboard() {
         >
           <Card className="bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border-border/50">
             <CardHeader>
-              <CardTitle className="text-lg">Activities by Type</CardTitle>
+              <CardTitle className="text-lg">{t("activities_by_type", "Activities by Type")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
                 {Object.entries(analytics.byType)
@@ -277,7 +279,7 @@ export function ActivityAnalyticsDashboard() {
         >
           <Card className="bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border-border/50">
             <CardHeader>
-              <CardTitle>Last 14 Days</CardTitle>
+              <CardTitle>{t("last_14_days", "Last 14 Days")}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">

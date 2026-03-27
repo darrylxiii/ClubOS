@@ -1,4 +1,5 @@
 import { memo } from "react";
+import { useTranslation } from 'react-i18next';
 import { Badge } from "@/components/ui/badge";
 import {
   Tooltip,
@@ -27,14 +28,6 @@ const urgencyIcons: Record<UrgencyLevel, React.ComponentType<{ className?: strin
   none: null,
 };
 
-const urgencyTooltips: Record<UrgencyLevel, string> = {
-  critical: "This role needs immediate attention - low applicants and no recent activity",
-  high: "Pipeline activity is low - consider promoting this role",
-  medium: "Check the pipeline - some candidates may need follow-up",
-  low: "New role - pipeline is building",
-  none: "",
-};
-
 export const UrgencyBadge = memo(({
   daysOpen,
   lastActivityDaysAgo,
@@ -43,7 +36,16 @@ export const UrgencyBadge = memo(({
   showTooltip = true,
   className,
 }: UrgencyBadgeProps) => {
+  const { t } = useTranslation('jobs');
   const urgency = getUrgencyLevel(daysOpen, lastActivityDaysAgo, applicantsCount);
+
+  const urgencyTooltips: Record<UrgencyLevel, string> = {
+    critical: t('urgency.tooltipCritical', 'This role needs immediate attention - low applicants and no recent activity'),
+    high: t('urgency.tooltipHigh', 'Pipeline activity is low - consider promoting this role'),
+    medium: t('urgency.tooltipMedium', 'Check the pipeline - some candidates may need follow-up'),
+    low: t('urgency.tooltipLow', 'New role - pipeline is building'),
+    none: '',
+  };
   
   if (urgency.level === 'none') return null;
   

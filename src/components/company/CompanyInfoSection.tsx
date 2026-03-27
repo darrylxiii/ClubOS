@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Briefcase, MapPin, Users, Calendar, Globe, Linkedin, Twitter, Instagram, Mail, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CompanyLogo } from "@/components/ui/company-logo";
@@ -30,6 +31,7 @@ export function CompanyInfoSection({
   isFollowing,
   onFollow,
 }: CompanyInfoSectionProps) {
+  const { t } = useTranslation('common');
   return (
     <div className="space-y-4">
       {/* Quick Info */}
@@ -68,7 +70,7 @@ export function CompanyInfoSection({
             size="sm"
             className="gap-2"
             onClick={() => window.open(company.website_url!, '_blank')}
-            aria-label="Visit company website"
+            aria-label={t("visit_company_website", "Visit company website")}
           >
             <Globe className="w-4 h-4" />
             Website
@@ -80,7 +82,7 @@ export function CompanyInfoSection({
             size="sm"
             className="gap-2"
             onClick={() => window.open(company.linkedin_url!, '_blank')}
-            aria-label="Visit LinkedIn profile"
+            aria-label={t("visit_linkedin_profile", "Visit LinkedIn profile")}
           >
             <Linkedin className="w-4 h-4" />
             LinkedIn
@@ -92,7 +94,7 @@ export function CompanyInfoSection({
             size="sm"
             className="gap-2"
             onClick={() => window.open(company.twitter_url!, '_blank')}
-            aria-label="Visit Twitter profile"
+            aria-label={t("visit_twitter_profile", "Visit Twitter profile")}
           >
             <Twitter className="w-4 h-4" />
             Twitter
@@ -104,7 +106,7 @@ export function CompanyInfoSection({
             size="sm"
             className="gap-2"
             onClick={() => window.open(company.instagram_url!, '_blank')}
-            aria-label="Visit Instagram profile"
+            aria-label={t("visit_instagram_profile", "Visit Instagram profile")}
           >
             <Instagram className="w-4 h-4" />
             Instagram
@@ -116,7 +118,7 @@ export function CompanyInfoSection({
             size="sm"
             className="gap-2"
             onClick={() => window.location.href = `mailto:${company.careers_email}`}
-            aria-label="Email careers team"
+            aria-label={t("email_careers_team", "Email careers team")}
           >
             <Mail className="w-4 h-4" />
             Careers

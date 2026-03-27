@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { DollarSign, FileText, AlertCircle, CheckCircle, RefreshCw } from "lucide-react";
@@ -15,6 +16,7 @@ interface RevenueSummaryCardsProps {
 }
 
 export function RevenueSummaryCards({ metrics, isLoading, onSync, isSyncing, legalEntity }: RevenueSummaryCardsProps) {
+  const { t } = useTranslation('common');
   const fmtCurrency = (amount: number) => formatCurrency(amount);
 
   const vatRate = getVATRate(legalEntity);
@@ -103,7 +105,7 @@ export function RevenueSummaryCards({ metrics, isLoading, onSync, isSyncing, leg
               <card.icon className={`h-4 w-4 text-muted-foreground`} />
             </CardHeader>
             <CardContent>
-              <div className="text-lg text-muted-foreground">No data synced</div>
+              <div className="text-lg text-muted-foreground">{t("no_data_synced", "No data synced")}</div>
               {onSync && (
                 <Button
                   variant="link"

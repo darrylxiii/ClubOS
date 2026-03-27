@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import {
@@ -57,6 +58,7 @@ export function ActivityEditDialog({
   onOpenChange,
   onSuccess 
 }: ActivityEditDialogProps) {
+  const { t } = useTranslation('common');
   const { updateActivity } = useCRMActivities();
   const [saving, setSaving] = useState(false);
 
@@ -111,7 +113,7 @@ export function ActivityEditDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Edit Activity</DialogTitle>
+          <DialogTitle>{t("edit_activity", "Edit Activity")}</DialogTitle>
           <DialogDescription>
             Make changes to this activity. Click save when you're done.
           </DialogDescription>
@@ -120,19 +122,19 @@ export function ActivityEditDialog({
         <div className="grid gap-4 py-4">
           {/* Subject */}
           <div className="space-y-2">
-            <Label htmlFor="subject">Subject</Label>
+            <Label htmlFor="subject">{t("subject", "Subject")}</Label>
             <Input
               id="subject"
               value={formData.subject}
               onChange={(e) => setFormData(prev => ({ ...prev, subject: e.target.value }))}
-              placeholder="Activity subject..."
+              placeholder={t("activity_subject", "Activity subject...")}
             />
           </div>
 
           {/* Type & Priority Row */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Type</Label>
+              <Label>{t("type", "Type")}</Label>
               <Select
                 value={formData.activity_type}
                 onValueChange={(value) => setFormData(prev => ({ 
@@ -154,7 +156,7 @@ export function ActivityEditDialog({
             </div>
 
             <div className="space-y-2">
-              <Label>Priority</Label>
+              <Label>{t("priority", "Priority")}</Label>
               <Select
                 value={String(formData.priority)}
                 onValueChange={(value) => setFormData(prev => ({ 
@@ -179,7 +181,7 @@ export function ActivityEditDialog({
           {/* Due Date & Time Row */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Due Date</Label>
+              <Label>{t("due_date", "Due Date")}</Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
@@ -205,7 +207,7 @@ export function ActivityEditDialog({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="due_time">Time</Label>
+              <Label htmlFor="due_time">{t("time", "Time")}</Label>
               <Input
                 id="due_time"
                 type="time"
@@ -217,12 +219,12 @@ export function ActivityEditDialog({
 
           {/* Description */}
           <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
+            <Label htmlFor="description">{t("description", "Description")}</Label>
             <Textarea
               id="description"
               value={formData.description}
               onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-              placeholder="Additional notes..."
+              placeholder={t("additional_notes", "Additional notes...")}
               rows={3}
             />
           </div>

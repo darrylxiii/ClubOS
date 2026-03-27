@@ -1,15 +1,28 @@
 import { createClient, SupabaseClient } from "npm:@supabase/supabase-js@2";
 
+interface ToolCall {
+  function: {
+    name: string;
+    arguments: string | Record<string, unknown>;
+  };
+}
+
+interface ToolResult {
+  success?: boolean;
+  error?: string;
+  [key: string]: unknown;
+}
+
 // ============= TOOL EXECUTION DISPATCHER =============
 
 export async function executeToolCall(
-  toolCall: any,
+  toolCall: ToolCall,
   userId: string,
   supabase: SupabaseClient
-): Promise<any> {
+): Promise<ToolResult> {
   const { name, arguments: argsStr } = toolCall.function;
-  let args: any = {};
-  
+  let args: Record<string, unknown> = {};
+
   try {
     args = typeof argsStr === 'string' ? JSON.parse(argsStr) : argsStr;
   } catch (e) {
@@ -23,7 +36,7 @@ export async function executeToolCall(
   await logAction(supabase, userId, name, args, 'pending');
 
   try {
-    let result: any;
+    let result: ToolResult;
 
     switch (name) {
       // ===== JOB SEARCH & APPLICATION TOOLS =====
@@ -143,10 +156,11 @@ export async function executeToolCall(
     await logAction(supabase, userId, name, args, 'completed', result);
     return result;
 
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errMsg = error instanceof Error ? error.message : "Tool execution failed";
     console.error(`Tool execution error (${name}):`, error);
-    const errorResult = { error: error.message || "Tool execution failed" };
-    await logAction(supabase, userId, name, args, 'failed', errorResult, error.message);
+    const errorResult = { error: errMsg };
+    await logAction(supabase, userId, name, args, 'failed', errorResult, errMsg);
     return errorResult;
   }
 }
@@ -157,12 +171,12 @@ async function logAction(
   supabase: SupabaseClient,
   userId: string,
   actionType: string,
-  actionData: any,
+  actionData: Record<string, unknown>,
   status: string,
-  result?: any,
+  result?: Record<string, unknown>,
   errorMessage?: string
 ) {
-  await supabase.from('ai_action_log').insert({
+  await supabase.from('intelligence_action_log').insert({
     user_id: userId,
     action_type: actionType,
     action_data: actionData,
@@ -174,7 +188,7 @@ async function logAction(
 
 // ============= JOB SEARCH & APPLICATION TOOLS =============
 
-async function searchJobs(args: any, userId: string, supabase: SupabaseClient) {
+async function searchJobs(args: Record<string, unknown>, userId: string, supabase: SupabaseClient) {
   const { title, location, employmentType, salaryMin, skills } = args;
 
   let query = supabase
@@ -199,7 +213,7 @@ async function searchJobs(args: any, userId: string, supabase: SupabaseClient) {
     .single();
 
   // Calculate match scores (simplified)
-  const rankedJobs = (jobs || []).map((job: any) => ({
+  const rankedJobs = (jobs || []).map((job: Record<string, unknown>) => ({
     ...job,
     matchScore: calculateMatchScore(job, profile, skills)
   })).sort((a, b) => b.matchScore - a.matchScore);
@@ -211,7 +225,7 @@ async function searchJobs(args: any, userId: string, supabase: SupabaseClient) {
   };
 }
 
-function calculateMatchScore(job: any, profile: any, requestedSkills?: string[]): number {
+function calculateMatchScore(job: Record<string, unknown>, profile: Record<string, unknown> | null, requestedSkills?: string[]): number {
   let score = 70; // Base score
 
   // Title match
@@ -229,7 +243,7 @@ function calculateMatchScore(job: any, profile: any, requestedSkills?: string[])
   return Math.min(Math.round(score), 95);
 }
 
-async function analyzeJobFit(args: any, userId: string, supabase: SupabaseClient) {
+async function analyzeJobFit(args: Record<string, unknown>, userId: string, supabase: SupabaseClient) {
   const { jobId } = args;
 
   const { data: job, error: jobError } = await supabase
@@ -267,7 +281,7 @@ async function analyzeJobFit(args: any, userId: string, supabase: SupabaseClient
   };
 }
 
-async function applyToJob(args: any, userId: string, supabase: SupabaseClient) {
+async function applyToJob(args: Record<string, unknown>, userId: string, supabase: SupabaseClient) {
   const { jobId, customMessage, attachResume } = args;
 
   // Get job details
@@ -318,7 +332,7 @@ async function applyToJob(args: any, userId: string, supabase: SupabaseClient) {
   };
 }
 
-async function generateCoverLetter(args: any, userId: string, supabase: SupabaseClient) {
+async function generateCoverLetter(args: Record<string, unknown>, userId: string, supabase: SupabaseClient) {
   const { jobId, tone, highlights } = args;
 
   // Get job and profile
@@ -364,10 +378,10 @@ ${profile?.full_name || 'Candidate'}`;
 
 // ============= TASK MANAGEMENT TOOLS =============
 
-async function createTask(args: any, userId: string, supabase: SupabaseClient) {
+async function createTask(args: Record<string, unknown>, userId: string, supabase: SupabaseClient) {
   const { title, description, objectiveId, dueDate, priority } = args;
 
-  const taskData: any = {
+  const taskData: Record<string, unknown> = {
     title,
     description: description || '',
     status: 'pending',
@@ -391,7 +405,7 @@ async function createTask(args: any, userId: string, supabase: SupabaseClient) {
   };
 }
 
-async function bulkCreateTasks(args: any, userId: string, supabase: SupabaseClient) {
+async function bulkCreateTasks(args: Record<string, unknown>, userId: string, supabase: SupabaseClient) {
   const { goalDescription, deadline, estimatedHours } = args;
 
   // Break down goal into tasks (simplified)
@@ -425,7 +439,7 @@ async function bulkCreateTasks(args: any, userId: string, supabase: SupabaseClie
   };
 }
 
-async function rescheduleTasks(args: any, userId: string, supabase: SupabaseClient) {
+async function rescheduleTasks(args: Record<string, unknown>, userId: string, supabase: SupabaseClient) {
   const { taskIds, reason } = args;
 
   // Simple reschedule (add 2 days to each)
@@ -457,7 +471,7 @@ async function rescheduleTasks(args: any, userId: string, supabase: SupabaseClie
   };
 }
 
-async function suggestNextTask(args: any, userId: string, supabase: SupabaseClient) {
+async function suggestNextTask(args: Record<string, unknown>, userId: string, supabase: SupabaseClient) {
   const { currentTime, availableHours } = args;
 
   const { data: tasks } = await supabase
@@ -485,7 +499,7 @@ async function suggestNextTask(args: any, userId: string, supabase: SupabaseClie
   };
 }
 
-async function analyzeTaskLoad(args: any, userId: string, supabase: SupabaseClient) {
+async function analyzeTaskLoad(args: Record<string, unknown>, userId: string, supabase: SupabaseClient) {
   const { data: tasks } = await supabase
     .from('unified_tasks')
     .select('*')
@@ -511,7 +525,7 @@ async function analyzeTaskLoad(args: any, userId: string, supabase: SupabaseClie
 
 // ============= INTERVIEW PREP TOOLS =============
 
-async function generateInterviewQuestions(args: any, userId: string, supabase: SupabaseClient) {
+async function generateInterviewQuestions(args: Record<string, unknown>, userId: string, supabase: SupabaseClient) {
   const { companyName, role, interviewType } = args;
 
   const questions = {
@@ -549,7 +563,7 @@ async function generateInterviewQuestions(args: any, userId: string, supabase: S
   };
 }
 
-async function researchCompany(args: any, userId: string, supabase: SupabaseClient) {
+async function researchCompany(args: Record<string, unknown>, userId: string, supabase: SupabaseClient) {
   const { companyName, jobId } = args;
 
   // Get company data from database
@@ -576,7 +590,7 @@ async function researchCompany(args: any, userId: string, supabase: SupabaseClie
   };
 }
 
-async function createInterviewBriefing(args: any, userId: string, supabase: SupabaseClient) {
+async function createInterviewBriefing(args: Record<string, unknown>, userId: string, supabase: SupabaseClient) {
   const { applicationId, interviewDate } = args;
 
   const { data: application } = await supabase
@@ -617,7 +631,7 @@ async function createInterviewBriefing(args: any, userId: string, supabase: Supa
 
 // ============= MESSAGING TOOLS =============
 
-async function draftMessage(args: any, userId: string, supabase: SupabaseClient) {
+async function draftMessage(args: Record<string, unknown>, userId: string, supabase: SupabaseClient) {
   const { recipientId, messageType, context, tone } = args;
 
   // Get recipient info
@@ -651,7 +665,7 @@ async function draftMessage(args: any, userId: string, supabase: SupabaseClient)
   };
 }
 
-async function sendMessage(args: any, userId: string, supabase: SupabaseClient) {
+async function sendMessage(args: Record<string, unknown>, userId: string, supabase: SupabaseClient) {
   const { conversationId, content, attachments } = args;
 
   const { data: message, error } = await supabase
@@ -673,7 +687,7 @@ async function sendMessage(args: any, userId: string, supabase: SupabaseClient) 
   };
 }
 
-async function scheduleFollowUp(args: any, userId: string, supabase: SupabaseClient) {
+async function scheduleFollowUp(args: Record<string, unknown>, userId: string, supabase: SupabaseClient) {
   const { conversationId, content, sendAt } = args;
 
   // Create a task as a reminder
@@ -691,7 +705,7 @@ async function scheduleFollowUp(args: any, userId: string, supabase: SupabaseCli
   };
 }
 
-async function analyzeConversationSentiment(args: any, userId: string, supabase: SupabaseClient) {
+async function analyzeConversationSentiment(args: Record<string, unknown>, userId: string, supabase: SupabaseClient) {
   const { conversationId } = args;
 
   const { data: messages } = await supabase
@@ -717,7 +731,7 @@ async function analyzeConversationSentiment(args: any, userId: string, supabase:
 
 // ============= CALENDAR TOOLS =============
 
-async function createBookingLink(args: any, userId: string, supabase: SupabaseClient) {
+async function createBookingLink(args: Record<string, unknown>, userId: string, supabase: SupabaseClient) {
   const { title, duration, bufferTime, description } = args;
 
   const { data: bookingLink, error } = await supabase
@@ -741,7 +755,7 @@ async function createBookingLink(args: any, userId: string, supabase: SupabaseCl
   };
 }
 
-async function suggestMeetingTimes(args: any, userId: string, supabase: SupabaseClient) {
+async function suggestMeetingTimes(args: Record<string, unknown>, userId: string, supabase: SupabaseClient) {
   const { participantIds, duration, preferredDays } = args;
 
   // Get user's existing bookings
@@ -767,7 +781,7 @@ async function suggestMeetingTimes(args: any, userId: string, supabase: Supabase
 
 // ============= MEETING SCHEDULING TOOLS (AI-POWERED) =============
 
-async function scheduleMeeting(args: any, userId: string, supabase: SupabaseClient) {
+async function scheduleMeeting(args: Record<string, unknown>, userId: string, supabase: SupabaseClient) {
   const { title, description, participants, date, time, duration, timezone, enableNotetaker, accessType } = args;
 
   // Parse date and time
@@ -835,7 +849,7 @@ async function scheduleMeeting(args: any, userId: string, supabase: SupabaseClie
   };
 }
 
-async function findFreeSlots(args: any, userId: string, supabase: SupabaseClient) {
+async function findFreeSlots(args: Record<string, unknown>, userId: string, supabase: SupabaseClient) {
   const { duration, startDate, endDate, participantIds, workingHours } = args;
 
   const start = new Date(startDate);
@@ -943,7 +957,7 @@ async function findFreeSlots(args: any, userId: string, supabase: SupabaseClient
   };
 }
 
-async function checkMeetingConflicts(args: any, userId: string, supabase: SupabaseClient) {
+async function checkMeetingConflicts(args: Record<string, unknown>, userId: string, supabase: SupabaseClient) {
   const { proposedDate, proposedTime, duration, participantIds } = args;
 
   const meetingStart = new Date(`${proposedDate}T${proposedTime}`);
@@ -965,7 +979,7 @@ async function checkMeetingConflicts(args: any, userId: string, supabase: Supaba
     .lte('scheduled_start', new Date(meetingEnd.getTime() + 30 * 60 * 1000).toISOString());
 
   const conflicts = [];
-  const softConflicts: any[] = [];
+  const softConflicts: { title: string; time: string; source: string }[] = [];
 
   // Check for hard conflicts (direct overlaps)
   for (const meeting of meetings || []) {
@@ -1004,7 +1018,7 @@ async function checkMeetingConflicts(args: any, userId: string, supabase: Supaba
   }
 
   // Find alternative slots if conflicts exist
-  let alternatives: any[] = [];
+  let alternatives: { date: string; time: string; datetime: string; score: number; reason: string }[] = [];
   if (conflicts.length > 0) {
     const slotsResult = await findFreeSlots({
       duration,
@@ -1028,7 +1042,7 @@ async function checkMeetingConflicts(args: any, userId: string, supabase: Supaba
   };
 }
 
-async function rescheduleMeeting(args: any, userId: string, supabase: SupabaseClient) {
+async function rescheduleMeeting(args: Record<string, unknown>, userId: string, supabase: SupabaseClient) {
   const { meetingId, newDate, newTime, newDuration, reason } = args;
 
   // Get meeting
@@ -1071,7 +1085,7 @@ async function rescheduleMeeting(args: any, userId: string, supabase: SupabaseCl
   };
 }
 
-async function cancelMeeting(args: any, userId: string, supabase: SupabaseClient) {
+async function cancelMeeting(args: Record<string, unknown>, userId: string, supabase: SupabaseClient) {
   const { meetingId, reason, notifyParticipants } = args;
 
   // Get meeting
@@ -1118,7 +1132,7 @@ async function cancelMeeting(args: any, userId: string, supabase: SupabaseClient
 
 // ============= TALENT POOL TOOLS =============
 
-async function searchTalentPool(args: any, userId: string, supabase: SupabaseClient) {
+async function searchTalentPool(args: Record<string, unknown>, userId: string, supabase: SupabaseClient) {
   const { query, tier, minMoveProbability, limit = 10, industries, locations } = args;
   
   let dbQuery = supabase
@@ -1156,7 +1170,7 @@ async function searchTalentPool(args: any, userId: string, supabase: SupabaseCli
   };
 }
 
-async function getCandidateMoveProbability(args: any, userId: string, supabase: SupabaseClient) {
+async function getCandidateMoveProbability(args: Record<string, unknown>, userId: string, supabase: SupabaseClient) {
   const { candidateId, recalculate } = args;
   
   // If recalculate requested, call the edge function
@@ -1204,7 +1218,7 @@ async function getCandidateMoveProbability(args: any, userId: string, supabase: 
   };
 }
 
-async function getCandidatesNeedingAttention(args: any, userId: string, supabase: SupabaseClient) {
+async function getCandidatesNeedingAttention(args: Record<string, unknown>, userId: string, supabase: SupabaseClient) {
   const { limit = 10, daysSinceContact = 14, strategistId } = args;
   
   const cutoffDate = new Date();
@@ -1243,7 +1257,7 @@ async function getCandidatesNeedingAttention(args: any, userId: string, supabase
   };
 }
 
-async function logCandidateTouchpoint(args: any, userId: string, supabase: SupabaseClient) {
+async function logCandidateTouchpoint(args: Record<string, unknown>, userId: string, supabase: SupabaseClient) {
   const { candidateId, touchpointType, notes, responseReceived, requiresResponse, nextActionDate } = args;
   
   // Insert interaction record
@@ -1277,7 +1291,7 @@ async function logCandidateTouchpoint(args: any, userId: string, supabase: Supab
   };
 }
 
-async function updateCandidateTier(args: any, userId: string, supabase: SupabaseClient) {
+async function updateCandidateTier(args: Record<string, unknown>, userId: string, supabase: SupabaseClient) {
   const { candidateId, newTier, reason } = args;
   
   // Get current tier for logging
@@ -1317,7 +1331,7 @@ async function updateCandidateTier(args: any, userId: string, supabase: Supabase
 
 // ============= COMMUNICATION INTELLIGENCE TOOLS =============
 
-async function searchCommunications(args: any, userId: string, supabase: SupabaseClient) {
+async function searchCommunications(args: Record<string, unknown>, userId: string, supabase: SupabaseClient) {
   const { query, channel = 'all', entity_type, entity_id, date_range = 'last_30_days' } = args;
   
   // Calculate date filter
@@ -1413,7 +1427,7 @@ async function searchCommunications(args: any, userId: string, supabase: Supabas
   };
 }
 
-async function getEntityCommunicationSummary(args: any, userId: string, supabase: SupabaseClient) {
+async function getEntityCommunicationSummary(args: Record<string, unknown>, userId: string, supabase: SupabaseClient) {
   const { entity_type, entity_id } = args;
   
   // Get relationship score
@@ -1517,7 +1531,7 @@ async function getEntityCommunicationSummary(args: any, userId: string, supabase
   };
 }
 
-async function getRelationshipHealth(args: any, userId: string, supabase: SupabaseClient) {
+async function getRelationshipHealth(args: Record<string, unknown>, userId: string, supabase: SupabaseClient) {
   const { risk_level = 'all', entity_type, limit = 20 } = args;
   
   let query = supabase

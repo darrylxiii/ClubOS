@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent } from '@/components/ui/card';
@@ -25,6 +26,7 @@ interface MatchedCandidatesTabProps {
 }
 
 export function MatchedCandidatesTab({ jobId }: MatchedCandidatesTabProps) {
+  const { t } = useTranslation('common');
   const [matches, setMatches] = useState<MatchedCandidate[]>([]);
   const [loading, setLoading] = useState(true);
   const [generatingMatches, setGeneratingMatches] = useState(false);
@@ -86,10 +88,10 @@ export function MatchedCandidatesTab({ jobId }: MatchedCandidatesTabProps) {
       });
       if (error) throw error;
       await loadMatches();
-      toast.success('Talent matches generated successfully!');
+      toast.success(t("talent_matches_generated_successfully", "Talent matches generated successfully!"));
     } catch (error) {
       console.error('Error generating matches:', error);
-      toast.error('Failed to generate matches');
+      toast.error(t("failed_to_generate_matches", "Failed to generate matches"));
     } finally {
       setGeneratingMatches(false);
     }

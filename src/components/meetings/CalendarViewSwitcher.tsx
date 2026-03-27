@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Button } from "@/components/ui/button";
 import { 
   Calendar, CalendarDays, List, Clock, 
@@ -19,6 +20,7 @@ export function CalendarViewSwitcher({
   selectedDate,
   onDateChange,
 }: CalendarViewSwitcherProps) {
+  const { t } = useTranslation('common');
   
   const navigateDate = (direction: 'prev' | 'next') => {
     let newDate = selectedDate;
@@ -106,7 +108,7 @@ export function CalendarViewSwitcher({
           className="gap-2"
         >
           <Clock className="h-4 w-4" />
-          <span className="hidden sm:inline">Day</span>
+          <span className="hidden sm:inline">{t("day", "Day")}</span>
         </Button>
         <Button
           size="sm"
@@ -115,7 +117,7 @@ export function CalendarViewSwitcher({
           className="gap-2"
         >
           <CalendarDays className="h-4 w-4" />
-          <span className="hidden sm:inline">Week</span>
+          <span className="hidden sm:inline">{t("week", "Week")}</span>
         </Button>
         <Button
           size="sm"
@@ -124,7 +126,7 @@ export function CalendarViewSwitcher({
           className="gap-2"
         >
           <Calendar className="h-4 w-4" />
-          <span className="hidden sm:inline">Month</span>
+          <span className="hidden sm:inline">{t("month", "Month")}</span>
         </Button>
         <Button
           size="sm"
@@ -133,7 +135,7 @@ export function CalendarViewSwitcher({
           className="gap-2"
         >
           <List className="h-4 w-4" />
-          <span className="hidden sm:inline">List</span>
+          <span className="hidden sm:inline">{t("list", "List")}</span>
         </Button>
       </div>
 

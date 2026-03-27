@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React from 'react';
 import { useWorkspaceAnalytics } from '@/hooks/usePageActivity';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -21,6 +22,7 @@ interface WorkspaceAnalyticsProps {
 }
 
 export function WorkspaceAnalytics({ workspaceId }: WorkspaceAnalyticsProps) {
+  const { t } = useTranslation('common');
   const { data, isLoading } = useWorkspaceAnalytics(workspaceId, 30);
 
   if (isLoading) {
@@ -64,7 +66,7 @@ export function WorkspaceAnalytics({ workspaceId }: WorkspaceAnalyticsProps) {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{data.totalViews || 0}</div>
-            <p className="text-xs text-muted-foreground">Last 30 days</p>
+            <p className="text-xs text-muted-foreground">{t("last_30_days", "Last 30 days")}</p>
           </CardContent>
         </Card>
 
@@ -77,7 +79,7 @@ export function WorkspaceAnalytics({ workspaceId }: WorkspaceAnalyticsProps) {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{data.totalEdits || 0}</div>
-            <p className="text-xs text-muted-foreground">Last 30 days</p>
+            <p className="text-xs text-muted-foreground">{t("last_30_days", "Last 30 days")}</p>
           </CardContent>
         </Card>
 
@@ -92,15 +94,15 @@ export function WorkspaceAnalytics({ workspaceId }: WorkspaceAnalyticsProps) {
             <div className="text-2xl font-bold">
               {Math.round((data.totalViews || 0) / 30)}
             </div>
-            <p className="text-xs text-muted-foreground">Views per day</p>
+            <p className="text-xs text-muted-foreground">{t("views_per_day", "Views per day")}</p>
           </CardContent>
         </Card>
       </div>
 
       <Tabs defaultValue="top-pages" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="top-pages">Top Pages</TabsTrigger>
-          <TabsTrigger value="recent-activity">Recent Activity</TabsTrigger>
+          <TabsTrigger value="top-pages">{t("top_pages", "Top Pages")}</TabsTrigger>
+          <TabsTrigger value="recent-activity">{t("recent_activity", "Recent Activity")}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="top-pages">

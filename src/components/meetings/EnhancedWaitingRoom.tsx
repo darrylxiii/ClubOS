@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -24,6 +25,7 @@ export function EnhancedWaitingRoom({
   meetingTitle,
   estimatedWaitMinutes = 2
 }: EnhancedWaitingRoomProps) {
+  const { t } = useTranslation('common');
   const [config, setConfig] = useState<WaitingRoomConfig>({});
   const [interviewers, setInterviewers] = useState<string[]>([]);
 
@@ -78,7 +80,7 @@ export function EnhancedWaitingRoom({
           <div className="flex justify-center">
             <img 
               src={config.company_logo_url} 
-              alt="Company Logo" 
+              alt={t("company_logo", "Company Logo")} 
               className="h-16 object-contain"
             />
           </div>
@@ -95,7 +97,7 @@ export function EnhancedWaitingRoom({
 
           <div className="flex items-center justify-center gap-2 pt-4">
             <div className="w-3 h-3 rounded-full bg-yellow-500 animate-pulse" />
-            <p className="text-muted-foreground">Waiting for host to admit you...</p>
+            <p className="text-muted-foreground">{t("waiting_for_host_to", "Waiting for host to admit you...")}</p>
           </div>
         </div>
 
@@ -103,7 +105,7 @@ export function EnhancedWaitingRoom({
           <Card className="p-4 bg-muted/50 flex items-center gap-3">
             <Clock className="w-5 h-5 text-primary" />
             <div>
-              <p className="font-semibold">Estimated wait time</p>
+              <p className="font-semibold">{t("estimated_wait_time", "Estimated wait time")}</p>
               <p className="text-sm text-muted-foreground">
                 Approximately {estimatedWaitMinutes} minute{estimatedWaitMinutes !== 1 ? 's' : ''}
               </p>
@@ -116,7 +118,7 @@ export function EnhancedWaitingRoom({
             <div className="flex items-start gap-3">
               <Users className="w-5 h-5 text-primary shrink-0 mt-0.5" />
               <div className="flex-1">
-                <p className="font-semibold mb-2">Interview Panel</p>
+                <p className="font-semibold mb-2">{t("interview_panel", "Interview Panel")}</p>
                 <div className="flex flex-wrap gap-2">
                   {interviewers.map((name, idx) => (
                     <Badge key={idx} variant="secondary">
@@ -134,7 +136,7 @@ export function EnhancedWaitingRoom({
             <div className="flex items-start gap-3">
               <FileText className="w-5 h-5 text-primary shrink-0 mt-0.5" />
               <div className="flex-1">
-                <p className="font-semibold mb-1">Interview Preparation</p>
+                <p className="font-semibold mb-1">{t("interview_preparation", "Interview Preparation")}</p>
                 <p className="text-sm text-muted-foreground mb-3">
                   Review these materials while you wait
                 </p>
@@ -152,7 +154,7 @@ export function EnhancedWaitingRoom({
         )}
 
         <div className="text-center text-sm text-muted-foreground pt-4 border-t">
-          <p>Having technical issues? Make sure your camera and microphone are enabled.</p>
+          <p>{t("having_technical_issues_make", "Having technical issues? Make sure your camera and microphone are enabled.")}</p>
         </div>
       </Card>
     </div>

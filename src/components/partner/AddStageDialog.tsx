@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -40,6 +41,7 @@ interface AddStageDialogProps {
 }
 
 export function AddStageDialog({ open, onOpenChange, onSave, currentStagesCount, jobId, companyId }: AddStageDialogProps) {
+  const { t } = useTranslation('common');
   const [currentStep, setCurrentStep] = useState("essentials");
   const [completedSteps, setCompletedSteps] = useState<Set<string>>(new Set());
   const [bookingLinks, setBookingLinks] = useState<any[]>([]);
@@ -155,23 +157,23 @@ export function AddStageDialog({ open, onOpenChange, onSave, currentStagesCount,
     switch (stepId) {
       case "essentials":
         if (!stage.name.trim()) {
-          return { valid: false, message: "Stage name is required", field: "stage-name" };
+          return { valid: false, message: t('partner.addstagedialog.stageNameIsRequired', 'Stage name is required'), field: "stage-name" };
         }
         if (!stage.owner) {
-          return { valid: false, message: "Stage ownership is required", field: "stage-owner" };
+          return { valid: false, message: t('partner.addstagedialog.stageOwnershipIsRequired', 'Stage ownership is required'), field: "stage-owner" };
         }
         return { valid: true };
       case "type":
         if (stage.format === "in_person" && !stage.location?.trim()) {
-          return { valid: false, message: "Location is required for in-person stages", field: "location" };
+          return { valid: false, message: t('partner.addstagedialog.locationIsRequiredForInpersonStages', 'Location is required for in-person stages'), field: "location" };
         }
         if (stage.format === "online" && !stage.meeting_link?.trim()) {
-          return { valid: false, message: "Meeting link is required for online stages", field: "meeting-link" };
+          return { valid: false, message: t('partner.addstagedialog.meetingLinkIsRequiredForOnline', 'Meeting link is required for online stages'), field: "meeting-link" };
         }
         return { valid: true };
       case "template":
         if (stage.save_as_template && !stage.template_name?.trim()) {
-          return { valid: false, message: "Template name is required when saving as template", field: "template-name" };
+          return { valid: false, message: t('partner.addstagedialog.templateNameIsRequiredWhenSaving', 'Template name is required when saving as template'), field: "template-name" };
         }
         return { valid: true };
       default:
@@ -230,8 +232,8 @@ export function AddStageDialog({ open, onOpenChange, onSave, currentStagesCount,
         colors: ['#6366f1', '#8b5cf6', '#ec4899']
       });
       
-      toast.success("✨ Pipeline stage added successfully!", {
-        description: "Stage configuration saved and audit logged"
+      toast.success(t("pipeline_stage_added_successfully", "✨ Pipeline stage added successfully!"), {
+        description: t('addStageDialog.desc.stageConfigurationSavedAndAuditLogged')
       });
       
       onOpenChange(false);
@@ -259,13 +261,13 @@ export function AddStageDialog({ open, onOpenChange, onSave, currentStagesCount,
   };
 
   const steps = [
-    { id: "essentials", label: "Essentials", icon: FileText, required: true },
-    { id: "type", label: "Stage Type", icon: Building2, required: true },
-    { id: "scheduling", label: "Scheduling", icon: Calendar, required: false },
-    { id: "team", label: "Team", icon: Users, required: false },
-    { id: "materials", label: "Materials", icon: FileText, required: false },
-    { id: "evaluation", label: "Evaluation", icon: Settings, required: false },
-    { id: "template", label: "Template", icon: BookTemplate, required: false }
+    { id: "essentials", label: t('partner.addstagedialog.essentials', 'Essentials'), icon: FileText, required: true },
+    { id: "type", label: t('partner.addstagedialog.stageType', 'Stage Type'), icon: Building2, required: true },
+    { id: "scheduling", label: t('partner.addstagedialog.scheduling', 'Scheduling'), icon: Calendar, required: false },
+    { id: "team", label: t('partner.addstagedialog.team', 'Team'), icon: Users, required: false },
+    { id: "materials", label: t('partner.addstagedialog.materials', 'Materials'), icon: FileText, required: false },
+    { id: "evaluation", label: t('partner.addstagedialog.evaluation', 'Evaluation'), icon: Settings, required: false },
+    { id: "template", label: t('partner.addstagedialog.template', 'Template'), icon: BookTemplate, required: false }
   ];
 
   const goToNextStep = () => {
@@ -306,12 +308,8 @@ export function AddStageDialog({ open, onOpenChange, onSave, currentStagesCount,
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-foreground">
-            Add New Pipeline Stage
-          </DialogTitle>
-          <p className="text-sm text-muted-foreground">
-            Configure every detail for a luxury, tailored candidate experience
-          </p>
+          <DialogTitle className="text-2xl font-bold text-foreground">{t('addStageDialog.dialogTitle')}</DialogTitle>
+          <p className="text-sm text-muted-foreground">{t('addStageDialog.configureEveryDetailForALuxuryTailoredCa')}</p>
         </DialogHeader>
 
         <div className="mt-6">
@@ -379,8 +377,8 @@ export function AddStageDialog({ open, onOpenChange, onSave, currentStagesCount,
                           </button>
                         </TooltipTrigger>
                         <TooltipContent>
-                          <p>{step.required ? "Required" : "Optional"}</p>
-                          {isCompleted && !stepComplete && <p className="text-xs text-destructive">Incomplete</p>}
+                          <p>{step.required ? t('partner.addstagedialog.required', 'Required') : t('partner.addstagedialog.optional', 'Optional')}</p>
+                          {isCompleted && !stepComplete && <p className="text-xs text-destructive">{t("incomplete", "Incomplete")}</p>}
                         </TooltipContent>
                       </Tooltip>
                       {index < steps.length - 1 && (
@@ -414,7 +412,7 @@ export function AddStageDialog({ open, onOpenChange, onSave, currentStagesCount,
                             <HelpCircle className="w-4 h-4 text-muted-foreground" />
                           </TooltipTrigger>
                           <TooltipContent>
-                            <p>Choose a clear, descriptive name visible to candidates</p>
+                            <p>{t("choose_a_clear_descriptive", "Choose a clear, descriptive name visible to candidates")}</p>
                           </TooltipContent>
                         </Tooltip>
                       </Label>
@@ -423,23 +421,23 @@ export function AddStageDialog({ open, onOpenChange, onSave, currentStagesCount,
                         id="stage-name"
                         value={stage.name}
                         onChange={(e) => updateStage({ name: e.target.value })}
-                        placeholder="e.g., Technical Interview, Culture Fit"
+                        placeholder={t("eg_technical_interview_culture", "e.g., Technical Interview, Culture Fit")}
                         className="h-12"
                         required
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="stage-description">Stage Description</Label>
+                      <Label htmlFor="stage-description">{t("stage_description", "Stage Description")}</Label>
                       <Textarea
                         id="stage-description"
                         value={stage.description}
                         onChange={(e) => updateStage({ description: e.target.value })}
-                        placeholder="Internal notes for the team..."
+                        placeholder={t("internal_notes_for_the", "Internal notes for the team...")}
                         rows={3}
                         className="resize-none"
                       />
-                      <p className="text-xs text-muted-foreground">For internal use only, not visible to candidates</p>
+                      <p className="text-xs text-muted-foreground">{t("for_internal_use_only", "For internal use only, not visible to candidates")}</p>
                     </div>
                   </div>
                 </div>
@@ -458,7 +456,7 @@ export function AddStageDialog({ open, onOpenChange, onSave, currentStagesCount,
                           <HelpCircle className="w-4 h-4 text-muted-foreground" />
                         </TooltipTrigger>
                         <TooltipContent className="max-w-xs">
-                          <p>Quantum Club Elite offers premium vetting and white-glove candidate management</p>
+                          <p>{t("quantum_club_elite_offers", "Quantum Club Elite offers premium vetting and white-glove candidate management")}</p>
                         </TooltipContent>
                       </Tooltip>
                     </Label>
@@ -478,7 +476,7 @@ export function AddStageDialog({ open, onOpenChange, onSave, currentStagesCount,
                             <div className="flex items-center gap-2">
                               <span className="text-primary">✦</span> Quantum Club Elite
                             </div>
-                            <span className="text-xs text-muted-foreground">Premium vetting & candidate management</span>
+                            <span className="text-xs text-muted-foreground">{t("premium_vetting_candidate_management", "Premium vetting & candidate management")}</span>
                           </div>
                         </SelectItem>
                       </SelectContent>
@@ -498,17 +496,17 @@ export function AddStageDialog({ open, onOpenChange, onSave, currentStagesCount,
                         <HelpCircle className="w-4 h-4 text-muted-foreground" />
                       </TooltipTrigger>
                       <TooltipContent>
-                        <p>Choose how this stage will be conducted</p>
+                        <p>{t("choose_how_this_stage", "Choose how this stage will be conducted")}</p>
                       </TooltipContent>
                     </Tooltip>
                   </Label>
                   
                   <div className="grid grid-cols-2 gap-4 mt-4">
                     {[
-                      { value: 'online', icon: Video, label: 'Online/Virtual', desc: 'Video or phone meetings' },
-                      { value: 'in_person', icon: Building2, label: 'In-Person', desc: 'Face-to-face meetings' },
-                      { value: 'hybrid', icon: Users, label: 'Hybrid', desc: 'Flexible format' },
-                      { value: 'assessment', icon: ClipboardList, label: 'Assessment', desc: 'Tests & challenges' }
+                      { value: 'online', icon: Video, label: t('partner.addstagedialog.onlinevirtual', 'Online/Virtual'), desc: 'Video or phone meetings' },
+                      { value: 'in_person', icon: Building2, label: t('partner.addstagedialog.inperson', 'In-Person'), desc: 'Face-to-face meetings' },
+                      { value: 'hybrid', icon: Users, label: t('partner.addstagedialog.hybrid', 'Hybrid'), desc: 'Flexible format' },
+                      { value: 'assessment', icon: ClipboardList, label: t('partner.addstagedialog.assessment', 'Assessment'), desc: 'Tests & challenges' }
                     ].map(({ value, icon: Icon, label, desc }) => (
                       <button
                         key={value}
@@ -540,7 +538,7 @@ export function AddStageDialog({ open, onOpenChange, onSave, currentStagesCount,
                         <Input
                           ref={locationRef}
                           id="location"
-                          placeholder="123 Business St, City, Country"
+                          placeholder={t("123_business_st_city", "123 Business St, City, Country")}
                           value={stage.location || ""}
                           onChange={(e) => updateStage({ location: e.target.value })}
                           className="h-12"
@@ -548,10 +546,10 @@ export function AddStageDialog({ open, onOpenChange, onSave, currentStagesCount,
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="location-details">Additional Details</Label>
+                        <Label htmlFor="location-details">{t("additional_details", "Additional Details")}</Label>
                         <Textarea
                           id="location-details"
-                          placeholder="Building/Room number, Reception instructions, Parking information, Accessibility notes..."
+                          placeholder={t('addStageDialog.placeholder.buildingroomNumberReceptionInstructionsP')}
                           rows={4}
                           className="resize-none"
                         />
@@ -568,15 +566,15 @@ export function AddStageDialog({ open, onOpenChange, onSave, currentStagesCount,
                     </h4>
                     <div className="space-y-4">
                       <div className="space-y-2">
-                        <Label htmlFor="meeting-type">Meeting Type</Label>
+                        <Label htmlFor="meeting-type">{t("meeting_type", "Meeting Type")}</Label>
                         <Select defaultValue="video">
                           <SelectTrigger className="h-12">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="video">Video Call</SelectItem>
-                            <SelectItem value="phone">Phone Call</SelectItem>
-                            <SelectItem value="chat">Chat/Messaging</SelectItem>
+                            <SelectItem value="video">{t("video_call", "Video Call")}</SelectItem>
+                            <SelectItem value="phone">{t("phone_call", "Phone Call")}</SelectItem>
+                            <SelectItem value="chat">{t("chatmessaging", "Chat/Messaging")}</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -585,7 +583,7 @@ export function AddStageDialog({ open, onOpenChange, onSave, currentStagesCount,
                         {bookingLinks.length > 0 ? (
                           <Select value={stage.meeting_link || ""} onValueChange={(value) => updateStage({ meeting_link: value })}>
                             <SelectTrigger id="meeting-link" className="h-12">
-                              <SelectValue placeholder="Select existing link or create new" />
+                              <SelectValue placeholder={t("select_existing_link_or", "Select existing link or create new")} />
                             </SelectTrigger>
                             <SelectContent>
                               {bookingLinks.map((link) => (
@@ -617,10 +615,10 @@ export function AddStageDialog({ open, onOpenChange, onSave, currentStagesCount,
                         )}
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="prep-instructions">Preparation Instructions</Label>
+                        <Label htmlFor="prep-instructions">{t("preparation_instructions", "Preparation Instructions")}</Label>
                         <Textarea
                           id="prep-instructions"
-                          placeholder="What should candidates prepare? Any technical requirements? Dress code?"
+                          placeholder={t("what_should_candidates_prepare", "What should candidates prepare? Any technical requirements? Dress code?")}
                           rows={4}
                           className="resize-none"
                         />
@@ -637,31 +635,31 @@ export function AddStageDialog({ open, onOpenChange, onSave, currentStagesCount,
                     </h4>
                     <div className="space-y-4">
                       <div className="space-y-2">
-                        <Label htmlFor="assessment-type">Assessment Type</Label>
+                        <Label htmlFor="assessment-type">{t("assessment_type", "Assessment Type")}</Label>
                         <Select>
                           <SelectTrigger id="assessment-type" className="h-12">
-                            <SelectValue placeholder="Select assessment type" />
+                            <SelectValue placeholder={t("select_assessment_type", "Select assessment type")} />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="coding">Coding Challenge</SelectItem>
-                            <SelectItem value="technical">Technical Test</SelectItem>
-                            <SelectItem value="personality">Personality Assessment</SelectItem>
-                            <SelectItem value="case">Case Study</SelectItem>
-                            <SelectItem value="portfolio">Portfolio Review</SelectItem>
+                            <SelectItem value="coding">{t("coding_challenge", "Coding Challenge")}</SelectItem>
+                            <SelectItem value="technical">{t("technical_test", "Technical Test")}</SelectItem>
+                            <SelectItem value="personality">{t("personality_assessment", "Personality Assessment")}</SelectItem>
+                            <SelectItem value="case">{t("case_study", "Case Study")}</SelectItem>
+                            <SelectItem value="portfolio">{t("portfolio_review", "Portfolio Review")}</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="platform">Platform</Label>
+                        <Label htmlFor="platform">{t("platform", "Platform")}</Label>
                         <Input
                           id="platform"
-                          placeholder="e.g., HackerRank, LeetCode, Custom"
+                          placeholder={t("eg_hackerrank_leetcode_custom", "e.g., HackerRank, LeetCode, Custom")}
                           className="h-12"
                         />
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <Label htmlFor="time-limit">Time Limit (minutes)</Label>
+                          <Label htmlFor="time-limit">{t("time_limit_minutes", "Time Limit (minutes)")}</Label>
                           <Input
                             id="time-limit"
                             type="number"
@@ -670,15 +668,15 @@ export function AddStageDialog({ open, onOpenChange, onSave, currentStagesCount,
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="difficulty">Difficulty</Label>
+                          <Label htmlFor="difficulty">{t("difficulty", "Difficulty")}</Label>
                           <Select>
                             <SelectTrigger id="difficulty" className="h-12">
-                              <SelectValue placeholder="Select" />
+                              <SelectValue placeholder={t("select", "Select")} />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="easy">Easy</SelectItem>
-                              <SelectItem value="medium">Medium</SelectItem>
-                              <SelectItem value="hard">Hard</SelectItem>
+                              <SelectItem value="easy">{t("easy", "Easy")}</SelectItem>
+                              <SelectItem value="medium">{t("medium", "Medium")}</SelectItem>
+                              <SelectItem value="hard">{t("hard", "Hard")}</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
@@ -693,11 +691,9 @@ export function AddStageDialog({ open, onOpenChange, onSave, currentStagesCount,
                       <Users className="w-5 h-5 text-amber-500" />
                       Hybrid Format Options
                     </h4>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Candidates can choose between online or in-person. Configure both options above or provide flexible instructions.
-                    </p>
+                    <p className="text-sm text-muted-foreground mb-4">{t('addStageDialog.candidatesCanChooseBetweenOnlineOrInpers')}</p>
                     <Textarea
-                      placeholder="Explain hybrid options to candidates..."
+                      placeholder={t("explain_hybrid_options_to", "Explain hybrid options to candidates...")}
                       rows={3}
                       className="resize-none"
                     />
@@ -716,7 +712,7 @@ export function AddStageDialog({ open, onOpenChange, onSave, currentStagesCount,
                   
                   <div className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="duration">Duration (minutes)</Label>
+                      <Label htmlFor="duration">{t("duration_minutes", "Duration (minutes)")}</Label>
                       <Input
                         id="duration"
                         type="number"
@@ -725,7 +721,7 @@ export function AddStageDialog({ open, onOpenChange, onSave, currentStagesCount,
                         placeholder="60"
                         className="h-12"
                       />
-                      <p className="text-xs text-muted-foreground">Typical duration for this stage</p>
+                      <p className="text-xs text-muted-foreground">{t("typical_duration_for_this", "Typical duration for this stage")}</p>
                     </div>
                   </div>
                 </div>
@@ -738,21 +734,15 @@ export function AddStageDialog({ open, onOpenChange, onSave, currentStagesCount,
                   <div className="space-y-3">
                     <div className="flex items-center space-x-3 p-3 rounded-lg hover:bg-muted/50 transition-colors">
                       <Checkbox id="self-schedule" />
-                      <label htmlFor="self-schedule" className="text-sm cursor-pointer flex-1">
-                        Allow candidate self-scheduling
-                      </label>
+                      <label htmlFor="self-schedule" className="text-sm cursor-pointer flex-1">{t('partner.addstagedialog.allowCandidateSelfscheduling', 'Allow candidate self-scheduling')}</label>
                     </div>
                     <div className="flex items-center space-x-3 p-3 rounded-lg hover:bg-muted/50 transition-colors">
                       <Checkbox id="approval" />
-                      <label htmlFor="approval" className="text-sm cursor-pointer flex-1">
-                        Require approval before scheduling
-                      </label>
+                      <label htmlFor="approval" className="text-sm cursor-pointer flex-1">{t('partner.addstagedialog.requireApprovalBeforeScheduling', 'Require approval before scheduling')}</label>
                     </div>
                     <div className="flex items-center space-x-3 p-3 rounded-lg hover:bg-muted/50 transition-colors">
                       <Checkbox id="buffer" />
-                      <label htmlFor="buffer" className="text-sm cursor-pointer flex-1">
-                        Add buffer time between interviews
-                      </label>
+                      <label htmlFor="buffer" className="text-sm cursor-pointer flex-1">{t('partner.addstagedialog.addBufferTimeBetweenInterviews', 'Add buffer time between interviews')}</label>
                     </div>
                   </div>
                 </div>
@@ -766,10 +756,10 @@ export function AddStageDialog({ open, onOpenChange, onSave, currentStagesCount,
                     <Users className="w-5 h-5 text-primary" />
                     Assign Interviewers/Evaluators
                   </h4>
-                  <p className="text-sm text-muted-foreground">Select from your company team and Quantum Club strategists</p>
+                  <p className="text-sm text-muted-foreground">{t("select_from_your_company", "Select from your company team and Quantum Club strategists")}</p>
                   <Select>
                     <SelectTrigger className="h-12">
-                      <SelectValue placeholder="Select team members..." />
+                      <SelectValue placeholder={t("select_team_members", "Select team members...")} />
                     </SelectTrigger>
                     <SelectContent className="max-h-[300px]">
                       {teamMembers.length > 0 ? (
@@ -784,9 +774,7 @@ export function AddStageDialog({ open, onOpenChange, onSave, currentStagesCount,
                           </SelectItem>
                         ))
                       ) : (
-                        <SelectItem value="no-members" disabled>
-                          No team members available
-                        </SelectItem>
+                        <SelectItem value="no-members" disabled>{t('addStageDialog.option.noTeamMembersAvailable')}</SelectItem>
                       )}
                     </SelectContent>
                   </Select>
@@ -805,21 +793,15 @@ export function AddStageDialog({ open, onOpenChange, onSave, currentStagesCount,
                   <div className="space-y-3">
                     <div className="flex items-center space-x-3 p-3 rounded-lg hover:bg-muted/50 transition-colors">
                       <Checkbox id="notify-team" defaultChecked />
-                      <label htmlFor="notify-team" className="text-sm cursor-pointer flex-1">
-                        Notify team when candidate enters stage
-                      </label>
+                      <label htmlFor="notify-team" className="text-sm cursor-pointer flex-1">{t('partner.addstagedialog.notifyTeamWhenCandidateEntersStage', 'Notify team when candidate enters stage')}</label>
                     </div>
                     <div className="flex items-center space-x-3 p-3 rounded-lg hover:bg-muted/50 transition-colors">
                       <Checkbox id="notify-candidate" defaultChecked />
-                      <label htmlFor="notify-candidate" className="text-sm cursor-pointer flex-1">
-                        Send automated email to candidate
-                      </label>
+                      <label htmlFor="notify-candidate" className="text-sm cursor-pointer flex-1">{t('partner.addstagedialog.sendAutomatedEmailToCandidate', 'Send automated email to candidate')}</label>
                     </div>
                     <div className="flex items-center space-x-3 p-3 rounded-lg hover:bg-muted/50 transition-colors">
                       <Checkbox id="reminders" defaultChecked />
-                      <label htmlFor="reminders" className="text-sm cursor-pointer flex-1">
-                        Send reminders
-                      </label>
+                      <label htmlFor="reminders" className="text-sm cursor-pointer flex-1">{t('partner.addstagedialog.sendReminders', 'Send reminders')}</label>
                     </div>
                   </div>
                 </div>
@@ -834,11 +816,11 @@ export function AddStageDialog({ open, onOpenChange, onSave, currentStagesCount,
                     Materials Required from Candidates
                   </h4>
                   <Textarea 
-                    placeholder="List materials candidates should prepare (portfolio, references, certificates, etc.)" 
+                    placeholder={t('addStageDialog.placeholder.listMaterialsCandidatesShouldPreparePort')} 
                     rows={5}
                     className="resize-none"
                   />
-                  <p className="text-xs text-muted-foreground">This will be shown to candidates when they enter this stage</p>
+                  <p className="text-xs text-muted-foreground">{t("this_will_be_shown", "This will be shown to candidates when they enter this stage")}</p>
                 </div>
 
                 <div className="space-y-4 p-6 rounded-xl bg-muted/30 border">
@@ -846,7 +828,7 @@ export function AddStageDialog({ open, onOpenChange, onSave, currentStagesCount,
                     <LinkIcon className="w-5 h-5" />
                     Resources to Share
                   </h4>
-                  <p className="text-sm text-muted-foreground">Attach files, links, or guides for candidates</p>
+                  <p className="text-sm text-muted-foreground">{t("attach_files_links_or", "Attach files, links, or guides for candidates")}</p>
                   <Button variant="outline" className="w-full h-12 border-dashed hover:border-primary hover:bg-primary/5">
                     <FileText className="w-4 h-4 mr-2" />
                     Upload Files or Add Links
@@ -863,18 +845,16 @@ export function AddStageDialog({ open, onOpenChange, onSave, currentStagesCount,
                     Evaluation Criteria
                   </h3>
                   <div className="space-y-2">
-                    <Label htmlFor="criteria">Define Scoring & Feedback Requirements</Label>
+                    <Label htmlFor="criteria">{t("define_scoring_feedback_requirements", "Define Scoring & Feedback Requirements")}</Label>
                     <Textarea
                       id="criteria"
                       value={stage.evaluation_criteria}
                       onChange={(e) => updateStage({ evaluation_criteria: e.target.value })}
-                      placeholder="Define scoring criteria, rubric, or required feedback fields..."
+                      placeholder={t("define_scoring_criteria_rubric", "Define scoring criteria, rubric, or required feedback fields...")}
                       rows={5}
                       className="resize-none"
                     />
-                    <p className="text-xs text-muted-foreground">
-                      This helps evaluators provide consistent, structured feedback
-                    </p>
+                    <p className="text-xs text-muted-foreground">{t('addStageDialog.thisHelpsEvaluatorsProvideConsistentStru')}</p>
                   </div>
                 </div>
 
@@ -885,7 +865,7 @@ export function AddStageDialog({ open, onOpenChange, onSave, currentStagesCount,
                   </h4>
                   <div className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="weight">Stage Weight (for analytics)</Label>
+                      <Label htmlFor="weight">{t("stage_weight_for_analytics", "Stage Weight (for analytics)")}</Label>
                       <div className="flex items-center gap-4">
                         <Input 
                           id="weight"
@@ -900,15 +880,11 @@ export function AddStageDialog({ open, onOpenChange, onSave, currentStagesCount,
                     </div>
                     <div className="flex items-center space-x-3 p-3 rounded-lg hover:bg-muted/50 transition-colors">
                       <Checkbox id="auto-advance" />
-                      <label htmlFor="auto-advance" className="text-sm cursor-pointer flex-1">
-                        Auto-advance on passing score
-                      </label>
+                      <label htmlFor="auto-advance" className="text-sm cursor-pointer flex-1">{t('partner.addstagedialog.autoadvanceOnPassingScore', 'Auto-advance on passing score')}</label>
                     </div>
                     <div className="flex items-center space-x-3 p-3 rounded-lg hover:bg-muted/50 transition-colors">
                       <Checkbox id="gdpr" defaultChecked />
-                      <label htmlFor="gdpr" className="text-sm cursor-pointer flex-1">
-                        Include GDPR consent form
-                      </label>
+                      <label htmlFor="gdpr" className="text-sm cursor-pointer flex-1">{t('partner.addstagedialog.includeGdprConsentForm', 'Include GDPR consent form')}</label>
                     </div>
                   </div>
                 </div>
@@ -924,37 +900,35 @@ export function AddStageDialog({ open, onOpenChange, onSave, currentStagesCount,
                       checked={stage.save_as_template}
                       onCheckedChange={(checked) => updateStage({ save_as_template: checked as boolean })}
                     />
-                    <label htmlFor="save-template" className="text-sm font-medium">
-                      Save this stage as a reusable template
-                    </label>
+                    <label htmlFor="save-template" className="text-sm font-medium">{t('partner.addstagedialog.saveThisStageAsAReusable', 'Save this stage as a reusable template')}</label>
                   </div>
 
                   {stage.save_as_template && (
                     <div className="space-y-4 mt-4 pl-6 animate-fade-in">
                       <div className="space-y-2">
                         <Label htmlFor="template-name">
-                          Template Name <span className="text-destructive">*</span>
+                          {t('partner.addstagedialog.templateName', 'Template Name')} <span className="text-destructive">*</span>
                         </Label>
                         <Input
                           ref={templateNameRef}
                           id="template-name"
                           value={stage.template_name}
                           onChange={(e) => updateStage({ template_name: e.target.value })}
-                          placeholder="e.g., Standard Technical Interview"
+                          placeholder={t("eg_standard_technical_interview", "e.g., Standard Technical Interview")}
                           required={stage.save_as_template}
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label>Category</Label>
+                        <Label>{t("category", "Category")}</Label>
                         <Select>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select category" />
+                            <SelectValue placeholder={t("select_category", "Select category")} />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="technical">Technical</SelectItem>
-                            <SelectItem value="behavioral">Behavioral</SelectItem>
-                            <SelectItem value="assessment">Assessment</SelectItem>
-                            <SelectItem value="culture">Culture Fit</SelectItem>
+                            <SelectItem value="technical">{t("technical", "Technical")}</SelectItem>
+                            <SelectItem value="behavioral">{t("behavioral", "Behavioral")}</SelectItem>
+                            <SelectItem value="assessment">{t("assessment", "Assessment")}</SelectItem>
+                            <SelectItem value="culture">{t("culture_fit", "Culture Fit")}</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -967,12 +941,8 @@ export function AddStageDialog({ open, onOpenChange, onSave, currentStagesCount,
                     <BookTemplate className="w-5 h-5" />
                     Browse Template Library
                   </h4>
-                  <p className="text-sm text-muted-foreground">
-                    Quick-start with pre-configured stage templates
-                  </p>
-                  <Button variant="outline" className="w-full">
-                    View Template Library
-                  </Button>
+                  <p className="text-sm text-muted-foreground">{t('addStageDialog.quickstartWithPreconfiguredStageTemplate')}</p>
+                  <Button variant="outline" className="w-full">{t('partner.addstagedialog.viewTemplateLibrary', 'View Template Library')}</Button>
                 </div>
               </div>
             )}
@@ -993,7 +963,7 @@ export function AddStageDialog({ open, onOpenChange, onSave, currentStagesCount,
             size="lg"
             className="w-full sm:w-auto"
           >
-            Previous
+            {t('partner.addstagedialog.previous', 'Previous')}
           </Button>
 
           <div className="flex gap-2 w-full sm:w-auto">
@@ -1003,7 +973,7 @@ export function AddStageDialog({ open, onOpenChange, onSave, currentStagesCount,
                 className="bg-gradient-to-r from-primary to-secondary hover:opacity-90 flex-1 sm:flex-initial"
                 size="lg"
               >
-                Next Step
+                {t('partner.addstagedialog.nextStep', 'Next Step')}
                 <ChevronRight className="w-4 h-4 ml-2" />
               </Button>
             ) : (

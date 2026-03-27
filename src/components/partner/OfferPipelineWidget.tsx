@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -25,6 +26,7 @@ interface PendingOffer {
 }
 
 export function OfferPipelineWidget({ companyId }: OfferPipelineWidgetProps) {
+  const { t } = useTranslation('common');
   const { data: offers, isLoading } = useQuery({
     queryKey: ['pending-offers', companyId],
     queryFn: async () => {
@@ -106,7 +108,7 @@ export function OfferPipelineWidget({ companyId }: OfferPipelineWidgetProps) {
               <div className="p-2 rounded-lg bg-primary/10">
                 <FileText className="h-5 w-5 text-primary" />
               </div>
-              <span className="text-lg font-semibold">Pending Offers</span>
+              <span className="text-lg font-semibold">{t("pending_offers", "Pending Offers")}</span>
             </span>
             {urgentOffers.length > 0 && (
               <Badge variant="destructive" className="flex items-center gap-1">
@@ -121,8 +123,8 @@ export function OfferPipelineWidget({ companyId }: OfferPipelineWidgetProps) {
           {(!offers || offers.length === 0) && (
             <div className="text-center py-8 text-muted-foreground">
               <FileText className="h-8 w-8 mx-auto mb-2 opacity-50" />
-              <p className="font-medium">No pending offers</p>
-              <p className="text-sm">Offers extended to candidates will appear here</p>
+              <p className="font-medium">{t("no_pending_offers", "No pending offers")}</p>
+              <p className="text-sm">{t("offers_extended_to_candidates", "Offers extended to candidates will appear here")}</p>
             </div>
           )}
 
@@ -158,9 +160,7 @@ export function OfferPipelineWidget({ companyId }: OfferPipelineWidgetProps) {
                   <div className="flex items-center gap-2">
                     <p className="font-medium truncate">{offer.candidate_name}</p>
                     {isUrgent && (
-                      <Badge variant="destructive" className="text-xs px-1.5 py-0">
-                        Urgent
-                      </Badge>
+                      <Badge variant="destructive" className="text-xs px-1.5 py-0">{t('offerPipelineWidget.badge.urgent')}</Badge>
                     )}
                   </div>
                   <p className="text-sm text-muted-foreground truncate">

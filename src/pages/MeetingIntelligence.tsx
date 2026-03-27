@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ErrorState } from '@/components/ui/error-state';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -41,6 +42,7 @@ interface MeetingWithInsights {
 }
 
 export default function MeetingIntelligence() {
+  const { t } = useTranslation('meetings');
   const { user } = useAuth();
   const navigate = useNavigate();
   
@@ -140,7 +142,7 @@ export default function MeetingIntelligence() {
     } catch (error) {
       console.error('Error loading meetings:', error);
       setFetchError('Failed to load meeting intelligence data');
-      toast.error('Failed to load meetings');
+      toast.error("Failed to load meetings");
     } finally {
       setIsLoading(false);
     }
@@ -209,7 +211,7 @@ export default function MeetingIntelligence() {
       autoAnalysisEnabled
     };
     localStorage.setItem('club_ai_notetaker_settings', JSON.stringify(settings));
-    toast.success('Settings saved');
+    toast.success("Settings saved");
   };
 
   const filterMeetings = () => {
@@ -244,7 +246,7 @@ export default function MeetingIntelligence() {
   if (fetchError && meetings.length === 0) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <ErrorState variant="page" title="Meeting Intelligence Unavailable" message={fetchError} onRetry={loadMeetings} />
+        <ErrorState variant="page" title={t('meetingIntelligence.text10')} message={fetchError} onRetry={loadMeetings} />
       </div>
     );
   }
@@ -259,9 +261,7 @@ export default function MeetingIntelligence() {
               <Bot className="h-10 w-10 text-purple-500" />
               Meeting Intelligence
             </h1>
-            <p className="text-muted-foreground mt-2">
-              All your meetings, transcribed and analyzed by Club AI
-            </p>
+            <p className="text-muted-foreground mt-2">{t('meetingIntelligence.desc')}</p>
           </div>
           <Button onClick={() => navigate('/meetings')} size="lg">
             <Calendar className="h-4 w-4 mr-2" />
@@ -355,7 +355,7 @@ export default function MeetingIntelligence() {
                   <div className="flex-1 relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
-                      placeholder="Search meetings, topics, or insights..."
+                      placeholder={t('meetingIntelligence.text11')}
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       className="pl-10"
@@ -392,14 +392,14 @@ export default function MeetingIntelligence() {
               <Card>
                 <CardContent className="py-12 text-center">
                   <Bot className="h-12 w-12 mx-auto mb-4 animate-pulse text-purple-500" />
-                  <p className="text-muted-foreground">Loading your meetings...</p>
+                  <p className="text-muted-foreground">{t('meetingIntelligence.text12')}</p>
                 </CardContent>
               </Card>
             ) : filteredMeetings.length === 0 ? (
               <Card>
                 <CardContent className="py-12 text-center">
                   <Video className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                  <h3 className="text-lg font-semibold mb-2">No meetings found</h3>
+                  <h3 className="text-lg font-semibold mb-2">{t('meetingIntelligence.text13')}</h3>
                   <p className="text-muted-foreground mb-4">
                     {searchQuery || filterStatus !== 'all'
                       ? 'Try adjusting your filters'
@@ -603,7 +603,7 @@ export default function MeetingIntelligence() {
                     return (
                       <div className="text-center py-8 text-muted-foreground">
                         <MessageSquare className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                        <p>No topics analyzed yet</p>
+                        <p>{t('meetingIntelligence.text14')}</p>
                       </div>
                     );
                   }
@@ -648,7 +648,7 @@ export default function MeetingIntelligence() {
                     return (
                       <div className="text-center py-8 text-muted-foreground">
                         <BarChart3 className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                        <p>No sentiment data available</p>
+                        <p>{t('meetingIntelligence.text15')}</p>
                       </div>
                     );
                   }
@@ -656,7 +656,7 @@ export default function MeetingIntelligence() {
                   return (
                     <div className="space-y-4">
                       <div className="flex items-center gap-3">
-                        <span className="w-20 text-sm">Positive</span>
+                        <span className="w-20 text-sm">{t('meetingIntelligence.text16')}</span>
                         <div className="flex-1 bg-muted rounded-full h-3">
                           <div 
                             className="bg-green-500 h-3 rounded-full transition-all" 
@@ -666,7 +666,7 @@ export default function MeetingIntelligence() {
                         <span className="w-12 text-sm text-right">{sentiments.positive}</span>
                       </div>
                       <div className="flex items-center gap-3">
-                        <span className="w-20 text-sm">Neutral</span>
+                        <span className="w-20 text-sm">{t('meetingIntelligence.text17')}</span>
                         <div className="flex-1 bg-muted rounded-full h-3">
                           <div 
                             className="bg-yellow-500 h-3 rounded-full transition-all" 
@@ -676,7 +676,7 @@ export default function MeetingIntelligence() {
                         <span className="w-12 text-sm text-right">{sentiments.neutral}</span>
                       </div>
                       <div className="flex items-center gap-3">
-                        <span className="w-20 text-sm">Negative</span>
+                        <span className="w-20 text-sm">{t('meetingIntelligence.text18')}</span>
                         <div className="flex-1 bg-muted rounded-full h-3">
                           <div 
                             className="bg-red-500 h-3 rounded-full transition-all" 
@@ -707,10 +707,8 @@ export default function MeetingIntelligence() {
               <CardContent className="space-y-6">
                 <div className="flex items-center justify-between">
                   <div className="space-y-1">
-                    <Label htmlFor="auto-join">Auto-join meetings</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Club AI will automatically join meetings when enabled during creation
-                    </p>
+                    <Label htmlFor="auto-join">{t('meetingIntelligence.text19')}</Label>
+                    <p className="text-sm text-muted-foreground">{t('meetingIntelligence.desc2')}</p>
                   </div>
                   <Switch
                     id="auto-join"
@@ -723,10 +721,8 @@ export default function MeetingIntelligence() {
 
                 <div className="flex items-center justify-between">
                   <div className="space-y-1">
-                    <Label htmlFor="auto-analysis">Automatic analysis</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Generate insights, action items, and summaries after each meeting
-                    </p>
+                    <Label htmlFor="auto-analysis">{t('meetingIntelligence.text20')}</Label>
+                    <p className="text-sm text-muted-foreground">{t('meetingIntelligence.desc3')}</p>
                   </div>
                   <Switch
                     id="auto-analysis"
@@ -739,10 +735,8 @@ export default function MeetingIntelligence() {
 
                 <div className="flex items-center justify-between">
                   <div className="space-y-1">
-                    <Label htmlFor="notifications">Notifications</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Get notified when meeting analysis is complete
-                    </p>
+                    <Label htmlFor="notifications">{t('meetingIntelligence.text21')}</Label>
+                    <p className="text-sm text-muted-foreground">{t('meetingIntelligence.desc4')}</p>
                   </div>
                   <Switch
                     id="notifications"
@@ -753,15 +747,13 @@ export default function MeetingIntelligence() {
 
                 <Separator />
 
-                <Button onClick={saveSettings} className="w-full">
-                  Save Settings
-                </Button>
+                <Button onClick={saveSettings} className="w-full">{t('meetingIntelligence.btn9')}</Button>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader>
-                <CardTitle>About Club AI Notetaker</CardTitle>
+                <CardTitle>{t('meetingIntelligence.text22')}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
@@ -769,9 +761,7 @@ export default function MeetingIntelligence() {
                     <CheckCircle2 className="h-4 w-4 text-green-500" />
                     Real-time transcription
                   </h4>
-                  <p className="text-sm text-muted-foreground pl-6">
-                    Accurate speech-to-text during your meetings with speaker identification
-                  </p>
+                  <p className="text-sm text-muted-foreground pl-6">{t('meetingIntelligence.desc5')}</p>
                 </div>
 
                 <div className="space-y-2">
@@ -779,9 +769,7 @@ export default function MeetingIntelligence() {
                     <CheckCircle2 className="h-4 w-4 text-green-500" />
                     AI-powered insights
                   </h4>
-                  <p className="text-sm text-muted-foreground pl-6">
-                    Automatic summaries, action items, decisions, and sentiment analysis
-                  </p>
+                  <p className="text-sm text-muted-foreground pl-6">{t('meetingIntelligence.desc6')}</p>
                 </div>
 
                 <div className="space-y-2">
@@ -789,9 +777,7 @@ export default function MeetingIntelligence() {
                     <CheckCircle2 className="h-4 w-4 text-green-500" />
                     Searchable transcripts
                   </h4>
-                  <p className="text-sm text-muted-foreground pl-6">
-                    Find any moment in your meetings with full-text search
-                  </p>
+                  <p className="text-sm text-muted-foreground pl-6">{t('meetingIntelligence.desc7')}</p>
                 </div>
 
                 <div className="space-y-2">
@@ -799,9 +785,7 @@ export default function MeetingIntelligence() {
                     <CheckCircle2 className="h-4 w-4 text-green-500" />
                     Action tracking
                   </h4>
-                  <p className="text-sm text-muted-foreground pl-6">
-                    Automatically create tasks from meeting action items
-                  </p>
+                  <p className="text-sm text-muted-foreground pl-6">{t('meetingIntelligence.desc8')}</p>
                 </div>
               </CardContent>
             </Card>

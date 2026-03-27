@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useStrategistWorkload } from "@/hooks/useStrategistWorkload";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -6,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Building2, Users, Briefcase, Loader2, AlertTriangle, CheckCircle } from "lucide-react";
 
 export function StrategistWorkloadTab() {
+  const { t } = useTranslation('common');
   const { data: workloads, isLoading, error } = useStrategistWorkload();
   
   // Note: workloads now use 'id' (profiles.id) instead of 'user_id'
@@ -70,7 +72,7 @@ export function StrategistWorkloadTab() {
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-bold">{totalCandidates}</p>
-            <p className="text-xs text-muted-foreground">assigned to strategists</p>
+            <p className="text-xs text-muted-foreground">{t("assigned_to_strategists", "assigned to strategists")}</p>
           </CardContent>
         </Card>
 
@@ -83,14 +85,14 @@ export function StrategistWorkloadTab() {
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-bold">{totalApps}</p>
-            <p className="text-xs text-muted-foreground">in pipeline</p>
+            <p className="text-xs text-muted-foreground">{t("in_pipeline", "in pipeline")}</p>
           </CardContent>
         </Card>
       </div>
 
       {/* Strategist List */}
       <div className="space-y-3">
-        <h3 className="text-sm font-medium text-muted-foreground">Strategist Workload</h3>
+        <h3 className="text-sm font-medium text-muted-foreground">{t("strategist_workload", "Strategist Workload")}</h3>
         
         {workloads?.map((strategist) => {
           const capacityInfo = getCapacityBadge(strategist.capacityPercent);
@@ -125,22 +127,22 @@ export function StrategistWorkloadTab() {
               <div className="flex items-center gap-6 text-sm">
                 <div className="text-center">
                   <p className="font-semibold">{strategist.companyCount}</p>
-                  <p className="text-xs text-muted-foreground">Companies</p>
+                  <p className="text-xs text-muted-foreground">{t("companies", "Companies")}</p>
                 </div>
                 <div className="text-center">
                   <p className="font-semibold">{strategist.candidateCount}</p>
-                  <p className="text-xs text-muted-foreground">Candidates</p>
+                  <p className="text-xs text-muted-foreground">{t("candidates", "Candidates")}</p>
                 </div>
                 <div className="text-center">
                   <p className="font-semibold">{strategist.activeApplications}</p>
-                  <p className="text-xs text-muted-foreground">Active Apps</p>
+                  <p className="text-xs text-muted-foreground">{t("active_apps", "Active Apps")}</p>
                 </div>
               </div>
 
               {/* Capacity Bar */}
               <div className="w-32">
                 <div className="flex items-center justify-between text-xs mb-1">
-                  <span className="text-muted-foreground">Capacity</span>
+                  <span className="text-muted-foreground">{t("capacity", "Capacity")}</span>
                   <span className={getCapacityColor(strategist.capacityPercent)}>
                     {strategist.capacityPercent}%
                   </span>

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -21,6 +22,7 @@ const AVAILABLE_INTEGRATIONS = [
 ];
 
 export default function IntegrationsManagement() {
+  const { t } = useTranslation('common');
   const { companyId } = useRole();
   const queryClient = useQueryClient();
 
@@ -48,10 +50,10 @@ export default function IntegrationsManagement() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['partner-integrations', companyId] });
-      toast.success("Integration status updated");
+      toast.success(t("integration_status_updated", "Integration status updated"));
     },
     onError: () => {
-      toast.error("Failed to update integration");
+      toast.error(t("failed_to_update_integration", "Failed to update integration"));
     }
   });
 
@@ -68,7 +70,7 @@ export default function IntegrationsManagement() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['partner-integrations', companyId] });
-      toast.success("Sync initiated");
+      toast.success(t("sync_initiated", "Sync initiated"));
     }
   });
 
@@ -118,19 +120,19 @@ export default function IntegrationsManagement() {
                   <>
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">Sync Frequency</span>
+                        <span className="text-muted-foreground">{t("sync_frequency", "Sync Frequency")}</span>
                         <span className="font-medium capitalize">{status.sync_frequency}</span>
                       </div>
                       {status.last_sync_at && (
                         <div className="flex justify-between">
-                          <span className="text-muted-foreground">Last Synced</span>
+                          <span className="text-muted-foreground">{t("last_synced", "Last Synced")}</span>
                           <span className="font-medium">
                             {format(new Date(status.last_sync_at), 'MMM d, h:mm a')}
                           </span>
                         </div>
                       )}
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">Status</span>
+                        <span className="text-muted-foreground">{t("status", "Status")}</span>
                         <Badge variant="outline" className="capitalize border-border/30">
                           {status.sync_status}
                         </Badge>

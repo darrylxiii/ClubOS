@@ -4,6 +4,7 @@ import { usePipelineMetrics } from "@/hooks/useDealPipeline";
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useTranslation } from "react-i18next";
 
 interface TickerPill {
   label: string;
@@ -38,6 +39,7 @@ function DeltaBadge({ delta }: { delta: number | null }) {
 }
 
 export function RevenueTickerStrip() {
+  const { t } = useTranslation('common');
   const { data: ticker, isLoading: tickerLoading } = useRevenueTickerData();
   const { data: pipeline, isLoading: pipelineLoading } = usePipelineMetrics();
 
@@ -55,25 +57,25 @@ export function RevenueTickerStrip() {
 
   const pills: TickerPill[] = [
     {
-      label: "MRR",
+      label: t('ticker.mrr', 'MRR'),
       value: formatCompact(ticker?.mrr ?? 0),
       delta: ticker?.mrrDelta ?? null,
       href: "/admin/finance",
     },
     {
-      label: "Pipeline",
+      label: t('ticker.pipeline', 'Pipeline'),
       value: formatCompact(pipeline?.weighted_pipeline ?? 0),
       delta: null,
       href: "/admin/global-analytics",
     },
     {
-      label: "Placements",
+      label: t('ticker.placements', 'Placements'),
       value: `${ticker?.placements ?? 0}`,
       delta: ticker?.placementsDelta ?? null,
       href: "/admin/global-analytics",
     },
     {
-      label: "Active Jobs",
+      label: t('ticker.activeJobs', 'Active Jobs'),
       value: `${ticker?.activeJobs ?? 0}`,
       delta: null,
       href: "/jobs",

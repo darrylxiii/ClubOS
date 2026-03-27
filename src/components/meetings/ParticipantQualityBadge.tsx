@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 /**
  * Per-Participant Network Quality Badge
  * Shows real-time quality indicator on each video tile
@@ -21,6 +22,7 @@ export function ParticipantQualityBadge({
   showDetails = true,
   className
 }: ParticipantQualityBadgeProps) {
+  const { t } = useTranslation('common');
   if (!stats) {
     return (
       <div className={cn(
@@ -126,7 +128,7 @@ export function ParticipantQualityBadge({
             
             <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-muted-foreground">
               <div className="flex justify-between">
-                <span>Latency:</span>
+                <span>{t("latency", "Latency:")}</span>
                 <span className={cn(
                   stats.latency > 200 && 'text-yellow-500',
                   stats.latency > 400 && 'text-red-500'
@@ -136,7 +138,7 @@ export function ParticipantQualityBadge({
               </div>
               
               <div className="flex justify-between">
-                <span>Packet Loss:</span>
+                <span>{t("packet_loss", "Packet Loss:")}</span>
                 <span className={cn(
                   stats.packetLoss > 2 && 'text-yellow-500',
                   stats.packetLoss > 5 && 'text-red-500'
@@ -146,7 +148,7 @@ export function ParticipantQualityBadge({
               </div>
               
               <div className="flex justify-between">
-                <span>Jitter:</span>
+                <span>{t("jitter", "Jitter:")}</span>
                 <span className={cn(
                   stats.jitter > 30 && 'text-yellow-500',
                   stats.jitter > 60 && 'text-red-500'
@@ -156,13 +158,13 @@ export function ParticipantQualityBadge({
               </div>
               
               <div className="flex justify-between">
-                <span>Bitrate:</span>
+                <span>{t("bitrate", "Bitrate:")}</span>
                 <span>{stats.bitrate} kbps</span>
               </div>
               
               {stats.framesPerSecond > 0 && (
                 <div className="flex justify-between col-span-2">
-                  <span>FPS:</span>
+                  <span>{t("fps", "FPS:")}</span>
                   <span className={cn(
                     stats.framesPerSecond < 15 && 'text-yellow-500',
                     stats.framesPerSecond < 10 && 'text-red-500'

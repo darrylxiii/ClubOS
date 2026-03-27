@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -18,6 +19,7 @@ interface Milestone {
 }
 
 export const MilestonesGamification = () => {
+  const { t } = useTranslation('analytics');
   const { user } = useAuth();
   const [milestones, setMilestones] = useState<Milestone[]>([]);
   const [streak, setStreak] = useState(0);
@@ -60,8 +62,8 @@ export const MilestonesGamification = () => {
       const allMilestones: Milestone[] = [
         {
           id: "first_post",
-          title: "First Steps",
-          description: "Create your first post",
+          title: t('milestones.firstSteps'),
+          description: t('milestones.createFirstPost'),
           target: 1,
           current: stats.posts,
           icon: Target,
@@ -70,8 +72,8 @@ export const MilestonesGamification = () => {
         },
         {
           id: "10_posts",
-          title: "Content Creator",
-          description: "Publish 10 posts",
+          title: t('milestones.contentCreator'),
+          description: t('milestones.publish10Posts'),
           target: 10,
           current: stats.posts,
           icon: Star,
@@ -80,8 +82,8 @@ export const MilestonesGamification = () => {
         },
         {
           id: "100_followers",
-          title: "Rising Star",
-          description: "Reach 100 followers",
+          title: t('milestones.risingStar'),
+          description: t('milestones.reach100Followers'),
           target: 100,
           current: stats.followers,
           icon: Trophy,
@@ -90,8 +92,8 @@ export const MilestonesGamification = () => {
         },
         {
           id: "1000_views",
-          title: "Viral Impact",
-          description: "Get 1,000 profile views",
+          title: t('milestones.viralImpact'),
+          description: t('milestones.get1000Views'),
           target: 1000,
           current: stats.views,
           icon: Flame,
@@ -100,8 +102,8 @@ export const MilestonesGamification = () => {
         },
         {
           id: "500_engagement",
-          title: "Engagement Master",
-          description: "Receive 500 total engagements",
+          title: t('milestones.engagementMaster'),
+          description: t('milestones.receive500Engagements'),
           target: 500,
           current: stats.engagement,
           icon: Award,
@@ -110,8 +112,8 @@ export const MilestonesGamification = () => {
         },
         {
           id: "1000_xp",
-          title: "Platform Legend",
-          description: "Earn 1,000 XP",
+          title: t('milestones.platformLegend'),
+          description: t('milestones.earn1000XP'),
           target: 1000,
           current: stats.xp,
           icon: Crown,
@@ -167,15 +169,15 @@ export const MilestonesGamification = () => {
           <div>
             <CardTitle className="flex items-center gap-2">
               <Trophy className="h-5 w-5 text-primary" />
-              Milestones & Achievements
+              {t('milestonesAchievements')}
             </CardTitle>
-            <CardDescription>Track your progress and unlock rewards</CardDescription>
+            <CardDescription>{t('trackProgressUnlock')}</CardDescription>
           </div>
           <div className="text-right">
             <p className="text-2xl font-bold text-primary">
               {unlockedCount}/{milestones.length}
             </p>
-            <p className="text-xs text-muted-foreground">Unlocked</p>
+            <p className="text-xs text-muted-foreground">{t('unlocked')}</p>
           </div>
         </div>
         <Progress value={progressPercentage} className="mt-4" />
@@ -186,16 +188,16 @@ export const MilestonesGamification = () => {
           <div className="bg-gradient-to-br from-orange-500/10 to-red-500/10 rounded-lg p-4 border border-orange-500/20">
             <div className="flex items-center gap-2 mb-2">
               <Flame className="h-5 w-5 text-orange-500" />
-              <p className="font-semibold">Current Streak</p>
+              <p className="font-semibold">{t('currentStreak')}</p>
             </div>
-            <p className="text-3xl font-bold">{streak} days</p>
+            <p className="text-3xl font-bold">{t('streakDays', { count: streak })}</p>
           </div>
 
           {leaderboardRank && (
             <div className="bg-gradient-to-br from-purple-500/10 to-blue-500/10 rounded-lg p-4 border border-purple-500/20">
               <div className="flex items-center gap-2 mb-2">
                 <Crown className="h-5 w-5 text-purple-500" />
-                <p className="font-semibold">Leaderboard</p>
+                <p className="font-semibold">{t('leaderboard')}</p>
               </div>
               <p className="text-3xl font-bold">#{leaderboardRank}</p>
             </div>
@@ -234,13 +236,13 @@ export const MilestonesGamification = () => {
                   {milestone.unlocked && (
                     <Badge variant="default" className="gap-1">
                       <Award className="h-3 w-3" />
-                      Unlocked
+                      {t('unlocked')}
                     </Badge>
                   )}
                 </div>
                 <div className="space-y-1">
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Progress</span>
+                    <span className="text-muted-foreground">{t('progress')}</span>
                     <span className="font-medium">
                       {milestone.current}/{milestone.target}
                     </span>

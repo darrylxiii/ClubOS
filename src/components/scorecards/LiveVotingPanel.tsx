@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -57,6 +58,7 @@ const recommendationIcons: Record<string, React.ElementType> = {
 };
 
 export function LiveVotingPanel({ applicationId, meetingId }: LiveVotingPanelProps) {
+  const { t } = useTranslation('common');
   const [votes, setVotes] = useState<VoteData[]>([]);
   const [summary, setSummary] = useState<VotingSummary | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -235,7 +237,7 @@ export function LiveVotingPanel({ applicationId, meetingId }: LiveVotingPanelPro
         {/* Average Score */}
         {summary && summary.average_score > 0 && (
           <div className="flex items-center justify-between bg-muted/50 rounded-lg p-2">
-            <span className="text-sm text-muted-foreground">Average Score</span>
+            <span className="text-sm text-muted-foreground">{t("average_score", "Average Score")}</span>
             <span className="text-lg font-semibold">
               {summary.average_score.toFixed(1)}/5
             </span>
@@ -283,7 +285,7 @@ export function LiveVotingPanel({ applicationId, meetingId }: LiveVotingPanelPro
           {votes.length === 0 && (
             <div className="text-center py-4 text-muted-foreground">
               <Clock className="h-8 w-8 mx-auto mb-2 opacity-50" />
-              <p className="text-sm">No votes submitted yet</p>
+              <p className="text-sm">{t("no_votes_submitted_yet", "No votes submitted yet")}</p>
             </div>
           )}
         </div>
@@ -294,17 +296,17 @@ export function LiveVotingPanel({ applicationId, meetingId }: LiveVotingPanelPro
             {positiveVotes > negativeVotes * 2 ? (
               <div className="flex items-center gap-2 text-green-600">
                 <CheckCircle className="h-4 w-4" />
-                <span className="text-sm font-medium">Strong positive consensus</span>
+                <span className="text-sm font-medium">{t("strong_positive_consensus", "Strong positive consensus")}</span>
               </div>
             ) : negativeVotes > positiveVotes * 2 ? (
               <div className="flex items-center gap-2 text-red-600">
                 <AlertCircle className="h-4 w-4" />
-                <span className="text-sm font-medium">Strong concerns raised</span>
+                <span className="text-sm font-medium">{t("strong_concerns_raised", "Strong concerns raised")}</span>
               </div>
             ) : (
               <div className="flex items-center gap-2 text-muted-foreground">
                 <Minus className="h-4 w-4" />
-                <span className="text-sm">Mixed feedback - further discussion needed</span>
+                <span className="text-sm">{t("mixed_feedback_further_discussion", "Mixed feedback - further discussion needed")}</span>
               </div>
             )}
           </div>

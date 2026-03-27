@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ExpandablePipelineStage, PipelineStageData } from "@/components/ExpandablePipelineStage";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -37,6 +38,7 @@ export function MobileApplicationPipeline({
   applications,
   onSelectApplication,
 }: MobileApplicationPipelineProps) {
+  const { t } = useTranslation('common');
   return (
     <div className="space-y-4">
       {applications.map((app) => (
@@ -71,7 +73,7 @@ export function MobileApplicationPipeline({
           <CardContent className="space-y-3">
             {/* Current Stage */}
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Current Stage:</span>
+              <span className="text-sm font-medium">{t("current_stage", "Current Stage:")}</span>
               <Badge variant="secondary" className="font-medium" data-testid="status">
                 {app.stages[app.current_stage_index]?.title || "Applied"}
               </Badge>
@@ -80,7 +82,7 @@ export function MobileApplicationPipeline({
             {/* Progress Bar */}
             <div className="space-y-2">
               <div className="flex justify-between text-xs text-muted-foreground">
-                <span>Progress</span>
+                <span>{t("progress", "Progress")}</span>
                 <span>{Math.round(((app.current_stage_index + 1) / app.stages.length) * 100)}%</span>
               </div>
               <div className="h-2 bg-muted rounded-full overflow-hidden">

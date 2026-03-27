@@ -14,6 +14,7 @@ import { ContinuousPipelineBadge } from "@/components/jobs/ContinuousPipelineBad
 import { UrgencyBadge } from "@/components/jobs/UrgencyBadge";
 import { UrgencyMeter } from "@/components/jobs/UrgencyMeter";
 import { computeJobUrgencyScore, getUrgencyAccentHsl } from "@/lib/jobUrgencyScore";
+import { useTranslation } from 'react-i18next';
 
 interface JobCardHeaderProps {
   companyLogo: string | null;
@@ -62,6 +63,7 @@ export const JobCardHeader = memo(({
   conversionRate,
   jobId,
 }: JobCardHeaderProps) => {
+  const { t } = useTranslation('partner');
   const urgencyResult = useMemo(() => computeJobUrgencyScore({
     daysOpen,
     expectedCloseDate,
@@ -116,7 +118,7 @@ export const JobCardHeader = memo(({
                   </a>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>View original posting</p>
+                  <p>{t('jobCardHeader.viewOriginalPosting')}</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -144,7 +146,7 @@ export const JobCardHeader = memo(({
                   </Badge>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>This job is only visible to selected users</p>
+                  <p>{t('jobCardHeader.thisJobIsOnlyVisibleToSelectedUsers')}</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>

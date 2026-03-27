@@ -1,20 +1,9 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { createHandler } from '../_shared/handler.ts';
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
-
-Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
-    const supabase = createClient(supabaseUrl, supabaseKey);
+Deno.serve(createHandler(async (req, ctx) => {
+    const corsHeaders = ctx.corsHeaders;
+    const supabase = ctx.supabase;
+    const googleApiKey = Deno.env.get('GOOGLE_API_KEY');
 
     console.log('[analyze-outreach-copy] Starting analysis...');
 
@@ -80,9 +69,9 @@ Deno.serve(async (req) => {
     ];
 
     // 7. Use AI to synthesize higher-level insights if we have enough data
-    let aiInsights: any[] = [];
-    if (lovableApiKey && allSteps.length >= 5) {
-      aiInsights = await generateAIInsights(lovableApiKey, allSteps, allLearnings);
+    let aiInsights: Record<string, unknown>[] = [];
+    if (googleApiKey && allSteps.length >= 5) {
+      aiInsights = await generateAIInsights(googleApiKey, allSteps, allLearnings);
     }
 
     const finalLearnings = [...allLearnings, ...aiInsights];
@@ -140,17 +129,10 @@ Deno.serve(async (req) => {
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
-  } catch (error) {
-    console.error('[analyze-outreach-copy] Error:', error);
-    return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-  }
-});
+}));
 
-function analyzeSubjectLines(steps: any[]) {
-  const learnings: any[] = [];
+function analyzeSubjectLines(steps: Record<string, unknown>[]) {
+  const learnings: Record<string, unknown>[] = [];
   const stepsWithSubjects = steps.filter(s => s.subject_line);
 
   if (stepsWithSubjects.length < 3) return learnings;
@@ -176,7 +158,7 @@ function analyzeSubjectLines(steps: any[]) {
         evidence: {
           with_question_avg_open: Math.round(qAvg * 10) / 10,
           without_question_avg_open: Math.round(noQAvg * 10) / 10,
-          examples: withQuestion.slice(0, 3).map((s: any) => s.subject_line),
+          examples: withQuestion.slice(0, 3).map((s: Record<string, unknown>) => s.subject_line),
         },
         sample_size: stepsWithSubjects.length,
         confidence_score: Math.min(95, 50 + stepsWithSubjects.length * 2),
@@ -211,7 +193,7 @@ function analyzeSubjectLines(steps: any[]) {
       learning_type: 'subject_pattern',
       pattern: 'Top performing subject lines by open rate',
       evidence: {
-        top_subjects: topQuartile.slice(0, 5).map((s: any) => ({
+        top_subjects: topQuartile.slice(0, 5).map((s: Record<string, unknown>) => ({
           subject: s.subject_line,
           open_rate: Math.round((s.open_rate || 0) * 10) / 10,
           reply_rate: Math.round((s.reply_rate || 0) * 10) / 10,
@@ -229,8 +211,8 @@ function analyzeSubjectLines(steps: any[]) {
   return learnings;
 }
 
-function analyzeBodyCopy(steps: any[]) {
-  const learnings: any[] = [];
+function analyzeBodyCopy(steps: Record<string, unknown>[]) {
+  const learnings: Record<string, unknown>[] = [];
   const stepsWithBody = steps.filter(s => s.body_text);
 
   if (stepsWithBody.length < 3) return learnings;
@@ -265,7 +247,7 @@ function analyzeBodyCopy(steps: any[]) {
       learning_type: 'body_pattern',
       pattern: 'Top performing email bodies by reply rate',
       evidence: {
-        top_bodies: topQuartile.slice(0, 3).map((s: any) => ({
+        top_bodies: topQuartile.slice(0, 3).map((s: Record<string, unknown>) => ({
           preview: s.body_text?.substring(0, 150) + '...',
           reply_rate: Math.round((s.reply_rate || 0) * 10) / 10,
           open_rate: Math.round((s.open_rate || 0) * 10) / 10,
@@ -282,11 +264,11 @@ function analyzeBodyCopy(steps: any[]) {
   return learnings;
 }
 
-function analyzeSequenceStructure(steps: any[]) {
-  const learnings: any[] = [];
+function analyzeSequenceStructure(steps: Record<string, unknown>[]) {
+  const learnings: Record<string, unknown>[] = [];
 
   // Group by campaign
-  const byCampaign: Record<string, any[]> = {};
+  const byCampaign: Record<string, Record<string, unknown>[]> = {};
   for (const step of steps) {
     const key = step.campaign_id || step.external_campaign_id;
     if (!byCampaign[key]) byCampaign[key] = [];
@@ -328,8 +310,8 @@ function analyzeSequenceStructure(steps: any[]) {
   return learnings;
 }
 
-function analyzeSentiments(replies: any[]) {
-  const learnings: any[] = [];
+function analyzeSentiments(replies: Record<string, unknown>[]) {
+  const learnings: Record<string, unknown>[] = [];
 
   if (replies.length < 10) return learnings;
 
@@ -360,7 +342,7 @@ function analyzeSentiments(replies: any[]) {
   return learnings;
 }
 
-async function generateAIInsights(apiKey: string, steps: any[], existingLearnings: any[]) {
+async function generateAIInsights(apiKey: string, steps: Record<string, unknown>[], existingLearnings: Record<string, unknown>[]) {
   try {
     const prompt = `Analyze these cold outreach email performance metrics and extract actionable patterns.
 
@@ -386,14 +368,14 @@ Return a JSON array of 2-4 NEW insights not already covered above. Each insight 
   "lift": number or null
 }`;
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    const response = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash-lite',
+        model: 'gemini-2.5-flash-lite',
         messages: [
           { role: 'system', content: 'You are an expert cold email analyst. Return only valid JSON arrays.' },
           { role: 'user', content: prompt },
@@ -411,7 +393,7 @@ Return a JSON array of 2-4 NEW insights not already covered above. Each insight 
     if (!jsonMatch) return [];
 
     const insights = JSON.parse(jsonMatch[0]);
-    return insights.map((insight: any) => ({
+    return insights.map((insight: Record<string, unknown>) => ({
       learning_type: 'body_pattern',
       pattern: insight.pattern,
       evidence: { ai_generated: true, summary: insight.evidence_summary },

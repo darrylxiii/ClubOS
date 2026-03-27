@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { LucideIcon, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 
 interface DashboardWidgetProps {
   title: string;
@@ -23,13 +24,15 @@ export const DashboardWidget = ({
   children,
   isLoading = false,
   isEmpty = false,
-  emptyMessage = "No data available",
+  emptyMessage,
   className,
   headerAction,
 }: DashboardWidgetProps) => {
+  const { t } = useTranslation('common');
+  const resolvedEmptyMessage = emptyMessage || t('dashboard.noDataAvailable', 'No data available');
   if (isLoading) {
     return (
-      <Card className={cn("glass-subtle rounded-2xl h-full flex flex-col", className)}>
+      <Card className={cn("h-full flex flex-col", className)}>
         <CardHeader className="pb-3">
           <Skeleton className="h-5 w-32" />
         </CardHeader>
@@ -45,7 +48,7 @@ export const DashboardWidget = ({
 
   if (isEmpty) {
     return (
-      <Card className={cn("glass-subtle rounded-2xl h-full flex flex-col", className)}>
+      <Card className={cn("h-full flex flex-col", className)}>
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-base">
             {Icon && <Icon className={cn("h-4 w-4", iconClassName)} />}
@@ -55,7 +58,7 @@ export const DashboardWidget = ({
         <CardContent className="flex-1 flex items-center justify-center">
           <div className="text-center py-4">
             <Info className="h-6 w-6 text-muted-foreground mx-auto mb-2" />
-            <p className="text-sm text-muted-foreground">{emptyMessage}</p>
+            <p className="text-sm text-muted-foreground">{resolvedEmptyMessage}</p>
           </div>
         </CardContent>
       </Card>
@@ -63,7 +66,7 @@ export const DashboardWidget = ({
   }
 
   return (
-    <Card className={cn("glass-subtle rounded-2xl h-full flex flex-col", className)}>
+    <Card className={cn("h-full flex flex-col", className)}>
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center justify-between text-base">
           <div className="flex items-center gap-2">

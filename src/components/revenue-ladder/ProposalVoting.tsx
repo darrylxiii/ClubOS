@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { motion } from '@/lib/motion';
 import { 
@@ -52,6 +53,7 @@ const categoryColors = {
 };
 
 export function ProposalVoting({ proposal }: ProposalVotingProps) {
+  const { t } = useTranslation('common');
   const [selectedVote, setSelectedVote] = useState<string | null>(null);
   const [comment, setComment] = useState('');
   const [showComments, setShowComments] = useState(false);
@@ -123,7 +125,7 @@ export function ProposalVoting({ proposal }: ProposalVotingProps) {
               </p>
             </div>
             <div className="text-right shrink-0">
-              <p className="text-label-sm text-muted-foreground">Estimated Cost</p>
+              <p className="text-label-sm text-muted-foreground">{t("estimated_cost", "Estimated Cost")}</p>
               <p className="text-heading-md font-bold">
                 {formatCurrency(proposal.estimated_cost)}
               </p>
@@ -137,7 +139,7 @@ export function ProposalVoting({ proposal }: ProposalVotingProps) {
                 <Users className="h-4 w-4" />
                 <span>{totalVotes} votes</span>
               </div>
-              <span className="text-muted-foreground">Advisory only</span>
+              <span className="text-muted-foreground">{t("advisory_only", "Advisory only")}</span>
             </div>
             
             {totalVotes > 0 && (
@@ -206,7 +208,7 @@ export function ProposalVoting({ proposal }: ProposalVotingProps) {
               <Textarea
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
-                placeholder="Add a comment with your vote (optional)..."
+                placeholder={t("add_a_comment_with", "Add a comment with your vote (optional)...")}
                 rows={2}
                 className="resize-none"
               />
@@ -245,7 +247,7 @@ export function ProposalVoting({ proposal }: ProposalVotingProps) {
                   </Avatar>
                   <div className="flex-1 space-y-1">
                     <div className="flex items-center gap-2">
-                      <span className="text-label-sm font-medium">Team Member</span>
+                      <span className="text-label-sm font-medium">{t("team_member", "Team Member")}</span>
                       <Badge 
                         variant="outline" 
                         className={cn("text-label-xs", config?.border, config?.color)}

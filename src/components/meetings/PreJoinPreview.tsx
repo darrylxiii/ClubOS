@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -29,6 +30,7 @@ export function PreJoinPreview({
   onJoin,
   onCancel
 }: PreJoinPreviewProps) {
+  const { t } = useTranslation('common');
   const videoRef = useRef<HTMLVideoElement>(null);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [isAudioEnabled, setIsAudioEnabled] = useState(true);
@@ -258,9 +260,7 @@ export function PreJoinPreview({
               <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center">
                 <AlertTriangle className="h-12 w-12 text-destructive mb-4" />
                 <p className="text-sm text-muted-foreground">{permissionError}</p>
-                <Button variant="outline" className="mt-4" onClick={initializeMedia}>
-                  Try Again
-                </Button>
+                <Button variant="outline" className="mt-4" onClick={initializeMedia}>{t('meetings.prejoinpreview.tryAgain', 'Try Again')}</Button>
               </div>
             ) : (
               <>
@@ -317,7 +317,7 @@ export function PreJoinPreview({
               disabled={isLoading || !!permissionError}
             >
               {isAudioEnabled ? <Mic className="h-5 w-5" /> : <MicOff className="h-5 w-5" />}
-              {isAudioEnabled ? 'Mute' : 'Unmute'}
+              {isAudioEnabled ? t('meetings.prejoinpreview.mute', 'Mute') : t('meetings.prejoinpreview.unmute', 'Unmute')}
             </Button>
             
             <Button
@@ -328,7 +328,7 @@ export function PreJoinPreview({
               disabled={isLoading || !!permissionError}
             >
               {isVideoEnabled ? <Video className="h-5 w-5" /> : <VideoOff className="h-5 w-5" />}
-              {isVideoEnabled ? 'Stop Video' : 'Start Video'}
+              {isVideoEnabled ? t('meetings.prejoinpreview.stopVideo', 'Stop Video') : t('meetings.prejoinpreview.startVideo', 'Start Video')}
             </Button>
             
             <Button
@@ -345,14 +345,14 @@ export function PreJoinPreview({
           {/* Settings panel */}
           {showSettings && (
             <div className="border rounded-lg p-4 space-y-4 bg-muted/30">
-              <h4 className="font-medium">Device Settings</h4>
+              <h4 className="font-medium">{t("device_settings", "Device Settings")}</h4>
               
               {/* Microphone */}
               <div className="space-y-2">
-                <Label>Microphone</Label>
+                <Label>{t("microphone", "Microphone")}</Label>
                 <Select value={selectedAudioInput} onValueChange={setSelectedAudioInput}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select microphone" />
+                    <SelectValue placeholder={t("select_microphone", "Select microphone")} />
                   </SelectTrigger>
                   <SelectContent>
                     {audioInputs.map(device => (
@@ -366,10 +366,10 @@ export function PreJoinPreview({
               
               {/* Camera */}
               <div className="space-y-2">
-                <Label>Camera</Label>
+                <Label>{t("camera", "Camera")}</Label>
                 <Select value={selectedVideoInput} onValueChange={setSelectedVideoInput}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select camera" />
+                    <SelectValue placeholder={t("select_camera", "Select camera")} />
                   </SelectTrigger>
                   <SelectContent>
                     {videoInputs.map(device => (
@@ -384,10 +384,10 @@ export function PreJoinPreview({
               {/* Speaker */}
               {audioOutputs.length > 0 && (
                 <div className="space-y-2">
-                  <Label>Speaker</Label>
+                  <Label>{t("speaker", "Speaker")}</Label>
                   <Select value={selectedAudioOutput} onValueChange={setSelectedAudioOutput}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select speaker" />
+                      <SelectValue placeholder={t("select_speaker", "Select speaker")} />
                     </SelectTrigger>
                     <SelectContent>
                       {audioOutputs.map(device => (
@@ -422,7 +422,7 @@ export function PreJoinPreview({
           {networkQuality === 'poor' && (
             <div className="flex items-center gap-2 text-sm text-destructive bg-destructive/10 p-3 rounded-lg">
               <AlertTriangle className="h-4 w-4 flex-shrink-0" />
-              <span>Your network connection is unstable. You may experience quality issues.</span>
+              <span>{t("your_network_connection_is", "Your network connection is unstable. You may experience quality issues.")}</span>
             </div>
           )}
         </CardContent>

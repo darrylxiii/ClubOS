@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '@/components/ui/card';
 import { ToggleLeft, ToggleRight, Zap } from 'lucide-react';
 
@@ -8,6 +9,7 @@ interface ModuleSummaryCardsProps {
 }
 
 export function ModuleSummaryCards({ activeCount, disabledCount, pollingSavings }: ModuleSummaryCardsProps) {
+  const { t } = useTranslation('common');
   return (
     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
       <Card className="bg-card/50 backdrop-blur-sm border-border/50">
@@ -18,7 +20,7 @@ export function ModuleSummaryCards({ activeCount, disabledCount, pollingSavings 
             </div>
             <div>
               <p className="text-2xl font-bold">{activeCount}</p>
-              <p className="text-sm text-muted-foreground">Active Modules</p>
+              <p className="text-sm text-muted-foreground">{t("active_modules", "Active Modules")}</p>
             </div>
           </div>
         </CardContent>
@@ -32,7 +34,7 @@ export function ModuleSummaryCards({ activeCount, disabledCount, pollingSavings 
             </div>
             <div>
               <p className="text-2xl font-bold">{disabledCount}</p>
-              <p className="text-sm text-muted-foreground">Disabled Modules</p>
+              <p className="text-sm text-muted-foreground">{t("disabled_modules", "Disabled Modules")}</p>
             </div>
           </div>
         </CardContent>
@@ -46,7 +48,7 @@ export function ModuleSummaryCards({ activeCount, disabledCount, pollingSavings 
             </div>
             <div>
               <p className="text-2xl font-bold">{pollingSavings.toLocaleString()}</p>
-              <p className="text-sm text-muted-foreground">Queries Saved / Hour</p>
+              <p className="text-sm text-muted-foreground">{t("queries_saved_hour", "Queries Saved / Hour")}</p>
             </div>
           </div>
         </CardContent>

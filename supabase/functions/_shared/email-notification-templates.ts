@@ -4,8 +4,9 @@
  */
 
 import { baseEmailTemplate } from './email-templates/base-template.ts';
-import { Heading, Paragraph, Spacer, Card, Button, InfoRow } from './email-templates/components.ts';
-import { EMAIL_SENDERS, EMAIL_COLORS, getEmailAppUrl, getEmailHeaders, htmlToPlainText } from './email-config.ts';
+import { Heading, Paragraph, Spacer, Card, Button, InfoRow, AlertBox } from './email-templates/components.ts';
+import { EMAIL_SENDERS, EMAIL_COLORS, getEmailAppUrl } from './email-config.ts';
+import { sendEmail as sendEmailViaResend } from './resend-client.ts';
 
 interface MentionEmailData {
   recipientName: string;
@@ -229,39 +230,17 @@ export function generateGenericEmailHTML(data: GenericEmailData): string {
  * Send email notification using Resend
  */
 export async function sendMentionEmail(data: MentionEmailData): Promise<boolean> {
-  const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
-  
-  if (!RESEND_API_KEY) {
-    console.warn('[email] RESEND_API_KEY not configured. Email notification skipped.');
-    return false;
-  }
-  
   try {
     console.log('[email] Sending mention notification to:', data.recipientEmail);
-    
-    const response = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${RESEND_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        from: EMAIL_SENDERS.notifications,
-        to: data.recipientEmail,
-        subject: `${data.mentionedBy} mentioned you in a note`,
-        html: generateMentionEmailHTML(data),
-        text: generateMentionEmailText(data),
-        headers: getEmailHeaders(),
-      }),
+
+    const result = await sendEmailViaResend({
+      from: EMAIL_SENDERS.notifications,
+      to: data.recipientEmail,
+      subject: `${data.mentionedBy} mentioned you in a note`,
+      html: generateMentionEmailHTML(data),
+      text: generateMentionEmailText(data),
     });
-    
-    if (!response.ok) {
-      const errorBody = await response.text();
-      console.error('[email] Resend API error:', response.status, errorBody);
-      throw new Error(`Failed to send email: ${response.statusText}`);
-    }
-    
-    const result = await response.json();
+
     console.log('[email] Email sent successfully:', result.id);
     return true;
   } catch (error) {
@@ -274,39 +253,17 @@ export async function sendMentionEmail(data: MentionEmailData): Promise<boolean>
  * Send interview reminder email using Resend
  */
 export async function sendInterviewReminderEmail(data: InterviewReminderData): Promise<boolean> {
-  const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
-  
-  if (!RESEND_API_KEY) {
-    console.warn('[email] RESEND_API_KEY not configured. Email notification skipped.');
-    return false;
-  }
-  
   try {
     console.log('[email] Sending interview reminder to:', data.recipientEmail);
-    
-    const response = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${RESEND_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        from: EMAIL_SENDERS.reminders,
-        to: data.recipientEmail,
-        subject: `Reminder: ${data.interviewTitle} with ${data.companyName}`,
-        html: generateInterviewReminderEmailHTML(data),
-        text: generateInterviewReminderEmailText(data),
-        headers: getEmailHeaders(),
-      }),
+
+    const result = await sendEmailViaResend({
+      from: EMAIL_SENDERS.reminders,
+      to: data.recipientEmail,
+      subject: `Reminder: ${data.interviewTitle} with ${data.companyName}`,
+      html: generateInterviewReminderEmailHTML(data),
+      text: generateInterviewReminderEmailText(data),
     });
-    
-    if (!response.ok) {
-      const errorBody = await response.text();
-      console.error('[email] Resend API error:', response.status, errorBody);
-      throw new Error(`Failed to send email: ${response.statusText}`);
-    }
-    
-    const result = await response.json();
+
     console.log('[email] Interview reminder sent:', result.id);
     return true;
   } catch (error) {
@@ -319,43 +276,149 @@ export async function sendInterviewReminderEmail(data: InterviewReminderData): P
  * Send a generic email using Resend
  */
 export async function sendGenericEmail(data: GenericEmailData): Promise<boolean> {
-  const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
-  
-  if (!RESEND_API_KEY) {
-    console.warn('[email] RESEND_API_KEY not configured. Email notification skipped.');
-    return false;
-  }
-  
   try {
     console.log('[email] Sending generic email to:', data.recipientEmail);
-    
-    const response = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${RESEND_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        from: EMAIL_SENDERS.notifications,
-        to: data.recipientEmail,
-        subject: data.subject,
-        html: generateGenericEmailHTML(data),
-        text: htmlToPlainText(generateGenericEmailHTML(data)),
-        headers: getEmailHeaders(),
-      }),
+
+    const result = await sendEmailViaResend({
+      from: EMAIL_SENDERS.notifications,
+      to: data.recipientEmail,
+      subject: data.subject,
+      html: generateGenericEmailHTML(data),
     });
-    
-    if (!response.ok) {
-      const errorBody = await response.text();
-      console.error('[email] Resend API error:', response.status, errorBody);
-      throw new Error(`Failed to send email: ${response.statusText}`);
-    }
-    
-    const result = await response.json();
+
     console.log('[email] Generic email sent:', result.id);
     return true;
   } catch (error) {
     console.error('[email] Error sending generic email:', error);
+    return false;
+  }
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// No-Show Warning (host notification for high-risk bookings)
+// ────────────────────────────────────────────────────────────────────────────
+
+export interface NoShowWarningData {
+  hostName: string;
+  hostEmail: string;
+  guestName: string;
+  guestEmail: string;
+  meetingTitle: string;
+  scheduledStart: string;
+  riskScore: number;
+  riskLevel: 'high' | 'critical';
+}
+
+export function generateNoShowWarningEmailHTML(data: NoShowWarningData): string {
+  const appUrl = getEmailAppUrl();
+  const scheduledDate = new Date(data.scheduledStart);
+  const dateStr = scheduledDate.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  const timeStr = scheduledDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+  const isCritical = data.riskLevel === 'critical';
+
+  const content = `
+    ${Heading({ text: `${isCritical ? '🚨' : '⚠️'} No-Show Risk Alert`, level: 1 })}
+    ${Spacer(16)}
+    ${Paragraph(`Hi <strong>${data.hostName || 'there'}</strong>,`, 'primary')}
+    ${Spacer(8)}
+    ${Paragraph(`An upcoming booking has been flagged as <strong>${data.riskLevel} risk</strong> for a potential no-show.`, 'secondary')}
+    ${Spacer(16)}
+    ${Card({
+      variant: 'warning',
+      content: `
+        ${Heading({ text: data.meetingTitle || 'Meeting', level: 3 })}
+        ${Spacer(8)}
+        ${InfoRow({ icon: '👤', label: 'Guest', value: data.guestName })}
+        ${InfoRow({ icon: '📧', label: 'Email', value: data.guestEmail })}
+        ${InfoRow({ icon: '📅', label: 'Date', value: dateStr })}
+        ${InfoRow({ icon: '🕐', label: 'Time', value: timeStr })}
+        ${InfoRow({ icon: '📊', label: 'Risk Score', value: `${data.riskScore}/100 (${data.riskLevel})` })}
+      `,
+    })}
+    ${Spacer(16)}
+    ${AlertBox({
+      type: isCritical ? 'error' : 'warning',
+      title: isCritical ? 'Critical Risk — Action Recommended' : 'High Risk — Be Prepared',
+      message: isCritical
+        ? 'This booking has a very high probability of no-show. Consider sending a personal confirmation message or having a backup plan ready.'
+        : 'This booking has elevated no-show risk. A confirmation reminder has already been sent to the guest.',
+    })}
+    ${Spacer(16)}
+    ${Paragraph('Automated interventions already taken:', 'muted')}
+    ${Spacer(8)}
+    ${Card({
+      variant: 'default',
+      content: `
+        ${InfoRow({ icon: '✅', label: 'Extra Reminder', value: 'Sent to guest' })}
+        ${isCritical ? InfoRow({ icon: '✅', label: 'Calendar Confirm', value: 'Requested from guest' }) : ''}
+      `,
+    })}
+    ${Spacer(24)}
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+      <tr>
+        <td align="center">
+          ${Button({ url: `${appUrl}/scheduling`, text: 'View Bookings', variant: 'primary' })}
+        </td>
+      </tr>
+    </table>
+    ${Spacer(16)}
+    ${Paragraph('You can adjust no-show alert settings in Scheduling > AI Settings.', 'muted')}
+  `;
+
+  return baseEmailTemplate({
+    preheader: `${isCritical ? '🚨' : '⚠️'} ${data.riskLevel} no-show risk for ${data.guestName}'s booking`,
+    content,
+    showHeader: true,
+    showFooter: true,
+  });
+}
+
+export function generateNoShowWarningEmailText(data: NoShowWarningData): string {
+  const scheduledDate = new Date(data.scheduledStart);
+  const dateStr = scheduledDate.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  const timeStr = scheduledDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+
+  return `
+No-Show Risk Alert
+
+Hi ${data.hostName || 'there'},
+
+An upcoming booking has been flagged as ${data.riskLevel} risk for a potential no-show.
+
+Meeting: ${data.meetingTitle || 'Meeting'}
+Guest: ${data.guestName} (${data.guestEmail})
+Date: ${dateStr} at ${timeStr}
+Risk Score: ${data.riskScore}/100 (${data.riskLevel})
+
+${data.riskLevel === 'critical'
+  ? 'This booking has a very high probability of no-show. Consider sending a personal confirmation message or having a backup plan ready.'
+  : 'This booking has elevated no-show risk. A confirmation reminder has already been sent to the guest.'}
+
+Automated interventions already taken:
+- Extra reminder sent to guest
+${data.riskLevel === 'critical' ? '- Calendar confirmation requested from guest' : ''}
+
+---
+This is an automated notification from The Quantum Club.
+  `.trim();
+}
+
+export async function sendNoShowWarningEmail(data: NoShowWarningData): Promise<boolean> {
+  try {
+    console.log('[email] Sending no-show warning to host:', data.hostEmail);
+
+    const result = await sendEmailViaResend({
+      from: EMAIL_SENDERS.bookings,
+      to: data.hostEmail,
+      subject: `⚠️ ${data.riskLevel === 'critical' ? 'Critical' : 'High'} No-Show Risk: ${data.guestName}`,
+      html: generateNoShowWarningEmailHTML(data),
+      text: generateNoShowWarningEmailText(data),
+    });
+
+    console.log('[email] No-show warning sent:', result.id);
+    return true;
+  } catch (error) {
+    console.error('[email] Error sending no-show warning:', error);
     return false;
   }
 }

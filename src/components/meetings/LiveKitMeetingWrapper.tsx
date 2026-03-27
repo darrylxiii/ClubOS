@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState, useRef } from 'react';
 import { useLiveKitMeeting } from '@/hooks/useLiveKitMeeting';
 import {
@@ -29,6 +30,7 @@ export function LiveKitMeetingWrapper({
     onFallbackToWebRTC,
     className
 }: LiveKitMeetingWrapperProps) {
+  const { t } = useTranslation('common');
     const [connectionAttempts, setConnectionAttempts] = useState(0);
     const [showFallbackOption, setShowFallbackOption] = useState(false);
     const connectionStartTime = useRef<number>(Date.now());
@@ -112,7 +114,7 @@ export function LiveKitMeetingWrapper({
                 <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mb-4">
                     <Wifi className="h-8 w-8 text-destructive" />
                 </div>
-                <h3 className="text-xl font-semibold text-destructive mb-2">Connection Failed</h3>
+                <h3 className="text-xl font-semibold text-destructive mb-2">{t("connection_failed", "Connection Failed")}</h3>
                 <p className="text-muted-foreground mb-4 text-center max-w-md">
                     {error.includes('LiveKit not configured') 
                         ? 'Video infrastructure is temporarily unavailable.'
@@ -147,7 +149,7 @@ export function LiveKitMeetingWrapper({
         return (
             <div className="flex flex-col items-center justify-center h-full min-h-[400px] bg-background border rounded-lg">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
-                <p className="text-muted-foreground">Connecting to secure room...</p>
+                <p className="text-muted-foreground">{t("connecting_to_secure_room", "Connecting to secure room...")}</p>
                 
                 {connectionAttempts > 0 && (
                     <p className="text-xs text-muted-foreground/60 mt-2">

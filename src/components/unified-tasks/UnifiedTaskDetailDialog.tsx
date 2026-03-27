@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -31,6 +32,7 @@ export const UnifiedTaskDetailDialog = ({
   onTaskUpdated,
   onStatusChange
 }: UnifiedTaskDetailDialogProps) => {
+  const { t } = useTranslation('common');
   const [objective, setObjective] = useState<any>(null);
   const [project, setProject] = useState<any>(null);
   const [blockingTasks, setBlockingTasks] = useState<any[]>([]);
@@ -224,14 +226,14 @@ export const UnifiedTaskDetailDialog = ({
               value="overview"
               className="h-12 rounded-none border-b-2 border-transparent px-6 data-[state=active]:border-primary data-[state=active]:bg-background/50 transition-all"
             >
-              Overview
+              {t('tasks.overview', 'Overview')}
             </TabsTrigger>
             <TabsTrigger
               value="subtasks"
               className="h-12 rounded-none border-b-2 border-transparent px-6 data-[state=active]:border-primary data-[state=active]:bg-background/50 transition-all"
             >
               <div className="flex items-center gap-2">
-                Subtasks
+                {t('tasks.subtasks', 'Subtasks')}
                 <Badge variant="secondary" className="h-5 px-1.5 text-[10px]">{subtasks.length}</Badge>
               </div>
             </TabsTrigger>
@@ -239,7 +241,7 @@ export const UnifiedTaskDetailDialog = ({
               value="comments"
               className="h-12 rounded-none border-b-2 border-transparent px-6 data-[state=active]:border-primary data-[state=active]:bg-background/50 transition-all"
             >
-              Comments
+              {t('tasks.comments', 'Comments')}
             </TabsTrigger>
           </TabsList>
 
@@ -248,14 +250,14 @@ export const UnifiedTaskDetailDialog = ({
             {/* Status Bar */}
             <div className="flex items-center justify-between p-4 rounded-lg bg-muted/40 border">
               <div className="flex items-center gap-4">
-                <span className="text-sm font-medium text-muted-foreground">Status</span>
+                <span className="text-sm font-medium text-muted-foreground">{t('tasks.status', 'Status')}</span>
                 <Badge className={`text-sm px-3 py-1 capitalize ${getStatusColor(task.status)} border-0 shadow-sm`}>
                   {task.status.replace("_", " ")}
                 </Badge>
               </div>
 
               <div className="flex items-center gap-4">
-                <span className="text-sm font-medium text-muted-foreground">Priority</span>
+                <span className="text-sm font-medium text-muted-foreground">{t('tasks.priority', 'Priority')}</span>
                 <Badge variant={task.priority === 'high' ? 'destructive' : 'secondary'} className="capitalize">
                   {task.priority}
                 </Badge>
@@ -270,7 +272,7 @@ export const UnifiedTaskDetailDialog = ({
                     <div className="flex items-center gap-2">
                       <Target className="h-4 w-4 text-primary" />
                       <div>
-                        <p className="text-xs text-muted-foreground">Part of Objective</p>
+                        <p className="text-xs text-muted-foreground">{t('tasks.partOfObjective', 'Part of Objective')}</p>
                         <Link
                           to={`/objectives/${objective.id}`}
                           className="font-medium hover:text-primary transition-colors flex items-center gap-1"
@@ -294,7 +296,7 @@ export const UnifiedTaskDetailDialog = ({
                     <div className="flex items-center gap-2">
                       <Briefcase className="h-4 w-4 text-blue-500" />
                       <div>
-                        <p className="text-xs text-muted-foreground">Part of Project</p>
+                        <p className="text-xs text-muted-foreground">{t('tasks.partOfProject', 'Part of Project')}</p>
                         <Link
                           to={`/projects/${project.id}`}
                           className="font-medium hover:text-blue-600 transition-colors flex items-center gap-1"
@@ -314,7 +316,7 @@ export const UnifiedTaskDetailDialog = ({
               {task.description && (
                 <div>
                   <h4 className="font-semibold mb-2 flex items-center gap-2">
-                    <span>Description</span>
+                    <span>{t('tasks.description', 'Description')}</span>
                   </h4>
                   <p className="text-sm text-muted-foreground leading-relaxed">{task.description}</p>
                 </div>
@@ -323,7 +325,7 @@ export const UnifiedTaskDetailDialog = ({
               {/* Status and Priority */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <h4 className="font-semibold mb-2">Status</h4>
+                  <h4 className="font-semibold mb-2">{t('tasks.status', 'Status')}</h4>
                   <Select
                     value={task.status}
                     onValueChange={(value) => {
@@ -335,16 +337,16 @@ export const UnifiedTaskDetailDialog = ({
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="pending">✋ Pending</SelectItem>
-                      <SelectItem value="in_progress">🚀 In Progress</SelectItem>
-                      <SelectItem value="on_hold">⏸️ On Hold</SelectItem>
-                      <SelectItem value="completed">✅ Completed</SelectItem>
+                      <SelectItem value="pending">{t('tasks.pending', 'Pending')}</SelectItem>
+                      <SelectItem value="in_progress">{t('tasks.inProgress', 'In Progress')}</SelectItem>
+                      <SelectItem value="on_hold">{t('tasks.onHold', 'On Hold')}</SelectItem>
+                      <SelectItem value="completed">{t('tasks.completed', 'Completed')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div>
-                  <h4 className="font-semibold mb-2">Priority</h4>
+                  <h4 className="font-semibold mb-2">{t('tasks.priority', 'Priority')}</h4>
                   <Badge variant="outline" className={getPriorityColor(task.priority)}>
                     {task.priority}
                   </Badge>
@@ -356,7 +358,7 @@ export const UnifiedTaskDetailDialog = ({
                 <div>
                   <h4 className="font-semibold mb-3 flex items-center gap-2">
                     <Users className="h-4 w-4" />
-                    Task Owners
+                    {t('tasks.taskOwners', 'Task Owners')}
                   </h4>
                   <div className="flex flex-wrap gap-3">
                     {owners.map((owner: any) => (
@@ -377,14 +379,14 @@ export const UnifiedTaskDetailDialog = ({
               {/* Dependencies Section */}
               {(blockingTasks.length > 0 || blockedByTasks.length > 0) && (
                 <div className="space-y-4">
-                  <h4 className="font-semibold">Task Dependencies</h4>
+                  <h4 className="font-semibold">{t('tasks.taskDependencies', 'Task Dependencies')}</h4>
 
                   {/* Blocking Tasks */}
                   {blockingTasks.length > 0 && (
                     <div className="space-y-2">
                       <div className="flex items-center gap-2 text-sm">
                         <Lock className="h-4 w-4 text-orange-500" />
-                        <span className="font-medium">Blocking {blockingTasks.length} task(s)</span>
+                        <span className="font-medium">{t('tasks.blockingTaskCount', 'Blocking {{count}} task(s)', { count: blockingTasks.length })}</span>
                       </div>
                       <div className="space-y-2 pl-6">
                         {blockingTasks.map((dep: any) => (
@@ -405,7 +407,7 @@ export const UnifiedTaskDetailDialog = ({
                     <div className="space-y-2">
                       <div className="flex items-center gap-2 text-sm">
                         <Unlock className="h-4 w-4 text-blue-500" />
-                        <span className="font-medium">Blocked by {blockedByTasks.length} task(s)</span>
+                        <span className="font-medium">{t('tasks.blockedByTaskCount', 'Blocked by {{count}} task(s)', { count: blockedByTasks.length })}</span>
                       </div>
                       <div className="space-y-2 pl-6">
                         {blockedByTasks.map((dep: any) => (
@@ -429,7 +431,7 @@ export const UnifiedTaskDetailDialog = ({
                   <div>
                     <h4 className="font-semibold mb-2 flex items-center gap-2">
                       <Clock className="h-4 w-4" />
-                      Scheduled Start
+                      {t('tasks.scheduledStart', 'Scheduled Start')}
                     </h4>
                     <p className="text-sm text-muted-foreground">
                       {format(new Date(task.scheduled_start), "MMM d, yyyy 'at' HH:mm")}
@@ -441,7 +443,7 @@ export const UnifiedTaskDetailDialog = ({
                   <div>
                     <h4 className="font-semibold mb-2 flex items-center gap-2">
                       <Calendar className="h-4 w-4" />
-                      Due Date
+                      {t('tasks.dueDate', 'Due Date')}
                     </h4>
                     <p className="text-sm text-muted-foreground">
                       {format(new Date(task.due_date), "MMM d, yyyy")}
@@ -452,7 +454,7 @@ export const UnifiedTaskDetailDialog = ({
 
               {/* Scheduling Mode */}
               <div className="pb-6">
-                <h4 className="font-semibold mb-2">Scheduling Mode</h4>
+                <h4 className="font-semibold mb-2">{t('tasks.schedulingMode', 'Scheduling Mode')}</h4>
                 <Badge variant="outline">
                   {task.scheduling_mode === 'ai' && '🤖 AI Scheduling'}
                   {task.scheduling_mode === 'manual' && '✋ Manual'}
@@ -488,15 +490,15 @@ export const UnifiedTaskDetailDialog = ({
               {subtasks.length === 0 && (
                 <div className="flex flex-col items-center justify-center py-12 border-2 border-dashed rounded-lg text-muted-foreground bg-muted/10">
                   <CheckSquare className="h-10 w-10 mb-2 opacity-20" />
-                  <p>No subtasks yet</p>
-                  <p className="text-xs">Break this task down into smaller steps</p>
+                  <p>{t('tasks.noSubtasksYet', 'No subtasks yet')}</p>
+                  <p className="text-xs">{t('tasks.breakIntoSteps', 'Break this task down into smaller steps')}</p>
                 </div>
               )}
             </div>
 
             <form onSubmit={handleAddSubtask} className="flex gap-2 mt-auto pt-4 border-t">
               <Input
-                placeholder="Add a new subtask..."
+                placeholder={t('tasks.addNewSubtask', 'Add a new subtask...')}
                 value={newSubtaskTitle}
                 onChange={(e) => setNewSubtaskTitle(e.target.value)}
                 className="bg-background"

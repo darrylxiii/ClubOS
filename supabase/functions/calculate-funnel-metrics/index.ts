@@ -1,9 +1,4 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.58.0";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { createAuthenticatedHandler } from '../_shared/handler.ts';
 
 interface FunnelStep {
   step_name: string;
@@ -21,38 +16,19 @@ interface StepMetrics {
   avg_time_to_next: number;
 }
 
-Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
-    // Verify admin authentication
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      throw new Error('Missing authorization header');
-    }
-
-    const { data: { user }, error: authError } = await supabase.auth.getUser(
-      authHeader.replace('Bearer ', '')
-    );
-
-    if (authError || !user) {
-      throw new Error('Unauthorized');
-    }
-
-    const { data: roles } = await supabase
+Deno.serve(createAuthenticatedHandler(async (req, ctx) => {
+    // Verify admin role
+    const { data: roles } = await ctx.supabase
       .from('user_roles')
       .select('role')
-      .eq('user_id', user.id)
+      .eq('user_id', ctx.user.id)
       .single();
 
     if (roles?.role !== 'admin') {
-      throw new Error('Admin access required');
+      return new Response(
+        JSON.stringify({ error: 'Admin access required' }),
+        { status: 403, headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     const { funnelId, dateRangeStart, dateRangeEnd, cohortType } = await req.json();
@@ -60,7 +36,7 @@ Deno.serve(async (req) => {
     console.log(`Calculating funnel metrics for ${funnelId}`);
 
     // Fetch funnel definition
-    const { data: funnel, error: funnelError } = await supabase
+    const { data: funnel, error: funnelError } = await ctx.supabase
       .from('custom_funnels')
       .select('*')
       .eq('id', funnelId)
@@ -79,7 +55,7 @@ Deno.serve(async (req) => {
       const nextStep = steps[i + 1];
 
       const metrics = await calculateStepMetrics(
-        supabase,
+        ctx.supabase,
         step,
         nextStep,
         dateRangeStart,
@@ -98,7 +74,7 @@ Deno.serve(async (req) => {
       : 0;
 
     // Cache results
-    await supabase.from('funnel_analytics_cache').insert({
+    await ctx.supabase.from('funnel_analytics_cache').insert({
       funnel_id: funnelId,
       date_range_start: dateRangeStart,
       date_range_end: dateRangeEnd,
@@ -119,21 +95,9 @@ Deno.serve(async (req) => {
         })),
         overallConversion: Math.round(overallConversion * 100) / 100,
       }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } }
     );
-
-  } catch (error) {
-    console.error('Error in calculate-funnel-metrics:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    return new Response(
-      JSON.stringify({ error: errorMessage }),
-      { 
-        status: errorMessage.includes('Unauthorized') ? 401 : 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-      }
-    );
-  }
-});
+}));
 
 async function calculateStepMetrics(
   supabase: any,
@@ -143,7 +107,7 @@ async function calculateStepMetrics(
   endDate: string,
   cohortType?: string
 ): Promise<StepMetrics> {
-  
+
   // Query events for this step
   let query = supabase
     .from('user_session_events')
@@ -193,16 +157,16 @@ async function calculateStepMetrics(
 
     if (nextEvents) {
       const usersWhoCompleted = new Set<string>();
-      
+
       for (const stepEvent of stepEvents) {
-        const nextEvent = nextEvents.find((ne: any) => 
+        const nextEvent = nextEvents.find((ne: any) =>
           ne.user_id === stepEvent.user_id &&
           new Date(ne.created_at) > new Date(stepEvent.created_at)
         );
 
         if (nextEvent) {
           usersWhoCompleted.add(stepEvent.user_id);
-          const timeDiff = new Date(nextEvent.created_at).getTime() - 
+          const timeDiff = new Date(nextEvent.created_at).getTime() -
                           new Date(stepEvent.created_at).getTime();
           totalTimeToNext += timeDiff;
         }

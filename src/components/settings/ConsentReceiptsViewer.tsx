@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 
 export function ConsentReceiptsViewer() {
+  const { t } = useTranslation('common');
   const [consents, setConsents] = useState<ConsentReceipt[]>([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState(false);
@@ -38,9 +40,9 @@ export function ConsentReceiptsViewer() {
             : c
         )
       );
-      toast.success("Consent revoked.");
+      toast.success(t("consent_revoked", "Consent revoked."));
     } catch {
-      toast.error("Could not revoke consent.");
+      toast.error(t("could_not_revoke_consent", "Could not revoke consent."));
     }
   };
 

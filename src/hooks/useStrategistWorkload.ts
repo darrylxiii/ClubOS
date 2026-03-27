@@ -67,7 +67,7 @@ export function useStrategistWorkload() {
 
       // Fetch active applications for assigned candidates
       const candidateIds = candidates?.map(c => c.id) || [];
-      let activeApps: any[] = [];
+      let activeApps: { id: string; candidate_id: string; status: string }[] = [];
       
       if (candidateIds.length > 0) {
         const { data: apps } = await supabase
@@ -79,19 +79,19 @@ export function useStrategistWorkload() {
       }
 
       // Calculate workload for each team member
-      const workloadMap: StrategistWorkload[] = teamMembers.map((member: any) => {
+      const workloadMap: StrategistWorkload[] = teamMembers.map((member) => {
         const companyCount = companyAssignments?.filter(
-          (a: any) => a.strategist_id === member.id
+          (a) => a.strategist_id === member.id
         ).length || 0;
 
         const assignedCandidates = candidates?.filter(
-          (c: any) => c.assigned_strategist_id === member.id
+          (c) => c.assigned_strategist_id === member.id
         ) || [];
         const candidateCount = assignedCandidates.length;
 
-        const candidateIdsForStrategist = assignedCandidates.map((c: any) => c.id);
+        const candidateIdsForStrategist = assignedCandidates.map((c) => c.id);
         const activeApplications = activeApps.filter(
-          (a: any) => candidateIdsForStrategist.includes(a.candidate_id)
+          (a) => candidateIdsForStrategist.includes(a.candidate_id)
         ).length;
 
         // Calculate capacity as weighted average

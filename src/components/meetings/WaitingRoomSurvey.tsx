@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -32,6 +33,7 @@ export function WaitingRoomSurvey({
   participantName,
   onComplete
 }: WaitingRoomSurveyProps) {
+  const { t } = useTranslation('common');
   const [responses, setResponses] = useState<Record<string, string | number>>({});
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -48,7 +50,7 @@ export function WaitingRoomSurvey({
 
   const handleSubmit = async () => {
     if (!isComplete()) {
-      toast.error('Please complete all required questions');
+      toast.error(t("please_complete_all_required", "Please complete all required questions"));
       return;
     }
 
@@ -66,11 +68,11 @@ export function WaitingRoomSurvey({
       if (error) throw error;
 
       setSubmitted(true);
-      toast.success('Survey submitted');
+      toast.success(t("survey_submitted", "Survey submitted"));
       onComplete?.();
     } catch (error) {
       console.error('Error submitting survey:', error);
-      toast.error('Failed to submit survey');
+      toast.error(t("failed_to_submit_survey", "Failed to submit survey"));
     } finally {
       setSubmitting(false);
     }
@@ -80,7 +82,7 @@ export function WaitingRoomSurvey({
     return (
       <Card className="p-6 text-center bg-primary/5 border-primary/20">
         <CheckCircle2 className="h-12 w-12 text-primary mx-auto mb-3" />
-        <p className="font-medium">Thank you for your responses</p>
+        <p className="font-medium">{t("thank_you_for_your", "Thank you for your responses")}</p>
         <p className="text-sm text-muted-foreground mt-1">
           Your host will see these when the meeting begins
         </p>
@@ -116,7 +118,7 @@ export function WaitingRoomSurvey({
               <Textarea
                 value={(responses[question.id] as string) || ''}
                 onChange={e => updateResponse(question.id, e.target.value)}
-                placeholder="Type your answer..."
+                placeholder={t("type_your_answer", "Type your answer...")}
                 rows={2}
               />
             )}

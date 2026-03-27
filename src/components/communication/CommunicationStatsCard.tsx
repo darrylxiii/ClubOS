@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { BarChart3, MessageSquare, Clock, TrendingUp, Mail, Phone, Video } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -26,6 +27,7 @@ const channelColors: Record<string, string> = {
 };
 
 export function CommunicationStatsCard({ stats }: Props) {
+  const { t } = useTranslation('common');
   const total = Object.values(stats.channelBreakdown).reduce((a, b) => a + b, 0) || 1;
   
   return (
@@ -43,12 +45,12 @@ export function CommunicationStatsCard({ stats }: Props) {
           <div className="text-center p-3 rounded-lg bg-muted/30">
             <MessageSquare className="h-5 w-5 mx-auto mb-1 text-primary" />
             <p className="text-2xl font-bold">{stats.totalMessages}</p>
-            <p className="text-xs text-muted-foreground">Total Messages</p>
+            <p className="text-xs text-muted-foreground">{t("total_messages", "Total Messages")}</p>
           </div>
           <div className="text-center p-3 rounded-lg bg-muted/30">
             <Clock className="h-5 w-5 mx-auto mb-1 text-primary" />
             <p className="text-2xl font-bold">{stats.avgResponseTime}h</p>
-            <p className="text-xs text-muted-foreground">Avg Response</p>
+            <p className="text-xs text-muted-foreground">{t("avg_response", "Avg Response")}</p>
           </div>
         </div>
 
@@ -91,7 +93,7 @@ export function CommunicationStatsCard({ stats }: Props) {
 
         {/* Quick Tips */}
         <div className="p-3 rounded-lg bg-primary/5 border border-primary/20">
-          <p className="text-xs font-medium text-primary mb-1">💡 Quick Tip</p>
+          <p className="text-xs font-medium text-primary mb-1">{t("quick_tip", "💡 Quick Tip")}</p>
           <p className="text-xs text-muted-foreground">
             Candidates who respond within 4 hours are 3x more likely to get interview invitations
           </p>

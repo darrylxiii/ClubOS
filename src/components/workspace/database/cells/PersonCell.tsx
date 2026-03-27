@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React, { useState } from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
@@ -23,6 +24,7 @@ interface PersonCellProps {
 }
 
 export function PersonCell({ value, onChange, multiple = false }: PersonCellProps) {
+  const { t } = useTranslation('common');
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
 
@@ -119,7 +121,7 @@ export function PersonCell({ value, onChange, multiple = false }: PersonCellProp
           ) : (
             <span className="text-muted-foreground flex items-center gap-1">
               <User className="h-3 w-3" />
-              <span className="text-xs">Add person...</span>
+              <span className="text-xs">{t("add_person", "Add person...")}</span>
             </span>
           )}
         </Button>
@@ -128,7 +130,7 @@ export function PersonCell({ value, onChange, multiple = false }: PersonCellProp
         <div className="relative mb-2">
           <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
           <Input
-            placeholder="Search people..."
+            placeholder={t("search_people", "Search people...")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-7 h-8 text-sm"

@@ -19,6 +19,7 @@ import { AddToJobDialog } from "@/components/partner/AddToJobDialog";
 import { useRecharts } from "@/hooks/useRecharts";
 import { formatRelativeTime } from "@/lib/format";
 import type { AssessmentBreakdown, AssessmentDimension } from "@/hooks/useAssessmentScores";
+import { useTranslation } from 'react-i18next';
 
 const DIMENSION_CONFIG = [
   { key: 'skills_match', label: 'Skills', icon: Target, color: 'hsl(var(--primary))' },
@@ -89,6 +90,7 @@ export const CandidateHeroSection = ({
     .toUpperCase();
 
   const getConfidenceIndicator = (confidence: number) => {
+  const { t } = useTranslation('candidates');
     if (confidence >= 0.5) return { dotColor: 'bg-green-500', opacity: '', border: '' };
     if (confidence >= 0.2) return { dotColor: 'bg-amber-500', opacity: 'opacity-70', border: 'border-dashed' };
     return { dotColor: 'bg-red-500', opacity: 'opacity-40', border: 'border-dashed' };

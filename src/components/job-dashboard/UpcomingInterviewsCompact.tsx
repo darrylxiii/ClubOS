@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { format, isToday, isTomorrow, parseISO } from "date-fns";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ManualInterviewEntryDialog } from "./ManualInterviewEntryDialog";
+import { useTranslation } from 'react-i18next';
 
 interface Interview {
   id: string;
@@ -24,6 +25,7 @@ interface UpcomingInterviewsCompactProps {
 }
 
 export const UpcomingInterviewsCompact = memo(({ jobId, limit = 3 }: UpcomingInterviewsCompactProps) => {
+  const { t } = useTranslation('jobs');
   const [interviews, setInterviews] = useState<Interview[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddDialog, setShowAddDialog] = useState(false);

@@ -1,4 +1,5 @@
 import { memo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -23,6 +24,7 @@ export const CourseReviewForm = memo<CourseReviewFormProps>(({
   courseName,
   onReviewSubmitted,
 }) => {
+  const { t } = useTranslation('common');
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [reviewText, setReviewText] = useState('');
@@ -31,7 +33,7 @@ export const CourseReviewForm = memo<CourseReviewFormProps>(({
 
   const handleSubmit = async () => {
     if (rating === 0) {
-      notify.warning('Please select a star rating');
+      notify.warning(t('academy.pleaseSelectStarRating'));
       return;
     }
 
@@ -53,7 +55,7 @@ export const CourseReviewForm = memo<CourseReviewFormProps>(({
 
       if (error) throw error;
 
-      notify.success('Thank you for your feedback!');
+      notify.success(t('academy.thankYouForFeedback'));
 
       onReviewSubmitted?.();
       onOpenChange(false);
@@ -64,7 +66,7 @@ export const CourseReviewForm = memo<CourseReviewFormProps>(({
       setWouldRecommend(true);
     } catch (error) {
       console.error('Error submitting review:', error);
-      notify.error('Failed to submit review', { description: 'You may have already reviewed this course.' });
+      notify.error(t('academy.failedToSubmitReview'), { description: t('academy.mayHaveAlreadyReviewed') });
     } finally {
       setSubmitting(false);
     }
@@ -74,12 +76,12 @@ export const CourseReviewForm = memo<CourseReviewFormProps>(({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>Review: {courseName}</DialogTitle>
+          <DialogTitle>{t('academy.reviewCourseName', { name: courseName })}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6">
           <div className="space-y-2">
-            <Label>Your Rating</Label>
+            <Label>{t('academy.yourRating')}</Label>
             <div className="flex gap-2">
               {[1, 2, 3, 4, 5].map((star) => (
                 <button
@@ -103,24 +105,22 @@ export const CourseReviewForm = memo<CourseReviewFormProps>(({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="review">Your Review (Optional)</Label>
+            <Label htmlFor="review">{t('academy.yourReviewOptional')}</Label>
             <Textarea
               id="review"
               value={reviewText}
               onChange={(e) => setReviewText(e.target.value)}
-              placeholder="Share your thoughts about this course..."
+              placeholder={t('academy.shareYourThoughtsAboutThisCourse')}
               className="min-h-[120px]"
               maxLength={500}
             />
             <p className="text-xs text-muted-foreground">
-              {reviewText.length}/500 characters
+              {reviewText.length}/500 {t('academy.characters')}
             </p>
           </div>
 
           <div className="flex items-center justify-between p-4 rounded-lg bg-muted/30">
-            <Label htmlFor="recommend" className="cursor-pointer">
-              Would you recommend this course?
-            </Label>
+            <Label htmlFor="recommend" className="cursor-pointer">{t('academy.wouldYouRecommendThisCourse')}</Label>
             <Switch
               id="recommend"
               checked={wouldRecommend}
@@ -130,10 +130,10 @@ export const CourseReviewForm = memo<CourseReviewFormProps>(({
 
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => onOpenChange(false)} className="flex-1">
-              Cancel
+              {t('academy.cancel')}
             </Button>
             <Button onClick={handleSubmit} disabled={submitting || rating === 0} className="flex-1">
-              {submitting ? 'Submitting...' : 'Submit Review'}
+              {submitting ? t('academy.submitting') : t('academy.submitReview')}
             </Button>
           </div>
         </div>

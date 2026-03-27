@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { untypedTable } from "@/lib/supabaseRpc";
 
 export interface AuditLogEntry {
   id: string;
@@ -6,11 +7,11 @@ export interface AuditLogEntry {
   action: 'create' | 'update' | 'soft_delete' | 'hard_delete' | 'restore';
   performed_by: string;
   performed_at: string;
-  before_data: any;
-  after_data: any;
+  before_data: Record<string, unknown> | null;
+  after_data: Record<string, unknown> | null;
   changed_fields: string[];
   reason: string | null;
-  metadata: any;
+  metadata: Record<string, unknown> | null;
   is_bulk_action: boolean;
   bulk_action_id: string | null;
   performed_by_profile?: {
@@ -32,19 +33,18 @@ export const candidateAuditService = {
   async logAudit(entry: {
     candidate_id: string;
     action: 'create' | 'update' | 'soft_delete' | 'hard_delete' | 'restore';
-    before_data?: any;
-    after_data?: any;
+    before_data?: Record<string, unknown>;
+    after_data?: Record<string, unknown>;
     changed_fields?: string[];
     reason?: string;
-    metadata?: any;
+    metadata?: Record<string, unknown>;
     is_bulk_action?: boolean;
     bulk_action_id?: string;
   }) {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('Not authenticated');
 
-    const { error } = await (supabase as any)
-      .from('candidate_profile_audit')
+    const { error } = await untypedTable('candidate_profile_audit')
       .insert({
         ...entry,
         performed_by: user.id,
@@ -55,8 +55,7 @@ export const candidateAuditService = {
 
   // Get audit history for a candidate
   async getCandidateAuditHistory(candidateId: string) {
-    const { data, error } = await (supabase as any)
-      .from('candidate_profile_audit')
+    const { data, error } = await untypedTable('candidate_profile_audit')
       .select(`
         *,
         performed_by_profile:profiles!performed_by(full_name, avatar_url)
@@ -68,7 +67,7 @@ export const candidateAuditService = {
   },
 
   // Get deletion impact preview
-  async getDeletionImpact(candidateId: string): Promise<{ data: DeletionImpact | null; error: any }> {
+  async getDeletionImpact(candidateId: string): Promise<{ data: DeletionImpact | null; error: unknown }> {
     const { data: apps, error } = await supabase
       .from('applications')
       .select(`
@@ -84,17 +83,17 @@ export const candidateAuditService = {
 
     const impact: DeletionImpact = {
       total_applications: apps.length,
-      active_applications: apps.filter((a: any) => a.status === 'active').length,
-      rejected_applications: apps.filter((a: any) => a.status === 'rejected').length,
-      hired_applications: apps.filter((a: any) => a.status === 'hired').length,
-      affected_jobs: [...new Set(apps.map((a: any) => a.jobs?.title).filter(Boolean))]
+      active_applications: apps.filter((a) => a.status === 'active').length,
+      rejected_applications: apps.filter((a) => a.status === 'rejected').length,
+      hired_applications: apps.filter((a) => a.status === 'hired').length,
+      affected_jobs: [...new Set(apps.map((a) => (a.jobs as { title: string } | null)?.title).filter(Boolean))] as string[]
     };
 
     return { data: impact, error: null };
   },
 
   // Track field changes
-  getChangedFields(before: any, after: any): string[] {
+  getChangedFields(before: Record<string, unknown> | null, after: Record<string, unknown> | null): string[] {
     if (!before || !after) return [];
     
     return Object.keys(after).filter(key => 

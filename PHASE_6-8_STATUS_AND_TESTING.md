@@ -240,7 +240,7 @@ WHERE guest_email = 'test@thequantumclub.com';
 - Slot analytics not recording
 - No conversion rate data
 
-**Resolution**: User needs to approve the migration in the Lovable interface
+**Resolution**: User needs to approve the migration in the the platform interface
 
 ---
 

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useCallback } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -18,15 +19,16 @@ interface NotionImporterProps {
 }
 
 const TEMPLATE_CATEGORIES = [
-  { value: 'onboarding', label: 'Onboarding' },
-  { value: 'meeting-notes', label: 'Meeting Notes' },
-  { value: 'project', label: 'Project Management' },
-  { value: 'recruitment', label: 'Recruitment' },
-  { value: 'documentation', label: 'Documentation' },
-  { value: 'custom', label: 'Custom' },
+  { value: 'onboarding', label: t('workspace.notionimporter.onboarding', 'Onboarding') },
+  { value: 'meeting-notes', label: t('workspace.notionimporter.meetingNotes', 'Meeting Notes') },
+  { value: 'project', label: t('workspace.notionimporter.projectManagement', 'Project Management') },
+  { value: 'recruitment', label: t('workspace.notionimporter.recruitment', 'Recruitment') },
+  { value: 'documentation', label: t('workspace.notionimporter.documentation', 'Documentation') },
+  { value: 'custom', label: t('workspace.notionimporter.custom', 'Custom') },
 ];
 
 export function NotionImporter({ open, onOpenChange, onImport }: NotionImporterProps) {
+  const { t } = useTranslation('common');
   const [importType, setImportType] = useState<'markdown' | 'html'>('markdown');
   const [rawContent, setRawContent] = useState('');
   const [parsedBlocks, setParsedBlocks] = useState<any[] | null>(null);
@@ -263,7 +265,7 @@ export function NotionImporter({ open, onOpenChange, onImport }: NotionImporterP
 
   const handleSaveAsTemplate = async () => {
     if (!parsedBlocks || !templateName.trim()) {
-      toast.error('Please parse content and provide a template name');
+      toast.error(t("please_parse_content_and", "Please parse content and provide a template name"));
       return;
     }
 
@@ -328,9 +330,7 @@ export function NotionImporter({ open, onOpenChange, onImport }: NotionImporterP
             <Sparkles className="h-5 w-5 text-primary" />
             Import from Notion
           </DialogTitle>
-          <DialogDescription>
-            Paste your Notion export (Markdown or HTML) to convert it into a template
-          </DialogDescription>
+          <DialogDescription>{t('workspace.notionimporter.pasteYourNotionExportMarkdownOr', 'Paste your Notion export (Markdown or HTML) to convert it into a template')}</DialogDescription>
         </DialogHeader>
 
         <Tabs value={importType} onValueChange={(v) => setImportType(v as 'markdown' | 'html')}>
@@ -347,11 +347,11 @@ export function NotionImporter({ open, onOpenChange, onImport }: NotionImporterP
 
           <TabsContent value="markdown" className="space-y-4">
             <div className="space-y-2">
-              <Label>Paste Markdown Content</Label>
+              <Label>{t("paste_markdown_content", "Paste Markdown Content")}</Label>
               <Textarea
                 value={rawContent}
                 onChange={(e) => setRawContent(e.target.value)}
-                placeholder="# My Notion Page&#10;&#10;Paste your exported Markdown here..."
+                placeholder={t("my_notion_page1010paste_your", "# My Notion Page&#10;&#10;Paste your exported Markdown here...")}
                 className="min-h-[200px] font-mono text-sm"
               />
             </div>
@@ -359,11 +359,11 @@ export function NotionImporter({ open, onOpenChange, onImport }: NotionImporterP
 
           <TabsContent value="html" className="space-y-4">
             <div className="space-y-2">
-              <Label>Paste HTML Content</Label>
+              <Label>{t("paste_html_content", "Paste HTML Content")}</Label>
               <Textarea
                 value={rawContent}
                 onChange={(e) => setRawContent(e.target.value)}
-                placeholder="<h1>My Notion Page</h1>&#10;<p>Paste your exported HTML here...</p>"
+                placeholder="<h1>{t('workspace.notionimporter.myNotionPage', 'My Notion Page')}</h1>&#10;<p>{t('workspace.notionimporter.pasteYourExportedHtmlHere', 'Paste your exported HTML here...')}</p>"
                 className="min-h-[200px] font-mono text-sm"
               />
             </div>
@@ -391,7 +391,7 @@ export function NotionImporter({ open, onOpenChange, onImport }: NotionImporterP
 
         {/* Parse Button */}
         <Button onClick={handleParse} disabled={!rawContent.trim() || isProcessing}>
-          {isProcessing ? 'Processing...' : 'Parse Content'}
+          {isProcessing ? t('workspace.notionimporter.processing', 'Processing...') : t('workspace.notionimporter.parseContent', 'Parse Content')}
         </Button>
 
         {/* Parse Error */}
@@ -419,15 +419,15 @@ export function NotionImporter({ open, onOpenChange, onImport }: NotionImporterP
             {/* Template Metadata */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Template Name *</Label>
+                <Label>{t("template_name", "Template Name *")}</Label>
                 <Input
                   value={templateName}
                   onChange={(e) => setTemplateName(e.target.value)}
-                  placeholder="My Template"
+                  placeholder={t("my_template", "My Template")}
                 />
               </div>
               <div className="space-y-2">
-                <Label>Icon</Label>
+                <Label>{t("icon", "Icon")}</Label>
                 <Input
                   value={templateIcon}
                   onChange={(e) => setTemplateIcon(e.target.value)}
@@ -438,17 +438,17 @@ export function NotionImporter({ open, onOpenChange, onImport }: NotionImporterP
             </div>
 
             <div className="space-y-2">
-              <Label>Description</Label>
+              <Label>{t("description", "Description")}</Label>
               <Input
                 value={templateDescription}
                 onChange={(e) => setTemplateDescription(e.target.value)}
-                placeholder="A brief description of this template"
+                placeholder={t("a_brief_description_of", "A brief description of this template")}
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Category</Label>
+                <Label>{t("category", "Category")}</Label>
                 <Select value={templateCategory} onValueChange={setTemplateCategory}>
                   <SelectTrigger>
                     <SelectValue />
@@ -463,15 +463,15 @@ export function NotionImporter({ open, onOpenChange, onImport }: NotionImporterP
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Visibility</Label>
+                <Label>{t("visibility", "Visibility")}</Label>
                 <Select value={visibility} onValueChange={(v) => setVisibility(v as any)}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="system">System (All Users)</SelectItem>
-                    <SelectItem value="company">Company Only</SelectItem>
-                    <SelectItem value="personal">Personal</SelectItem>
+                    <SelectItem value="system">{t("system_all_users", "System (All Users)")}</SelectItem>
+                    <SelectItem value="company">{t("company_only", "Company Only")}</SelectItem>
+                    <SelectItem value="personal">{t("personal", "Personal")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -480,18 +480,16 @@ export function NotionImporter({ open, onOpenChange, onImport }: NotionImporterP
             {/* Actions */}
             <div className="flex justify-end gap-2 pt-4 border-t">
               <Button variant="outline" onClick={() => onOpenChange(false)}>
-                Cancel
+                {t('workspace.notionimporter.cancel', 'Cancel')}
               </Button>
               {onImport && (
-                <Button variant="secondary" onClick={handleUseDirectly}>
-                  Use Directly
-                </Button>
+                <Button variant="secondary" onClick={handleUseDirectly}>{t('workspace.notionimporter.useDirectly', 'Use Directly')}</Button>
               )}
               <Button 
                 onClick={handleSaveAsTemplate} 
                 disabled={!templateName.trim() || createTemplate.isPending}
               >
-                {createTemplate.isPending ? 'Saving...' : 'Save as Template'}
+                {createTemplate.isPending ? t('workspace.notionimporter.saving', 'Saving...') : t('workspace.notionimporter.saveAsTemplate', 'Save as Template')}
               </Button>
             </div>
           </div>

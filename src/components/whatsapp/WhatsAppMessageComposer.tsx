@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -51,6 +52,7 @@ export function WhatsAppMessageComposer({
   sending = false,
   onOpenEmailBridge
 }: WhatsAppMessageComposerProps) {
+  const { t } = useTranslation('common');
   const [message, setMessage] = useState("");
   const [showEmoji, setShowEmoji] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -123,7 +125,7 @@ export function WhatsAppMessageComposer({
               <Clock className="w-4 h-4" />
             )}
             {windowStatus.status === 'expired' ? (
-              <span>24h window expired. Use a template to re-engage.</span>
+              <span>{t("24h_window_expired_use", "24h window expired. Use a template to re-engage.")}</span>
             ) : (
               <span>{windowStatus.hoursLeft}h left to send freeform messages</span>
             )}
@@ -166,7 +168,7 @@ export function WhatsAppMessageComposer({
           >
             <div className="flex items-center gap-2 mb-2">
               <Sparkles className="w-3.5 h-3.5 text-primary" />
-              <span className="text-xs font-medium text-muted-foreground">AI Suggested Replies</span>
+              <span className="text-xs font-medium text-muted-foreground">{t("ai_suggested_replies", "AI Suggested Replies")}</span>
             </div>
             <div className="flex flex-wrap gap-2">
               {smartReplies.slice(0, 3).map((reply, index) => (
@@ -266,7 +268,7 @@ export function WhatsAppMessageComposer({
                 <FileText className="w-5 h-5 text-muted-foreground" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Send Template</TooltipContent>
+            <TooltipContent>{t("send_template", "Send Template")}</TooltipContent>
           </Tooltip>
 
           {/* Text Input */}

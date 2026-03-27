@@ -1,33 +1,18 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.58.0";
+import { createHandler } from '../_shared/handler.ts';
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
-};
-
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+Deno.serve(createHandler(async (req, ctx) => {
+  const googleApiKey = Deno.env.get('GOOGLE_API_KEY');
+  if (!googleApiKey) {
+    throw new Error('GOOGLE_API_KEY is not configured');
   }
 
-  try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
-    if (!lovableApiKey) {
-      throw new Error('LOVABLE_API_KEY is not configured');
-    }
-
-    const { job_id, batch_mode = false, limit = 20 } = await req.json();
+  const { job_id, batch_mode = false, limit = 20 } = await req.json();
 
     let jobsToProcess: any[] = [];
 
     if (batch_mode) {
       // Find jobs with description but empty requirements
-      const { data, error } = await supabase
+      const { data, error } = await ctx.supabase
         .from('jobs')
         .select('id, title, description, requirements, nice_to_have, experience_level, seniority_level')
         .not('description', 'is', null)
@@ -37,7 +22,7 @@ serve(async (req) => {
       if (error) throw error;
       jobsToProcess = data || [];
     } else if (job_id) {
-      const { data, error } = await supabase
+      const { data, error } = await ctx.supabase
         .from('jobs')
         .select('id, title, description, requirements, nice_to_have, experience_level, seniority_level')
         .eq('id', job_id)
@@ -48,7 +33,7 @@ serve(async (req) => {
     } else {
       return new Response(
         JSON.stringify({ error: 'Either job_id or batch_mode is required' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 400, headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -69,14 +54,14 @@ ${job.description.substring(0, 3000)}
 
 Extract must-have and nice-to-have skills/requirements.`;
 
-        const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+        const aiResponse = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${lovableApiKey}`,
+            'Authorization': `Bearer ${googleApiKey}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: 'google/gemini-3-flash-preview',
+            model: 'gemini-3-flash-preview',
             messages: [
               { role: 'system', content: 'You are an expert job requirements analyzer. Extract specific, actionable skill requirements from job descriptions.' },
               { role: 'user', content: prompt }
@@ -141,7 +126,7 @@ Extract must-have and nice-to-have skills/requirements.`;
           updateData.salary_period = salaryPeriod;
         }
 
-        await supabase
+        await ctx.supabase
           .from('jobs')
           .update(updateData)
           .eq('id', job.id);
@@ -166,14 +151,7 @@ Extract must-have and nice-to-have skills/requirements.`;
         jobs_processed: jobsToProcess.length,
         results,
       }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } }
     );
 
-  } catch (error) {
-    console.error('Error in extract-job-requirements:', error);
-    return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-  }
-});
+}));

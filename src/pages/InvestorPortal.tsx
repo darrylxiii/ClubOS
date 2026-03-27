@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -15,6 +16,7 @@ import { RevenueWaterfallChart } from '@/components/financial/RevenueWaterfallCh
 import { EBITDACard } from '@/components/financial/EBITDACard';
 
 export default function InvestorPortal() {
+  const { t } = useTranslation('common');
   const [code, setCode] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isChecking, setIsChecking] = useState(false);
@@ -51,7 +53,7 @@ export default function InvestorPortal() {
       });
 
       if (error || !data?.valid) {
-        toast.error('Invalid or expired access code');
+        toast.error("Invalid or expired access code");
         return;
       }
 
@@ -63,9 +65,9 @@ export default function InvestorPortal() {
 
       setIsAuthenticated(true);
       setLabel(data.label || 'Investor');
-      toast.success('Access granted');
+      toast.success("Access granted");
     } catch {
-      toast.error('Verification failed');
+      toast.error("Verification failed");
     } finally {
       setIsChecking(false);
     }
@@ -79,7 +81,7 @@ export default function InvestorPortal() {
             <div className="mx-auto mb-4 h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
               <Lock className="h-6 w-6 text-primary" />
             </div>
-            <CardTitle className="text-xl">The Quantum Club</CardTitle>
+            <CardTitle className="text-xl">{t('investorPortal.text2')}</CardTitle>
             <CardDescription>
               Enter your investor access code to view the live dashboard.
             </CardDescription>
@@ -88,7 +90,7 @@ export default function InvestorPortal() {
             <form onSubmit={handleSubmit} className="space-y-4">
               <Input
                 type="password"
-                placeholder="Access code"
+                placeholder={t('investorPortal.text3')}
                 value={code}
                 onChange={(e) => setCode(e.target.value)}
                 autoFocus
@@ -98,9 +100,7 @@ export default function InvestorPortal() {
                 Verify Access
               </Button>
             </form>
-            <p className="text-xs text-muted-foreground text-center mt-4">
-              This portal is strictly confidential. Access is logged.
-            </p>
+            <p className="text-xs text-muted-foreground text-center mt-4">{t('investorPortal.desc')}</p>
           </CardContent>
         </Card>
       </div>
@@ -112,7 +112,7 @@ export default function InvestorPortal() {
       <header className="border-b border-border/20 bg-card/30 backdrop-blur-sm px-6 py-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-bold">The Quantum Club — Investor Portal</h1>
+            <h1 className="text-xl font-bold">{"The Quantum Club — Investor Portal"}</h1>
             <p className="text-sm text-muted-foreground">Live financial metrics · {label}</p>
           </div>
           <Button

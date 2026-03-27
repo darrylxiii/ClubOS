@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,6 +21,7 @@ interface SalaryData {
 }
 
 export function SalaryInsightsWidget() {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const navigate = useNavigate();
   const [salaryData, setSalaryData] = useState<SalaryData | null>(null);
@@ -141,9 +143,7 @@ export function SalaryInsightsWidget() {
         </CardHeader>
         <CardContent className="pt-2">
           <div className="text-center py-4 space-y-3">
-            <p className="text-sm text-muted-foreground">
-              Add your role to see market benchmarks
-            </p>
+            <p className="text-sm text-muted-foreground">{t('salaryInsightsWidget.addYourRoleToSeeMarketBenchmarks')}</p>
             <Button size="sm" variant="outline" onClick={() => navigate('/profile')}>
               Complete Profile
             </Button>
@@ -220,7 +220,7 @@ export function SalaryInsightsWidget() {
           className="w-full justify-between text-primary hover:text-primary"
           onClick={() => navigate('/analytics?tab=salary')}
         >
-          <span>View Full Analysis</span>
+          <span>{t("view_full_analysis", "View Full Analysis")}</span>
           <ArrowRight className="w-4 h-4" />
         </Button>
       </CardContent>

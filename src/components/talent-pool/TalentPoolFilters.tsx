@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -60,6 +61,7 @@ export function TalentPoolFilters({
   strategists = [],
   className,
 }: TalentPoolFiltersProps) {
+  const { t } = useTranslation('common');
   const [isOpen, setIsOpen] = useState(false);
 
   const activeFilterCount = [
@@ -158,7 +160,7 @@ export function TalentPoolFilters({
         }
       >
         <SelectTrigger className="w-[140px] h-9">
-          <SelectValue placeholder="Seniority" />
+          <SelectValue placeholder={t("seniority", "Seniority")} />
         </SelectTrigger>
         <SelectContent>
           {seniorityLevels.map((level) => (
@@ -171,7 +173,7 @@ export function TalentPoolFilters({
 
       {/* Location filter */}
       <Input
-        placeholder="Location..."
+        placeholder={t("location", "Location...")}
         className="w-[150px] h-9"
         value={filters.locations?.[0] || ''}
         onChange={(e) =>
@@ -198,7 +200,7 @@ export function TalentPoolFilters({
         <PopoverContent className="w-64 p-4">
           <div className="space-y-4">
             <div className="flex justify-between text-sm">
-              <span>Min Move Probability</span>
+              <span>{t("min_move_probability", "Min Move Probability")}</span>
               <span className="font-medium">{filters.minMoveProbability || 0}%</span>
             </div>
             <Slider
@@ -228,7 +230,7 @@ export function TalentPoolFilters({
           }
         >
           <SelectTrigger className="w-[150px] h-9">
-            <SelectValue placeholder="Owner" />
+            <SelectValue placeholder={t("owner", "Owner")} />
           </SelectTrigger>
           <SelectContent>
             {strategists.map((s) => (

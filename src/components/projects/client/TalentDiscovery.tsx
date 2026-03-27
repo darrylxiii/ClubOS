@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -50,6 +51,7 @@ interface FreelancerProfile {
 }
 
 export function TalentDiscovery() {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -196,7 +198,7 @@ export function TalentDiscovery() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search by name, skill, or keyword..."
+                placeholder={t("search_by_name_skill", "Search by name, skill, or keyword...")}
                 className="pl-10"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -222,7 +224,7 @@ export function TalentDiscovery() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4 border-t">
               {/* Skills */}
               <div>
-                <p className="text-sm font-medium mb-3">Skills</p>
+                <p className="text-sm font-medium mb-3">{t("skills", "Skills")}</p>
                 <div className="flex flex-wrap gap-2">
                   {SKILL_FILTERS.map((skill) => (
                     <Badge
@@ -253,13 +255,13 @@ export function TalentDiscovery() {
 
               {/* Availability */}
               <div>
-                <p className="text-sm font-medium mb-3">Availability</p>
+                <p className="text-sm font-medium mb-3">{t("availability", "Availability")}</p>
                 <Select value={availability} onValueChange={setAvailability}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All</SelectItem>
+                    <SelectItem value="all">{t("all", "All")}</SelectItem>
                     {AVAILABILITY_OPTIONS.map((opt) => (
                       <SelectItem key={opt.value} value={opt.value}>
                         {opt.label}
@@ -274,7 +276,7 @@ export function TalentDiscovery() {
           {/* Active Filters */}
           {(selectedSkills.length > 0 || availability !== "all") && (
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-sm text-muted-foreground">Active filters:</span>
+              <span className="text-sm text-muted-foreground">{t("active_filters", "Active filters:")}</span>
               {selectedSkills.map((skill) => (
                 <Badge key={skill} variant="secondary" className="gap-1">
                   {skill}
@@ -347,7 +349,7 @@ export function TalentDiscovery() {
         <Card>
           <CardContent className="py-12 text-center">
             <Search className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No Freelancers Found</h3>
+            <h3 className="text-lg font-semibold mb-2">{t("no_freelancers_found", "No Freelancers Found")}</h3>
             <p className="text-muted-foreground">
               Try adjusting your search or filters
             </p>
@@ -395,7 +397,7 @@ function FreelancerCard({ freelancer, isSaved, onSave, onView, onInvite }: Freel
                   </Badge>
                 )}
                 {talentLevel === "top_rated" && (
-                  <Badge className="bg-primary text-xs">Top Rated</Badge>
+                  <Badge className="bg-primary text-xs">{t("top_rated", "Top Rated")}</Badge>
                 )}
               </div>
             )}
@@ -457,12 +459,12 @@ function FreelancerCard({ freelancer, isSaved, onSave, onView, onInvite }: Freel
           {freelancer.freelance_availability_status === "available" ? (
             <>
               <CheckCircle2 className="h-4 w-4 text-green-500" />
-              <span className="text-green-600">Available now</span>
+              <span className="text-green-600">{t("available_now", "Available now")}</span>
             </>
           ) : (
             <>
               <Clock className="h-4 w-4 text-muted-foreground" />
-              <span className="text-muted-foreground">Limited availability</span>
+              <span className="text-muted-foreground">{t("limited_availability", "Limited availability")}</span>
             </>
           )}
         </div>

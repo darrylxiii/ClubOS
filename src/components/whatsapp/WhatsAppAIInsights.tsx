@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -57,6 +58,7 @@ export function WhatsAppAIInsights({
   onClose,
   onCreateTask
 }: WhatsAppAIInsightsProps) {
+  const { t } = useTranslation('common');
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     summary: true,
     signals: true,
@@ -130,8 +132,8 @@ export function WhatsAppAIInsights({
         </CardHeader>
         <CardContent className="flex flex-col items-center justify-center py-12 text-muted-foreground">
           <Sparkles className="w-12 h-12 mb-4 opacity-30" />
-          <p className="text-center">No insights available yet</p>
-          <p className="text-sm text-center">Send a few messages to generate AI insights</p>
+          <p className="text-center">{t("no_insights_available_yet", "No insights available yet")}</p>
+          <p className="text-sm text-center">{t("send_a_few_messages", "Send a few messages to generate AI insights")}</p>
           {onRefresh && (
             <Button variant="outline" size="sm" className="mt-4" onClick={onRefresh}>
               <RefreshCw className="w-4 h-4 mr-2" />
@@ -358,7 +360,7 @@ export function WhatsAppAIInsights({
           <div className="p-4 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20">
             <div className="flex items-center gap-2 mb-2">
               <Sparkles className="w-4 h-4 text-primary" />
-              <h4 className="font-semibold text-sm">Recommended Next Step</h4>
+              <h4 className="font-semibold text-sm">{t("recommended_next_step", "Recommended Next Step")}</h4>
             </div>
             <p className="text-sm text-foreground leading-relaxed">
               {insights.nextBestAction}

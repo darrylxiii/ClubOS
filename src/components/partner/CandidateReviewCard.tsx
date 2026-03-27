@@ -12,6 +12,7 @@ import { Progress } from '@/components/ui/progress';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import type { ReviewQueueApplication } from '@/hooks/useReviewQueue';
+import { useTranslation } from 'react-i18next';
 
 interface CandidateReviewCardProps {
   application: ReviewQueueApplication;
@@ -81,7 +82,8 @@ function requirementMatchCount(skills: string[], requirements: unknown[]): { mat
   return { matched: items.filter((i) => i.met).length, total: items.length, items };
 }
 
-export function CandidateReviewCard({ application: app, compact = false, selected = false, onSelect }: CandidateReviewCardProps) {
+export function CandidateReviewCard({
+  application: app, compact = false, selected = false, onSelect }: CandidateReviewCardProps) {
   const [expanded, setExpanded] = useState(false);
 
   const salaryDisplay = formatComp(app.candidateDesiredSalaryMin, app.candidateDesiredSalaryMax, app.currency);
@@ -93,6 +95,7 @@ export function CandidateReviewCard({ application: app, compact = false, selecte
     : null;
 
   if (compact) {
+  const { t } = useTranslation('partner');
     return (
       <button
         onClick={onSelect}
@@ -173,7 +176,7 @@ export function CandidateReviewCard({ application: app, compact = false, selecte
                       <Linkedin className="h-4 w-4" />
                     </a>
                   </TooltipTrigger>
-                  <TooltipContent>View LinkedIn</TooltipContent>
+                  <TooltipContent>{"View LinkedIn"}</TooltipContent>
                 </Tooltip>
               )}
               {app.candidateResumeUrl && (
@@ -189,7 +192,7 @@ export function CandidateReviewCard({ application: app, compact = false, selecte
                       <Download className="h-4 w-4" />
                     </a>
                   </TooltipTrigger>
-                  <TooltipContent>Download Resume</TooltipContent>
+                  <TooltipContent>{"Download Resume"}</TooltipContent>
                 </Tooltip>
               )}
             </div>
@@ -238,7 +241,7 @@ export function CandidateReviewCard({ application: app, compact = false, selecte
                 {app.matchScore ?? '—'}
               </span>
             </div>
-            <span className="text-[10px] text-muted-foreground">Match</span>
+            <span className="text-[10px] text-muted-foreground">{"Match"}</span>
           </div>
         </div>
 
@@ -256,7 +259,7 @@ export function CandidateReviewCard({ application: app, compact = false, selecte
         {/* AI Summary */}
         {app.candidateAiSummary && (
           <div className="rounded-lg bg-muted/30 border border-border/20 p-3 text-sm text-muted-foreground italic">
-            <p className="text-[10px] font-semibold text-muted-foreground/70 uppercase tracking-wider mb-1">AI Summary</p>
+            <p className="text-[10px] font-semibold text-muted-foreground/70 uppercase tracking-wider mb-1">{"AI Summary"}</p>
             {app.candidateAiSummary}
           </div>
         )}
@@ -266,13 +269,13 @@ export function CandidateReviewCard({ application: app, compact = false, selecte
           <div className="flex items-center gap-4 text-sm">
             {salaryDisplay && (
               <div>
-                <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Expects</span>
+                <span className="text-[10px] text-muted-foreground uppercase tracking-wider">{"Expects"}</span>
                 <p className="font-medium">{salaryDisplay}</p>
               </div>
             )}
             {jobSalaryDisplay && (
               <div>
-                <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Budget</span>
+                <span className="text-[10px] text-muted-foreground uppercase tracking-wider">{"Budget"}</span>
                 <p className="font-medium">{jobSalaryDisplay}</p>
               </div>
             )}
@@ -283,7 +286,7 @@ export function CandidateReviewCard({ application: app, compact = false, selecte
         {reqMatch && reqMatch.total > 0 && (
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Requirements Match</span>
+              <span className="text-[10px] text-muted-foreground uppercase tracking-wider">{"Requirements Match"}</span>
               <span className={cn(
                 'text-xs font-semibold',
                 reqMatch.matched / reqMatch.total >= 0.7 ? 'text-success' :
@@ -346,9 +349,7 @@ export function CandidateReviewCard({ application: app, compact = false, selecte
         {/* Internal review notes */}
         {app.internalReviewNotes && (
           <div className="rounded-lg bg-primary/5 border border-primary/20 p-3 text-sm">
-            <p className="text-[10px] font-semibold text-primary/70 uppercase tracking-wider mb-1">
-              Internal Review Notes
-            </p>
+            <p className="text-[10px] font-semibold text-primary/70 uppercase tracking-wider mb-1">{t('candidateReviewCard.internalReviewNotes')}</p>
             <p className="text-foreground/80">{app.internalReviewNotes}</p>
           </div>
         )}
@@ -419,7 +420,7 @@ export function CandidateReviewCard({ application: app, compact = false, selecte
             {/* Job context */}
             {app.jobDescription && (
               <div className="space-y-1">
-                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Role Context</p>
+                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">{"Role Context"}</p>
                 <p className="text-xs text-muted-foreground line-clamp-3">{app.jobDescription}</p>
               </div>
             )}

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -26,6 +27,7 @@ interface UserProfile {
 }
 
 export function UserProfileCard({ userId, open, onOpenChange }: UserProfileCardProps) {
+  const { t } = useTranslation('meetings');
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [role, setRole] = useState<UserRole | null>(null);
   const [loading, setLoading] = useState(true);
@@ -96,7 +98,7 @@ export function UserProfileCard({ userId, open, onOpenChange }: UserProfileCardP
                   <User className="h-10 w-10" />
                 </AvatarFallback>
               </Avatar>
-              <h3 className="font-semibold text-lg">{profile.full_name || 'Unknown User'}</h3>
+              <h3 className="font-semibold text-lg">{profile.full_name || t('livehub.unknownUser')}</h3>
               {role && (
                 <Badge variant={role === 'admin' ? 'default' : 'secondary'} className="mt-1">
                   <Shield className="h-3 w-3 mr-1" />

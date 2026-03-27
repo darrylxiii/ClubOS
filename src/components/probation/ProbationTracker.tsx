@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -39,6 +40,7 @@ interface ProbationTrackerProps {
 }
 
 export function ProbationTracker({ companyId }: ProbationTrackerProps) {
+  const { t } = useTranslation('common');
   const [selectedAlert, setSelectedAlert] = useState<any>(null);
   const [actionDialogOpen, setActionDialogOpen] = useState(false);
   const [notes, setNotes] = useState('');
@@ -122,7 +124,7 @@ export function ProbationTracker({ companyId }: ProbationTrackerProps) {
               </div>
               <div>
                 <p className="text-2xl font-bold">{stats?.active || 0}</p>
-                <p className="text-xs text-muted-foreground">Active</p>
+                <p className="text-xs text-muted-foreground">{t("active", "Active")}</p>
               </div>
             </div>
           </CardContent>
@@ -136,7 +138,7 @@ export function ProbationTracker({ companyId }: ProbationTrackerProps) {
               </div>
               <div>
                 <p className="text-2xl font-bold">{stats?.endingSoon || 0}</p>
-                <p className="text-xs text-muted-foreground">Ending Soon</p>
+                <p className="text-xs text-muted-foreground">{t("ending_soon", "Ending Soon")}</p>
               </div>
             </div>
           </CardContent>
@@ -150,7 +152,7 @@ export function ProbationTracker({ companyId }: ProbationTrackerProps) {
               </div>
               <div>
                 <p className="text-2xl font-bold">{stats?.passed || 0}</p>
-                <p className="text-xs text-muted-foreground">Passed</p>
+                <p className="text-xs text-muted-foreground">{t("passed", "Passed")}</p>
               </div>
             </div>
           </CardContent>
@@ -164,7 +166,7 @@ export function ProbationTracker({ companyId }: ProbationTrackerProps) {
               </div>
               <div>
                 <p className="text-2xl font-bold">{stats?.failed || 0}</p>
-                <p className="text-xs text-muted-foreground">Failed</p>
+                <p className="text-xs text-muted-foreground">{t("failed", "Failed")}</p>
               </div>
             </div>
           </CardContent>
@@ -178,7 +180,7 @@ export function ProbationTracker({ companyId }: ProbationTrackerProps) {
               </div>
               <div>
                 <p className="text-2xl font-bold">{stats?.extended || 0}</p>
-                <p className="text-xs text-muted-foreground">Extended</p>
+                <p className="text-xs text-muted-foreground">{t("extended", "Extended")}</p>
               </div>
             </div>
           </CardContent>
@@ -200,8 +202,8 @@ export function ProbationTracker({ companyId }: ProbationTrackerProps) {
           {!alerts?.length ? (
             <div className="text-center py-8 text-muted-foreground">
               <CheckCircle className="h-12 w-12 mx-auto mb-4 text-green-500" />
-              <p>No active probation alerts</p>
-              <p className="text-sm">All guarantee periods are on track</p>
+              <p>{t("no_active_probation_alerts", "No active probation alerts")}</p>
+              <p className="text-sm">{t("all_guarantee_periods_are", "All guarantee periods are on track")}</p>
             </div>
           ) : (
             <div className="space-y-4">
@@ -290,12 +292,12 @@ export function ProbationTracker({ companyId }: ProbationTrackerProps) {
       <Dialog open={actionDialogOpen} onOpenChange={setActionDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Update Probation Status</DialogTitle>
+            <DialogTitle>{t("update_probation_status", "Update Probation Status")}</DialogTitle>
           </DialogHeader>
 
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium">New Status</label>
+              <label className="text-sm font-medium">{t("new_status", "New Status")}</label>
               <Select value={selectedStatus} onValueChange={(v: any) => setSelectedStatus(v)}>
                 <SelectTrigger>
                   <SelectValue />
@@ -324,11 +326,11 @@ export function ProbationTracker({ companyId }: ProbationTrackerProps) {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">Notes</label>
+              <label className="text-sm font-medium">{t("notes", "Notes")}</label>
               <Textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder="Add any relevant notes..."
+                placeholder={t("add_any_relevant_notes", "Add any relevant notes...")}
                 rows={3}
               />
             </div>

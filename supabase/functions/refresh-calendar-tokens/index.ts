@@ -1,24 +1,9 @@
-import { createClient } from "npm:@supabase/supabase-js@2";
+import { createHandler } from '../_shared/handler.ts';
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
-  "Access-Control-Max-Age": "86400",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-api-key, x-supabase-api-version, x-application-name, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version, traceparent, tracestate",
-};
-
-Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  try {
+Deno.serve(createHandler(async (req, ctx) => {
     console.log("[refresh-calendar-tokens] Starting token refresh job");
 
-    const supabaseClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
-    );
+    const supabaseClient = ctx.supabase;
 
     // Get all calendar connections where token is older than 45 minutes
     const fortyFiveMinutesAgo = new Date(Date.now() - 45 * 60 * 1000).toISOString();
@@ -103,18 +88,8 @@ Deno.serve(async (req) => {
         failed: errorCount,
       }),
       {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...ctx.corsHeaders, "Content-Type": "application/json" },
         status: 200,
       }
     );
-  } catch (error: any) {
-    console.error("[refresh-calendar-tokens] Fatal error:", error);
-    return new Response(
-      JSON.stringify({ error: "An internal error occurred." }),
-      {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 500,
-      }
-    );
-  }
-});
+}));

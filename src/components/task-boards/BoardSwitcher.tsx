@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { useTaskBoard } from '@/contexts/TaskBoardContext';
 import { Button } from '@/components/ui/button';
@@ -14,6 +15,7 @@ import { Badge } from '@/components/ui/badge';
 import { CreateBoardDialog } from './CreateBoardDialog';
 
 export function BoardSwitcher() {
+  const { t } = useTranslation('common');
   const { boards, currentBoard, switchBoard, loading } = useTaskBoard();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
 
@@ -24,7 +26,7 @@ export function BoardSwitcher() {
   if (loading || !currentBoard) {
     return (
       <Button variant="outline" disabled className="w-full justify-between">
-        <span>Loading boards...</span>
+        <span>{t("loading_boards", "Loading boards...")}</span>
       </Button>
     );
   }
@@ -59,7 +61,7 @@ export function BoardSwitcher() {
                     <span className="truncate">{board.name}</span>
                   </div>
                   {board.id === currentBoard.id && (
-                    <Badge variant="secondary" className="ml-2">Active</Badge>
+                    <Badge variant="secondary" className="ml-2">{t("active", "Active")}</Badge>
                   )}
                 </DropdownMenuItem>
               ))}
@@ -87,7 +89,7 @@ export function BoardSwitcher() {
                     </Badge>
                   </div>
                   {board.id === currentBoard.id && (
-                    <Badge variant="secondary" className="ml-2">Active</Badge>
+                    <Badge variant="secondary" className="ml-2">{t("active", "Active")}</Badge>
                   )}
                 </DropdownMenuItem>
               ))}
@@ -115,7 +117,7 @@ export function BoardSwitcher() {
                     </Badge>
                   </div>
                   {board.id === currentBoard.id && (
-                    <Badge variant="secondary" className="ml-2">Active</Badge>
+                    <Badge variant="secondary" className="ml-2">{t("active", "Active")}</Badge>
                   )}
                 </DropdownMenuItem>
               ))}

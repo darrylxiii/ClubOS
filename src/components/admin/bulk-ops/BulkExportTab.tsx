@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Download, Loader2, FileSpreadsheet, FileText } from "lucide-react";
+import { useTranslation } from 'react-i18next';
 
 const EXPORT_FIELDS = [
   { id: "full_name", label: "Full Name" },
@@ -23,6 +24,7 @@ const EXPORT_FIELDS = [
 ];
 
 export const BulkExportTab = () => {
+  const { t } = useTranslation('admin');
   const [jobFilter, setJobFilter] = useState<string>("all");
   const [stageFilter, setStageFilter] = useState<string>("all");
   const [exportFormat, setExportFormat] = useState<"csv" | "json">("csv");
@@ -122,7 +124,7 @@ export const BulkExportTab = () => {
     },
     onSuccess: (result) => {
       if (!result.data || result.data.length === 0) {
-        toast.error("No data to export");
+        toast.error(t('bulk-ops.bulkExportTab.noDataToExport'));
         return;
       }
 
@@ -167,10 +169,10 @@ export const BulkExportTab = () => {
       {/* Filters */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
-          <Label>Filter by Job</Label>
+          <Label>{t('bulk-ops.bulkExportTab.filterByJob')}</Label>
           <Select value={jobFilter} onValueChange={setJobFilter}>
             <SelectTrigger className="mt-1.5">
-              <SelectValue placeholder="All candidates" />
+              <SelectValue placeholder={t('bulk-ops.bulkExportTab.allCandidates')} />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Candidates</SelectItem>
@@ -184,10 +186,10 @@ export const BulkExportTab = () => {
         </div>
 
         <div>
-          <Label>Filter by Stage</Label>
+          <Label>{t('bulk-ops.bulkExportTab.filterByStage')}</Label>
           <Select value={stageFilter} onValueChange={setStageFilter} disabled={jobFilter === "all"}>
             <SelectTrigger className="mt-1.5">
-              <SelectValue placeholder="All stages" />
+              <SelectValue placeholder={t('bulk-ops.bulkExportTab.allStages')} />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Stages</SelectItem>
@@ -201,7 +203,7 @@ export const BulkExportTab = () => {
         </div>
 
         <div>
-          <Label>Export Format</Label>
+          <Label>{t('bulk-ops.bulkExportTab.exportFormat')}</Label>
           <Select value={exportFormat} onValueChange={(v) => setExportFormat(v as "csv" | "json")}>
             <SelectTrigger className="mt-1.5">
               <SelectValue />
@@ -226,7 +228,7 @@ export const BulkExportTab = () => {
 
       {/* Field Selection */}
       <div>
-        <Label className="mb-3 block">Select Fields to Export</Label>
+        <Label className="mb-3 block">{t('bulk-ops.bulkExportTab.selectFieldsToExport')}</Label>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
           {EXPORT_FIELDS.map((field) => (
             <div

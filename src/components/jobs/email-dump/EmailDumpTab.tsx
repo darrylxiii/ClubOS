@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -47,6 +48,7 @@ interface DetectedHyperlink {
 }
 
 export function EmailDumpTab({ jobId, jobTitle, companyName, onCandidatesImported }: EmailDumpTabProps) {
+  const { t } = useTranslation('common');
   const [rawContent, setRawContent] = useState("");
   const [detectedLinks, setDetectedLinks] = useState<DetectedHyperlink[]>([]);
   const [extracting, setExtracting] = useState(false);
@@ -100,7 +102,7 @@ export function EmailDumpTab({ jobId, jobTitle, companyName, onCandidatesImporte
 
   const handleExtract = async () => {
     if (!rawContent.trim()) {
-      toast.error("Paste email content first");
+      toast.error(t("paste_email_content_first", "Paste email content first"));
       return;
     }
 
@@ -155,7 +157,7 @@ export function EmailDumpTab({ jobId, jobTitle, companyName, onCandidatesImporte
           console.error('Failed to log email dump audit:', auditErr);
         }
       } else {
-        toast.info("No candidates found in the email content");
+        toast.info(t("no_candidates_found_in", "No candidates found in the email content"));
         setExtractedCandidates([]);
       }
     } catch (error: any) {

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useFinancialAuditLog } from '@/hooks/useFinancialAuditLog';
@@ -22,6 +23,7 @@ interface PlacementFeesTableProps {
 }
 
 export function PlacementFeesTable({ fees }: PlacementFeesTableProps) {
+  const { t } = useTranslation('common');
   const [search, setSearch] = useState("");
   const [creatingInvoiceFor, setCreatingInvoiceFor] = useState<string | null>(null);
   const queryClient = useQueryClient();
@@ -111,7 +113,7 @@ export function PlacementFeesTable({ fees }: PlacementFeesTableProps) {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search by role, company, sourcer..."
+            placeholder={t("search_by_role_company", "Search by role, company, sourcer...")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-9"
@@ -124,15 +126,15 @@ export function PlacementFeesTable({ fees }: PlacementFeesTableProps) {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Role / Company</TableHead>
-              <TableHead>Hired Date</TableHead>
-              <TableHead>Sourced By</TableHead>
-              <TableHead>Salary</TableHead>
-              <TableHead>Variance</TableHead>
-              <TableHead>Fee</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Closed By</TableHead>
-              <TableHead>Invoice</TableHead>
+              <TableHead>{t("role_company", "Role / Company")}</TableHead>
+              <TableHead>{t("hired_date", "Hired Date")}</TableHead>
+              <TableHead>{t("sourced_by", "Sourced By")}</TableHead>
+              <TableHead>{t("salary", "Salary")}</TableHead>
+              <TableHead>{t("variance", "Variance")}</TableHead>
+              <TableHead>{t("fee", "Fee")}</TableHead>
+              <TableHead>{t("status", "Status")}</TableHead>
+              <TableHead>{t("closed_by", "Closed By")}</TableHead>
+              <TableHead>{t("invoice", "Invoice")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

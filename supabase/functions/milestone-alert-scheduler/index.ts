@@ -1,20 +1,7 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createHandler } from '../_shared/handler.ts';
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
-
-serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  try {
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+Deno.serve(createHandler(async (req, ctx) => {
+    const { supabase, corsHeaders } = ctx;
 
     console.log("[milestone-alert-scheduler] Starting daily milestone check...");
 
@@ -84,7 +71,7 @@ serve(async (req) => {
           user_id: member.id,
           type: "milestone_approaching",
           title: `Almost There! ${milestone.display_name}`,
-          content: `${progress.toFixed(0)}% complete - only €${remaining.toLocaleString("de-DE")} to go!`,
+          content: `${progress.toFixed(0)}% complete - only \u20AC${remaining.toLocaleString("de-DE")} to go!`,
           action_url: "/admin/revenue-ladder",
           metadata: {
             milestone_id: milestone.id,
@@ -151,8 +138,8 @@ serve(async (req) => {
           unlockNotifications.push({
             user_id: member.id,
             type: "milestone_unlocked",
-            title: `🎉 Milestone Unlocked: ${milestone.display_name}`,
-            content: `Team achieved €${(milestone.achieved_revenue || 0).toLocaleString("de-DE")}!`,
+            title: `Milestone Unlocked: ${milestone.display_name}`,
+            content: `Team achieved \u20AC${(milestone.achieved_revenue || 0).toLocaleString("de-DE")}!`,
             action_url: "/admin/revenue-ladder",
             metadata: {
               milestone_id: milestone.id,
@@ -183,11 +170,4 @@ serve(async (req) => {
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
-  } catch (error) {
-    console.error("[milestone-alert-scheduler] Error:", error);
-    return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
-  }
-});
+}));

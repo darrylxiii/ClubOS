@@ -43,7 +43,7 @@ export default function TranslationEditor() {
           <Tooltip><TooltipTrigger asChild><span className="cursor-help">{record.translation_provider === 'google' ? <Globe className="h-3 w-3 text-blue-500" /> : <Bot className="h-3 w-3 text-purple-500" />}</span></TooltipTrigger>
             <TooltipContent><p>{record.translation_provider === 'google' ? 'Google Translate' : 'Lovable AI'}</p></TooltipContent></Tooltip>
         )}
-        {record.quality_status === 'validated' && <Tooltip><TooltipTrigger asChild><CheckCircle2 className="h-3 w-3 text-green-500 cursor-help" /></TooltipTrigger><TooltipContent><p>Human reviewed</p></TooltipContent></Tooltip>}
+        {record.quality_status === 'validated' && <Tooltip><TooltipTrigger asChild><CheckCircle2 className="h-3 w-3 text-green-500 cursor-help" /></TooltipTrigger><TooltipContent><p>{"Human reviewed"}</p></TooltipContent></Tooltip>}
         {record.quality_status === 'needs_review' && <Tooltip><TooltipTrigger asChild><AlertTriangle className="h-3 w-3 text-yellow-500 cursor-help" /></TooltipTrigger><TooltipContent><p>Needs review (score: {record.quality_score})</p></TooltipContent></Tooltip>}
       </div>
     );
@@ -52,14 +52,14 @@ export default function TranslationEditor() {
   const handleStartEdit = (key: string, lang: string, currentValue: string) => { setEditingCell({ key, lang }); setEditValue(currentValue || ''); };
   const handleSaveEdit = async () => {
     if (!editingCell) return;
-    try { await updateTranslation.mutateAsync({ namespace: selectedNamespace, language: editingCell.lang, key: editingCell.key, value: editValue }); toast.success('Translation updated and marked as reviewed'); setEditingCell(null); } catch { toast.error('Failed to update translation'); }
+    try { await updateTranslation.mutateAsync({ namespace: selectedNamespace, language: editingCell.lang, key: editingCell.key, value: editValue }); toast.success("Translation updated and marked as reviewed"); setEditingCell(null); } catch { toast.error("Failed to update translation"); }
   };
   const handleCancelEdit = () => { setEditingCell(null); setEditValue(''); };
 
   const handleMarkAllReviewed = async () => {
     const unreviewedRecords = translations?.filter(t => t.language !== 'en' && t.quality_status !== 'validated') || [];
-    if (unreviewedRecords.length === 0) { toast.info('All translations in this namespace are already reviewed'); return; }
-    try { for (const record of unreviewedRecords) { await markAsReviewed.mutateAsync({ id: record.id }); } toast.success(`Marked ${unreviewedRecords.length} translations as reviewed`); } catch { toast.error('Failed to mark translations as reviewed'); }
+    if (unreviewedRecords.length === 0) { toast.info("All translations in this namespace are already reviewed"); return; }
+    try { for (const record of unreviewedRecords) { await markAsReviewed.mutateAsync({ id: record.id }); } toast.success(`Marked ${unreviewedRecords.length} translations as reviewed`); } catch { toast.error("Failed to mark translations as reviewed"); }
   };
 
   const handleExport = () => {
@@ -68,7 +68,7 @@ export default function TranslationEditor() {
     const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a'); a.href = url; a.download = `translations-${selectedNamespace}.json`; a.click(); URL.revokeObjectURL(url);
-    toast.success('Translations exported');
+    toast.success("Translations exported");
   };
 
   const activeLanguages = ((languages || []) as LanguageConfig[]).filter(l => l.is_active);
@@ -79,19 +79,19 @@ export default function TranslationEditor() {
       <div className="space-y-6">
         <div className="flex items-center justify-end gap-2">
           {unreviewedCount > 0 && <Button variant="outline" onClick={handleMarkAllReviewed} disabled={markAsReviewed.isPending}><CheckCircle2 className="h-4 w-4 mr-2" />Mark All Reviewed ({unreviewedCount})</Button>}
-          <Button variant="outline" onClick={handleExport}><Download className="h-4 w-4 mr-2" />Export</Button>
+          <Button variant="outline" onClick={handleExport}><Download className="h-4 w-4 mr-2" />{"Export"}</Button>
         </div>
 
         <Card>
           <CardContent className="pt-6">
             <div className="flex gap-4 flex-wrap">
               <Select value={selectedNamespace} onValueChange={setSelectedNamespace}>
-                <SelectTrigger className="w-48"><SelectValue placeholder="Select namespace" /></SelectTrigger>
+                <SelectTrigger className="w-48"><SelectValue placeholder={"Select namespace"} /></SelectTrigger>
                 <SelectContent>{namespaces?.map(ns => <SelectItem key={ns.namespace} value={ns.namespace}>{ns.namespace}</SelectItem>)}</SelectContent>
               </Select>
               <div className="relative flex-1 min-w-[200px]">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input placeholder="Search keys or values..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-10" />
+                <Input placeholder={"Search keys or values..."} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-10" />
               </div>
               <Badge variant="secondary" className="h-10 px-4 flex items-center">{filteredTranslations.length} keys</Badge>
             </div>
@@ -100,15 +100,15 @@ export default function TranslationEditor() {
 
         <Card>
           <CardContent className="p-0">
-            {isLoading ? <div className="p-8 text-center text-muted-foreground">Loading translations...</div> : (
+            {isLoading ? <div className="p-8 text-center text-muted-foreground">{"Loading translations..."}</div> : (
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
                     <tr className="border-b bg-muted/50">
-                      <th className="text-left p-3 font-medium min-w-[200px]">Key</th>
+                      <th className="text-left p-3 font-medium min-w-[200px]">{"Key"}</th>
                       {activeLanguages.map(lang => (
                         <th key={lang.code} className="text-left p-3 font-medium min-w-[200px]">
-                          <div className="flex items-center gap-2"><span>{lang.flag}</span><span>{lang.name}</span>{lang.code === 'en' && <Badge variant="outline" className="text-xs">Source</Badge>}{getQualityBadge(lang.code)}</div>
+                          <div className="flex items-center gap-2"><span>{lang.flag}</span><span>{lang.name}</span>{lang.code === 'en' && <Badge variant="outline" className="text-xs">{"Source"}</Badge>}{getQualityBadge(lang.code)}</div>
                         </th>
                       ))}
                     </tr>
@@ -128,8 +128,8 @@ export default function TranslationEditor() {
                                 <div className="flex flex-col gap-2">
                                   <Textarea value={editValue} onChange={(e) => setEditValue(e.target.value)} className="min-h-[80px]" autoFocus />
                                   <div className="flex gap-2">
-                                    <Button size="sm" onClick={handleSaveEdit} disabled={updateTranslation.isPending}><Check className="h-3 w-3 mr-1" />Save</Button>
-                                    <Button size="sm" variant="ghost" onClick={handleCancelEdit}><X className="h-3 w-3 mr-1" />Cancel</Button>
+                                    <Button size="sm" onClick={handleSaveEdit} disabled={updateTranslation.isPending}><Check className="h-3 w-3 mr-1" />{"Save"}</Button>
+                                    <Button size="sm" variant="ghost" onClick={handleCancelEdit}><X className="h-3 w-3 mr-1" />{"Cancel"}</Button>
                                   </div>
                                 </div>
                               ) : (

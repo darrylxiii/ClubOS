@@ -5,6 +5,7 @@ import { Heart, MessageSquare, Calendar, Clock, Edit } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow, format } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useTranslation } from 'react-i18next';
 
 interface CandidateRelationship {
   warmth_score: number | null;
@@ -42,6 +43,7 @@ const channelLabels: Record<string, string> = {
 };
 
 function getWarmthColor(score: number): string {
+  const { t } = useTranslation('common');
   if (score >= 80) return 'text-green-400';
   if (score >= 60) return 'text-orange-400';
   if (score >= 40) return 'text-yellow-400';
@@ -92,7 +94,7 @@ export function RelationshipCard({ relationship, isLoading, onEdit, className }:
       <CardContent className="space-y-4">
         {/* Warmth Score */}
         <div className="flex items-center justify-between">
-          <span className="text-sm text-muted-foreground">Warmth Score</span>
+          <span className="text-sm text-muted-foreground">{"Warmth Score"}</span>
           <div className="flex items-center gap-2">
             <span className={cn('text-2xl font-bold', getWarmthColor(warmthScore))}>
               {warmthScore}
@@ -109,19 +111,19 @@ export function RelationshipCard({ relationship, isLoading, onEdit, className }:
         {/* Stats Grid */}
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1">
-            <p className="text-xs text-muted-foreground">Response Rate</p>
+            <p className="text-xs text-muted-foreground">{"Response Rate"}</p>
             <p className="text-sm font-medium">{responseRate}%</p>
           </div>
           <div className="space-y-1">
-            <p className="text-xs text-muted-foreground">Total Touchpoints</p>
+            <p className="text-xs text-muted-foreground">{"Total Touchpoints"}</p>
             <p className="text-sm font-medium">{totalTouchpoints}</p>
           </div>
           <div className="space-y-1">
-            <p className="text-xs text-muted-foreground">Last Contact</p>
+            <p className="text-xs text-muted-foreground">{"Last Contact"}</p>
             <p className="text-sm font-medium">{lastContact}</p>
           </div>
           <div className="space-y-1">
-            <p className="text-xs text-muted-foreground">Preferred Channel</p>
+            <p className="text-xs text-muted-foreground">{"Preferred Channel"}</p>
             <p className="text-sm font-medium">{channelLabels[preferredChannel] || preferredChannel}</p>
           </div>
         </div>

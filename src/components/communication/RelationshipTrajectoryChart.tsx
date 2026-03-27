@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DynamicChart } from '@/components/charts/DynamicChart';
@@ -21,6 +22,7 @@ export function RelationshipTrajectoryChart({
   currentHealth, 
   trajectory 
 }: RelationshipTrajectoryChartProps) {
+  const { t } = useTranslation('common');
   const chartData = useMemo(() => {
     if (data && data.length > 0) return data;
 
@@ -98,15 +100,15 @@ export function RelationshipTrajectoryChart({
         <div className="flex items-center justify-center gap-6 mt-4">
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-primary" />
-            <span className="text-xs text-muted-foreground">Health Score</span>
+            <span className="text-xs text-muted-foreground">{t("health_score", "Health Score")}</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-green-500" />
-            <span className="text-xs text-muted-foreground">Engagement</span>
+            <span className="text-xs text-muted-foreground">{t("engagement", "Engagement")}</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-8 h-0.5 border-t-2 border-dashed border-muted-foreground" />
-            <span className="text-xs text-muted-foreground">Predicted</span>
+            <span className="text-xs text-muted-foreground">{t("predicted", "Predicted")}</span>
           </div>
         </div>
       </CardContent>

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -20,6 +21,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 export function NotificationTypesList() {
+  const { t } = useTranslation('common');
   const { data: types, isLoading } = useNotificationTypesWithAssignments();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
@@ -77,7 +79,7 @@ export function NotificationTypesList() {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search notifications..."
+            placeholder={t("search_notifications", "Search notifications...")}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10"
@@ -169,7 +171,7 @@ export function NotificationTypesList() {
 
       {filteredTypes?.length === 0 && (
         <div className="text-center py-12 text-muted-foreground">
-          <p>No notification types found matching your criteria.</p>
+          <p>{t("no_notification_types_found", "No notification types found matching your criteria.")}</p>
         </div>
       )}
 

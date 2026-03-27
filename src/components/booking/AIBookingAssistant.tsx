@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,6 +24,7 @@ interface AIBookingAssistantProps {
 }
 
 export function AIBookingAssistant({ bookingLink, onBookingScheduled }: AIBookingAssistantProps) {
+  const { t } = useTranslation('common');
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
@@ -88,9 +90,9 @@ export function AIBookingAssistant({ bookingLink, onBookingScheduled }: AIBookin
     } catch (error: unknown) {
       console.error("AI assistant error:", error);
       if (error instanceof DOMException && error.name === 'AbortError') {
-        toast.error("Request timed out after 30s");
+        toast.error(t("request_timed_out_after", "Request timed out after 30s"));
       } else {
-        toast.error("Failed to get response from AI assistant");
+        toast.error(t("failed_to_get_response", "Failed to get response from AI assistant"));
       }
     } finally {
       setIsLoading(false);
@@ -146,7 +148,7 @@ export function AIBookingAssistant({ bookingLink, onBookingScheduled }: AIBookin
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-              placeholder="Type your message..."
+              placeholder={t("type_your_message", "Type your message...")}
               disabled={isLoading}
             />
             <Button onClick={sendMessage} disabled={isLoading || !input.trim()}>

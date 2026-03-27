@@ -123,7 +123,7 @@ export const useAnalyticsData = (
       }
 
       // Fetch engagement signals
-      const { data: engagementSignals } = await (supabase as any)
+      const { data: engagementSignals } = await supabase
         .from("post_engagement_signals")
         .select("*")
         .in("post_id", postIds)
@@ -131,28 +131,28 @@ export const useAnalyticsData = (
         .lte("viewed_at", endDate.toISOString());
 
       // Fetch additional data
-      const { data: likesData } = await (supabase as any)
+      const { data: likesData } = await supabase
         .from("post_likes")
         .select("*")
         .in("post_id", postIds)
         .gte("created_at", startDate.toISOString())
         .lte("created_at", endDate.toISOString());
 
-      const { data: commentsData } = await (supabase as any)
+      const { data: commentsData } = await supabase
         .from("post_comments")
         .select("*")
         .in("post_id", postIds)
         .gte("created_at", startDate.toISOString())
         .lte("created_at", endDate.toISOString());
 
-      const { data: sharesData } = await (supabase as any)
+      const { data: sharesData } = await supabase
         .from("post_shares")
         .select("*")
         .in("post_id", postIds)
         .gte("created_at", startDate.toISOString())
         .lte("created_at", endDate.toISOString());
 
-      const { data: savesData } = await (supabase as any)
+      const { data: savesData } = await supabase
         .from("saved_posts")
         .select("*")
         .in("post_id", postIds)
@@ -198,13 +198,13 @@ export const useAnalyticsData = (
       ];
 
       // Top posts (if viewing all posts)
-      let topPosts: any[] = [];
+      let topPosts: { id: string; content: string; created_at: string; views: number; engagement: number; score: number }[] = [];
       if (!postId && posts) {
         const postMetrics = posts.map((post) => {
-          const postViews = engagementSignals?.filter((s: any) => s.post_id === post.id && s.viewed_at).length || 0;
-          const postLikes = likesData?.filter((l: any) => l.post_id === post.id).length || 0;
-          const postComments = commentsData?.filter((c: any) => c.post_id === post.id).length || 0;
-          const postShares = sharesData?.filter((s: any) => s.post_id === post.id).length || 0;
+          const postViews = engagementSignals?.filter((s) => s.post_id === post.id && s.viewed_at).length || 0;
+          const postLikes = likesData?.filter((l) => l.post_id === post.id).length || 0;
+          const postComments = commentsData?.filter((c) => c.post_id === post.id).length || 0;
+          const postShares = sharesData?.filter((s) => s.post_id === post.id).length || 0;
           const postInteractions = postLikes + postComments + postShares;
           return {
             ...post,

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useCallback } from 'react';
 import { motion } from '@/lib/motion';
 import {
@@ -63,6 +64,7 @@ const TARGET_FIELDS = [
 ];
 
 export function CSVImportDialog({ open, onOpenChange, onImportComplete, onSuccess }: CSVImportDialogProps) {
+  const { t } = useTranslation('common');
   const [step, setStep] = useState<ImportStep>('upload');
   const [parsedCSV, setParsedCSV] = useState<ParsedCSV | null>(null);
   const [fieldMapping, setFieldMapping] = useState<Record<string, string>>({});
@@ -335,7 +337,7 @@ export function CSVImportDialog({ open, onOpenChange, onImportComplete, onSucces
                       onValueChange={value => setFieldMapping(prev => ({ ...prev, [header]: value }))}
                     >
                       <SelectTrigger className="flex-1">
-                        <SelectValue placeholder="Select field" />
+                        <SelectValue placeholder={t("select_field", "Select field")} />
                       </SelectTrigger>
                       <SelectContent>
                         {TARGET_FIELDS.map(field => (
@@ -370,12 +372,12 @@ export function CSVImportDialog({ open, onOpenChange, onImportComplete, onSucces
             className="space-y-6"
           >
             <div className="space-y-2">
-              <Label htmlFor="campaignName">Campaign Name</Label>
+              <Label htmlFor="campaignName">{t("campaign_name", "Campaign Name")}</Label>
               <Input
                 id="campaignName"
                 value={campaignName}
                 onChange={e => setCampaignName(e.target.value)}
-                placeholder="Enter campaign name"
+                placeholder={t("enter_campaign_name", "Enter campaign name")}
               />
             </div>
 
@@ -405,7 +407,7 @@ export function CSVImportDialog({ open, onOpenChange, onImportComplete, onSucces
             </div>
 
             <div className="bg-muted/50 rounded-lg p-4">
-              <h4 className="font-medium mb-2">Import Summary</h4>
+              <h4 className="font-medium mb-2">{t("import_summary", "Import Summary")}</h4>
               <ul className="text-sm text-muted-foreground space-y-1">
                 <li>• {parsedCSV?.rows.length || 0} prospects to import</li>
                 <li>• {Object.values(fieldMapping).filter(v => v !== 'skip').length} fields mapped</li>
@@ -433,7 +435,7 @@ export function CSVImportDialog({ open, onOpenChange, onImportComplete, onSucces
           >
             <div className="text-center">
               <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto mb-4" />
-              <p className="font-medium">Importing prospects...</p>
+              <p className="font-medium">{t("importing_prospects", "Importing prospects...")}</p>
               <p className="text-sm text-muted-foreground">
                 This may take a moment
               </p>
@@ -453,25 +455,25 @@ export function CSVImportDialog({ open, onOpenChange, onImportComplete, onSucces
               <div className="h-16 w-16 rounded-full bg-green-500/10 flex items-center justify-center mx-auto mb-4">
                 <Check className="h-8 w-8 text-green-500" />
               </div>
-              <p className="text-xl font-semibold">Import Complete!</p>
+              <p className="text-xl font-semibold">{t("import_complete", "Import Complete!")}</p>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="bg-muted/50 rounded-lg p-4 text-center">
                 <p className="text-2xl font-bold text-primary">{importResult.imported}</p>
-                <p className="text-sm text-muted-foreground">Imported</p>
+                <p className="text-sm text-muted-foreground">{t("imported", "Imported")}</p>
               </div>
               <div className="bg-muted/50 rounded-lg p-4 text-center">
                 <p className="text-2xl font-bold">{importResult.total}</p>
-                <p className="text-sm text-muted-foreground">Total</p>
+                <p className="text-sm text-muted-foreground">{t("total", "Total")}</p>
               </div>
               <div className="bg-muted/50 rounded-lg p-4 text-center">
                 <p className="text-2xl font-bold text-yellow-500">{importResult.duplicates}</p>
-                <p className="text-sm text-muted-foreground">Duplicates</p>
+                <p className="text-sm text-muted-foreground">{t("duplicates", "Duplicates")}</p>
               </div>
               <div className="bg-muted/50 rounded-lg p-4 text-center">
                 <p className="text-2xl font-bold text-destructive">{importResult.failed}</p>
-                <p className="text-sm text-muted-foreground">Failed</p>
+                <p className="text-sm text-muted-foreground">{t("failed", "Failed")}</p>
               </div>
             </div>
 

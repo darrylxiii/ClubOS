@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -27,6 +28,7 @@ import { formatCurrencyCompact } from '@/hooks/useMultiHirePipelineMetrics';
 import { formatDistanceToNow } from 'date-fns';
 
 export function ClientHealthDashboard() {
+  const { t } = useTranslation('common');
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRisk, setFilterRisk] = useState<'all' | 'high' | 'medium' | 'low'>('all');
   const { data: clients, isLoading } = useClientHealthScores();
@@ -58,11 +60,11 @@ export function ClientHealthDashboard() {
   const getRiskBadge = (risk: string) => {
     switch (risk) {
       case 'high':
-        return <Badge variant="destructive">High Risk</Badge>;
+        return <Badge variant="destructive">{t("high_risk", "High Risk")}</Badge>;
       case 'medium':
-        return <Badge variant="secondary" className="bg-yellow-500/10 text-yellow-600 border-yellow-500/20">Medium Risk</Badge>;
+        return <Badge variant="secondary" className="bg-yellow-500/10 text-yellow-600 border-yellow-500/20">{t("medium_risk", "Medium Risk")}</Badge>;
       default:
-        return <Badge variant="outline" className="text-green-600">Low Risk</Badge>;
+        return <Badge variant="outline" className="text-green-600">{t("low_risk", "Low Risk")}</Badge>;
     }
   };
 
@@ -92,7 +94,7 @@ export function ClientHealthDashboard() {
                 </div>
                 <div>
                   <p className="text-2xl font-bold">{riskCounts.high}</p>
-                  <p className="text-sm text-muted-foreground">High Risk</p>
+                  <p className="text-sm text-muted-foreground">{t("high_risk", "High Risk")}</p>
                 </div>
               </div>
               <TrendingDown className="h-6 w-6 text-red-500/50" />
@@ -112,7 +114,7 @@ export function ClientHealthDashboard() {
                 </div>
                 <div>
                   <p className="text-2xl font-bold">{riskCounts.medium}</p>
-                  <p className="text-sm text-muted-foreground">Medium Risk</p>
+                  <p className="text-sm text-muted-foreground">{t("medium_risk", "Medium Risk")}</p>
                 </div>
               </div>
             </div>
@@ -131,7 +133,7 @@ export function ClientHealthDashboard() {
                 </div>
                 <div>
                   <p className="text-2xl font-bold">{riskCounts.low}</p>
-                  <p className="text-sm text-muted-foreground">Healthy</p>
+                  <p className="text-sm text-muted-foreground">{t("healthy", "Healthy")}</p>
                 </div>
               </div>
               <TrendingUp className="h-6 w-6 text-green-500/50" />
@@ -157,7 +159,7 @@ export function ClientHealthDashboard() {
             <div className="relative w-full md:w-64">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search clients..."
+                placeholder={t("search_clients", "Search clients...")}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-9"
@@ -169,7 +171,7 @@ export function ClientHealthDashboard() {
           {!filteredClients?.length ? (
             <div className="text-center py-8 text-muted-foreground">
               <Building2 className="h-12 w-12 mx-auto mb-4" />
-              <p>No clients found</p>
+              <p>{t("no_clients_found", "No clients found")}</p>
             </div>
           ) : (
             <div className="space-y-4">
@@ -210,22 +212,22 @@ export function ClientHealthDashboard() {
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
                       <div className="flex items-center gap-2">
                         <Target className="h-3 w-3 text-muted-foreground" />
-                        <span className="text-muted-foreground">Engagement:</span>
+                        <span className="text-muted-foreground">{t("engagement", "Engagement:")}</span>
                         <span className="font-medium">{client.engagement_score}%</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <Users className="h-3 w-3 text-muted-foreground" />
-                        <span className="text-muted-foreground">Placements:</span>
+                        <span className="text-muted-foreground">{t("placements", "Placements:")}</span>
                         <span className="font-medium">{client.total_placements}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <DollarSign className="h-3 w-3 text-muted-foreground" />
-                        <span className="text-muted-foreground">Pipeline:</span>
+                        <span className="text-muted-foreground">{t("pipeline", "Pipeline:")}</span>
                         <span className="font-medium">{formatCurrencyCompact(client.pipeline_value)}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <Clock className="h-3 w-3 text-muted-foreground" />
-                        <span className="text-muted-foreground">Last Active:</span>
+                        <span className="text-muted-foreground">{t("last_active", "Last Active:")}</span>
                         <span className={`font-medium ${client.activity_recency_days > 30 ? 'text-red-500' : ''}`}>
                           {client.last_activity_date 
                             ? formatDistanceToNow(new Date(client.last_activity_date), { addSuffix: true })
@@ -264,11 +266,11 @@ export function ClientHealthDashboard() {
                   {/* Quick Stats */}
                   <div className="hidden lg:flex flex-col items-end gap-1 text-sm">
                     <div className="flex items-center gap-2">
-                      <span className="text-muted-foreground">Active Jobs:</span>
+                      <span className="text-muted-foreground">{t("active_jobs", "Active Jobs:")}</span>
                       <Badge variant="secondary">{client.active_jobs}</Badge>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-muted-foreground">Comm Score:</span>
+                      <span className="text-muted-foreground">{t("comm_score", "Comm Score:")}</span>
                       <span className="font-medium">{client.communication_score}%</span>
                     </div>
                   </div>

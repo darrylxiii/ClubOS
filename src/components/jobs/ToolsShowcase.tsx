@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Wrench, CheckCircle, Star } from "lucide-react";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 
@@ -29,6 +30,7 @@ const CATEGORY_LABELS: Record<string, string> = {
 };
 
 export function ToolsShowcase({ requiredTools = [], niceToHaveTools = [] }: ToolsShowcaseProps) {
+  const { t } = useTranslation('common');
   if (requiredTools.length === 0 && niceToHaveTools.length === 0) {
     return null;
   }
@@ -41,7 +43,7 @@ export function ToolsShowcase({ requiredTools = [], niceToHaveTools = [] }: Tool
         <div className="flex items-center gap-3">
           <Wrench className="w-6 h-6 text-primary flex-shrink-0" />
           <div>
-            <h3 className="text-xl font-black">Tools & Technologies</h3>
+            <h3 className="text-xl font-black">{t("tools_technologies", "Tools & Technologies")}</h3>
             <p className="text-sm text-muted-foreground">
               {requiredTools.length} required • {niceToHaveTools.length} nice-to-have
             </p>

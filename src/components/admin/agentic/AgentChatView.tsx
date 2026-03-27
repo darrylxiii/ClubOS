@@ -15,6 +15,7 @@ import {
 import { Bot, Send, Plus, Settings2, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import AgentInstructionsPanel from './AgentInstructionsPanel';
+import { useTranslation } from 'react-i18next';
 
 interface Agent {
   agent_name: string;
@@ -112,7 +113,7 @@ export default function AgentChatView({ initialAgent }: { initialAgent?: string 
       setMessages((prev) => [...prev, { role: 'assistant', content: data.message }]);
       if (data.conversation_id) setConversationId(data.conversation_id);
     } catch (err) {
-      toast.error('Failed to get response from agent');
+      toast.error(t('agentic.agentChatView.failedToGetResponseFromAgent'));
       // Remove optimistic message
       setMessages((prev) => prev.slice(0, -1));
     } finally {
@@ -121,6 +122,7 @@ export default function AgentChatView({ initialAgent }: { initialAgent?: string 
   };
 
   const startNewConversation = () => {
+  const { t } = useTranslation('admin');
     setMessages([]);
     setConversationId(null);
   };
@@ -137,7 +139,7 @@ export default function AgentChatView({ initialAgent }: { initialAgent?: string 
       <div className="flex items-center gap-3 mb-4 flex-wrap">
         <Select value={selectedAgent} onValueChange={setSelectedAgent}>
           <SelectTrigger className="w-[240px]">
-            <SelectValue placeholder="Select an agent" />
+            <SelectValue placeholder={t('agentic.agentChatView.selectAnAgent')} />
           </SelectTrigger>
           <SelectContent>
             {agents.map((agent) => (
@@ -234,7 +236,7 @@ export default function AgentChatView({ initialAgent }: { initialAgent?: string 
               <div className="bg-card/60 border border-border/30 rounded-2xl rounded-bl-md px-4 py-3">
                 <div className="flex items-center gap-2">
                   <Loader2 className="h-3 w-3 animate-spin text-primary" />
-                  <span className="text-xs text-muted-foreground">Thinking...</span>
+                  <span className="text-xs text-muted-foreground">{t('agentic.agentChatView.thinking')}</span>
                 </div>
               </div>
             </div>

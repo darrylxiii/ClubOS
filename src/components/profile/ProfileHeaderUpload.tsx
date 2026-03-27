@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import { useTranslation } from 'react-i18next';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
@@ -20,6 +21,7 @@ export const ProfileHeaderUpload = ({
   currentMediaType,
   onUploadComplete 
 }: ProfileHeaderUploadProps) => {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [mediaType, setMediaType] = useState<"image" | "video">("image");
@@ -183,40 +185,40 @@ export const ProfileHeaderUpload = ({
             {currentMediaUrl ? (
               <>
                 <ImagePlus className="w-4 h-4" />
-                Change Header
+                {t('profile.changeHeader')}
               </>
             ) : (
               <>
                 <Upload className="w-4 h-4" />
-                Add Header
+                {t('profile.addHeader')}
               </>
             )}
           </Button>
         </DialogTrigger>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Profile Header / Wallpaper</DialogTitle>
+            <DialogTitle>{t('profile.profileHeaderWallpaper')}</DialogTitle>
             <DialogDescription>
-              Upload an image or video as your profile header. Images will be cropped to 3:1 ratio.
+              {t('profile.headerUploadDesc')}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label>Media Type</Label>
+              <Label>{t('profile.mediaType')}</Label>
               <RadioGroup value={mediaType} onValueChange={(v) => setMediaType(v as "image" | "video")}>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="image" id="image" />
                   <Label htmlFor="image" className="flex items-center gap-2 cursor-pointer">
                     <ImagePlus className="w-4 h-4" />
-                    Image (max 10MB) - with cropping
+                    {t('profile.imageMaxSize')}
                   </Label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="video" id="video" />
                   <Label htmlFor="video" className="flex items-center gap-2 cursor-pointer">
                     <Video className="w-4 h-4" />
-                    Video (max 50MB)
+                    {t('profile.videoMaxSize')}
                   </Label>
                 </div>
               </RadioGroup>
@@ -242,12 +244,12 @@ export const ProfileHeaderUpload = ({
                   {uploading ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Uploading...
+                      {t('common:status.uploading')}
                     </>
                   ) : (
                     <>
                       <Upload className="w-4 h-4 mr-2" />
-                      Choose {mediaType === "image" ? "Image" : "Video"}
+                      {t('profile.chooseMedia', { type: mediaType === "image" ? t('profile.image') : t('profile.video') })}
                     </>
                   )}
                 </Button>
@@ -264,12 +266,12 @@ export const ProfileHeaderUpload = ({
                 {deleting ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Removing...
+                    {t('common:status.removing')}
                   </>
                 ) : (
                   <>
                     <Trash2 className="w-4 h-4 mr-2" />
-                    Remove Header
+                    {t('profile.removeHeader')}
                   </>
                 )}
               </Button>

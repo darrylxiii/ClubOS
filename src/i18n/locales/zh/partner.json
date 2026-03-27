@@ -1,0 +1,2368 @@
+{
+  "title": "合作伙伴门户",
+  "subtitle": "管理您的招聘事务",
+  "dashboard": {
+    "title": "仪表盘",
+    "welcome": "欢迎回来",
+    "overview": "概览",
+    "recentActivity": "最近动态",
+    "quickActions": "快速操作",
+    "stats": "您的统计数据"
+  },
+  "candidates": {
+    "title": "候选人",
+    "active": "活跃候选人",
+    "pipeline": "候选人管道",
+    "shortlisted": "候选名单",
+    "interviewed": "已面试",
+    "offered": "已发出录用",
+    "hired": "已入职",
+    "viewAll": "查看所有候选人",
+    "addCandidate": "添加候选人",
+    "searchCandidates": "搜索候选人"
+  },
+  "jobs": {
+    "title": "职位",
+    "activeJobs": "活跃职位",
+    "draftJobs": "草稿职位",
+    "closedJobs": "已关闭职位",
+    "createJob": "创建职位",
+    "viewAll": "查看所有职位",
+    "applicationsReceived": "收到的申请",
+    "positionsFilled": "已招满的职位"
+  },
+  "analytics": {
+    "title": "数据分析",
+    "hiringMetrics": "招聘指标",
+    "timeToHire": "招聘周期",
+    "costPerHire": "单次招聘成本",
+    "offerAcceptance": "录用接受率",
+    "sourceEffectiveness": "渠道效果",
+    "pipelineHealth": "管道健康度"
+  },
+  "team": {
+    "title": "团队",
+    "members": "团队成员",
+    "addMember": "添加团队成员",
+    "roles": "角色与权限",
+    "activity": "团队动态",
+    "inviteMember": "邀请成员"
+  },
+  "settings": {
+    "title": "设置",
+    "company": "公司档案",
+    "branding": "品牌设置",
+    "integrations": "集成",
+    "notifications": "通知",
+    "billing": "账单",
+    "apiAccess": "API 访问"
+  },
+  "company": {
+    "title": "公司档案",
+    "name": "公司名称",
+    "logo": "公司标志",
+    "description": "描述",
+    "industry": "行业",
+    "size": "公司规模",
+    "location": "总部",
+    "website": "网站",
+    "culture": "公司文化",
+    "benefits": "福利待遇"
+  },
+  "pipeline": {
+    "title": "招聘管道",
+    "stages": "管道阶段",
+    "customize": "自定义阶段",
+    "metrics": "阶段指标",
+    "bottlenecks": "瓶颈",
+    "velocity": "管道流速"
+  },
+  "interviews": {
+    "title": "面试",
+    "scheduled": "已安排的面试",
+    "pending": "待反馈",
+    "completed": "已完成",
+    "schedule": "安排面试",
+    "feedback": "提交反馈",
+    "scorecards": "评分卡"
+  },
+  "offers": {
+    "title": "录用",
+    "pending": "待处理录用",
+    "accepted": "已接受",
+    "declined": "已拒绝",
+    "createOffer": "创建录用通知",
+    "template": "录用模板",
+    "approval": "审批流程"
+  },
+  "reports": {
+    "title": "报告",
+    "generate": "生成报告",
+    "scheduled": "定期报告",
+    "download": "下载",
+    "share": "分享报告",
+    "types": {
+      "hiring": "招聘报告",
+      "diversity": "多样性报告",
+      "pipeline": "管道报告",
+      "source": "渠道报告"
+    }
+  },
+  "integrations": {
+    "title": "集成",
+    "ats": "ATS 集成",
+    "calendar": "日历同步",
+    "email": "邮件集成",
+    "linkedin": "LinkedIn",
+    "slack": "Slack",
+    "teams": "Microsoft 团队"
+  },
+  "notifications": {
+    "newApplication": "收到新申请",
+    "interviewScheduled": "面试已安排",
+    "feedbackPending": "待提交反馈",
+    "offerAccepted": "录用已接受",
+    "candidateUpdate": "候选人状态更新"
+  },
+  "actions": {
+    "viewDetails": "查看详情",
+    "edit": "编辑",
+    "delete": "删除",
+    "archive": "归档",
+    "export": "导出",
+    "share": "分享"
+  },
+  "filters": {
+    "all": "全部",
+    "byJob": "按职位",
+    "byStage": "按阶段",
+    "byDate": "按日期",
+    "bySource": "按来源",
+    "byRecruiter": "按招聘人员"
+  },
+  "empty": {
+    "noCandidates": "暂无候选人",
+    "noJobs": "暂无发布的职位",
+    "noInterviews": "暂无已安排的面试",
+    "noOffers": "暂无待处理录用"
+  },
+  "status": {
+    "active": "活跃",
+    "inactive": "不活跃",
+    "pending": "待处理",
+    "verified": "已验证"
+  },
+  "referrals": {
+    "title": "推荐",
+    "myReferrals": "我的推荐",
+    "earnings": "推荐奖励",
+    "pending": "待发放奖励",
+    "refer": "推荐候选人",
+    "referCompany": "推荐公司"
+  },
+  "support": {
+    "title": "支持",
+    "helpCenter": "帮助中心",
+    "contact": "联系支持",
+    "documentation": "文档",
+    "faq": "常见问题"
+  },
+  "funnel": {
+    "steps": {
+      "aboutYou": "关于您",
+      "yourBrief": "您的需求简报",
+      "review": "审核"
+    },
+    "partnerRequest": "合作伙伴申请",
+    "briefsThisWeek": "本周提交了 {{count}} 份需求简报",
+    "beginYourSearch": "开始您的搜索",
+    "andYourName": "请问您的姓名？",
+    "followUpAtAddress": "我们将通过此邮箱与您联系",
+    "soWeKnowWho": "以便我们知道联系谁",
+    "workEmail": "工作邮箱",
+    "dataNeverShared": "您的数据绝不会与第三方共享。",
+    "continue": "继续",
+    "verifying": "验证中…",
+    "couldNotVerifyEmail": "我们无法验证此邮箱地址。您可以尝试其他邮箱或通过验证码验证。",
+    "useDifferentEmail": "使用其他邮箱",
+    "verifyWithCode": "通过验证码验证",
+    "enterOtpCode": "请输入发送至以下邮箱的 6 位验证码",
+    "didntReceive": "没有收到？",
+    "resendCode": "重新发送验证码",
+    "yourName": "您的姓名",
+    "tellUsAboutRole": "Tell us 关于 the 角色",
+    "tellUsAboutRoleSubtitle": "The 更多 context you 分享, the better your 入围.",
+    "roleTitle": "What 角色 are you looking to fill?",
+    "roleTitlePlaceholder": "e.g. VP of Engineering, CFO, Head of Product",
+    "hiringDriver": "What's driving this hire?",
+    "hiringDriverGrowth": "增长 — scaling the 团队",
+    "hiringDriverReplacement": "Replacement — someone 左",
+    "hiringDriverNewFunction": "新建 函数 — building from scratch",
+    "hiringDriverConfidential": "Confidential — discreet 搜索",
+    "seniorityLevel": "资历 等级",
+    "seniorityDirector": "Director / VP",
+    "seniorityCSuite": "C-Suite",
+    "seniorityHead": "Head of / 高级 线索",
+    "senioritySpecialist": "Specialist IC",
+    "additionalContext": "Anything else we should know?",
+    "additionalContextPlaceholder": "团队 大小, reporting 折线图, challenges with 上一个 hires, specific skills…",
+    "optional": "选填",
+    "website": "网站",
+    "whereAreYouBased": "Where are you based?",
+    "almostThere": "即将完成",
+    "helpsUsReachYou": "添加最终细节并审核您的需求简报。",
+    "phoneNumber": "您的联系电话",
+    "phoneHint": "您的策略顾问可能会来电讨论您的需求简报。可填写 WhatsApp 或电话号码。",
+    "yourDetails": "您的详细信息",
+    "summary": {
+      "name": "姓名",
+      "email": "邮箱",
+      "company": "公司",
+      "industry": "行业",
+      "role": "角色",
+      "seniority": "资历",
+      "hiringDriver": "Driving this hire",
+      "website": "网站",
+      "location": "地点",
+      "phone": "电话",
+      "context": "Additional context",
+      "companySize": "规模",
+      "rolesPerYear": "年招聘量",
+      "timeline": "时间安排",
+      "budget": "预算",
+      "notes": "备注"
+    },
+    "restoringProgress": "正在恢复您的进度…",
+    "back": "返回",
+    "submitting": "提交中…",
+    "submitBrief": "获取候选人名单",
+    "welcomeBack": "欢迎回来！",
+    "progressRestored": "您的进度已恢复。",
+    "resumingProgress": "正在恢复您的进度…",
+    "validEmailRequired": "请输入有效的邮箱地址",
+    "verificationCodeSent": "验证码已发送",
+    "checkEmail": "请查看 {{email}} 中的验证码",
+    "couldNotSendCode": "无法发送验证码",
+    "invalidCode": "验证码无效",
+    "verificationFailed": "验证失败",
+    "completeRequiredFields": "请填写所有必填项",
+    "roleRequired": "Please enter the 角色 you're looking to fill",
+    "requestSubmitted": "申请已提交！",
+    "strategistInTouch": "策略顾问将尽快与您联系。",
+    "strategistInTouch24h": "策略顾问将在 24 小时内与您联系。",
+    "couldNotVerifyRequest": "无法验证您的请求",
+    "somethingWentWrong": "出现错误",
+    "hiringNeedsTitle": "请告诉我们您的招聘需求",
+    "hiringNeedsSubtitle": "这有助于我们为您匹配合适的策略顾问。",
+    "companySize": "公司规模",
+    "selectRange": "选择范围",
+    "rolesPerYear": "预计每年招聘职位数",
+    "whenToStart": "您何时需要开始？",
+    "timeline": "时间安排",
+    "recruitmentBudget": "招聘预算",
+    "idealHire": "描述您理想的候选人",
+    "descriptionPlaceholder": "具体职位、资历级别或面临的挑战…",
+    "headquarters": "总部",
+    "selectCompanySize": "请选择公司规模"
+  },
+  "funnelAnalytics": {
+    "text1": "漏斗 分析",
+    "text2": "Real-时间 合作伙伴 请求 tracking and 洞察",
+    "text3": "总计 视图",
+    "text4": "Unique Sessions",
+    "text5": "Submissions",
+    "text6": "转化率",
+    "text7": "放置-off 率",
+    "text8": "漏斗 步骤 Progression",
+    "text9": "请求 状态 Distribution",
+    "text10": "合作伙伴 Requests",
+    "text11": "按状态筛选",
+    "text12": "全部状态",
+    "text13": "待处理",
+    "text14": "在 评审",
+    "text15": "已批准",
+    "text16": "已拒绝",
+    "text17": "日期",
+    "text18": "公司",
+    "text19": "联系人",
+    "text20": "行业",
+    "text21": "类型",
+    "text22": "状态",
+    "text23": "Source"
+  },
+  "partnerAnalyticsDashboard": {
+    "text1": "无公司 associated with your 账户",
+    "text2": "概览",
+    "text3": "Pipeline",
+    "text4": "趋势",
+    "text5": "Benchmarks"
+  },
+  "partnerFunnel": {
+    "desc": "Describe the 角色. We handle the rest.",
+    "desc2": "No 费用 直到 you hire. No long-term 合同.",
+    "text3": "Quantum Club",
+    "text4": "Quantum Club",
+    "text5": "Partnership 申请 Temporarily 已暂停",
+    "text6": "Quantum Club",
+    "text7": "Quantum Club",
+    "text8": "分享 your brief",
+    "text9": "Speak with a 策略师",
+    "text10": "评审 your 入围"
+  },
+  "partnerRejections": {
+    "text1": "人才库 商机",
+    "text2": "搜索 候选人...",
+    "text3": "全部职位",
+    "text4": "全部职位",
+    "text5": "全部 Reasons",
+    "text6": "全部 Reasons"
+  },
+  "partnerRelationships": {
+    "text1": "候选人 Relationships",
+    "text2": "监控 and nurture your 候选人 connections"
+  },
+  "partnerSetup": {
+    "desc": "点击 the camera 图标 to 上传",
+    "desc2": "We can 导入 your 个人资料 照片 from LinkedIn automatically."
+  },
+  "partnerWelcome": {
+    "title": "What's 下一步",
+    "desc": "Your 组织",
+    "desc2": "Your Dedicated 策略师",
+    "desc3": "探索 打开 角色",
+    "desc4": "浏览 exclusive 商机 curated for your network",
+    "desc5": "提交 候选人",
+    "desc6": "Introduce 顶部 人才 through our streamlined 进程",
+    "desc7": "日程安排 Your 入职引导 Call"
+  },
+  "addCandidateDialog": {
+    "toast": {
+      "duplicateEmailDetected": "Duplicate 邮箱 Detected",
+      "duplicateEmailDetectedDesc": "A 候选人 with this 邮箱 already exists. Please 搜索 for the existing 候选人 or use a different 邮箱.",
+      "databaseError": "数据库 错误",
+      "databaseErrorDesc": "Unable to 链接 候选人 data. 请重试 or 联系客服 if the 问题 persists.",
+      "permissionDenied": "权限不足",
+      "permissionDeniedDesc": "You don't have 权限 to 添加 候选人. Please 联系人 an 管理员.",
+      "duplicateCandidate": "Duplicate 候选人",
+      "duplicateCandidateDesc": "This 候选人 already exists in the 系统. Please check existing 申请."
+    },
+    "placeholder": {
+      "johnDoe": "John Doe",
+      "techCorp": "Tech Corp",
+      "seniorDeveloper": "高级 开发者",
+      "whyThisCandidateSourceSpecialConsiderati": "Why this 候选人? Source? Special considerations?"
+    }
+  },
+  "addJobTeamMemberDialog": {
+    "dialogTitle": "添加 团队 成员",
+    "toast": {
+      "failedToLoadTeamMembers": "加载 团队 成员失败",
+      "failedToLoadTqcTeamMembers": "失败 to 加载 TQC 团队 成员",
+      "pleaseSelectATeamMember": "Please 选择 a 团队 成员",
+      "pleaseSelectAUser": "Please 选择 a 用户",
+      "pleaseProvideAReasonForThisAssignment": "Please provide a reason for this assignment",
+      "teamMemberAddedSuccessfully": "团队 成员 已添加 successfully"
+    },
+    "label": {
+      "teamMember": "团队 成员",
+      "role": "角色",
+      "permissions": "权限",
+      "selectTqcTeamMember": "选择 TQC 团队 成员",
+      "assignmentReason": "Assignment Reason"
+    },
+    "placeholder": {
+      "selectATeamMember": "选择 a 团队 成员",
+      "searchTqcTeamByNameOrEmail": "搜索 TQC 团队 by 名称 or 邮箱...",
+      "whyIsThisPersonBeingAssignedToThisJob": "Why is this person being 已分配 to this 职位?"
+    },
+    "badge": {
+      "admin": "管理员",
+      "strategist": "策略师"
+    },
+    "noMatchingTeamMembersFound": "No matching 团队 成员 found",
+    "externalUsersReceiveLimitedTimeboxedAcce": "外部 用户 接收 limited, 时间-boxed 访问 with 审计 logging",
+    "dialogDescription": "分配 a 团队 成员 or 外部 用户 to this 职位 with specific 角色 and 权限.",
+    "option": {
+      "hiringManager": "招聘 经理",
+      "founderexecutiveReviewer": "Founder/高管 Reviewer",
+      "technicalInterviewer": "Technical Interviewer",
+      "behavioralInterviewer": "Behavioral Interviewer",
+      "panelMember": "面板 成员",
+      "interviewCoordinator": "面试 Coordinator",
+      "observer": "Observer"
+    }
+  },
+  "addStageDialog": {
+    "dialogTitle": "新增 Pipeline 阶段",
+    "placeholder": {
+      "buildingroomNumberReceptionInstructionsP": "Building/Room 数字, Reception instructions, Parking information, Accessibility 备注...",
+      "listMaterialsCandidatesShouldPreparePort": "列表 materials 候选人 should prepare (作品集, references, 证书, etc.)"
+    },
+    "configureEveryDetailForALuxuryTailoredCa": "配置 每个 detail for a luxury, tailored 候选人 经验",
+    "candidatesCanChooseBetweenOnlineOrInpers": "候选人 can choose 之间 在线 or in-person. 配置 both 选项 以上 or provide flexible instructions.",
+    "thisHelpsEvaluatorsProvideConsistentStru": "This helps evaluators provide consistent, structured 反馈",
+    "quickstartWithPreconfiguredStageTemplate": "Quick-开始 with pre-configured 阶段 模板",
+    "option": {
+      "noTeamMembersAvailable": "No 团队 成员 可用"
+    },
+    "desc": {
+      "stageConfigurationSavedAndAuditLogged": "阶段 配置 已保存 and 审计 logged"
+    }
+  },
+  "addToJobDialog": {
+    "dialogTitle": "添加 to 职位 Pipeline",
+    "toast": {
+      "candidateAddedButInteractionLogFailed": "候选人 已添加 but 互动 日志 失败",
+      "candidateAddedButAuditLogFailed": "候选人 已添加 but 审计日志 失败",
+      "failedToAddCandidate": "失败 to 添加候选人 to 职位"
+    },
+    "label": {
+      "startingStage": "开始在g 阶段",
+      "notesOptional": "备注 (可选)"
+    },
+    "placeholder": {
+      "searchJobsByTitleOrCompany": "搜索 职位 by 标题 or 公司...",
+      "whyAreYouAddingThisCandidate": "Why are you adding this 候选人?"
+    },
+    "badge": {
+      "alreadyInPipeline": "Already in Pipeline"
+    },
+    "noActiveJobsFound": "No 活跃职位 found."
+  },
+  "adminBoardTools": {
+    "toast": {
+      "globalAnalytics": "全局分析",
+      "globalAnalyticsDesc": "Cross-公司 洞察 and platform-wide 指标",
+      "talentPoolAccessGranted": "人才库 访问 Granted",
+      "talentPoolAccessGrantedDesc": "Full 访问 to 12,847 候选人 profiles",
+      "companyManagement": "公司 管理",
+      "companyManagementDesc": "管理 全部 合作伙伴 公司 and their 访问 levels",
+      "bulkOperations": "批量操作",
+      "bulkOperationsDesc": "Perform bulk 操作 across multiple 职位 and 候选人",
+      "platformSettings": "Platform 设置",
+      "platformSettingsDesc": "配置 global platform 规则, AI models, and 工作流",
+      "aiConfiguration": "AI 配置",
+      "aiConfigurationDesc": "调整 matching algorithms, scoring weights, and ML models",
+      "systemHealthOptimal": "系统健康: Optimal",
+      "systemHealthOptimalDesc": "全部 services 运行中 normally. 99.97% 正常运行时间",
+      "globalDataExport": "Global Data 导出",
+      "globalDataExportDesc": "Exporting anonymized platform 分析...",
+      "accessControl": "访问 Control",
+      "accessControlDesc": "管理 角色, 权限, and 安全 policies"
+    },
+    "badge": {
+      "quantumClubAdmin": "QUANTUM CLUB 管理员"
+    },
+    "platformwideManagementAnalytics": "Platform-wide 管理 & 分析",
+    "companyManagement": "公司 管理",
+    "viewManageAllPartners": "查看 & 管理 全部 合作伙伴",
+    "bulkOperations": "批量操作",
+    "crossjobActionsAtScale": "Cross-职位 操作 at scale",
+    "aiModelConfig": "AI Model 配置",
+    "tuneMatchingAlgorithms": "Tune matching algorithms",
+    "systemHealth": "系统健康",
+    "platformStatusUptime": "Platform 状态 & 正常运行时间",
+    "accessControl": "访问 Control",
+    "rolesPermissions": "角色 & 权限",
+    "platformSettings": "Platform 设置",
+    "globalConfigurations": "Global configurations",
+    "exportGlobalData": "导出 Global Data",
+    "platformwideAnalytics": "Platform-wide 分析",
+    "refreshAllMetrics": "刷新 全部 指标",
+    "recalculateEverything": "Recalculate everything"
+  },
+  "adminJobTools": {
+    "sheetTitle": "邮箱 Dump",
+    "toast": {
+      "metricsUpdatedSuccessfully": "指标 已更新 successfully",
+      "aiMatchingEngine": "AI Matching Engine",
+      "aiMatchingEngineDesc": "Analyzing global 人才库 for perfect matches...",
+      "found23HighpotentialCandidates": "Found 23 高-potential 候选人",
+      "found23HighpotentialCandidatesDesc": "Advanced AI scoring applied. 评审 in Pipeline.",
+      "bulkImport": "Bulk 导入",
+      "bulkImportDesc": "上传 CSV or 连接 ATS to 导入 候选人",
+      "pipelineHealth94": "Pipeline 健康: 94%",
+      "pipelineHealth94Desc": "Excellent flow. Avg 时间-to-hire: 12 天",
+      "exportingPipelineData": "Exporting Pipeline data",
+      "exportingPipelineDataDesc": "Full 分析 导出 with GDPR 合规",
+      "recalculatingMetrics": "Recalculating 指标...",
+      "recalculatingMetricsDesc": "Using 最新 AI models and scoring algorithms"
+    },
+    "badge": {
+      "adminJobTools": "管理员 职位 TOOLS"
+    },
+    "joblevelOperations": "职位-等级 运维"
+  },
+  "advancedJobFilters": {
+    "title": "Advanced Filters",
+    "status": "状态",
+    "company": "公司",
+    "createdDateRange": "已创建 日期 范围",
+    "fromDate": "来自 d在e",
+    "toDate": "至 d在e"
+  },
+  "applicantPipeline": {
+    "noActiveJobs": "否 活跃职位",
+    "applicantPipeline": "申请人 Pipeline",
+    "noApplicationsYet": "No 申请 yet",
+    "toast": {
+      "failedToLoadApplicants": "加载 申请人失败"
+    },
+    "publishAJobToStartReceivingApplications": "发布 a 职位 to 开始 receiving 申请",
+    "applicationsWillAppearHereOnceCandidates": "申请 will appear here 一次 候选人 开始 applying",
+    "noCandidatesInThisStage": "No 候选人 in this 阶段"
+  },
+  "applicationsAnalytics": {
+    "title": "Pipeline Distribution",
+    "avgTimeToHire": "Avg. 时间 to Hire",
+    "conversionRate": "转化率",
+    "activePipelines": "活跃 Pipelines",
+    "stalledPipelines": "Stalled Pipelines",
+    "excellent": "Excellent",
+    "needsImprovement": "Needs improvement",
+    "inProgress": "In 进度",
+    "needAttention": "Need attention"
+  },
+  "applicationsFilters": {
+    "placeholder": {
+      "allStatuses": "全部状态",
+      "allJobs": "全部职位",
+      "allCompanies": "全部公司",
+      "allSources": "全部 sources",
+      "allUrgency": "全部 urgency"
+    },
+    "option": {
+      "allStatuses": "全部状态",
+      "active": "活跃",
+      "hired": "已录用",
+      "rejected": "已拒绝",
+      "withdrawn": "Withdrawn",
+      "allJobs": "全部职位",
+      "allCompanies": "全部公司",
+      "allSources": "全部 Sources",
+      "linkedin": "LinkedIn",
+      "referral": "推荐",
+      "direct": "Direct",
+      "agency": "Agency",
+      "all": "全部",
+      "recentActivity": "最近 Activity"
+    }
+  },
+  "applicationsTable": {
+    "badge": {
+      "noActivity": "No Activity",
+      "urgent": "紧急",
+      "pendingSignup": "待处理 Signup"
+    },
+    "noApplicationsFoundMatchingYourFilters": "No 申请 found matching your filters"
+  },
+  "benchmarkComparison": {
+    "badge": {
+      "updatedToday": "已更新 今天"
+    },
+    "completeMoreHiringCyclesToUnlockBenchmar": "Complete 更多 招聘 cycles to 解锁 基准 comparisons"
+  },
+  "calendarInterviewLinker": {
+    "badge": {
+      "tqc": "TQC"
+    },
+    "automaticallyDetectedInterviewsFromYourC": "Automatically detected 面试 from your 日历",
+    "selectACalendarEventToLinkAsAnInterview": "选择 a 日历 事件 to 链接 as an 面试",
+    "interviewsThatHaveBeenConfirmedAndLinked": "面试 that have been 已确认 and 已链接 to this 职位",
+    "dialogDescription": "浏览 your 日历 事件 or 查看 automatically detected 面试"
+  },
+  "candidateActionDialog": {
+    "toast": {
+      "noNextStageAvailable": "No 下一步 阶段 可用",
+      "pleaseProvideARejectionReason": "Please provide a rejection reason",
+      "failedToProcessAction": "进程 操作失败"
+    },
+    "label": {
+      "rejectionReason": "Rejection Reason *"
+    },
+    "placeholder": {
+      "selectAReason": "选择 a reason"
+    },
+    "clubCheckAdvanceCandidate": "Club Check - Advance 候选人",
+    "thisCandidateHasPassedClubVettingStandar": "This 候选人 has passed Club vetting standards",
+    "option": {
+      "notAFit": "Not a fit",
+      "salaryExpectations": "薪资 expectations",
+      "location": "Location",
+      "seniorityMismatch": "资历 mismatch",
+      "skillsGap": "技能 gap",
+      "culturalFit": "Cultural fit",
+      "other": "其他"
+    },
+    "desc": {
+      "clubCheckCompletedSuccessfully": "Club Check 已完成 successfully",
+      "feedbackRecordedAndCandidateNotified": "反馈 recorded and 候选人 notified"
+    }
+  },
+  "candidateAnalytics": {
+    "toast": {
+      "failedToLoadAnalytics": "加载 分析失败"
+    },
+    "badge": {
+      "highInterest": "高 Interest",
+      "excellentFit": "Excellent Fit",
+      "highlyEngaged": "Highly Engaged"
+    },
+    "profileViews": "个人资料 视图",
+    "uniqueViewers": "Unique Viewers",
+    "engagementScore": "互动 评分",
+    "fitScore": "Fit 评分",
+    "noProfileViewsYet": "No 个人资料 视图 yet",
+    "thisCandidateHasReceivedSignificantAtten": "This 候选人 has 已接收 significant attention from the 团队",
+    "aiAnalysisShowsStrongAlignmentWithRoleRe": "AI analysis shows strong alignment with 角色 requirements",
+    "candidateShowsStrongEngagementWithTheApp": "候选人 shows strong 互动 with the 申请 进程",
+    "noInsightsAvailableYetProfileViewsAndInt": "No 洞察 可用 yet. 个人资料 视图 and interactions will 生成 AI 洞察.",
+    "description": "团队 成员 who 最近 viewed this 个人资料"
+  },
+  "candidateDecisionDashboard": {
+    "dialogTitle": "移动 to 录用通知 阶段",
+    "toast": {
+      "noApplicationSelected": "No 申请 已选择",
+      "candidateMovedToOfferStage": "候选人 moved to 录用通知 阶段",
+      "failedToMoveCandidateToOfferStage": "失败 to 移动 候选人 to 录用通知 阶段",
+      "failedToLogVerdict": "失败 to 日志 verdict",
+      "openingInterviewScheduler": "空缺职位 面试 scheduler..."
+    },
+    "placeholder": {
+      "addNotesAboutYourDecision": "添加 备注 关于 your decision..."
+    },
+    "overall": "Overall",
+    "yearsExp": "年 Exp",
+    "salaryRange": "薪资范围",
+    "noticePeriod": "通知期",
+    "preferredLocation": "Preferred Location",
+    "quickActions": "Quick 操作",
+    "alert": {
+      "thisActionWillTriggerTheOfferWorkflowAndDesc": "This 操作 will 触发器 the 录用通知 工作流 and 通知 relevant stakeholders."
+    }
+  },
+  "candidateDetailDialog": {
+    "title": "候选人 信息",
+    "toast": {
+      "failedToAddComment": "添加 评论失败",
+      "commentAdded": "评论 已添加",
+      "failedToSubmitScorecard": "失败 to 提交 scorecard",
+      "scorecardSubmitted": "Scorecard submitted",
+      "failedToMoveCandidate": "移动 候选人失败",
+      "candidateMoved": "候选人 moved"
+    },
+    "placeholder": {
+      "moveToStage": "移动 to 阶段...",
+      "whatAreTheirStrengths": "What are their strengths?",
+      "anyConcerns": "Any concerns?",
+      "additionalNotes": "Additional 备注..."
+    },
+    "tab": {
+      "overview": "概览",
+      "scorecard": "Scorecard",
+      "comments": "评论",
+      "activity": "Activity"
+    },
+    "activityTimelineComingSoon": "Activity 时间线 即将推出",
+    "pipelineStage": "Pipeline 阶段",
+    "option": {
+      "strongYes": "Strong 是",
+      "yes": "是",
+      "neutral": "Neutral",
+      "strongNo": "Strong No"
+    }
+  },
+  "candidateDocumentsViewer": {
+    "dialogTitle": "选择 文档 类型",
+    "toast": {
+      "failedToLoadDocuments": "加载 文档失败",
+      "failedToUpdateDocument": "更新 文档失败",
+      "documentDeleted": "文档 已删除",
+      "failedToDeleteDocument": "删除 文档失败"
+    },
+    "label": {
+      "documentType": "文档 类型",
+      "expiryDateOptional": "Expiry 日期 (可选)"
+    },
+    "loadingDocuments": "加载中 文档",
+    "releaseToUpload": "发布 to 上传",
+    "noDocumentsYet": "No 文档 yet",
+    "uploadTheFirstDocumentToGetStarted": "上传 the 第一 文档 to 开始使用",
+    "documentsWillBeAutomaticallyArchivedAfte": "文档 will be automatically 已归档 之后 this 日期 for GDPR 合规",
+    "verified": "已验证",
+    "title": {
+      "documentPreview": "文档 预览"
+    }
+  },
+  "candidateInteractionLog": {
+    "title": "互动 时间线",
+    "toast": {
+      "pleaseEnterNoteContent": "Please enter note 内容",
+      "noteAddedSuccessfully": "Note 已添加 successfully",
+      "failedToAddNote": "失败 to 添加 note"
+    },
+    "label": {
+      "logNewInteraction": "日志 新建 互动"
+    },
+    "placeholder": {
+      "enterInteractionDetails": "Enter 互动 详情..."
+    },
+    "noInteractionsLoggedYet": "No interactions logged yet",
+    "description": "加载中 候选人 interactions...",
+    "option": {
+      "note": "Note",
+      "phoneCall": "电话 Call",
+      "email": "邮箱",
+      "message": "消息",
+      "meeting": "会议"
+    }
+  },
+  "candidateInternalRatingCard": {
+    "title": "评级 历史",
+    "toast": {
+      "ratingsUpdatedSuccessfully": "评级 已更新 successfully",
+      "failedToUpdateRatings": "更新 评级失败"
+    },
+    "placeholder": {
+      "addContextForTheseRatings": "添加 context for these 评级..."
+    },
+    "overallTeamAssessmentOfCandidateQuality": "Overall 团队 评估 of 候选人 质量",
+    "candidateResponsivenessAndInterestLevel": "候选人 responsiveness and interest 等级",
+    "skillsAndExperienceAlignmentWithOpportun": "技能 and 经验 alignment with 商机",
+    "viewAllRatingChangesAndTeamMemberAssessm": "查看全部 评级 changes and 团队 成员 评估 over 时间",
+    "description": "团队 评价 指标 (not 可见 to 候选人)"
+  },
+  "candidateInvitationDialog": {
+    "toast": {
+      "invitationSentSuccessfully": "Invitation 已发送 successfully!",
+      "failedToSendInvitation": "失败 to 发送 invitation"
+    },
+    "label": {
+      "emailAddress": "邮箱地址",
+      "linkToSpecificJobsOptional": "链接 to Specific 职位 (可选)",
+      "personalMessage": "Personal 消息"
+    },
+    "selectedJobsWillBeMentionedInTheInvitati": "已选择 职位 will be mentioned in the invitation 邮箱",
+    "thisMessageWillBeIncludedInTheInvitation": "This 消息 will be included in the invitation 邮箱",
+    "whatHappensNext": "What happens 下一步?"
+  },
+  "candidateLinkedJobs": {
+    "toast": {
+      "failedToLoadLinkedJobs": "加载 已链接 职位失败"
+    },
+    "applied": "Applied",
+    "lastUpdated": "最近更新",
+    "salaryRange": "薪资范围",
+    "stageProgress": "阶段 进度",
+    "description": "No 职位 申请 found"
+  },
+  "candidateNotesManager": {
+    "toast": {
+      "noteContentIsRequired": "Note 内容 is 必填",
+      "youMustBeLoggedInToCreateNotes": "You must be logged in to 创建 备注",
+      "noteSaved": "Note 已保存",
+      "failedToDeleteNote": "失败 to 删除 note",
+      "noteDeleted": "Note 已删除",
+      "failedToUpdateNote": "失败 to 更新 note"
+    },
+    "placeholder": {
+      "noteTitle": "Note 标题...",
+      "addYourNotesHere": "添加 your 备注 here..."
+    },
+    "tab": {
+      "allNotes": "全部 备注",
+      "tqcInternal": "TQC 内部",
+      "partnerShared": "合作伙伴 已共享",
+      "general": "General"
+    },
+    "loadingNotes": "加载中 备注...",
+    "tqcInternal": "TQC 内部",
+    "visibleOnlyToTqcTeam": "可见 only to TQC 团队",
+    "general": "General",
+    "visibleToEveryone": "可见 至 每个在e"
+  },
+  "candidatePipelineStatus": {
+    "toast": {
+      "failedToLoadPipelineStatus": "加载 Pipeline 状态失败",
+      "pipelineStageUpdated": "Pipeline 阶段 已更新",
+      "failedToUpdateStage": "更新 阶段失败"
+    },
+    "currentStage": "当前 阶段",
+    "progress": "进度",
+    "description": "No 活跃 申请 found"
+  },
+  "candidateQuickActions": {
+    "dialogTitle": "导入 from LinkedIn",
+    "toast": {
+      "pleaseEnterALinkedinUrl": "Please enter a LinkedIn URL",
+      "linkedinProfileImportedSuccessfully": "LinkedIn 个人资料 已导入 successfully.",
+      "failedToImportLinkedinProfile": "导入 LinkedIn 个人资料失败",
+      "profileExportedSuccessfully": "个人资料 已导出 successfully",
+      "failedToExportProfile": "导出 个人资料失败"
+    },
+    "label": {
+      "linkedinProfileUrl": "LinkedIn 个人资料 URL"
+    },
+    "dialogDescription": "Enter a LinkedIn 个人资料 URL to automatically enrich this 候选人's 个人资料"
+  },
+  "companyAchievements": {
+    "title": "自定义 成就",
+    "basicInformation": "Basic Information",
+    "unlockCriteria": "解锁 Criteria",
+    "noCustomAchievementsYet": "No 自定义 成就 yet",
+    "label": {
+      "achievementName": "成就 名称 *",
+      "description": "描述 *",
+      "icon": "图标",
+      "interactionType": "互动 类型 *",
+      "requiredAmount": "必填 Amount *",
+      "timeboundChallenge": "时间-Bound Challenge",
+      "daysToComplete": "天 to Complete *"
+    },
+    "placeholder": {
+      "describeWhatThisAchievementRepresentsAnd": "Describe what this 成就 represents and how to earn it"
+    },
+    "requireCompletionWithinASpecificTimefram": "Require 完成度 within a specific timeframe",
+    "createYourFirstCustomAchievementToRecogn": "创建 your 第一 自定义 成就 to recognize and 奖励 exceptional contributions from your 团队.",
+    "noPlatformAchievementsEarnedByTeamMember": "No platform 成就 earned by 团队 成员 yet",
+    "analytics": "分析",
+    "description": "标准 成就 earned by your 团队 成员 across the platform",
+    "dialogDescription": "Define criteria and 奖励 for exceptional 团队 contributions",
+    "created": "已创建",
+    "totalAwarded": "总计 Awarded",
+    "avgPerAchievement": "Avg per 成就",
+    "active": "活跃"
+  },
+  "companyAnalyticsChart": {
+    "toast": {
+      "failedToLoadAnalytics": "加载 分析失败"
+    },
+    "desc": {
+      "last30Days": "最后 30 天",
+      "currentFollowers": "当前 followers",
+      "reactionsComments": "Reactions & 评论"
+    }
+  },
+  "companyBranding": {
+    "brandColors": "Brand Colors",
+    "typography": "Typography",
+    "logosAssets": "Logos & 资产",
+    "brandPreview": "Brand 预览",
+    "toast": {
+      "failedToLoadBranding": "失败 to 加载 branding",
+      "brandingUpdatedSuccessfully": "Branding 已更新 successfully",
+      "failedToUpdateBranding": "失败 to 更新 branding"
+    },
+    "label": {
+      "primaryColor": "Primary 颜色",
+      "secondaryColor": "Secondary 颜色",
+      "accentColor": "Accent 颜色",
+      "headingFont": "标题 字体",
+      "bodyFont": "正文 F在t",
+      "lightLogoUrl": "Light Logo URL",
+      "darkLogoUrl": "Dark Logo URL",
+      "faviconUrl": "Favicon URL",
+      "socialPreviewImage": "社交 预览 图片"
+    },
+    "description": "自定义 your 公司's visual identity"
+  },
+  "companyBrandingEditor": {
+    "preview": "预览",
+    "headingExample": "标题 Example",
+    "toast": {
+      "failedToLoadBrandingSettings": "失败 to 加载 branding 设置",
+      "brandingUpdatedSuccessfully": "Branding 已更新 successfully",
+      "failedToUpdateBranding": "失败 to 更新 branding"
+    },
+    "label": {
+      "primaryColor": "Primary 颜色",
+      "secondaryColor": "Secondary 颜色",
+      "accentColor": "Accent 颜色",
+      "headingFont": "标题 字体",
+      "bodyFont": "正文 F在t"
+    },
+    "placeholder": {
+      "interRobotoEtc": "Inter, Roboto, etc."
+    },
+    "bodyTextExampleWithYourSelectedFontAndCo": "正文 文本 example with your 已选择 字体 and colors.",
+    "description": "自定义 your 公司's visual identity"
+  },
+  "companyFollowers": {
+    "toast": {
+      "failedToLoadFollowers": "失败 to 加载 followers"
+    },
+    "badge": {
+      "notificationsOn": "通知 On"
+    },
+    "noFollowersYet": "No followers yet"
+  },
+  "companyPosts": {
+    "companyPosts": "公司 Posts",
+    "toast": {
+      "failedToLoadPosts": "失败 to 加载 posts",
+      "postUpdatedSuccessfully": "Post 已更新 successfully",
+      "postCreatedSuccessfully": "Post 已创建 successfully",
+      "failedToSavePost": "失败 to 保存 post",
+      "postDeletedSuccessfully": "Post 已删除 successfully",
+      "failedToDeletePost": "失败 to 删除 post"
+    },
+    "label": {
+      "title": "标题",
+      "content": "内容",
+      "postType": "Post 类型",
+      "tagsCommaSeparated": "Tags (comma separated)"
+    },
+    "badge": {
+      "featured": "Featured",
+      "private": "私密"
+    },
+    "manageYourCompanyNewsAndUpdates": "管理 your 公司 news and updates",
+    "noPostsYetCreateYourFirstPostToGetStarte": "No posts yet. 创建 your 第一 post to 开始使用.",
+    "public": "公开",
+    "featured": "Featured",
+    "dialogDescription": "分享 news, 里程碑, 事件, and updates with your 受众",
+    "option": {
+      "news": "News",
+      "milestone": "里程碑",
+      "event": "事件",
+      "media": "Media"
+    }
+  },
+  "companyProfile": {
+    "title": "公司 个人资料",
+    "toast": {
+      "failedToLoadCompanyProfile": "加载 公司 个人资料失败",
+      "companyProfileUpdated": "公司 个人资料 已更新",
+      "failedToUpdateCompanyProfile": "更新 公司 个人资料失败"
+    },
+    "label": {
+      "companyName": "公司 名称",
+      "tagline": "Tagline",
+      "description": "描述",
+      "website": "网站",
+      "linkedinUrl": "LinkedIn URL",
+      "headquartersLocation": "Headquarters Location",
+      "industry": "行业",
+      "companySize": "公司 大小"
+    },
+    "description": "管理 your 公司 information and branding"
+  },
+  "companyWall": {
+    "title": "公司 Wall",
+    "toast": {
+      "failedToLoadCompanyPosts": "失败 to 加载 公司 posts"
+    },
+    "badge": {
+      "featured": "Featured"
+    },
+    "noPostsYetBeTheFirstToShareSomething": "No posts yet. Be the 第一 to 分享 something!",
+    "description": "最新 news, updates, and announcements"
+  },
+  "contractDeadlineAlerts": {
+    "badge": {
+      "breached": "BREACHED"
+    },
+    "milestoneDeadlineHasPassed": "里程碑 deadline has passed",
+    "milestoneDeadlineApproaching": "里程碑 deadline approaching"
+  },
+  "createInterviewDialog": {
+    "toast": {
+      "pleaseFillInAllRequiredFields": "Please fill in 全部 必填 fields",
+      "pleaseSelectAtLeastOneInterviewer": "Please 选择 至少 one interviewer",
+      "interviewScheduledButFailedToAddToGoogle": "面试 已安排, but 失败 to 添加 to Google 日历",
+      "interviewScheduledAndAddedToYourGoogleCa": "面试 已安排 and 已添加 to your Google 日历!",
+      "interviewScheduledButCalendarSyncFailed": "面试 已安排, but 日历 同步 失败",
+      "interviewScheduledSuccessfully": "面试 已安排 successfully"
+    },
+    "label": {
+      "addToGoogleCalendar": "添加 至 Google 日历",
+      "interviewType": "面试 类型 *",
+      "meetingTitle": "会议 标题 *",
+      "description": "描述",
+      "date": "D在e *",
+      "time": "时间 *",
+      "durationMinutes": "时长 (分钟)"
+    },
+    "placeholder": {
+      "companyCandidateNameInterviewStage": "公司 - 候选人 名称 - 面试 阶段",
+      "candidateEmail": "候选人 邮箱",
+      "meetingDescriptionAndAgenda": "会议 描述 and 日程"
+    },
+    "badge": {
+      "candidate": "候选人"
+    },
+    "googleCalendarConnected": "Google 日历 已连接",
+    "interviewWillBeSyncedToYourCalendarAndAt": "面试 will be 已同步 to your 日历 and attendees will 接收 invites",
+    "googleCalendarNotConnected": "Google 日历 Not 已连接",
+    "connectYourGoogleCalendarToAutomatically": "连接 your Google 日历 to automatically 同步 面试 and 发送 日历 invites",
+    "titleAndDescriptionAutogeneratedWithComp": "标题 and 描述 auto-generated with 公司, 候选人, and interviewer 详情",
+    "noTeamMembersAssignedToThisJob": "No 团队 成员 已分配 to this 职位",
+    "aipoweredAutofill": "AI-Powered Auto-Fill"
+  },
+  "createJobDialog": {
+    "toast": {
+      "jobCreatedButFailedToAddSomeViewers": "职位 已创建 but 失败 to 添加 some viewers"
+    },
+    "selectACompanyFirstToChooseFromSavedOffi": "选择 a 公司 第一 to choose from 已保存 offices",
+    "compensationDetailsAreSharedOnlyWithShor": "薪酬 详情 are 已共享 only with 已入围 候选人 unless displayed on the listing."
+  },
+  "createPostDialog": {
+    "dialogTitle": "创建 Post",
+    "toast": {
+      "youMustBeLoggedInToCreateAPost": "You must be logged in to 创建 a post",
+      "postCreatedSuccessfully": "Post 已创建 successfully",
+      "failedToCreatePost": "失败 to 创建 post"
+    },
+    "label": {
+      "title": "标题",
+      "postType": "Post 类型",
+      "content": "内容",
+      "tagsCommaSeparated": "Tags (comma separated)",
+      "audience": "受众",
+      "publicPost": "公开 Post",
+      "featured": "Featured",
+      "publishNow": "发布 现在"
+    },
+    "placeholder": {
+      "excitingNewsToShareRequired": "Exciting news to 分享... 必填",
+      "shareYourStory": "分享 your 故事..."
+    },
+    "dialogDescription": "分享 news, updates, or announcements with your followers",
+    "option": {
+      "news": "News",
+      "milestone": "里程碑",
+      "event": "事件",
+      "media": "Media"
+    }
+  },
+  "duplicateCandidateDialog": {
+    "dialogTitle": "候选人 Already in Pipeline",
+    "badge": {
+      "nameMatch": "名称 匹配",
+      "linkedinMatch": "LinkedIn 匹配"
+    }
+  },
+  "editJobDialog": {
+    "dialogTitle": "编辑 职位",
+    "toast": {
+      "failedToLoadCompanies": "加载 公司失败",
+      "jobUpdatedSuccessfully": "职位 已更新 successfully",
+      "failedToUpdateJob": "更新 职位失败"
+    },
+    "label": {
+      "company": "公司 *",
+      "jobTitle": "职位名称 *",
+      "description": "描述",
+      "location": "Location",
+      "employmentType": "雇佣 类型",
+      "currency": "Currency",
+      "minSalary": "M在 薪资",
+      "maxSalary": "最大 薪资",
+      "addSupportingDocuments": "添加 Supporting 文档",
+      "nicetohaveTools": "Nice-to-Have Tools"
+    },
+    "placeholder": {
+      "selectACompany": "选择 a 公司",
+      "searchToolsEgNotionFigmaPython": "搜索 tools (e.g., Notion, Figma, Python)...",
+      "searchAdditionalTools": "搜索 additional tools..."
+    },
+    "currentDocumentUploadedUploadANewFileToR": "当前 文档 已上传. 上传 a new 文件 to 替换 it.",
+    "selectToolsCandidatesMustBeProficientWit": "选择 tools 候选人 must be proficient with",
+    "bonusSkillsThatWouldBeBeneficial": "奖金 技能 that would be beneficial",
+    "option": {
+      "fulltime": "全职",
+      "parttime": "兼职",
+      "contract": "合同",
+      "freelance": "Freelance"
+    }
+  },
+  "editJobSheet": {
+    "title": "职位 详情",
+    "toast": {
+      "failedToLoadCompanies": "加载 公司失败",
+      "documentWillBeRemovedWhenYouSave": "文档 will be 已移除 when you 保存",
+      "failedToRemoveDocument": "移除 文档失败",
+      "failedToDownloadDocument": "下载 文档失败",
+      "jobUpdatedSuccessfully": "职位 已更新 successfully",
+      "failedToUpdateJob": "更新 职位失败",
+      "youHaveUnsavedChanges": "您有未保存的更改"
+    },
+    "label": {
+      "company": "公司 *",
+      "jobTitle": "职位名称 *",
+      "description": "描述",
+      "location": "Location",
+      "employmentType": "雇佣 类型",
+      "currency": "Currency",
+      "minSalaryAnnual": "M在 薪资 (年度)",
+      "maxSalaryAnnual": "最大 薪资 (年度)",
+      "existingDocuments": "Existing 文档",
+      "newDocumentsWillBeUploadedOnSave": "新建 文档 (will be 已上传 on 保存)"
+    },
+    "placeholder": {
+      "selectACompany": "选择 a 公司",
+      "briefOverviewOfTheRole": "Brief overview / the role...",
+      "searchRequiredToolsEgFigmaReactPython": "搜索 必填 tools (e.g., Figma, React, Python)...",
+      "searchNicetohaveTools": "搜索 nice-to-have tools..."
+    },
+    "badge": {
+      "active": "活跃"
+    },
+    "linkToWhereThisJobIsPostedOnlineLinkedin": "链接 to where this 职位 is posted 在线 (LinkedIn, 公司 网站, etc.)",
+    "noRequiredToolsSelectedAddToolsThatAreEs": "No 必填 tools 已选择. 添加 tools that are essential for this 角色.",
+    "noNicetohaveToolsSelectedAddToolsThatWou": "No nice-to-have tools 已选择. 添加 tools that would be a plus.",
+    "currentDocumentUploaded": "当前 文档 已上传",
+    "uploadANewFileToReplaceIt": "上传 a new 文件 to 替换 it",
+    "dragDropOrClickToUpload": "拖动 & 放置 or 点击 to 上传",
+    "uploadMultipleFilesAtOnce": "上传 multiple 文件 at 一次",
+    "description": "更新 the core information 关于 this 岗位",
+    "option": {
+      "fulltime": "全职",
+      "parttime": "兼职",
+      "contract": "合同",
+      "freelance": "Freelance",
+      "internship": "Internship"
+    }
+  },
+  "enhancedAnalytics": {
+    "title": "总计 申请",
+    "enhancedAnalytics": "Enhanced 分析"
+  },
+  "internalReviewPanel": {
+    "toast": {
+      "selectAtLeastOneCandidate": "选择 至少 one 候选人.",
+      "rejectionNoteIsRequired": "Rejection note is 必填.",
+      "undoIsNotYetAvailableForThisAction": "撤销 is not yet 可用 for this 操作."
+    },
+    "placeholder": {
+      "searchByNameTitleOrSkill": "按名称搜索, 标题, or 技能...",
+      "rejectionReason": "Rejection reason..."
+    },
+    "allClear": "全部 clear",
+    "noCandidatesAwaitingInternalReview": "No 候选人 awaiting 内部 评审.",
+    "dialogDescription": "Provide a reason for rejecting this 候选人 from the Pipeline."
+  },
+  "interviewFeedbackDialog": {
+    "dialogTitle": "面试 反馈",
+    "toast": {
+      "pleaseSelectARecommendation": "Please 选择 a 建议",
+      "feedbackSubmittedSuccessfully": "反馈 submitted successfully"
+    },
+    "label": {
+      "recommendation": "推荐在i在 *",
+      "keyStrengths": "密钥 Strengths",
+      "concernsAreasForImprovement": "Concerns / Areas for Improvement",
+      "keyObservations": "密钥 Observations",
+      "detailedNotes": "Detailed 备注"
+    },
+    "placeholder": {
+      "egStrongProblemsolvingSkills": "E.g., Strong problem-solving 技能",
+      "egLimitedExperienceWithXTechnology": "E.g., Limited 经验 with X technology",
+      "egHandledPressureWellDuringTechnicalChal": "E.g., Handled pressure well during technical challenge",
+      "provideComprehensiveNotesAboutTheIntervi": "Provide comprehensive 备注 关于 the 面试..."
+    },
+    "strongYesExceptionalCandidate": "Strong 是 - Exceptional 候选人",
+    "yesGoodFitRecommendToProceed": "是 - Good fit, 推荐 to proceed",
+    "maybeHasPotentialButConcernsExist": "Maybe - Has potential but concerns exist",
+    "noNotTheRightFit": "No - Not the 右 fit",
+    "strongNoDefinitelyNotSuitable": "Strong No - Definitely not suitable"
+  },
+  "jobAnalytics": {
+    "title": "阶段 转化率s",
+    "noAnalyticsDataAvailable": "No 分析 data 可用",
+    "totalApplications": "总计 申请",
+    "active": "活跃",
+    "hires": "Hires",
+    "avgTimeToHire": "Avg 时间 to Hire",
+    "fastestHire": "Fastest Hire",
+    "average": "平均",
+    "slowestHire": "Slowest Hire",
+    "avgFitScore": "Avg Fit 评分",
+    "engagementRate": "互动 R在e",
+    "interviewPass": "面试 Pass",
+    "offerAcceptance": "/fer Acceptance",
+    "clubSync": "Club 同步",
+    "directApply": "Direct 应用",
+    "referrals": "推荐",
+    "description": "Where 候选人 are coming from"
+  },
+  "jobCard": {
+    "toast": {
+      "headhunterAgentActivatedAnalyzingJobRequ": "Headhunter Agent activated... analyzing 职位 requirements.",
+      "agentFinishedSearchButFoundNoNewStrongMa": "Agent 已完成 搜索 but found no new strong matches."
+    },
+    "viewOriginalPosting": "查看 original posting"
+  },
+  "jobDashboardCandidates": {
+    "noApplicationsYet": "No 申请 yet",
+    "toast": {
+      "failedToLoadCandidates": "加载 候选人失败"
+    },
+    "applicationsWillAppearHereOnceCandidates": "申请 will appear here 一次 候选人 开始 applying",
+    "reviewAndAdvancePremiumCandidatesFasterW": "评审 and advance premium 候选人 faster with our exclusive vetting",
+    "noCandidatesInThisStage": "No 候选人 in this 阶段"
+  },
+  "jobDocuments": {
+    "toast": {
+      "failedToLoadDocuments": "加载 文档失败",
+      "jobDescriptionUploadedSuccessfully": "职位描述 已上传 successfully",
+      "documentRemovedSuccessfully": "文档 已移除 successfully",
+      "failedToRemoveDocument": "移除 文档失败",
+      "downloadStarted": "下载 已开始",
+      "failedToDownloadDocument": "下载 文档失败",
+      "failedToOpenDocumentViewer": "失败 to 打开 文档 viewer"
+    },
+    "label": {
+      "existingDocuments": "Existing 文档",
+      "addMoreDocuments": "添加 M或e 文档"
+    },
+    "currentJobDescription": "当前 职位描述",
+    "uploadedDocumentReadyToView": "已上传 文档 就绪 to 查看",
+    "noJobDescriptionUploadedYet": "No 职位描述 已上传 yet",
+    "fileWillBeUploadedAutomaticallyWhenSelec": "文件 will be 已上传 automatically when 已选择",
+    "noSupportingDocumentsUploadedYet": "No supporting 文档 已上传 yet",
+    "filesWillBeUploadedAutomaticallyWhenSele": "文件 will be 已上传 automatically when 已选择",
+    "poweredByGoogleDocsViewer": "由...提供支持 Google Docs Viewer",
+    "previewNotAvailableForThisFileType": "预览 暂不可用 for this 文件 类型",
+    "uploadInProgress": "上传 in 进度"
+  },
+  "jobManagement": {
+    "jobPostings": "职位 Postings",
+    "noJobsYet": "No 职位 yet",
+    "toast": {
+      "failedToLoadJobs": "加载 职位失败",
+      "jobArchived": "职位 已归档",
+      "jobDeleted": "职位 已删除",
+      "failedToUpdateJobStatus": "更新 职位 状态失败"
+    },
+    "createYourFirstJobPostingToStartReceivin": "创建 your 第一 职位 posting to 开始 receiving 申请"
+  },
+  "jobTeamPanel": {
+    "toast": {
+      "failedToLoadTeamMembers": "加载 团队 成员失败",
+      "teamMemberRemoved": "团队 成员 已移除",
+      "failedToRemoveTeamMember": "移除 团队 成员失败"
+    },
+    "badge": {
+      "primary": "Primary"
+    },
+    "noTeamMembersYet": "No 团队 成员 yet",
+    "menu": {
+      "removeFromTeam": "移除 from 团队"
+    },
+    "teamMemberOptions": "团队 成员 选项"
+  },
+  "offerPipelineWidget": {
+    "badge": {
+      "urgent": "紧急"
+    }
+  },
+  "partnerAnalytics": {
+    "title": "总计 候选人",
+    "tab": {
+      "pipelineHealth": "Pipeline 健康",
+      "conversionRates": "转化率s"
+    },
+    "description": "当前 distribution across Pipeline 阶段"
+  },
+  "partnerConciergeCard": {
+    "badge": {
+      "inProgress": "在 进度"
+    },
+    "yourDedicatedConcierge": "Your Dedicated Concierge",
+    "directContact": "Direct 联系人"
+  },
+  "partnerDomainSettings": {
+    "toast": {
+      "pleaseEnterAValidDomainEgExamplecom": "Please enter a valid domain (e.g., example.com)",
+      "thisDomainIsAlreadyConfigured": "This domain is already configured",
+      "domainRequestSubmittedForAdminApproval": "Domain 请求 submitted for 管理员 approval",
+      "failedToSubmitDomainRequest": "失败 to 提交 domain 请求"
+    },
+    "label": {
+      "requestNewDomain": "请求 新建 Domain"
+    },
+    "noDomainsConfiguredYet": "No domains configured yet",
+    "contactYourAdministratorToSetUpAuthorize": "联系人 your 管理员 to set up authorized domains",
+    "domainRequestsRequireAdminApprovalBefore": "Domain requests require 管理员 approval 之前 they become 活跃",
+    "description": "团队 成员 can only be invited from these 邮箱 domains",
+    "loadingDomainSettings": "加载中 domain 设置..."
+  },
+  "partnerFirstReviewPanel": {
+    "toast": {
+      "selectARejectionReason": "选择 a rejection reason.",
+      "rejectionNotesAreRequired": "Rejection 备注 are 必填."
+    }
+  },
+  "partnerJobsHome": {
+    "noJobsFound": "未找到职位",
+    "toast": {
+      "failedToLoadJobs": "加载 职位失败",
+      "noDraftJobsSelectedToPublish": "No 草稿 职位 已选择 to 发布",
+      "failedToPublishSelectedJobs": "发布 已选择 职位失败",
+      "noPublishedJobsSelectedToClose": "No 已发布 职位 已选择 to 关闭",
+      "failedToCloseSelectedJobs": "关闭 已选择 职位失败",
+      "noJobsSelectedToArchive": "No 职位 已选择 to 归档",
+      "failedToArchiveSelectedJobs": "归档 已选择 职位失败",
+      "failedToPublishJob": "发布 职位失败",
+      "failedToUnpublishJob": "取消发布 职位失败",
+      "failedToCloseJob": "关闭 职位失败",
+      "failedToReopenJob": "失败 to reopen 职位",
+      "failedToArchiveJob": "归档 职位失败",
+      "failedToRestoreJob": "恢复 职位失败"
+    },
+    "yourPremiumHiringAccelerator": "Your premium 招聘 accelerator.",
+    "getVettedCandidatesInDaysNotWeeks": "Get vetted 候选人 in 天, not 周",
+    "prevettedTalent": "Pre-Vetted 人才",
+    "everyCandidateIsClubverifiedForQuality": "每个 候选人 is Club-已验证 for 质量",
+    "dedicatedSupport": "Dedicated Support",
+    "personalRecruiterAssistanceIncluded": "Personal 招聘官 assistance included",
+    "liveUpdatesEnabled": "Live updates 已启用",
+    "desc": {
+      "candidatesCanNowSeeAndApplyToThisJob": "候选人 can now see and 应用 to this 职位"
+    }
+  },
+  "pipelineAuditLog": {
+    "title": "职位 审计日志",
+    "badge": {
+      "overrideDuplicate": "Override Duplicate"
+    },
+    "description": "Comprehensive tracking of 全部 职位 interactions and modifications"
+  },
+  "pipelineCustomizer": {
+    "title": "Premium Pipeline Editor",
+    "toast": {
+      "stageRemoved": "阶段 已移除",
+      "selectAReviewerFirst": "选择 a reviewer 第一.",
+      "reviewerAssigned": "Reviewer 已分配",
+      "failedToAssignReviewer": "失败 to 分配 reviewer",
+      "failedToRemoveReviewer": "失败 to 移除 reviewer",
+      "reviewerRemoved": "Reviewer 已移除",
+      "pipelineSaved": "Pipeline 已保存",
+      "signatureSecure": "签名 Secure ✓"
+    },
+    "label": {
+      "stageOwner": "阶段 所有者",
+      "format": "格式化",
+      "description": "描述",
+      "primary": "Primary"
+    },
+    "placeholder": {
+      "describeWhatHappensInThisStage": "Describe what happens in this 阶段..."
+    },
+    "reviewGateAssignments": "评审 Gate Assignments",
+    "onlyAdminAndStrategistRolesCanChangeRevi": "Only 管理员 and 策略师 角色 can 变化 reviewer assignments.",
+    "primary": "Primary",
+    "description": "自定义 your exclusive 招聘 Pipeline 阶段",
+    "option": {
+      "online": "在线",
+      "inperson": "在-每s在",
+      "hybrid": "混合办公",
+      "noReviewersAvailable": "No reviewers 可用"
+    }
+  },
+  "pipelineDisplaySettings": {
+    "label": {
+      "showOwnershipIcons": "显示 Ownership Icons",
+      "showFormatDetails": "显示 用于m在 详情",
+      "showTeamAssignments": "显示 团队 Assignments",
+      "showLocationmeetingInfo": "显示 Location/会议 信息",
+      "showEvaluationSetup": "显示 评价 Setup",
+      "showSchedulingDetails": "显示 Scheduling 详情",
+      "showAdvancedMetadata": "显示 Advanced Metadata"
+    },
+    "customizeWhatInformationIsShownInThePipe": "自定义 what information is shown in the Pipeline breakdown"
+  },
+  "pipelineMeetingCard": {
+    "badge": {
+      "scheduled": "已安排"
+    },
+    "prepSent": "Prep 已发送",
+    "prepPending": "Prep 待处理"
+  },
+  "scheduleInterviewButton": {
+    "toast": {
+      "interviewScheduledSuccessfully": "面试 已安排 successfully"
+    }
+  },
+  "smartSchedulingPanel": {
+    "badge": {
+      "excellent": "Excellent",
+      "good": "Good",
+      "fair": "Fair",
+      "limited": "Limited",
+      "googleCalendar": "Google 日历",
+      "bestMatch": "Best 匹配"
+    },
+    "noAvailableSlotsFound": "No 可用 时段 found",
+    "tryAdjustingTheDurationOrSelectingDiffer": "Try adjusting the 时长 or selecting different interviewers"
+  },
+  "teamActivityCard": {
+    "title": "团队 Activity",
+    "noTeamActivityYet": "No 团队 activity yet"
+  },
+  "teamInviteWidget": {
+    "label": {
+      "recentInvitations": "最近 Invitations",
+      "allInvitations": "全部 Invitations"
+    },
+    "dialogDescription": "发送 an invitation to 加入 your 组织"
+  },
+  "teamManagement": {
+    "teamMembers": "团队 成员",
+    "noTeamMembersYet": "No 团队 成员 yet",
+    "toast": {
+      "failedToLoadTeamMembers": "加载 团队 成员失败",
+      "teamMemberRemoved": "团队 成员 已移除",
+      "failedToRemoveTeamMember": "移除 团队 成员失败"
+    },
+    "inviteTeamMembersToCollaborateOnJobPosti": "邀请 团队 成员 to collaborate on 职位 postings"
+  },
+  "textDocumentCreator": {
+    "toast": {
+      "pleaseEnterSomeContent": "Please enter some 内容",
+      "pleaseEnterADocumentTitle": "Please enter a 文档 标题"
+    },
+    "label": {
+      "documentTitle": "文档 标题 *",
+      "documentContent": "文档 内容 *"
+    },
+    "placeholder": {
+      "typeOrPasteYourContentHere1010youCanIncl": "类型 or 粘贴 your 内容 here...&#10;&#10;You can include:&#10;• 面试 问题&#10;• 公司 information&#10;• 福利 详情&#10;• Technical requirements&#10;• Any 其他 relevant 文本"
+    },
+    "giveYourDocumentADescriptiveName": "Give your 文档 a descriptive 名称",
+    "plainTextFormatPerfectForQuickReferenceD": "Plain 文本 格式化 - perfect for quick reference 文档"
+  },
+  "upcomingInterviewsWidget": {
+    "dialogTitle": "面试 Prep 文档",
+    "today": "今天",
+    "thisWeek": "This 周",
+    "upcoming": "Upcoming",
+    "toast": {
+      "pleaseEnterFeedback": "Please enter 反馈",
+      "feedbackSubmittedSuccessfully": "反馈 submitted successfully"
+    },
+    "label": {
+      "currentDocument": "当前 文档",
+      "feedback": "反馈"
+    },
+    "placeholder": {
+      "enterYourFeedbackAboutTheCandidateAndInt": "Enter your 反馈 关于 the 候选人 and 面试..."
+    },
+    "loadingInterviews": "加载中 面试...",
+    "pleaseSubmitFeedbackToKeepThePipelineMov": "Please 提交 反馈 to keep the Pipeline moving",
+    "noPrepDocumentUploadedYetUseTheManualEnt": "No prep 文档 已上传 yet. Use the manual 条目 or 日历 linker to 添加 one."
+  },
+  "bulkEmailDialog": {
+    "dialogDescription": "发送 an 邮箱 to 全部 已选择 候选人"
+  },
+  "candidateReviewCard": {
+    "internalReviewNotes": "内部 评审 备注"
+  },
+  "candidateShortlistWidget": {
+    "starCandidatesFromApplicationsToAccessTh": "收藏 候选人 from 申请 to 访问 them quickly"
+  },
+  "candidateWorkAuthCard": {
+    "noWorkAuthorizationDataAvailable": "No work 授权 data 可用",
+    "requiresSponsorship": "Requires sponsorship",
+    "noSponsorshipRequired": "No sponsorship 必填"
+  },
+  "changeOrdersPanel": {
+    "noChangeOrdersYet": "No 变化 orders yet",
+    "noProcessedChangeOrdersYet": "No 已处理 变化 orders yet"
+  },
+  "contractBudgetDashboard": {
+    "awaitingYourApproval": "Awaiting your approval",
+    "activeMilestoneWork": "活跃 里程碑 work"
+  },
+  "dailyBriefing": {
+    "letQuinAnalyzeYourHiringActivity": "Let QUIN 分析 your 招聘 activity"
+  },
+  "dossierActivityWidget": {
+    "browseCandidatesToSeeTheirProfilesHere": "浏览 候选人 to see their profiles here"
+  },
+  "editCandidateDialog": {
+    "dialogDescription": "更新 候选人 information. 全部 changes will be logged."
+  },
+  "enhancedCandidateActionDialog": {
+    "selectWhichStageToMoveThisCandidateTo": "选择 which 阶段 to 移动 this 候选人 to",
+    "selectWhichPreviousStageToMoveThisCandid": "选择 which 上一个 阶段 to 移动 this 候选人 to",
+    "aReasonIsRequiredForAccountability": "A reason is 必填 for accountability"
+  },
+  "enhancedCandidateDetails": {
+    "alert": {
+      "limitedCandidateInformationAvailableFullDesc": "Limited 候选人 information 可用. Full 详情 可见 when 候选人 applies to your 职位."
+    }
+  },
+  "interviewSuccessWidget": {
+    "noApplicationsYetPostAJobToStartHiring": "No 申请 yet. 发布职位 to 开始 招聘."
+  },
+  "linkedInJobImport": {
+    "byConnectingYouAuthorizeTheQuantumClubTo": "By connecting, you 授权 The Quantum Club to 访问 your 公司's \n              职位 postings on LinkedIn.",
+    "dialogDescription": "连接 your LinkedIn 账户 to automatically 导入 your 公司's 职位 postings.",
+    "alert": {
+      "thisWillImportAllActiveJobPostingsFromYoDesc": "This will 导入 全部 活跃 职位 postings from your LinkedIn 公司 页面. \n              Make sure you have 管理员 访问 to your 公司's LinkedIn 页面."
+    }
+  },
+  "manualInterviewEntryDialog": {
+    "dialogDescription": "添加 an 面试 that's already 已安排 but not yet in the 系统"
+  },
+  "partnerInterviewHub": {
+    "noUpcomingInterviewsScheduled": "No upcoming 面试 已安排",
+    "noCompletedInterviewsYet": "No 已完成 面试 yet",
+    "noCandidatesReadyForDecision": "No 候选人 就绪 for decision",
+    "interviewsNeedScorecardsBeforeDecisions": "面试 need scorecards 之前 decisions",
+    "description": "追踪 面试, 评审 洞察, and make 招聘 decisions",
+    "allEvaluatorsHaveSubmittedScorecards": "全部 evaluators have submitted scorecards"
+  },
+  "positionFillCountdown": {
+    "allPositionsFilledGreatWork": "全部 岗位 filled! Great work."
+  },
+  "reviewShortcutOverlay": {
+    "dialogDescription": "Speed up your 评审 工作流 with these shortcuts."
+  },
+  "targetCompanies": {
+    "beheerBedrijvenVoorHeadhuntingKandidaten": "Beheer bedrijven voor headhunting kandidaten"
+  },
+  "targetCompanyDetailDialog": {
+    "nogGeenComments": "Nog geen 评论"
+  },
+  "targetCompanyDialog": {
+    "zoekBestaandeBedrijvenNaamEnWebsiteWorde": "Zoek bestaande bedrijven - naam en 网站 worden automatisch ingevuld",
+    "selecteerDeJobWaarvoorDitBedrijfGetarget": "Selecteer de 职位 waarvoor dit bedrijf getarget wordt, of laat leeg voor alle 职位"
+  },
+  "targetCompanyTable": {
+    "laden": "Laden...",
+    "geenBedrijvenGevonden": "Geen bedrijven gevonden"
+  },
+  "executiveDashboard": {
+    "noCandidatesInFinalStageYet": "No 候选人 in final 阶段 yet"
+  },
+  "hiringManagerDashboard": {
+    "feedbackManagementComingSoon": "反馈 管理 即将推出"
+  },
+  "observerDashboard": {
+    "youHaveObserverAccessToThisRoleViewPipel": "You have observer 访问 to this 角色. 查看 Pipeline in the Pipeline 标签页 以上."
+  },
+  "adminNotesEditor": {
+    "theseNotesAreForInternalUseOnlyAndWillNo": "These 备注 are for 内部 use only and will not be 已共享 with the 候选人 or 合作伙伴."
+  },
+  "jobBulkActionBar": {
+    "menu": {
+      "bulkActions": "Bulk 操作"
+    },
+    "publish": "发布"
+  },
+  "jobTableView": {
+    "menu": {
+      "visibleColumns": "可见 Columns"
+    },
+    "tooltip": {
+      "confidential": "Confidential"
+    },
+    "noJobsFound": "未找到职位"
+  },
+  "jobsAIInsightsWidget": {
+    "title": "QUIN 洞察",
+    "noInsightsAvailableYet": "No 洞察 可用 yet",
+    "addMoreJobsToGenerateAiPredictions": "添加 更多 职位 to 生成 AI predictions",
+    "quinInsightsTemporarilyUnavailable": "QUIN 洞察 temporarily 不可用",
+    "hiringForecast": "招聘 预测",
+    "strategicRecommendations": "Strategic 建议"
+  },
+  "keyboardShortcutsDialog": {
+    "dialogTitle": "Keyboard Shortcuts",
+    "dialogDescription": "导航 and 管理 职位 efficiently with these shortcuts"
+  },
+  "savedFilterPresets": {
+    "dialogTitle": "保存 筛选 Preset",
+    "toast": {
+      "pleaseEnterANameForYourPreset": "Please enter a 名称 for your preset"
+    },
+    "noSavedPresets": "No 已保存 presets",
+    "saveYourCurrentFiltersForQuickAccess": "保存 your 当前 filters for quick 访问",
+    "presets": "Presets",
+    "savedViews": "已保存 视图",
+    "dialogDescription": "保存 your 当前 filters for quick 访问 later."
+  },
+  "jobsCompactHeader": {
+    "placeholder": {
+      "searchJobs": "搜索 职位..."
+    },
+    "menu": {
+      "navigation": "导航",
+      "adminTools": "管理员 Tools"
+    },
+    "newJob": "新建 职位",
+    "jobs": "职位"
+  },
+  "jobsUnifiedFilterBar": {
+    "menu": {
+      "company": "公司",
+      "createdDate": "已创建 日期",
+      "layout": "布局",
+      "savedViews": "已保存 视图"
+    },
+    "advancedFilters": "Advanced Filters",
+    "views": "视图"
+  },
+  "jobListView": {
+    "noActivity": "No activity",
+    "dashboard": "仪表盘",
+    "tooltip": {
+      "confidential": "Confidential"
+    },
+    "noJobsFound": "未找到职位"
+  },
+  "jobStatusSummaryBar": {
+    "publishedJobsWillAppearInSearchResultsAn": "已发布 职位 will appear in 搜索 条结果 and 候选人 can 应用 to them."
+  },
+  "jobsAnalyticsWidget": {
+    "openJobs": "打开 职位",
+    "avgDaysOpen": "Avg 天 打开",
+    "fillRate": "Fill 率",
+    "activePipeline": "活跃 Pipeline"
+  },
+  "jobCardHeader": {
+    "viewOriginalPosting": "查看 original posting",
+    "thisJobIsOnlyVisibleToSelectedUsers": "This 职位 is only 可见 to 已选择 用户"
+  },
+  "jobCardLastActivity": {
+    "lastActivity": "最后 Activity"
+  },
+  "jobCardMetrics": {
+    "hiringProgress": "招聘 进度",
+    "conversion": "转化",
+    "interviews": "面试"
+  },
+  "compactJobCard": {
+    "tooltip": {
+      "confidential": "Confidential"
+    }
+  },
+  "jobsInlineStats": {
+    "clubSync": "Club 同步"
+  },
+  "liveInterview": {
+    "title": "面试 Sentinel",
+    "subtitle": "Real-时间 Fact Checking & Copilot",
+    "micDenied": "Microphone 访问被拒绝.",
+    "noSpeechSupport": "Browser does not support Speech Recognition.",
+    "listening": "Sentinel is listening...",
+    "stop": "停止",
+    "start": "开始",
+    "liveTranscript": "Live Transcript",
+    "speechToText": "Real-时间 speech-to-文本 stream",
+    "waitingForSpeech": "等待中 for speech...",
+    "sentinelHud": "Sentinel HUD",
+    "liveAiInsights": "Live AI 洞察",
+    "noAlerts": "No 警报 yet. 系统 is monitoring..."
+  },
+  "billing": {
+    "title": "账单 & 发票",
+    "description": "管理 your 账单 详情 and 查看 发票",
+    "tabDetails": "账单 详情",
+    "tabInvoices": "发票",
+    "billingInfo": "账单 Information",
+    "billingInfoDesc": "更新 your 公司 账单 详情 for invoicing",
+    "yourInvoices": "Your 发票",
+    "yourInvoicesDesc": "查看 and 下载 your 安置 费用 发票"
+  },
+  "sla": {
+    "responseTime": "响应时间",
+    "responseTimeDesc": "时间 to 第一 响应",
+    "shortlistDelivery": "入围 投递",
+    "shortlistDeliveryDesc": "候选人 入围 投递",
+    "interviewScheduling": "面试 Scheduling",
+    "interviewSchedulingDesc": "面试 setup 时间",
+    "replacementGuarantee": "Replacement Guarantee",
+    "replacementGuaranteeDesc": "候选人 replacement window",
+    "target": "目标",
+    "belowTarget": "以下 目标 合规. 评审 processes to 改进 绩效.",
+    "recentPerformance": "最近 SLA 绩效",
+    "last30Days": "最后 30 天 of SLA tracking",
+    "noMetrics": "No SLA 指标 recorded yet"
+  },
+  "billingDashboard": {
+    "recentInvoices": "最近 发票",
+    "viewDownload": "查看 and 下载 your 发票",
+    "download": "下载",
+    "noInvoices": "未找到发票"
+  },
+  "auditLog": {
+    "searchPlaceholder": "按...搜索 用户 or 操作...",
+    "allActions": "全部 操作",
+    "candidateMoved": "候选人 Moved",
+    "jobCreated": "职位 已创建",
+    "teamInvited": "团队 Invited",
+    "applicationRejected": "申请 已拒绝",
+    "noEntries": "No 审计日志 条目 found"
+  },
+  " ": "",
+  "_": "_",
+  "-": "-",
+  ",": ",",
+  ":": ":",
+  "?": "?",
+  "": {
+    "": ""
+  },
+  "@": "@",
+  "@/utils/triggerAutoEnrich": "@/utils/触发器 Auto Enrich",
+  "*": "*",
+  "*, candidate_profiles(expected_salary)": "*, 候选人_profiles(expected_薪资)",
+  "*, companies(name)": "*, 公司(名称)",
+  "*, contact_roles(name)": "*, 联系人_角色(名称)",
+  "*, profiles:evaluator_id(full_name)": "*, profiles:evaluator_id(full_名称)",
+  "*, profiles:user_id(full_name)": "*, pr/iles:user_id(full_name)",
+  "*, profiles(full_name)": "*, pr/iles(full_name)",
+  "/": "/",
+  "1_hour": "1_小时",
+  "1_month": "1_月",
+  "1_week": "1_周",
+  "123_business_st_city": "123_business_st_城市",
+  "15_hours": "15_小时",
+  "15_minutes": "15_分钟",
+  "2_hours": "2_小时",
+  "2_months": "2_月",
+  "2_weeks": "2_周",
+  "3_months": "3_月",
+  "30_minutes": "30_分钟",
+  "45_minutes": "45_分钟",
+  "a": "A",
+  "aanvullende_opmerkingen_strategie_etc": "Aanvullende_opmerkingen_strategie_etc",
+  "accepted": "已接受",
+  "across_all_pipeline_stages": "Across_全部_Pipeline_阶段",
+  "acties": "Acties",
+  "active_candidates": "活跃_候选人",
+  "add_a_concern": "添加_a_concern",
+  "add_a_strength": "添加_a_strength",
+  "add_any_additional_notes": "添加_any_additional_备注",
+  "add_internal_notes_about": "添加_内部_备注_关于",
+  "add_interview_from_calendar": "添加_面试_from_日历",
+  "add_interview_manually": "添加_面试_manually",
+  "addCandidate": {
+    "addedButAuditFailed": "已添加 But 审计 失败",
+    "addedButLogFailed": "已添加 But 日志 失败",
+    "addedSuccessfully": "已添加成功",
+    "addedToPipeline": "已添加 To Pipeline",
+    "adding": "添加在g",
+    "addToPipeline": "添加 To Pipeline",
+    "adminNotes": "管理员 备注",
+    "aiFillDetails": "Ai Fill 详情",
+    "alreadyInPipeline": "Already In Pipeline",
+    "contactRequired": "联系人 必填",
+    "contactRequiredDesc": "联系人 必填 Desc",
+    "creditAssignment": "贷方 Assignment",
+    "creditDescription": "贷方 描述",
+    "currentCompany": "当前 公司",
+    "currentTitle": "当前 标题",
+    "duplicateCheckFailed": "Duplicate Check 失败",
+    "emailOptional": "邮箱 可选",
+    "enterDetailsManually": "Enter 详情 Manually",
+    "enterLinkedInUrl": "Enter 已链接 In Url",
+    "existing": "Existing",
+    "existingProfileLinked": "Existing 个人资料 已链接",
+    "failedImportLinkedIn": "失败 导入 已链接 In",
+    "failedToAdd": "添加失败",
+    "fullName": "全名",
+    "fullNameRequired": "全名 必填",
+    "importing": "Importing",
+    "importProfile": "导入 个人资料",
+    "linkedinImporter": "Linkedin Importer",
+    "linkedinImporterDesc": "Linkedin Importer Desc",
+    "linkedinProfileImported": "Linkedin 个人资料 已导入",
+    "linkedinProfileRecommended": "Linkedin 个人资料 Recommended",
+    "linkedinProfileUrl": "Linkedin 个人资料 Url",
+    "linkedinRecommended": "Linkedin Recommended",
+    "linkedinRecommendedDesc": "Linkedin Recommended Desc",
+    "linkedinTimedOut": "Linkedin Timed Out",
+    "linkedinUrlFormat": "Linkedin Url 格式化",
+    "linkExisting": "链接 Existing",
+    "linkExistingDesc": "链接 Existing Desc",
+    "nameAndPhotoExtracted": "名称 And 照片 Extracted",
+    "nameExtractedManual": "名称 Extracted Manual",
+    "nameExtractedVerify": "名称 Extracted 验证",
+    "nameFromLinkedIn": "名称 From 已链接 In",
+    "noCandidatesFound": "未找到候选人",
+    "noTeamMemberFound": "No 团队 成员 Found",
+    "notesOptional": "备注 可选",
+    "phoneOptional": "电话 可选",
+    "profileImported": "个人资料 已导入",
+    "resumeCV": "简历 C V",
+    "searchPlaceholder": "搜索 占位符",
+    "searchTeamMembers": "搜索 团队 成员",
+    "selectedCount": "已选择 数量",
+    "selectTeamMembers": "选择 团队 成员",
+    "startingPipelineStage": "Starting Pipeline 阶段",
+    "startTypingToSearch": "开始 Typing To 搜索",
+    "step1Description": "Step1 描述",
+    "step1Title": "步骤1 标题",
+    "title": "标题",
+    "toast": {
+      "failedToAdd": "添加候选人失败",
+      "unexpectedError": "发生了意外错误. 请重试 或 联系客服."
+    },
+    "tryAgainOrManual": "重试 Or Manual",
+    "validEmailRequired": "Valid 邮箱 必填",
+    "verifyManually": "验证 Manually",
+    "whyAddingCandidate": "Why Adding 候选人"
+  },
+  "added": "已添加",
+  "additional_details": "Additional_详情",
+  "additional_locations": "Additional_locations",
+  "additional_work_authorization_details": "Additional_work_授权_详情",
+  "admin": "管理员",
+  "advance_to_stage": "Advance_to_阶段",
+  "ai_summary": "Ai_摘要",
+  "aigenerated_summary": "Aigenerated_摘要",
+  "all_clear": "全部_clear",
+  "all_slas_met": "全部_slas_met",
+  "all_stages": "全部_阶段",
+  "alle_bedrijven": "Alle_bedrijven",
+  "alle_jobs": "Alle_职位",
+  "allowed": "Allowed",
+  "allowed_domains": "Allowed_domains",
+  "andere_rol": "Andere_rol",
+  "annual_revenue_goal": "年度_收入_目标",
+  "any_additional_details_about": "Any_additional_详情_关于",
+  "applied": "Applied",
+  "assessment": "评估",
+  "assessment_type": "评估_类型",
+  "attach_files_links_or": "附加_文件_链接_or",
+  "average_rejection_stage": "平均_rejection_阶段",
+  "avg_days": "Avg_天",
+  "avg_feedback_time": "Avg_反馈_时间",
+  "avg_time_in_stage": "Avg_时间_in_阶段",
+  "avg_time_to_hire": "Avg_时间_to_hire",
+  "basic_information": "Basic_information",
+  "be_specific_about_what": "Be_specific_关于_what",
+  "bedrijf_bijgewerkt": "Bedrijf_bijgewerkt",
+  "bedrijf_toegevoegd": "Bedrijf_toegevoegd",
+  "bedrijf_verwijderd": "Bedrijf_verwijderd",
+  "bedrijfsnaam": "Bedrijfsnaam",
+  "behavioral": "Behavioral",
+  "behavioral_interview": "Behavioral_面试",
+  "bijv_amsterdam_nederland": "Bijv_amsterdam_nederland",
+  "bonus_tools": "奖金_tools",
+  "brief_summary_of_candidates": "Brief_摘要_of_候选人",
+  "browse_applications": "浏览_申请",
+  "cad": "Cad",
+  "calculating_skill_match_scores": "Calculating_技能_匹配_scores",
+  "calendar_event": "日历_事件",
+  "candidate": "候选人",
+  "candidate_contacted": "候选人_contacted",
+  "candidate_expectations_align_with": "候选人_expectations_align_with",
+  "candidate_id": "候选人_id",
+  "candidate_id, candidate_email, candidate_full_name": "候选人_id, 候选人_邮箱, 候选人_full_名称",
+  "candidate_moved_back_to": "候选人_moved_返回_to",
+  "candidate_profile_link_copied": "候选人_个人资料_链接_copied",
+  "candidate_profile_updated_successfully": "候选人_个人资料_已更新_successfully",
+  "candidate_shortlisted": "候选人_已入围",
+  "candidates_exported_successfully": "候选人_已导出_successfully",
+  "candidates_ready_for_your": "候选人_就绪_for_your",
+  "candidates_will_appear_here": "候选人_will_appear_here",
+  "candidates_worldwide_will_be": "候选人_worldwide_will_be",
+  "case_study": "Case_study",
+  "category": "分类",
+  "change_order_history": "变化_order_历史",
+  "channel": "Channel",
+  "chatmessaging": "Chatmessaging",
+  "choose_a_candidate": "Choose_a_候选人",
+  "choose_a_clear_descriptive": "Choose_a_clear_descriptive",
+  "choose_how_this_stage": "Choose_how_this_阶段",
+  "clear_schedule": "Clear_日程安排",
+  "click_scan_calendar_to": "点击_扫描_日历_to",
+  "coding_challenge": "Coding_challenge",
+  "comment_toegevoegd": "评论_toegevoegd",
+  "comments": "评论",
+  "committed": "Committed",
+  "company_actions": "公司_操作",
+  "company_id": "公司_id",
+  "company_id, companies(id, name)": "公司_id, 公司(id, 名称)",
+  "company_insiders": "公司_insiders",
+  "company_member_id, external_user_id": "公司_成员_id, 外部_用户_id",
+  "compensation": "薪酬",
+  "compensation_expectations": "薪酬_expectations",
+  "complete_interviews_and_submit": "Complete_面试_and_提交",
+  "confirmed": "已确认",
+  "consider": "Consider",
+  "contact_information": "联系人_information",
+  "contact_toegevoegd": "联系人_toegevoegd",
+  "contact_verwijderd": "联系人_verwijderd",
+  "continue_where_you_left": "Continue_where_you_左",
+  "contract_breakdown": "合同_breakdown",
+  "convert": "Convert",
+  "coordinates_captured_for_map": "Coordinates_captured_for_映射",
+  "create_new_role": "创建_new_角色",
+  "created": "已创建",
+  "created_at, source_channel, created_by": "已创建_at, source_channel, 已创建_by",
+  "created_at, submitted_at, meeting_id": "已创建_at, submitted_at, 会议_id",
+  "csv_exported_successfully": "Csv_已导出_successfully",
+  "culture_fit": "文化_fit",
+  "currency": "Currency",
+  "current_company": "Current_公司",
+  "current_position": "Current_岗位",
+  "current_salary": "Current_薪资",
+  "current_schedule": "Current_日程安排",
+  "current_stage": "Current_阶段",
+  "current_title": "Current_标题",
+  "daily_briefing_generated": "Daily_briefing_generated",
+  "date": "日期",
+  "days_in_pipeline": "天_in_Pipeline",
+  "define_scoring_criteria_rubric": "Define_scoring_criteria_rubric",
+  "define_scoring_feedback_requirements": "Define_scoring_反馈_requirements",
+  "department": "部门",
+  "description": "描述",
+  "desired_locations_commaseparated": "Desired_locations_commaseparated",
+  "desired_salary": "Desired_薪资",
+  "detailed_feedback": "Detailed_反馈",
+  "detected_at": "Detected_at",
+  "difficulty": "Difficulty",
+  "documents": "文档",
+  "draft_restored": "草稿_restored",
+  "duration_min": "时长_最小",
+  "duration_minutes": "时长_分钟",
+  "easy": "Easy",
+  "edit_candidate_profile": "编辑_候选人_个人资料",
+  "eg_1_234_567": "Eg_1_234_567",
+  "eg_1_month_2": "Eg_1_月_2",
+  "eg_100000": "Eg_100000",
+  "eg_120000": "Eg_120000",
+  "eg_150000": "Eg_150000",
+  "eg_5": "Eg_5",
+  "eg_5_years_typescript": "Eg_5_年_typescript",
+  "eg_80000": "Eg_80000",
+  "eg_acme_corp": "Eg_acme_corp",
+  "eg_amsterdam_berlin_london": "Eg_amsterdam_berlin_london",
+  "eg_candidate_requested_different": "Eg_候选人_requested_different",
+  "eg_english_dutch_german": "Eg_english_dutch_german",
+  "eg_english_native_spanish": "Eg_english_native_spanish",
+  "eg_experience_with_figma": "Eg_经验_with_figma",
+  "eg_fintech_saas": "Eg_fintech_saas",
+  "eg_h1b_green_card": "Eg_h1b_green_卡片",
+  "eg_hackerrank_leetcode_custom": "Eg_hackerrank_leetcode_自定义",
+  "eg_hybrid_remote_onsite": "Eg_混合办公_远程_onsite",
+  "eg_lena_jude": "Eg_lena_jude",
+  "eg_lenaexamplecom": "Eg_lenaexamplecom",
+  "eg_pmp_aws_certified": "Eg_pmp_aws_certified",
+  "eg_react_python_project": "Eg_react_python_project",
+  "eg_react_typescript_nodejs": "Eg_react_typescript_nodejs",
+  "eg_san_francisco_ca": "Eg_san_francisco_ca",
+  "eg_senior_product_designer": "Eg_高级_product_designer",
+  "eg_senior_product_manager": "Eg_高级_product_经理",
+  "eg_standard_technical_interview": "Eg_标准_technical_面试",
+  "eg_technical_interview_culture": "Eg_technical_面试_文化",
+  "eg_united_states": "Eg_united_states",
+  "email": "邮箱",
+  "email_address": "邮箱_地址",
+  "email_body": "邮箱_正文",
+  "email_subject": "邮箱_主题",
+  "email_template": "邮箱_模板",
+  "emailbedrijfnl": "Emailbedrijfnl",
+  "employment_type": "雇佣_类型",
+  "en-US": "En- U S",
+  "engagement_score, fit_score": "互动_评分, fit_评分",
+  "enterprise_500": "Enterprise_500",
+  "eur": "Eur",
+  "executive_summary": "高管_摘要",
+  "expected_start_date_optional": "Expected_开始_日期_可选",
+  "experience_level_aligns_well": "经验_等级_aligns_well",
+  "expired": "已过期",
+  "explain_hybrid_options_to": "Explain_混合办公_选项_to",
+  "explain_why_this_candidate": "Explain_why_this_候选人",
+  "explain_why_youre_making": "Explain_why_youre_making",
+  "external_job_url_optional": "外部_职位_url_可选",
+  "external_user_id": "外部_用户_id",
+  "extra_informatie_over_contact": "Extra_informatie_over_联系人",
+  "failed_to_confirm_interview": "失败_to_确认_面试",
+  "failed_to_dismiss_interview": "失败_to_忽略_面试",
+  "failed_to_export_candidates": "失败_to_导出_候选人",
+  "failed_to_generate_briefing": "失败_to_生成_briefing",
+  "failed_to_generate_report": "失败_to_生成_举报",
+  "failed_to_link_interview": "失败_to_链接_面试",
+  "failed_to_load_calendar": "失败_to_加载_日历",
+  "failed_to_load_companies": "失败_to_加载_公司",
+  "failed_to_load_pipeline": "失败_to_加载_Pipeline",
+  "failed_to_load_rejected": "失败_to_加载_已拒绝",
+  "failed_to_load_your": "失败_to_加载_your",
+  "failed_to_reconsider_candidate": "失败_to_reconsider_候选人",
+  "failed_to_reschedule_interview": "失败_to_重新安排_面试",
+  "failed_to_revoke_invitation": "失败_to_撤销_invitation",
+  "failed_to_scan_calendar": "失败_to_扫描_日历",
+  "failed_to_send_bulk": "失败_to_发送_bulk",
+  "failed_to_send_invitation": "失败_to_发送_invitation",
+  "failed_to_update_candidate": "失败_to_更新_候选人",
+  "fee_amount": "费用_amount",
+  "fee_override": "费用_override",
+  "feedback": "反馈",
+  "final_interview": "Final_面试",
+  "flexible": "Flexible",
+  "for_internal_use_only": "For_内部_use_only",
+  "format": "格式化",
+  "fout_bij_laden_van": "Fout_bij_laden_van",
+  "fout_bij_opslaan_van": "Fout_bij_opslaan_van",
+  "fout_bij_stemmen": "Fout_bij_stemmen",
+  "fout_bij_toevoegen_comment": "Fout_bij_toevoegen_评论",
+  "fout_bij_toevoegen_contact": "Fout_bij_toevoegen_联系人",
+  "fout_bij_verwijderen_contact": "Fout_bij_verwijderen_联系人",
+  "fout_bij_verwijderen_van": "Fout_bij_verwijderen_van",
+  "freelance_rate": "Freelance_率",
+  "full_name": "Full_名称",
+  "full_name, avatar_url": "Full_名称, 头像_url",
+  "full_name, email, current_title, current_company": "Full_名称, 邮箱, 当前_标题, 当前_公司",
+  "functie_specificaties": "Functie_specificaties",
+  "functies": "Functies",
+  "gbp": "Gbp",
+  "geen_votes": "Geen_votes",
+  "github_url": "Github_url",
+  "good": "Good",
+  "handmatig_toevoegen": "Handmatig_toevoegen",
+  "hard": "Hard",
+  "hire_rate": "Hire_率",
+  "hires_this_month": "Hires_this_月",
+  "hoog_10": "Hoog_10",
+  "hybrid": "混合办公",
+  "id": "Id",
+  "id, candidate_full_name, candidate_email, current_stage_index": "Id, 候选人_full_名称, 候选人_邮箱, 当前_阶段_指数",
+  "id, content, created_at, sender_id": "Id, 内容, 已创建_at, 发件人_id",
+  "id, email, full_name, avatar_url": "Id, 邮箱, full_名称, 头像_url",
+  "id, full_name": "Id, full_名称",
+  "id, full_name, avatar_url": "Id, full_名称, 头像_url",
+  "id, full_name, avatar_url, current_title": "Id, full_名称, 头像_url, 当前_标题",
+  "id, full_name, email": "Id, full_名称, 邮箱",
+  "id, full_name, email, avatar_url": "Id, full_名称, 邮箱, 头像_url",
+  "id, full_name, email, avatar_url, current_title, current_company, linkedin_url, tags": "Id, full_名称, 邮箱, 头像_url, 当前_标题, 当前_公司, linkedin_url, tags",
+  "id, full_name, linkedin_url": "Id, full_名称, linkedin_url",
+  "id, job_id, candidate_id, current_stage_index, created_at, sourced_by": "Id, 职位_id, 候选人_id, 当前_阶段_指数, 已创建_at, sourced_by",
+  "id, job_id, status, applied_at, current_stage_index, stages, created_at, updated_at": "Id, 职位_id, 状态, applied_at, 当前_阶段_指数, 阶段, 已创建_at, 已更新_at",
+  "id, job_title, user_id": "Id, 职位_标题, 用户_id",
+  "id, name": "Id, 名称",
+  "id, reviewer_id, is_primary, assigned_at": "Id, reviewer_id, is_primary, 已分配_at",
+  "id, role, profiles:user_id (full_name, avatar_url)": "Id, 角色, profiles:用户_id (full_名称, 头像_url)",
+  "id, status": "Id, 状态",
+  "id, status, scheduled_start": "Id, 状态, 已安排_开始",
+  "id, status, updated_at": "Id, 状态, 已更新_at",
+  "id, title": "Id, 标题",
+  "id, title, companies(name)": "Id, 标题, 公司(名称)",
+  "id, title, company_name, status, pipeline_stages": "Id, 标题, 公司_名称, 状态, Pipeline_阶段",
+  "id, title, pipeline_stages, status": "Id, 标题, Pipeline_阶段, 状态",
+  "id, title, status": "Id, 标题, 状态",
+  "id, user_id, full_name, title, bio, email, availability, photo_url": "Id, 用户_id, full_名称, 标题, 个人简介, 邮箱, 可用性, 照片_url",
+  "id, user_id, granted_by, granted_at": "Id, 用户_id, granted_by, granted_at",
+  "id, user_id, job_title": "Id, 用户_id, 职位_标题",
+  "immediate": "Immediate",
+  "import_jobs_from_linkedin": "导入_职位_from_linkedin",
+  "in_person": "在_每s在",
+  "in_progress": "In_进度",
+  "inbox_zero": "收件箱_zero",
+  "incomplete": "Incomplete",
+  "industrie": "Industrie",
+  "industry_preferences": "行业_偏好设置",
+  "initial_note": "Initial_note",
+  "internal_notes_for_the": "内部_备注_for_the",
+  "interview_added_successfully": "面试_已添加_successfully",
+  "interview_confirmed": "面试_已确认",
+  "interview_dismissed": "面试_dismissed",
+  "interview_linked_successfully": "面试_已链接_successfully",
+  "interview_rescheduled_successfully": "面试_rescheduled_successfully",
+  "interview_type": "面试_类型",
+  "interviewers": "Interviewers",
+  "interviews_conducted": "面试_conducted",
+  "interviews_this_week": "面试_this_周",
+  "invalid_target_stage": "Invalid_目标_阶段",
+  "invitation_revoked": "Invitation_revoked",
+  "invite": "邀请",
+  "invite_colleagues_to_collaborate": "邀请_colleagues_to_collaborate",
+  "jd_file": "Jd_文件",
+  "job": "职位",
+  "job_description_file_optional": "职位_描述_文件_可选",
+  "job_description_url, supporting_documents": "职位_描述_url, supporting_文档",
+  "job_id": "职位_id",
+  "job_link_copied_to": "职位_链接_copied_to",
+  "job_not_found_it": "职位_not_found_it",
+  "justification": "Justification",
+  "key_strengths": "密钥_strengths",
+  "laag_1": "Laag_1",
+  "languages_commaseparated": "Languages_commaseparated",
+  "latestage_rejections": "Latestage_rejections",
+  "link_copied_to_clipboard": "链接_copied_to_clipboard",
+  "link_interview_to_job": "链接_面试_to_职位",
+  "linked": "已链接",
+  "linked_to_user_account": "已链接_to_用户_账户",
+  "linkedin": "Linkedin",
+  "linkedin_url": "Linkedin_url",
+  "links": "链接",
+  "locatie": "Locatie",
+  "location": "Location",
+  "location_fit": "Location_fit",
+  "location_mismatch": "Location_mismatch",
+  "location_not_aligned_with": "Location_not_aligned_with",
+  "location_or_remote_work": "Location_or_远程_work",
+  "logo_url, website_url, headquarters_location": "Logo_url, 网站_url, headquarters_location",
+  "manage": "管理",
+  "max": "最大",
+  "max_salary": "最大_薪资",
+  "medium": "中",
+  "meeting_link": "会议_链接",
+  "meeting_type": "会议_类型",
+  "member": "成员",
+  "metadata": "Metadata",
+  "mijn_bedrijven": "Mijn_bedrijven",
+  "min": "最小",
+  "min_salary": "最小_薪资",
+  "mismatch_analysis": "Mismatch_analysis",
+  "monitor_probation_periods_and": "监控_试用期_periods_and",
+  "move_back_to_stage": "移动_返回_to_阶段",
+  "my_calendar": "My_日历",
+  "naam": "Naam",
+  "naam_contact": "Naam_联系人",
+  "naam_van_het_bedrijf": "Naam_van_het_bedrijf",
+  "name": "名称",
+  "new_date": "新建_d在e",
+  "nicetohave": "Nicetohave",
+  "nicetohave_tools": "Nicetohave_tools",
+  "nl-NL": "Nl- N L",
+  "no_authorized_to_work": "No_authorized_to_work",
+  "no_candidates_for_report": "No_候选人_for_举报",
+  "no_candidates_in_pipeline": "No_候选人_in_Pipeline",
+  "no_candidates_in_this": "No_候选人_in_this",
+  "no_candidates_to_export": "No_候选人_to_导出",
+  "no_companies_found": "No_公司_found",
+  "no_interview_data": "No_面试_data",
+  "no_interview_recordings_yet": "No_面试_recordings_yet",
+  "no_jobs": "No_职位",
+  "no_linked_interviews_yet": "No_已链接_面试_yet",
+  "no_new_interviews_detected": "No_new_面试_detected",
+  "no_pending_commitments": "No_待处理_commitments",
+  "no_pending_interviews_detected": "No_待处理_面试_detected",
+  "no_pending_offers": "No_待处理_录用通知",
+  "no_pending_reviews": "No_待处理_评价",
+  "no_recent_activity": "No_最近_activity",
+  "no_rejected_candidates_match": "No_已拒绝_候选人_匹配",
+  "no_talent_matches_yet": "No_人才_matches_yet",
+  "no_team_members_available": "No_团队_成员_可用",
+  "no_team_members_yet": "No_团队_成员_yet",
+  "no_unread_messages": "No_未读_消息",
+  "no_upcoming_calendar_events": "No_upcoming_日历_事件",
+  "no_urgent_actions_required": "No_紧急_操作_必填",
+  "no_urgent_deadlines_this": "No_紧急_deadlines_this",
+  "none": "无",
+  "not_now_but_in": "Not_now_but_in",
+  "notes": "备注",
+  "notes_optional": "备注_可选",
+  "notice_period": "Notice_期间",
+  "notities": "Notities",
+  "of_custom_rol": "Of_自定义_rol",
+  "offer_acceptance": "/fer_acceptance",
+  "offers_extended_to_candidates": "录用通知_extended_to_候选人",
+  "online": "在线",
+  "onsite": "Onsite",
+  "optional_if_you_upload": "可选_if_you_上传",
+  "overall_spend": "Overall_spend",
+  "overview": "概览",
+  "paid": "Paid",
+  "paid_out": "Paid_out",
+  "panel_interview": "面板_面试",
+  "partner_interview": "合作伙伴_面试",
+  "partner_preference_pattern": "合作伙伴_偏好_模式",
+  "partnersthequantumclubcom": "Partnersthequantumclubcom",
+  "pass": "Pass",
+  "pending": "待处理",
+  "pending_actions": "待处理_操作",
+  "pending_offers": "待处理_录用通知",
+  "pending_release": "待处理_发布",
+  "per_industrie": "Per_industrie",
+  "per_status": "Per_状态",
+  "personality_assessment": "Personality_评估",
+  "phone": "电话",
+  "phone_call": "电话_call",
+  "pipeline_display_options": "Pipeline_display_选项",
+  "pipeline_journey": "Pipeline_journey",
+  "pipeline_settings_opening": "Pipeline_设置_空缺职位",
+  "pipeline_stage_added_successfully": "Pipeline_阶段_已添加_successfully",
+  "pipeline_stages": "Pipeline_阶段",
+  "platform": "Platform",
+  "please_enter_an_email": "Please_enter_an_邮箱",
+  "please_fill_in_all": "Please_fill_in_全部",
+  "please_fill_in_both": "Please_fill_in_both",
+  "please_fix_the_form": "Please_fix_the_表单",
+  "please_provide_a_reason": "Please_provide_a_reason",
+  "please_select_a_date": "Please_选择_a_日期",
+  "please_select_a_rejection": "Please_选择_a_rejection",
+  "please_select_a_target": "Please_选择_a_目标",
+  "please_use_an_email": "Please_use_an_邮箱",
+  "portfolio_review": "作品集_评审",
+  "portfolio_url": "作品集_url",
+  "potential_concerns": "Potential_concerns",
+  "preferences": "偏好设置",
+  "preferred_currency": "Preferred_currency",
+  "preferred_locations": "Preferred_locations",
+  "premium_vetting_candidate_management": "Premium_vetting_候选人_管理",
+  "preparation_instructions": "Preparation_instructions",
+  "primary_rejection_reason": "Primary_rejection_reason",
+  "prioriteit": "Prioriteit",
+  "proceed": "Proceed",
+  "provide_specific_reasons_for": "Provide_specific_reasons_for",
+  "publish_your_jobs_to": "发布_your_职位_to",
+  "published_at": "已发布_在",
+  "quality_score": "质量_评分",
+  "quantum_club_elite_offers": "Quantum_club_elite_/fers",
+  "quick_actions": "Quick_操作",
+  "quin_daily_briefing": "Quin_每天_briefing",
+  "readonly_view_for_stakeholders": "Readonly_查看_for_stakeholders",
+  "reason_for_moving_back": "Reason_for_moving_返回",
+  "reason_for_rejection": "Reason_for_rejection",
+  "reason_for_rescheduling_optional": "Reason_for_rescheduling_可选",
+  "recent_views": "最近_视图",
+  "recommendation": "建议",
+  "recordings_will_appear_here": "Recordings_will_appear_here",
+  "recruiter": "招聘官",
+  "reject": "拒绝",
+  "reject_change_order": "拒绝_变化_order",
+  "rejected": "已拒绝",
+  "rejected_by": "已拒绝_由",
+  "rejected_candidates": "已拒绝_候选人",
+  "rejection_reason": "Rejection_reason",
+  "rejection_stage": "Rejection_阶段",
+  "remaining": "剩余",
+  "remote_only": "远程_only",
+  "remote_preference": "远程_偏好",
+  "report_generated_successfully": "举报_generated_successfully",
+  "required_tools": "必填_tools",
+  "required_tools_and_technologies": "必填_tools_and_technologies",
+  "requirements": "Requirements",
+  "reschedule_interview": "重新安排_面试",
+  "response_sla": "响应_sla",
+  "resume_available": "简历_可用",
+  "resumes/": "Resumes/",
+  "review_summary": "评审_摘要",
+  "reviewed_by": "Reviewed_by",
+  "right_to_work_details": "右_to_work_详情",
+  "rol": "Rol",
+  "role": "角色",
+  "salary": "薪资",
+  "salary_compatible": "薪资_compatible",
+  "salary_expectations_too_high": "薪资_expectations_too_高",
+  "salary_mismatch": "薪资_mismatch",
+  "salary_range_optional": "薪资_范围_可选",
+  "scaleup_50500": "Scaleup_50500",
+  "scheduled_start, scheduled_end, user_id": "已安排_开始, 已安排_end, 用户_id",
+  "scheduling": "Scheduling",
+  "scope_change": "范围_变化",
+  "search_companies": "搜索_公司",
+  "search_roles": "搜索_角色",
+  "select": "选择",
+  "select_a_candidate": "选择_a_候选人",
+  "select_a_company": "选择_a_公司",
+  "select_a_job": "选择_a_职位",
+  "select_a_role_to": "选择_a_角色_to",
+  "select_assessment_type": "选择_评估_类型",
+  "select_candidate": "选择_候选人",
+  "select_category": "选择_分类",
+  "select_company_size": "选择_公司_大小",
+  "select_department": "选择_部门",
+  "select_existing_link_or": "选择_existing_链接_or",
+  "select_from_your_company": "选择_from_your_公司",
+  "select_interview_type": "选择_面试_类型",
+  "select_notice_period": "选择_notice_期间",
+  "select_remote_preference": "选择_远程_偏好",
+  "select_sponsorship_requirement": "选择_sponsorship_requirement",
+  "select_target_stage": "选择_目标_阶段",
+  "select_team_members": "选择_团队_成员",
+  "select_urgency": "选择_urgency",
+  "selecteer_een_open_job": "Selecteer_een_打开_职位",
+  "selecteer_rol": "Selecteer_rol",
+  "sending_to": "发送在g_至",
+  "seniority": "资历",
+  "seniority_level": "资历_等级",
+  "setting_expectations_upfront_reduces": "Setting_expectations_upfront_reduces",
+  "share": "分享",
+  "skills_commaseparated": "技能_commaseparated",
+  "skills_gap": "技能_gap",
+  "skills_languages": "技能_languages",
+  "smart_filters": "Smart_filters",
+  "source": "Source",
+  "source_information": "Source_information",
+  "sourced_by": "Sourced_by",
+  "sourced_by, source_context, created_at": "Sourced_by, source_context, 已创建_at",
+  "specific_gaps_select_all": "Specific_gaps_选择_全部",
+  "sponsorship_needed": "Sponsorship_needed",
+  "stage_description": "阶段_描述",
+  "stage_name": "阶段_名称",
+  "stage_weight_for_analytics": "阶段_weight_for_分析",
+  "start_date": "开始_d在e",
+  "start_time": "开始_时间",
+  "start_with_the_fundamentals": "开始_with_the_fundamentals",
+  "startup_lt50": "Startup_lt50",
+  "stealth": "Stealth",
+  "strong": "Strong",
+  "strong_hire": "Strong_hire",
+  "strong_skills_alignment_with": "Strong_技能_alignment_with",
+  "subject": "主题",
+  "submitted_at": "Submitted_at",
+  "submitting": "Submitting",
+  "supporting_documents": "Supporting_文档",
+  "supporting_documents_optional": "Supporting_文档_可选",
+  "sync": "同步",
+  "sync_failed": "同步_失败",
+  "T": "T",
+  "target_bedrijven": "目标_bedrijven",
+  "target_voor_specifieke_job": "目标_voor_specifieke_职位",
+  "technical": "Technical",
+  "technical_interview": "Technical_面试",
+  "technical_test": "Technical_测试",
+  "telefoon": "Telefoon",
+  "this_week": "This_周",
+  "this_will_be_shown": "This_will_be_shown",
+  "time": "时间",
+  "time_limit_minutes": "时间_限制_分钟",
+  "time_period": "时间_期间",
+  "timetohire_forecast": "Timetohire_预测",
+  "title, bio, availability": "标题, 个人简介, 可用性",
+  "title, created_at": "标题, 已创建_at",
+  "today": "今天",
+  "tomorrow": "明天",
+  "top_match_factors": "顶部_匹配_factors",
+  "top_skills": "顶部_技能",
+  "total_budget": "总计_预算",
+  "total_rejections": "总计_rejections",
+  "tqc_introduction": "Tqc_introduction",
+  "type": "类型",
+  "typical_duration_for_this": "Typical_时长_for_this",
+  "updated": "已更新",
+  "upvoted_by": "Upvoted_by",
+  "urgency": "Urgency",
+  "usd": "Usd",
+  "user_id": "用户_id",
+  "user_id, role": "用户_id, 角色",
+  "video_call": "视频_call",
+  "view": "查看",
+  "visa_status": "Visa_状态",
+  "visibility": "Visibility",
+  "voeg_een_comment_toe": "Voeg_een_评论_toe",
+  "voltooid": "Voltooid",
+  "vote_toegevoegd": "Vote_toegevoegd",
+  "vote_verwijderd": "Vote_verwijderd",
+  "votes": "Votes",
+  "vs_last_month": "Vs_最后_月",
+  "vul_minimaal_een_naam": "Vul_minimaal_een_naam",
+  "website_url": "网站_url",
+  "what_should_candidates_prepare": "What_should_候选人_prepare",
+  "what_will_this_person": "What_will_this_person",
+  "where_will_this_person": "Where_will_this_person",
+  "why_are_you_advancing": "Why_are_you_advancing",
+  "work_model": "Work_model",
+  "write_a_brief_executive": "Write_a_brief_高管",
+  "write_your_email_here": "Write_your_邮箱_here",
+  "years_of_experience": "年_of_经验",
+  "yes_requires_sponsorship": "是_requires_sponsorship",
+  "youll_receive_a_digest": "Youll_接收_a_digest",
+  "your_briefing_awaits": "Your_briefing_awaits",
+  "your_concierge_is_being": "Your_concierge_is_being",
+  "your_draft_has_been": "Your_草稿_has_been",
+  "your_progress_is_saved": "Your_进度_is_已保存",
+  "zoek_bedrijf": "Zoek_bedrijf",
+  "zoek_in_repository": "Zoek_in_repository",
+  "دإ_aed": "دإ_aed"
+}

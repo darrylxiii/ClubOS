@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
+import { resilientFetch } from '../_shared/resilient-fetch.ts';
 
 async function downloadAndStoreAvatar(
   imageUrl: string,
@@ -49,12 +50,7 @@ async function downloadAndStoreAvatar(
   }
 }
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
-  'Access-Control-Max-Age': '86400',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-api-key, x-supabase-api-version, x-application-name, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version, traceparent, tracestate',
-};
+import { createHandler } from '../_shared/handler.ts';
 
 interface LinkedInProfile {
   fullName: string;
@@ -121,7 +117,7 @@ function parseMonthValue(month: unknown): string {
   return '01';
 }
 
-function parseDateValue(val: any): string | undefined {
+function parseDateValue(val: unknown): string | undefined {
   if (!val) return undefined;
   if (typeof val === 'string') {
     if (val.trim() === '' || val === '[object Object]' || val === 'undefined' || val === 'null') return undefined;
@@ -129,9 +125,10 @@ function parseDateValue(val: any): string | undefined {
   }
   if (typeof val === 'number') return `${val}`;
   if (typeof val === 'object' && val !== null) {
-    const year = val.year;
+    const obj = val as Record<string, unknown>;
+    const year = obj.year;
     if (!year) return undefined;
-    return `${year}-${parseMonthValue(val.month)}`;
+    return `${year}-${parseMonthValue(obj.month)}`;
   }
   return undefined;
 }
@@ -146,7 +143,7 @@ function normalizeDateField(val: unknown): string | null {
   }
   if (typeof val === 'number') return `${val}-01-01`;
   if (typeof val === 'object' && val !== null) {
-    const obj = val as Record<string, any>;
+    const obj = val as Record<string, unknown>;
     if (obj.year) {
       return `${obj.year}-${parseMonthValue(obj.month)}-01`;
     }
@@ -159,10 +156,8 @@ function extractUsernameFromUrl(url: string): string | null {
   return match ? match[1] : null;
 }
 
-Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
+Deno.serve(createHandler(async (req, ctx) => {
+  const { corsHeaders } = ctx;
 
   try {
     const { linkedinUrl } = await req.json();
@@ -174,7 +169,6 @@ Deno.serve(async (req) => {
     console.log('[linkedin-scraper] Processing LinkedIn profile:', linkedinUrl);
 
     const APIFY_API_KEY = Deno.env.get('APIFY_API_KEY');
-    const PROXYCURL_API_KEY = Deno.env.get('PROXYCURL_API_KEY');
     
     let profile: LinkedInProfile | null = null;
     let apiUsed = 'url_extraction';
@@ -186,25 +180,26 @@ Deno.serve(async (req) => {
       if (username) {
         console.log('[linkedin-scraper] Trying apimaestro/linkedin-profile-detail for username:', username);
         apiUsed = 'apify_apimaestro';
-        
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 45000);
-        
+
         try {
-          const response = await fetch(
+          const { response } = await resilientFetch(
             `https://api.apify.com/v2/acts/apimaestro~linkedin-profile-detail/run-sync-get-dataset-items?token=${APIFY_API_KEY}`,
             {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              signal: controller.signal,
               body: JSON.stringify({
                 username: username,
               })
+            },
+            {
+              timeoutMs: 45_000,
+              maxRetries: 1,
+              retryNonIdempotent: true,
+              service: 'apify',
+              operation: 'linkedin-profile-detail',
             }
           );
-          
-          clearTimeout(timeoutId);
-          
+
           if (!response.ok) {
             const errorText = await response.text();
             console.error('[linkedin-scraper] apimaestro error:', response.status, errorText);
@@ -243,7 +238,7 @@ Deno.serve(async (req) => {
             profileUrl: linkedinUrl,
             imageUrl: data.profile_picture_url || data.profilePicture || data.profilePictureUrl || data.image || data.avatar || data.profile_pic_url || data.profileImage || data.profilePictureOriginal || data.profilePictures?.[0] || data.img || '',
             summary: data.about || data.summary || data.description || '',
-            experience: rawExp.map((exp: any) => ({
+            experience: rawExp.map((exp: Record<string, unknown>) => ({
               title: exp.title || exp.role || exp.position || '',
               company: exp.company || exp.companyName || exp.organization || exp.companyTitle || '',
               companyLogo: exp.companyLogo || exp.companyLogoUrl || exp.logo || exp.company_logo_url || exp.logoUrl || exp.logo_url || '',
@@ -254,7 +249,7 @@ Deno.serve(async (req) => {
                 parseDateValue(exp.ends_at) || parseDateValue(exp.end) || parseDateValue(exp.timePeriod?.endDate),
               description: exp.description || exp.summary || '',
             })),
-            education: rawEdu.map((edu: any) => ({
+            education: rawEdu.map((edu: Record<string, unknown>) => ({
               school: edu.school || edu.schoolName || edu.institution || edu.university || edu.schoolId || '',
               schoolLogo: edu.logo || edu.logoUrl || edu.schoolLogo || edu.school_logo || edu.school_logo_url || edu.schoolLogoUrl || edu.companyLogo || edu.logo_url || '',
               degree: edu.degree || edu.degreeName || edu.degree_name || '',
@@ -262,13 +257,13 @@ Deno.serve(async (req) => {
               startYear: parseDateValue(edu.startYear) || parseDateValue(edu.start_year) || parseDateValue(edu.starts_at) || parseDateValue(edu.start) || parseDateValue(edu.timePeriod?.startDate),
               endYear: parseDateValue(edu.endYear) || parseDateValue(edu.end_year) || parseDateValue(edu.ends_at) || parseDateValue(edu.end) || parseDateValue(edu.timePeriod?.endDate),
             })),
-            skills: rawSkills.map((s: any) => typeof s === 'string' ? s : (s.name || s.skill || '')).filter(Boolean),
-            certifications: rawCerts.map((c: any) => ({
+            skills: rawSkills.map((s: Record<string, unknown> | string) => typeof s === 'string' ? s : ((s.name || s.skill || '') as string)).filter(Boolean),
+            certifications: rawCerts.map((c: Record<string, unknown> | string) => ({
               name: typeof c === 'string' ? c : (c.name || c.title || ''),
               issuer: c.authority || c.issuer || c.issuingOrganization || '',
               issueDate: c.issueDate || c.startDate || '',
             })),
-            languages: rawLangs.map((l: any) => typeof l === 'string' ? l : (l.name || l.language || '')).filter(Boolean),
+            languages: rawLangs.map((l: Record<string, unknown> | string) => typeof l === 'string' ? l : ((l.name || l.language || '') as string)).filter(Boolean),
             posts: [],
           };
           
@@ -278,89 +273,16 @@ Deno.serve(async (req) => {
             '| education:', profile.education?.length, 
             '| skills:', profile.skills?.length,
             '| certs:', profile.certifications?.length);
-        } catch (err: any) {
-          clearTimeout(timeoutId);
-          if (err.name === 'AbortError') {
+        } catch (err: unknown) {
+          if (err instanceof Error && err.name === 'ResilientFetchTimeoutError') {
             console.warn('[linkedin-scraper] apimaestro timed out after 45s, falling back');
           } else {
-            console.error('[linkedin-scraper] apimaestro failed:', err.message);
+            console.error('[linkedin-scraper] apimaestro failed:', err instanceof Error ? err.message : err);
           }
           profile = null;
         }
       } else {
         console.warn('[linkedin-scraper] Could not extract username from URL:', linkedinUrl);
-      }
-    }
-    
-    // === SECONDARY: Proxycurl ===
-    if (!profile && PROXYCURL_API_KEY) {
-      console.log('[linkedin-scraper] Trying Proxycurl API with 15s timeout');
-      apiUsed = 'proxycurl';
-      
-      const proxycurlController = new AbortController();
-      const proxycurlTimeoutId = setTimeout(() => proxycurlController.abort(), 15000);
-      
-      try {
-        const response = await fetch(`https://nubela.co/proxycurl/api/v2/linkedin?url=${encodeURIComponent(linkedinUrl)}`, {
-          headers: {
-            'Authorization': `Bearer ${PROXYCURL_API_KEY}`,
-          },
-          signal: proxycurlController.signal,
-        });
-        
-        clearTimeout(proxycurlTimeoutId);
-        
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error('[linkedin-scraper] Proxycurl error:', response.status, errorText);
-          throw new Error(`Proxycurl scraping failed: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        profile = {
-          fullName: data.full_name || extractNameFromUrl(linkedinUrl),
-          email: data.personal_emails?.[0] || '',
-          headline: data.headline || '',
-          location: data.city ? `${data.city}, ${data.country_full_name}` : '',
-          profileUrl: linkedinUrl,
-          imageUrl: data.profile_pic_url || '',
-          summary: data.summary || '',
-          experience: (data.experiences || []).map((exp: any) => ({
-            title: exp.title,
-            company: exp.company,
-            companyLogo: exp.logo_url || '',
-            location: exp.location,
-            startDate: exp.starts_at ? `${exp.starts_at.year}-${String(exp.starts_at.month || 1).padStart(2, '0')}` : undefined,
-            endDate: exp.ends_at ? `${exp.ends_at.year}-${String(exp.ends_at.month || 1).padStart(2, '0')}` : undefined,
-            description: exp.description,
-          })),
-          education: (data.education || []).map((edu: any) => ({
-            school: edu.school,
-            schoolLogo: edu.logo_url || '',
-            degree: edu.degree_name,
-            field: edu.field_of_study,
-            startYear: edu.starts_at?.year?.toString(),
-            endYear: edu.ends_at?.year?.toString(),
-          })),
-          skills: data.skills || [],
-          certifications: (data.certifications || []).map((c: any) => ({
-            name: c.name,
-            issuer: c.authority,
-            issueDate: c.starts_at ? `${c.starts_at.year}` : '',
-          })),
-          languages: (data.languages || []).map((l: any) => l),
-          posts: data.activities || [],
-        };
-        
-        console.log('[linkedin-scraper] Proxycurl succeeded:', profile.fullName);
-      } catch (proxycurlError: any) {
-        clearTimeout(proxycurlTimeoutId);
-        
-        if (proxycurlError.name === 'AbortError') {
-          console.warn('[linkedin-scraper] Proxycurl timed out after 15s');
-        } else {
-          console.error('[linkedin-scraper] Proxycurl failed:', proxycurlError.message);
-        }
       }
     }
     
@@ -417,7 +339,7 @@ Deno.serve(async (req) => {
       issue_date: emptyToNull(typeof c === 'string' ? null : c.issueDate),
     }));
 
-    const normalizedPosts = (profile.posts || []).map((post: any) => ({
+    const normalizedPosts = (profile.posts || []).map((post) => ({
       text: post.text || post.postContent || post.content || null,
       date: post.date || post.postedDate || post.publishedDate || null,
       likes: post.likes || post.numLikes || post.socialCounts?.numLikes || 0,
@@ -494,7 +416,7 @@ Deno.serve(async (req) => {
       }
     );
   }
-});
+}));
 
 function extractNameFromUrl(url: string): string {
   const match = url.match(/linkedin\.com\/in\/([^\/\?]+)/);
@@ -513,7 +435,7 @@ function extractNameFromUrl(url: string): string {
   return 'LinkedIn User';
 }
 
-function calculateYearsOfExperience(experience: any[]): number {
+function calculateYearsOfExperience(experience: NonNullable<LinkedInProfile['experience']>): number {
   if (!experience || experience.length === 0) return 0;
 
   const totalMonths = experience.reduce((total, exp) => {
@@ -527,7 +449,7 @@ function calculateYearsOfExperience(experience: any[]): number {
   return Math.round((totalMonths / 12) * 10) / 10;
 }
 
-function generateAiSummary(profile: LinkedInProfile, posts: any[] = []): string {
+function generateAiSummary(profile: LinkedInProfile, posts: Array<{ text?: string | null; likes?: number; comments?: number }> = []): string {
   const parts: string[] = ['📎 LinkedIn Profile Imported'];
   
   if (profile.headline) {

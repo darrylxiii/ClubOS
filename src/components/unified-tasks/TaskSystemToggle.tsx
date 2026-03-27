@@ -8,6 +8,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Settings, Check } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface TaskSystemToggleProps {
   activeSystem: string;
@@ -15,6 +16,7 @@ interface TaskSystemToggleProps {
 }
 
 export const TaskSystemToggle = ({ activeSystem, onSystemChange }: TaskSystemToggleProps) => {
+  const { t } = useTranslation("common");
   const systems = [
     { 
       value: 'unified', 
@@ -44,12 +46,12 @@ export const TaskSystemToggle = ({ activeSystem, onSystemChange }: TaskSystemTog
       <DropdownMenuTrigger asChild>
         <Button variant="outline" size="lg" className="gap-2">
           <Settings className="h-4 w-4" />
-          Task System
+          {t('tasks.system.title')}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-72">
         <DropdownMenuLabel>
-          Select Task System
+          {t('tasks.system.select')}
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         {systems.map((system) => (

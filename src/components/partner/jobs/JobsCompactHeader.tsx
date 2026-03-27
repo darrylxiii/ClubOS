@@ -29,6 +29,7 @@ import {
   X,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 
 interface JobsCompactHeaderProps {
   isAdmin: boolean;
@@ -49,12 +50,13 @@ export const JobsCompactHeader = memo(({
   onRefresh,
   searchInputRef,
 }: JobsCompactHeaderProps) => {
+  const { t } = useTranslation('partner');
   const [searchOpen, setSearchOpen] = useState(false);
 
   return (
     <div className="flex items-center justify-between gap-4 py-2">
       {/* Left: Title */}
-      <h1 className="text-2xl font-semibold text-foreground">Jobs</h1>
+      <h1 className="text-2xl font-semibold text-foreground">{t('jobsCompactHeader.jobs')}</h1>
 
       {/* Right: Actions */}
       <div className="flex items-center gap-2">
@@ -70,7 +72,7 @@ export const JobsCompactHeader = memo(({
                 ref={searchInputRef}
                 value={searchQuery}
                 onChange={(e) => onSearchChange(e.target.value)}
-                placeholder="Search jobs..."
+                placeholder={t('jobsCompactHeader.placeholder.searchJobs')}
                 className="pl-9 pr-8 h-9 bg-card/50 border-border/30"
                 autoFocus
               />
@@ -110,7 +112,7 @@ export const JobsCompactHeader = memo(({
           className="gap-1.5 h-9"
         >
           <Plus className="h-4 w-4" />
-          <span className="hidden sm:inline">New Job</span>
+          <span className="hidden sm:inline">{t('jobsCompactHeader.newJob')}</span>
         </Button>
 
         {/* More Actions Menu */}
@@ -121,7 +123,7 @@ export const JobsCompactHeader = memo(({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56 bg-card/95 backdrop-blur-xl border-border/30">
-            <DropdownMenuLabel>Navigation</DropdownMenuLabel>
+            <DropdownMenuLabel>{t('jobsCompactHeader.menu.navigation')}</DropdownMenuLabel>
             <DropdownMenuSeparator />
             
             <DropdownMenuItem onClick={() => onNavigate('/company-applications')} className="gap-2">
@@ -137,7 +139,7 @@ export const JobsCompactHeader = memo(({
             {isAdmin && (
               <>
                 <DropdownMenuSeparator />
-                <DropdownMenuLabel>Admin Tools</DropdownMenuLabel>
+                <DropdownMenuLabel>{t('jobsCompactHeader.menu.adminTools')}</DropdownMenuLabel>
                 
                 <DropdownMenuItem onClick={() => onNavigate('/admin/companies')} className="gap-2">
                   <Building2 className="h-4 w-4" />

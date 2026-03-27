@@ -16,11 +16,11 @@ serve(async (req) => {
     
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    const GOOGLE_API_KEY = Deno.env.get("GOOGLE_API_KEY");
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY not configured");
+    if (!GOOGLE_API_KEY) {
+      throw new Error("GOOGLE_API_KEY not configured");
     }
 
     // If batch mode, process pending queue items
@@ -44,7 +44,7 @@ serve(async (req) => {
           .eq("id", item.id);
 
         try {
-          const result = await processMessage(supabase, LOVABLE_API_KEY, item.source_table, item.source_id);
+          const result = await processMessage(supabase, GOOGLE_API_KEY, item.source_table, item.source_id);
           await supabase
             .from("communication_task_queue")
             .update({ 
@@ -77,7 +77,7 @@ serve(async (req) => {
       throw new Error("source_table and source_id required");
     }
 
-    const result = await processMessage(supabase, LOVABLE_API_KEY, source_table, source_id);
+    const result = await processMessage(supabase, GOOGLE_API_KEY, source_table, source_id);
 
     return new Response(JSON.stringify(result), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -195,14 +195,14 @@ Return JSON with structure:
 
 If no clear action items, return empty tasks array with has_actionable_items: false.`;
 
-  const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+  const aiResponse = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
     method: "POST",
     headers: {
       "Authorization": `Bearer ${apiKey}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: "google/gemini-2.5-flash-lite",
+      model: "gemini-2.5-flash-lite",
       messages: [
         { role: "system", content: "You are a task extraction assistant. Extract actionable items from communications. Return valid JSON only." },
         { role: "user", content: prompt }

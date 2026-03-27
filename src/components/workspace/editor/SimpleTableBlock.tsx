@@ -1,5 +1,6 @@
 import { createReactBlockSpec } from '@blocknote/react';
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -25,6 +26,7 @@ export const SimpleTableBlock = createReactBlockSpec(
   {
     render: (props) => {
       const [data, setData] = useState<TableData>(() => {
+  const { t } = useTranslation('common');
         try {
           return JSON.parse(props.block.props.tableData as string);
         } catch {
@@ -159,7 +161,7 @@ export const SimpleTableBlock = createReactBlockSpec(
             className="mt-1 text-xs text-muted-foreground"
           >
             <Plus className="h-3 w-3 mr-1" />
-            Add row
+            {t('workspace.addRow', 'Add row')}
           </Button>
         </div>
       );

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -18,6 +19,7 @@ interface MemberAssignmentEditorProps {
 }
 
 export function MemberAssignmentEditor({ companyId }: MemberAssignmentEditorProps) {
+  const { t } = useTranslation('common');
   const { members, loading: membersLoading, updateMemberDetails, refresh } = useOrgChart(companyId);
   const { departments, loading: deptsLoading } = useDepartments(companyId);
   
@@ -83,7 +85,7 @@ export function MemberAssignmentEditor({ companyId }: MemberAssignmentEditorProp
       <CardHeader>
         <div className="flex items-start justify-between">
           <div>
-            <CardTitle>Team Member Assignment</CardTitle>
+            <CardTitle>{t("team_member_assignment", "Team Member Assignment")}</CardTitle>
             <CardDescription>
               Assign team members to departments and define reporting structure
             </CardDescription>
@@ -111,7 +113,7 @@ export function MemberAssignmentEditor({ companyId }: MemberAssignmentEditorProp
         ) : members.length === 0 ? (
           <div className="text-center py-12">
             <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-            <h3 className="text-lg font-semibold mb-2">No Team Members</h3>
+            <h3 className="text-lg font-semibold mb-2">{t("no_team_members", "No Team Members")}</h3>
             <p className="text-sm text-muted-foreground">
               Add team members to your company to start building your org chart
             </p>
@@ -156,7 +158,7 @@ export function MemberAssignmentEditor({ companyId }: MemberAssignmentEditorProp
                                 {member.job_title || 'No title set'}
                               </p>
                               {!member.department_id && (
-                                <Badge variant="outline" className="mt-1 text-xs">Unassigned</Badge>
+                                <Badge variant="outline" className="mt-1 text-xs">{t("unassigned", "Unassigned")}</Badge>
                               )}
                             </div>
                           </div>
@@ -175,13 +177,13 @@ export function MemberAssignmentEditor({ companyId }: MemberAssignmentEditorProp
                   <CardHeader>
                     <div className="flex items-start justify-between">
                       <div>
-                        <CardTitle>Edit Member Details</CardTitle>
+                        <CardTitle>{t("edit_member_details", "Edit Member Details")}</CardTitle>
                         <CardDescription>
                           Update job title, department, and reporting structure
                         </CardDescription>
                       </div>
                       {!selectedMember.department_id && (
-                        <Badge variant="outline">⚠️ Incomplete</Badge>
+                        <Badge variant="outline">{t("incomplete", "⚠️ Incomplete")}</Badge>
                       )}
                     </div>
                   </CardHeader>
@@ -200,26 +202,26 @@ export function MemberAssignmentEditor({ companyId }: MemberAssignmentEditorProp
                     </div>
 
                     <div>
-                      <Label htmlFor="job_title">Job Title</Label>
+                      <Label htmlFor="job_title">{t("job_title", "Job Title")}</Label>
                       <Input
                         id="job_title"
                         value={editForm.job_title}
                         onChange={(e) => setEditForm({ ...editForm, job_title: e.target.value })}
-                        placeholder="e.g., Senior Software Engineer"
+                        placeholder={t("eg_senior_software_engineer", "e.g., Senior Software Engineer")}
                       />
                     </div>
 
                     <div>
-                      <Label htmlFor="department">Department</Label>
+                      <Label htmlFor="department">{t("department", "Department")}</Label>
                       <Select
                         value={editForm.department_id || "__none__"}
                         onValueChange={(value) => setEditForm({ ...editForm, department_id: value === "__none__" ? "" : value })}
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder="Select department" />
+                          <SelectValue placeholder={t("select_department", "Select department")} />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="__none__">No department</SelectItem>
+                          <SelectItem value="__none__">{t("no_department", "No department")}</SelectItem>
                           {departments.map((dept) => (
                             <SelectItem key={dept.id} value={dept.id}>
                               {dept.name}
@@ -230,16 +232,16 @@ export function MemberAssignmentEditor({ companyId }: MemberAssignmentEditorProp
                     </div>
 
                     <div>
-                      <Label htmlFor="reports_to">Reports To</Label>
+                      <Label htmlFor="reports_to">{t("reports_to", "Reports To")}</Label>
                       <Select
                         value={editForm.reports_to_member_id || "__none__"}
                         onValueChange={(value) => setEditForm({ ...editForm, reports_to_member_id: value === "__none__" ? "" : value })}
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder="Select manager" />
+                          <SelectValue placeholder={t("select_manager", "Select manager")} />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="__none__">No manager (CEO/Owner)</SelectItem>
+                          <SelectItem value="__none__">{t("no_manager_ceoowner", "No manager (CEO/Owner)")}</SelectItem>
                           {availableManagers.map((manager) => (
                             <SelectItem key={manager.id} value={manager.id}>
                               {manager.profiles?.full_name} - {manager.job_title}
@@ -250,7 +252,7 @@ export function MemberAssignmentEditor({ companyId }: MemberAssignmentEditorProp
                     </div>
 
                     <div>
-                      <Label htmlFor="employment_type">Employment Type</Label>
+                      <Label htmlFor="employment_type">{t("employment_type", "Employment Type")}</Label>
                       <Select
                         value={editForm.employment_type}
                         onValueChange={(value: any) => setEditForm({ ...editForm, employment_type: value })}
@@ -259,26 +261,26 @@ export function MemberAssignmentEditor({ companyId }: MemberAssignmentEditorProp
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="full_time">Full Time</SelectItem>
-                          <SelectItem value="part_time">Part Time</SelectItem>
-                          <SelectItem value="contractor">Contractor</SelectItem>
-                          <SelectItem value="consultant">Consultant</SelectItem>
+                          <SelectItem value="full_time">{t("full_time", "Full Time")}</SelectItem>
+                          <SelectItem value="part_time">{t("part_time", "Part Time")}</SelectItem>
+                          <SelectItem value="contractor">{t("contractor", "Contractor")}</SelectItem>
+                          <SelectItem value="consultant">{t("consultant", "Consultant")}</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
 
                     <div>
-                      <Label htmlFor="location">Location</Label>
+                      <Label htmlFor="location">{t("location", "Location")}</Label>
                       <Input
                         id="location"
                         value={editForm.location}
                         onChange={(e) => setEditForm({ ...editForm, location: e.target.value })}
-                        placeholder="e.g., Amsterdam, Remote"
+                        placeholder={t("eg_amsterdam_remote", "e.g., Amsterdam, Remote")}
                       />
                     </div>
 
                     <div>
-                      <Label htmlFor="start_date">Start Date</Label>
+                      <Label htmlFor="start_date">{t("start_date", "Start Date")}</Label>
                       <Input
                         id="start_date"
                         type="date"
@@ -288,7 +290,7 @@ export function MemberAssignmentEditor({ companyId }: MemberAssignmentEditorProp
                     </div>
 
                     <div>
-                      <Label htmlFor="visibility">Visibility in Org Chart</Label>
+                      <Label htmlFor="visibility">{t("visibility_in_org_chart", "Visibility in Org Chart")}</Label>
                       <Select
                         value={editForm.visibility_in_org_chart}
                         onValueChange={(value: any) => setEditForm({ ...editForm, visibility_in_org_chart: value })}
@@ -297,9 +299,9 @@ export function MemberAssignmentEditor({ companyId }: MemberAssignmentEditorProp
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="full">Full (Show all details)</SelectItem>
-                          <SelectItem value="name_only">Name Only</SelectItem>
-                          <SelectItem value="hidden">Hidden</SelectItem>
+                          <SelectItem value="full">{t("full_show_all_details", "Full (Show all details)")}</SelectItem>
+                          <SelectItem value="name_only">{t("name_only", "Name Only")}</SelectItem>
+                          <SelectItem value="hidden">{t("hidden", "Hidden")}</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -331,19 +333,19 @@ export function MemberAssignmentEditor({ companyId }: MemberAssignmentEditorProp
                 <Card className="border-dashed">
                   <CardContent className="py-12 text-center">
                     <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                    <h3 className="text-lg font-semibold mb-2">Select a Member</h3>
+                    <h3 className="text-lg font-semibold mb-2">{t("select_a_member", "Select a Member")}</h3>
                     <p className="text-sm text-muted-foreground mb-4">
                       Choose a team member from the list to edit their details
                     </p>
                     {assignedCount === 0 && totalMembers > 0 && (
                       <div className="mt-4 p-4 bg-muted/50 rounded-lg max-w-md mx-auto">
-                        <p className="text-sm font-medium mb-2">💡 Quick Start Guide</p>
+                        <p className="text-sm font-medium mb-2">{t("quick_start_guide", "💡 Quick Start Guide")}</p>
                         <ol className="text-sm text-muted-foreground text-left space-y-1">
-                          <li>1. Click on a team member</li>
-                          <li>2. Set their job title</li>
-                          <li>3. Assign them to a department</li>
-                          <li>4. Define who they report to (if applicable)</li>
-                          <li>5. Save changes</li>
+                          <li>{t("1_click_on_a", "1. Click on a team member")}</li>
+                          <li>{t("2_set_their_job", "2. Set their job title")}</li>
+                          <li>{t("3_assign_them_to", "3. Assign them to a department")}</li>
+                          <li>{t("4_define_who_they", "4. Define who they report to (if applicable)")}</li>
+                          <li>{t("5_save_changes", "5. Save changes")}</li>
                         </ol>
                       </div>
                     )}

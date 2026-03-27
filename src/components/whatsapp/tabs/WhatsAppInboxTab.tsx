@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useWhatsAppConversations } from '@/hooks/useWhatsAppConversations';
@@ -15,6 +16,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { notify } from '@/lib/notify';
 
 export function WhatsAppInboxTab() {
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
   const [showTemplates, setShowTemplates] = useState(false);
@@ -99,9 +101,9 @@ export function WhatsAppInboxTab() {
         <div className="w-[340px] border-l border-border hidden xl:flex flex-col shrink-0">
           <Tabs value={rightPanelTab} onValueChange={(v) => setRightPanelTab(v as typeof rightPanelTab)} className="flex flex-col h-full">
             <TabsList className="w-full rounded-none border-b justify-start px-2 h-10 bg-transparent shrink-0">
-              <TabsTrigger value="insights" className="text-xs">Insights</TabsTrigger>
-              <TabsTrigger value="context" className="text-xs">Context</TabsTrigger>
-              <TabsTrigger value="events" className="text-xs">Events</TabsTrigger>
+              <TabsTrigger value="insights" className="text-xs">{t("insights", "Insights")}</TabsTrigger>
+              <TabsTrigger value="context" className="text-xs">{t("context", "Context")}</TabsTrigger>
+              <TabsTrigger value="events" className="text-xs">{t("events", "Events")}</TabsTrigger>
             </TabsList>
             
             <TabsContent value="insights" className="flex-1 m-0 overflow-hidden">
@@ -120,7 +122,7 @@ export function WhatsAppInboxTab() {
                 />
               ) : (
                 <div className="text-center text-muted-foreground py-8">
-                  <p className="text-sm">No linked candidate profile</p>
+                  <p className="text-sm">{t("no_linked_candidate_profile", "No linked candidate profile")}</p>
                 </div>
               )}
             </TabsContent>

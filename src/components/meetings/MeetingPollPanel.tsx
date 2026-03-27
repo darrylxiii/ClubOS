@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -29,6 +30,7 @@ interface MeetingPollPanelProps {
 }
 
 export function MeetingPollPanel({ meetingId, isHost, open, onOpenChange }: MeetingPollPanelProps) {
+  const { t } = useTranslation('common');
   const [polls, setPolls] = useState<Poll[]>([]);
   const [newQuestion, setNewQuestion] = useState("");
   const [newOptions, setNewOptions] = useState(["", ""]);
@@ -109,7 +111,7 @@ export function MeetingPollPanel({ meetingId, isHost, open, onOpenChange }: Meet
 
   const createPoll = async () => {
     if (!newQuestion.trim() || newOptions.filter(o => o.trim()).length < 2) {
-      toast.error("Question and at least 2 options are required");
+      toast.error(t("question_and_at_least", "Question and at least 2 options are required"));
       return;
     }
 
@@ -132,10 +134,10 @@ export function MeetingPollPanel({ meetingId, isHost, open, onOpenChange }: Meet
       setNewQuestion("");
       setNewOptions(["", ""]);
       setShowCreateForm(false);
-      toast.success("Poll created");
+      toast.success(t("poll_created", "Poll created"));
     } catch (error) {
       console.error('Error creating poll:', error);
-      toast.error("Failed to create poll");
+      toast.error(t("failed_to_create_poll", "Failed to create poll"));
     }
   };
 
@@ -167,12 +169,12 @@ export function MeetingPollPanel({ meetingId, isHost, open, onOpenChange }: Meet
           .eq('id', pollId);
       }
 
-      toast.success("Vote recorded");
+      toast.success(t("vote_recorded", "Vote recorded"));
     } catch (error: unknown) {
       if ((error as { code?: string }).code === '23505') {
-        toast.info("You've already voted on this poll");
+        toast.info(t("youve_already_voted_on", "You've already voted on this poll"));
       } else {
-        toast.error("Failed to vote");
+        toast.error(t("failed_to_vote", "Failed to vote"));
       }
     }
   };
@@ -185,9 +187,9 @@ export function MeetingPollPanel({ meetingId, isHost, open, onOpenChange }: Meet
         .eq('id', pollId);
 
       if (error) throw error;
-      toast.success("Poll closed");
+      toast.success(t("poll_closed", "Poll closed"));
     } catch (error) {
-      toast.error("Failed to close poll");
+      toast.error(t("failed_to_close_poll", "Failed to close poll"));
     }
   };
 
@@ -212,7 +214,7 @@ export function MeetingPollPanel({ meetingId, isHost, open, onOpenChange }: Meet
               ) : (
                 <Card className="p-4 bg-card/50 space-y-3">
                   <div className="flex items-center justify-between">
-                    <h3 className="font-semibold">New Poll</h3>
+                    <h3 className="font-semibold">{t("new_poll", "New Poll")}</h3>
                     <Button size="sm" variant="ghost" onClick={() => setShowCreateForm(false)}>
                       <X className="w-4 h-4" />
                     </Button>
@@ -221,7 +223,7 @@ export function MeetingPollPanel({ meetingId, isHost, open, onOpenChange }: Meet
                   <Input
                     value={newQuestion}
                     onChange={(e) => setNewQuestion(e.target.value)}
-                    placeholder="Enter your question"
+                    placeholder={t("enter_your_question", "Enter your question")}
                   />
                   
                   <div className="space-y-2">
@@ -262,7 +264,7 @@ export function MeetingPollPanel({ meetingId, isHost, open, onOpenChange }: Meet
               {polls.length === 0 ? (
                 <Card className="p-8 text-center bg-card/50">
                   <BarChart3 className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
-                  <p className="text-muted-foreground">No polls yet</p>
+                  <p className="text-muted-foreground">{t("no_polls_yet", "No polls yet")}</p>
                 </Card>
               ) : (
                 polls.map((poll) => (

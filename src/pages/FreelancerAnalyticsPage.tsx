@@ -1,4 +1,5 @@
 import { useAuth } from "@/contexts/AuthContext";
+import { useTranslation } from 'react-i18next';
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -8,6 +9,7 @@ import { useRecharts } from "@/hooks/useRecharts";
 import { format, subDays } from "date-fns";
 
 const FreelancerAnalyticsPage = () => {
+  const { t } = useTranslation('analytics');
   const { user } = useAuth();
   const { recharts, isLoading: rechartsLoading } = useRecharts();
 
@@ -123,8 +125,8 @@ const FreelancerAnalyticsPage = () => {
   return (
     <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Freelancer Analytics</h1>
-        <p className="text-muted-foreground">Track your performance and growth</p>
+        <h1 className="text-2xl font-bold">{t('freelancerAnalyticsPage.title')}</h1>
+        <p className="text-muted-foreground">{t('freelancerAnalyticsPage.desc')}</p>
       </div>
 
       {/* KPI Cards */}
@@ -136,7 +138,7 @@ const FreelancerAnalyticsPage = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{contracts?.length || 0}</div>
-            <p className="text-xs text-muted-foreground">Projects worked</p>
+            <p className="text-xs text-muted-foreground">{t('freelancerAnalyticsPage.desc2')}</p>
           </CardContent>
         </Card>
 

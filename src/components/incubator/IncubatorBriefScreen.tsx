@@ -1,4 +1,5 @@
 import { memo, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -13,6 +14,7 @@ interface IncubatorBriefScreenProps {
 }
 
 export const IncubatorBriefScreen = memo(({ scenario, onComplete }: IncubatorBriefScreenProps) => {
+  const { t } = useTranslation('common');
   const [countdown, setCountdown] = useState(45);
   const [progress, setProgress] = useState(100);
 
@@ -39,8 +41,8 @@ export const IncubatorBriefScreen = memo(({ scenario, onComplete }: IncubatorBri
           {/* Header */}
           <div className="text-center space-y-2">
             <div className="text-6xl mb-4 animate-pulse">🚀</div>
-            <h1 className="text-4xl font-bold font-serif">Your Challenge</h1>
-            <p className="text-muted-foreground">Read carefully. You have 45 seconds.</p>
+            <h1 className="text-4xl font-bold font-serif">{t('incubator.yourChallenge')}</h1>
+            <p className="text-muted-foreground">{t('incubator.readCarefullyYouHave45Seconds')}</p>
           </div>
 
           <Progress value={progress} className="h-2" />
@@ -59,7 +61,7 @@ export const IncubatorBriefScreen = memo(({ scenario, onComplete }: IncubatorBri
               <div className="space-y-1">
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <DollarSign className="h-4 w-4" />
-                  <span className="text-sm">Budget (12 weeks)</span>
+                  <span className="text-sm">{t('incubator.budget12Weeks')}</span>
                 </div>
                 <p className="text-2xl font-bold">${(scenario.budget / 1000).toFixed(0)}k</p>
               </div>
@@ -67,7 +69,7 @@ export const IncubatorBriefScreen = memo(({ scenario, onComplete }: IncubatorBri
               <div className="space-y-1">
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <TrendingUp className="h-4 w-4" />
-                  <span className="text-sm">Stage</span>
+                  <span className="text-sm">{t('incubator.stage')}</span>
                 </div>
                 <p className="text-lg font-semibold">{scenario.stage}</p>
               </div>
@@ -75,7 +77,7 @@ export const IncubatorBriefScreen = memo(({ scenario, onComplete }: IncubatorBri
               <div className="space-y-1">
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <MapPin className="h-4 w-4" />
-                  <span className="text-sm">Region</span>
+                  <span className="text-sm">{t('incubator.region')}</span>
                 </div>
                 <p className="text-lg font-semibold">{scenario.region}</p>
               </div>
@@ -83,7 +85,7 @@ export const IncubatorBriefScreen = memo(({ scenario, onComplete }: IncubatorBri
 
             {/* Target Customer */}
             <div className="bg-muted/50 p-4 rounded-lg">
-              <p className="text-sm text-muted-foreground mb-1">Target Customer</p>
+              <p className="text-sm text-muted-foreground mb-1">{t('incubator.targetCustomer')}</p>
               <p className="font-semibold">{scenario.customer}</p>
             </div>
 
@@ -106,7 +108,7 @@ export const IncubatorBriefScreen = memo(({ scenario, onComplete }: IncubatorBri
 
           {/* Countdown */}
           <div className="text-center pt-4">
-            <p className="text-sm text-muted-foreground mb-2">Auto-advancing in</p>
+            <p className="text-sm text-muted-foreground mb-2">{t('incubator.autoadvancingIn')}</p>
             <div className="text-5xl font-bold tabular-nums">{countdown}s</div>
           </div>
 
@@ -114,9 +116,7 @@ export const IncubatorBriefScreen = memo(({ scenario, onComplete }: IncubatorBri
             onClick={onComplete} 
             className="w-full"
             size="lg"
-          >
-            I'm Ready — Start Now
-          </Button>
+          >{t('incubator.imReadyStartNow')}</Button>
         </CardContent>
       </Card>
     </div>

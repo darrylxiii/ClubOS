@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -38,6 +39,7 @@ export function WeeklyTimesheet({
   onDisputeEntry,
   onSubmitTimesheet
 }: WeeklyTimesheetProps) {
+  const { t } = useTranslation('common');
   
   const weekEnd = endOfWeek(currentWeekStart, { weekStartsOn: 1 });
   
@@ -115,7 +117,7 @@ export function WeeklyTimesheet({
         <Card className="p-4 border border-border/50">
           <div className="flex items-center gap-2 mb-2">
             <Clock className="h-4 w-4 text-muted-foreground" />
-            <span className="text-xs text-muted-foreground">Total Hours</span>
+            <span className="text-xs text-muted-foreground">{t("total_hours", "Total Hours")}</span>
           </div>
           <div className="text-2xl font-bold text-foreground">
             {totalHours.toFixed(1)}h
@@ -128,7 +130,7 @@ export function WeeklyTimesheet({
         <Card className="p-4 border border-border/50">
           <div className="flex items-center gap-2 mb-2">
             <DollarSign className="h-4 w-4 text-muted-foreground" />
-            <span className="text-xs text-muted-foreground">Total Earnings</span>
+            <span className="text-xs text-muted-foreground">{t("total_earnings", "Total Earnings")}</span>
           </div>
           <div className="text-2xl font-bold text-foreground">
             €{totalEarnings.toLocaleString()}
@@ -141,7 +143,7 @@ export function WeeklyTimesheet({
         <Card className="p-4 border border-border/50">
           <div className="flex items-center gap-2 mb-2">
             <CheckCircle className="h-4 w-4 text-muted-foreground" />
-            <span className="text-xs text-muted-foreground">Approval Rate</span>
+            <span className="text-xs text-muted-foreground">{t("approval_rate", "Approval Rate")}</span>
           </div>
           <div className="text-2xl font-bold text-foreground">
             {approvalRate.toFixed(0)}%
@@ -152,7 +154,7 @@ export function WeeklyTimesheet({
         <Card className="p-4 border border-border/50">
           <div className="flex items-center gap-2 mb-2">
             <Send className="h-4 w-4 text-muted-foreground" />
-            <span className="text-xs text-muted-foreground">Status</span>
+            <span className="text-xs text-muted-foreground">{t("status", "Status")}</span>
           </div>
           <div className="space-y-1">
             {pendingEntries.length > 0 && (

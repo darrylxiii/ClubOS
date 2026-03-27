@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { useSubscriptionBudgets } from '@/hooks/useSubscriptionBudgets';
@@ -13,6 +14,7 @@ interface BudgetVsActualProps {
 }
 
 export function BudgetVsActual({ legalEntity }: BudgetVsActualProps) {
+  const { t } = useTranslation('common');
   const { data: budgets, isLoading } = useSubscriptionBudgets();
   const metrics = useSubscriptionMetrics();
 
@@ -30,10 +32,10 @@ export function BudgetVsActual({ legalEntity }: BudgetVsActualProps) {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
-            <span>Budget vs Actual</span>
+            <span>{t("budget_vs_actual", "Budget vs Actual")}</span>
             <AddBudgetDialog />
           </CardTitle>
-          <CardDescription>No budgets configured yet. Set category budgets to track spend limits.</CardDescription>
+          <CardDescription>{t("no_budgets_configured_yet", "No budgets configured yet. Set category budgets to track spend limits.")}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="text-center py-8 text-muted-foreground">
@@ -48,7 +50,7 @@ export function BudgetVsActual({ legalEntity }: BudgetVsActualProps) {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
-          <span>Budget vs Actual</span>
+          <span>{t("budget_vs_actual", "Budget vs Actual")}</span>
           <AddBudgetDialog />
         </CardTitle>
         <CardDescription>Monthly category spend against budgets — {entityLabel}</CardDescription>

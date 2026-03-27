@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -25,6 +26,7 @@ interface RoutingFormBuilderProps {
 }
 
 export function RoutingFormBuilder({ questions, onChange, bookingLinks = [] }: RoutingFormBuilderProps) {
+  const { t } = useTranslation('common');
   const addQuestion = () => {
     onChange([
       ...questions,
@@ -106,7 +108,7 @@ export function RoutingFormBuilder({ questions, onChange, bookingLinks = [] }: R
                     <Input
                       value={q.question}
                       onChange={(e) => updateQuestion(qIndex, e.target.value)}
-                      placeholder="What do you need help with?"
+                      placeholder={t("what_do_you_need", "What do you need help with?")}
                       className="flex-1"
                     />
                     <Button
@@ -119,7 +121,7 @@ export function RoutingFormBuilder({ questions, onChange, bookingLinks = [] }: R
                   </div>
 
                   <div className="pl-4 space-y-2">
-                    <Label className="text-xs text-muted-foreground">Options</Label>
+                    <Label className="text-xs text-muted-foreground">{t("options", "Options")}</Label>
                     {q.options.map((opt, oIndex) => (
                       <div key={opt.value} className="flex items-center gap-2">
                         <span className="text-xs text-muted-foreground w-4">{oIndex + 1}.</span>

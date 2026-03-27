@@ -43,7 +43,8 @@ function getSurveyHistory(): SurveyHistoryEntry[] {
   try {
     const stored = localStorage.getItem(STORAGE_KEYS.surveyHistory);
     return stored ? JSON.parse(stored) : [];
-  } catch {
+  } catch (error) {
+    console.error('[SurveyTriggerService] Failed to parse survey history:', error);
     return [];
   }
 }
@@ -55,7 +56,8 @@ function getSurveyDismissals(): SurveyDismissal[] {
   try {
     const stored = localStorage.getItem(STORAGE_KEYS.surveyDismissals);
     return stored ? JSON.parse(stored) : [];
-  } catch {
+  } catch (error) {
+    console.error('[SurveyTriggerService] Failed to parse survey dismissals:', error);
     return [];
   }
 }
@@ -74,7 +76,8 @@ function getMonthlyCount(): { month: string; count: number } {
       return { month: getCurrentMonth(), count: 0 };
     }
     return data;
-  } catch {
+  } catch (error) {
+    console.error('[SurveyTriggerService] Failed to parse monthly count:', error);
     return { month: getCurrentMonth(), count: 0 };
   }
 }

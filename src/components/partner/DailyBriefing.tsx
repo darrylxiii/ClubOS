@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -8,6 +9,7 @@ import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 
 export function DailyBriefing({ companyId }: { companyId: string }) {
+  const { t } = useTranslation('common');
   const queryClient = useQueryClient();
 
   const { data: insights, isLoading } = useQuery({
@@ -34,11 +36,11 @@ export function DailyBriefing({ companyId }: { companyId: string }) {
       return data;
     },
     onSuccess: () => {
-      toast.success('Daily briefing generated');
+      toast.success(t("daily_briefing_generated", "Daily briefing generated"));
       queryClient.invalidateQueries({ queryKey: ['daily-briefing', companyId] });
     },
     onError: (error: Error) => {
-      toast.error('Failed to generate briefing', {
+      toast.error(t("failed_to_generate_briefing", "Failed to generate briefing"), {
         description: error.message
       });
     }
@@ -73,7 +75,7 @@ export function DailyBriefing({ companyId }: { companyId: string }) {
             <div className="p-1.5 rounded-lg bg-primary/10">
               <Brain className="h-4 w-4 text-primary" />
             </div>
-            <span>QUIN Daily Briefing</span>
+            <span>{t("quin_daily_briefing", "QUIN Daily Briefing")}</span>
             <Badge variant="secondary" className="ml-1 text-[10px]">
               AI
             </Badge>
@@ -146,10 +148,8 @@ export function DailyBriefing({ companyId }: { companyId: string }) {
               <Sparkles className="h-6 w-6 text-primary" />
             </div>
             <div>
-              <p className="font-medium">Your briefing awaits</p>
-              <p className="text-sm text-muted-foreground">
-                Let QUIN analyze your hiring activity
-              </p>
+              <p className="font-medium">{t("your_briefing_awaits", "Your briefing awaits")}</p>
+              <p className="text-sm text-muted-foreground">{t('dailyBriefing.letQuinAnalyzeYourHiringActivity')}</p>
             </div>
             <Button 
               variant="outline"

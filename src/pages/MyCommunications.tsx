@@ -1,4 +1,5 @@
 import { RefreshCw, MessageSquare, Settings, TrendingUp, User } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 import { PageTitle, Subtitle } from '@/components/ui/typography';
 import { Button } from '@/components/ui/button';
@@ -10,6 +11,7 @@ import { CommunicationPreferencesCard } from '@/components/communication/Communi
 import { CommunicationStatsCard } from '@/components/communication/CommunicationStatsCard';
 
 export default function MyCommunications() {
+  const { t } = useTranslation('messages');
   const {
     communications,
     preferences,

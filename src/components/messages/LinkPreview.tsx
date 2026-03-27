@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card } from '@/components/ui/card';
@@ -15,6 +16,7 @@ interface LinkMetadata {
 }
 
 export function LinkPreview({ url }: LinkPreviewProps) {
+  const { t } = useTranslation('common');
     const [metadata, setMetadata] = useState<LinkMetadata | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(false);
@@ -52,7 +54,7 @@ export function LinkPreview({ url }: LinkPreviewProps) {
                 {loading ? (
                     <div className="p-4 flex items-center gap-2 text-muted-foreground">
                         <Loader2 className="h-4 w-4 animate-spin" />
-                        <span className="text-xs">Loading preview...</span>
+                        <span className="text-xs">{t("loading_preview", "Loading preview...")}</span>
                     </div>
                 ) : (
                     <div className="flex flex-col">

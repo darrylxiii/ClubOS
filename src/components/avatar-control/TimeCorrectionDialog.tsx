@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -32,6 +33,7 @@ export function TimeCorrectionDialog({
   originalMinutes,
   jobTitle,
 }: TimeCorrectionDialogProps) {
+  const { t } = useTranslation('common');
   const [correctedMinutes, setCorrectedMinutes] = useState(String(originalMinutes));
   const [correctionType, setCorrectionType] = useState('');
   const [reason, setReason] = useState('');
@@ -75,7 +77,7 @@ export function TimeCorrectionDialog({
           </div>
 
           <div className="space-y-2">
-            <Label>Corrected minutes</Label>
+            <Label>{t("corrected_minutes", "Corrected minutes")}</Label>
             <Input
               type="number"
               min={0}
@@ -85,10 +87,10 @@ export function TimeCorrectionDialog({
           </div>
 
           <div className="space-y-2">
-            <Label>Correction type</Label>
+            <Label>{t("correction_type", "Correction type")}</Label>
             <Select value={correctionType} onValueChange={setCorrectionType}>
               <SelectTrigger>
-                <SelectValue placeholder="Select type…" />
+                <SelectValue placeholder={t("select_type", "Select type…")} />
               </SelectTrigger>
               <SelectContent>
                 {CORRECTION_TYPES.map(t => (
@@ -99,9 +101,9 @@ export function TimeCorrectionDialog({
           </div>
 
           <div className="space-y-2">
-            <Label>Reason</Label>
+            <Label>{t("reason", "Reason")}</Label>
             <Textarea
-              placeholder="e.g. Left session running over lunch"
+              placeholder={t("eg_left_session_running", "e.g. Left session running over lunch")}
               value={reason}
               onChange={e => setReason(e.target.value)}
               rows={2}
@@ -110,7 +112,7 @@ export function TimeCorrectionDialog({
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>{t("cancel", "Cancel")}</Button>
           <Button
             onClick={handleSubmit}
             disabled={!correctionType || !reason.trim() || submitCorrection.isPending}

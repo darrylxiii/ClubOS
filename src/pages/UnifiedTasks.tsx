@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { useTranslation } from 'react-i18next';
 import { ErrorState } from "@/components/ui/error-state";
 import { useSearchParams } from "react-router-dom";
 
@@ -35,6 +36,7 @@ interface SystemPreferences {
 }
 
 const UnifiedTasks = () => {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const { currentRole: role } = useRole();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -156,7 +158,7 @@ const UnifiedTasks = () => {
   if (fetchError) {
     return (
       <div className="px-4 sm:px-6 lg:px-8 py-8">
-        <ErrorState variant="page" title="Tasks Unavailable" message={fetchError} onRetry={() => setRefreshKey(p => p + 1)} />
+        <ErrorState variant="page" title="Tasks" Unavailable message={fetchError} onRetry={() => setRefreshKey(p => p + 1)} />
       </div>
     );
   }

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Link } from "react-router-dom";
 import {
   DollarSign, BarChart3, Users, Briefcase, Shield, Globe,
@@ -19,9 +20,10 @@ const TILES = [
 ] as const;
 
 export function QuickLaunchGrid() {
+  const { t } = useTranslation('common');
   return (
     <div>
-      <h3 className="text-xs font-medium text-muted-foreground mb-3 uppercase tracking-wider">Quick Launch</h3>
+      <h3 className="text-xs font-medium text-muted-foreground mb-3 uppercase tracking-wider">{t("quick_launch", "Quick Launch")}</h3>
       <div className="grid grid-cols-5 sm:grid-cols-5 md:grid-cols-10 gap-2">
         {TILES.map(({ icon: Icon, label, href }) => (
           <Link

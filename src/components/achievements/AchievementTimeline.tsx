@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { BadgeCard } from "./BadgeCard";
@@ -21,6 +22,7 @@ interface TimelineAchievement {
 }
 
 export const AchievementTimeline = () => {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [achievements, setAchievements] = useState<TimelineAchievement[]>([]);
   const [loading, setLoading] = useState(true);
@@ -101,7 +103,7 @@ export const AchievementTimeline = () => {
       <div className="flex items-center justify-between">
         <Badge variant="outline" className="gap-2">
           <Sparkles className="h-3 w-3" />
-          {unlockedCount} / {achievements.length} Quantum Jumps
+          {unlockedCount} / {achievements.length} {t('achievements.quantumJumps')}
         </Badge>
       </div>
 

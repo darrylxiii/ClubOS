@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect, useCallback } from "react";
 import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
@@ -47,6 +48,7 @@ export function UnifiedDateTimeSelector({
   onDateTimeSelected,
   hostTimezone,
 }: UnifiedDateTimeSelectorProps) {
+  const { t } = useTranslation('common');
   const { trackStep, trackSlotView } = useBookingAnalytics(bookingLink.id);
   const guestTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   const { format: timeFormat, toggleFormat } = useTimeFormatPreference();
@@ -118,14 +120,14 @@ export function UnifiedDateTimeSelector({
     bookingLinkId: bookingLink.id,
     selectedDate,
     onSlotBooked: () => {
-      toast.info("A slot was just booked. Refreshing availability...");
+      toast.info(t("a_slot_was_just", "A slot was just booked. Refreshing availability..."));
       if (selectedDate) {
         loadSlotsForDateCallback(selectedDate);
         loadMonthAvailability(currentMonth);
       }
     },
     onSlotCancelled: () => {
-      toast.success("A slot just became available!");
+      toast.success(t("a_slot_just_became", "A slot just became available!"));
       if (selectedDate) {
         loadSlotsForDateCallback(selectedDate);
         loadMonthAvailability(currentMonth);
@@ -303,7 +305,7 @@ export function UnifiedDateTimeSelector({
           <div className="space-y-4">
             <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
               <CalendarIcon className="h-4 w-4 text-primary" />
-              <span>Select a Date</span>
+              <span>{t("select_a_date", "Select a Date")}</span>
             </div>
             <Calendar
               mode="single"
@@ -345,23 +347,23 @@ export function UnifiedDateTimeSelector({
 
             {/* Availability Legend */}
             <div className="mt-4 pt-4 border-t space-y-2">
-              <p className="text-xs font-medium text-muted-foreground mb-2">Availability:</p>
+              <p className="text-xs font-medium text-muted-foreground mb-2">{t("availability", "Availability:")}</p>
               <div className="grid grid-cols-2 gap-2 text-xs">
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 rounded-full bg-[hsl(142,76%,36%)]"></div>
-                  <span>Many slots</span>
+                  <span>{t("many_slots", "Many slots")}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 rounded-full bg-[hsl(48,96%,53%)]"></div>
-                  <span>Few left</span>
+                  <span>{t("few_left", "Few left")}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 rounded-full bg-[hsl(0,84%,60%)]"></div>
-                  <span>Almost full</span>
+                  <span>{t("almost_full", "Almost full")}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Lock className="w-3 h-3 opacity-40" />
-                  <span>Unavailable</span>
+                  <span>{t("unavailable", "Unavailable")}</span>
                 </div>
               </div>
             </div>
@@ -382,7 +384,7 @@ export function UnifiedDateTimeSelector({
             <div className="flex items-center justify-between flex-wrap gap-2">
               <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
                 <Clock className="h-4 w-4 text-primary" />
-                <span>Select a Time</span>
+                <span>{t("select_a_time", "Select a Time")}</span>
               </div>
               <div className="flex items-center gap-3">
                 <TimeFormatToggle format={timeFormat} onToggle={toggleFormat} />
@@ -398,7 +400,7 @@ export function UnifiedDateTimeSelector({
               <div className="flex items-center justify-center h-64 text-center text-muted-foreground">
                 <div className="space-y-2">
                   <CalendarIcon className="h-12 w-12 mx-auto opacity-20" />
-                  <p className="text-sm">Select a date to view available times</p>
+                  <p className="text-sm">{t("select_a_date_to", "Select a date to view available times")}</p>
                 </div>
               </div>
             )}
@@ -415,14 +417,14 @@ export function UnifiedDateTimeSelector({
               <div className="flex items-center justify-center h-64 text-center text-muted-foreground">
                 <div className="space-y-2">
                   <Clock className="h-12 w-12 mx-auto opacity-20" />
-                  <p className="text-sm">No available times for this date</p>
-                  <p className="text-xs">Please select another date</p>
+                  <p className="text-sm">{t("no_available_times_for", "No available times for this date")}</p>
+                  <p className="text-xs">{t("please_select_another_date", "Please select another date")}</p>
                 </div>
               </div>
             )}
 
             {selectedDate && !loading && availableSlots.length > 0 && (
-              <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2" role="listbox" aria-label="Available time slots">
+              <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2" role="listbox" aria-label={t("available_time_slots", "Available time slots")}>
                 <AnimatePresence mode="popLayout">
                   {availableSlots.map((slot, index) => {
                     const { primary, secondary } = formatSlotDisplay(slot);

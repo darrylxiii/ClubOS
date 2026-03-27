@@ -3,6 +3,7 @@ import { Home, Briefcase, MessageSquare, User, MoreHorizontal } from "lucide-rea
 import { cn } from "@/lib/utils";
 import { useState, useEffect, useRef } from "react";
 import { useHaptics } from "@/hooks/useHaptics";
+import { useTranslation } from 'react-i18next';
 
 const NAV_ITEMS = [
   { icon: Home, label: "Home", path: "/home" },
@@ -13,6 +14,7 @@ const NAV_ITEMS = [
 ] as const;
 
 export const MobileBottomNav = () => {
+  const { t } = useTranslation('common');
   const location = useLocation();
   const navigate = useNavigate();
   const [visible, setVisible] = useState(true);

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -14,6 +15,7 @@ export function DirectMessageList({
   onSelectConversation,
   selectedConversationId,
 }: DirectMessageListProps) {
+  const { t } = useTranslation('common');
   const { conversations, loading } = useDirectMessages();
 
   if (loading) {
@@ -28,7 +30,7 @@ export function DirectMessageList({
     return (
       <div className="flex-1 flex flex-col items-center justify-center text-center p-6">
         <MessageSquare className="h-12 w-12 text-muted-foreground mb-3" />
-        <p className="text-sm text-muted-foreground">No direct messages yet</p>
+        <p className="text-sm text-muted-foreground">{t("no_direct_messages_yet", "No direct messages yet")}</p>
         <p className="text-xs text-muted-foreground mt-1">
           Click on a user to start a conversation
         </p>

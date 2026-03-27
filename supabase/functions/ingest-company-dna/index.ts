@@ -1,10 +1,4 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
-
-const corsHeaders = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { createHandler } from '../_shared/handler.ts';
 
 // Simple text splitter function
 function splitText(text: string, chunkSize: number = 800, overlap: number = 200): string[] {
@@ -36,21 +30,14 @@ function splitText(text: string, chunkSize: number = 800, overlap: number = 200)
     return chunks;
 }
 
-serve(async (req) => {
-    if (req.method === 'OPTIONS') {
-        return new Response('ok', { headers: corsHeaders });
-    }
+Deno.serve(createHandler(async (req, ctx) => {
+        const { supabase, corsHeaders } = ctx;
+        const googleApiKey = Deno.env.get('GOOGLE_API_KEY');
 
-    try {
-        const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-        const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-        const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
-
-        if (!lovableApiKey) {
-            throw new Error('LOVABLE_API_KEY is not set');
+        if (!googleApiKey) {
+            throw new Error('GOOGLE_API_KEY is not set');
         }
 
-        const supabase = createClient(supabaseUrl, supabaseServiceKey);
         const { company_id } = await req.json();
 
         if (!company_id) {
@@ -146,10 +133,10 @@ serve(async (req) => {
             const batch = chunks.slice(i, i + 5);
             await Promise.all(batch.map(async (chunk) => {
                 try {
-                    const embeddingResp = await fetch('https://ai.gateway.lovable.dev/v1/embeddings', {
+                    const embeddingResp = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/embeddings', {
                         method: 'POST',
                         headers: {
-                            'Authorization': `Bearer ${lovableApiKey}`,
+                            'Authorization': `Bearer ${googleApiKey}`,
                             'Content-Type': 'application/json'
                         },
                         body: JSON.stringify({
@@ -186,11 +173,4 @@ serve(async (req) => {
             { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
 
-    } catch (error) {
-        console.error('Error:', error);
-        return new Response(
-            JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
-            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-    }
-});
+}));

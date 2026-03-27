@@ -1,4 +1,5 @@
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import { Check, MapPin, Loader2, Navigation, Clock, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -109,11 +110,13 @@ function parseNominatimResult(result: NominatimResult): LocationResult {
 export function EnhancedLocationAutocomplete({
   value,
   onChange,
-  placeholder = "Search for a city or address...",
+  placeholder,
   className,
   showCoordinates = false,
   disabled = false,
 }: EnhancedLocationAutocompleteProps) {
+  const { t } = useTranslation('common');
+  const resolvedPlaceholder = placeholder ?? t("location.searchPlaceholder", "Search for a city or address...");
   const [open, setOpen] = React.useState(false);
   const [suggestions, setSuggestions] = React.useState<LocationResult[]>([]);
   const [loading, setLoading] = React.useState(false);
@@ -296,7 +299,7 @@ export function EnhancedLocationAutocomplete({
                 onKeyDown={handleKeyDown}
                 onFocus={handleFocus}
                 onBlur={handleBlur}
-                placeholder={placeholder}
+                placeholder={resolvedPlaceholder}
                 className={cn(
                   "pl-10 pr-8 transition-all duration-200",
                   isFocused && "ring-2 ring-primary/20",
@@ -360,14 +363,14 @@ export function EnhancedLocationAutocomplete({
                     className="flex items-center gap-3 py-4 px-3"
                   >
                     <Loader2 className="h-4 w-4 animate-spin text-primary" />
-                    <span className="text-sm text-muted-foreground">Searching cities...</span>
+                    <span className="text-sm text-muted-foreground">{t("location.searchingCities", "Searching cities...")}</span>
                   </motion.div>
                 )}
               </AnimatePresence>
               
               {/* Recent Searches */}
               {showRecentSearches && !loading && (
-                <CommandGroup heading="Recent Searches">
+                <CommandGroup heading={t("location.recentSearches", "Recent Searches")}>
                   {recentLocations.map((location, idx) => (
                     <CommandItem
                       key={`recent-${idx}`}
@@ -411,10 +414,10 @@ export function EnhancedLocationAutocomplete({
                   >
                     <Navigation className="h-8 w-8 text-muted-foreground/50" />
                     <p className="text-sm text-muted-foreground">
-                      No cities found for "{inputValue}"
+                      {t("location.noCitiesFoundFor", "No cities found for \"{{query}}\"", { query: inputValue })}
                     </p>
                     <p className="text-xs text-muted-foreground/70">
-                      Try a different search term
+                      {t("location.tryDifferentSearch", "Try a different search term")}
                     </p>
                   </motion.div>
                 </CommandEmpty>
@@ -422,7 +425,7 @@ export function EnhancedLocationAutocomplete({
 
               {/* Suggestions */}
               {showSuggestions && !loading && (
-                <CommandGroup heading="Suggestions">
+                <CommandGroup heading={t("location.suggestions", "Suggestions")}>
                   {suggestions.map((location, index) => (
                     <motion.div
                       key={`suggestion-${index}`}
@@ -474,15 +477,15 @@ export function EnhancedLocationAutocomplete({
                     <span className="flex items-center gap-1">
                       <kbd className="px-1 py-0.5 bg-background rounded border text-[9px]">↑</kbd>
                       <kbd className="px-1 py-0.5 bg-background rounded border text-[9px]">↓</kbd>
-                      navigate
+                      {t("location.navigate", "navigate")}
                     </span>
                     <span className="flex items-center gap-1">
                       <kbd className="px-1.5 py-0.5 bg-background rounded border text-[9px]">↵</kbd>
-                      select
+                      {t("location.select", "select")}
                     </span>
                     <span className="flex items-center gap-1">
                       <kbd className="px-1 py-0.5 bg-background rounded border text-[9px]">esc</kbd>
-                      close
+                      {t("location.close", "close")}
                     </span>
                   </div>
                 </div>

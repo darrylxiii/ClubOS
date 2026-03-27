@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useUserMetrics } from '@/hooks/useUserMetrics';
 import { useQuery } from '@tanstack/react-query';
@@ -7,6 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { grossToNet } from '@/lib/vatRates';
 
 export function MetricsOverviewDashboard() {
+  const { t } = useTranslation('common');
   const { metrics, isLoading: metricsLoading } = useUserMetrics();
 
   const { data: liveMetrics, isLoading: revenueLoading } = useQuery({
@@ -161,7 +163,7 @@ export function MetricsOverviewDashboard() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold">Key Business Metrics</h2>
+        <h2 className="text-2xl font-bold">{t("key_business_metrics", "Key Business Metrics")}</h2>
         <p className="text-muted-foreground">
           Live metrics computed from financial records
         </p>
@@ -193,19 +195,19 @@ export function MetricsOverviewDashboard() {
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Unit Economics</CardTitle>
+            <CardTitle>{t("unit_economics", "Unit Economics")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Customer Acquisition Cost</span>
+              <span className="text-muted-foreground">{t("customer_acquisition_cost", "Customer Acquisition Cost")}</span>
               <span className="font-medium">{liveMetrics ? fmtEur(liveMetrics.cac) : '—'}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Avg Revenue per Client</span>
+              <span className="text-muted-foreground">{t("avg_revenue_per_client", "Avg Revenue per Client")}</span>
               <span className="font-medium">{liveMetrics ? fmtEur(liveMetrics.avgRevenuePerClient) : '—'}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-muted-foreground">LTV:CAC Ratio</span>
+              <span className="text-muted-foreground">{t("ltvcac_ratio", "LTV:CAC Ratio")}</span>
               <span className={`font-medium ${liveMetrics && liveMetrics.cac > 0 ? 'text-success' : ''}`}>
                 {liveMetrics && liveMetrics.cac > 0
                   ? `${(liveMetrics.avgRevenuePerClient / liveMetrics.cac).toFixed(1)}:1`
@@ -213,11 +215,11 @@ export function MetricsOverviewDashboard() {
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Gross Margin</span>
+              <span className="text-muted-foreground">{t("gross_margin", "Gross Margin")}</span>
               <span className="font-medium">{liveMetrics ? `${liveMetrics.grossMargin.toFixed(1)}%` : '—'}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Net Revenue (YTD)</span>
+              <span className="text-muted-foreground">{t("net_revenue_ytd", "Net Revenue (YTD)")}</span>
               <span className="font-medium">{liveMetrics ? fmtEur(liveMetrics.netRevenue) : '—'}</span>
             </div>
           </CardContent>
@@ -225,17 +227,17 @@ export function MetricsOverviewDashboard() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Growth Indicators</CardTitle>
+            <CardTitle>{t("growth_indicators", "Growth Indicators")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Revenue Growth (YoY)</span>
+              <span className="text-muted-foreground">{t("revenue_growth_yoy", "Revenue Growth (YoY)")}</span>
               <span className={`font-medium ${(liveMetrics?.growthRate ?? 0) >= 0 ? 'text-success' : 'text-destructive'}`}>
                 {liveMetrics ? `${liveMetrics.growthRate >= 0 ? '+' : ''}${liveMetrics.growthRate.toFixed(1)}%` : '—'}
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Client Growth (YoY)</span>
+              <span className="text-muted-foreground">{t("client_growth_yoy", "Client Growth (YoY)")}</span>
               <span className="font-medium">
                 {liveMetrics && liveMetrics.prevClients > 0
                   ? `${liveMetrics.totalClients > liveMetrics.prevClients ? '+' : ''}${((liveMetrics.totalClients / liveMetrics.prevClients - 1) * 100).toFixed(0)}%`
@@ -243,7 +245,7 @@ export function MetricsOverviewDashboard() {
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Avg Deal Size</span>
+              <span className="text-muted-foreground">{t("avg_deal_size", "Avg Deal Size")}</span>
               <span className="font-medium">
                 {liveMetrics && liveMetrics.totalPlacements > 0
                   ? fmtEur(liveMetrics.netRevenue / liveMetrics.totalPlacements)
@@ -251,11 +253,11 @@ export function MetricsOverviewDashboard() {
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Verified Users</span>
+              <span className="text-muted-foreground">{t("verified_users", "Verified Users")}</span>
               <span className="font-medium">{metrics?.verified_users || 0}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Previous Year Revenue</span>
+              <span className="text-muted-foreground">{t("previous_year_revenue", "Previous Year Revenue")}</span>
               <span className="font-medium">{liveMetrics ? fmtEur(liveMetrics.prevNetRevenue) : '—'}</span>
             </div>
           </CardContent>

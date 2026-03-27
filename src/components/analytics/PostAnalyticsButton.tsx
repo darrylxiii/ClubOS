@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Button } from "@/components/ui/button";
 import { BarChart3 } from "lucide-react";
 import { useState } from "react";
@@ -16,6 +17,7 @@ export const PostAnalyticsButton = ({
   size = "sm",
   showLabel = true,
 }: PostAnalyticsButtonProps) => {
+  const { t } = useTranslation('analytics');
   const [showDialog, setShowDialog] = useState(false);
 
   return (
@@ -27,7 +29,7 @@ export const PostAnalyticsButton = ({
         className="gap-2"
       >
         <BarChart3 className="h-4 w-4" />
-        {showLabel && "Analytics"}
+        {showLabel && t('analytics')}
       </Button>
 
       <PostAnalyticsDialog postId={postId} open={showDialog} onOpenChange={setShowDialog} />

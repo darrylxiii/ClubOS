@@ -3,12 +3,12 @@ import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
-const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || '';
+const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
 if (!supabaseUrl || !supabaseKey) {
   console.warn(
     'Supabase URL or Key is missing. The app is running in a mode where env vars are not set (e.g. preview). ' +
-    'Please set VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY in .env or your build environment.'
+    'Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in .env or your build environment.'
   );
 }
 

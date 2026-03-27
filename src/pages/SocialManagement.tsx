@@ -1,5 +1,6 @@
 import { RoleGate } from "@/components/RoleGate";
 import { useState } from "react";
+import { useTranslation } from 'react-i18next';
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -14,6 +15,7 @@ import { CreatePostDialog } from "@/components/social/CreatePostDialog";
 import { PartnerInlineStats } from "@/components/partner/PartnerInlineStats";
 
 const SocialManagement = () => {
+  const { t } = useTranslation('common');
   const [showCreatePost, setShowCreatePost] = useState(false);
 
   return (

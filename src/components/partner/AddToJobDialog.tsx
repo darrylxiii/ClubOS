@@ -23,6 +23,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Briefcase, Search, CheckCircle2, Loader2 } from "lucide-react";
 import { useDebounce } from "@/hooks/use-debounce";
+import { useTranslation } from 'react-i18next';
 
 interface AddToJobDialogProps {
   open: boolean;
@@ -60,6 +61,7 @@ export const AddToJobDialog = ({
   candidateName,
   onAdded,
 }: AddToJobDialogProps) => {
+  const { t } = useTranslation('partner');
   const [search, setSearch] = useState("");
   const [jobs, setJobs] = useState<JobResult[]>([]);
   const [selectedJob, setSelectedJob] = useState<JobResult | null>(null);
@@ -214,7 +216,7 @@ export const AddToJobDialog = ({
         });
       } catch (interactionError) {
         console.error("[AddToJob] Failed to log interaction:", interactionError);
-        toast.error("Candidate added but interaction log failed");
+        toast.error(t('addToJobDialog.toast.candidateAddedButInteractionLogFailed'));
       }
 
       // Audit log
@@ -236,7 +238,7 @@ export const AddToJobDialog = ({
         });
       } catch (auditError) {
         console.error("[AddToJob] Failed to log audit:", auditError);
-        toast.error("Candidate added but audit log failed");
+        toast.error(t('addToJobDialog.toast.candidateAddedButAuditLogFailed'));
       }
 
       toast.success(`Added to ${selectedJob.title}`, {
@@ -247,8 +249,8 @@ export const AddToJobDialog = ({
       onOpenChange(false);
     } catch (error: unknown) {
       const err = error as { message?: string };
-      toast.error("Failed to add candidate to job", {
-        description: err.message || "Please try again.",
+      toast.error(t('addToJobDialog.toast.failedToAddCandidate'), {
+        description: err.message || t('common:tryAgain'),
       });
     } finally {
       setSubmitting(false);
@@ -264,11 +266,9 @@ export const AddToJobDialog = ({
               <Briefcase className="w-5 h-5 text-accent" />
             </div>
             <div>
-              <DialogTitle className="text-lg font-bold">
-                Add to Job Pipeline
-              </DialogTitle>
+              <DialogTitle className="text-lg font-bold">{t('addToJobDialog.dialogTitle')}</DialogTitle>
               <DialogDescription>
-                Add <strong>{candidateName}</strong> to a job without creating a
+                {t('common:add')} <strong>{candidateName}</strong> to a job without creating a
                 duplicate profile.
               </DialogDescription>
             </div>
@@ -279,7 +279,7 @@ export const AddToJobDialog = ({
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
-            placeholder="Search jobs by title or company..."
+            placeholder={t('addToJobDialog.placeholder.searchJobsByTitleOrCompany')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-9"
@@ -293,9 +293,7 @@ export const AddToJobDialog = ({
               <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
             </div>
           ) : filteredJobs.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-8">
-              No active jobs found.
-            </p>
+            <p className="text-sm text-muted-foreground text-center py-8">{t('addToJobDialog.noActiveJobsFound')}</p>
           ) : (
             <div className="p-1 space-y-1">
               {filteredJobs.map((job) => {
@@ -331,9 +329,7 @@ export const AddToJobDialog = ({
                         <Badge
                           variant="outline"
                           className="text-[10px] shrink-0 border-muted-foreground/30"
-                        >
-                          Already in pipeline
-                        </Badge>
+                        >{t('addToJobDialog.badge.alreadyInPipeline')}</Badge>
                       ) : isSelected ? (
                         <CheckCircle2 className="w-4 h-4 text-accent shrink-0" />
                       ) : null}
@@ -349,7 +345,7 @@ export const AddToJobDialog = ({
         {selectedJob && (
           <div className="space-y-3">
             <div className="space-y-1.5">
-              <Label>Starting Stage</Label>
+              <Label>{t('addToJobDialog.label.startingStage')}</Label>
               <Select
                 value={startStageIndex}
                 onValueChange={setStartStageIndex}
@@ -368,12 +364,12 @@ export const AddToJobDialog = ({
             </div>
 
             <div className="space-y-1.5">
-              <Label>Notes (optional)</Label>
+              <Label>{t('addToJobDialog.label.notesOptional')}</Label>
               <Textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 rows={2}
-                placeholder="Why are you adding this candidate?"
+                placeholder={t('addToJobDialog.placeholder.whyAreYouAddingThisCandidate')}
               />
             </div>
           </div>
@@ -381,7 +377,7 @@ export const AddToJobDialog = ({
 
         <div className="flex justify-end gap-2 pt-2 border-t border-border/30">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+            {t('common:cancel')}
           </Button>
           <Button
             onClick={handleSubmit}

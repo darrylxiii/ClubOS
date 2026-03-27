@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Globe, Clock, AlertTriangle } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface TimezoneWarningProps {
   guestTimezone: string;
@@ -58,6 +59,7 @@ export function TimezoneWarning({
   hostTimezone, 
   showToggle = true 
 }: TimezoneWarningProps) {
+  const { t } = useTranslation('common');
   const [showInGuestTz, setShowInGuestTz] = useState(true);
 
   // Don't show if timezones are the same
@@ -76,8 +78,8 @@ export function TimezoneWarning({
       <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/50 px-3 py-2 rounded-md">
         <Globe className="w-3 h-3" />
         <span>
-          Your timezone: {formatTimezoneName(guestTimezone)} • 
-          Host timezone: {formatTimezoneName(hostTimezone)}
+          {t('booking.timezone.yours', 'Your timezone')}: {formatTimezoneName(guestTimezone)} {' \u2022 '}
+          {t('booking.timezone.host', 'Host timezone')}: {formatTimezoneName(hostTimezone)}
         </span>
       </div>
     );
@@ -90,10 +92,10 @@ export function TimezoneWarning({
         <div className="flex items-start justify-between gap-4">
           <div className="space-y-1">
             <p className="font-medium text-amber-400">
-              Timezone Difference: {Math.round(hoursDifference)} hours
+              {t('booking.timezone.difference', 'Timezone Difference: {{hours}} hours', { hours: Math.round(hoursDifference) })}
             </p>
             <p className="text-sm text-muted-foreground">
-              Please double-check the meeting time is convenient for you.
+              {t('booking.timezone.doubleCheck', 'Please double-check the meeting time is convenient for you.')}
             </p>
           </div>
         </div>
@@ -102,26 +104,26 @@ export function TimezoneWarning({
           <div className="bg-background/50 p-2 rounded border border-border/50">
             <div className="flex items-center gap-1 mb-1">
               <Clock className="w-3 h-3" />
-              <span className="font-medium">Your Time</span>
+              <span className="font-medium">{t('booking.timezone.yourTime', 'Your Time')}</span>
             </div>
             <p className="text-xs text-muted-foreground">
               {formatTimezoneName(guestTimezone)}
             </p>
             <p className="text-xs">
-              Currently: {getCurrentTimeInTimezone(guestTimezone)}
+              {t('booking.timezone.currently', 'Currently')}: {getCurrentTimeInTimezone(guestTimezone)}
             </p>
           </div>
-          
+
           <div className="bg-background/50 p-2 rounded border border-border/50">
             <div className="flex items-center gap-1 mb-1">
               <Clock className="w-3 h-3" />
-              <span className="font-medium">Host's Time</span>
+              <span className="font-medium">{t('booking.timezone.hostTime', "Host's Time")}</span>
             </div>
             <p className="text-xs text-muted-foreground">
               {formatTimezoneName(hostTimezone)}
             </p>
             <p className="text-xs">
-              Currently: {getCurrentTimeInTimezone(hostTimezone)}
+              {t('booking.timezone.currently', 'Currently')}: {getCurrentTimeInTimezone(hostTimezone)}
             </p>
           </div>
         </div>
@@ -134,7 +136,7 @@ export function TimezoneWarning({
               className="text-xs h-7"
               onClick={() => setShowInGuestTz(true)}
             >
-              Show in my timezone
+              {t('booking.timezone.showInMine', 'Show in my timezone')}
             </Button>
             <Button
               variant={!showInGuestTz ? "default" : "outline"}
@@ -142,7 +144,7 @@ export function TimezoneWarning({
               className="text-xs h-7"
               onClick={() => setShowInGuestTz(false)}
             >
-              Show in host's timezone
+              {t('booking.timezone.showInHost', "Show in host's timezone")}
             </Button>
           </div>
         )}

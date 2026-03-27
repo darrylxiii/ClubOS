@@ -12,6 +12,7 @@ import { useGodMode } from "@/hooks/useGodMode";
 import { UserEditDrawer } from "./UserEditDrawer";
 import { formatDistanceToNow } from "date-fns";
 import { PartnerProvisioningModal } from "@/components/admin/PartnerProvisioningModal";
+import { useTranslation } from 'react-i18next';
 
 interface PartnerUser {
   id: string;
@@ -24,6 +25,7 @@ interface PartnerUser {
 }
 
 const PartnersTab = () => {
+  const { t } = useTranslation('admin');
   const navigate = useNavigate();
   const { suspendUser, unsuspendUser } = useGodMode();
   const [search, setSearch] = useState("");
@@ -96,7 +98,7 @@ const PartnersTab = () => {
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle>Partners</CardTitle>
+            <CardTitle>{t('users.partnersTab.partners')}</CardTitle>
             <CardDescription>
               {filtered.length} partner{filtered.length !== 1 ? "s" : ""} across {new Set(partners.flatMap((p) => p.companies.map((c) => c.company_id))).size} companies
             </CardDescription>
@@ -111,7 +113,7 @@ const PartnersTab = () => {
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
-            placeholder="Search by name, email, or company..."
+            placeholder={t('users.partnersTab.searchByNameEmailOrCompany')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-10"
@@ -121,13 +123,13 @@ const PartnersTab = () => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Companies</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Last Login</TableHead>
-              <TableHead>Joined</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead>{t('common:fields.name')}</TableHead>
+              <TableHead>{t('common:fields.email')}</TableHead>
+              <TableHead>{t('users.partnersTab.companies')}</TableHead>
+              <TableHead>{t('common:fields.status')}</TableHead>
+              <TableHead>{t('users.partnersTab.lastLogin')}</TableHead>
+              <TableHead>{t('users.partnersTab.joined')}</TableHead>
+              <TableHead className="text-right">{t('common:fields.actions')}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -147,7 +149,7 @@ const PartnersTab = () => {
                   <TableCell>
                     <div className="flex flex-wrap gap-1">
                       {user.companies.length === 0 ? (
-                        <span className="text-muted-foreground text-xs">No company</span>
+                        <span className="text-muted-foreground text-xs">{t('users.partnersTab.noCompany')}</span>
                       ) : (
                         user.companies.map((c) => (
                           <Badge key={c.company_id} variant="secondary" className="text-xs gap-1">
@@ -170,21 +172,21 @@ const PartnersTab = () => {
                   <TableCell className="text-sm text-muted-foreground">
                     {user.last_login_at
                       ? formatDistanceToNow(new Date(user.last_login_at), { addSuffix: true })
-                      : <span className="text-muted-foreground/60">Never</span>}
+                      : <span className="text-muted-foreground/60">{t('users.partnersTab.never')}</span>}
                   </TableCell>
                   <TableCell className="text-sm text-muted-foreground">
                     {formatDistanceToNow(new Date(user.created_at), { addSuffix: true })}
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-1">
-                      <Button variant="ghost" size="icon" onClick={() => navigate(`/profile/${user.id}`)} title="View Profile">
+                      <Button variant="ghost" size="icon" onClick={() => navigate(`/profile/${user.id}`)} title={t('users.partnersTab.viewProfile')}>
                         <Eye className="w-4 h-4" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="icon"
                         onClick={() => setEditingUser({ id: user.id, email: user.email, full_name: user.full_name })}
-                        title="Edit"
+                        title={t('common:actions.edit')}
                       >
                         <Eye className="w-4 h-4" />
                       </Button>
@@ -198,7 +200,7 @@ const PartnersTab = () => {
                               refetch();
                             }
                           }}
-                          title="Suspend"
+                          title={t('users.partnersTab.suspend')}
                         >
                           <Ban className="w-4 h-4 text-destructive" />
                         </Button>
@@ -207,7 +209,7 @@ const PartnersTab = () => {
                           variant="ghost"
                           size="icon"
                           onClick={async () => { await unsuspendUser(user.id); refetch(); }}
-                          title="Unsuspend"
+                          title={t('users.partnersTab.unsuspend')}
                         >
                           <Ban className="w-4 h-4 text-emerald-500" />
                         </Button>

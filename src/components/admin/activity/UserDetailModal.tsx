@@ -18,6 +18,7 @@ import {
   type InvoiceForShare,
   type AggregatedEarnings,
 } from '@/lib/employeeEarnings';
+import { useTranslation } from 'react-i18next';
 
 interface UserDetailModalProps {
   userId: string | null;
@@ -142,6 +143,7 @@ export function UserDetailModal({ userId, open, onOpenChange }: UserDetailModalP
   });
 
   const getStatusColor = (lastActivity: string | null) => {
+  const { t } = useTranslation('admin');
     if (!lastActivity) return 'bg-muted-foreground/40';
     const minutesAgo = (Date.now() - new Date(lastActivity).getTime()) / (1000 * 60);
     if (minutesAgo < 2) return 'bg-green-500';
@@ -151,11 +153,11 @@ export function UserDetailModal({ userId, open, onOpenChange }: UserDetailModalP
 
   const getActivityBadge = (level: string | undefined) => {
     switch (level) {
-      case 'highly_active': return <Badge className="bg-emerald-500">Highly Active</Badge>;
-      case 'active': return <Badge className="bg-green-500">Active</Badge>;
-      case 'moderate': return <Badge className="bg-yellow-500 text-black">Moderate</Badge>;
-      case 'low': return <Badge className="bg-orange-500">Low</Badge>;
-      default: return <Badge variant="secondary">Inactive</Badge>;
+      case 'highly_active': return <Badge className="bg-emerald-500">{t('activity.userDetailModal.highlyActive')}</Badge>;
+      case 'active': return <Badge className="bg-green-500">{t('common:status.active')}</Badge>;
+      case 'moderate': return <Badge className="bg-yellow-500 text-black">{t('activity.userDetailModal.moderate')}</Badge>;
+      case 'low': return <Badge className="bg-orange-500">{t('activity.userDetailModal.low')}</Badge>;
+      default: return <Badge variant="secondary">{t('common:status.inactive')}</Badge>;
     }
   };
 
@@ -163,12 +165,12 @@ export function UserDetailModal({ userId, open, onOpenChange }: UserDetailModalP
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl max-h-[90vh]">
         <DialogHeader>
-          <DialogTitle>User Details</DialogTitle>
-          <DialogDescription>Comprehensive activity, performance, and earnings data</DialogDescription>
+          <DialogTitle>{t('activity.userDetailModal.userDetails')}</DialogTitle>
+          <DialogDescription>{t('activity.userDetailModal.comprehensiveActivityPerformanceAndEarningsData')}</DialogDescription>
         </DialogHeader>
 
         {isLoading ? (
-          <div className="p-8 text-center text-muted-foreground">Loading user details...</div>
+          <div className="p-8 text-center text-muted-foreground">{t('activity.userDetailModal.loadingUserDetails')}</div>
         ) : userData ? (
           <div className="space-y-4">
             {/* User Header */}
@@ -208,10 +210,10 @@ export function UserDetailModal({ userId, open, onOpenChange }: UserDetailModalP
             {/* Tabs */}
             <Tabs defaultValue="performance" className="w-full">
               <TabsList>
-                <TabsTrigger value="performance">Performance</TabsTrigger>
-                <TabsTrigger value="earnings">Earnings</TabsTrigger>
-                <TabsTrigger value="events">Events</TabsTrigger>
-                <TabsTrigger value="info">Profile</TabsTrigger>
+                <TabsTrigger value="performance">{t('activity.userDetailModal.performance')}</TabsTrigger>
+                <TabsTrigger value="earnings">{t('activity.userDetailModal.earnings')}</TabsTrigger>
+                <TabsTrigger value="events">{t('activity.userDetailModal.events')}</TabsTrigger>
+                <TabsTrigger value="info">{t('activity.userDetailModal.profile')}</TabsTrigger>
               </TabsList>
 
               {/* Performance Tab */}
@@ -404,24 +406,24 @@ export function UserDetailModal({ userId, open, onOpenChange }: UserDetailModalP
                   {/* Summary */}
                   <Card className="bg-muted/10 border-primary/20">
                     <CardContent className="p-4">
-                      <div className="text-sm text-muted-foreground mb-2">Earnings Breakdown</div>
+                      <div className="text-sm text-muted-foreground mb-2">{t('activity.userDetailModal.earningsBreakdown')}</div>
                       <div className="space-y-2">
                         <div className="flex justify-between text-sm">
-                          <span>Commissions</span>
+                          <span>{t('activity.userDetailModal.commissions')}</span>
                           <span className="font-medium">{formatCurrencyFull(userData.earnings.commissions.total)}</span>
                         </div>
                         {userData.hasShares && (
                           <div className="flex justify-between text-sm">
-                            <span>Revenue Share Earnings</span>
+                            <span>{t('activity.userDetailModal.revenueShareEarnings')}</span>
                             <span className="font-medium">{formatCurrencyFull(userData.earnings.shareEarnings.projected)}</span>
                           </div>
                         )}
                         <div className="flex justify-between text-sm">
-                          <span>Referral Payouts</span>
+                          <span>{t('activity.userDetailModal.referralPayouts')}</span>
                           <span className="font-medium">{formatCurrencyFull(userData.earnings.referralPayouts.total)}</span>
                         </div>
                         <div className="border-t border-border/20 pt-2 flex justify-between text-sm font-bold">
-                          <span>Total Take-Home</span>
+                          <span>{t('activity.userDetailModal.totalTakehome')}</span>
                           <span className="text-primary">{formatCurrencyFull(userData.earnings.totalEarnings)}</span>
                         </div>
                       </div>
@@ -434,7 +436,7 @@ export function UserDetailModal({ userId, open, onOpenChange }: UserDetailModalP
               <TabsContent value="events">
                 <Card>
                   <CardHeader className="py-3">
-                    <CardTitle className="text-sm">Activity Timeline</CardTitle>
+                    <CardTitle className="text-sm">{t('activity.userDetailModal.activityTimeline')}</CardTitle>
                   </CardHeader>
                   <CardContent className="p-0">
                     <ScrollArea className="h-[300px]">
@@ -475,23 +477,23 @@ export function UserDetailModal({ userId, open, onOpenChange }: UserDetailModalP
                   <CardContent className="p-4 space-y-3">
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <div className="text-xs text-muted-foreground">Email Verified</div>
+                        <div className="text-xs text-muted-foreground">{t('activity.userDetailModal.emailVerified')}</div>
                         <div className="text-sm">{userData.profile.email_verified ? 'Yes' : 'No'}</div>
                       </div>
                       <div>
-                        <div className="text-xs text-muted-foreground">Phone</div>
+                        <div className="text-xs text-muted-foreground">{t('activity.userDetailModal.phone')}</div>
                         <div className="text-sm">{userData.profile.phone || 'Not provided'}</div>
                       </div>
                       <div>
-                        <div className="text-xs text-muted-foreground">Location</div>
+                        <div className="text-xs text-muted-foreground">{t('activity.userDetailModal.location')}</div>
                         <div className="text-sm">{userData.profile.location || 'Not provided'}</div>
                       </div>
                       <div>
-                        <div className="text-xs text-muted-foreground">Current Title</div>
+                        <div className="text-xs text-muted-foreground">{t('activity.userDetailModal.currentTitle')}</div>
                         <div className="text-sm">{userData.profile.current_title || 'Not provided'}</div>
                       </div>
                       <div>
-                        <div className="text-xs text-muted-foreground">Member Since</div>
+                        <div className="text-xs text-muted-foreground">{t('activity.userDetailModal.memberSince')}</div>
                         <div className="text-sm">
                           {userData.profile.created_at
                             ? format(new Date(userData.profile.created_at), 'MMM dd, yyyy')
@@ -499,7 +501,7 @@ export function UserDetailModal({ userId, open, onOpenChange }: UserDetailModalP
                         </div>
                       </div>
                       <div>
-                        <div className="text-xs text-muted-foreground">Onboarding</div>
+                        <div className="text-xs text-muted-foreground">{t('activity.userDetailModal.onboarding')}</div>
                         <div className="text-sm">
                           {userData.profile.onboarding_completed_at ? 'Completed' : 'Pending'}
                         </div>
@@ -511,7 +513,7 @@ export function UserDetailModal({ userId, open, onOpenChange }: UserDetailModalP
             </Tabs>
           </div>
         ) : (
-          <div className="p-8 text-center text-muted-foreground">User not found</div>
+          <div className="p-8 text-center text-muted-foreground">{t('activity.userDetailModal.userNotFound')}</div>
         )}
       </DialogContent>
     </Dialog>

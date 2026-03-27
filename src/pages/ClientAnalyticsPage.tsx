@@ -1,4 +1,5 @@
 import { useAuth } from "@/contexts/AuthContext";
+import { useTranslation } from 'react-i18next';
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -7,6 +8,7 @@ import { Users, Clock, DollarSign, CheckCircle, TrendingUp, AlertCircle } from "
 import { useRecharts } from "@/hooks/useRecharts";
 
 const ClientAnalyticsPage = () => {
+  const { t } = useTranslation('analytics');
   const { user } = useAuth();
   const { recharts, isLoading: rechartsLoading } = useRecharts();
 
@@ -94,8 +96,8 @@ const ClientAnalyticsPage = () => {
   return (
     <div className="container mx-auto p-6 space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Client Analytics</h1>
-        <p className="text-muted-foreground">Monitor your hiring and project metrics</p>
+        <h1 className="text-2xl font-bold">{t('clientAnalyticsPage.title')}</h1>
+        <p className="text-muted-foreground">{t('clientAnalyticsPage.desc')}</p>
       </div>
 
       {/* KPI Cards */}
@@ -179,7 +181,7 @@ const ClientAnalyticsPage = () => {
               ) : (
                 <div className="text-center text-muted-foreground">
                   <AlertCircle className="h-8 w-8 mx-auto mb-2" />
-                  <p>No projects yet</p>
+                  <p>{t('clientAnalyticsPage.desc2')}</p>
                 </div>
               )}
             </div>

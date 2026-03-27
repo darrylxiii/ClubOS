@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { useAggregatedReviewQueue, type ReviewJobSummary } from '@/hooks/useAggregatedReviewQueue';
 import { ReviewHubDialog } from '@/components/partner/ReviewHubDialog';
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 
 function formatSlaCountdown(oldestAt: string | null, slaHours: number): string | null {
   if (!oldestAt) return null;
@@ -19,6 +20,7 @@ function formatSlaCountdown(oldestAt: string | null, slaHours: number): string |
 }
 
 export const AdminPendingReviewsWidget = () => {
+  const { t } = useTranslation('common');
   const { jobs, totalPending, overdueCount, isLoading } = useAggregatedReviewQueue();
   const [hubOpen, setHubOpen] = useState(false);
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
@@ -66,7 +68,7 @@ export const AdminPendingReviewsWidget = () => {
                 <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-destructive animate-pulse" />
               </div>
               <div>
-                <CardTitle className="text-base">Internal Review Queue</CardTitle>
+                <CardTitle className="text-base">{"Internal Review Queue"}</CardTitle>
                 <p className="text-xs text-muted-foreground mt-0.5">
                   {totalPending} candidate{totalPending !== 1 ? 's' : ''} awaiting pre-vet across {jobs.length} role{jobs.length !== 1 ? 's' : ''}
                 </p>

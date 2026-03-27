@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -35,6 +36,7 @@ export function EmailConnections({
   onDisconnect,
   loading,
 }: EmailConnectionsProps) {
+  const { t } = useTranslation('common');
   const getProviderIcon = (provider: string) => {
     switch (provider) {
       case 'gmail':
@@ -62,7 +64,7 @@ export function EmailConnections({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Email Connections</CardTitle>
+        <CardTitle>{t("email_connections", "Email Connections")}</CardTitle>
         <CardDescription>
           Connect your email accounts to access them across the platform
         </CardDescription>
@@ -71,7 +73,7 @@ export function EmailConnections({
         {/* Connected Emails */}
         {emailConnections.length > 0 && (
           <div className="space-y-3">
-            <h3 className="text-sm font-medium">Connected Accounts</h3>
+            <h3 className="text-sm font-medium">{t("connected_accounts", "Connected Accounts")}</h3>
             {emailConnections.map((connection) => (
               <div
                 key={connection.id}
@@ -99,7 +101,7 @@ export function EmailConnections({
 
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm text-muted-foreground">Sync</span>
+                    <span className="text-sm text-muted-foreground">{t("sync", "Sync")}</span>
                     <Switch
                       checked={connection.sync_enabled}
                       onCheckedChange={(checked) => onToggleSync(connection.id, checked)}
@@ -121,7 +123,7 @@ export function EmailConnections({
 
         {/* Add Email Buttons */}
         <div className="space-y-3">
-          <h3 className="text-sm font-medium">Add Email Account</h3>
+          <h3 className="text-sm font-medium">{t("add_email_account", "Add Email Account")}</h3>
           <div className="grid gap-3">
             <Button
               onClick={onConnectGmail}
@@ -131,7 +133,7 @@ export function EmailConnections({
             >
               <Mail className="h-5 w-5 text-red-500" />
               <div className="text-left">
-                <p className="font-medium">Connect Gmail</p>
+                <p className="font-medium">{t("connect_gmail", "Connect Gmail")}</p>
                 <p className="text-xs text-muted-foreground">
                   Access your Google email account
                 </p>
@@ -146,7 +148,7 @@ export function EmailConnections({
             >
               <AtSign className="h-5 w-5 text-blue-500" />
               <div className="text-left">
-                <p className="font-medium">Connect Outlook</p>
+                <p className="font-medium">{t("connect_outlook", "Connect Outlook")}</p>
                 <p className="text-xs text-muted-foreground">
                   Access your Microsoft email account
                 </p>
@@ -161,7 +163,7 @@ export function EmailConnections({
               <Mail className="h-5 w-5" />
               <div className="text-left flex-1">
                 <div className="flex items-center gap-2">
-                  <p className="font-medium">Connect Private Email</p>
+                  <p className="font-medium">{t("connect_private_email", "Connect Private Email")}</p>
                   <Badge variant="secondary" className="text-xs">
                     Coming Soon
                   </Badge>
@@ -177,8 +179,8 @@ export function EmailConnections({
         {emailConnections.length === 0 && !loading && (
           <div className="text-center py-8 text-muted-foreground">
             <Mail className="h-12 w-12 mx-auto mb-3 opacity-50" />
-            <p className="text-sm">No email accounts connected yet</p>
-            <p className="text-xs mt-1">Connect Gmail or Outlook to get started</p>
+            <p className="text-sm">{t("no_email_accounts_connected", "No email accounts connected yet")}</p>
+            <p className="text-xs mt-1">{t("connect_gmail_or_outlook", "Connect Gmail or Outlook to get started")}</p>
           </div>
         )}
       </CardContent>

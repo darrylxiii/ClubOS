@@ -5,6 +5,7 @@ import { Clock, AlertTriangle, Building2, Shield, CheckCircle, Flame, Snowflake,
 import { usePredictiveSignals } from "@/hooks/usePredictiveSignals";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 
 const signalIcons: Record<string, typeof Flame> = {
   heating_up: Flame,
@@ -16,6 +17,7 @@ const signalIcons: Record<string, typeof Flame> = {
 };
 
 export function AttentionRequiredStrip() {
+  const { t } = useTranslation('common');
   const { data: cmdData, isLoading: cmdLoading } = useQuery({
     queryKey: ["admin-command-strip"],
     queryFn: async () => {
@@ -39,9 +41,9 @@ export function AttentionRequiredStrip() {
   }
 
   const urgencyItems = [
-    { label: "Pending", count: cmdData?.pending || 0, icon: Clock, href: "/admin?tab=users", color: "text-amber-500" },
-    { label: "Overdue", count: cmdData?.overdue || 0, icon: AlertTriangle, href: "/applications?filter=overdue", color: "text-red-500" },
-    { label: "Alerts", count: cmdData?.alerts || 0, icon: Shield, href: "/admin/anti-hacking", color: "text-red-500" },
+    { label: t('dashboard.attention.pending', 'Pending'), count: cmdData?.pending || 0, icon: Clock, href: "/admin?tab=users", color: "text-amber-500" },
+    { label: t('dashboard.attention.overdue', 'Overdue'), count: cmdData?.overdue || 0, icon: AlertTriangle, href: "/applications?filter=overdue", color: "text-red-500" },
+    { label: t('dashboard.attention.alerts', 'Alerts'), count: cmdData?.alerts || 0, icon: Shield, href: "/admin/anti-hacking", color: "text-red-500" },
   ];
 
   const topSignals = (signals || []).slice(0, 3);

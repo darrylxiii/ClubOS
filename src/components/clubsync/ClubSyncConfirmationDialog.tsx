@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
@@ -42,6 +43,7 @@ export function ClubSyncConfirmationDialog({
   eligibleJobs = [],
   currentEmployer,
 }: ClubSyncConfirmationDialogProps) {
+  const { t } = useTranslation('common');
   const [preferences, setPreferences] = useState<ClubSyncPreferences>({
     matchThreshold: 90,
     excludeCurrentEmployer: true,
@@ -76,7 +78,7 @@ export function ClubSyncConfirmationDialog({
               <Zap className="w-5 h-5 text-primary" />
             </div>
             <div>
-              <DialogTitle className="text-xl">Enable Club Sync</DialogTitle>
+              <DialogTitle className="text-xl">{t("enable_club_sync", "Enable Club Sync")}</DialogTitle>
               <DialogDescription className="mt-1">
                 Auto-apply to matching roles on your behalf
               </DialogDescription>
@@ -126,7 +128,7 @@ export function ClubSyncConfirmationDialog({
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
-                    <Label className="text-sm">Exclude current employer</Label>
+                    <Label className="text-sm">{t("exclude_current_employer", "Exclude current employer")}</Label>
                     <p className="text-xs text-muted-foreground">
                       {currentEmployer ? `Hide from ${currentEmployer}` : 'Protect from current employer visibility'}
                     </p>
@@ -139,7 +141,7 @@ export function ClubSyncConfirmationDialog({
 
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
-                    <Label className="text-sm">Notify before applying</Label>
+                    <Label className="text-sm">{t("notify_before_applying", "Notify before applying")}</Label>
                     <p className="text-xs text-muted-foreground">
                       Get a notification before each auto-apply
                     </p>
@@ -152,7 +154,7 @@ export function ClubSyncConfirmationDialog({
 
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
-                    <Label className="text-sm">Share full profile</Label>
+                    <Label className="text-sm">{t("share_full_profile", "Share full profile")}</Label>
                     <p className="text-xs text-muted-foreground">
                       Include salary expectations and references
                     </p>
@@ -165,7 +167,7 @@ export function ClubSyncConfirmationDialog({
 
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
-                    <Label className="text-sm">Allow dossier sharing</Label>
+                    <Label className="text-sm">{t("allow_dossier_sharing", "Allow dossier sharing")}</Label>
                     <p className="text-xs text-muted-foreground">
                       Strategists can share your profile with partners
                     </p>
@@ -196,7 +198,7 @@ export function ClubSyncConfirmationDialog({
             className="space-y-4 py-4"
           >
             <div className="flex items-center justify-between">
-              <h4 className="text-sm font-medium">Eligible Roles Preview</h4>
+              <h4 className="text-sm font-medium">{t("eligible_roles_preview", "Eligible Roles Preview")}</h4>
               <Badge variant="outline" className="gap-1">
                 <Eye className="w-3 h-3" />
                 {filteredJobs.length} roles

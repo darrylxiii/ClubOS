@@ -14,6 +14,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useTranslation } from 'react-i18next';
 
 const COLORS = ['hsl(var(--primary))', 'hsl(var(--destructive))', 'hsl(var(--warning))'];
 
@@ -47,6 +48,7 @@ interface WebhookStats {
 }
 
 export const WebhookReliabilityDashboard = () => {
+  const { t } = useTranslation('admin');
   const [selectedItem, setSelectedItem] = useState<WebhookDLQItem | null>(null);
   const queryClient = useQueryClient();
   const { recharts, isLoading: rechartsLoading } = useRecharts();
@@ -99,10 +101,10 @@ export const WebhookReliabilityDashboard = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['webhook-dlq'] });
-      toast.success("Webhook queued for retry");
+      toast.success(t('webhooks.webhookReliabilityDashboard.webhookQueuedForRetry'));
     },
     onError: () => {
-      toast.error("Failed to retry webhook");
+      toast.error(t('webhooks.webhookReliabilityDashboard.failedToRetryWebhook'));
     },
   });
 
@@ -117,7 +119,7 @@ export const WebhookReliabilityDashboard = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['webhook-dlq'] });
-      toast.success("Webhook removed from DLQ");
+      toast.success(t('webhooks.webhookReliabilityDashboard.webhookRemovedFromDlq'));
     },
   });
 
@@ -186,8 +188,8 @@ export const WebhookReliabilityDashboard = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold">Webhook Reliability</h2>
-          <p className="text-muted-foreground">Monitor webhook delivery health and manage failed deliveries</p>
+          <h2 className="text-2xl font-bold">{t('webhooks.webhookReliabilityDashboard.webhookReliability')}</h2>
+          <p className="text-muted-foreground">{t('webhooks.webhookReliabilityDashboard.monitorWebhookDeliveryHealthAndManage')}</p>
         </div>
         <Badge variant={parseFloat(successRate) >= 99 ? "secondary" : parseFloat(successRate) >= 95 ? "outline" : "destructive"}>
           {successRate}% Success Rate
@@ -208,17 +210,17 @@ export const WebhookReliabilityDashboard = () => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Total Deliveries</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('webhooks.webhookReliabilityDashboard.totalDeliveries')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalDeliveries.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">Last 7 days</p>
+            <p className="text-xs text-muted-foreground">{t('webhooks.webhookReliabilityDashboard.last7Days')}</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Successful</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('webhooks.webhookReliabilityDashboard.successful')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-primary">{successfulDeliveries.toLocaleString()}</div>
@@ -228,48 +230,48 @@ export const WebhookReliabilityDashboard = () => {
 
         <Card className={pendingCount > 0 ? "border-warning/50" : ""}>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Pending Retry</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('webhooks.webhookReliabilityDashboard.pendingRetry')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-warning">{pendingCount}</div>
-            <p className="text-xs text-muted-foreground">In dead letter queue</p>
+            <p className="text-xs text-muted-foreground">{t('webhooks.webhookReliabilityDashboard.inDeadLetterQueue')}</p>
           </CardContent>
         </Card>
 
         <Card className={failedCount > 0 ? "border-destructive/50" : ""}>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Failed</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('webhooks.webhookReliabilityDashboard.failed')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-destructive">{failedCount}</div>
-            <p className="text-xs text-muted-foreground">Max retries exceeded</p>
+            <p className="text-xs text-muted-foreground">{t('webhooks.webhookReliabilityDashboard.maxRetriesExceeded')}</p>
           </CardContent>
         </Card>
       </div>
 
       <Tabs defaultValue="health">
         <TabsList>
-          <TabsTrigger value="health">Endpoint Health</TabsTrigger>
+          <TabsTrigger value="health">{t('webhooks.webhookReliabilityDashboard.endpointHealth')}</TabsTrigger>
           <TabsTrigger value="dlq">Dead Letter Queue ({dlqItems?.length || 0})</TabsTrigger>
-          <TabsTrigger value="trends">Trends</TabsTrigger>
+          <TabsTrigger value="trends">{t('webhooks.webhookReliabilityDashboard.trends')}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="health" className="mt-4">
           <Card>
             <CardHeader>
-              <CardTitle className="text-sm font-medium">Endpoint Health Status</CardTitle>
-              <CardDescription>Delivery success rate per webhook endpoint</CardDescription>
+              <CardTitle className="text-sm font-medium">{t('webhooks.webhookReliabilityDashboard.endpointHealthStatus')}</CardTitle>
+              <CardDescription>{t('webhooks.webhookReliabilityDashboard.deliverySuccessRatePerWebhookEndpoint')}</CardDescription>
             </CardHeader>
             <CardContent>
               <ScrollArea className="h-[400px]">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Endpoint</TableHead>
-                      <TableHead className="text-right">Deliveries</TableHead>
-                      <TableHead className="text-right">Success Rate</TableHead>
-                      <TableHead className="text-right">Avg Response</TableHead>
-                      <TableHead className="text-right">Status</TableHead>
+                      <TableHead>{t('webhooks.webhookReliabilityDashboard.endpoint')}</TableHead>
+                      <TableHead className="text-right">{t('webhooks.webhookReliabilityDashboard.deliveries')}</TableHead>
+                      <TableHead className="text-right">{t('webhooks.webhookReliabilityDashboard.successRate')}</TableHead>
+                      <TableHead className="text-right">{t('webhooks.webhookReliabilityDashboard.avgResponse')}</TableHead>
+                      <TableHead className="text-right">{t('common:fields.status')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -316,8 +318,8 @@ export const WebhookReliabilityDashboard = () => {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle className="text-sm font-medium">Dead Letter Queue</CardTitle>
-                  <CardDescription>Failed webhook deliveries awaiting action</CardDescription>
+                  <CardTitle className="text-sm font-medium">{t('webhooks.webhookReliabilityDashboard.deadLetterQueue')}</CardTitle>
+                  <CardDescription>{t('webhooks.webhookReliabilityDashboard.failedWebhookDeliveriesAwaitingAction')}</CardDescription>
                 </div>
                 <Button
                   variant="outline"
@@ -334,12 +336,12 @@ export const WebhookReliabilityDashboard = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Endpoint</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Error</TableHead>
-                      <TableHead className="text-right">Retries</TableHead>
-                      <TableHead className="text-right">Created</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
+                      <TableHead>{t('webhooks.webhookReliabilityDashboard.endpoint')}</TableHead>
+                      <TableHead>{t('common:fields.status')}</TableHead>
+                      <TableHead>{t('common:status.error')}</TableHead>
+                      <TableHead className="text-right">{t('webhooks.webhookReliabilityDashboard.retries')}</TableHead>
+                      <TableHead className="text-right">{t('webhooks.webhookReliabilityDashboard.created')}</TableHead>
+                      <TableHead className="text-right">{t('common:fields.actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -372,7 +374,7 @@ export const WebhookReliabilityDashboard = () => {
                               </DialogTrigger>
                               <DialogContent className="max-w-2xl">
                                 <DialogHeader>
-                                  <DialogTitle>Webhook Payload</DialogTitle>
+                                  <DialogTitle>{t('webhooks.webhookReliabilityDashboard.webhookPayload')}</DialogTitle>
                                 </DialogHeader>
                                 <ScrollArea className="h-[400px]">
                                   <pre className="text-sm bg-muted p-4 rounded overflow-auto">
@@ -419,8 +421,8 @@ export const WebhookReliabilityDashboard = () => {
         <TabsContent value="trends" className="mt-4">
           <Card>
             <CardHeader>
-              <CardTitle className="text-sm font-medium">Delivery Trends</CardTitle>
-              <CardDescription>Success vs failed deliveries over time</CardDescription>
+              <CardTitle className="text-sm font-medium">{t('webhooks.webhookReliabilityDashboard.deliveryTrends')}</CardTitle>
+              <CardDescription>{t('webhooks.webhookReliabilityDashboard.successVsFailedDeliveriesOverTime')}</CardDescription>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>

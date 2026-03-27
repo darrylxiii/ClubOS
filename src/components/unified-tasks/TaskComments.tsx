@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -25,6 +26,7 @@ interface Comment {
 }
 
 export const TaskComments = ({ taskId }: TaskCommentsProps) => {
+    const { t } = useTranslation('common');
     const { user } = useAuth();
     const [comments, setComments] = useState<Comment[]>([]);
     const [newComment, setNewComment] = useState("");
@@ -104,7 +106,7 @@ export const TaskComments = ({ taskId }: TaskCommentsProps) => {
             setNewComment("");
         } catch (error) {
             console.error("Error adding comment:", error);
-            toast.error("Failed to post comment");
+            toast.error(t('tasks.failedToPostComment', 'Failed to post comment'));
         } finally {
             setLoading(false);
         }
@@ -114,14 +116,14 @@ export const TaskComments = ({ taskId }: TaskCommentsProps) => {
         <div className="flex flex-col h-[400px]">
             <div className="flex items-center gap-2 mb-4 text-muted-foreground">
                 <MessageSquare className="h-4 w-4" />
-                <span className="text-sm font-medium">Comments ({comments.length})</span>
+                <span className="text-sm font-medium">{t('tasks.commentsCount', 'Comments ({{count}})', { count: comments.length })}</span>
             </div>
 
             <ScrollArea className="flex-1 pr-4 -mr-4 mb-4">
                 <div className="space-y-4">
                     {comments.length === 0 ? (
                         <div className="text-center py-8 text-muted-foreground text-sm">
-                            No comments yet. Start the conversation!
+                            {t('tasks.noCommentsYet', 'No comments yet. Start the conversation!')}
                         </div>
                     ) : (
                         comments.map((comment) => (
@@ -155,7 +157,7 @@ export const TaskComments = ({ taskId }: TaskCommentsProps) => {
                 <Textarea
                     value={newComment}
                     onChange={(e) => setNewComment(e.target.value)}
-                    placeholder="Write a comment..."
+                    placeholder={t('tasks.writeComment', 'Write a comment...')}
                     className="pr-12 min-h-[80px] resize-none bg-background focus:ring-primary/20"
                     onKeyDown={(e) => {
                         if (e.key === 'Enter' && !e.shiftKey) {

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,6 +17,7 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
 export function PredictiveAnalyticsTab() {
+  const { t } = useTranslation('common');
   const {
     activeModel,
     matchPredictions,
@@ -38,9 +40,9 @@ export function PredictiveAnalyticsTab() {
     try {
       setTrainingModel(true);
       await trainModel();
-      toast.success('Model training initiated');
+      toast.success(t("model_training_initiated", "Model training initiated"));
     } catch (err) {
-      toast.error('Failed to train model');
+      toast.error(t("failed_to_train_model", "Failed to train model"));
     } finally {
       setTrainingModel(false);
     }
@@ -50,9 +52,9 @@ export function PredictiveAnalyticsTab() {
     const prediction = await generateHiringPredictions(jobId);
     if (prediction) {
       setSelectedJobPrediction(prediction);
-      toast.success('Predictions generated');
+      toast.success(t("predictions_generated", "Predictions generated"));
     } else {
-      toast.error('Failed to generate predictions');
+      toast.error(t("failed_to_generate_predictions", "Failed to generate predictions"));
     }
   };
 
@@ -90,21 +92,21 @@ export function PredictiveAnalyticsTab() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card className="bg-card/30 backdrop-blur-[var(--blur-glass)] border-border/20">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">ML Model Status</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("ml_model_status", "ML Model Status")}</CardTitle>
             <Brain className="w-4 h-4 text-primary" />
           </CardHeader>
           <CardContent>
             {activeModel ? (
               <>
-                <div className="text-2xl font-bold text-green-500">Active</div>
+                <div className="text-2xl font-bold text-green-500">{t("active", "Active")}</div>
                 <p className="text-xs text-muted-foreground mt-1">
                   v{activeModel.version} • {activeModel.model_type}
                 </p>
               </>
             ) : (
               <>
-                <div className="text-2xl font-bold text-orange-500">No Model</div>
-                <p className="text-xs text-muted-foreground mt-1">Train to enable predictions</p>
+                <div className="text-2xl font-bold text-orange-500">{t("no_model", "No Model")}</div>
+                <p className="text-xs text-muted-foreground mt-1">{t("train_to_enable_predictions", "Train to enable predictions")}</p>
               </>
             )}
           </CardContent>
@@ -112,36 +114,36 @@ export function PredictiveAnalyticsTab() {
 
         <Card className="bg-card/30 backdrop-blur-[var(--blur-glass)] border-border/20">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Match Predictions</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("match_predictions", "Match Predictions")}</CardTitle>
             <Target className="w-4 h-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{matchPredictions?.length || 0}</div>
-            <p className="text-xs text-muted-foreground mt-1">Candidate matches scored</p>
+            <p className="text-xs text-muted-foreground mt-1">{t("candidate_matches_scored", "Candidate matches scored")}</p>
           </CardContent>
         </Card>
 
         <Card className="bg-card/30 backdrop-blur-[var(--blur-glass)] border-border/20">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Churn Risk</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("churn_risk", "Churn Risk")}</CardTitle>
             <AlertTriangle className="w-4 h-4 text-orange-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
               {churnRiskUsers?.filter(u => u.risk_level === 'critical' || u.risk_level === 'high').length || 0}
             </div>
-            <p className="text-xs text-muted-foreground mt-1">High-risk users</p>
+            <p className="text-xs text-muted-foreground mt-1">{t("highrisk_users", "High-risk users")}</p>
           </CardContent>
         </Card>
 
         <Card className="bg-card/30 backdrop-blur-[var(--blur-glass)] border-border/20">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Engagement</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("engagement", "Engagement")}</CardTitle>
             <TrendingUp className="w-4 h-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{engagementStats?.avgEventsPerUser || 0}</div>
-            <p className="text-xs text-muted-foreground mt-1">Avg actions/user (7d)</p>
+            <p className="text-xs text-muted-foreground mt-1">{t("avg_actionsuser_7d", "Avg actions/user (7d)")}</p>
           </CardContent>
         </Card>
       </div>
@@ -154,7 +156,7 @@ export function PredictiveAnalyticsTab() {
               <Brain className="w-5 h-5 text-primary" />
               ML Engine Status
             </CardTitle>
-            <CardDescription>Machine learning model for candidate matching</CardDescription>
+            <CardDescription>{t("machine_learning_model_for", "Machine learning model for candidate matching")}</CardDescription>
           </div>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={() => refetchModel()}>
@@ -184,34 +186,34 @@ export function PredictiveAnalyticsTab() {
           {activeModel ? (
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
               <div className="p-3 rounded-lg bg-muted/20 border border-border/10">
-                <p className="text-xs text-muted-foreground">Version</p>
+                <p className="text-xs text-muted-foreground">{t("version", "Version")}</p>
                 <p className="text-lg font-semibold">{activeModel.version}</p>
               </div>
               <div className="p-3 rounded-lg bg-muted/20 border border-border/10">
-                <p className="text-xs text-muted-foreground">AUC-ROC</p>
+                <p className="text-xs text-muted-foreground">{t("aucroc", "AUC-ROC")}</p>
                 <p className="text-lg font-semibold">
                   {activeModel.metrics?.auc_roc ? `${(activeModel.metrics.auc_roc * 100).toFixed(1)}%` : 'N/A'}
                 </p>
               </div>
               <div className="p-3 rounded-lg bg-muted/20 border border-border/10">
-                <p className="text-xs text-muted-foreground">Precision@10</p>
+                <p className="text-xs text-muted-foreground">{t("precision10", "Precision@10")}</p>
                 <p className="text-lg font-semibold">
                   {activeModel.metrics?.precision_at_10 ? `${(activeModel.metrics.precision_at_10 * 100).toFixed(1)}%` : 'N/A'}
                 </p>
               </div>
               <div className="p-3 rounded-lg bg-muted/20 border border-border/10">
-                <p className="text-xs text-muted-foreground">Training Samples</p>
+                <p className="text-xs text-muted-foreground">{t("training_samples", "Training Samples")}</p>
                 <p className="text-lg font-semibold">{activeModel.training_data_count || 'N/A'}</p>
               </div>
               <div className="p-3 rounded-lg bg-muted/20 border border-border/10">
-                <p className="text-xs text-muted-foreground">Created</p>
+                <p className="text-xs text-muted-foreground">{t("created", "Created")}</p>
                 <p className="text-lg font-semibold">{format(new Date(activeModel.created_at), 'MMM d')}</p>
               </div>
             </div>
           ) : (
             <div className="text-center py-8 bg-muted/10 rounded-lg border border-dashed border-border/20">
               <Brain className="w-12 h-12 mx-auto text-muted-foreground/50 mb-3" />
-              <p className="text-muted-foreground mb-2">No active ML model</p>
+              <p className="text-muted-foreground mb-2">{t("no_active_ml_model", "No active ML model")}</p>
               <p className="text-sm text-muted-foreground/70 mb-4">
                 Train a model to enable AI-powered candidate matching predictions
               </p>
@@ -232,7 +234,7 @@ export function PredictiveAnalyticsTab() {
               <BarChart3 className="w-5 h-5 text-primary" />
               Hiring Predictions
             </CardTitle>
-            <CardDescription>AI-generated predictions for active job postings</CardDescription>
+            <CardDescription>{t("aigenerated_predictions_for_active", "AI-generated predictions for active job postings")}</CardDescription>
           </CardHeader>
           <CardContent>
             <ScrollArea className="h-[300px]">
@@ -263,13 +265,13 @@ export function PredictiveAnalyticsTab() {
                     {selectedJobPrediction?.jobId === job.id && selectedJobPrediction.predictions && (
                       <div className="mt-3 pt-3 border-t border-border/10 space-y-2">
                         <div className="flex justify-between text-sm">
-                          <span className="text-muted-foreground">Time to Hire</span>
+                          <span className="text-muted-foreground">{t("time_to_hire", "Time to Hire")}</span>
                           <span className="font-medium">
                             {selectedJobPrediction.predictions.timeToHire?.predictedDays || 'N/A'} days
                           </span>
                         </div>
                         <div className="flex justify-between text-sm">
-                          <span className="text-muted-foreground">Offer Acceptance</span>
+                          <span className="text-muted-foreground">{t("offer_acceptance", "Offer Acceptance")}</span>
                           <span className="font-medium">
                             {selectedJobPrediction.predictions.offerAcceptanceProbability?.averageProbability 
                               ? `${(selectedJobPrediction.predictions.offerAcceptanceProbability.averageProbability * 100).toFixed(0)}%`
@@ -277,7 +279,7 @@ export function PredictiveAnalyticsTab() {
                           </span>
                         </div>
                         <div className="flex justify-between text-sm">
-                          <span className="text-muted-foreground">Pipeline Health</span>
+                          <span className="text-muted-foreground">{t("pipeline_health", "Pipeline Health")}</span>
                           <span className="font-medium">
                             {selectedJobPrediction.predictions.pipelineHealth?.score || 'N/A'}/100
                           </span>
@@ -303,7 +305,7 @@ export function PredictiveAnalyticsTab() {
               <Target className="w-5 h-5 text-primary" />
               Top Match Predictions
             </CardTitle>
-            <CardDescription>ML-scored candidate-job matches</CardDescription>
+            <CardDescription>{t("mlscored_candidatejob_matches", "ML-scored candidate-job matches")}</CardDescription>
           </CardHeader>
           <CardContent>
             <ScrollArea className="h-[300px]">
@@ -339,8 +341,8 @@ export function PredictiveAnalyticsTab() {
                 {(!matchPredictions || matchPredictions.length === 0) && (
                   <div className="text-center py-8 text-muted-foreground">
                     <Target className="w-10 h-10 mx-auto mb-2 opacity-50" />
-                    <p>No match predictions yet</p>
-                    <p className="text-xs mt-1">Train a model to generate predictions</p>
+                    <p>{t("no_match_predictions_yet", "No match predictions yet")}</p>
+                    <p className="text-xs mt-1">{t("train_a_model_to", "Train a model to generate predictions")}</p>
                   </div>
                 )}
               </div>
@@ -357,7 +359,7 @@ export function PredictiveAnalyticsTab() {
               <AlertTriangle className="w-5 h-5 text-orange-500" />
               Churn Risk Analysis
             </CardTitle>
-            <CardDescription>Users at risk of leaving based on activity patterns</CardDescription>
+            <CardDescription>{t("users_at_risk_of", "Users at risk of leaving based on activity patterns")}</CardDescription>
           </div>
           <Button variant="outline" size="sm" onClick={() => refetchChurn()}>
             <RefreshCw className="w-4 h-4 mr-2" />
@@ -421,7 +423,7 @@ export function PredictiveAnalyticsTab() {
                       </div>
 
                       <div className="mt-3 p-2 rounded bg-primary/10 text-xs">
-                        <span className="font-medium text-primary">Recommended:</span>{' '}
+                        <span className="font-medium text-primary">{t("recommended", "Recommended:")}</span>{' '}
                         <span className="text-muted-foreground">{user.recommended_action}</span>
                       </div>
                     </div>
@@ -437,8 +439,8 @@ export function PredictiveAnalyticsTab() {
               {(!churnRiskUsers || churnRiskUsers.length === 0) && (
                 <div className="text-center py-8 text-muted-foreground">
                   <CheckCircle2 className="w-10 h-10 mx-auto mb-2 text-green-500" />
-                  <p>No significant churn risks detected</p>
-                  <p className="text-xs mt-1">All users show healthy engagement patterns</p>
+                  <p>{t("no_significant_churn_risks", "No significant churn risks detected")}</p>
+                  <p className="text-xs mt-1">{t("all_users_show_healthy", "All users show healthy engagement patterns")}</p>
                 </div>
               )}
             </div>
@@ -453,7 +455,7 @@ export function PredictiveAnalyticsTab() {
             <Sparkles className="w-5 h-5 text-primary" />
             AI Recommendations
           </CardTitle>
-          <CardDescription>Suggested actions based on predictive analysis</CardDescription>
+          <CardDescription>{t("suggested_actions_based_on", "Suggested actions based on predictive analysis")}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
@@ -503,14 +505,14 @@ export function PredictiveAnalyticsTab() {
             <Users className="w-5 h-5 text-primary" />
             Engagement Predictions
           </CardTitle>
-          <CardDescription>User engagement distribution from session data</CardDescription>
+          <CardDescription>{t("user_engagement_distribution_from", "User engagement distribution from session data")}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             <div className="flex items-center gap-4">
               <div className="flex-1">
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-sm font-medium text-green-500">High Engagement</span>
+                  <span className="text-sm font-medium text-green-500">{t("high_engagement", "High Engagement")}</span>
                   <span className="text-sm text-muted-foreground">{engagementStats?.highEngagement || 0} users</span>
                 </div>
                 <Progress 
@@ -522,7 +524,7 @@ export function PredictiveAnalyticsTab() {
             <div className="flex items-center gap-4">
               <div className="flex-1">
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-sm font-medium text-yellow-500">Medium Engagement</span>
+                  <span className="text-sm font-medium text-yellow-500">{t("medium_engagement", "Medium Engagement")}</span>
                   <span className="text-sm text-muted-foreground">{engagementStats?.mediumEngagement || 0} users</span>
                 </div>
                 <Progress 
@@ -534,7 +536,7 @@ export function PredictiveAnalyticsTab() {
             <div className="flex items-center gap-4">
               <div className="flex-1">
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-sm font-medium text-red-500">Low Engagement</span>
+                  <span className="text-sm font-medium text-red-500">{t("low_engagement", "Low Engagement")}</span>
                   <span className="text-sm text-muted-foreground">{engagementStats?.lowEngagement || 0} users</span>
                 </div>
                 <Progress 

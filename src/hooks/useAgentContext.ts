@@ -4,12 +4,12 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useLocation } from "react-router-dom";
 
 export interface AgentContext {
-  memories: any[];
-  preferences: any[];
-  workingMemory: any[];
-  activeGoals: any[];
-  recentDecisions: any[];
-  predictiveSignals: any[];
+  memories: Record<string, unknown>[];
+  preferences: Record<string, unknown>[];
+  workingMemory: Record<string, unknown>[];
+  activeGoals: Record<string, unknown>[];
+  recentDecisions: Record<string, unknown>[];
+  predictiveSignals: Record<string, unknown>[];
   contextTimestamp: string;
 }
 

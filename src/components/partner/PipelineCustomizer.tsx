@@ -29,6 +29,7 @@ import { useRole } from '@/contexts/RoleContext';
 import { usePipelineManagement } from '@/hooks/usePipelineManagement';
 import { cn } from '@/lib/utils';
 import { AddStageDialog } from './AddStageDialog';
+import { useTranslation } from 'react-i18next';
 
 interface Stage {
   name: string;
@@ -62,6 +63,7 @@ interface PipelineCustomizerProps {
 }
 
 export const PipelineCustomizer = ({ jobId, companyId, currentStages, onUpdate }: PipelineCustomizerProps) => {
+  const { t } = useTranslation('partner');
   const [stages, setStages] = useState<Stage[]>(currentStages);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
@@ -169,7 +171,7 @@ export const PipelineCustomizer = ({ jobId, companyId, currentStages, onUpdate }
         order: i,
       }));
       setStages(updated);
-      toast.success('Stage removed');
+      toast.success(t('pipelineCustomizer.toast.stageRemoved'));
       onUpdate();
     }
   };
@@ -196,8 +198,8 @@ export const PipelineCustomizer = ({ jobId, companyId, currentStages, onUpdate }
   const handleSave = async () => {
     const result = await savePipeline(stages);
     if (result.success) {
-      toast.success('Pipeline saved', {
-        description: 'Signature Secure ✓',
+      toast.success(t('pipelineCustomizer.toast.pipelineSaved'), {
+        description: t('pipelineCustomizer.toast.signatureSecure'),
         duration: 3000,
       });
       onUpdate();
@@ -206,7 +208,7 @@ export const PipelineCustomizer = ({ jobId, companyId, currentStages, onUpdate }
 
   const handleAssignReviewer = async () => {
     if (!selectedReviewerId) {
-      toast.error('Select a reviewer first.');
+      toast.error(t('pipelineCustomizer.toast.selectAReviewerFirst'));
       return;
     }
 
@@ -257,10 +259,10 @@ export const PipelineCustomizer = ({ jobId, companyId, currentStages, onUpdate }
 
       setSelectedReviewerId('');
       setSelectedIsPrimary(false);
-      toast.success('Reviewer assigned');
+      toast.success(t('pipelineCustomizer.toast.reviewerAssigned'));
     } catch (error) {
       console.error(error);
-      toast.error('Failed to assign reviewer');
+      toast.error(t('pipelineCustomizer.toast.failedToAssignReviewer'));
     } finally {
       setSavingReviewer(false);
     }
@@ -270,7 +272,7 @@ export const PipelineCustomizer = ({ jobId, companyId, currentStages, onUpdate }
     const { error } = await supabase.from('pipeline_reviewers').delete().eq('id', assignmentId);
 
     if (error) {
-      toast.error('Failed to remove reviewer');
+      toast.error(t('pipelineCustomizer.toast.failedToRemoveReviewer'));
       return;
     }
 
@@ -279,7 +281,7 @@ export const PipelineCustomizer = ({ jobId, companyId, currentStages, onUpdate }
     } else {
       setInternalReviewerAssignments((prev) => prev.filter((a) => a.id !== assignmentId));
     }
-    toast.success('Reviewer removed');
+    toast.success(t('pipelineCustomizer.toast.reviewerRemoved'));
   };
 
   const getOwnerIcon = (owner?: string) => {
@@ -305,11 +307,9 @@ export const PipelineCustomizer = ({ jobId, companyId, currentStages, onUpdate }
       <CardHeader className="border-b border-border/50">
         <div className="flex items-center gap-2">
           <Sparkles className="w-5 h-5 text-accent animate-pulse" />
-          <CardTitle className="text-lg font-black uppercase bg-gradient-to-r from-foreground to-foreground/60 bg-clip-text">
-            Premium Pipeline Editor
-          </CardTitle>
+          <CardTitle className="text-lg font-black uppercase bg-gradient-to-r from-foreground to-foreground/60 bg-clip-text">{t('pipelineCustomizer.title')}</CardTitle>
         </div>
-        <CardDescription>Customize your exclusive hiring pipeline stages</CardDescription>
+        <CardDescription>{t('pipelineCustomizer.description')}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4 pt-6">
         <div className="space-y-3">
@@ -402,9 +402,7 @@ export const PipelineCustomizer = ({ jobId, companyId, currentStages, onUpdate }
                     <div className="space-y-4 pt-4 border-t border-border/50 animate-fade-in">
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <Label className="text-xs font-bold uppercase text-muted-foreground">
-                            Stage Owner
-                          </Label>
+                          <Label className="text-xs font-bold uppercase text-muted-foreground">{t('pipelineCustomizer.label.stageOwner')}</Label>
                           <Select
                             value={stage.owner || 'company'}
                             onValueChange={(value) => handleUpdateStage(index, 'owner', value)}
@@ -430,9 +428,7 @@ export const PipelineCustomizer = ({ jobId, companyId, currentStages, onUpdate }
                         </div>
 
                         <div className="space-y-2">
-                          <Label className="text-xs font-bold uppercase text-muted-foreground">
-                            Format
-                          </Label>
+                          <Label className="text-xs font-bold uppercase text-muted-foreground">{t('pipelineCustomizer.label.format')}</Label>
                           <Select
                             value={stage.format || 'online'}
                             onValueChange={(value) => handleUpdateStage(index, 'format', value)}
@@ -441,22 +437,20 @@ export const PipelineCustomizer = ({ jobId, companyId, currentStages, onUpdate }
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="online">Online</SelectItem>
-                              <SelectItem value="in_person">In-Person</SelectItem>
-                              <SelectItem value="hybrid">Hybrid</SelectItem>
+                              <SelectItem value="online">{t('pipelineCustomizer.option.online')}</SelectItem>
+                              <SelectItem value="in_person">{t('pipelineCustomizer.option.inperson')}</SelectItem>
+                              <SelectItem value="hybrid">{t('pipelineCustomizer.option.hybrid')}</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
                       </div>
 
                       <div className="space-y-2">
-                        <Label className="text-xs font-bold uppercase text-muted-foreground">
-                          Description
-                        </Label>
+                        <Label className="text-xs font-bold uppercase text-muted-foreground">{t('pipelineCustomizer.label.description')}</Label>
                         <Textarea
                           value={stage.description || ''}
                           onChange={(e) => handleUpdateStage(index, 'description', e.target.value)}
-                          placeholder="Describe what happens in this stage..."
+                          placeholder={t('pipelineCustomizer.placeholder.describeWhatHappensInThisStage')}
                           className="border-accent/50 min-h-[80px]"
                         />
                       </div>
@@ -482,7 +476,7 @@ export const PipelineCustomizer = ({ jobId, companyId, currentStages, onUpdate }
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <UserPlus className="w-4 h-4 text-primary" />
-              <p className="text-sm font-semibold">Review Gate Assignments</p>
+              <p className="text-sm font-semibold">{t('pipelineCustomizer.reviewGateAssignments')}</p>
             </div>
           </div>
 
@@ -498,7 +492,7 @@ export const PipelineCustomizer = ({ jobId, companyId, currentStages, onUpdate }
                     : 'text-muted-foreground hover:text-foreground',
                 )}
               >
-                Internal Reviewers
+                {t('partner.pipelinecustomizer.internalReviewers', 'Internal Reviewers')}
               </button>
               <button
                 onClick={() => { setReviewLayerTab('partner'); setSelectedReviewerId(''); }}
@@ -509,27 +503,23 @@ export const PipelineCustomizer = ({ jobId, companyId, currentStages, onUpdate }
                     : 'text-muted-foreground hover:text-foreground',
                 )}
               >
-                Partner Reviewers
+                {t('partner.pipelinecustomizer.partnerReviewers', 'Partner Reviewers')}
               </button>
             </div>
           )}
 
           {!canManageReviewers ? (
-            <p className="text-sm text-muted-foreground">
-              Only admin and strategist roles can change reviewer assignments.
-            </p>
+            <p className="text-sm text-muted-foreground">{t('pipelineCustomizer.onlyAdminAndStrategistRolesCanChangeRevi')}</p>
           ) : (
             <>
               <div className="grid md:grid-cols-[1fr_auto_auto] gap-2 items-center">
                 <Select value={selectedReviewerId} onValueChange={setSelectedReviewerId}>
                   <SelectTrigger>
-                    <SelectValue placeholder={reviewLayerTab === 'partner' ? 'Select partner reviewer' : 'Select internal reviewer'} />
+                    <SelectValue placeholder={reviewLayerTab === 'partner' ? t('partner.pipelinecustomizer.selectPartnerReviewer', 'Select partner reviewer') : t('partner.pipelinecustomizer.selectInternalReviewer', 'Select internal reviewer')} />
                   </SelectTrigger>
                   <SelectContent>
                     {(reviewLayerTab === 'partner' ? reviewerOptions : internalReviewerOptions).length === 0 ? (
-                      <SelectItem value="__empty" disabled>
-                        No reviewers available
-                      </SelectItem>
+                      <SelectItem value="__empty" disabled>{t('pipelineCustomizer.option.noReviewersAvailable')}</SelectItem>
                     ) : (
                       (reviewLayerTab === 'partner' ? reviewerOptions : internalReviewerOptions).map((reviewer) => (
                         <SelectItem key={reviewer.id} value={reviewer.id}>
@@ -547,14 +537,10 @@ export const PipelineCustomizer = ({ jobId, companyId, currentStages, onUpdate }
                     checked={selectedIsPrimary}
                     onCheckedChange={(checked) => setSelectedIsPrimary(Boolean(checked))}
                   />
-                  <Label htmlFor="primary-reviewer" className="text-xs whitespace-nowrap">
-                    Primary
-                  </Label>
+                  <Label htmlFor="primary-reviewer" className="text-xs whitespace-nowrap">{t('pipelineCustomizer.label.primary')}</Label>
                 </div>
 
-                <Button onClick={handleAssignReviewer} disabled={savingReviewer}>
-                  Assign
-                </Button>
+                <Button onClick={handleAssignReviewer} disabled={savingReviewer}>{t('partner.pipelinecustomizer.assign', 'Assign')}</Button>
               </div>
 
               {/* Current assignments for selected layer */}
@@ -573,7 +559,7 @@ export const PipelineCustomizer = ({ jobId, companyId, currentStages, onUpdate }
                         <div className="text-sm">
                           <span className="font-medium">{getName(assignment.reviewerId)}</span>
                           {assignment.isPrimary && (
-                            <span className="ml-2 text-xs text-primary">Primary</span>
+                            <span className="ml-2 text-xs text-primary">{t('pipelineCustomizer.primary')}</span>
                           )}
                         </div>
                         <Button

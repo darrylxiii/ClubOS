@@ -4,6 +4,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import type { UnifiedKPI } from '@/hooks/useUnifiedKPIs';
 import { useKPIHistory } from '@/hooks/useKPIHistory';
 import { format } from 'date-fns';
+import { useTranslation } from 'react-i18next';
 
 interface InteractiveSparklineProps {
   kpi: UnifiedKPI;
@@ -30,6 +31,7 @@ export function InteractiveSparkline({
   showTooltip = true,
   days = 7
 }: InteractiveSparklineProps) {
+  const { t } = useTranslation('admin');
   const [hoveredPoint, setHoveredPoint] = useState<DataPoint | null>(null);
   const [mousePos, setMousePos] = useState<{ x: number; y: number } | null>(null);
 

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -22,6 +23,7 @@ interface Analytics {
 }
 
 export function LearnerDashboard() {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [analytics, setAnalytics] = useState<Analytics>({
     totalModulesCompleted: 0,
@@ -138,7 +140,7 @@ export function LearnerDashboard() {
               <Target className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <h3 className="font-semibold">Weekly Learning Goal</h3>
+              <h3 className="font-semibold">{t("weekly_learning_goal", "Weekly Learning Goal")}</h3>
               <p className="text-sm text-muted-foreground">
                 {Math.round(analytics.totalTimeSpent / 60)}h / {weeklyGoal / 60}h completed
               </p>
@@ -158,7 +160,7 @@ export function LearnerDashboard() {
             <BookOpen className="h-5 w-5 text-primary" />
           </div>
           <div>
-            <h3 className="font-semibold">Your Learning Journey</h3>
+            <h3 className="font-semibold">{t("your_learning_journey", "Your Learning Journey")}</h3>
             <p className="text-sm text-muted-foreground">
               {analytics.coursesEnrolled} courses enrolled • {analytics.coursesCompleted} completed
             </p>
@@ -166,7 +168,7 @@ export function LearnerDashboard() {
         </div>
         <div className="space-y-2">
           <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Completion Rate</span>
+            <span className="text-muted-foreground">{t("completion_rate", "Completion Rate")}</span>
             <span className="font-medium">
               {analytics.coursesEnrolled > 0 
                 ? Math.round((analytics.coursesCompleted / analytics.coursesEnrolled) * 100)
@@ -192,8 +194,8 @@ export function LearnerDashboard() {
                 <Award className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <h3 className="font-semibold">Recent Certificates</h3>
-                <p className="text-sm text-muted-foreground">Your achievements</p>
+                <h3 className="font-semibold">{t("recent_certificates", "Recent Certificates")}</h3>
+                <p className="text-sm text-muted-foreground">{t("your_achievements", "Your achievements")}</p>
               </div>
             </div>
             <Link to="/academy/my-skills">
@@ -232,7 +234,7 @@ export function LearnerDashboard() {
 
       {/* Quick Actions */}
       <Card className="p-6 squircle">
-        <h3 className="font-semibold mb-4">Quick Actions</h3>
+        <h3 className="font-semibold mb-4">{t("quick_actions", "Quick Actions")}</h3>
         <div className="grid grid-cols-2 gap-3">
           <Link to="/academy/my-skills">
             <Button variant="outline" className="w-full">

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { TrendingUp, Eye, Heart, MessageCircle, Share2, Zap } from "lucide-react";
@@ -13,12 +14,13 @@ interface RealTimeStat {
 }
 
 export const RealTimeStats = () => {
+  const { t } = useTranslation('analytics');
   const { user } = useAuth();
   const [stats, setStats] = useState<RealTimeStat[]>([
-    { metric: "Views (last hour)", value: 0, change: 0, trending: false },
-    { metric: "Likes (last hour)", value: 0, change: 0, trending: false },
-    { metric: "Comments (last hour)", value: 0, change: 0, trending: false },
-    { metric: "Shares (last hour)", value: 0, change: 0, trending: false },
+    { metric: "views_last_hour", value: 0, change: 0, trending: false },
+    { metric: "likes_last_hour", value: 0, change: 0, trending: false },
+    { metric: "comments_last_hour", value: 0, change: 0, trending: false },
+    { metric: "shares_last_hour", value: 0, change: 0, trending: false },
   ]);
 
   useEffect(() => {
@@ -101,25 +103,25 @@ export const RealTimeStats = () => {
 
       setStats([
         {
-          metric: "Views (last hour)",
+          metric: "views_last_hour",
           value: currentViews?.length || 0,
           change: 0,
           trending: (currentViews?.length || 0) > 50,
         },
         {
-          metric: "Likes (last hour)",
+          metric: "likes_last_hour",
           value: currentLikes,
           change: currentLikes - prevLikes,
           trending: currentLikes > prevLikes * 1.5,
         },
         {
-          metric: "Comments (last hour)",
+          metric: "comments_last_hour",
           value: currentComments,
           change: currentComments - prevComments,
           trending: currentComments > prevComments * 1.5,
         },
         {
-          metric: "Shares (last hour)",
+          metric: "shares_last_hour",
           value: currentShares,
           change: currentShares - prevShares,
           trending: currentShares > prevShares * 1.5,
@@ -131,10 +133,10 @@ export const RealTimeStats = () => {
   };
 
   const getIcon = (metric: string) => {
-    if (metric.includes("Views")) return <Eye className="h-4 w-4" />;
-    if (metric.includes("Likes")) return <Heart className="h-4 w-4" />;
-    if (metric.includes("Comments")) return <MessageCircle className="h-4 w-4" />;
-    if (metric.includes("Shares")) return <Share2 className="h-4 w-4" />;
+    if (metric.includes("views")) return <Eye className="h-4 w-4" />;
+    if (metric.includes("likes")) return <Heart className="h-4 w-4" />;
+    if (metric.includes("comments")) return <MessageCircle className="h-4 w-4" />;
+    if (metric.includes("shares")) return <Share2 className="h-4 w-4" />;
     return <TrendingUp className="h-4 w-4" />;
   };
 
@@ -143,7 +145,7 @@ export const RealTimeStats = () => {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Zap className="h-5 w-5 text-primary" />
-          Live Performance
+          {t('livePerformance')}
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -156,13 +158,13 @@ export const RealTimeStats = () => {
               <div className="flex items-center gap-3">
                 {getIcon(stat.metric)}
                 <div>
-                  <p className="text-sm text-muted-foreground">{stat.metric}</p>
+                  <p className="text-sm text-muted-foreground">{t(`metrics.${stat.metric}`)}</p>
                   <div className="flex items-center gap-2">
                     <p className="text-2xl font-bold">{stat.value}</p>
                     {stat.trending && (
                       <Badge variant="secondary" className="gap-1">
                         <TrendingUp className="h-3 w-3" />
-                        Trending
+                        {t('trending')}
                       </Badge>
                     )}
                   </div>

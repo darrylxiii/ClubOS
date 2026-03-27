@@ -16,13 +16,13 @@ export default function TranslationCoverage() {
   const markAsReviewed = useMarkAsReviewed();
   const [selectedTab, setSelectedTab] = useState('overview');
 
-  const handleRefresh = async () => { toast.loading('Refreshing coverage data...'); await refetch(); toast.dismiss(); toast.success('Coverage data refreshed'); };
-  const handleMarkReviewed = async (id: string) => { try { await markAsReviewed.mutateAsync({ id }); toast.success('Marked as reviewed'); } catch { toast.error('Failed to mark as reviewed'); } };
+  const handleRefresh = async () => { toast.loading("Refreshing coverage data..."); await refetch(); toast.dismiss(); toast.success(t('text.translationcoverage.coverageDataRefreshed', 'Coverage data refreshed')); };
+  const handleMarkReviewed = async (id: string) => { try { await markAsReviewed.mutateAsync({ id }); toast.success(t('text.translationcoverage.markedAsReviewed', 'Marked as reviewed')); } catch { toast.error(t('text.translationcoverage.failedToMarkAsReviewed', 'Failed to mark as reviewed')); } };
 
   const getStatusColor = (p: number) => p >= 90 ? 'text-green-500' : p >= 70 ? 'text-yellow-500' : p >= 50 ? 'text-orange-500' : 'text-red-500';
   const getQualityColor = (s: number | undefined) => !s ? 'text-muted-foreground' : s >= 90 ? 'text-green-500' : s >= 70 ? 'text-yellow-500' : s >= 50 ? 'text-orange-500' : 'text-red-500';
-  const getStatusBadge = (p: number) => p >= 90 ? <Badge className="bg-green-500/20 text-green-500 border-green-500/30">Complete</Badge> : p >= 70 ? <Badge className="bg-yellow-500/20 text-yellow-500 border-yellow-500/30">Good</Badge> : p >= 50 ? <Badge className="bg-orange-500/20 text-orange-500 border-orange-500/30">Partial</Badge> : <Badge className="bg-red-500/20 text-red-500 border-red-500/30">Needs Work</Badge>;
-  const getQualityBadge = (s: number | undefined) => !s ? <Badge variant="outline" className="text-xs">No data</Badge> : s >= 90 ? <Badge className="bg-green-500/20 text-green-500 border-green-500/30 text-xs"><Star className="h-3 w-3 mr-1" />{s}</Badge> : s >= 70 ? <Badge className="bg-yellow-500/20 text-yellow-500 border-yellow-500/30 text-xs">{s}</Badge> : <Badge className="bg-orange-500/20 text-orange-500 border-orange-500/30 text-xs"><AlertTriangle className="h-3 w-3 mr-1" />{s}</Badge>;
+  const getStatusBadge = (p: number) => p >= 90 ? <Badge className="bg-green-500/20 text-green-500 border-green-500/30">{t('text.translationcoverage.complete', 'Complete')}</Badge> : p >= 70 ? <Badge className="bg-yellow-500/20 text-yellow-500 border-yellow-500/30">{t('text.translationcoverage.good', 'Good')}</Badge> : p >= 50 ? <Badge className="bg-orange-500/20 text-orange-500 border-orange-500/30">{t('text.translationcoverage.partial', 'Partial')}</Badge> : <Badge className="bg-red-500/20 text-red-500 border-red-500/30">{t('text.translationcoverage.needsWork', 'Needs Work')}</Badge>;
+  const getQualityBadge = (s: number | undefined) => !s ? <Badge variant="outline" className="text-xs">{t('text.translationcoverage.noData', 'No data')}</Badge> : s >= 90 ? <Badge className="bg-green-500/20 text-green-500 border-green-500/30 text-xs"><Star className="h-3 w-3 mr-1" />{s}</Badge> : s >= 70 ? <Badge className="bg-yellow-500/20 text-yellow-500 border-yellow-500/30 text-xs">{s}</Badge> : <Badge className="bg-orange-500/20 text-orange-500 border-orange-500/30 text-xs"><AlertTriangle className="h-3 w-3 mr-1" />{s}</Badge>;
 
   return (
     <div className="space-y-6">
@@ -33,33 +33,33 @@ export default function TranslationCoverage() {
       {/* Overview Stats */}
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-          <Card className="glass-strong"><CardContent className="p-6"><div className="flex items-center justify-between"><div><p className="text-sm text-muted-foreground">Overall Coverage</p><p className={`text-3xl font-bold ${getStatusColor(coverage?.overallCompletion || 0)}`}>{coverage?.overallCompletion?.toFixed(1) || 0}%</p></div><TrendingUp className="h-8 w-8 text-primary/50" /></div><Progress value={coverage?.overallCompletion || 0} className="mt-4" /></CardContent></Card>
+          <Card className="glass-strong"><CardContent className="p-6"><div className="flex items-center justify-between"><div><p className="text-sm text-muted-foreground">{t('text.translationcoverage.overallCoverage', 'Overall Coverage')}</p><p className={`text-3xl font-bold ${getStatusColor(coverage?.overallCompletion || 0)}`}>{coverage?.overallCompletion?.toFixed(1) || 0}%</p></div><TrendingUp className="h-8 w-8 text-primary/50" /></div><Progress value={coverage?.overallCompletion || 0} className="mt-4" /></CardContent></Card>
         </motion.div>
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
-          <Card className="glass-strong"><CardContent className="p-6"><div className="flex items-center justify-between"><div><p className="text-sm text-muted-foreground">Avg Quality</p><p className={`text-3xl font-bold ${getQualityColor(coverage?.qualitySummary?.averageQuality)}`}>{coverage?.qualitySummary?.averageQuality || 0}</p></div><Star className="h-8 w-8 text-yellow-500/50" /></div><p className="text-xs text-muted-foreground mt-4">Quality score (0-100)</p></CardContent></Card>
+          <Card className="glass-strong"><CardContent className="p-6"><div className="flex items-center justify-between"><div><p className="text-sm text-muted-foreground">{t('text.translationcoverage.avgQuality', 'Avg Quality')}</p><p className={`text-3xl font-bold ${getQualityColor(coverage?.qualitySummary?.averageQuality)}`}>{coverage?.qualitySummary?.averageQuality || 0}</p></div><Star className="h-8 w-8 text-yellow-500/50" /></div><p className="text-xs text-muted-foreground mt-4">{t('text.translationcoverage.qualityScore0100', 'Quality score (0-100)')}</p></CardContent></Card>
         </motion.div>
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-          <Card className="glass-strong"><CardContent className="p-6"><div className="flex items-center justify-between"><div><p className="text-sm text-muted-foreground">Validated</p><p className="text-3xl font-bold text-green-500">{coverage?.qualitySummary?.validated || 0}</p></div><Shield className="h-8 w-8 text-green-500/50" /></div><p className="text-xs text-muted-foreground mt-4">Human reviewed</p></CardContent></Card>
+          <Card className="glass-strong"><CardContent className="p-6"><div className="flex items-center justify-between"><div><p className="text-sm text-muted-foreground">{t('text.translationcoverage.validated', 'Validated')}</p><p className="text-3xl font-bold text-green-500">{coverage?.qualitySummary?.validated || 0}</p></div><Shield className="h-8 w-8 text-green-500/50" /></div><p className="text-xs text-muted-foreground mt-4">{t('text.translationcoverage.humanReviewed', 'Human reviewed')}</p></CardContent></Card>
         </motion.div>
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
-          <Card className="glass-strong"><CardContent className="p-6"><div className="flex items-center justify-between"><div><p className="text-sm text-muted-foreground">Needs Review</p><p className="text-3xl font-bold text-yellow-500">{coverage?.qualitySummary?.needsReview || 0}</p></div><AlertTriangle className="h-8 w-8 text-yellow-500/50" /></div><p className="text-xs text-muted-foreground mt-4">Quality warnings</p></CardContent></Card>
+          <Card className="glass-strong"><CardContent className="p-6"><div className="flex items-center justify-between"><div><p className="text-sm text-muted-foreground">{t('text.translationcoverage.needsReview', 'Needs Review')}</p><p className="text-3xl font-bold text-yellow-500">{coverage?.qualitySummary?.needsReview || 0}</p></div><AlertTriangle className="h-8 w-8 text-yellow-500/50" /></div><p className="text-xs text-muted-foreground mt-4">{t('text.translationcoverage.qualityWarnings', 'Quality warnings')}</p></CardContent></Card>
         </motion.div>
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-          <Card className="glass-strong"><CardContent className="p-6"><div className="flex items-center justify-between"><div><p className="text-sm text-muted-foreground">Missing Keys</p><p className="text-3xl font-bold text-red-500">{coverage?.missingKeys?.length || 0}</p></div><AlertCircle className="h-8 w-8 text-red-500/50" /></div><p className="text-xs text-muted-foreground mt-4">Keys missing translations</p></CardContent></Card>
+          <Card className="glass-strong"><CardContent className="p-6"><div className="flex items-center justify-between"><div><p className="text-sm text-muted-foreground">{t('text.translationcoverage.missingKeys', 'Missing Keys')}</p><p className="text-3xl font-bold text-red-500">{coverage?.missingKeys?.length || 0}</p></div><AlertCircle className="h-8 w-8 text-red-500/50" /></div><p className="text-xs text-muted-foreground mt-4">{t('text.translationcoverage.keysMissingTranslations', 'Keys missing translations')}</p></CardContent></Card>
         </motion.div>
       </div>
 
       <Tabs value={selectedTab} onValueChange={setSelectedTab}>
         <TabsList className="grid w-full grid-cols-4 max-w-lg">
-          <TabsTrigger value="overview">By Language</TabsTrigger>
-          <TabsTrigger value="namespace">By Namespace</TabsTrigger>
+          <TabsTrigger value="overview">{t('text.translationcoverage.byLanguage', 'By Language')}</TabsTrigger>
+          <TabsTrigger value="namespace">{t('text.translationcoverage.byNamespace', 'By Namespace')}</TabsTrigger>
           <TabsTrigger value="review">Needs Review{(needsReviewList?.length || 0) > 0 && <Badge variant="destructive" className="ml-2 h-5 w-5 p-0 text-xs flex items-center justify-center">{needsReviewList?.length}</Badge>}</TabsTrigger>
-          <TabsTrigger value="missing">Missing Keys</TabsTrigger>
+          <TabsTrigger value="missing">{t('text.translationcoverage.missingKeys', 'Missing Keys')}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="mt-6">
           <Card>
-            <CardHeader><CardTitle>Coverage by Language</CardTitle><CardDescription>Translation completeness and quality for each supported language</CardDescription></CardHeader>
+            <CardHeader><CardTitle>{t('text.translationcoverage.coverageByLanguage', 'Coverage by Language')}</CardTitle><CardDescription>{t('text.translationcoverage.translationCompletenessAndQualityForEach', 'Translation completeness and quality for each supported language')}</CardDescription></CardHeader>
             <CardContent>
               <div className="space-y-4">
                 {Object.entries(coverage?.byLanguage || {}).map(([lang, data]) => (
@@ -79,7 +79,7 @@ export default function TranslationCoverage() {
 
         <TabsContent value="namespace" className="mt-6">
           <Card>
-            <CardHeader><CardTitle>Coverage by Namespace</CardTitle><CardDescription>Translation completeness for each namespace across all languages</CardDescription></CardHeader>
+            <CardHeader><CardTitle>{t('text.translationcoverage.coverageByNamespace', 'Coverage by Namespace')}</CardTitle><CardDescription>{t('text.translationcoverage.translationCompletenessForEachNamespaceAcross', 'Translation completeness for each namespace across all languages')}</CardDescription></CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {Object.entries(coverage?.byNamespace || {}).map(([ns, data]) => (
@@ -96,10 +96,10 @@ export default function TranslationCoverage() {
 
         <TabsContent value="review" className="mt-6">
           <Card>
-            <CardHeader><CardTitle>Translations Needing Review</CardTitle><CardDescription>Translations with quality warnings that need human review</CardDescription></CardHeader>
+            <CardHeader><CardTitle>{t('text.translationcoverage.translationsNeedingReview', 'Translations Needing Review')}</CardTitle><CardDescription>{t('text.translationcoverage.translationsWithQualityWarningsThatNeed', 'Translations with quality warnings that need human review')}</CardDescription></CardHeader>
             <CardContent>
               {(needsReviewList || []).length === 0 ? (
-                <div className="text-center py-12 text-muted-foreground"><CheckCircle2 className="h-12 w-12 mx-auto mb-4 text-green-500" /><p>All translations have been reviewed!</p></div>
+                <div className="text-center py-12 text-muted-foreground"><CheckCircle2 className="h-12 w-12 mx-auto mb-4 text-green-500" /><p>{t('text.translationcoverage.allTranslationsHaveBeenReviewed', 'All translations have been reviewed!')}</p></div>
               ) : (
                 <div className="space-y-3">
                   {(needsReviewList || []).map(item => (
@@ -116,10 +116,10 @@ export default function TranslationCoverage() {
 
         <TabsContent value="missing" className="mt-6">
           <Card>
-            <CardHeader><CardTitle>Missing Translation Keys</CardTitle><CardDescription>Keys that need translations in one or more languages</CardDescription></CardHeader>
+            <CardHeader><CardTitle>{t('text.translationcoverage.missingTranslationKeys', 'Missing Translation Keys')}</CardTitle><CardDescription>{t('text.translationcoverage.keysThatNeedTranslationsInOne', 'Keys that need translations in one or more languages')}</CardDescription></CardHeader>
             <CardContent>
               {(coverage?.missingKeys || []).length === 0 ? (
-                <div className="text-center py-12 text-muted-foreground"><CheckCircle2 className="h-12 w-12 mx-auto mb-4 text-green-500" /><p>All translations are complete!</p></div>
+                <div className="text-center py-12 text-muted-foreground"><CheckCircle2 className="h-12 w-12 mx-auto mb-4 text-green-500" /><p>{t('text.translationcoverage.allTranslationsAreComplete', 'All translations are complete!')}</p></div>
               ) : (
                 <div className="space-y-2 max-h-96 overflow-y-auto">
                   {(coverage?.missingKeys || []).slice(0, 50).map((item: any, index: number) => (

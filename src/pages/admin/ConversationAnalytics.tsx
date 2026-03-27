@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -16,6 +17,7 @@ interface ConversationMetrics {
 }
 
 export default function ConversationAnalytics() {
+  const { t } = useTranslation('admin');
   const [loading, setLoading] = useState(true);
   const [metrics, setMetrics] = useState<ConversationMetrics>({
     totalMessages: 0,
@@ -90,8 +92,8 @@ export default function ConversationAnalytics() {
   return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold">Conversation Analytics</h1>
-          <p className="text-muted-foreground">Messaging metrics and communication insights</p>
+          <h1 className="text-3xl font-bold">{t('conversationAnalytics.text1')}</h1>
+          <p className="text-muted-foreground">{t('conversationAnalytics.text2')}</p>
         </div>
 
         {/* Key Metrics */}
@@ -102,7 +104,7 @@ export default function ConversationAnalytics() {
                 <div className="p-3 bg-primary/10 rounded-lg"><MessageSquare className="h-6 w-6" /></div>
                 <div>
                   <p className="text-2xl font-bold">{metrics.totalMessages.toLocaleString()}</p>
-                  <p className="text-sm text-muted-foreground">Total Messages (30d)</p>
+                  <p className="text-sm text-muted-foreground">{t('conversationAnalytics.text3')}</p>
                 </div>
               </div>
             </CardContent>
@@ -114,7 +116,7 @@ export default function ConversationAnalytics() {
                 <div className="p-3 bg-primary/10 rounded-lg"><Clock className="h-6 w-6" /></div>
                 <div>
                   <p className="text-2xl font-bold">{metrics.avgResponseTime}m</p>
-                  <p className="text-sm text-muted-foreground">Avg Response Time</p>
+                  <p className="text-sm text-muted-foreground">{t('conversationAnalytics.text4')}</p>
                 </div>
               </div>
             </CardContent>
@@ -126,7 +128,7 @@ export default function ConversationAnalytics() {
                 <div className="p-3 bg-primary/10 rounded-lg"><TrendingUp className="h-6 w-6" /></div>
                 <div>
                   <p className="text-2xl font-bold">{metrics.uniqueConversations}</p>
-                  <p className="text-sm text-muted-foreground">Active Conversations</p>
+                  <p className="text-sm text-muted-foreground">{t('conversationAnalytics.text5')}</p>
                 </div>
               </div>
             </CardContent>
@@ -138,7 +140,7 @@ export default function ConversationAnalytics() {
                 <div className="p-3 bg-primary/10 rounded-lg"><Smile className="h-6 w-6" /></div>
                 <div>
                   <p className="text-2xl font-bold">{metrics.aiAssistedCount}</p>
-                  <p className="text-sm text-muted-foreground">AI-Assisted</p>
+                  <p className="text-sm text-muted-foreground">{t('conversationAnalytics.text6')}</p>
                 </div>
               </div>
             </CardContent>
@@ -149,8 +151,8 @@ export default function ConversationAnalytics() {
         <div className="grid md:grid-cols-2 gap-6">
           <Card>
             <CardHeader>
-              <CardTitle>Message Volume Trend</CardTitle>
-              <CardDescription>Daily message and conversation counts</CardDescription>
+              <CardTitle>{t('conversationAnalytics.text7')}</CardTitle>
+              <CardDescription>{t('conversationAnalytics.text8')}</CardDescription>
             </CardHeader>
             <CardContent>
               <DynamicChart
@@ -172,8 +174,8 @@ export default function ConversationAnalytics() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Sentiment Analysis</CardTitle>
-              <CardDescription>Communication sentiment breakdown</CardDescription>
+              <CardTitle>{t('conversationAnalytics.text9')}</CardTitle>
+              <CardDescription>{t('conversationAnalytics.text10')}</CardDescription>
             </CardHeader>
             <CardContent>
               {sentimentData.length > 0 ? (

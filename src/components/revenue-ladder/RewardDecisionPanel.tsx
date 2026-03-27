@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { motion } from '@/lib/motion';
 import { 
@@ -59,6 +60,7 @@ const decisionConfig = {
 };
 
 export function RewardDecisionPanel({ proposal, open, onOpenChange }: RewardDecisionPanelProps) {
+  const { t } = useTranslation('common');
   const [decision, setDecision] = useState<string | null>(null);
   const [rationale, setRationale] = useState('');
   const [modifiedAmount, setModifiedAmount] = useState<number>(proposal.estimated_cost);
@@ -120,7 +122,7 @@ export function RewardDecisionPanel({ proposal, open, onOpenChange }: RewardDeci
                 </p>
               </div>
               <div className="text-right">
-                <p className="text-label-sm text-muted-foreground">Requested</p>
+                <p className="text-label-sm text-muted-foreground">{t("requested", "Requested")}</p>
                 <p className="text-heading-md font-bold">
                   {formatCurrency(proposal.estimated_cost)}
                 </p>
@@ -154,7 +156,7 @@ export function RewardDecisionPanel({ proposal, open, onOpenChange }: RewardDeci
 
           {/* Decision Options */}
           <div className="space-y-3">
-            <Label>Decision</Label>
+            <Label>{t("decision", "Decision")}</Label>
             <div className="grid grid-cols-2 gap-3">
               {Object.entries(decisionConfig).map(([key, config]) => {
                 const Icon = config.icon;
@@ -196,7 +198,7 @@ export function RewardDecisionPanel({ proposal, open, onOpenChange }: RewardDeci
               animate={{ opacity: 1, height: 'auto' }}
               className="space-y-2"
             >
-              <Label htmlFor="modified-amount">Modified Amount (€)</Label>
+              <Label htmlFor="modified-amount">{t("modified_amount", "Modified Amount (€)")}</Label>
               <Input
                 id="modified-amount"
                 type="number"
@@ -208,12 +210,12 @@ export function RewardDecisionPanel({ proposal, open, onOpenChange }: RewardDeci
 
           {/* Rationale */}
           <div className="space-y-2">
-            <Label htmlFor="rationale">Rationale (Required)</Label>
+            <Label htmlFor="rationale">{t("rationale_required", "Rationale (Required)")}</Label>
             <Textarea
               id="rationale"
               value={rationale}
               onChange={(e) => setRationale(e.target.value)}
-              placeholder="Explain your decision for transparency..."
+              placeholder={t("explain_your_decision_for", "Explain your decision for transparency...")}
               rows={4}
             />
             <p className="text-label-sm text-muted-foreground">

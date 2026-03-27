@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useDraggable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -30,6 +31,7 @@ export function EnhancedTaskCard({
   onClick,
   showSelection = true 
 }: EnhancedTaskCardProps) {
+  const { t } = useTranslation('common');
   const { selectedTaskIds, toggleTaskSelection } = useUnifiedTasks();
   const isSelected = selectedTaskIds.has(task.id);
 
@@ -206,7 +208,7 @@ export function EnhancedTaskCard({
           {/* Metrics */}
           <div className="flex items-center gap-2.5 text-muted-foreground">
             {hasTimeTracked && (
-              <div className="flex items-center gap-1 text-[10px]" title="Time tracked">
+              <div className="flex items-center gap-1 text-[10px]" title={t("time_tracked", "Time tracked")}>
                 <Timer className="h-3 w-3" />
                 {formatTimeTracked(task.time_tracked_minutes || 0)}
               </div>

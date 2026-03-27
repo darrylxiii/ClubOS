@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useRef } from 'react';
 import { motion, useMotionValue, useTransform } from '@/lib/motion';
 import type { PanInfo } from '@/lib/motion';
@@ -20,6 +21,7 @@ export function KPISwipeableCard({
   onViewDetails,
   onConfigureAlert
 }: KPISwipeableCardProps) {
+  const { t } = useTranslation('common');
   const [isRevealed, setIsRevealed] = useState(false);
   const constraintsRef = useRef(null);
   const x = useMotionValue(0);
@@ -93,7 +95,7 @@ export function KPISwipeableCard({
       >
         <div className="flex flex-col items-center text-blue-500">
           <Eye className="h-6 w-6" />
-          <span className="text-xs mt-1">Details</span>
+          <span className="text-xs mt-1">{t("details", "Details")}</span>
         </div>
       </motion.div>
 

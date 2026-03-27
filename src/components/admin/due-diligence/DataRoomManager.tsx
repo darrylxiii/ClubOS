@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -45,6 +46,7 @@ const categoryLabels: Record<string, string> = {
 };
 
 export function DataRoomManager() {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -94,11 +96,11 @@ export function DataRoomManager() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['data-room-documents'] });
-      toast.success('Document uploaded successfully');
+      toast.success(t("document_uploaded_successfully", "Document uploaded successfully"));
       setIsUploading(false);
     },
     onError: (error) => {
-      toast.error('Upload failed: ' + error.message);
+      toast.error(t("upload_failed", "Upload failed:") + error.message);
       setIsUploading(false);
     },
   });
@@ -123,9 +125,9 @@ export function DataRoomManager() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['data-room-documents'] });
-      toast.success('Document deleted');
+      toast.success(t("document_deleted", "Document deleted"));
     },
-    onError: (error) => toast.error('Delete failed: ' + error.message),
+    onError: (error) => toast.error(t("delete_failed", "Delete failed:") + error.message),
   });
 
   // Download handler with access logging
@@ -158,7 +160,7 @@ export function DataRoomManager() {
       window.open(data.signedUrl, '_blank');
       queryClient.invalidateQueries({ queryKey: ['data-room-documents'] });
     } catch (error: unknown) {
-      toast.error('Download failed: ' + (error instanceof Error ? error.message : 'Unknown error'));
+      toast.error(t("download_failed", "Download failed:") + (error instanceof Error ? error.message : 'Unknown error'));
     }
   };
 
@@ -172,7 +174,7 @@ export function DataRoomManager() {
   const handleGenerateLink = () => {
     const link = `https://app.thequantumclub.com/data-room/inv-${Date.now()}`;
     navigator.clipboard.writeText(link);
-    toast.success('Secure data room link copied to clipboard');
+    toast.success(t("secure_data_room_link", "Secure data room link copied to clipboard"));
   };
 
   const filteredDocuments = documents.filter(doc => {
@@ -190,13 +192,13 @@ export function DataRoomManager() {
   const getAccessBadge = (level: string) => {
     switch (level) {
       case 'public':
-        return <Badge variant="outline" className="text-green-500 border-green-500">Public</Badge>;
+        return <Badge variant="outline" className="text-green-500 border-green-500">{t("public", "Public")}</Badge>;
       case 'internal':
-        return <Badge variant="outline" className="text-blue-500 border-blue-500">Internal</Badge>;
+        return <Badge variant="outline" className="text-blue-500 border-blue-500">{t("internal", "Internal")}</Badge>;
       case 'confidential':
-        return <Badge variant="outline" className="text-yellow-500 border-yellow-500">Confidential</Badge>;
+        return <Badge variant="outline" className="text-yellow-500 border-yellow-500">{t("confidential", "Confidential")}</Badge>;
       case 'restricted':
-        return <Badge variant="outline" className="text-red-500 border-red-500">Restricted</Badge>;
+        return <Badge variant="outline" className="text-red-500 border-red-500">{t("restricted", "Restricted")}</Badge>;
       default:
         return <Badge variant="outline">{level}</Badge>;
     }
@@ -214,7 +216,7 @@ export function DataRoomManager() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold">Investor Data Room</h2>
+          <h2 className="text-2xl font-bold">{t("investor_data_room", "Investor Data Room")}</h2>
           <p className="text-muted-foreground">
             Secure document repository for due diligence
           </p>
@@ -242,32 +244,32 @@ export function DataRoomManager() {
         <CardContent className="pt-4">
           <div className="flex gap-4 items-center">
             <div className="flex-1">
-              <label className="text-sm text-muted-foreground">Upload Category</label>
+              <label className="text-sm text-muted-foreground">{t("upload_category", "Upload Category")}</label>
               <Select value={uploadCategory} onValueChange={setUploadCategory}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="financials">Financials</SelectItem>
-                  <SelectItem value="legal">Legal</SelectItem>
-                  <SelectItem value="technical">Technical</SelectItem>
-                  <SelectItem value="corporate">Corporate</SelectItem>
+                  <SelectItem value="financials">{t("financials", "Financials")}</SelectItem>
+                  <SelectItem value="legal">{t("legal", "Legal")}</SelectItem>
+                  <SelectItem value="technical">{t("technical", "Technical")}</SelectItem>
+                  <SelectItem value="corporate">{t("corporate", "Corporate")}</SelectItem>
                   <SelectItem value="hr">HR</SelectItem>
-                  <SelectItem value="compliance">Compliance</SelectItem>
+                  <SelectItem value="compliance">{t("compliance", "Compliance")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="flex-1">
-              <label className="text-sm text-muted-foreground">Access Level</label>
+              <label className="text-sm text-muted-foreground">{t("access_level", "Access Level")}</label>
               <Select value={uploadAccessLevel} onValueChange={setUploadAccessLevel}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="public">Public</SelectItem>
-                  <SelectItem value="internal">Internal</SelectItem>
-                  <SelectItem value="confidential">Confidential</SelectItem>
-                  <SelectItem value="restricted">Restricted</SelectItem>
+                  <SelectItem value="public">{t("public", "Public")}</SelectItem>
+                  <SelectItem value="internal">{t("internal", "Internal")}</SelectItem>
+                  <SelectItem value="confidential">{t("confidential", "Confidential")}</SelectItem>
+                  <SelectItem value="restricted">{t("restricted", "Restricted")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -283,7 +285,7 @@ export function DataRoomManager() {
               <FileText className="h-5 w-5 text-muted-foreground" />
               <div>
                 <p className="text-2xl font-bold">{documents.length}</p>
-                <p className="text-sm text-muted-foreground">Total Documents</p>
+                <p className="text-sm text-muted-foreground">{t("total_documents", "Total Documents")}</p>
               </div>
             </div>
           </CardContent>
@@ -294,7 +296,7 @@ export function DataRoomManager() {
               <Eye className="h-5 w-5 text-muted-foreground" />
               <div>
                 <p className="text-2xl font-bold">{documents.reduce((sum, d) => sum + d.view_count, 0)}</p>
-                <p className="text-sm text-muted-foreground">Total Views</p>
+                <p className="text-sm text-muted-foreground">{t("total_views", "Total Views")}</p>
               </div>
             </div>
           </CardContent>
@@ -305,7 +307,7 @@ export function DataRoomManager() {
               <Users className="h-5 w-5 text-muted-foreground" />
               <div>
                 <p className="text-2xl font-bold">{new Set(documents.map(d => d.category)).size}</p>
-                <p className="text-sm text-muted-foreground">Categories</p>
+                <p className="text-sm text-muted-foreground">{t("categories", "Categories")}</p>
               </div>
             </div>
           </CardContent>
@@ -318,7 +320,7 @@ export function DataRoomManager() {
                 <p className="text-2xl font-bold">
                   {formatFileSize(documents.reduce((sum, d) => sum + d.size_bytes, 0))}
                 </p>
-                <p className="text-sm text-muted-foreground">Total Size</p>
+                <p className="text-sm text-muted-foreground">{t("total_size", "Total Size")}</p>
               </div>
             </div>
           </CardContent>
@@ -337,7 +339,7 @@ export function DataRoomManager() {
               <div className="relative">
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search documents..."
+                  placeholder={t("search_documents", "Search documents...")}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-8 w-64"

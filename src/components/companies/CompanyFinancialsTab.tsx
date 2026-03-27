@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -24,6 +25,7 @@ interface CompanyFinancials {
 }
 
 export function CompanyFinancialsTab({ companyId, companyName }: CompanyFinancialsTabProps) {
+  const { t } = useTranslation('common');
   const { currentRole } = useRole();
   const { data: financials, isLoading } = useQuery({
     queryKey: ['company-financials', companyId],
@@ -97,7 +99,7 @@ export function CompanyFinancialsTab({ companyId, companyName }: CompanyFinancia
           <CardContent className="p-6">
             <div className="flex items-center gap-2 text-muted-foreground mb-2">
               <DollarSign className="h-4 w-4" />
-              <span className="text-sm">Total Revenue</span>
+              <span className="text-sm">{t("total_revenue", "Total Revenue")}</span>
             </div>
             <p className="text-2xl font-bold">{formatCurrency(financials?.total_revenue ?? null)}</p>
             <p className="text-xs text-muted-foreground mt-1">
@@ -110,7 +112,7 @@ export function CompanyFinancialsTab({ companyId, companyName }: CompanyFinancia
           <CardContent className="p-6">
             <div className="flex items-center gap-2 text-muted-foreground mb-2">
               <CheckCircle className="h-4 w-4" />
-              <span className="text-sm">Collected</span>
+              <span className="text-sm">{t("collected", "Collected")}</span>
             </div>
             <p className="text-2xl font-bold text-green-600 dark:text-green-400">
               {formatCurrency(financials?.total_paid ?? null)}
@@ -128,7 +130,7 @@ export function CompanyFinancialsTab({ companyId, companyName }: CompanyFinancia
           <CardContent className="p-6">
             <div className="flex items-center gap-2 text-muted-foreground mb-2">
               <Receipt className="h-4 w-4" />
-              <span className="text-sm">Outstanding</span>
+              <span className="text-sm">{t("outstanding", "Outstanding")}</span>
             </div>
             <p className={`text-2xl font-bold ${(financials?.total_outstanding || 0) > 0 ? 'text-amber-600 dark:text-amber-400' : ''}`}>
               {formatCurrency(financials?.total_outstanding ?? null)}
@@ -159,7 +161,7 @@ export function CompanyFinancialsTab({ companyId, companyName }: CompanyFinancia
                   ? financials?.payment_reliability_score 
                   : '—'}
               </div>
-              <p className="text-sm text-muted-foreground mt-1">Payment Score</p>
+              <p className="text-sm text-muted-foreground mt-1">{t("payment_score", "Payment Score")}</p>
               <Badge variant={scoreBadge.variant} className="mt-2">
                 {scoreBadge.label}
               </Badge>
@@ -174,7 +176,7 @@ export function CompanyFinancialsTab({ companyId, companyName }: CompanyFinancia
                 </span>
                 <span className="text-muted-foreground">days</span>
               </div>
-              <p className="text-sm text-muted-foreground mt-1">Payment Terms</p>
+              <p className="text-sm text-muted-foreground mt-1">{t("payment_terms", "Payment Terms")}</p>
             </div>
 
             {/* Bank Details Status */}
@@ -184,7 +186,7 @@ export function CompanyFinancialsTab({ companyId, companyName }: CompanyFinancia
                   <div className="flex items-center justify-center">
                     <CheckCircle className="h-8 w-8 text-green-500" />
                   </div>
-                  <p className="text-sm text-muted-foreground mt-2">Bank details configured</p>
+                  <p className="text-sm text-muted-foreground mt-2">{t("bank_details_configured", "Bank details configured")}</p>
                   <p className="text-xs font-mono text-muted-foreground mt-1">
                     {financials.bank_iban.slice(0, 4)}...{financials.bank_iban.slice(-4)}
                   </p>
@@ -194,8 +196,8 @@ export function CompanyFinancialsTab({ companyId, companyName }: CompanyFinancia
                   <div className="flex items-center justify-center">
                     <AlertTriangle className="h-8 w-8 text-amber-500" />
                   </div>
-                  <p className="text-sm text-muted-foreground mt-2">No bank details</p>
-                  <p className="text-xs text-muted-foreground mt-1">Add in fee config</p>
+                  <p className="text-sm text-muted-foreground mt-2">{t("no_bank_details", "No bank details")}</p>
+                  <p className="text-xs text-muted-foreground mt-1">{t("add_in_fee_config", "Add in fee config")}</p>
                 </>
               )}
             </div>

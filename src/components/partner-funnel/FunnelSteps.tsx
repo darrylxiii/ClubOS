@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useGoogleReCaptcha } from "react-google-recaptcha-v3";
 import { RECAPTCHA_ENABLED, RECAPTCHA_MIN_SCORE } from "@/config/recaptcha";
@@ -42,6 +43,7 @@ const STEP_TIME_ESTIMATES: Record<number, number> = {
 };
 
 export function FunnelSteps() {
+  const { t } = useTranslation('common');
   const { executeRecaptcha } = useGoogleReCaptcha();
   const [currentStep, setCurrentStep] = useState(0);
   const [sessionId] = useState(() => crypto.randomUUID());
@@ -140,8 +142,8 @@ export function FunnelSteps() {
               });
             }
             toast({
-              title: "Welcome back.",
-              description: "We've restored your progress.",
+              title: t('partnerfunnel.funnelsteps.welcomeBack', 'Welcome back.'),
+              description: t('partnerfunnel.funnelsteps.weveRestoredYourProgress', 'We\'ve restored your progress.'),
             });
           }
         } catch {
@@ -260,7 +262,7 @@ export function FunnelSteps() {
   const handleEmailCapture = async () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!formData.contact_email || !emailRegex.test(formData.contact_email)) {
-      toast({ title: "Please enter a valid work email", variant: "destructive" });
+      toast({ title: t('partnerfunnel.funnelsteps.pleaseEnterAValidWorkEmail', 'Please enter a valid work email'), variant: "destructive" });
       return;
     }
 
@@ -319,9 +321,9 @@ export function FunnelSteps() {
       });
       if (error) throw error;
       setEmailVerificationStatus('otp_sent');
-      toast({ title: "Verification code sent.", description: `Check ${formData.contact_email}.` });
+      toast({ title: t('partnerfunnel.funnelsteps.verificationCodeSent', 'Verification code sent.'), description: `Check ${formData.contact_email}.` });
     } catch {
-      toast({ title: "Could not send code. Try again.", variant: "destructive" });
+      toast({ title: t('partnerfunnel.funnelsteps.couldNotSendCodeTryAgain', 'Could not send code. Try again.'), variant: "destructive" });
     }
   };
 
@@ -344,10 +346,10 @@ export function FunnelSteps() {
         }
         setEmailCaptured(true);
       } else {
-        toast({ title: "Invalid code. Please try again.", variant: "destructive" });
+        toast({ title: t('partnerfunnel.funnelsteps.invalidCodePleaseTryAgain', 'Invalid code. Please try again.'), variant: "destructive" });
       }
     } catch {
-      toast({ title: "Verification failed. Please try again.", variant: "destructive" });
+      toast({ title: t('partnerfunnel.funnelsteps.verificationFailedPleaseTryAgain', 'Verification failed. Please try again.'), variant: "destructive" });
     }
   };
 
@@ -372,17 +374,17 @@ export function FunnelSteps() {
     switch (currentStep) {
       case 0:
         if (!formData.contact_name || !formData.contact_email || !formData.company_name || !formData.industry) {
-          toast({ title: "Please complete the required fields.", variant: "destructive" });
+          toast({ title: t('partnerfunnel.funnelsteps.pleaseCompleteTheRequiredFields', 'Please complete the required fields.'), variant: "destructive" });
           return false;
         }
         if (!emailRegex.test(formData.contact_email)) {
-          toast({ title: "Please enter a valid email address", variant: "destructive" });
+          toast({ title: t('partnerfunnel.funnelsteps.pleaseEnterAValidEmailAddress', 'Please enter a valid email address'), variant: "destructive" });
           return false;
         }
         break;
       case 1:
         if (!formData.company_size) {
-          toast({ title: "Please select your company size", variant: "destructive" });
+          toast({ title: t('partnerfunnel.funnelsteps.pleaseSelectYourCompanySize', 'Please select your company size'), variant: "destructive" });
           return false;
         }
         break;
@@ -428,8 +430,8 @@ export function FunnelSteps() {
         partialSaveRef.current = true;
       }
       toast({
-        title: "Welcome back.",
-        description: "Resuming where you left off.",
+        title: t('partnerfunnel.funnelsteps.welcomeBack', 'Welcome back.'),
+        description: t('partnerfunnel.funnelsteps.resumingWhereYouLeftOff', 'Resuming where you left off.'),
       });
     }
     setResumeDialogOpen(false);
@@ -442,7 +444,7 @@ export function FunnelSteps() {
 
   const handleSubmit = async () => {
     if (honeypot) {
-      toast({ title: "Request submitted.", description: "Your strategist will be in touch." });
+      toast({ title: t('partnerfunnel.funnelsteps.requestSubmitted', 'Request submitted.'), description: t('partnerfunnel.funnelsteps.yourStrategistWillBeInTouch', 'Your strategist will be in touch.') });
       return;
     }
 
@@ -459,7 +461,7 @@ export function FunnelSteps() {
       .map(([k]) => k);
 
     if (missing.length > 0) {
-      toast({ title: "Please complete the required fields.", variant: "destructive" });
+      toast({ title: t('partnerfunnel.funnelsteps.pleaseCompleteTheRequiredFields', 'Please complete the required fields.'), variant: "destructive" });
       if (!formData.company_name || !formData.industry || !formData.contact_name || !formData.contact_email) {
         setCurrentStep(0);
       } else {
@@ -478,7 +480,7 @@ export function FunnelSteps() {
             body: { token },
           });
           if (recaptchaResult?.success && recaptchaResult.score < RECAPTCHA_MIN_SCORE) {
-            toast({ title: "We could not verify this request. Please try again.", variant: "destructive" });
+            toast({ title: t('partnerfunnel.funnelsteps.weCouldNotVerifyThisRequest', 'We could not verify this request. Please try again.'), variant: "destructive" });
             setIsSubmitting(false);
             return;
           }
@@ -521,7 +523,7 @@ export function FunnelSteps() {
       });
 
       if (error) {
-        toast({ title: "Something went wrong. Please try again.", description: error.message, variant: "destructive" });
+        toast({ title: t('partnerfunnel.funnelsteps.somethingWentWrongPleaseTryAgain', 'Something went wrong. Please try again.'), description: error.message, variant: "destructive" });
         return;
       }
 
@@ -566,8 +568,8 @@ export function FunnelSteps() {
       setTimeout(() => autoSave.clear(), 1000);
 
       toast({
-        title: "Request submitted.",
-        description: "Your strategist will be in touch within 24 hours.",
+        title: t('partnerfunnel.funnelsteps.requestSubmitted', 'Request submitted.'),
+        description: t('partnerfunnel.funnelsteps.yourStrategistWillBeInTouch1', 'Your strategist will be in touch within 24 hours.'),
       });
 
       navigate(`/partnership-submitted/${encodeURIComponent(formData.company_name || 'unknown')}`, {
@@ -595,16 +597,16 @@ export function FunnelSteps() {
           <div className="space-y-4">
             <div className="text-center mb-6">
               <h2 className="text-2xl font-semibold mb-1">
-                {emailCaptured ? "Tell us about your company" : "Begin your search"}
+                {emailCaptured ? t('partnerfunnel.funnelsteps.tellUsAboutYourCompany', 'Tell us about your company') : t('partnerfunnel.funnelsteps.beginYourSearch', 'Begin your search')}
               </h2>
               <p className="text-sm text-muted-foreground">
-                {emailCaptured ? "This takes less than a minute." : "We will follow up at this address."}
+                {emailCaptured ? t('partnerfunnel.funnelsteps.thisTakesLessThanAMinute', 'This takes less than a minute.') : t('partnerfunnel.funnelsteps.weWillFollowUpAtThis', 'We will follow up at this address.')}
               </p>
             </div>
 
             {/* Phase A: Email only (or always visible once captured) */}
             <div>
-              <Label className="glass-label">Work email</Label>
+              <Label className="glass-label">{t("work_email", "Work email")}</Label>
               <Input
                 type="email"
                 value={formData.contact_email}
@@ -613,7 +615,7 @@ export function FunnelSteps() {
                   validation.clearError('contact_email');
                 }}
                 onBlur={handleEmailBlur}
-                placeholder="you@yourcompany.com"
+                placeholder={t("youyourcompanycom", "you@yourcompany.com")}
                 className={cn("glass-input", validation.hasError('contact_email') && "border-destructive")}
                 readOnly={emailCaptured}
                 autoFocus={!emailCaptured}
@@ -627,7 +629,7 @@ export function FunnelSteps() {
                 onClick={handleEmailCapture}
                 className="w-full min-h-[44px] text-base"
               >
-                Continue
+                {t('partnerfunnel.funnelsteps.continue', 'Continue')}
                 <ArrowRight className="w-4 h-4 ml-2" />
               </RainbowButton>
             )}
@@ -645,25 +647,19 @@ export function FunnelSteps() {
               <div className="space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
                 <div className="flex items-start gap-2 p-3 rounded-lg bg-muted/50 border border-border/60">
                   <AlertTriangle className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
-                  <p className="text-sm text-muted-foreground">
-                    We could not verify this email address.
-                  </p>
+                  <p className="text-sm text-muted-foreground">{t('partnerfunnel.funnelsteps.weCouldNotVerifyThisEmail', 'We could not verify this email address.')}</p>
                 </div>
                 <div className="flex gap-3">
                   <Button
                     variant="outline"
                     onClick={handleUseAnotherEmail}
                     className="flex-1 min-h-[44px]"
-                  >
-                    Use a different email
-                  </Button>
+                  >{t('partnerfunnel.funnelsteps.useADifferentEmail', 'Use a different email')}</Button>
                   <Button
                     variant="primary"
                     onClick={handleSendOtp}
                     className="flex-1 min-h-[44px]"
-                  >
-                    Verify with a code
-                  </Button>
+                  >{t('partnerfunnel.funnelsteps.verifyWithACode', 'Verify with a code')}</Button>
                 </div>
               </div>
             )}
@@ -697,9 +693,7 @@ export function FunnelSteps() {
                     type="button"
                     onClick={handleSendOtp}
                     className="underline hover:text-foreground"
-                  >
-                    Resend code
-                  </button>
+                  >{t('partnerfunnel.funnelsteps.resendCode', 'Resend code')}</button>
                 </p>
               </div>
             )}
@@ -709,7 +703,7 @@ export function FunnelSteps() {
               <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <Label className="glass-label">Your name</Label>
+                    <Label className="glass-label">{t("your_name", "Your name")}</Label>
                     <Input
                       value={formData.contact_name}
                       onChange={(e) => {
@@ -724,7 +718,7 @@ export function FunnelSteps() {
                   </div>
 
                   <div>
-                    <Label className="glass-label">Company</Label>
+                    <Label className="glass-label">{t("company", "Company")}</Label>
                     <Input
                       value={formData.company_name}
                       onChange={(e) => {
@@ -739,33 +733,33 @@ export function FunnelSteps() {
                 </div>
 
                 <div>
-                  <Label className="glass-label">Industry *</Label>
+                  <Label className="glass-label">{t("industry", "Industry *")}</Label>
                   <Select
                     value={formData.industry}
                     onValueChange={(v) => setFormData({ ...formData, industry: v })}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select your industry" />
+                      <SelectValue placeholder={t("select_your_industry", "Select your industry")} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="technology">Technology</SelectItem>
-                      <SelectItem value="finance">Finance</SelectItem>
-                      <SelectItem value="healthcare">Healthcare</SelectItem>
-                      <SelectItem value="retail">Retail</SelectItem>
-                      <SelectItem value="manufacturing">Manufacturing</SelectItem>
-                      <SelectItem value="consulting">Consulting</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
+                      <SelectItem value="technology">{t("technology", "Technology")}</SelectItem>
+                      <SelectItem value="finance">{t("finance", "Finance")}</SelectItem>
+                      <SelectItem value="healthcare">{t("healthcare", "Healthcare")}</SelectItem>
+                      <SelectItem value="retail">{t("retail", "Retail")}</SelectItem>
+                      <SelectItem value="manufacturing">{t("manufacturing", "Manufacturing")}</SelectItem>
+                      <SelectItem value="consulting">{t("consulting", "Consulting")}</SelectItem>
+                      <SelectItem value="other">{t("other", "Other")}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div>
-                  <Label className="glass-label">Website</Label>
+                  <Label className="glass-label">{t("website", "Website")}</Label>
                   <Input
                     type="url"
                     value={formData.website}
                     onChange={(e) => setFormData({ ...formData, website: e.target.value })}
-                    placeholder="yourcompany.com"
+                    placeholder={t("yourcompanycom", "yourcompany.com")}
                     className="glass-input"
                   />
                 </div>
@@ -793,19 +787,19 @@ export function FunnelSteps() {
         return (
           <div className="space-y-4">
             <div className="text-center mb-6">
-              <h2 className="text-2xl font-semibold mb-1">Tell us what you are looking for</h2>
-              <p className="text-sm text-muted-foreground">So we can prepare for our conversation.</p>
+              <h2 className="text-2xl font-semibold mb-1">{t("tell_us_what_you", "Tell us what you are looking for")}</h2>
+              <p className="text-sm text-muted-foreground">{t("so_we_can_prepare", "So we can prepare for our conversation.")}</p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <Label className="glass-label">Company Size *</Label>
+                <Label className="glass-label">{t("company_size", "Company Size *")}</Label>
                 <Select
                   value={formData.company_size}
                   onValueChange={(v) => setFormData({ ...formData, company_size: v })}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select range" />
+                    <SelectValue placeholder={t("select_range", "Select range")} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="1-10">1–10</SelectItem>
@@ -819,12 +813,12 @@ export function FunnelSteps() {
               </div>
 
               <div>
-                <Label className="glass-label">Roles per year</Label>
+                <Label className="glass-label">{t("roles_per_year", "Roles per year")}</Label>
                 <Input
                   type="number"
                   value={formData.estimated_roles_per_year}
                   onChange={(e) => setFormData({ ...formData, estimated_roles_per_year: e.target.value })}
-                  placeholder="e.g. 5"
+                  placeholder={t("eg_5", "e.g. 5")}
                   className="glass-input"
                 />
               </div>
@@ -832,38 +826,38 @@ export function FunnelSteps() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <Label className="glass-label">When do you need to start?</Label>
+                <Label className="glass-label">{t("when_do_you_need", "When do you need to start?")}</Label>
                 <Select
                   value={formData.timeline}
                   onValueChange={(v) => setFormData({ ...formData, timeline: v })}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Timeline" />
+                    <SelectValue placeholder={t("timeline", "Timeline")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="immediate">Immediately</SelectItem>
-                    <SelectItem value="1_month">Within 1 month</SelectItem>
-                    <SelectItem value="3_months">Within 3 months</SelectItem>
-                    <SelectItem value="6_months">Within 6 months</SelectItem>
-                    <SelectItem value="planning">No immediate need</SelectItem>
+                    <SelectItem value="immediate">{t("immediately", "Immediately")}</SelectItem>
+                    <SelectItem value="1_month">{t("within_1_month", "Within 1 month")}</SelectItem>
+                    <SelectItem value="3_months">{t("within_3_months", "Within 3 months")}</SelectItem>
+                    <SelectItem value="6_months">{t("within_6_months", "Within 6 months")}</SelectItem>
+                    <SelectItem value="planning">{t("no_immediate_need", "No immediate need")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div>
-                <Label className="glass-label">Recruitment budget (annual)</Label>
+                <Label className="glass-label">{t("recruitment_budget_annual", "Recruitment budget (annual)")}</Label>
                 <Select
                   value={formData.budget_range}
                   onValueChange={(v) => setFormData({ ...formData, budget_range: v })}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select range" />
+                    <SelectValue placeholder={t("select_range", "Select range")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="<50k">&lt; €50k</SelectItem>
-                    <SelectItem value="50k-100k">€50k – €100k</SelectItem>
-                    <SelectItem value="100k-250k">€100k – €250k</SelectItem>
-                    <SelectItem value="250k-500k">€250k – €500k</SelectItem>
+                    <SelectItem value="<50k">{t("lt_50k", "&lt; €50k")}</SelectItem>
+                    <SelectItem value="50k-100k">{t("50k_100k", "€50k – €100k")}</SelectItem>
+                    <SelectItem value="100k-250k">{t("100k_250k", "€100k – €250k")}</SelectItem>
+                    <SelectItem value="250k-500k">{t("250k_500k", "€250k – €500k")}</SelectItem>
                     <SelectItem value="500k+">€500k+</SelectItem>
                   </SelectContent>
                 </Select>
@@ -871,22 +865,22 @@ export function FunnelSteps() {
             </div>
 
             <div>
-              <Label className="glass-label">Anything else we should know? <span className="text-muted-foreground font-normal">(optional)</span></Label>
+              <Label className="glass-label">{t('partnerfunnel.funnelsteps.anythingElseWeShouldKnow', 'Anything else we should know?')} <span className="text-muted-foreground font-normal">{t("optional", "(optional)")}</span></Label>
               <Textarea
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                placeholder="Specific roles, seniority levels, or challenges..."
+                placeholder={t("specific_roles_seniority_levels", "Specific roles, seniority levels, or challenges...")}
                 rows={3}
                 className="glass-input"
               />
             </div>
 
             <div>
-              <Label className="glass-label">Headquarters location</Label>
+              <Label className="glass-label">{t("headquarters_location", "Headquarters location")}</Label>
               <Input
                 value={formData.headquarters_location}
                 onChange={(e) => setFormData({ ...formData, headquarters_location: e.target.value })}
-                placeholder="e.g. Amsterdam, Dubai, London"
+                placeholder={t("eg_amsterdam_dubai_london", "e.g. Amsterdam, Dubai, London")}
                 className="glass-input"
               />
             </div>
@@ -900,14 +894,12 @@ export function FunnelSteps() {
         return (
           <div className="space-y-5">
             <div className="text-center mb-6">
-              <h2 className="text-2xl font-semibold mb-1">Review and submit</h2>
-              <p className="text-sm text-muted-foreground">
-                Optional. Helps us reach you faster.
-              </p>
+              <h2 className="text-2xl font-semibold mb-1">{t("review_and_submit", "Review and submit")}</h2>
+              <p className="text-sm text-muted-foreground">{t('partnerfunnel.funnelsteps.optionalHelpsUsReachYouFaster', 'Optional. Helps us reach you faster.')}</p>
             </div>
 
             <div>
-              <Label className="glass-label">Phone Number <span className="text-muted-foreground font-normal">(optional)</span></Label>
+              <Label className="glass-label">{t('partnerfunnel.funnelsteps.phoneNumber', 'Phone Number')} <span className="text-muted-foreground font-normal">{t("optional", "(optional)")}</span></Label>
               <PhoneInput
                 international
                 countryCallingCodeEditable={false}
@@ -921,61 +913,61 @@ export function FunnelSteps() {
 
             {/* Summary */}
             <div className="rounded-xl border border-border/60 bg-muted/30 p-4 space-y-2 text-sm">
-              <p className="font-medium text-foreground mb-3">Your details</p>
+              <p className="font-medium text-foreground mb-3">{t("your_details", "Your details")}</p>
               <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-muted-foreground">
-                <span>Name</span>
+                <span>{t("name", "Name")}</span>
                 <span className="text-foreground font-medium truncate">{formData.contact_name}</span>
-                <span>Email</span>
+                <span>{t("email", "Email")}</span>
                 <span className="text-foreground font-medium truncate">{formData.contact_email}</span>
-                <span>Company</span>
+                <span>{t("company", "Company")}</span>
                 <span className="text-foreground font-medium truncate">{formData.company_name}</span>
-                <span>Industry</span>
+                <span>{t("industry", "Industry")}</span>
                 <span className="text-foreground font-medium capitalize">{formData.industry}</span>
                 {formData.company_size && (
                   <>
-                    <span>Company size</span>
+                    <span>{t("company_size", "Company size")}</span>
                     <span className="text-foreground font-medium">{formData.company_size}</span>
                   </>
                 )}
                 {formData.estimated_roles_per_year && (
                   <>
-                    <span>Roles / year</span>
+                    <span>{t("roles_year", "Roles / year")}</span>
                     <span className="text-foreground font-medium">{formData.estimated_roles_per_year}</span>
                   </>
                 )}
                 {formData.timeline && (
                   <>
-                    <span>Timeline</span>
+                    <span>{t("timeline", "Timeline")}</span>
                     <span className="text-foreground font-medium capitalize">{formData.timeline.replace('_', ' ')}</span>
                   </>
                 )}
                 {formData.budget_range && (
                   <>
-                    <span>Budget</span>
+                    <span>{t("budget", "Budget")}</span>
                     <span className="text-foreground font-medium">{formData.budget_range}</span>
                   </>
                 )}
                 {formData.website && (
                   <>
-                    <span>Website</span>
+                    <span>{t("website", "Website")}</span>
                     <span className="text-foreground font-medium truncate">{formData.website}</span>
                   </>
                 )}
                 {formData.headquarters_location && (
                   <>
-                    <span>Location</span>
+                    <span>{t("location", "Location")}</span>
                     <span className="text-foreground font-medium truncate">{formData.headquarters_location}</span>
                   </>
                 )}
                 {phoneNumber && (
                   <>
-                    <span>Phone</span>
+                    <span>{t("phone", "Phone")}</span>
                     <span className="text-foreground font-medium">{phoneNumber}</span>
                   </>
                 )}
                 {formData.description && (
                   <>
-                    <span>Notes</span>
+                    <span>{t("notes", "Notes")}</span>
                     <span className="text-foreground font-medium truncate">{formData.description.length > 100 ? formData.description.slice(0, 100) + '…' : formData.description}</span>
                   </>
                 )}
@@ -1003,7 +995,7 @@ export function FunnelSteps() {
       <Card className="p-5 sm:p-8 glass">
         <div className="flex items-center justify-center gap-3 py-8">
           <Loader2 className="w-5 h-5 animate-spin text-primary" />
-          <span className="text-muted-foreground">Restoring your progress...</span>
+          <span className="text-muted-foreground">{t("restoring_your_progress", "Restoring your progress...")}</span>
         </div>
       </Card>
     );
@@ -1036,9 +1028,7 @@ export function FunnelSteps() {
       <FunnelErrorBoundary stepName={STEPS[currentStep]}>
         <Card className="p-5 sm:p-8 glass">
           {/* Form label */}
-          <p className="text-xs text-muted-foreground uppercase tracking-wider text-center mb-2">
-            Partner Request
-          </p>
+          <p className="text-xs text-muted-foreground uppercase tracking-wider text-center mb-2">{t('partnerfunnel.funnelsteps.partnerRequest', 'Partner Request')}</p>
 
           {/* Availability indicator — minimal inline */}
           <div className="flex items-center justify-center gap-2 mb-4 text-sm text-muted-foreground">
@@ -1046,7 +1036,7 @@ export function FunnelSteps() {
               "w-1.5 h-1.5 rounded-full animate-pulse",
               spotsLeft >= 4 ? 'bg-primary' : spotsLeft >= 2 ? 'bg-primary/70' : 'bg-destructive'
             )} />
-            <span>Limited availability this quarter</span>
+            <span>{t("limited_availability_this_quarter", "Limited availability this quarter")}</span>
           </div>
 
           {/* Progress — hide until email is captured */}
@@ -1113,7 +1103,7 @@ export function FunnelSteps() {
                   onClick={handleNext}
                   className="flex-1 min-h-[44px] text-base"
                 >
-                  Continue
+                  {t('partnerfunnel.funnelsteps.continue', 'Continue')}
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               ) : (
@@ -1130,7 +1120,7 @@ export function FunnelSteps() {
                     </>
                   ) : (
                     <>
-                      Submit your brief
+                      {t('partnerfunnel.funnelsteps.submitYourBrief', 'Submit your brief')}
                       <ArrowRight className="w-4 h-4 ml-2" />
                     </>
                   )}

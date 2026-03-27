@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -42,6 +43,7 @@ interface RevenueInsight {
 }
 
 export function StrategistAgentWidget() {
+  const { t } = useTranslation('common');
   const { data: portfolioHealth } = useQuery({
     queryKey: ["strategist-portfolio-health"],
     queryFn: async (): Promise<PortfolioHealth[]> => {
@@ -134,12 +136,12 @@ export function StrategistAgentWidget() {
           <div className="p-3 rounded-lg bg-muted/30 text-center">
             <DollarSign className="h-4 w-4 mx-auto mb-1 text-green-500" />
             <p className="text-lg font-bold">{formatCurrency(revenueInsight?.realized || 0)}</p>
-            <p className="text-xs text-muted-foreground">Realized</p>
+            <p className="text-xs text-muted-foreground">{t("realized", "Realized")}</p>
           </div>
           <div className="p-3 rounded-lg bg-muted/30 text-center">
             <TrendingUp className="h-4 w-4 mx-auto mb-1 text-primary" />
             <p className="text-lg font-bold">{formatCurrency(revenueInsight?.projected || 0)}</p>
-            <p className="text-xs text-muted-foreground">Projected</p>
+            <p className="text-xs text-muted-foreground">{t("projected", "Projected")}</p>
           </div>
         </div>
 

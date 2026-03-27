@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useEffect, useState } from 'react';
 
 /**
  * Hook that forces React components to re-render when language changes

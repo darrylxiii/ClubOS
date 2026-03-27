@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useMemo } from 'react';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -19,6 +20,7 @@ interface AvatarAccountGridProps {
 const FILTER_OPTIONS = ['All', 'Available', 'In Use', 'Paused', 'At Risk', 'Depleted', 'Behind on Posts'] as const;
 
 export function AvatarAccountGrid({ accounts, activeSessions, onStartSession }: AvatarAccountGridProps) {
+  const { t } = useTranslation('common');
   const { syncLinkedIn } = useAvatarAccounts();
   const { allTargets } = useAvatarSocialTargets();
   const [syncingId, setSyncingId] = useState<string | null>(null);
@@ -29,7 +31,7 @@ export function AvatarAccountGrid({ accounts, activeSessions, onStartSession }: 
 
   const handleSyncLinkedIn = (account: AvatarAccount) => {
     if (!account.linkedin_url) {
-      toast.error('No LinkedIn URL set for this account.');
+      toast.error(t("no_linkedin_url_set", "No LinkedIn URL set for this account."));
       return;
     }
     setSyncingId(account.id);
@@ -98,7 +100,7 @@ export function AvatarAccountGrid({ accounts, activeSessions, onStartSession }: 
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1 max-w-xs">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Search accounts…" className="pl-9" value={search} onChange={e => setSearch(e.target.value)} />
+          <Input placeholder={t("search_accounts", "Search accounts…")} className="pl-9" value={search} onChange={e => setSearch(e.target.value)} />
         </div>
         <div className="flex gap-1.5 flex-wrap">
           {FILTER_OPTIONS.map(f => {

@@ -1,4 +1,5 @@
 import { memo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Slider } from '@/components/ui/slider';
 import { Button } from '@/components/ui/button';
 import { ZoomIn, ZoomOut, RotateCw, FlipHorizontal, FlipVertical, RotateCcw } from 'lucide-react';
@@ -30,6 +31,7 @@ export const ImageEditorControls = memo(function ImageEditorControls({
   onReset,
 }: ImageEditorControlsProps) {
   const handleFlipHorizontal = () => {
+  const { t } = useTranslation('common');
     onFlipChange({ ...flip, horizontal: !flip.horizontal });
   };
 

@@ -20,6 +20,9 @@ create table if not exists "public"."translations" (
 alter table "public"."translations" enable row level security;
 
 -- Policies
+DROP POLICY IF EXISTS "Everyone can read active translations" ON "public"."translations";
+DROP POLICY IF EXISTS "Authenticated users can insert translations" ON "public"."translations";
+DROP POLICY IF EXISTS "Authenticated users can update translations" ON "public"."translations";
 -- 1. Everyone can read active translations
 create policy "Everyone can read active translations"
     on "public"."translations"

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { Clock } from 'lucide-react';
 import { BlogPost, getCategoryBySlug } from '@/data/blog';
@@ -20,6 +21,7 @@ const BlogCard: React.FC<BlogCardProps> = ({
   searchQuery,
   isFocused = false 
 }) => {
+  const { t } = useTranslation('common');
   const category = getCategoryBySlug(post.category);
 
   return (
@@ -80,7 +82,7 @@ const BlogCard: React.FC<BlogCardProps> = ({
           <span className="text-border">·</span>
           <span className="flex items-center gap-1">
             <Clock className="h-3.5 w-3.5" aria-hidden="true" />
-            {post.readTime} min
+            {t('blog.minRead', { count: post.readTime })}
           </span>
         </div>
       </div>

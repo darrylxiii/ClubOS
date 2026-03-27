@@ -13,12 +13,14 @@ import { JobArchiveDialog } from "@/components/jobs/JobArchiveDialog";
 import { useCloseJobWon, useCloseJobLost, useArchiveJob, useDeleteJob } from "@/hooks/useDealPipeline";
 import { CreateJobDialog } from "./CreateJobDialog";
 import { EditJobSheet } from "./EditJobSheet";
+import { useTranslation } from 'react-i18next';
 
 interface JobManagementProps {
   companyId: string;
 }
 
 export const JobManagement = ({ companyId }: JobManagementProps) => {
+  const { t } = useTranslation('partner');
   const navigate = useNavigate();
   const [jobs, setJobs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -65,7 +67,7 @@ export const JobManagement = ({ companyId }: JobManagementProps) => {
       setJobs(data || []);
     } catch (error) {
       console.error('Error fetching jobs:', error);
-      toast.error("Failed to load jobs");
+      toast.error(t('jobManagement.toast.failedToLoadJobs'));
     } finally {
       setLoading(false);
     }
@@ -106,14 +108,14 @@ export const JobManagement = ({ companyId }: JobManagementProps) => {
 
   const handleArchive = async () => {
     await archiveJob.mutateAsync(selectedJob!.id);
-    toast.success("Job archived");
+    toast.success(t('jobManagement.toast.jobArchived'));
     setShowArchiveDialog(false);
     fetchJobs();
   };
 
   const handleDelete = async () => {
     await deleteJob.mutateAsync(selectedJob!.id);
-    toast.success("Job deleted");
+    toast.success(t('jobManagement.toast.jobDeleted'));
     setShowDeleteDialog(false);
     fetchJobs();
   };
@@ -139,7 +141,7 @@ export const JobManagement = ({ companyId }: JobManagementProps) => {
       fetchJobs();
     } catch (error) {
       console.error('Error updating job status:', error);
-      toast.error("Failed to update job status");
+      toast.error(t('jobManagement.toast.failedToUpdateJobStatus'));
     }
   };
 
@@ -162,7 +164,7 @@ export const JobManagement = ({ companyId }: JobManagementProps) => {
   return (
     <>
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-black uppercase">Job Postings</h2>
+        <h2 className="text-2xl font-black uppercase">{t('jobManagement.jobPostings')}</h2>
         <Button onClick={() => setCreateDialogOpen(true)}>
           <Plus className="w-4 h-4 mr-2" />
           Create Job
@@ -173,10 +175,8 @@ export const JobManagement = ({ companyId }: JobManagementProps) => {
         <Card className="border-2 border-dashed">
           <CardContent className="flex flex-col items-center justify-center py-12">
             <Briefcase className="w-12 h-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-bold mb-2">No jobs yet</h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              Create your first job posting to start receiving applications
-            </p>
+            <h3 className="text-lg font-bold mb-2">{t('jobManagement.noJobsYet')}</h3>
+            <p className="text-sm text-muted-foreground mb-4">{t('jobManagement.createYourFirstJobPostingToStartReceivin')}</p>
             <Button onClick={() => setCreateDialogOpen(true)}>
               <Plus className="w-4 h-4 mr-2" />
               Create Job
@@ -229,7 +229,7 @@ export const JobManagement = ({ companyId }: JobManagementProps) => {
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => { setSelectedJob(job); setEditDialogOpen(true); }}>
                           <Edit className="w-4 h-4 mr-2" />
-                          Edit
+                          {t('common:edit')}
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         {job.status === 'draft' && (
@@ -247,11 +247,11 @@ export const JobManagement = ({ companyId }: JobManagementProps) => {
                         <DropdownMenuSeparator />
                         <DropdownMenuItem onClick={() => handleArchiveAction(job)}>
                           <Archive className="w-4 h-4 mr-2" />
-                          Archive
+                          {t('common:archive')}
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleDeleteAction(job)} className="text-destructive">
                           <Trash2 className="w-4 h-4 mr-2" />
-                          Delete
+                          {t('common:delete')}
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>

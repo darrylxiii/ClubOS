@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TrendingUp, Target, DollarSign } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -16,6 +17,7 @@ export function PotentialEarningsCard({
   realizedRevenue,
   isLoading 
 }: PotentialEarningsCardProps) {
+  const { t } = useTranslation('common');
   if (isLoading) {
     return (
       <Card className="bg-gradient-to-br from-accent/10 to-primary/5 border-accent/20">
@@ -55,14 +57,14 @@ export function PotentialEarningsCard({
           <div className="text-center">
             <div className="flex items-center justify-center gap-1 text-muted-foreground mb-1">
               <DollarSign className="h-3 w-3" />
-              <span className="text-xs">Raw Pipeline</span>
+              <span className="text-xs">{t("raw_pipeline", "Raw Pipeline")}</span>
             </div>
             <p className="text-lg font-semibold">{formatCurrency(rawValue)}</p>
           </div>
           <div className="text-center">
             <div className="flex items-center justify-center gap-1 text-muted-foreground mb-1">
               <TrendingUp className="h-3 w-3" />
-              <span className="text-xs">Realized</span>
+              <span className="text-xs">{t("realized", "Realized")}</span>
             </div>
             <p className="text-lg font-semibold text-green-500">{formatCurrency(realizedRevenue)}</p>
           </div>

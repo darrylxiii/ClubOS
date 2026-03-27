@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Heart, MessageCircle, Eye } from 'lucide-react';
@@ -7,6 +8,7 @@ interface CompanyActivityPreviewProps {
 }
 
 export function CompanyActivityPreview({ companyId }: CompanyActivityPreviewProps) {
+  const { t } = useTranslation('common');
   const [stats, setStats] = useState({
     postsCount: 0,
     storiesCount: 0,
@@ -63,12 +65,12 @@ export function CompanyActivityPreview({ companyId }: CompanyActivityPreviewProp
       <div className="flex items-center gap-1.5">
         <Eye className="h-3 w-3 text-accent" />
         <span className="font-medium">{stats.storiesCount}</span>
-        <span className="text-muted-foreground">active stories</span>
+        <span className="text-muted-foreground">{t("active_stories", "active stories")}</span>
       </div>
       <div className="flex items-center gap-1.5">
         <Heart className="h-3 w-3 text-red-500" />
         <span className="font-medium">{stats.totalLikes}</span>
-        <span className="text-muted-foreground">total likes</span>
+        <span className="text-muted-foreground">{t("total_likes", "total likes")}</span>
       </div>
     </div>
   );

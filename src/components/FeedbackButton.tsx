@@ -16,6 +16,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigationHistory } from '@/contexts/NavigationHistoryContext';
 import { useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 const DRAFT_KEY = 'quantum_feedback_draft';
 
@@ -26,6 +27,7 @@ interface FeedbackDraft {
 }
 
 export const FeedbackButton = () => {
+  const { t } = useTranslation('common');
   const [open, setOpen] = useState(false);
   const [minimized, setMinimized] = useState(false);
   const [rating, setRating] = useState<number | null>(null);
@@ -112,7 +114,7 @@ export const FeedbackButton = () => {
         .eq('user_id', user.id)
         .single();
 
-      const pageTitle = history.length > 0 ? history[history.length - 1].title : 'Unknown Page';
+      const pageTitle = history.length > 0 ? history[history.length - 1].title : t('feedbackbutton.unknownPage', 'Unknown Page');
 
       const { error } = await supabase.from('user_feedback').insert([{
         user_id: user.id,
@@ -127,7 +129,7 @@ export const FeedbackButton = () => {
 
       if (error) throw error;
 
-      notify.success('Thank you for your feedback!', { description: 'Your feedback helps us improve The Quantum Club.' });
+      notify.success('Thank you for your feedback!', { description: t('feedbackbutton.yourFeedbackHelpsUsImproveThe', 'Your feedback helps us improve The Quantum Club.') });
 
       clearDraft();
       setOpen(false);
@@ -138,7 +140,7 @@ export const FeedbackButton = () => {
       }
     } catch (error: unknown) {
       console.error('Error submitting feedback:', error);
-      notify.error('Failed to submit feedback', { description: error instanceof Error ? error.message : 'Please try again later.' });
+      notify.error('Failed to submit feedback', { description: error instanceof Error ? error.message : t('feedbackbutton.pleaseTryAgainLater', 'Please try again later.') });
     } finally {
       setIsSubmitting(false);
     }
@@ -188,10 +190,10 @@ export const FeedbackButton = () => {
           <Button
             onClick={handleOpen}
             className="h-12 pl-5 pr-3 rounded-l-full rounded-r-none shadow-lg hover:shadow-xl transition-all gap-2.5 border-r-0"
-            aria-label="Give feedback"
+            aria-label={t('feedbackbutton.giveFeedback', 'Give feedback')}
           >
             <MessageCircleHeart className="h-4 w-4" />
-            <span className="font-medium text-sm whitespace-nowrap">Quick Feedback</span>
+            <span className="font-medium text-sm whitespace-nowrap">{t('feedbackbutton.quickFeedback', 'Quick Feedback')}</span>
           </Button>
         )}
         
@@ -204,7 +206,7 @@ export const FeedbackButton = () => {
               ? 'h-12 w-12 rounded-l-full rounded-r-none hover:w-14' 
               : 'h-8 w-6 rounded-none bg-muted/30 hover:bg-muted/50'
           }`}
-          aria-label={minimized ? "Show feedback button" : "Hide feedback button"}
+          aria-label={minimized ? t('feedbackbutton.showFeedbackButton', 'Show feedback button') : t('feedbackbutton.hideFeedbackButton', 'Hide feedback button')}
         >
           {minimized ? (
             <MessageCircleHeart className="h-4 w-4" />
@@ -217,16 +219,14 @@ export const FeedbackButton = () => {
       <Dialog open={open} onOpenChange={handleClose}>
         <DialogContent className="sm:max-w-[480px]">
           <DialogHeader>
-            <DialogTitle>Rate Your Experience</DialogTitle>
-            <DialogDescription>
-              How would you rate this page? Your feedback helps us improve.
-            </DialogDescription>
+            <DialogTitle>{t('feedbackbutton.rateYourExperience', 'Rate Your Experience')}</DialogTitle>
+            <DialogDescription>{t('feedbackbutton.howWouldYouRateThisPage', 'How would you rate this page? Your feedback helps us improve.')}</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-6 py-4">
             {/* Rating Scale */}
             <div className="space-y-3">
-              <label className="text-sm font-medium">Rating (1-10)</label>
+              <label className="text-sm font-medium">{t('feedbackbutton.rating110', 'Rating (1-10)')}</label>
               <div className="flex items-center justify-center gap-1.5 px-2">
                 {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((value) => (
                   <button
@@ -263,10 +263,10 @@ export const FeedbackButton = () => {
             {/* Comment */}
             <div className="space-y-2">
               <label className="text-sm font-medium">
-                Comments or Suggestions <span className="text-muted-foreground">(optional)</span>
+                {t('feedbackbutton.commentsOrSuggestions', 'Comments or Suggestions')} <span className="text-muted-foreground">(optional)</span>
               </label>
               <Textarea
-                placeholder="Tell us what you think about this page..."
+                placeholder={t('feedbackbutton.tellUsWhatYouThinkAbout', 'Tell us what you think about this page...')}
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
                 rows={4}
@@ -277,11 +277,11 @@ export const FeedbackButton = () => {
             {/* Context Info */}
             <div className="text-xs text-muted-foreground bg-muted/50 p-3 rounded-lg">
               <p>
-                <strong>Current page:</strong> {history.length > 0 ? history[history.length - 1].title : 'Unknown'}
+                <strong>{t('feedbackbutton.currentPage', 'Current page:')}</strong> {history.length > 0 ? history[history.length - 1].title : t('feedbackbutton.unknown', 'Unknown')}
               </p>
               {history.length > 1 && (
                 <p className="mt-1">
-                  <strong>Recent path:</strong>{' '}
+                  <strong>{t('feedbackbutton.recentPath', 'Recent path:')}</strong>{' '}
                   {history
                     .slice(-4)
                     .map((h) => h.title)
@@ -292,9 +292,7 @@ export const FeedbackButton = () => {
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={handleClose} disabled={isSubmitting}>
-              Cancel
-            </Button>
+            <Button variant="outline" onClick={handleClose} disabled={isSubmitting}>{t('feedbackbutton.cancel', 'Cancel')}</Button>
             <Button onClick={handleSubmit} disabled={isSubmitting || !rating}>
               {isSubmitting ? (
                 <>

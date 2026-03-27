@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React, { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -53,6 +54,7 @@ export function BoardReportGenerator({
   domainHealth,
   overallHealth
 }: BoardReportGeneratorProps) {
+  const { t } = useTranslation('common');
   const [isGenerating, setIsGenerating] = useState(false);
   const [period, setPeriod] = useState<ReportPeriod>('monthly');
   const [executiveSummary, setExecutiveSummary] = useState('');
@@ -96,7 +98,7 @@ ${needsAttention.length > 0 ? `Areas requiring immediate focus: ${needsAttention
 Overall trajectory is ${overallHealth >= 75 ? 'positive' : overallHealth >= 50 ? 'stable with room for improvement' : 'concerning and requires strategic intervention'}.`;
 
     setExecutiveSummary(summary);
-    toast.success('Summary generated');
+    toast.success(t("summary_generated", "Summary generated"));
   }, [allKPIs, overallHealth]);
 
   const generatePDF = useCallback(async () => {
@@ -237,11 +239,11 @@ Overall trajectory is ${overallHealth >= 75 ? 'positive' : overallHealth >= 50 ?
 
       // Save
       doc.save(`TQC-Board-Report-${new Date().toISOString().split('T')[0]}.pdf`);
-      toast.success('Board report generated successfully');
+      toast.success(t("board_report_generated_successfully", "Board report generated successfully"));
       onOpenChange(false);
     } catch (error) {
       console.error('Failed to generate PDF:', error);
-      toast.error('Failed to generate report');
+      toast.error(t("failed_to_generate_report", "Failed to generate report"));
     } finally {
       setIsGenerating(false);
     }
@@ -263,15 +265,15 @@ Overall trajectory is ${overallHealth >= 75 ? 'positive' : overallHealth >= 50 ?
         <div className="space-y-6 py-4">
           {/* Report Period */}
           <div className="space-y-2">
-            <Label>Report Period</Label>
+            <Label>{t("report_period", "Report Period")}</Label>
             <Select value={period} onValueChange={(v) => setPeriod(v as ReportPeriod)}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="weekly">Weekly</SelectItem>
-                <SelectItem value="monthly">Monthly</SelectItem>
-                <SelectItem value="quarterly">Quarterly</SelectItem>
+                <SelectItem value="weekly">{t("weekly", "Weekly")}</SelectItem>
+                <SelectItem value="monthly">{t("monthly", "Monthly")}</SelectItem>
+                <SelectItem value="quarterly">{t("quarterly", "Quarterly")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -280,7 +282,7 @@ Overall trajectory is ${overallHealth >= 75 ? 'positive' : overallHealth >= 50 ?
 
           {/* Section Selection */}
           <div className="space-y-3">
-            <Label>Report Sections</Label>
+            <Label>{t("report_sections", "Report Sections")}</Label>
             {sections.map(section => (
               <div 
                 key={section.id}
@@ -306,7 +308,7 @@ Overall trajectory is ${overallHealth >= 75 ? 'positive' : overallHealth >= 50 ?
           {/* Executive Summary */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <Label>Executive Summary</Label>
+              <Label>{t("executive_summary", "Executive Summary")}</Label>
               <Button 
                 variant="outline" 
                 size="sm"
@@ -319,7 +321,7 @@ Overall trajectory is ${overallHealth >= 75 ? 'positive' : overallHealth >= 50 ?
             <Textarea
               value={executiveSummary}
               onChange={(e) => setExecutiveSummary(e.target.value)}
-              placeholder="Enter or generate an executive summary for the report..."
+              placeholder={t("enter_or_generate_an", "Enter or generate an executive summary for the report...")}
               rows={4}
             />
           </div>
@@ -327,31 +329,31 @@ Overall trajectory is ${overallHealth >= 75 ? 'positive' : overallHealth >= 50 ?
           {/* Preview Stats */}
           <Card className="border-border/50 bg-muted/20">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm">Report Preview</CardTitle>
+              <CardTitle className="text-sm">{t("report_preview", "Report Preview")}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
                 <div>
                   <p className="text-2xl font-bold text-primary">{overallHealth.toFixed(0)}%</p>
-                  <p className="text-xs text-muted-foreground">Health Score</p>
+                  <p className="text-xs text-muted-foreground">{t("health_score", "Health Score")}</p>
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-emerald-500">
                     {allKPIs.filter(k => k.status === 'success').length}
                   </p>
-                  <p className="text-xs text-muted-foreground">On Target</p>
+                  <p className="text-xs text-muted-foreground">{t("on_target", "On Target")}</p>
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-amber-500">
                     {allKPIs.filter(k => k.status === 'warning').length}
                   </p>
-                  <p className="text-xs text-muted-foreground">Warnings</p>
+                  <p className="text-xs text-muted-foreground">{t("warnings", "Warnings")}</p>
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-rose-500">
                     {allKPIs.filter(k => k.status === 'critical').length}
                   </p>
-                  <p className="text-xs text-muted-foreground">Critical</p>
+                  <p className="text-xs text-muted-foreground">{t("critical", "Critical")}</p>
                 </div>
               </div>
             </CardContent>

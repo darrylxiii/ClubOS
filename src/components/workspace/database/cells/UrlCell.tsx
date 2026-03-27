@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ExternalLink } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -8,6 +9,7 @@ interface UrlCellProps {
 }
 
 export function UrlCell({ value, onChange }: UrlCellProps) {
+  const { t } = useTranslation('common');
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(value || '');
   const inputRef = useRef<HTMLInputElement>(null);
@@ -78,7 +80,7 @@ export function UrlCell({ value, onChange }: UrlCellProps) {
           </button>
         </>
       ) : (
-        'Empty'
+        t('workspace.empty', 'Empty')
       )}
     </div>
   );

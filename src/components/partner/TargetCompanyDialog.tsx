@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -48,6 +49,7 @@ export function TargetCompanyDialog({
   targetCompany,
   onSuccess,
 }: TargetCompanyDialogProps) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [addMode, setAddMode] = useState<"search" | "manual">("search");
@@ -207,7 +209,7 @@ export function TargetCompanyDialog({
 
   const handleAddContact = async () => {
     if (!newContact.name) {
-      toast.error("Vul minimaal een naam in");
+      toast.error(t("vul_minimaal_een_naam", "Vul minimaal een naam in"));
       return;
     }
 
@@ -223,7 +225,7 @@ export function TargetCompanyDialog({
         linkedin_url: "",
         notes: "",
       });
-      toast.success("Contact toegevoegd");
+      toast.success(t("contact_toegevoegd", "Contact toegevoegd"));
       return;
     }
 
@@ -249,10 +251,10 @@ export function TargetCompanyDialog({
         linkedin_url: "",
         notes: "",
       });
-      toast.success("Contact toegevoegd");
+      toast.success(t("contact_toegevoegd", "Contact toegevoegd"));
     } catch (error) {
       console.error("Error adding contact:", error);
-      toast.error("Fout bij toevoegen contact");
+      toast.error(t("fout_bij_toevoegen_contact", "Fout bij toevoegen contact"));
     }
   };
 
@@ -270,10 +272,10 @@ export function TargetCompanyDialog({
 
       if (error) throw error;
       await loadContacts();
-      toast.success("Contact verwijderd");
+      toast.success(t("contact_verwijderd", "Contact verwijderd"));
     } catch (error) {
       console.error("Error deleting contact:", error);
-      toast.error("Fout bij verwijderen contact");
+      toast.error(t("fout_bij_verwijderen_contact", "Fout bij verwijderen contact"));
     }
   };
 
@@ -303,7 +305,7 @@ export function TargetCompanyDialog({
           .eq("id", targetCompany.id);
 
         if (error) throw error;
-        toast.success("Bedrijf bijgewerkt");
+        toast.success(t("bedrijf_bijgewerkt", "Bedrijf bijgewerkt"));
       } else {
         const { data: newCompany, error } = await supabase
           .from("target_companies")
@@ -334,7 +336,7 @@ export function TargetCompanyDialog({
           if (contactsError) throw contactsError;
         }
 
-        toast.success("Bedrijf toegevoegd");
+        toast.success(t("bedrijf_toegevoegd", "Bedrijf toegevoegd"));
       }
 
       // Clear temporary enrichment data
@@ -343,7 +345,7 @@ export function TargetCompanyDialog({
       onSuccess();
     } catch (error) {
       console.error("Error saving target company:", error);
-      toast.error("Fout bij opslaan van bedrijf");
+      toast.error(t("fout_bij_opslaan_van", "Fout bij opslaan van bedrijf"));
     } finally {
       setLoading(false);
     }
@@ -362,33 +364,31 @@ export function TargetCompanyDialog({
           {!targetCompany && (
             <Tabs value={addMode} onValueChange={(v) => setAddMode(v as "search" | "manual")}>
               <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="search">Zoek in Repository</TabsTrigger>
-                <TabsTrigger value="manual">Handmatig Toevoegen</TabsTrigger>
+                <TabsTrigger value="search">{t("zoek_in_repository", "Zoek in Repository")}</TabsTrigger>
+                <TabsTrigger value="manual">{t("handmatig_toevoegen", "Handmatig Toevoegen")}</TabsTrigger>
               </TabsList>
 
               <TabsContent value="search" className="space-y-4 mt-4">
                 <div className="space-y-2">
-                  <Label>Zoek Bedrijf</Label>
+                  <Label>{t("zoek_bedrijf", "Zoek Bedrijf")}</Label>
                   <CompanySearch
                     value={companySearchQuery}
                     onChange={setCompanySearchQuery}
                     onSelect={handleCompanySelect}
                   />
-                  <p className="text-xs text-muted-foreground">
-                    Zoek bestaande bedrijven - naam en website worden automatisch ingevuld
-                  </p>
+                  <p className="text-xs text-muted-foreground">{t('targetCompanyDialog.zoekBestaandeBedrijvenNaamEnWebsiteWorde')}</p>
                 </div>
               </TabsContent>
 
               <TabsContent value="manual" className="space-y-4 mt-4">
                 <div className="space-y-2">
-                  <Label htmlFor="name">Bedrijfsnaam *</Label>
+                  <Label htmlFor="name">{t("bedrijfsnaam", "Bedrijfsnaam *")}</Label>
                   <Input
                     id="name"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     required
-                    placeholder="Naam van het bedrijf"
+                    placeholder={t("naam_van_het_bedrijf", "Naam van het bedrijf")}
                   />
                 </div>
               </TabsContent>
@@ -398,7 +398,7 @@ export function TargetCompanyDialog({
           {(targetCompany || formData.name) && (
             <>
               <div className="space-y-2">
-                <Label htmlFor="name">Bedrijfsnaam *</Label>
+                <Label htmlFor="name">{t("bedrijfsnaam", "Bedrijfsnaam *")}</Label>
                 <Input
                   id="name"
                   value={formData.name}
@@ -410,7 +410,7 @@ export function TargetCompanyDialog({
 
               {targetCompany && (
                 <div className="space-y-2">
-                  <Label htmlFor="status">Status</Label>
+                  <Label htmlFor="status">{t("status", "Status")}</Label>
                   <Select
                     value={formData.status}
                     onValueChange={(value) => setFormData({ ...formData, status: value })}
@@ -430,17 +430,17 @@ export function TargetCompanyDialog({
               )}
 
               <div className="space-y-2">
-                <Label htmlFor="location">Locatie</Label>
+                <Label htmlFor="location">{t("locatie", "Locatie")}</Label>
                 <Input
                   id="location"
                   value={formData.location}
                   onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                  placeholder="bijv. Amsterdam, Nederland"
+                  placeholder={t("bijv_amsterdam_nederland", "bijv. Amsterdam, Nederland")}
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="website_url">Website URL</Label>
+                <Label htmlFor="website_url">{t("website_url", "Website URL")}</Label>
                 <Input
                   id="website_url"
                   type="url"
@@ -463,20 +463,20 @@ export function TargetCompanyDialog({
                   className="w-full"
                 />
                 <div className="flex justify-between text-xs text-muted-foreground">
-                  <span>Laag (1)</span>
-                  <span>Hoog (10)</span>
+                  <span>{t("laag_1", "Laag (1)")}</span>
+                  <span>{t("hoog_10", "Hoog (10)")}</span>
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="job_id">Target voor Specifieke Job</Label>
+                <Label htmlFor="job_id">{t("target_voor_specifieke_job", "Target voor Specifieke Job")}</Label>
                 <div className="flex gap-2">
                   <Select
                     value={formData.job_id || undefined}
                     onValueChange={(value) => setFormData({ ...formData, job_id: value })}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Selecteer een open job (optioneel)" />
+                      <SelectValue placeholder={t("selecteer_een_open_job", "Selecteer een open job (optioneel)")} />
                     </SelectTrigger>
                     <SelectContent>
                       {openJobs.map((job) => (
@@ -497,18 +497,16 @@ export function TargetCompanyDialog({
                     </Button>
                   )}
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  Selecteer de job waarvoor dit bedrijf getarget wordt, of laat leeg voor alle jobs
-                </p>
+                <p className="text-xs text-muted-foreground">{t('targetCompanyDialog.selecteerDeJobWaarvoorDitBedrijfGetarget')}</p>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="notes">Notities</Label>
+                <Label htmlFor="notes">{t("notities", "Notities")}</Label>
                 <Textarea
                   id="notes"
                   value={formData.notes}
                   onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                  placeholder="Aanvullende opmerkingen, strategie, etc."
+                  placeholder={t("aanvullende_opmerkingen_strategie_etc", "Aanvullende opmerkingen, strategie, etc.")}
                   rows={4}
                 />
               </div>
@@ -516,7 +514,7 @@ export function TargetCompanyDialog({
               {/* Company Insiders Section */}
               <div className="space-y-4 border-t pt-4">
                 <div className="flex items-center justify-between">
-                  <Label className="text-base font-semibold">Company Insiders</Label>
+                  <Label className="text-base font-semibold">{t("company_insiders", "Company Insiders")}</Label>
                 </div>
 
                 {/* Existing Contacts */}
@@ -553,24 +551,24 @@ export function TargetCompanyDialog({
                 {/* Add New Contact */}
                 <Card className="p-4 space-y-3">
                   <div className="space-y-2">
-                    <Label htmlFor="contact-name">Naam *</Label>
+                    <Label htmlFor="contact-name">{t("naam", "Naam *")}</Label>
                     <Input
                       id="contact-name"
                       value={newContact.name}
                       onChange={(e) => setNewContact({ ...newContact, name: e.target.value })}
-                      placeholder="Naam contact"
+                      placeholder={t("naam_contact", "Naam contact")}
                     />
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-2">
-                      <Label htmlFor="contact-role">Rol</Label>
+                      <Label htmlFor="contact-role">{t("rol", "Rol")}</Label>
                       <Select
                         value={newContact.role_id}
                         onValueChange={(value) => setNewContact({ ...newContact, role_id: value, custom_role: "" })}
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder="Selecteer rol" />
+                          <SelectValue placeholder={t("selecteer_rol", "Selecteer rol")} />
                         </SelectTrigger>
                         <SelectContent>
                           {contactRoles.map((role) => (
@@ -583,30 +581,30 @@ export function TargetCompanyDialog({
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="custom-role">Of Custom Rol</Label>
+                      <Label htmlFor="custom-role">{t("of_custom_rol", "Of Custom Rol")}</Label>
                       <Input
                         id="custom-role"
                         value={newContact.custom_role}
                         onChange={(e) => setNewContact({ ...newContact, custom_role: e.target.value, role_id: "" })}
-                        placeholder="Andere rol"
+                        placeholder={t("andere_rol", "Andere rol")}
                       />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-2">
-                      <Label htmlFor="contact-email">Email</Label>
+                      <Label htmlFor="contact-email">{t("email", "Email")}</Label>
                       <Input
                         id="contact-email"
                         type="email"
                         value={newContact.email}
                         onChange={(e) => setNewContact({ ...newContact, email: e.target.value })}
-                        placeholder="email@bedrijf.nl"
+                        placeholder={t("emailbedrijfnl", "email@bedrijf.nl")}
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="contact-phone">Telefoon</Label>
+                      <Label htmlFor="contact-phone">{t("telefoon", "Telefoon")}</Label>
                       <Input
                         id="contact-phone"
                         value={newContact.phone}
@@ -617,7 +615,7 @@ export function TargetCompanyDialog({
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="contact-linkedin">LinkedIn URL</Label>
+                    <Label htmlFor="contact-linkedin">{t("linkedin_url", "LinkedIn URL")}</Label>
                     <Input
                       id="contact-linkedin"
                       value={newContact.linkedin_url}
@@ -627,12 +625,12 @@ export function TargetCompanyDialog({
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="contact-notes">Notities</Label>
+                    <Label htmlFor="contact-notes">{t("notities", "Notities")}</Label>
                     <Textarea
                       id="contact-notes"
                       value={newContact.notes}
                       onChange={(e) => setNewContact({ ...newContact, notes: e.target.value })}
-                      placeholder="Extra informatie over contact"
+                      placeholder={t("extra_informatie_over_contact", "Extra informatie over contact")}
                       rows={2}
                     />
                   </div>

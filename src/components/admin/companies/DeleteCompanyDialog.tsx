@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import {
   AlertDialog,
@@ -29,6 +30,7 @@ export function DeleteCompanyDialog({
   companyName,
   onSuccess,
 }: DeleteCompanyDialogProps) {
+  const { t } = useTranslation('common');
   const [confirmation, setConfirmation] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -59,7 +61,7 @@ export function DeleteCompanyDialog({
       setConfirmation("");
     } catch (error) {
       console.error("Error deleting company:", error);
-      toast.error("Failed to delete company. There may be related records that need to be removed first.");
+      toast.error(t("failed_to_delete_company", "Failed to delete company. There may be related records that need to be removed first."));
     } finally {
       setLoading(false);
     }
@@ -78,7 +80,7 @@ export function DeleteCompanyDialog({
               <div className="flex items-start gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/20">
                 <AlertTriangle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
                 <div className="text-sm text-destructive">
-                  <strong>This action cannot be undone.</strong> All company data, jobs, 
+                  <strong>{t("this_action_cannot_be", "This action cannot be undone.")}</strong> All company data, jobs, 
                   applications, and member associations will be permanently deleted.
                 </div>
               </div>
@@ -97,7 +99,7 @@ export function DeleteCompanyDialog({
             id="confirm-name"
             value={confirmation}
             onChange={(e) => setConfirmation(e.target.value)}
-            placeholder="Enter company name"
+            placeholder={t("enter_company_name", "Enter company name")}
           />
         </div>
 

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { TrendingUp, Briefcase, MapPin, Euro } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useTranslation } from 'react-i18next';
 
 interface TalentMatch {
   userId: string;
@@ -26,6 +27,7 @@ interface TalentRecommendationsProps {
 }
 
 export const TalentRecommendations = ({ companyId }: TalentRecommendationsProps) => {
+  const { t } = useTranslation('common');
   const [talents, setTalents] = useState<TalentMatch[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -124,7 +126,7 @@ export const TalentRecommendations = ({ companyId }: TalentRecommendationsProps)
             <TrendingUp className="h-5 w-5" />
             Recommended Talent
           </CardTitle>
-          <CardDescription>Top candidates matching your open roles</CardDescription>
+          <CardDescription>{t('talentRecommendations.description')}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
@@ -145,13 +147,13 @@ export const TalentRecommendations = ({ companyId }: TalentRecommendationsProps)
             <TrendingUp className="h-5 w-5" />
             Recommended Talent
           </CardTitle>
-          <CardDescription>Top candidates matching your open roles</CardDescription>
+          <CardDescription>{t('talentRecommendations.description')}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="text-center py-8">
             <TrendingUp className="h-12 w-12 mx-auto text-muted-foreground/50 mb-3" />
-            <p className="text-sm text-muted-foreground">No recommendations yet</p>
-            <p className="text-xs text-muted-foreground mt-1">Recommendations will appear when you have active job postings</p>
+            <p className="text-sm text-muted-foreground">{t('talentRecommendations.noRecommendationsYet')}</p>
+            <p className="text-xs text-muted-foreground mt-1">{t('talentRecommendations.recommendationsWillAppearWhenYouHaveActi')}</p>
           </div>
         </CardContent>
       </Card>
@@ -165,7 +167,7 @@ export const TalentRecommendations = ({ companyId }: TalentRecommendationsProps)
           <TrendingUp className="h-5 w-5" />
           Recommended Talent
         </CardTitle>
-        <CardDescription>Top candidates matching your open roles</CardDescription>
+        <CardDescription>{t('talentRecommendations.description')}</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="space-y-3">

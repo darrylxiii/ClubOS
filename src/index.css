@@ -182,6 +182,7 @@ Bold, minimalist aesthetic inspired by The Quantum Club design system.
 @layer base {
   html {
     scroll-behavior: smooth;
+    scrollbar-gutter: stable;
   }
 
   /* Prevent cumulative layout shift from absolute positioned elements */
@@ -230,6 +231,9 @@ Bold, minimalist aesthetic inspired by The Quantum Club design system.
 
     --radius: 0.75rem;
 
+    /* Display font family */
+    --font-display: 'DM Serif Display', Georgia, 'Times New Roman', serif;
+
     /* QuantumClub Premium Gradients */
     --gradient-hero: linear-gradient(135deg, hsl(0 0% 95%) 0%, hsl(0 0% 90%) 50%, hsl(0 0% 92%) 100%);
     --gradient-mesh: radial-gradient(at 40% 20%, hsl(0 0% 98% / 0.15) 0px, transparent 50%),
@@ -240,8 +244,8 @@ Bold, minimalist aesthetic inspired by The Quantum Club design system.
     --gradient-glass: linear-gradient(135deg, hsl(0 0% 98% / 0.75) 0%, hsl(0 0% 96% / 0.6) 100%);
 
     /* Premium Glassmorphic Shadows */
-    --shadow-glass-sm: 0 2px 12px hsl(0 0% 0% / 0.04), 0 1px 3px hsl(0 0% 0% / 0.03);
-    --shadow-glass-md: 0 4px 20px hsl(0 0% 0% / 0.06), 0 2px 6px hsl(0 0% 0% / 0.04);
+    --shadow-glass-sm: 0 4px 16px hsl(0 0% 0% / 0.08), 0 2px 4px hsl(0 0% 0% / 0.06);
+    --shadow-glass-md: 0 8px 30px hsl(0 0% 0% / 0.12), 0 4px 8px hsl(0 0% 0% / 0.08);
     --shadow-glass-lg: 0 8px 36px hsl(0 0% 0% / 0.08), 0 4px 12px hsl(0 0% 0% / 0.05);
     --shadow-glass-xl: 0 16px 56px hsl(0 0% 0% / 0.12), 0 8px 20px hsl(0 0% 0% / 0.08);
     --shadow-float: 0 24px 68px hsl(0 0% 0% / 0.15), 0 12px 24px hsl(0 0% 0% / 0.1);
@@ -295,6 +299,9 @@ Bold, minimalist aesthetic inspired by The Quantum Club design system.
     --input: 0 0% 10%;
     --ring: 0 0% 50%;
 
+    /* Display font family */
+    --font-display: 'DM Serif Display', Georgia, 'Times New Roman', serif;
+
     --gradient-hero: linear-gradient(135deg, hsl(0 0% 15%) 0%, hsl(0 0% 18%) 50%, hsl(0 0% 16%) 100%);
     --gradient-mesh: radial-gradient(at 40% 20%, hsl(0 0% 20% / 0.12) 0px, transparent 50%),
       radial-gradient(at 80% 0%, hsl(0 0% 18% / 0.1) 0px, transparent 50%),
@@ -303,8 +310,8 @@ Bold, minimalist aesthetic inspired by The Quantum Club design system.
     --gradient-accent: linear-gradient(135deg, hsl(0 0% 25%) 0%, hsl(0 0% 20%) 100%);
     --gradient-glass: linear-gradient(135deg, hsl(0 0% 18% / 0.75) 0%, hsl(0 0% 14% / 0.6) 100%);
 
-    --shadow-glass-sm: 0 2px 12px hsl(0 0% 0% / 0.4), 0 1px 3px hsl(0 0% 0% / 0.3);
-    --shadow-glass-md: 0 4px 20px hsl(0 0% 0% / 0.5), 0 2px 6px hsl(0 0% 0% / 0.4);
+    --shadow-glass-sm: 0 4px 16px hsl(0 0% 0% / 0.6), 0 2px 4px hsl(0 0% 0% / 0.4);
+    --shadow-glass-md: 0 8px 30px hsl(0 0% 0% / 0.8), 0 4px 8px hsl(0 0% 0% / 0.6);
     --shadow-glass-lg: 0 8px 36px hsl(0 0% 0% / 0.6), 0 4px 12px hsl(0 0% 0% / 0.5);
     --shadow-glass-xl: 0 16px 56px hsl(0 0% 0% / 0.7), 0 8px 20px hsl(0 0% 0% / 0.6);
     --shadow-float: 0 24px 68px hsl(0 0% 0% / 0.8), 0 12px 24px hsl(0 0% 0% / 0.7);
@@ -494,16 +501,19 @@ Bold, minimalist aesthetic inspired by The Quantum Club design system.
   /* Glassmorphism effects */
   .glass {
     @apply bg-card/70 backdrop-blur-[var(--blur-glass)] border border-border/50;
+    -webkit-backdrop-filter: blur(var(--blur-glass));
     box-shadow: var(--shadow-glass-md), var(--shadow-inner);
   }
 
   .glass-strong {
     @apply bg-card/90 backdrop-blur-[var(--blur-glass-strong)] border border-border/60;
+    -webkit-backdrop-filter: blur(var(--blur-glass-strong));
     box-shadow: var(--shadow-glass-lg), var(--shadow-inner);
   }
 
   .glass-subtle {
     @apply bg-card/50 backdrop-blur-[var(--blur-glass-subtle)] border border-border/30;
+    -webkit-backdrop-filter: blur(var(--blur-glass-subtle));
     box-shadow: var(--shadow-glass-sm);
   }
 
@@ -511,6 +521,14 @@ Bold, minimalist aesthetic inspired by The Quantum Club design system.
     @apply glass rounded-2xl p-6 border border-white/10 dark:border-white/5;
     background: var(--gradient-glass);
     box-shadow: var(--shadow-glass-md), var(--shadow-inner);
+  }
+
+  /* Graceful degradation for browsers without backdrop-filter */
+  @supports not (backdrop-filter: blur(1px)) {
+    .glass { background-color: hsl(var(--card) / 0.92); }
+    .glass-strong { background-color: hsl(var(--card) / 0.96); }
+    .glass-subtle { background-color: hsl(var(--card) / 0.85); }
+    .glass-card { background-color: hsl(var(--card) / 0.92); }
   }
 
   /* Floating effect */
@@ -609,6 +627,28 @@ Bold, minimalist aesthetic inspired by The Quantum Club design system.
 
   .animate-pulse-slow {
     animation: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  /* Premium shimmer animation for loading states */
+  .animate-shimmer {
+    background: linear-gradient(
+      90deg,
+      hsl(var(--muted) / 0.3) 0%,
+      hsl(var(--muted) / 0.6) 50%,
+      hsl(var(--muted) / 0.3) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s ease-in-out infinite;
+  }
+
+  @keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  /* Display font utility */
+  .font-display {
+    font-family: var(--font-display);
   }
 
   /* Enhanced frosted glass */
@@ -799,6 +839,30 @@ Bold, minimalist aesthetic inspired by The Quantum Club design system.
     .animate-spin,
     .animate-bounce {
       animation: none !important;
+    }
+
+    /* Disable backdrop-blur for reduced motion (performance + accessibility) */
+    .glass,
+    .glass-strong,
+    .glass-subtle,
+    .glass-card,
+    .frosted-glass,
+    .frosted-glass-mobile {
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+    }
+  }
+
+  /* Forced-colors mode support (Windows High Contrast) */
+  @media (forced-colors: active) {
+    .glass,
+    .glass-strong,
+    .glass-subtle,
+    .glass-card {
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+      border: 1px solid CanvasText;
+      background: Canvas;
     }
   }
 

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -39,6 +40,7 @@ export function DocumentPreviewDialog({
   documentName = "Document",
   bucketName = "resumes",
 }: DocumentPreviewDialogProps) {
+  const { t } = useTranslation('common');
   const [signedUrl, setSignedUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -167,7 +169,7 @@ export function DocumentPreviewDialog({
             <div className="flex items-center justify-center h-full">
               <div className="flex flex-col items-center gap-3">
                 <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
-                <p className="text-sm text-muted-foreground">Loading document...</p>
+                <p className="text-sm text-muted-foreground">{t("loading_document", "Loading document...")}</p>
               </div>
             </div>
           )}
@@ -176,7 +178,7 @@ export function DocumentPreviewDialog({
             <div className="flex items-center justify-center h-full">
               <div className="flex flex-col items-center gap-3 text-center px-6">
                 <FileText className="w-12 h-12 text-muted-foreground" />
-                <p className="text-sm text-destructive font-medium">Failed to load document</p>
+                <p className="text-sm text-destructive font-medium">{t("failed_to_load_document", "Failed to load document")}</p>
                 <p className="text-xs text-muted-foreground">{error}</p>
                 {signedUrl && (
                   <Button
@@ -200,7 +202,7 @@ export function DocumentPreviewDialog({
                   <div className="flex flex-col items-center gap-4 text-center max-w-md">
                     <AlertTriangle className="w-12 h-12 text-amber-500" />
                     <div>
-                      <p className="text-lg font-medium mb-2">Preview blocked by security software</p>
+                      <p className="text-lg font-medium mb-2">{t("preview_blocked_by_security", "Preview blocked by security software")}</p>
                       <p className="text-sm text-muted-foreground mb-4">
                         Your browser or security software (like Comet) is blocking the document preview. 
                         You can still view the document by opening it in a new tab.
@@ -224,7 +226,7 @@ export function DocumentPreviewDialog({
                     <AlertTriangle className="h-4 w-4 text-amber-500" />
                     <AlertDescription className="text-sm">
                       If the preview doesn't load, your security software may be blocking it. 
-                      Use the <strong>Open in New Tab</strong> button above.
+                      Use the <strong>{t("open_in_new_tab", "Open in New Tab")}</strong> button above.
                     </AlertDescription>
                   </Alert>
                   <iframe

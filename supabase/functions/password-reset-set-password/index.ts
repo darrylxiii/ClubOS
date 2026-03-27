@@ -1,6 +1,6 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { createHandler } from '../_shared/handler.ts';
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
-import { getAuthCorsHeaders, authCorsPreFlight } from "../_shared/auth-cors.ts";
+import { checkUserRateLimit, createRateLimitResponse } from '../_shared/rate-limiter.ts';
 
 const requestSchema = z.object({
   token: z.string(),
@@ -58,31 +58,35 @@ async function checkAndRaiseAlert(supabaseAdmin: any, email: string, clientIp: s
   }
 }
 
-Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") return authCorsPreFlight(req);
-
-  const corsHeaders = getAuthCorsHeaders(req);
+Deno.serve(createHandler(async (req, ctx) => {
+  // Rate limiting: 5 requests per hour per IP
+  const clientIpForRL = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+                        req.headers.get('x-real-ip') ||
+                        'unknown';
+  const rateLimitResult = await checkUserRateLimit(clientIpForRL, 'password-reset-set-password', 5, 3600000);
+  if (!rateLimitResult.allowed) {
+    return createRateLimitResponse(rateLimitResult.retryAfter || 3600, ctx.corsHeaders);
+  }
 
   try {
-    const supabaseAdmin = createClient(Deno.env.get("SUPABASE_URL") ?? "", Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "");
     const body = await req.json();
     const { token, new_password, confirm_password, csrf_nonce } = requestSchema.parse(body);
     const clientIp = req.headers.get("x-forwarded-for") || "unknown";
 
     if (new_password !== confirm_password) {
-      return new Response(JSON.stringify({ error: "Passwords do not match" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      return new Response(JSON.stringify({ error: "Passwords do not match" }), { status: 400, headers: { ...ctx.corsHeaders, "Content-Type": "application/json" } });
     }
 
     // Dictionary/pattern check
     if (hasCommonPattern(new_password)) {
       return new Response(
         JSON.stringify({ weak_password: true, error: "This password follows a common pattern that is easily guessable. Please choose something more unique." }),
-        { status: 422, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 422, headers: { ...ctx.corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
     const fifteenMinAgo = new Date(Date.now() - 15 * 60 * 1000).toISOString();
-    const { data: tokens, error: lookupError } = await supabaseAdmin.from('password_reset_tokens')
+    const { data: tokens, error: lookupError } = await ctx.supabase.from('password_reset_tokens')
       .select('*').eq('magic_token', token).eq('is_used', true)
       .gt('used_at', fifteenMinAgo).in('validated_by', ['otp', 'magic_link']).limit(1);
     if (lookupError) throw lookupError;
@@ -96,57 +100,56 @@ Deno.serve(async (req) => {
     }
 
     if (!resetToken) {
-      await supabaseAdmin.from('password_reset_attempts').insert({ email: 'unknown', ip_address: clientIp, success: false, attempt_type: 'set_password', correlation_id: correlationId });
-      return new Response(JSON.stringify({ error: "Invalid or expired token. Please start over." }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      await ctx.supabase.from('password_reset_attempts').insert({ email: 'unknown', ip_address: clientIp, success: false, attempt_type: 'set_password', correlation_id: correlationId });
+      return new Response(JSON.stringify({ error: "Invalid or expired token. Please start over." }), { status: 400, headers: { ...ctx.corsHeaders, "Content-Type": "application/json" } });
     }
 
     const userId = resetToken.user_id;
     const newPasswordHash = await hashValue(new_password);
 
     // Check password history
-    const { data: history } = await supabaseAdmin.from('password_history')
+    const { data: history } = await ctx.supabase.from('password_history')
       .select('password_hash').eq('user_id', userId).order('created_at', { ascending: false }).limit(5);
 
     if (history && history.length > 0) {
       for (const record of history) {
         if (await verifyValue(new_password, record.password_hash)) {
-          await supabaseAdmin.from('password_reset_attempts').insert({ email: resetToken.email, ip_address: clientIp, success: false, attempt_type: 'set_password', correlation_id: correlationId });
-          await checkAndRaiseAlert(supabaseAdmin, resetToken.email, clientIp, correlationId);
-          return new Response(JSON.stringify({ reused: true, error: "Cannot reuse recent passwords" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+          await ctx.supabase.from('password_reset_attempts').insert({ email: resetToken.email, ip_address: clientIp, success: false, attempt_type: 'set_password', correlation_id: correlationId });
+          await checkAndRaiseAlert(ctx.supabase, resetToken.email, clientIp, correlationId);
+          return new Response(JSON.stringify({ reused: true, error: "Cannot reuse recent passwords" }), { status: 400, headers: { ...ctx.corsHeaders, "Content-Type": "application/json" } });
         }
       }
     }
 
-    const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(userId, { password: new_password });
+    const { error: updateError } = await ctx.supabase.auth.admin.updateUserById(userId, { password: new_password });
     if (updateError) {
       if (updateError.code === 'weak_password' || updateError.name === 'AuthWeakPasswordError') {
         const reasons = (updateError as any).reasons || [];
         return new Response(JSON.stringify({
           weak_password: true, reasons,
           error: reasons.includes('pwned') ? "This password has appeared in a data breach and cannot be used." : "Password is too weak."
-        }), { status: 422, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }), { status: 422, headers: { ...ctx.corsHeaders, "Content-Type": "application/json" } });
       }
       throw updateError;
     }
 
-    await supabaseAdmin.from('password_history').insert({ user_id: userId, password_hash: newPasswordHash });
+    await ctx.supabase.from('password_history').insert({ user_id: userId, password_hash: newPasswordHash });
 
-    try { await supabaseAdmin.auth.admin.signOut(userId, 'global'); } catch (e) { console.error('[PasswordReset] Session invalidation error:', e); }
+    try { await ctx.supabase.auth.admin.signOut(userId, 'global'); } catch (e) { console.error('[PasswordReset] Session invalidation error:', e); }
 
-    const { data: { user } } = await supabaseAdmin.auth.admin.getUserById(userId);
+    const { data: { user } } = await ctx.supabase.auth.admin.getUserById(userId);
     if (user?.email) {
-      await supabaseAdmin.functions.invoke('send-password-changed-email', {
+      await ctx.supabase.functions.invoke('send-password-changed-email', {
         body: { email: user.email, userName: user.user_metadata?.full_name || user.email.split('@')[0], timestamp: new Date().toLocaleString(), deviceInfo: resetToken.user_agent || 'Unknown device' },
       });
     }
 
-    await supabaseAdmin.from('password_reset_attempts').insert({ email: resetToken.email, ip_address: clientIp, success: true, attempt_type: 'set_password', correlation_id: correlationId });
+    await ctx.supabase.from('password_reset_attempts').insert({ email: resetToken.email, ip_address: clientIp, success: true, attempt_type: 'set_password', correlation_id: correlationId });
 
-    return new Response(JSON.stringify({ success: true, message: "Password changed successfully" }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    return new Response(JSON.stringify({ success: true, message: "Password changed successfully" }), { status: 200, headers: { ...ctx.corsHeaders, "Content-Type": "application/json" } });
   } catch (error: any) {
     console.error("[PasswordReset][set_password] Error:", error);
-    const h = getAuthCorsHeaders(req);
-    if (error.name === 'ZodError') return new Response(JSON.stringify({ error: "Invalid request format" }), { status: 400, headers: { ...h, "Content-Type": "application/json" } });
-    return new Response(JSON.stringify({ error: "An error occurred while resetting password" }), { status: 500, headers: { ...h, "Content-Type": "application/json" } });
+    if (error.name === 'ZodError') return new Response(JSON.stringify({ error: "Invalid request format" }), { status: 400, headers: { ...ctx.corsHeaders, "Content-Type": "application/json" } });
+    return new Response(JSON.stringify({ error: "An error occurred while resetting password" }), { status: 500, headers: { ...ctx.corsHeaders, "Content-Type": "application/json" } });
   }
-});
+}));

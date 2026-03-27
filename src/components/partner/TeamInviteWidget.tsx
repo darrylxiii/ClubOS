@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -31,6 +32,7 @@ interface PendingInvite {
 }
 
 export function TeamInviteWidget({ companyId, companyName, companyDomain, canInvite }: TeamInviteWidgetProps) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const { domains, primaryDomain, loading: domainsLoading } = useCompanyDomains(companyId);
   
@@ -122,13 +124,13 @@ export function TeamInviteWidget({ companyId, companyName, companyDomain, canInv
 
   const handleInvite = async () => {
     if (!inviteEmail) {
-      toast.error('Please enter an email address');
+      toast.error(t("please_enter_an_email", "Please enter an email address"));
       return;
     }
 
     // Validate domain
     if (authorizedDomains.length > 0 && !validateEmailDomain(inviteEmail)) {
-      toast.error('Please use an email from an authorized domain');
+      toast.error(t("please_use_an_email", "Please use an email from an authorized domain"));
       return;
     }
 
@@ -199,7 +201,7 @@ export function TeamInviteWidget({ companyId, companyName, companyDomain, canInv
       loadPendingInvites();
     } catch (error) {
       console.error('Error sending invite:', error);
-      toast.error('Failed to send invitation');
+      toast.error(t("failed_to_send_invitation", "Failed to send invitation"));
     } finally {
       setIsInviting(false);
     }
@@ -214,22 +216,22 @@ export function TeamInviteWidget({ companyId, companyName, companyDomain, canInv
 
       if (error) throw error;
       
-      toast.success('Invitation revoked');
+      toast.success(t("invitation_revoked", "Invitation revoked"));
       setPendingInvites(prev => prev.filter(inv => inv.id !== inviteId));
     } catch (error) {
       console.error('Error revoking invite:', error);
-      toast.error('Failed to revoke invitation');
+      toast.error(t("failed_to_revoke_invitation", "Failed to revoke invitation"));
     }
   };
 
   const getStatusBadge = (status: PendingInvite['status']) => {
     switch (status) {
       case 'pending':
-        return <Badge variant="secondary" className="gap-1"><Clock className="w-3 h-3" /> Pending</Badge>;
+        return <Badge variant="secondary" className="gap-1"><Clock className="w-3 h-3" />{t("pending", "Pending")}</Badge>;
       case 'accepted':
-        return <Badge variant="default" className="gap-1 bg-green-600"><CheckCircle className="w-3 h-3" /> Accepted</Badge>;
+        return <Badge variant="default" className="gap-1 bg-green-600"><CheckCircle className="w-3 h-3" />{t("accepted", "Accepted")}</Badge>;
       case 'expired':
-        return <Badge variant="outline" className="gap-1 text-muted-foreground"><XCircle className="w-3 h-3" /> Expired</Badge>;
+        return <Badge variant="outline" className="gap-1 text-muted-foreground"><XCircle className="w-3 h-3" />{t("expired", "Expired")}</Badge>;
     }
   };
 
@@ -270,7 +272,7 @@ export function TeamInviteWidget({ companyId, companyName, companyDomain, canInv
           <CardContent className="pt-0 pb-3">
             <div className="flex items-center gap-2 flex-wrap">
               <Globe className="w-4 h-4 text-muted-foreground" />
-              <span className="text-xs text-muted-foreground">Allowed domains:</span>
+              <span className="text-xs text-muted-foreground">{t("allowed_domains", "Allowed domains:")}</span>
               {authorizedDomains.map(domain => (
                 <Badge key={domain} variant="secondary" className="font-mono text-xs">
                   @{domain}
@@ -283,9 +285,7 @@ export function TeamInviteWidget({ companyId, companyName, companyDomain, canInv
         {pendingInvites.length > 0 && (
           <CardContent>
             <div className="space-y-2">
-              <Label className="text-xs uppercase tracking-wide text-muted-foreground">
-                Recent Invitations
-              </Label>
+              <Label className="text-xs uppercase tracking-wide text-muted-foreground">{t('teamInviteWidget.label.recentInvitations')}</Label>
               {pendingInvites.slice(0, 3).map((invite) => (
                 <div 
                   key={invite.id} 
@@ -321,14 +321,12 @@ export function TeamInviteWidget({ companyId, companyName, companyDomain, canInv
               <UserPlus className="w-5 h-5" />
               Invite Team Member
             </DialogTitle>
-            <DialogDescription>
-              Send an invitation to join your organization
-            </DialogDescription>
+            <DialogDescription>{t('teamInviteWidget.dialogDescription')}</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="invite-email">Email Address</Label>
+              <Label htmlFor="invite-email">{t("email_address", "Email Address")}</Label>
               <Input
                 id="invite-email"
                 type="email"
@@ -357,15 +355,15 @@ export function TeamInviteWidget({ companyId, companyName, companyDomain, canInv
             </div>
 
             <div className="space-y-2">
-              <Label>Role</Label>
+              <Label>{t("role", "Role")}</Label>
               <Select value={inviteRole} onValueChange={(v: CompanyRole) => setInviteRole(v)}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="admin">Admin</SelectItem>
-                  <SelectItem value="recruiter">Recruiter</SelectItem>
-                  <SelectItem value="member">Member</SelectItem>
+                  <SelectItem value="admin">{t("admin", "Admin")}</SelectItem>
+                  <SelectItem value="recruiter">{t("recruiter", "Recruiter")}</SelectItem>
+                  <SelectItem value="member">{t("member", "Member")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -373,9 +371,7 @@ export function TeamInviteWidget({ companyId, companyName, companyDomain, canInv
             {/* Pending Invites List */}
             {pendingInvites.length > 0 && (
               <div className="pt-4 border-t">
-                <Label className="text-xs uppercase tracking-wide text-muted-foreground mb-3 block">
-                  All Invitations
-                </Label>
+                <Label className="text-xs uppercase tracking-wide text-muted-foreground mb-3 block">{t('teamInviteWidget.label.allInvitations')}</Label>
                 <div className="max-h-40 overflow-y-auto space-y-2">
                   <AnimatePresence>
                     {pendingInvites.map((invite) => (
@@ -410,7 +406,7 @@ export function TeamInviteWidget({ companyId, companyName, companyDomain, canInv
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowInviteDialog(false)}>
-              Cancel
+              {t('common:cancel')}
             </Button>
             <Button onClick={handleInvite} disabled={isInviting || !inviteEmail || !!domainError || domainsLoading}>
               {isInviting ? (

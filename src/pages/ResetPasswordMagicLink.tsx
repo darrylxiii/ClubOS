@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { XCircle } from "lucide-react";
@@ -23,6 +24,7 @@ function getTokenFromUrl(): string | null {
 }
 
 export default function ResetPasswordMagicLink() {
+  const { t } = useTranslation('common');
   const token = getTokenFromUrl();
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
@@ -70,11 +72,11 @@ export default function ResetPasswordMagicLink() {
             <XCircle className="w-8 h-8 text-destructive" />
           </div>
           <div>
-            <h2 className="text-xl font-semibold text-foreground mb-2">Invalid Reset Link</h2>
+            <h2 className="text-xl font-semibold text-foreground mb-2">{t('resetPassword.invalidLink')}</h2>
             <p className="text-muted-foreground">{error}</p>
           </div>
           <Button onClick={() => navigate('/forgot-password')}>
-            Request New Link
+            {t('resetPassword.requestNewLink')}
           </Button>
         </div>
       </div>

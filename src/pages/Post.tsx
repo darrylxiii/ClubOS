@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -10,6 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { notify } from "@/lib/notify";
 
 export default function Post() {
+  const { t } = useTranslation('common');
   const { id } = useParams();
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -121,10 +123,8 @@ export default function Post() {
             Back to Feed
           </Button>
           <div className="text-center py-12">
-            <h2 className="text-2xl font-bold mb-2">Post not found</h2>
-            <p className="text-muted-foreground mb-4">
-              This post may have been deleted or you don't have permission to view it.
-            </p>
+            <h2 className="text-2xl font-bold mb-2">{t('post.text2')}</h2>
+            <p className="text-muted-foreground mb-4">{t('post.desc')}</p>
             <Button onClick={() => navigate('/feed')}>
               Go to Feed
             </Button>

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,12 +17,13 @@ interface QuickActionsBarProps {
 }
 
 export function QuickActionsBar({ jobId, jobTitle, candidateCount, candidateIds = [] }: QuickActionsBarProps) {
+  const { t } = useTranslation('common');
   const [showBulkEmail, setShowBulkEmail] = useState(false);
   const [exporting, setExporting] = useState(false);
 
   const handleExport = async () => {
     if (candidateIds.length === 0) {
-      toast.error("No candidates to export");
+      toast.error(t("no_candidates_to_export", "No candidates to export"));
       return;
     }
     
@@ -42,10 +44,10 @@ export function QuickActionsBar({ jobId, jobTitle, candidateCount, candidateIds 
           })),
           `candidates-${jobTitle}`
         );
-        toast.success("Candidates exported successfully");
+        toast.success(t("candidates_exported_successfully", "Candidates exported successfully"));
       }
     } catch (error) {
-      toast.error("Failed to export candidates");
+      toast.error(t("failed_to_export_candidates", "Failed to export candidates"));
     } finally {
       setExporting(false);
     }
@@ -53,7 +55,7 @@ export function QuickActionsBar({ jobId, jobTitle, candidateCount, candidateIds 
 
   const handleGenerateReport = async () => {
     if (candidateIds.length === 0) {
-      toast.error("No candidates for report");
+      toast.error(t("no_candidates_for_report", "No candidates for report"));
       return;
     }
 
@@ -74,21 +76,21 @@ export function QuickActionsBar({ jobId, jobTitle, candidateCount, candidateIds 
           `hiring-report-${jobTitle}`,
           jobTitle
         );
-        toast.success("Report generated successfully");
+        toast.success(t("report_generated_successfully", "Report generated successfully"));
       }
     } catch (error) {
-      toast.error("Failed to generate report");
+      toast.error(t("failed_to_generate_report", "Failed to generate report"));
     }
   };
 
   const handleShare = () => {
     const url = `${window.location.origin}/jobs/${jobId}`;
     navigator.clipboard.writeText(url);
-    toast.success("Job link copied to clipboard");
+    toast.success(t("job_link_copied_to", "Job link copied to clipboard"));
   };
 
   const handleSettings = () => {
-    toast.info("Pipeline settings opening...");
+    toast.info(t("pipeline_settings_opening", "Pipeline settings opening..."));
   };
 
   return (
@@ -97,7 +99,7 @@ export function QuickActionsBar({ jobId, jobTitle, candidateCount, candidateIds 
         <CardContent className="p-4">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-2">
-              <span className="text-sm font-semibold text-muted-foreground">Quick Actions</span>
+              <span className="text-sm font-semibold text-muted-foreground">{t("quick_actions", "Quick Actions")}</span>
               <span className="text-xs text-muted-foreground/60">({candidateCount} candidates)</span>
             </div>
             <div className="flex items-center gap-2 flex-wrap">

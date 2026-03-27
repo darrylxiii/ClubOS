@@ -42,9 +42,9 @@ git push origin feature/your-feature
 npm run build
 ```
 
-**Deploy to Lovable Cloud:**
+**Deploy to Supabase:**
 ```bash
-# Deployment handled automatically by Lovable
+# Deployment handled automatically automatically
 ```
 
 ## Database Migrations
@@ -126,7 +126,7 @@ npx supabase db reset --to <previous_migration>
 **Deploy fails:**
 - Check deployment logs
 - Verify GitHub Actions status
-- Contact Lovable support
+- Contact the platform support
 
 ## Support
 

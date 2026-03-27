@@ -1,30 +1,17 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.7";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+import { createHandler } from '../_shared/handler.ts';
+import { SupabaseClient } from "npm:@supabase/supabase-js@2";
 
 interface OrchestrationRequest {
   operation: 'create_goal' | 'update_goal' | 'delegate_task' | 'get_agent_status' | 'execute_plan' | 'check_goal_progress';
   userId: string;
-  data?: any;
+  data?: Record<string, unknown>;
 }
 
-serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  try {
+Deno.serve(createHandler(async (req, ctx) => {
     const { operation, userId, data } = await req.json() as OrchestrationRequest;
-    
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const supabase = ctx.supabase;
 
-    let result: any;
+    let result: Record<string, unknown>;
 
     switch (operation) {
       case 'create_goal':
@@ -50,20 +37,12 @@ serve(async (req) => {
     }
 
     return new Response(JSON.stringify(result), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...ctx.corsHeaders, "Content-Type": "application/json" },
     });
-
-  } catch (error: any) {
-    console.error("Agent Orchestrator error:", error);
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  }
-});
+}));
 
 // Create a new goal with execution plan
-async function createGoal(supabase: any, userId: string, data: any) {
+async function createGoal(supabase: SupabaseClient, userId: string, data: Record<string, unknown>) {
   const { 
     goalType, 
     goalDescription, 
@@ -122,8 +101,8 @@ async function createGoal(supabase: any, userId: string, data: any) {
 }
 
 // Generate execution plan based on goal type
-async function generateExecutionPlan(goalType: string, description: string, criteria: any) {
-  const planTemplates: Record<string, any> = {
+async function generateExecutionPlan(goalType: string, description: string, criteria: Record<string, unknown>) {
+  const planTemplates: Record<string, Record<string, unknown>> = {
     fill_role: {
       steps: [
         { id: 1, description: 'Analyze role requirements', agent: 'analytics_agent', status: 'pending' },
@@ -169,10 +148,10 @@ async function generateExecutionPlan(goalType: string, description: string, crit
 }
 
 // Update goal status and progress
-async function updateGoal(supabase: any, userId: string, data: any) {
+async function updateGoal(supabase: SupabaseClient, userId: string, data: Record<string, unknown>) {
   const { goalId, status, currentProgress, nextActionAt, nextActionDescription } = data;
 
-  const updateData: any = { updated_at: new Date().toISOString() };
+  const updateData: Record<string, unknown> = { updated_at: new Date().toISOString() };
   if (status) updateData.status = status;
   if (currentProgress !== undefined) updateData.current_progress = currentProgress;
   if (nextActionAt) updateData.next_action_at = nextActionAt;
@@ -192,7 +171,7 @@ async function updateGoal(supabase: any, userId: string, data: any) {
 }
 
 // Delegate a task to a specialized agent
-async function delegateTask(supabase: any, userId: string, data: any) {
+async function delegateTask(supabase: SupabaseClient, userId: string, data: Record<string, unknown>) {
   const { parentAgent, childAgent, taskDescription, taskData } = data;
 
   // Verify the child agent exists and is active
@@ -247,7 +226,7 @@ async function delegateTask(supabase: any, userId: string, data: any) {
 }
 
 // Get status of all agents and their delegations
-async function getAgentStatus(supabase: any, userId: string) {
+async function getAgentStatus(supabase: SupabaseClient, userId: string) {
   const [agentsResult, delegationsResult, goalsResult] = await Promise.all([
     supabase.from('agent_registry').select('*').eq('is_active', true),
     supabase
@@ -264,12 +243,12 @@ async function getAgentStatus(supabase: any, userId: string) {
   ]);
 
   // Calculate workload per agent
-  const agentWorkload = (agentsResult.data || []).map((agent: any) => {
+  const agentWorkload = (agentsResult.data || []).map((agent: Record<string, unknown>) => {
     const activeDelegations = (delegationsResult.data || []).filter(
-      (d: any) => d.child_agent === agent.agent_name
+      (d: Record<string, unknown>) => d.child_agent === agent.agent_name
     );
     const activeGoals = (goalsResult.data || []).filter(
-      (g: any) => g.assigned_agents?.includes(agent.agent_name)
+      (g: Record<string, unknown>) => (g.assigned_agents as string[] | undefined)?.includes(agent.agent_name as string)
     );
 
     return {
@@ -284,7 +263,7 @@ async function getAgentStatus(supabase: any, userId: string) {
 }
 
 // Execute the next step in a goal's plan
-async function executePlan(supabase: any, userId: string, data: any) {
+async function executePlan(supabase: SupabaseClient, userId: string, data: Record<string, unknown>) {
   const { goalId } = data;
 
   // Get the goal
@@ -301,7 +280,7 @@ async function executePlan(supabase: any, userId: string, data: any) {
   if (!plan || !plan.steps) throw new Error('No execution plan found');
 
   // Find the next pending step
-  const nextStep = plan.steps.find((s: any) => s.status === 'pending');
+  const nextStep = plan.steps.find((s: Record<string, unknown>) => s.status === 'pending');
   if (!nextStep) {
     // All steps complete - mark goal as completed
     await supabase
@@ -322,12 +301,12 @@ async function executePlan(supabase: any, userId: string, data: any) {
 
   // Update step status
   nextStep.status = 'in_progress';
-  const updatedSteps = plan.steps.map((s: any) => 
+  const updatedSteps = plan.steps.map((s: Record<string, unknown>) =>
     s.id === nextStep.id ? nextStep : s
   );
 
   // Calculate progress
-  const completedSteps = updatedSteps.filter((s: any) => s.status === 'completed').length;
+  const completedSteps = updatedSteps.filter((s: Record<string, unknown>) => s.status === 'completed').length;
   const progress = (completedSteps / updatedSteps.length) * 100;
 
   await supabase
@@ -352,7 +331,7 @@ async function executePlan(supabase: any, userId: string, data: any) {
 }
 
 // Check progress on all active goals
-async function checkGoalProgress(supabase: any, userId: string, data: any) {
+async function checkGoalProgress(supabase: SupabaseClient, userId: string, data: Record<string, unknown>) {
   const { goalId } = data || {};
 
   let query = supabase
@@ -374,7 +353,7 @@ async function checkGoalProgress(supabase: any, userId: string, data: any) {
   if (error) throw error;
 
   // Analyze each goal
-  const goalsWithAnalysis = (goals || []).map((goal: any) => {
+  const goalsWithAnalysis = (goals || []).map((goal: Record<string, unknown>) => {
     const progress = goal.agent_goal_progress || [];
     const recentProgress = progress.slice(0, 5);
     

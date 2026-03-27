@@ -1,10 +1,4 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+import { createHandler } from '../_shared/handler.ts';
 
 interface MatchFactors {
   skillsOverlap: number;
@@ -18,24 +12,17 @@ interface MatchFactors {
 
 interface FreelancerMatch {
   freelancer_id: string;
-  profile: any;
+  profile: Record<string, unknown>;
   match_score: number;
   match_factors: MatchFactors;
   match_explanation: string;
-  portfolio_highlights: any[];
+  portfolio_highlights: Record<string, unknown>[];
   estimated_response_time: string;
   risk_level: string;
 }
 
-serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  try {
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+Deno.serve(createHandler(async (req, ctx) => {
+    const { supabase, corsHeaders } = ctx;
 
     const { projectId } = await req.json();
 
@@ -44,11 +31,10 @@ serve(async (req) => {
     }
 
     // Fetch project details - try marketplace_projects first, fallback to projects
-    let project: any = null;
-    let projectError: any = null;
+    let project: Record<string, unknown> | null = null;
 
     // First try marketplace_projects (Club Projects)
-    const { data: marketplaceProject, error: mpError } = await supabase
+    const { data: marketplaceProject } = await supabase
       .from("marketplace_projects")
       .select("*")
       .eq("id", projectId)
@@ -58,14 +44,13 @@ serve(async (req) => {
       project = marketplaceProject;
     } else {
       // Fallback to legacy projects table
-      const { data: legacyProject, error: lpError } = await supabase
+      const { data: legacyProject } = await supabase
         .from("projects")
         .select("*")
         .eq("id", projectId)
         .single();
-      
+
       project = legacyProject;
-      projectError = lpError;
     }
 
     if (!project) {
@@ -103,7 +88,7 @@ serve(async (req) => {
     for (const freelancer of freelancers || []) {
       const factors = calculateMatchFactors(project, freelancer);
       const overallScore = calculateWeightedScore(factors);
-      
+
       if (overallScore >= 40) { // Minimum 40% match
         matches.push({
           freelancer_id: freelancer.id,
@@ -123,65 +108,55 @@ serve(async (req) => {
     const topMatches = matches.slice(0, 5);
 
     return new Response(
-      JSON.stringify({ 
-        success: true, 
+      JSON.stringify({
+        success: true,
         matches: topMatches,
         total_evaluated: freelancers?.length || 0
       }),
-      { 
+      {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 200 
+        status: 200
       }
     );
+}));
 
-  } catch (error: any) {
-    console.error("Error matching freelancers:", error);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      { 
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 500 
-      }
-    );
-  }
-});
-
-function calculateMatchFactors(project: any, freelancer: any): MatchFactors {
+function calculateMatchFactors(project: Record<string, unknown>, freelancer: Record<string, unknown>): MatchFactors {
+  const profiles = freelancer.profiles as Record<string, unknown> | null;
   const skillsOverlap = calculateSkillsOverlap(
-    project.skills_required || [],
-    freelancer.profiles?.skills || []
+    (project.skills_required as string[]) || [],
+    (profiles?.skills as string[]) || []
   );
 
   const experienceMatch = calculateExperienceMatch(
-    project.experience_level,
-    freelancer.profiles?.experience || 0
+    project.experience_level as string,
+    (profiles?.experience as number) || 0
   );
 
   const budgetFit = calculateBudgetFit(
-    project.budget_min,
-    project.budget_max,
-    freelancer.hourly_rate_min,
-    freelancer.hourly_rate_max,
-    project.engagement_type,
-    project.estimated_hours
+    project.budget_min as number,
+    project.budget_max as number,
+    freelancer.hourly_rate_min as number,
+    freelancer.hourly_rate_max as number,
+    project.engagement_type as string,
+    project.estimated_hours as number
   );
 
   const availabilityMatch = calculateAvailabilityMatch(
-    project.start_date_target,
-    freelancer.available_from_date,
-    freelancer.availability_hours_per_week,
-    project.estimated_hours,
-    project.timeline_weeks
+    project.start_date_target as string,
+    freelancer.available_from_date as string,
+    freelancer.availability_hours_per_week as number,
+    project.estimated_hours as number,
+    project.timeline_weeks as number
   );
 
   const timezoneMatch = calculateTimezoneMatch(
-    project.timezone_requirement,
-    freelancer.timezone_preference
+    (project.timezone_requirement as string) || null,
+    (freelancer.timezone_preference as string) || null
   );
 
-  const ratingScore = (freelancer.avg_project_rating || 4.0) * 20; // Convert 5-star to percentage
+  const ratingScore = ((freelancer.avg_project_rating as number) || 4.0) * 20;
 
-  const completionRate = freelancer.completion_rate_percentage || 100;
+  const completionRate = (freelancer.completion_rate_percentage as number) || 100;
 
   return {
     skillsOverlap,
@@ -219,11 +194,11 @@ function calculateWeightedScore(factors: MatchFactors): number {
 
 function calculateSkillsOverlap(requiredSkills: string[], freelancerSkills: string[]): number {
   if (!requiredSkills.length) return 100;
-  
-  const matches = requiredSkills.filter(skill => 
+
+  const matches = requiredSkills.filter(skill =>
     freelancerSkills.some(fs => fs.toLowerCase().includes(skill.toLowerCase()))
   ).length;
-  
+
   return (matches / requiredSkills.length) * 100;
 }
 
@@ -236,7 +211,7 @@ function calculateExperienceMatch(requiredLevel: string, yearsExp: number): numb
   };
 
   const required = levelMap[requiredLevel] || 5;
-  
+
   if (yearsExp >= required) return 100;
   if (yearsExp >= required * 0.7) return 80;
   if (yearsExp >= required * 0.5) return 60;
@@ -283,9 +258,9 @@ function calculateAvailabilityMatch(
   const freelancerDate = new Date(freelancerStart);
 
   if (freelancerDate <= projectDate) return 100;
-  
+
   const daysDiff = Math.floor((freelancerDate.getTime() - projectDate.getTime()) / (1000 * 60 * 60 * 24));
-  
+
   if (daysDiff <= 7) return 90;
   if (daysDiff <= 14) return 70;
   if (daysDiff <= 30) return 50;
@@ -301,7 +276,7 @@ function calculateTimezoneMatch(projectTz: string | null, freelancerTz: string |
   return 70; // Some overlap assumed
 }
 
-function generateMatchExplanation(factors: MatchFactors, project: any, freelancer: any): string {
+function generateMatchExplanation(factors: MatchFactors, project: Record<string, unknown>, freelancer: Record<string, unknown>): string {
   const reasons = [];
 
   if (factors.skillsOverlap >= 80) {
@@ -320,45 +295,43 @@ function generateMatchExplanation(factors: MatchFactors, project: any, freelance
     reasons.push("Available to start immediately");
   }
 
-  if (factors.ratingScore >= 80 && freelancer.total_completed_projects > 0) {
+  if (factors.ratingScore >= 80 && (freelancer.total_completed_projects as number) > 0) {
     reasons.push(`Excellent track record (${freelancer.total_completed_projects} projects)`);
   }
 
-  if (freelancer.completion_rate_percentage >= 95) {
+  if ((freelancer.completion_rate_percentage as number) >= 95) {
     reasons.push("High project completion rate");
   }
 
-  return reasons.length > 0 
+  return reasons.length > 0
     ? reasons.join(" • ")
     : "Good overall fit for this project";
 }
 
-function selectPortfolioHighlights(portfolioItems: any[], requiredSkills: string[]): any[] {
+function selectPortfolioHighlights(portfolioItems: Record<string, unknown>[], requiredSkills: string[]): Record<string, unknown>[] {
   if (!portfolioItems || !portfolioItems.length) return [];
 
-  // Filter portfolio items that match required skills
-  const relevant = portfolioItems.filter((item: any) => 
-    requiredSkills.some(skill => 
-      item.tags?.some((tag: string) => tag.toLowerCase().includes(skill.toLowerCase()))
+  const relevant = portfolioItems.filter((item) =>
+    requiredSkills.some(skill =>
+      (item.tags as string[])?.some((tag: string) => tag.toLowerCase().includes(skill.toLowerCase()))
     )
   );
 
   return relevant.slice(0, 3);
 }
 
-function estimateResponseTime(freelancer: any): string {
-  // Based on activity and current workload
-  if (freelancer.active_projects_count === 0) return "Within 2 hours";
-  if (freelancer.active_projects_count <= 2) return "Within 24 hours";
+function estimateResponseTime(freelancer: Record<string, unknown>): string {
+  if ((freelancer.active_projects_count as number) === 0) return "Within 2 hours";
+  if ((freelancer.active_projects_count as number) <= 2) return "Within 24 hours";
   return "Within 48 hours";
 }
 
-function assessRiskLevel(freelancer: any, matchScore: number): string {
-  if (freelancer.total_completed_projects >= 10 && freelancer.avg_project_rating >= 4.5) {
+function assessRiskLevel(freelancer: Record<string, unknown>, matchScore: number): string {
+  if ((freelancer.total_completed_projects as number) >= 10 && (freelancer.avg_project_rating as number) >= 4.5) {
     return "low";
   }
 
-  if (freelancer.total_completed_projects >= 3 && matchScore >= 70) {
+  if ((freelancer.total_completed_projects as number) >= 3 && matchScore >= 70) {
     return "medium";
   }
 

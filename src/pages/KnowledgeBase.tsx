@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from 'react-i18next';
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
@@ -18,6 +19,7 @@ const categories = [
 ];
 
 export default function KnowledgeBase() {
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -99,16 +101,14 @@ export default function KnowledgeBase() {
         <div className="inline-flex items-center justify-center p-3 bg-primary/10 rounded-full mb-4">
           <BookOpen className="h-8 w-8 text-primary" />
         </div>
-        <h1 className="text-4xl font-bold mb-4">Knowledge Base</h1>
-        <p className="text-lg text-muted-foreground mb-8">
-          Find answers and learn about The Quantum Club platform
-        </p>
+        <h1 className="text-4xl font-bold mb-4">{t('knowledgeBase.text2')}</h1>
+        <p className="text-lg text-muted-foreground mb-8">{t('knowledgeBase.desc')}</p>
 
         {/* Search */}
         <div className="max-w-2xl mx-auto relative">
           <Search className="absolute left-4 top-4 h-5 w-5 text-muted-foreground" />
           <Input
-            placeholder="Search for help..."
+            placeholder={t('knowledgeBase.text3')}
             className="pl-12 h-14 text-lg"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -194,7 +194,7 @@ export default function KnowledgeBase() {
           <Card className="p-6">
             <div className="flex items-center gap-2 mb-4">
               <TrendingUp className="h-5 w-5 text-primary" />
-              <h3 className="font-semibold">Popular Articles</h3>
+              <h3 className="font-semibold">{t('knowledgeBase.text4')}</h3>
             </div>
             <div className="space-y-3">
               {popularArticles?.map((article, index) => (

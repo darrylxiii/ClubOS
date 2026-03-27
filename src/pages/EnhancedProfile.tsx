@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { User, Briefcase, GraduationCap, Award, Folder, Settings, Download, Share2, Eye, Music2, Edit, FileText, Mail, Shield, MessageSquare } from "lucide-react";
 import { lazy, Suspense } from "react";
+import { useTranslation } from 'react-i18next';
 import { logger } from "@/lib/logger";
 import { PageLoader } from "@/components/PageLoader";
 
@@ -41,6 +42,7 @@ interface EnhancedProfileProps {
 }
 
 export default function EnhancedProfile({ viewingUserId, isSharedView = false }: EnhancedProfileProps = {}) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const { currentRole } = useRole();
   const navigate = useNavigate();
@@ -80,7 +82,7 @@ export default function EnhancedProfile({ viewingUserId, isSharedView = false }:
   const handleExportData = async () => {
     if (!user || !isOwnProfile) return;
 
-    toast.success('Preparing your data export...');
+    toast.success("Preparing your data export...");
 
     const { error } = await supabase
       .from('profile_data_exports')
@@ -90,11 +92,11 @@ export default function EnhancedProfile({ viewingUserId, isSharedView = false }:
       });
 
     if (error) {
-      toast.error('Failed to request data export');
+      toast.error("Failed to request data export");
       return;
     }
 
-    toast.success('Data export requested. You\'ll receive an email when ready.');
+    toast.success("Data export requested. You'll receive an email when ready.");
   };
 
   if (loading) {
@@ -126,7 +128,7 @@ export default function EnhancedProfile({ viewingUserId, isSharedView = false }:
                 ) : (
                   <img
                     src={profile.header_media_url}
-                    alt="Profile header"
+                    alt={t('enhancedProfile.text1')}
                     className="w-full h-full object-cover"
                   />
                 )}
@@ -208,7 +210,7 @@ export default function EnhancedProfile({ viewingUserId, isSharedView = false }:
                   <Badge variant="secondary">{profile.location}</Badge>
                 )}
                 {profile?.stealth_mode_enabled && (
-                  <Badge variant="outline">Stealth Mode Active</Badge>
+                  <Badge variant="outline">{t('enhancedProfile.text2')}</Badge>
                 )}
               </div>
 
@@ -240,8 +242,8 @@ export default function EnhancedProfile({ viewingUserId, isSharedView = false }:
         {isOwnProfile && (
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Quick Actions</CardTitle>
-              <CardDescription>Import data and manage your profile</CardDescription>
+              <CardTitle className="text-lg">{t('enhancedProfile.text3')}</CardTitle>
+              <CardDescription>{t('enhancedProfile.text4')}</CardDescription>
             </CardHeader>
             <CardContent className="flex flex-wrap gap-3">
               <LinkedInImport />
@@ -276,34 +278,34 @@ export default function EnhancedProfile({ viewingUserId, isSharedView = false }:
           <TabsList className={`flex flex-wrap w-full h-auto ${isAdminViewing ? 'grid grid-cols-7' : isOwnProfile ? 'grid grid-cols-6' : 'grid grid-cols-5'}`}>
             <TabsTrigger value="experience" className="flex items-center gap-2">
               <Briefcase className="w-4 h-4" />
-              <span className="hidden sm:inline">Experience</span>
+              <span className="hidden sm:inline">{t('enhancedProfile.text5')}</span>
             </TabsTrigger>
             <TabsTrigger value="education" className="flex items-center gap-2">
               <GraduationCap className="w-4 h-4" />
-              <span className="hidden sm:inline">Education</span>
+              <span className="hidden sm:inline">{t('enhancedProfile.text6')}</span>
             </TabsTrigger>
             <TabsTrigger value="skills" className="flex items-center gap-2">
               <Award className="w-4 h-4" />
-              <span className="hidden sm:inline">Skills</span>
+              <span className="hidden sm:inline">{t('enhancedProfile.text7')}</span>
             </TabsTrigger>
             <TabsTrigger value="portfolio" className="flex items-center gap-2">
               <Folder className="w-4 h-4" />
-              <span className="hidden sm:inline">Portfolio</span>
+              <span className="hidden sm:inline">{t('enhancedProfile.text8')}</span>
             </TabsTrigger>
             <TabsTrigger value="music" className="flex items-center gap-2">
               <Music2 className="w-4 h-4" />
-              <span className="hidden sm:inline">Music</span>
+              <span className="hidden sm:inline">{t('enhancedProfile.text9')}</span>
             </TabsTrigger>
             {isOwnProfile && (
               <TabsTrigger value="communications" className="flex items-center gap-2">
                 <MessageSquare className="w-4 h-4" />
-                <span className="hidden sm:inline">Communications</span>
+                <span className="hidden sm:inline">{t('enhancedProfile.text10')}</span>
               </TabsTrigger>
             )}
             {isAdminViewing && (
               <TabsTrigger value="admin-settings" className="flex items-center gap-2">
                 <Shield className="w-4 h-4" />
-                <span className="hidden sm:inline">Admin Settings</span>
+                <span className="hidden sm:inline">{t('enhancedProfile.text11')}</span>
               </TabsTrigger>
             )}
           </TabsList>
@@ -371,7 +373,7 @@ export default function EnhancedProfile({ viewingUserId, isSharedView = false }:
         {/* Profile Completion Stats */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Profile Strength</CardTitle>
+            <CardTitle className="text-lg">{t('enhancedProfile.text12')}</CardTitle>
           </CardHeader>
           <CardContent>
             <ProfileStrengthMeter userId={isOwnProfile ? user?.id : viewingUserId} />

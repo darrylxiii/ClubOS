@@ -1,10 +1,4 @@
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.0';
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { createHandler } from '../_shared/handler.ts';
 
 interface GeoData {
   country_code: string | null;
@@ -71,18 +65,8 @@ function getDefaultGeoData(): GeoData {
   };
 }
 
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  try {
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-    );
-
-    const { ip_address, ip_addresses } = await req.json();
+Deno.serve(createHandler(async (req, ctx) => {
+  const { ip_address, ip_addresses } = await req.json();
     const ipsToEnrich = ip_addresses || (ip_address ? [ip_address] : []);
 
     if (ipsToEnrich.length === 0) {
@@ -100,7 +84,7 @@ serve(async (req) => {
 
     for (const ip of ipsToEnrich) {
       // Check cache first (data less than 7 days old)
-      const { data: cached } = await supabase
+      const { data: cached } = await ctx.supabase
         .from('ip_geo_cache')
         .select('*')
         .eq('ip_address', ip)
@@ -130,7 +114,7 @@ serve(async (req) => {
       results[ip] = geoData;
 
       // Store in cache
-      const { error: upsertError } = await supabase
+      const { error: upsertError } = await ctx.supabase
         .from('ip_geo_cache')
         .upsert({
           ip_address: ip,
@@ -160,14 +144,7 @@ serve(async (req) => {
         cached: cachedCount,
         results
       }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } }
     );
 
-  } catch (error) {
-    console.error('[enrich-ip-geo] Error:', error);
-    return new Response(
-      JSON.stringify({ error: 'IP enrichment failed', details: error instanceof Error ? error.message : 'Unknown error' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-  }
-});
+}));

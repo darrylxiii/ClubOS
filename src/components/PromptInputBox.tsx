@@ -4,6 +4,7 @@ import * as DialogPrimitive from "@radix-ui/react-dialog";
 import * as PopoverPrimitive from "@radix-ui/react-popover";
 import { ArrowUp, Paperclip, Square, X, StopCircle, Mic, Globe, BrainCog, FolderCode, Sparkles, Lock, FileText } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslation } from 'react-i18next';
 
 // Utility function for className merging
 const cn = (...classes: (string | undefined | null | false)[]) => classes.filter(Boolean).join(" ");
@@ -11,6 +12,7 @@ const cn = (...classes: (string | undefined | null | false)[]) => classes.filter
 // Embedded CSS for minimal custom styles
 const styles = `
   *:focus-visible {
+  const { t } = useTranslation('common');
     outline-offset: 0 !important;
     --ring-offset: 0 !important;
   }
@@ -112,7 +114,7 @@ const DialogContent = React.forwardRef<
       {children}
       <DialogPrimitive.Close className="absolute right-4 top-4 z-10 rounded-full bg-muted/80 p-2 hover:bg-muted transition-all">
         <X className="h-5 w-5 text-muted-foreground hover:text-foreground" />
-        <span className="sr-only">Close</span>
+        <span className="sr-only">{"Close"}</span>
       </DialogPrimitive.Close>
     </DialogPrimitive.Content>
   </DialogPortal>
@@ -264,7 +266,7 @@ const ImageViewDialog: React.FC<ImageViewDialogProps> = ({ imageUrl, onClose }) 
   return (
     <Dialog open={!!imageUrl} onOpenChange={onClose}>
       <DialogContent className="p-0 border-none bg-transparent shadow-none max-w-[90vw] md:max-w-[800px]">
-        <DialogTitle className="sr-only">Image Preview</DialogTitle>
+        <DialogTitle className="sr-only">{"Image Preview"}</DialogTitle>
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -274,7 +276,7 @@ const ImageViewDialog: React.FC<ImageViewDialogProps> = ({ imageUrl, onClose }) 
         >
           <img
             src={imageUrl}
-            alt="Full preview"
+            alt={"Full preview"}
             className="w-full max-h-[80vh] object-contain rounded-2xl"
           />
         </motion.div>
@@ -475,22 +477,22 @@ interface AIModel {
 const AI_MODELS: AIModel[] = [
   {
     id: "quantum-0.1",
-    name: "Quantum 0.1",
-    description: "Our flagship model - balanced and powerful",
+    name: t('promptinputbox.quantum01', 'Quantum 0.1'),
+    description: t('promptinputbox.ourFlagshipModelBalancedAndPowerful', 'Our flagship model - balanced and powerful'),
     locked: false,
     icon: <Sparkles className="h-4 w-4" />,
   },
   {
     id: "gpt-5",
-    name: "GPT-5",
-    description: "OpenAI's most advanced model",
+    name: t('promptinputbox.gpt5', 'GPT-5'),
+    description: t('promptinputbox.openaisMostAdvancedModel', 'OpenAI\'s most advanced model'),
     locked: true,
     icon: <Lock className="h-4 w-4" />,
   },
   {
     id: "claude-sonnet-4-5",
-    name: "Claude 4.5 Sonnet",
-    description: "Anthropic's reasoning powerhouse",
+    name: t('promptinputbox.claude45Sonnet', 'Claude 4.5 Sonnet'),
+    description: t('promptinputbox.anthropicsReasoningPowerhouse', 'Anthropic\'s reasoning powerhouse'),
     locked: true,
     icon: <Lock className="h-4 w-4" />,
   },
@@ -864,7 +866,7 @@ export const PromptInputBox = React.forwardRef<HTMLDivElement, PromptInputBoxPro
             )}
           >
             <Popover open={modelPopoverOpen} onOpenChange={setModelPopoverOpen}>
-              <PromptInputAction tooltip="Select AI model">
+              <PromptInputAction tooltip={"Select AI model"}>
                 <PopoverTrigger asChild>
                   <button
                     className="flex h-8 items-center gap-1.5 rounded-full px-3 text-foreground cursor-pointer transition-colors hover:bg-muted border border-transparent hover:border-border"
@@ -878,8 +880,8 @@ export const PromptInputBox = React.forwardRef<HTMLDivElement, PromptInputBoxPro
               <PopoverContent align="start" className="w-80 p-2 bg-card border-border">
                 <div className="space-y-1">
                   <div className="px-2 py-1.5">
-                    <h4 className="text-sm font-semibold text-foreground mb-1">Select AI Model</h4>
-                    <p className="text-xs text-muted-foreground">Choose which model powers your conversation</p>
+                    <h4 className="text-sm font-semibold text-foreground mb-1">{"Select AI Model"}</h4>
+                    <p className="text-xs text-muted-foreground">{"Choose which model powers your conversation"}</p>
                   </div>
                   {AI_MODELS.map((model) => (
                     <button
@@ -899,9 +901,7 @@ export const PromptInputBox = React.forwardRef<HTMLDivElement, PromptInputBoxPro
                         <div className="flex items-center gap-2">
                           <h5 className="text-sm font-medium text-foreground">{model.name}</h5>
                           {model.locked && (
-                            <span className="text-xs px-1.5 py-0.5 rounded bg-[#9b87f5]/20 text-[#9b87f5] border border-[#9b87f5]/30">
-                              Premium
-                            </span>
+                            <span className="text-xs px-1.5 py-0.5 rounded bg-[#9b87f5]/20 text-[#9b87f5] border border-[#9b87f5]/30">{t('promptinputbox.premium', 'Premium')}</span>
                           )}
                         </div>
                         <p className="text-xs text-muted-foreground mt-0.5">{model.description}</p>
@@ -913,7 +913,7 @@ export const PromptInputBox = React.forwardRef<HTMLDivElement, PromptInputBoxPro
             </Popover>
 
             <CustomDivider />
-            <PromptInputAction tooltip="Upload image">
+            <PromptInputAction tooltip={"Upload image"}>
               <button
                 onClick={() => uploadInputRef.current?.click()}
                 className="flex h-8 w-8 text-foreground cursor-pointer items-center justify-center rounded-full transition-colors hover:bg-muted"
@@ -964,7 +964,7 @@ export const PromptInputBox = React.forwardRef<HTMLDivElement, PromptInputBoxPro
                       transition={{ duration: 0.2 }}
                       className="text-xs overflow-hidden whitespace-nowrap text-[#1EAEDB] flex-shrink-0"
                     >
-                      Search
+                      {t('promptinputbox.search', 'Search')}
                     </motion.span>
                   )}
                 </AnimatePresence>
@@ -1000,7 +1000,7 @@ export const PromptInputBox = React.forwardRef<HTMLDivElement, PromptInputBoxPro
                       transition={{ duration: 0.2 }}
                       className="text-xs overflow-hidden whitespace-nowrap text-[#8B5CF6] flex-shrink-0"
                     >
-                      Think
+                      {t('promptinputbox.think', 'Think')}
                     </motion.span>
                   )}
                 </AnimatePresence>
@@ -1036,7 +1036,7 @@ export const PromptInputBox = React.forwardRef<HTMLDivElement, PromptInputBoxPro
                       transition={{ duration: 0.2 }}
                       className="text-xs overflow-hidden whitespace-nowrap text-[#F97316] flex-shrink-0"
                     >
-                      Canvas
+                      {t('promptinputbox.canvas', 'Canvas')}
                     </motion.span>
                   )}
                 </AnimatePresence>
@@ -1051,8 +1051,7 @@ export const PromptInputBox = React.forwardRef<HTMLDivElement, PromptInputBoxPro
                 : isRecording
                 ? "Stop recording"
                 : hasContent
-                ? "Send message"
-                : "Voice message"
+                ? t('promptinputbox.sendMessage', 'Send message') : t('promptinputbox.voiceMessage', 'Voice message')
             }
           >
             <Button

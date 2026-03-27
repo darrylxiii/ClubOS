@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
@@ -49,6 +50,7 @@ export function MeetingSettingsPanel({
   onReset,
   capabilities,
 }: MeetingSettingsPanelProps) {
+  const { t } = useTranslation('common');
   const [activeTab, setActiveTab] = useState('audio');
 
   const FeatureToggle = ({ 
@@ -79,7 +81,7 @@ export function MeetingSettingsPanel({
                     </Badge>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>This feature is not supported in your browser</p>
+                    <p>{t("this_feature_is_not", "This feature is not supported in your browser")}</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -156,14 +158,14 @@ export function MeetingSettingsPanel({
             <TabsContent value="audio" className="m-0 p-6 space-y-4">
               <FeatureToggle
                 category="noiseCancellation"
-                label="Noise Cancellation"
-                description="AI-powered background noise removal"
+                label={t("noise_cancellation", "Noise Cancellation")}
+                description={t("aipowered_background_noise_removal", "AI-powered background noise removal")}
                 featureCheck="noiseCancellation"
               />
               
               {settings.noiseCancellation.enabled && (
                 <div className="pl-4 space-y-3">
-                  <Label className="text-xs text-muted-foreground">Noise Cancellation Level</Label>
+                  <Label className="text-xs text-muted-foreground">{t("noise_cancellation_level", "Noise Cancellation Level")}</Label>
                   <Select
                     value={settings.noiseCancellation.level}
                     onValueChange={(value: 'low' | 'medium' | 'high') => 
@@ -174,9 +176,9 @@ export function MeetingSettingsPanel({
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="low">Low - Light filtering</SelectItem>
-                      <SelectItem value="medium">Medium - Balanced</SelectItem>
-                      <SelectItem value="high">High - Maximum suppression</SelectItem>
+                      <SelectItem value="low">{t("low_light_filtering", "Low - Light filtering")}</SelectItem>
+                      <SelectItem value="medium">{t("medium_balanced", "Medium - Balanced")}</SelectItem>
+                      <SelectItem value="high">{t("high_maximum_suppression", "High - Maximum suppression")}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -186,8 +188,8 @@ export function MeetingSettingsPanel({
 
               <FeatureToggle
                 category="spatialAudio"
-                label="Spatial Audio"
-                description="3D audio positioning for participants"
+                label={t("spatial_audio", "Spatial Audio")}
+                description={t("3d_audio_positioning_for", "3D audio positioning for participants")}
                 featureCheck="spatialAudio"
               />
 
@@ -195,8 +197,8 @@ export function MeetingSettingsPanel({
 
               <FeatureToggle
                 category="audioNormalization"
-                label="Audio Normalization"
-                description="Automatic volume leveling"
+                label={t("audio_normalization", "Audio Normalization")}
+                description={t("automatic_volume_leveling", "Automatic volume leveling")}
               />
 
               {settings.audioNormalization.enabled && (
@@ -221,8 +223,8 @@ export function MeetingSettingsPanel({
 
               <FeatureToggle
                 category="echoCancellation"
-                label="Echo Cancellation"
-                description="Reduces audio feedback and echo"
+                label={t("echo_cancellation", "Echo Cancellation")}
+                description={t("reduces_audio_feedback_and", "Reduces audio feedback and echo")}
               />
             </TabsContent>
 
@@ -230,14 +232,14 @@ export function MeetingSettingsPanel({
             <TabsContent value="video" className="m-0 p-6 space-y-4">
               <FeatureToggle
                 category="lowLightEnhancement"
-                label="Low Light Enhancement"
-                description="Improves video quality in dark environments"
+                label={t("low_light_enhancement", "Low Light Enhancement")}
+                description={t("improves_video_quality_in", "Improves video quality in dark environments")}
                 featureCheck="lowLightEnhancement"
               />
 
               {settings.lowLightEnhancement.enabled && (
                 <div className="pl-4 space-y-3">
-                  <Label className="text-xs text-muted-foreground">Mode</Label>
+                  <Label className="text-xs text-muted-foreground">{t("mode", "Mode")}</Label>
                   <Select
                     value={settings.lowLightEnhancement.mode}
                     onValueChange={(value: 'auto' | 'manual') => 
@@ -248,8 +250,8 @@ export function MeetingSettingsPanel({
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="auto">Auto - Detect lighting</SelectItem>
-                      <SelectItem value="manual">Manual - Always on</SelectItem>
+                      <SelectItem value="auto">{t("auto_detect_lighting", "Auto - Detect lighting")}</SelectItem>
+                      <SelectItem value="manual">{t("manual_always_on", "Manual - Always on")}</SelectItem>
                     </SelectContent>
                   </Select>
 
@@ -273,14 +275,14 @@ export function MeetingSettingsPanel({
 
               <FeatureToggle
                 category="svc"
-                label="Scalable Video Coding"
-                description="Adaptive video quality per participant"
+                label={t("scalable_video_coding", "Scalable Video Coding")}
+                description={t("adaptive_video_quality_per", "Adaptive video quality per participant")}
                 featureCheck="svc"
               />
 
               {settings.svc.enabled && (
                 <div className="pl-4 space-y-3">
-                  <Label className="text-xs text-muted-foreground">Preferred Codec</Label>
+                  <Label className="text-xs text-muted-foreground">{t("preferred_codec", "Preferred Codec")}</Label>
                   <Select
                     value={settings.svc.codec}
                     onValueChange={(value: 'vp9' | 'av1' | 'h264') => 
@@ -291,9 +293,9 @@ export function MeetingSettingsPanel({
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="vp9">VP9 (Recommended)</SelectItem>
-                      <SelectItem value="av1">AV1 (Best quality)</SelectItem>
-                      <SelectItem value="h264">H.264 (Most compatible)</SelectItem>
+                      <SelectItem value="vp9">{t("vp9_recommended", "VP9 (Recommended)")}</SelectItem>
+                      <SelectItem value="av1">{t("av1_best_quality", "AV1 (Best quality)")}</SelectItem>
+                      <SelectItem value="h264">{t("h264_most_compatible", "H.264 (Most compatible)")}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -303,8 +305,8 @@ export function MeetingSettingsPanel({
 
               <FeatureToggle
                 category="hdScreenShare"
-                label="HD Screen Sharing"
-                description="High resolution screen sharing"
+                label={t("hd_screen_sharing", "HD Screen Sharing")}
+                description={t("high_resolution_screen_sharing", "High resolution screen sharing")}
                 featureCheck="screenShare"
               />
 
@@ -331,14 +333,14 @@ export function MeetingSettingsPanel({
             <TabsContent value="network" className="m-0 p-6 space-y-4">
               <FeatureToggle
                 category="adaptiveQuality"
-                label="Adaptive Quality"
-                description="Automatically adjust quality based on connection"
+                label={t("adaptive_quality", "Adaptive Quality")}
+                description={t("automatically_adjust_quality_based", "Automatically adjust quality based on connection")}
               />
 
               {settings.adaptiveQuality.enabled && (
                 <div className="pl-4 space-y-4">
                   <div className="space-y-2">
-                    <Label className="text-xs text-muted-foreground">Minimum Quality</Label>
+                    <Label className="text-xs text-muted-foreground">{t("minimum_quality", "Minimum Quality")}</Label>
                     <Select
                       value={settings.adaptiveQuality.minQuality}
                       onValueChange={(value: 'audio-only' | 'low' | 'medium') => 
@@ -349,15 +351,15 @@ export function MeetingSettingsPanel({
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="audio-only">Audio Only</SelectItem>
-                        <SelectItem value="low">Low (360p)</SelectItem>
-                        <SelectItem value="medium">Medium (720p)</SelectItem>
+                        <SelectItem value="audio-only">{t("audio_only", "Audio Only")}</SelectItem>
+                        <SelectItem value="low">{t("low_360p", "Low (360p)")}</SelectItem>
+                        <SelectItem value="medium">{t("medium_720p", "Medium (720p)")}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="text-xs text-muted-foreground">Maximum Quality</Label>
+                    <Label className="text-xs text-muted-foreground">{t("maximum_quality", "Maximum Quality")}</Label>
                     <Select
                       value={settings.adaptiveQuality.maxQuality}
                       onValueChange={(value: 'medium' | 'high' | 'hd') => 
@@ -368,9 +370,9 @@ export function MeetingSettingsPanel({
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="medium">Medium (720p)</SelectItem>
-                        <SelectItem value="high">High (1080p)</SelectItem>
-                        <SelectItem value="hd">HD (1440p)</SelectItem>
+                        <SelectItem value="medium">{t("medium_720p", "Medium (720p)")}</SelectItem>
+                        <SelectItem value="high">{t("high_1080p", "High (1080p)")}</SelectItem>
+                        <SelectItem value="hd">{t("hd_1440p", "HD (1440p)")}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -381,14 +383,14 @@ export function MeetingSettingsPanel({
 
               <FeatureToggle
                 category="networkResilience"
-                label="Network Resilience"
-                description="Enhanced connection recovery"
+                label={t("network_resilience", "Network Resilience")}
+                description={t("enhanced_connection_recovery", "Enhanced connection recovery")}
               />
 
               {settings.networkResilience.enabled && (
                 <div className="pl-4 py-2">
                   <div className="flex items-center justify-between">
-                    <Label className="text-xs">Auto Reconnect</Label>
+                    <Label className="text-xs">{t("auto_reconnect", "Auto Reconnect")}</Label>
                     <Switch
                       checked={settings.networkResilience.autoReconnect}
                       onCheckedChange={(checked) => 
@@ -404,14 +406,14 @@ export function MeetingSettingsPanel({
             <TabsContent value="ai" className="m-0 p-6 space-y-4">
               <FeatureToggle
                 category="transcription"
-                label="Live Transcription"
-                description="Real-time speech to text"
+                label={t("live_transcription", "Live Transcription")}
+                description={t("realtime_speech_to_text", "Real-time speech to text")}
                 featureCheck="transcription"
               />
 
               {settings.transcription.enabled && (
                 <div className="pl-4 space-y-3">
-                  <Label className="text-xs text-muted-foreground">Language</Label>
+                  <Label className="text-xs text-muted-foreground">{t("language", "Language")}</Label>
                   <Select
                     value={settings.transcription.language}
                     onValueChange={(value) => 
@@ -422,17 +424,17 @@ export function MeetingSettingsPanel({
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="en-US">English (US)</SelectItem>
-                      <SelectItem value="en-GB">English (UK)</SelectItem>
-                      <SelectItem value="nl-NL">Dutch</SelectItem>
-                      <SelectItem value="de-DE">German</SelectItem>
-                      <SelectItem value="fr-FR">French</SelectItem>
-                      <SelectItem value="es-ES">Spanish</SelectItem>
+                      <SelectItem value="en-US">{t("english_us", "English (US)")}</SelectItem>
+                      <SelectItem value="en-GB">{t("english_uk", "English (UK)")}</SelectItem>
+                      <SelectItem value="nl-NL">{t("dutch", "Dutch")}</SelectItem>
+                      <SelectItem value="de-DE">{t("german", "German")}</SelectItem>
+                      <SelectItem value="fr-FR">{t("french", "French")}</SelectItem>
+                      <SelectItem value="es-ES">{t("spanish", "Spanish")}</SelectItem>
                     </SelectContent>
                   </Select>
 
                   <div className="flex items-center justify-between">
-                    <Label className="text-xs">Show Speaker Labels</Label>
+                    <Label className="text-xs">{t("show_speaker_labels", "Show Speaker Labels")}</Label>
                     <Switch
                       checked={settings.transcription.showSpeakerLabels}
                       onCheckedChange={(checked) => 
@@ -447,15 +449,15 @@ export function MeetingSettingsPanel({
 
               <FeatureToggle
                 category="gestureRecognition"
-                label="Gesture Recognition"
-                description="Detect hand gestures for reactions"
+                label={t("gesture_recognition", "Gesture Recognition")}
+                description={t("detect_hand_gestures_for", "Detect hand gestures for reactions")}
                 featureCheck="virtualBackground"
               />
 
               {settings.gestureRecognition.enabled && (
                 <div className="pl-4 py-2">
                   <div className="flex items-center justify-between">
-                    <Label className="text-xs">Show Gesture Reactions</Label>
+                    <Label className="text-xs">{t("show_gesture_reactions", "Show Gesture Reactions")}</Label>
                     <Switch
                       checked={settings.gestureRecognition.showReactions}
                       onCheckedChange={(checked) => 
@@ -470,8 +472,8 @@ export function MeetingSettingsPanel({
 
               <FeatureToggle
                 category="autoHighlight"
-                label="Auto Highlights"
-                description="Detect action items and decisions"
+                label={t("auto_highlights", "Auto Highlights")}
+                description={t("detect_action_items_and", "Detect action items and decisions")}
               />
             </TabsContent>
 
@@ -479,14 +481,14 @@ export function MeetingSettingsPanel({
             <TabsContent value="performance" className="m-0 p-6 space-y-4">
               <FeatureToggle
                 category="performanceMonitoring"
-                label="Performance Monitoring"
-                description="Track meeting performance metrics"
+                label={t("performance_monitoring", "Performance Monitoring")}
+                description={t("track_meeting_performance_metrics", "Track meeting performance metrics")}
               />
 
               {settings.performanceMonitoring.enabled && (
                 <div className="pl-4 py-2">
                   <div className="flex items-center justify-between">
-                    <Label className="text-xs">Show Performance Dashboard</Label>
+                    <Label className="text-xs">{t("show_performance_dashboard", "Show Performance Dashboard")}</Label>
                     <Switch
                       checked={settings.performanceMonitoring.showDashboard}
                       onCheckedChange={(checked) => 
@@ -501,14 +503,14 @@ export function MeetingSettingsPanel({
 
               <FeatureToggle
                 category="resourceOptimization"
-                label="Resource Optimization"
-                description="Automatic CPU/memory optimization"
+                label={t("resource_optimization", "Resource Optimization")}
+                description={t("automatic_cpumemory_optimization", "Automatic CPU/memory optimization")}
               />
 
               {settings.resourceOptimization.enabled && (
                 <div className="pl-4 py-2">
                   <div className="flex items-center justify-between">
-                    <Label className="text-xs">Battery Saver Mode</Label>
+                    <Label className="text-xs">{t("battery_saver_mode", "Battery Saver Mode")}</Label>
                     <Switch
                       checked={settings.resourceOptimization.batterySaver}
                       onCheckedChange={(checked) => 
@@ -523,7 +525,7 @@ export function MeetingSettingsPanel({
 
               {/* Browser Capabilities Status */}
               <div className="space-y-3">
-                <Label className="text-sm font-medium">Browser Capabilities</Label>
+                <Label className="text-sm font-medium">{t("browser_capabilities", "Browser Capabilities")}</Label>
                 <div className="space-y-2">
                   {capabilities.unsupported.length === 0 ? (
                     <div className="flex items-center gap-2 text-sm text-green-600">

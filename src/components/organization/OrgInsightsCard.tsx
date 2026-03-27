@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,6 +14,7 @@ interface Props {
 }
 
 export function OrgInsightsCard({ companyId, people, changes }: Props) {
+  const { t } = useTranslation('common');
   const [insights, setInsights] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [generated, setGenerated] = useState(false);
@@ -78,7 +80,7 @@ export function OrgInsightsCard({ companyId, people, changes }: Props) {
       setGenerated(true);
     } catch (err) {
       console.error('Insights generation error:', err);
-      toast.error('Failed to generate insights');
+      toast.error(t("failed_to_generate_insights", "Failed to generate insights"));
     } finally {
       setLoading(false);
     }
@@ -90,7 +92,7 @@ export function OrgInsightsCard({ companyId, people, changes }: Props) {
         <CardTitle className="flex items-center gap-2 text-lg">
           <Brain className="w-5 h-5" />
           AI Organization Insights
-          <span className="text-xs font-normal text-muted-foreground">Powered by QUIN</span>
+          <span className="text-xs font-normal text-muted-foreground">{t("powered_by_quin", "Powered by QUIN")}</span>
         </CardTitle>
       </CardHeader>
       <CardContent>

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from '@/lib/motion';
 import { Keyboard, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -9,6 +10,7 @@ interface KeyboardShortcutsHelpProps {
 }
 
 export function KeyboardShortcutsHelp({ open, onClose, shortcuts }: KeyboardShortcutsHelpProps) {
+  const { t } = useTranslation('common');
   return (
     <AnimatePresence>
       {open && (
@@ -21,7 +23,7 @@ export function KeyboardShortcutsHelp({ open, onClose, shortcuts }: KeyboardShor
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <Keyboard className="w-4 h-4 text-primary" />
-              <span className="font-medium text-sm">Keyboard Shortcuts</span>
+              <span className="font-medium text-sm">{t("keyboard_shortcuts", "Keyboard Shortcuts")}</span>
             </div>
             <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onClose}>
               <X className="w-3 h-3" />

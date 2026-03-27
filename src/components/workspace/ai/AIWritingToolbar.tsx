@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { 
   Wand2, 
@@ -39,6 +40,7 @@ const LANGUAGES = [
 ];
 
 export function AIWritingToolbar({ editorElement, onApplyText }: AIWritingToolbarProps) {
+  const { t } = useTranslation('common');
   const [isVisible, setIsVisible] = useState(false);
   const [selectedText, setSelectedText] = useState('');
   const [position, setPosition] = useState<ToolbarPosition>({ top: 0, left: 0 });
@@ -127,7 +129,7 @@ export function AIWritingToolbar({ editorElement, onApplyText }: AIWritingToolba
       {isLoading ? (
         <div className="flex items-center gap-2 px-3 py-1">
           <Loader2 className="h-4 w-4 animate-spin text-accent" />
-          <span className="text-xs text-muted-foreground">Processing...</span>
+          <span className="text-xs text-muted-foreground">{t("processing", "Processing...")}</span>
         </div>
       ) : (
         <>
@@ -136,7 +138,7 @@ export function AIWritingToolbar({ editorElement, onApplyText }: AIWritingToolba
             size="sm"
             className="h-7 px-2 text-xs gap-1.5 hover:bg-accent/20"
             onClick={() => handleAction(() => improve(selectedText))}
-            title="Improve writing"
+            title={t("improve_writing", "Improve writing")}
           >
             <Wand2 className="h-3.5 w-3.5" />
             Improve
@@ -147,7 +149,7 @@ export function AIWritingToolbar({ editorElement, onApplyText }: AIWritingToolba
             size="sm"
             className="h-7 px-2 text-xs gap-1.5 hover:bg-accent/20"
             onClick={() => handleAction(() => summarize(selectedText))}
-            title="Summarize text"
+            title={t("summarize_text", "Summarize text")}
           >
             <Minimize2 className="h-3.5 w-3.5" />
             Summarize
@@ -158,7 +160,7 @@ export function AIWritingToolbar({ editorElement, onApplyText }: AIWritingToolba
             size="sm"
             className="h-7 px-2 text-xs gap-1.5 hover:bg-accent/20"
             onClick={() => handleAction(() => expand(selectedText))}
-            title="Expand with more detail"
+            title={t("expand_with_more_detail", "Expand with more detail")}
           >
             <Expand className="h-3.5 w-3.5" />
             Expand
@@ -170,7 +172,7 @@ export function AIWritingToolbar({ editorElement, onApplyText }: AIWritingToolba
                 variant="ghost"
                 size="sm"
                 className="h-7 px-2 text-xs gap-1.5 hover:bg-accent/20"
-                title="Translate"
+                title={t("translate", "Translate")}
               >
                 <Languages className="h-3.5 w-3.5" />
                 Translate
@@ -198,7 +200,7 @@ export function AIWritingToolbar({ editorElement, onApplyText }: AIWritingToolba
             size="sm"
             className="h-7 px-2 text-xs gap-1.5 hover:bg-accent/20"
             onClick={() => handleAction(() => makeProfessional(selectedText))}
-            title="Make professional"
+            title={t("make_professional", "Make professional")}
           >
             <Briefcase className="h-3.5 w-3.5" />
           </Button>
@@ -208,7 +210,7 @@ export function AIWritingToolbar({ editorElement, onApplyText }: AIWritingToolba
             size="sm"
             className="h-7 px-2 text-xs gap-1.5 hover:bg-accent/20"
             onClick={() => handleAction(() => makeCasual(selectedText))}
-            title="Make casual"
+            title={t("make_casual", "Make casual")}
           >
             <MessageCircle className="h-3.5 w-3.5" />
           </Button>
@@ -218,7 +220,7 @@ export function AIWritingToolbar({ editorElement, onApplyText }: AIWritingToolba
             size="sm"
             className="h-7 w-7 p-0 hover:bg-destructive/20"
             onClick={() => setIsVisible(false)}
-            title="Close"
+            title={t("close", "Close")}
           >
             <X className="h-3.5 w-3.5" />
           </Button>

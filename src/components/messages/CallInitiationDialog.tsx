@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -20,6 +21,7 @@ export function CallInitiationDialog({
   onStartAudioCall,
   onStartVideoCall
 }: CallInitiationDialogProps) {
+  const { t } = useTranslation('common');
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-md p-0 overflow-hidden border-primary/20">
@@ -67,7 +69,7 @@ export function CallInitiationDialog({
               <div className="w-14 h-14 rounded-full bg-primary/20 flex items-center justify-center">
                 <Phone className="h-7 w-7" />
               </div>
-              <span className="text-base font-medium">Audio Call</span>
+              <span className="text-base font-medium">{t("audio_call", "Audio Call")}</span>
             </Button>
 
             <Button
@@ -78,7 +80,7 @@ export function CallInitiationDialog({
               <div className="w-14 h-14 rounded-full bg-white/20 flex items-center justify-center">
                 <Video className="h-7 w-7" />
               </div>
-              <span className="text-base font-medium">Video Call</span>
+              <span className="text-base font-medium">{t("video_call", "Video Call")}</span>
             </Button>
           </div>
 

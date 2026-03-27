@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from 'react-i18next';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +15,7 @@ interface CreateObjectiveDialogProps {
 }
 
 export const CreateObjectiveDialog = ({ children, onObjectiveCreated }: CreateObjectiveDialogProps) => {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -37,13 +39,13 @@ export const CreateObjectiveDialog = ({ children, onObjectiveCreated }: CreateOb
 
       if (error) throw error;
 
-      toast.success("Objective created successfully");
+      toast.success(t('clubTasks.objectiveCreatedSuccessfully'));
       setOpen(false);
       setFormData({ title: "", description: "" });
       onObjectiveCreated();
     } catch (error) {
       console.error("Error creating objective:", error);
-      toast.error("Failed to create objective");
+      toast.error(t('clubTasks.failedToCreateObjective'));
     } finally {
       setLoading(false);
     }
@@ -54,37 +56,36 @@ export const CreateObjectiveDialog = ({ children, onObjectiveCreated }: CreateOb
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Create New Objective</DialogTitle>
+          <DialogTitle>{t('clubTasks.createNewObjective')}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="title">Objective Title *</Label>
+            <Label htmlFor="title">{t('clubTasks.objectiveTitle ')}</Label>
             <Input
               id="title"
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              placeholder="e.g., Quantum Objectives"
-              required
+              placeholder="e.g., Quantum Objectives required"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
+            <Label htmlFor="description">{t('clubTasks.description')}</Label>
             <Textarea
               id="description"
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              placeholder="Describe the objective..."
+              placeholder={t('clubTasks.describeTheObjective')}
               rows={4}
             />
           </div>
 
           <div className="flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
-              Cancel
+              {t('clubTasks.cancel')}
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? "Creating..." : "Create Objective"}
+              {loading ? t('clubTasks.creating') : t('clubTasks.createObjective')}
             </Button>
           </div>
         </form>

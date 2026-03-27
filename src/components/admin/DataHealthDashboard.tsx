@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -45,6 +46,7 @@ interface DataHealthSummary {
 }
 
 export function DataHealthDashboard() {
+  const { t } = useTranslation('common');
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const { data: healthData, isLoading, refetch } = useQuery({
@@ -167,9 +169,9 @@ export function DataHealthDashboard() {
   };
 
   const getScoreBadge = (score: number) => {
-    if (score >= 80) return <Badge className="bg-green-500/10 text-green-500 border-green-500/20">Healthy</Badge>;
-    if (score >= 50) return <Badge className="bg-yellow-500/10 text-yellow-500 border-yellow-500/20">Needs Attention</Badge>;
-    return <Badge className="bg-red-500/10 text-red-500 border-red-500/20">Critical</Badge>;
+    if (score >= 80) return <Badge className="bg-green-500/10 text-green-500 border-green-500/20">{t("healthy", "Healthy")}</Badge>;
+    if (score >= 50) return <Badge className="bg-yellow-500/10 text-yellow-500 border-yellow-500/20">{t("needs_attention", "Needs Attention")}</Badge>;
+    return <Badge className="bg-red-500/10 text-red-500 border-red-500/20">{t("critical", "Critical")}</Badge>;
   };
 
   if (isLoading) {
@@ -193,7 +195,7 @@ export function DataHealthDashboard() {
             <Database className="w-6 h-6" />
             Data Health Dashboard
           </h2>
-          <p className="text-muted-foreground">Monitor data quality and completeness across the platform</p>
+          <p className="text-muted-foreground">{t("monitor_data_quality_and", "Monitor data quality and completeness across the platform")}</p>
         </div>
         <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isRefreshing}>
           <RefreshCw className={cn("w-4 h-4 mr-2", isRefreshing && "animate-spin")} />
@@ -276,14 +278,14 @@ export function DataHealthDashboard() {
       {/* Detailed Table Analysis */}
       <Card>
         <CardHeader>
-          <CardTitle>Table Health Analysis</CardTitle>
-          <CardDescription>Detailed completeness and quality metrics per table</CardDescription>
+          <CardTitle>{t("table_health_analysis", "Table Health Analysis")}</CardTitle>
+          <CardDescription>{t("detailed_completeness_and_quality", "Detailed completeness and quality metrics per table")}</CardDescription>
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="overview">
             <TabsList>
-              <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="details">Field Details</TabsTrigger>
+              <TabsTrigger value="overview">{t("overview", "Overview")}</TabsTrigger>
+              <TabsTrigger value="details">{t("field_details", "Field Details")}</TabsTrigger>
             </TabsList>
 
             <TabsContent value="overview" className="mt-4">
@@ -379,7 +381,7 @@ export function DataHealthDashboard() {
         <CardContent className="flex items-start gap-3 pt-4">
           <Shield className="w-5 h-5 text-primary mt-0.5" />
           <div>
-            <p className="text-sm font-medium">Data Security</p>
+            <p className="text-sm font-medium">{t("data_security", "Data Security")}</p>
             <p className="text-xs text-muted-foreground">
               This dashboard analyzes data patterns without exposing PII. 
               Mock data detection helps identify test records that should be cleaned before production.

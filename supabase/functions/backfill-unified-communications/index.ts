@@ -1,10 +1,4 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+import { createHandler } from '../_shared/handler.ts';
 
 interface BackfillProgress {
   table: string;
@@ -13,22 +7,16 @@ interface BackfillProgress {
   errors: number;
 }
 
-serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  try {
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+Deno.serve(createHandler(async (req, ctx) => {
+    const corsHeaders = ctx.corsHeaders;
+    const supabase = ctx.supabase;
 
     const { table, batchSize = 100, offset = 0 } = await req.json().catch(() => ({}));
 
     const progress: BackfillProgress[] = [];
 
     // Define sources to backfill
-    const sources = table 
+    const sources = table
       ? [{ name: table, batchSize, offset }]
       : [
           { name: 'emails', batchSize: 100, offset: 0 },
@@ -54,31 +42,16 @@ serve(async (req) => {
         progress,
         timestamp: new Date().toISOString(),
       }),
-      { 
+      {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 200 
+        status: 200
       }
     );
-
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error("Backfill error:", error);
-    return new Response(
-      JSON.stringify({ 
-        success: false, 
-        error: errorMessage 
-      }),
-      { 
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 500 
-      }
-    );
-  }
-});
+}));
 
 async function backfillTable(
-  supabase: any, 
-  tableName: string, 
+  supabase: any,
+  tableName: string,
   batchSize: number,
   offset: number
 ): Promise<BackfillProgress> {
@@ -91,7 +64,7 @@ async function backfillTable(
     const { count } = await supabase
       .from(tableName)
       .select('*', { count: 'exact', head: true });
-    
+
     total = count || 0;
 
     if (total === 0) {
@@ -135,7 +108,7 @@ async function backfillTable(
       for (const record of newRecords) {
         try {
           const unified = transformToUnified(tableName, record);
-          
+
           if (unified && unified.entity_id) {
             // Insert into unified_communications
             const { data: insertedUnified, error: insertError } = await supabase
@@ -170,7 +143,7 @@ async function backfillTable(
                     backfilled: true
                   }
                 });
-              
+
               processed++;
             }
           }

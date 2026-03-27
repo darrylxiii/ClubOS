@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -17,6 +18,7 @@ import { useResourceOptimizer } from '@/hooks/useResourceOptimizer';
 import { useMemoryManager } from '@/hooks/useMemoryManager';
 
 export function PerformanceDashboard() {
+  const { t } = useTranslation('common');
   const performance = usePerformanceMonitor({
     sampleInterval: 2000
   });
@@ -40,13 +42,13 @@ export function PerformanceDashboard() {
   const getQualityBadge = (quality: string) => {
     switch (quality) {
       case 'high':
-        return <Badge className="bg-green-500/20 text-green-500">High</Badge>;
+        return <Badge className="bg-green-500/20 text-green-500">{t("high", "High")}</Badge>;
       case 'medium':
-        return <Badge className="bg-yellow-500/20 text-yellow-500">Medium</Badge>;
+        return <Badge className="bg-yellow-500/20 text-yellow-500">{t("medium", "Medium")}</Badge>;
       case 'low':
-        return <Badge className="bg-orange-500/20 text-orange-500">Low</Badge>;
+        return <Badge className="bg-orange-500/20 text-orange-500">{t("low", "Low")}</Badge>;
       case 'off':
-        return <Badge variant="destructive">Off</Badge>;
+        return <Badge variant="destructive">{t("off", "Off")}</Badge>;
       default:
         return <Badge variant="secondary">{quality}</Badge>;
     }
@@ -73,10 +75,10 @@ export function PerformanceDashboard() {
             className="h-3"
           />
           <div className="flex justify-between text-xs text-muted-foreground mt-2">
-            <span>Poor</span>
-            <span>Fair</span>
-            <span>Good</span>
-            <span>Excellent</span>
+            <span>{t("poor", "Poor")}</span>
+            <span>{t("fair", "Fair")}</span>
+            <span>{t("good", "Good")}</span>
+            <span>{t("excellent", "Excellent")}</span>
           </div>
         </CardContent>
       </Card>
@@ -124,7 +126,7 @@ export function PerformanceDashboard() {
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
                 <HardDrive className="h-4 w-4 text-purple-500" />
-                <span className="text-sm">Memory</span>
+                <span className="text-sm">{t("memory", "Memory")}</span>
               </div>
               <span className="font-mono font-bold">
                 {performance.metrics.memoryUsage.toFixed(0)}%
@@ -142,7 +144,7 @@ export function PerformanceDashboard() {
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
                 <Wifi className="h-4 w-4 text-green-500" />
-                <span className="text-sm">Latency</span>
+                <span className="text-sm">{t("latency", "Latency")}</span>
               </div>
               <span className="font-mono font-bold">
                 {performance.metrics.networkLatency.toFixed(0)}ms
@@ -160,7 +162,7 @@ export function PerformanceDashboard() {
       <Card className="bg-background/50 backdrop-blur-sm border-border/50">
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-base">Resource Optimization</CardTitle>
+            <CardTitle className="text-base">{t("resource_optimization", "Resource Optimization")}</CardTitle>
             <Badge variant="outline">
               Level {optimizer.optimizationLevel}
             </Badge>
@@ -168,21 +170,21 @@ export function PerformanceDashboard() {
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">Video Quality</span>
+            <span className="text-sm text-muted-foreground">{t("video_quality", "Video Quality")}</span>
             {getQualityBadge(optimizer.resourceState.videoQuality)}
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">Audio Quality</span>
+            <span className="text-sm text-muted-foreground">{t("audio_quality", "Audio Quality")}</span>
             {getQualityBadge(optimizer.resourceState.audioQuality)}
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">Effects</span>
+            <span className="text-sm text-muted-foreground">{t("effects", "Effects")}</span>
             <Badge variant={optimizer.resourceState.effectsEnabled ? 'default' : 'secondary'}>
               {optimizer.resourceState.effectsEnabled ? 'Enabled' : 'Disabled'}
             </Badge>
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">Background Blur</span>
+            <span className="text-sm text-muted-foreground">{t("background_blur", "Background Blur")}</span>
             <Badge variant={optimizer.resourceState.backgroundBlurEnabled ? 'default' : 'secondary'}>
               {optimizer.resourceState.backgroundBlurEnabled ? 'Enabled' : 'Disabled'}
             </Badge>
@@ -215,7 +217,7 @@ export function PerformanceDashboard() {
       <Card className="bg-background/50 backdrop-blur-sm border-border/50">
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-base">Memory</CardTitle>
+            <CardTitle className="text-base">{t("memory", "Memory")}</CardTitle>
             {memory.isLowMemory && (
               <Badge variant="destructive" className="animate-pulse">
                 <AlertTriangle className="h-3 w-3 mr-1" />
@@ -226,19 +228,19 @@ export function PerformanceDashboard() {
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">Heap Used</span>
+            <span className="text-muted-foreground">{t("heap_used", "Heap Used")}</span>
             <span className="font-mono">
               {(memory.memoryStats.usedHeap / 1024 / 1024).toFixed(1)} MB
             </span>
           </div>
           <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">Heap Total</span>
+            <span className="text-muted-foreground">{t("heap_total", "Heap Total")}</span>
             <span className="font-mono">
               {(memory.memoryStats.totalHeap / 1024 / 1024).toFixed(1)} MB
             </span>
           </div>
           <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">Cache Size</span>
+            <span className="text-muted-foreground">{t("cache_size", "Cache Size")}</span>
             <span className="font-mono">
               {(memory.cacheSize / 1024 / 1024).toFixed(2)} MB
             </span>

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -58,6 +59,7 @@ const REQUESTED_OUTCOMES = [
 ];
 
 export function DisputeCenter({ contractId }: DisputeCenterProps) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
@@ -133,25 +135,25 @@ export function DisputeCenter({ contractId }: DisputeCenterProps) {
         requested_outcome: "",
         evidence_files: [],
       });
-      toast.success("Dispute submitted successfully");
+      toast.success(t("dispute_submitted_successfully", "Dispute submitted successfully"));
     },
     onError: (error) => {
-      toast.error("Failed to submit dispute: " + error.message);
+      toast.error(t("failed_to_submit_dispute", "Failed to submit dispute:") + error.message);
     },
   });
 
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "open":
-        return <Badge className="bg-yellow-100 text-yellow-800">Open</Badge>;
+        return <Badge className="bg-yellow-100 text-yellow-800">{t("open", "Open")}</Badge>;
       case "under_review":
-        return <Badge className="bg-blue-100 text-blue-800">Under Review</Badge>;
+        return <Badge className="bg-blue-100 text-blue-800">{t("under_review", "Under Review")}</Badge>;
       case "mediation":
-        return <Badge className="bg-purple-100 text-purple-800">In Mediation</Badge>;
+        return <Badge className="bg-purple-100 text-purple-800">{t("in_mediation", "In Mediation")}</Badge>;
       case "resolved":
-        return <Badge className="bg-green-100 text-green-800">Resolved</Badge>;
+        return <Badge className="bg-green-100 text-green-800">{t("resolved", "Resolved")}</Badge>;
       case "closed":
-        return <Badge variant="outline">Closed</Badge>;
+        return <Badge variant="outline">{t("closed", "Closed")}</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -186,7 +188,7 @@ export function DisputeCenter({ contractId }: DisputeCenterProps) {
           </DialogTrigger>
           <DialogContent className="max-w-lg">
             <DialogHeader>
-              <DialogTitle>Raise a Dispute</DialogTitle>
+              <DialogTitle>{t("raise_a_dispute", "Raise a Dispute")}</DialogTitle>
               <DialogDescription>
                 Describe the issue and we'll help mediate a fair resolution
               </DialogDescription>
@@ -195,13 +197,13 @@ export function DisputeCenter({ contractId }: DisputeCenterProps) {
             <div className="space-y-4 py-4">
               {/* Dispute Type */}
               <div>
-                <Label>Type of Issue</Label>
+                <Label>{t("type_of_issue", "Type of Issue")}</Label>
                 <Select
                   value={formData.dispute_type}
                   onValueChange={(value) => setFormData({ ...formData, dispute_type: value })}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select issue type" />
+                    <SelectValue placeholder={t("select_issue_type", "Select issue type")} />
                   </SelectTrigger>
                   <SelectContent>
                     {DISPUTE_TYPES.map((type) => (
@@ -218,9 +220,9 @@ export function DisputeCenter({ contractId }: DisputeCenterProps) {
 
               {/* Title */}
               <div>
-                <Label>Issue Title</Label>
+                <Label>{t("issue_title", "Issue Title")}</Label>
                 <Input
-                  placeholder="Brief summary of the issue"
+                  placeholder={t("brief_summary_of_the", "Brief summary of the issue")}
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                 />
@@ -228,7 +230,7 @@ export function DisputeCenter({ contractId }: DisputeCenterProps) {
 
               {/* Description */}
               <div>
-                <Label>Detailed Description</Label>
+                <Label>{t("detailed_description", "Detailed Description")}</Label>
                 <Textarea
                   placeholder="Explain the issue in detail. Include dates, communications, and specific examples..."
                   rows={5}
@@ -239,10 +241,10 @@ export function DisputeCenter({ contractId }: DisputeCenterProps) {
 
               {/* Amount */}
               <div>
-                <Label>Amount in Dispute (€)</Label>
+                <Label>{t("amount_in_dispute", "Amount in Dispute (€)")}</Label>
                 <Input
                   type="number"
-                  placeholder="Enter amount"
+                  placeholder={t("enter_amount", "Enter amount")}
                   value={formData.amount_in_dispute || ""}
                   onChange={(e) => setFormData({ ...formData, amount_in_dispute: parseFloat(e.target.value) || 0 })}
                 />
@@ -250,13 +252,13 @@ export function DisputeCenter({ contractId }: DisputeCenterProps) {
 
               {/* Requested Outcome */}
               <div>
-                <Label>Requested Resolution</Label>
+                <Label>{t("requested_resolution", "Requested Resolution")}</Label>
                 <Select
                   value={formData.requested_outcome}
                   onValueChange={(value) => setFormData({ ...formData, requested_outcome: value })}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="What outcome are you seeking?" />
+                    <SelectValue placeholder={t("what_outcome_are_you", "What outcome are you seeking?")} />
                   </SelectTrigger>
                   <SelectContent>
                     {REQUESTED_OUTCOMES.map((outcome) => (
@@ -270,7 +272,7 @@ export function DisputeCenter({ contractId }: DisputeCenterProps) {
 
               {/* Evidence Upload */}
               <div>
-                <Label>Evidence (optional)</Label>
+                <Label>{t("evidence_optional", "Evidence (optional)")}</Label>
                 <div className="mt-2 border-2 border-dashed rounded-lg p-4 text-center">
                   <Upload className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
                   <p className="text-sm text-muted-foreground">
@@ -320,7 +322,7 @@ export function DisputeCenter({ contractId }: DisputeCenterProps) {
                 <Scale className="h-6 w-6 text-primary" />
               </div>
               <div>
-                <h4 className="font-semibold mb-1">Fair Resolution Process</h4>
+                <h4 className="font-semibold mb-1">{t("fair_resolution_process", "Fair Resolution Process")}</h4>
                 <p className="text-sm text-muted-foreground mb-3">
                   If you're experiencing issues with this contract, you can raise a dispute.
                   Our platform will help mediate and find a fair resolution.
@@ -377,13 +379,13 @@ function DisputeCard({ dispute, currentUserId }: { dispute: Dispute; currentUser
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "open":
-        return <Badge className="bg-yellow-100 text-yellow-800">Open</Badge>;
+        return <Badge className="bg-yellow-100 text-yellow-800">{t("open", "Open")}</Badge>;
       case "under_review":
-        return <Badge className="bg-blue-100 text-blue-800">Under Review</Badge>;
+        return <Badge className="bg-blue-100 text-blue-800">{t("under_review", "Under Review")}</Badge>;
       case "mediation":
-        return <Badge className="bg-purple-100 text-purple-800">In Mediation</Badge>;
+        return <Badge className="bg-purple-100 text-purple-800">{t("in_mediation", "In Mediation")}</Badge>;
       case "resolved":
-        return <Badge className="bg-green-100 text-green-800">Resolved</Badge>;
+        return <Badge className="bg-green-100 text-green-800">{t("resolved", "Resolved")}</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -420,15 +422,15 @@ function DisputeCard({ dispute, currentUserId }: { dispute: Dispute; currentUser
 
         <div className="grid grid-cols-3 gap-4 text-sm mb-4">
           <div>
-            <p className="text-muted-foreground">Type</p>
+            <p className="text-muted-foreground">{t("type", "Type")}</p>
             <p className="font-medium capitalize">{dispute.dispute_type.replace("_", " ")}</p>
           </div>
           <div>
-            <p className="text-muted-foreground">Amount</p>
+            <p className="text-muted-foreground">{t("amount", "Amount")}</p>
             <p className="font-medium">€{dispute.amount_in_dispute?.toLocaleString()}</p>
           </div>
           <div>
-            <p className="text-muted-foreground">Requested</p>
+            <p className="text-muted-foreground">{t("requested", "Requested")}</p>
             <p className="font-medium capitalize">{dispute.requested_outcome?.replace("_", " ")}</p>
           </div>
         </div>

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Button } from "@/components/ui/button";
 import { Video } from "lucide-react";
 import { useState } from "react";
@@ -18,6 +19,7 @@ export function VideoCallLauncher({
   participantAvatar,
   onSendMessage
 }: VideoCallLauncherProps) {
+  const { t } = useTranslation('common');
   const [showDialog, setShowDialog] = useState(false);
   const [callActive, setCallActive] = useState(false);
   const [invitationId, setInvitationId] = useState<string | null>(null);
@@ -71,7 +73,7 @@ export function VideoCallLauncher({
         size="icon" 
         onClick={() => setShowDialog(true)}
         className="h-9 w-9 hover:bg-primary/10 hover:text-primary"
-        title="Start video call"
+        title={t("start_video_call", "Start video call")}
       >
         <Video className="h-5 w-5" />
       </Button>

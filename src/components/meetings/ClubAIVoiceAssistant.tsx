@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -28,6 +29,7 @@ export function ClubAIVoiceAssistant({
   remainingTime,
   onClose 
 }: ClubAIVoiceAssistantProps) {
+  const { t } = useTranslation('common');
   const [isListening, setIsListening] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
@@ -208,7 +210,7 @@ export function ClubAIVoiceAssistant({
               <Sparkles className="h-4 w-4 text-primary" />
             </div>
             <div>
-              <h4 className="font-semibold text-sm">Club AI Voice Assistant</h4>
+              <h4 className="font-semibold text-sm">{t("club_ai_voice_assistant", "Club AI Voice Assistant")}</h4>
               <p className="text-xs text-muted-foreground">
                 {speechSupported ? 'Tap to activate' : 'Type your command below'}
               </p>
@@ -235,7 +237,7 @@ export function ClubAIVoiceAssistant({
         {showTextInput && (
           <div className="flex gap-2 mb-4">
             <Input
-              placeholder="Type your command..."
+              placeholder={t("type_your_command", "Type your command...")}
               value={textInput}
               onChange={(e) => setTextInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleTextSubmit()}
@@ -315,7 +317,7 @@ export function ClubAIVoiceAssistant({
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
               </span>
-              <span className="text-sm font-medium">Listening...</span>
+              <span className="text-sm font-medium">{t("listening", "Listening...")}</span>
             </div>
           )}
           {transcript && (

@@ -1,14 +1,9 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { createHandler } from '../_shared/handler.ts';
 import { getAppUrl, AppUrls } from '../_shared/app-config.ts';
 import { createFunctionLogger } from '../_shared/function-logger.ts';
-
-const TWILIO_ACCOUNT_SID = Deno.env.get("TWILIO_ACCOUNT_SID");
-const TWILIO_AUTH_TOKEN = Deno.env.get("TWILIO_AUTH_TOKEN");
-const TWILIO_PHONE_NUMBER = Deno.env.get("TWILIO_PHONE_NUMBER");
+import { sendSMS } from '../_shared/twilio-client.ts';
 
 const APP_URL = getAppUrl();
-
-import { corsHeaders } from "../_shared/cors.ts";
 
 interface SMSRequest {
   phone: string;
@@ -16,14 +11,9 @@ interface SMSRequest {
   requestType: 'candidate' | 'partner';
 }
 
-serve(async (req) => {
+Deno.serve(createHandler(async (req, ctx) => {
   const logger = createFunctionLogger('send-approval-sms');
 
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  try {
     const body: SMSRequest & { userId?: string } = await req.json();
     const { phone, fullName, requestType, userId } = body;
 
@@ -33,12 +23,8 @@ serve(async (req) => {
       logger.warn('No phone number provided');
       return new Response(
         JSON.stringify({ success: false, message: 'No phone number' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+        { headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
       );
-    }
-
-    if (!TWILIO_ACCOUNT_SID || !TWILIO_AUTH_TOKEN || !TWILIO_PHONE_NUMBER) {
-      throw new Error('Twilio credentials not configured');
     }
 
     // SMS message content - discreet, luxury tone
@@ -46,59 +32,24 @@ serve(async (req) => {
       ? `Welcome to The Quantum Club, ${fullName}. Your application has been approved. Darryl will contact you within 19 minutes. Log in: ${AppUrls.auth()}`
       : `Welcome to The Quantum Club. Your partner application has been approved. Darryl will reach out within 19 minutes to discuss your hiring needs. Log in: ${AppUrls.auth()}`;
 
-    // Send SMS via Twilio
+    // Send SMS via Twilio (shared client handles auth, timeout, retry)
     logger.checkpoint('sending_sms');
-    const auth = btoa(`${TWILIO_ACCOUNT_SID}:${TWILIO_AUTH_TOKEN}`);
-    const twilioResponse = await fetch(
-      `https://api.twilio.com/2010-04-01/Accounts/${TWILIO_ACCOUNT_SID}/Messages.json`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'Authorization': `Basic ${auth}`,
-        },
-        body: new URLSearchParams({
-          To: phone,
-          From: TWILIO_PHONE_NUMBER,
-          Body: message,
-        }),
-      }
-    );
-
-    if (!twilioResponse.ok) {
-      const error = await twilioResponse.text();
-      logger.error('Twilio error', new Error(error));
-      throw new Error(`Failed to send SMS: ${error}`);
-    }
-
-    const result = await twilioResponse.json();
-    logger.logExternalCall('twilio', 'Messages.json', twilioResponse.status, logger.getElapsedMs());
+    const result = await sendSMS({ to: phone, body: message });
+    logger.logExternalCall('twilio', 'Messages.json', 200, logger.getElapsedMs());
     logger.info('SMS sent successfully', { messageSid: result.sid });
 
     // Log notification to database
     try {
       if (userId && requestType) {
-        const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-        const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-        
-        await fetch(`${supabaseUrl}/rest/v1/approval_notification_logs`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'apikey': supabaseServiceKey,
-            'Authorization': `Bearer ${supabaseServiceKey}`,
-            'Prefer': 'return=minimal'
-          },
-          body: JSON.stringify({
-            user_id: userId,
-            request_type: requestType,
-            notification_type: 'sms',
-            status: 'sent',
-            metadata: {
-              message_sid: result.sid,
-              phone: phone
-            }
-          })
+        await ctx.supabase.from('approval_notification_logs').insert({
+          user_id: userId,
+          request_type: requestType,
+          notification_type: 'sms',
+          status: 'sent',
+          metadata: {
+            message_sid: result.sid,
+            phone: phone
+          }
         });
         logger.info('SMS notification logged to database');
       }
@@ -109,43 +60,6 @@ serve(async (req) => {
     logger.logSuccess(200, { messageSid: result.sid });
     return new Response(
       JSON.stringify({ success: true, messageSid: result.sid }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+      { headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
     );
-
-  } catch (error: any) {
-    logger.logError(500, error.message);
-    
-    // Log failed notification attempt
-    try {
-      if (userId && requestType) {
-        const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-        const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-        
-        await fetch(`${supabaseUrl}/rest/v1/approval_notification_logs`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'apikey': supabaseServiceKey,
-            'Authorization': `Bearer ${supabaseServiceKey}`,
-            'Prefer': 'return=minimal'
-          },
-          body: JSON.stringify({
-            user_id: userId,
-            request_type: requestType,
-            notification_type: 'sms',
-            status: 'failed',
-            error_message: error.message,
-            metadata: { phone: body?.phone }
-          })
-        });
-      }
-    } catch (logError) {
-      logger.error('Failed to log error', logError);
-    }
-    
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-  }
-});
+}));

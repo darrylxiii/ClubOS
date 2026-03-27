@@ -1,7 +1,6 @@
-project_id = "dpjucecmoyfzrduhlctt"
+project_id = "chgrkvftjfibufoopmav"
 
-[functions.send-test-email]
-verify_jwt = false
+
 
 # =============================================================================
 # Partner Invite & Provisioning
@@ -216,9 +215,6 @@ verify_jwt = true
 # =============================================================================
 # LinkedIn & Scraping (JWT Required)
 # =============================================================================
-[functions.linkedin-scraper-proxycurl]
-verify_jwt = true
-
 [functions.linkedin-scraper]
 verify_jwt = true
 
@@ -1341,5 +1337,3 @@ verify_jwt = false
 [functions.cleanup-stale-meeting-participants]
 verify_jwt = false
 
-[functions.close-stale-livehub-sessions]
-verify_jwt = false

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -35,6 +36,7 @@ interface InteractionEntryFormProps {
 }
 
 export function InteractionEntryForm({ onSuccess, defaultCompanyId }: InteractionEntryFormProps) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [companies, setCompanies] = useState<any[]>([]);
@@ -160,7 +162,7 @@ export function InteractionEntryForm({ onSuccess, defaultCompanyId }: Interactio
         }
       }
 
-      toast.success('Interaction logged successfully');
+      toast.success(t("interaction_logged_successfully", "Interaction logged successfully"));
       onSuccess?.();
     } catch (error: unknown) {
       console.error('Error creating interaction:', error);
@@ -173,17 +175,17 @@ export function InteractionEntryForm({ onSuccess, defaultCompanyId }: Interactio
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Log Interaction</CardTitle>
-        <CardDescription>Record a manual interaction with a company</CardDescription>
+        <CardTitle>{t("log_interaction", "Log Interaction")}</CardTitle>
+        <CardDescription>{t("record_a_manual_interaction", "Record a manual interaction with a company")}</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           {/* Company Selection */}
           <div className="space-y-2">
-            <Label htmlFor="company_id">Company *</Label>
+            <Label htmlFor="company_id">{t("company", "Company *")}</Label>
             <Select value={selectedCompanyId} onValueChange={handleCompanyChange}>
               <SelectTrigger>
-                <SelectValue placeholder="Select company" />
+                <SelectValue placeholder={t("select_company", "Select company")} />
               </SelectTrigger>
               <SelectContent>
                 {companies.map(company => (
@@ -197,7 +199,7 @@ export function InteractionEntryForm({ onSuccess, defaultCompanyId }: Interactio
               <p className="text-sm text-destructive">{errors.company_id.message}</p>
             )}
             <Input
-              placeholder="Search companies..."
+              placeholder={t("search_companies", "Search companies...")}
               onChange={(e) => loadCompanies(e.target.value)}
               className="mt-2"
             />
@@ -206,33 +208,33 @@ export function InteractionEntryForm({ onSuccess, defaultCompanyId }: Interactio
           {/* Interaction Type */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="interaction_type">Type *</Label>
+              <Label htmlFor="interaction_type">{t("type", "Type *")}</Label>
               <Select {...register('interaction_type')} onValueChange={(value) => setValue('interaction_type', value as any)}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="phone_call">Phone Call</SelectItem>
-                  <SelectItem value="email">Email</SelectItem>
-                  <SelectItem value="whatsapp">WhatsApp</SelectItem>
-                  <SelectItem value="zoom_meeting">Zoom Meeting</SelectItem>
-                  <SelectItem value="linkedin_message">LinkedIn</SelectItem>
-                  <SelectItem value="in_person">In Person</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
+                  <SelectItem value="phone_call">{t("phone_call", "Phone Call")}</SelectItem>
+                  <SelectItem value="email">{t("email", "Email")}</SelectItem>
+                  <SelectItem value="whatsapp">{t("whatsapp", "WhatsApp")}</SelectItem>
+                  <SelectItem value="zoom_meeting">{t("zoom_meeting", "Zoom Meeting")}</SelectItem>
+                  <SelectItem value="linkedin_message">{t("linkedin", "LinkedIn")}</SelectItem>
+                  <SelectItem value="in_person">{t("in_person", "In Person")}</SelectItem>
+                  <SelectItem value="other">{t("other", "Other")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="direction">Direction *</Label>
+              <Label htmlFor="direction">{t("direction", "Direction *")}</Label>
               <Select {...register('direction')} onValueChange={(value) => setValue('direction', value as any)}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="outbound">Outbound</SelectItem>
-                  <SelectItem value="inbound">Inbound</SelectItem>
-                  <SelectItem value="mutual">Mutual</SelectItem>
+                  <SelectItem value="outbound">{t("outbound", "Outbound")}</SelectItem>
+                  <SelectItem value="inbound">{t("inbound", "Inbound")}</SelectItem>
+                  <SelectItem value="mutual">{t("mutual", "Mutual")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -241,7 +243,7 @@ export function InteractionEntryForm({ onSuccess, defaultCompanyId }: Interactio
           {/* Date and Duration */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="interaction_date">Date *</Label>
+              <Label htmlFor="interaction_date">{t("date", "Date *")}</Label>
               <Input
                 type="datetime-local"
                 defaultValue={new Date().toISOString().slice(0, 16)}
@@ -250,7 +252,7 @@ export function InteractionEntryForm({ onSuccess, defaultCompanyId }: Interactio
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="duration_minutes">Duration (minutes)</Label>
+              <Label htmlFor="duration_minutes">{t("duration_minutes", "Duration (minutes)")}</Label>
               <Input
                 type="number"
                 placeholder="30"
@@ -261,7 +263,7 @@ export function InteractionEntryForm({ onSuccess, defaultCompanyId }: Interactio
 
           {/* Participants */}
           <div className="space-y-2">
-            <Label>Participants</Label>
+            <Label>{t("participants", "Participants")}</Label>
             {loadingStakeholders ? (
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -294,25 +296,25 @@ export function InteractionEntryForm({ onSuccess, defaultCompanyId }: Interactio
 
           {/* Subject */}
           <div className="space-y-2">
-            <Label htmlFor="subject">Subject</Label>
-            <Input placeholder="Discussion topic" onChange={(e) => (setValue as any)('subject', e.target.value)} />
+            <Label htmlFor="subject">{t("subject", "Subject")}</Label>
+            <Input placeholder={t("discussion_topic", "Discussion topic")} onChange={(e) => (setValue as any)('subject', e.target.value)} />
           </div>
 
           {/* Summary & Notes */}
           <div className="space-y-2">
-            <Label htmlFor="summary">Summary</Label>
-            <Textarea placeholder="Brief summary of the interaction" rows={2} onChange={(e) => (setValue as any)('summary', e.target.value)} />
+            <Label htmlFor="summary">{t("summary", "Summary")}</Label>
+            <Textarea placeholder={t("brief_summary_of_the", "Brief summary of the interaction")} rows={2} onChange={(e) => (setValue as any)('summary', e.target.value)} />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="notes">Notes</Label>
-            <Textarea placeholder="Detailed notes" rows={4} onChange={(e) => (setValue as any)('notes', e.target.value)} />
+            <Label htmlFor="notes">{t("notes", "Notes")}</Label>
+            <Textarea placeholder={t("detailed_notes", "Detailed notes")} rows={4} onChange={(e) => (setValue as any)('notes', e.target.value)} />
           </div>
 
           {/* Urgency & Next Action */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="urgency_score">Urgency (0-10)</Label>
+              <Label htmlFor="urgency_score">{t("urgency_010", "Urgency (0-10)")}</Label>
               <Input
                 type="number"
                 min="0"
@@ -323,8 +325,8 @@ export function InteractionEntryForm({ onSuccess, defaultCompanyId }: Interactio
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="next_action">Next Action</Label>
-              <Input placeholder="Follow up next week" onChange={(e) => (setValue as any)('next_action', e.target.value)} />
+              <Label htmlFor="next_action">{t("next_action", "Next Action")}</Label>
+              <Input placeholder={t("follow_up_next_week", "Follow up next week")} onChange={(e) => (setValue as any)('next_action', e.target.value)} />
             </div>
           </div>
 

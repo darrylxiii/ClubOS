@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,6 +11,7 @@ import { toast } from "sonner";
 import { Loader2, Percent, Save } from "lucide-react";
 
 export function PartnerFeeConfig() {
+  const { t } = useTranslation('common');
   const queryClient = useQueryClient();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [feeValue, setFeeValue] = useState<string>("");
@@ -44,12 +46,12 @@ export function PartnerFeeConfig() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["partner-fee-config"] });
-      toast.success("Fee percentage updated successfully");
+      toast.success(t("fee_percentage_updated_successfully", "Fee percentage updated successfully"));
       setEditingId(null);
       setFeeValue("");
     },
     onError: (error) => {
-      toast.error("Failed to update fee percentage");
+      toast.error(t("failed_to_update_fee", "Failed to update fee percentage"));
       console.error(error);
     },
   });
@@ -62,7 +64,7 @@ export function PartnerFeeConfig() {
   const handleSave = (id: string) => {
     const fee = parseFloat(feeValue);
     if (isNaN(fee) || fee < 0 || fee > 100) {
-      toast.error("Please enter a valid percentage between 0 and 100");
+      toast.error(t("please_enter_a_valid", "Please enter a valid percentage between 0 and 100"));
       return;
     }
     updateFeeMutation.mutate({ id, fee });
@@ -93,9 +95,9 @@ export function PartnerFeeConfig() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Company</TableHead>
-              <TableHead>Fee Percentage</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead>{t("company", "Company")}</TableHead>
+              <TableHead>{t("fee_percentage", "Fee Percentage")}</TableHead>
+              <TableHead className="text-right">{t("actions", "Actions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

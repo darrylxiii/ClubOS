@@ -1,27 +1,13 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { createHandler } from '../_shared/handler.ts';
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
-
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+Deno.serve(createHandler(async (req, ctx) => {
+  const googleApiKey = Deno.env.get('GOOGLE_API_KEY');
+  if (!googleApiKey) {
+    throw new Error('GOOGLE_API_KEY is not configured');
   }
 
-  try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL');
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
-    
-    if (!supabaseUrl || !supabaseKey || !lovableApiKey) {
-      throw new Error('Missing required environment variables');
-    }
-    
-    const supabase = createClient(supabaseUrl, supabaseKey);
-    const { interaction_id } = await req.json();
+  const { interaction_id } = await req.json();
+  const supabase = ctx.supabase;
 
     if (!interaction_id) {
       throw new Error('interaction_id is required');
@@ -101,17 +87,17 @@ serve(async (req) => {
 
 Return ONLY valid JSON, no markdown formatting.`;
 
-    console.log('[Extract Insights] Calling Lovable AI...');
+    console.log('[Extract Insights] Calling Google Gemini...');
 
-    // Call Lovable AI
-    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    // Call Google Gemini
+    const aiResponse = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${lovableApiKey}`,
+        'Authorization': `Bearer ${googleApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash-lite',
+        model: 'gemini-2.5-flash-lite',
         messages: [
           {
             role: 'system',
@@ -257,14 +243,7 @@ Return ONLY valid JSON, no markdown formatting.`;
         insights,
         next_actions: insights.next_actions || [],
       }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } }
     );
 
-  } catch (error) {
-    console.error('[Extract Insights] Error:', error);
-    return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-  }
-});
+}));

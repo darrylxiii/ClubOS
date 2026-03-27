@@ -1,34 +1,22 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { createHandler } from '../_shared/handler.ts';
 
-const corsHeaders = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+Deno.serve(createHandler(async (req, ctx) => {
+    const corsHeaders = ctx.corsHeaders;
+    const supabase = ctx.supabase;
+        const googleApiKey = Deno.env.get('GOOGLE_API_KEY');
 
-serve(async (req) => {
-    if (req.method === 'OPTIONS') {
-        return new Response('ok', { headers: corsHeaders });
-    }
-
-    try {
-        const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-        const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-        const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
-
-        if (!lovableApiKey) {
-            console.warn('[Sentinel] LOVABLE_API_KEY missing. Returning MOCK response for testing.');
+        if (!googleApiKey) {
+            console.warn('[Sentinel] GOOGLE_API_KEY missing. Returning MOCK response for testing.');
             return new Response(
                 JSON.stringify({
                     "status": "safe",
                     "message": "Mock Analysis (Local Test)",
-                    "details": "This is a mock response because LOVABLE_API_KEY is missing. Context matches transcript."
+                    "details": "This is a mock response because GOOGLE_API_KEY is missing. Context matches transcript."
                 }),
                 { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
             );
         }
 
-        const supabase = createClient(supabaseUrl, supabaseServiceKey);
         const { transcript_chunk, candidate_id, session_id } = await req.json();
 
         if (!transcript_chunk) {
@@ -87,10 +75,10 @@ Return JSON:
   "details": "Longer explanation or specific question to ask"
 }`;
 
-        const aiResp = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+        const aiResp = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
             method: 'POST',
             headers: {
-                'Authorization': `Bearer ${lovableApiKey}`,
+                'Authorization': `Bearer ${googleApiKey}`,
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
@@ -121,11 +109,4 @@ Return JSON:
             { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
 
-    } catch (error) {
-        console.error('[Sentinel] Error:', error);
-        return new Response(
-            JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
-            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-    }
-});
+}));

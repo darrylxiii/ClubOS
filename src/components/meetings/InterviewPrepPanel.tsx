@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -34,6 +35,7 @@ export function InterviewPrepPanel({
   companyName,
   userRole
 }: InterviewPrepPanelProps) {
+  const { t } = useTranslation('common');
   const [brief, setBrief] = useState<InterviewPrepBrief | null>(null);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
@@ -69,7 +71,7 @@ export function InterviewPrepPanel({
 
   const generateBrief = async () => {
     if (!candidateId || !roleTitle) {
-      toast.error("Missing candidate or role information");
+      toast.error(t("missing_candidate_or_role", "Missing candidate or role information"));
       return;
     }
 
@@ -82,10 +84,10 @@ export function InterviewPrepPanel({
       if (error) throw error;
       
       setBrief(data.brief as any);
-      toast.success("Interview prep brief generated!");
+      toast.success(t("interview_prep_brief_generated", "Interview prep brief generated!"));
     } catch (error) {
       console.error('Error generating prep brief:', error);
-      toast.error("Failed to generate prep brief");
+      toast.error(t("failed_to_generate_prep", "Failed to generate prep brief"));
     } finally {
       setGenerating(false);
     }
@@ -96,7 +98,7 @@ export function InterviewPrepPanel({
       <Card className="p-4 bg-card/50 backdrop-blur-sm">
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Loader2 className="w-4 h-4 animate-spin" />
-          <span>Loading interview prep...</span>
+          <span>{t("loading_interview_prep", "Loading interview prep...")}</span>
         </div>
       </Card>
     );
@@ -106,7 +108,7 @@ export function InterviewPrepPanel({
     return (
       <Card className="p-6 bg-card/50 backdrop-blur-sm text-center">
         <Sparkles className="w-8 h-8 text-primary mx-auto mb-3" />
-        <h3 className="font-semibold mb-2">AI Interview Prep</h3>
+        <h3 className="font-semibold mb-2">{t("ai_interview_prep", "AI Interview Prep")}</h3>
         <p className="text-sm text-muted-foreground mb-4">
           Generate a comprehensive interview preparation brief with Club AI
         </p>
@@ -139,7 +141,7 @@ export function InterviewPrepPanel({
         <div className="flex items-start gap-3">
           <FileText className="w-5 h-5 text-primary shrink-0 mt-0.5" />
           <div>
-            <h3 className="font-semibold mb-2">Candidate Summary</h3>
+            <h3 className="font-semibold mb-2">{t("candidate_summary", "Candidate Summary")}</h3>
             <p className="text-sm text-muted-foreground leading-relaxed">
               {brief.candidate_summary}
             </p>
@@ -153,7 +155,7 @@ export function InterviewPrepPanel({
             <AccordionTrigger className="px-4 py-3 hover:no-underline">
               <div className="flex items-center gap-2">
                 <Target className="w-4 h-4 text-green-500" />
-                <span className="font-semibold">Key Strengths</span>
+                <span className="font-semibold">{t("key_strengths", "Key Strengths")}</span>
                 <Badge variant="secondary">{brief.key_strengths.length}</Badge>
               </div>
             </AccordionTrigger>
@@ -176,7 +178,7 @@ export function InterviewPrepPanel({
               <AccordionTrigger className="px-4 py-3 hover:no-underline">
                 <div className="flex items-center gap-2">
                   <AlertCircle className="w-4 h-4 text-orange-500" />
-                  <span className="font-semibold">Areas to Probe</span>
+                  <span className="font-semibold">{t("areas_to_probe", "Areas to Probe")}</span>
                   <Badge variant="secondary">{brief.potential_concerns.length}</Badge>
                 </div>
               </AccordionTrigger>
@@ -199,7 +201,7 @@ export function InterviewPrepPanel({
             <AccordionTrigger className="px-4 py-3 hover:no-underline">
               <div className="flex items-center gap-2">
                 <MessageCircle className="w-4 h-4 text-primary" />
-                <span className="font-semibold">Suggested Questions</span>
+                <span className="font-semibold">{t("suggested_questions", "Suggested Questions")}</span>
                 <Badge variant="secondary">{brief.suggested_questions.length}</Badge>
               </div>
             </AccordionTrigger>
@@ -231,7 +233,7 @@ export function InterviewPrepPanel({
               <AccordionTrigger className="px-4 py-3 hover:no-underline">
                 <div className="flex items-center gap-2">
                   <Sparkles className="w-4 h-4 text-primary" />
-                  <span className="font-semibold">Conversation Starters</span>
+                  <span className="font-semibold">{t("conversation_starters", "Conversation Starters")}</span>
                 </div>
               </AccordionTrigger>
               <AccordionContent className="px-4 pb-3">

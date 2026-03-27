@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { ChevronDown, ChevronRight, Hash, Volume2, Video, Radio, Plus, MessageSquare } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -41,6 +42,7 @@ interface ChannelParticipant {
 }
 
 const ChannelList = ({ selectedChannelId, selectedConversationId, connectedChannelId, onChannelSelect, onConversationSelect }: ChannelListProps) => {
+  const { t } = useTranslation('meetings');
   const [channels, setChannels] = useState<Channel[]>([]);
   const [channelParticipants, setChannelParticipants] = useState<Record<string, ChannelParticipant[]>>({});
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set(['GENERAL', 'STRATEGY', 'RECRUITMENT', 'CLIENT CALLS']));
@@ -89,7 +91,7 @@ const ChannelList = ({ selectedChannelId, selectedConversationId, connectedChann
 
     if (serverError || !serverData) {
       console.error('Error loading server:', serverError);
-      toast.error('Failed to load server. Please refresh the page.');
+      toast.error(t('livehub.failedToLoadServer'));
       return;
     }
 
@@ -219,7 +221,7 @@ const ChannelList = ({ selectedChannelId, selectedConversationId, connectedChann
     <div className="w-60 bg-card border-r border-border flex flex-col">
       {/* Server Header */}
       <div className="h-12 px-4 flex items-center justify-between border-b border-border shadow-sm">
-        <h2 className="font-semibold text-sm truncate">The Quantum Club</h2>
+        <h2 className="font-semibold text-sm truncate">{t('livehub.theQuantumClub')}</h2>
         <Button
           variant="ghost"
           size="icon"
@@ -259,7 +261,7 @@ const ChannelList = ({ selectedChannelId, selectedConversationId, connectedChann
                     <ChevronRight className="w-3 h-3 shrink-0" />
                   )}
                   <MessageSquare className="w-3 h-3" />
-                  <span className="truncate">Direct Messages</span>
+                  <span className="truncate">{t('livehub.directMessages')}</span>
                 </button>
 
                 {showDMs && (
@@ -344,7 +346,7 @@ const ChannelList = ({ selectedChannelId, selectedConversationId, connectedChann
                                       )}
                                     </div>
                                     <span className="truncate flex-1">
-                                      {participant.profiles?.full_name || 'Unknown'}
+                                      {participant.profiles?.full_name || t('livehub.unknown')}
                                     </span>
                                     {participant.is_speaking && (
                                       <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
@@ -356,7 +358,7 @@ const ChannelList = ({ selectedChannelId, selectedConversationId, connectedChann
                                 ))}
                                 {participants.length > 3 && (
                                   <div className="text-xs text-muted-foreground ml-6">
-                                    +{participants.length - 3} more
+                                    +{t('livehub.moreCount', { count: participants.length - 3 })}
                                   </div>
                                 )}
                               </div>

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import quantumLogoLight from "@/assets/quantum-logo-dark.png";
@@ -29,6 +30,7 @@ const supportLinks = [
 ];
 
 export function GlobalFooter({ variant = "full", className }: GlobalFooterProps) {
+  const { t } = useTranslation('common');
   const currentYear = new Date().getFullYear();
 
   if (variant === "minimal") {
@@ -38,9 +40,9 @@ export function GlobalFooter({ variant = "full", className }: GlobalFooterProps)
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground">
             <p>© {currentYear} The Quantum Club B.V.</p>
             <div className="flex flex-wrap justify-center gap-4">
-              <Link to="/legal/terms" className="hover:text-foreground transition-colors">Terms</Link>
-              <Link to="/legal/privacy" className="hover:text-foreground transition-colors">Privacy</Link>
-              <Link to="/legal/cookies" className="hover:text-foreground transition-colors">Cookies</Link>
+              <Link to="/legal/terms" className="hover:text-foreground transition-colors">{t("terms", "Terms")}</Link>
+              <Link to="/legal/privacy" className="hover:text-foreground transition-colors">{t("privacy", "Privacy")}</Link>
+              <Link to="/legal/cookies" className="hover:text-foreground transition-colors">{t("cookies", "Cookies")}</Link>
             </div>
           </div>
         </div>
@@ -56,12 +58,12 @@ export function GlobalFooter({ variant = "full", className }: GlobalFooterProps)
             <div className="flex items-center gap-4">
               <img 
                 src={quantumLogoDark} 
-                alt="Quantum Club" 
+                alt={t("quantum_club", "Quantum Club")} 
                 className="h-8 w-auto dark:hidden"
               />
               <img 
                 src={quantumLogoLight} 
-                alt="Quantum Club" 
+                alt={t("quantum_club", "Quantum Club")} 
                 className="h-8 w-auto hidden dark:block"
               />
               <span className="text-sm text-muted-foreground">
@@ -101,12 +103,12 @@ export function GlobalFooter({ variant = "full", className }: GlobalFooterProps)
             <Link to="/" className="flex items-center mb-4">
               <img 
                 src={quantumLogoDark} 
-                alt="Quantum Club" 
+                alt={t("quantum_club", "Quantum Club")} 
                 className="h-10 w-auto dark:hidden"
               />
               <img 
                 src={quantumLogoLight} 
-                alt="Quantum Club" 
+                alt={t("quantum_club", "Quantum Club")} 
                 className="h-10 w-auto hidden dark:block"
               />
             </Link>

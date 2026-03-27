@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from 'react-i18next';
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -8,6 +9,7 @@ import { Cookie, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export const CookieConsentBanner = () => {
+  const { t } = useTranslation('common');
   const [userId, setUserId] = useState<string | null>(null);
   const [show, setShow] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
@@ -128,7 +130,7 @@ export const CookieConsentBanner = () => {
               </div>
               <div className="flex-1">
                 <div className="flex items-start justify-between mb-3">
-                  <h3 className="font-semibold text-lg text-foreground">Cookie Preferences</h3>
+                  <h3 className="font-semibold text-lg text-foreground">{t('support.cookiePreferences')}</h3>
                   <Button
                     variant="ghost"
                     size="sm"
@@ -151,16 +153,16 @@ export const CookieConsentBanner = () => {
                   <div className="space-y-3 mb-4 p-4 bg-muted/50 rounded-lg">
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
-                        <Label htmlFor="necessary" className="font-medium">Necessary</Label>
-                        <p className="text-xs text-muted-foreground">Required for basic functionality</p>
+                        <Label htmlFor="necessary" className="font-medium">{t('support.necessary')}</Label>
+                        <p className="text-xs text-muted-foreground">{t('support.requiredForBasicFunctionality')}</p>
                       </div>
                       <Switch id="necessary" checked={true} disabled />
                     </div>
                     
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
-                        <Label htmlFor="functional">Functional</Label>
-                        <p className="text-xs text-muted-foreground">Remember your preferences</p>
+                        <Label htmlFor="functional">{t('support.functional')}</Label>
+                        <p className="text-xs text-muted-foreground">{t('support.rememberYourPreferences')}</p>
                       </div>
                       <Switch
                         id="functional"
@@ -171,8 +173,8 @@ export const CookieConsentBanner = () => {
                     
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
-                        <Label htmlFor="analytics">Analytics</Label>
-                        <p className="text-xs text-muted-foreground">Help us improve our service</p>
+                        <Label htmlFor="analytics">{t('support.analytics')}</Label>
+                        <p className="text-xs text-muted-foreground">{t('support.helpUsImproveOurService')}</p>
                       </div>
                       <Switch
                         id="analytics"
@@ -183,8 +185,8 @@ export const CookieConsentBanner = () => {
                     
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
-                        <Label htmlFor="marketing">Marketing</Label>
-                        <p className="text-xs text-muted-foreground">Personalized content & offers</p>
+                        <Label htmlFor="marketing">{t('support.marketing')}</Label>
+                        <p className="text-xs text-muted-foreground">{t('support.personalizedContentOffers')}</p>
                       </div>
                       <Switch
                         id="marketing"
@@ -202,16 +204,12 @@ export const CookieConsentBanner = () => {
                         onClick={handleAcceptAll}
                         className="flex-1"
                         size="sm"
-                      >
-                        Accept All
-                      </Button>
+                      >{t('support.acceptAll')}</Button>
                       <Button
                         onClick={handleRejectNonEssential}
                         variant="outline"
                         size="sm"
-                      >
-                        Reject Non-Essential
-                      </Button>
+                      >{t('support.rejectNonEssential')}</Button>
                       <Button
                         onClick={() => setShowDetails(true)}
                         variant="ghost"
@@ -226,9 +224,7 @@ export const CookieConsentBanner = () => {
                         onClick={handleSaveCustom}
                         className="flex-1"
                         size="sm"
-                      >
-                        Save Preferences
-                      </Button>
+                      >{t('support.savePreferences')}</Button>
                       <Button
                         onClick={() => setShowDetails(false)}
                         variant="outline"

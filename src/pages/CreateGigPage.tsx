@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -50,6 +51,7 @@ const STEPS = [
 ];
 
 export default function CreateGigPage() {
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -123,7 +125,7 @@ export default function CreateGigPage() {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["marketplace-gigs"] });
-      toast.success("Gig created successfully!");
+      toast.success(t("gig_created_successfully", "Gig created successfully!"));
       navigate(`/projects/gigs/${data.id}`);
     },
     onError: (error: Error) => {
@@ -245,10 +247,10 @@ export default function CreateGigPage() {
             {currentStep === 1 && (
               <div className="space-y-6">
                 <div className="space-y-2">
-                  <Label htmlFor="title">Gig Title</Label>
+                  <Label htmlFor="title">{t("gig_title", "Gig Title")}</Label>
                   <Input
                     id="title"
-                    placeholder="I will create a stunning website for your business"
+                    placeholder={t("i_will_create_a", "I will create a stunning website for your business")}
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     className="text-lg"
@@ -259,10 +261,10 @@ export default function CreateGigPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="category">Category</Label>
+                  <Label htmlFor="category">{t("category", "Category")}</Label>
                   <Select value={category} onValueChange={setCategory}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select a category" />
+                      <SelectValue placeholder={t("select_a_category", "Select a category")} />
                     </SelectTrigger>
                     <SelectContent>
                       {GIG_CATEGORIES.map((cat) => (
@@ -273,10 +275,10 @@ export default function CreateGigPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="description">Description</Label>
+                  <Label htmlFor="description">{t("description", "Description")}</Label>
                   <Textarea
                     id="description"
-                    placeholder="Describe your service in detail. What will you deliver? What's included?"
+                    placeholder={t("describe_your_service_in", "Describe your service in detail. What will you deliver? What's included?")}
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     rows={6}
@@ -287,10 +289,10 @@ export default function CreateGigPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Tags</Label>
+                  <Label>{t("tags", "Tags")}</Label>
                   <div className="flex gap-2">
                     <Input
-                      placeholder="Add up to 5 tags"
+                      placeholder={t("add_up_to_5", "Add up to 5 tags")}
                       value={tagInput}
                       onChange={(e) => setTagInput(e.target.value)}
                       onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addTag())}
@@ -336,7 +338,7 @@ export default function CreateGigPage() {
                       </CardHeader>
                       <CardContent className="space-y-4">
                         <div className="space-y-2">
-                          <Label>Description</Label>
+                          <Label>{t("description", "Description")}</Label>
                           <Input
                             placeholder={`What's included in ${pkg.name}?`}
                             value={pkg.description}
@@ -382,7 +384,7 @@ export default function CreateGigPage() {
                         </div>
 
                         <div className="space-y-2">
-                          <Label>Revisions</Label>
+                          <Label>{t("revisions", "Revisions")}</Label>
                           <Select
                             value={String(pkg.revisions)}
                             onValueChange={(v) => {
@@ -405,10 +407,10 @@ export default function CreateGigPage() {
                         </div>
 
                         <div className="space-y-2">
-                          <Label>Features</Label>
+                          <Label>{t("features", "Features")}</Label>
                           <div className="flex gap-2">
                             <Input
-                              placeholder="Add feature"
+                              placeholder={t("add_feature", "Add feature")}
                               value={featureInput[index === 0 ? "basic" : index === 1 ? "standard" : "premium"]}
                               onChange={(e) => setFeatureInput({
                                 ...featureInput,
@@ -447,7 +449,7 @@ export default function CreateGigPage() {
             {currentStep === 3 && (
               <div className="space-y-6">
                 <div className="space-y-2">
-                  <Label>Gallery Images</Label>
+                  <Label>{t("gallery_images", "Gallery Images")}</Label>
                   <p className="text-sm text-muted-foreground">
                     Add up to 6 images showcasing your work. Enter image URLs.
                   </p>
@@ -482,7 +484,7 @@ export default function CreateGigPage() {
                     <div className="aspect-video border-2 border-dashed rounded-lg flex items-center justify-center text-muted-foreground">
                       <div className="text-center">
                         <Image className="h-8 w-8 mx-auto mb-2" />
-                        <p className="text-sm">Add image</p>
+                        <p className="text-sm">{t("add_image", "Add image")}</p>
                       </div>
                     </div>
                   )}
@@ -493,13 +495,13 @@ export default function CreateGigPage() {
             {currentStep === 4 && (
               <div className="space-y-6">
                 <div className="space-y-4">
-                  <Label>Requirements from Buyer</Label>
+                  <Label>{t("requirements_from_buyer", "Requirements from Buyer")}</Label>
                   <p className="text-sm text-muted-foreground">
                     What information do you need from the buyer to get started?
                   </p>
                   <div className="flex gap-2">
                     <Input
-                      placeholder="e.g., Please provide your logo files"
+                      placeholder={t("eg_please_provide_your", "e.g., Please provide your logo files")}
                       value={requirementInput}
                       onChange={(e) => setRequirementInput(e.target.value)}
                       onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addRequirement())}
@@ -524,18 +526,18 @@ export default function CreateGigPage() {
                 <Separator />
 
                 <div className="space-y-4">
-                  <Label>Frequently Asked Questions</Label>
+                  <Label>{t("frequently_asked_questions", "Frequently Asked Questions")}</Label>
                   <p className="text-sm text-muted-foreground">
                     Add common questions buyers might have
                   </p>
                   <div className="space-y-2">
                     <Input
-                      placeholder="Question"
+                      placeholder={t("question", "Question")}
                       value={faqQuestion}
                       onChange={(e) => setFaqQuestion(e.target.value)}
                     />
                     <Textarea
-                      placeholder="Answer"
+                      placeholder={t("answer", "Answer")}
                       value={faqAnswer}
                       onChange={(e) => setFaqAnswer(e.target.value)}
                       rows={3}

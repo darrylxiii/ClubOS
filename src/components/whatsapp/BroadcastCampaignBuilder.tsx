@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -25,6 +26,7 @@ interface Campaign {
 }
 
 export function BroadcastCampaignBuilder() {
+  const { t } = useTranslation('common');
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isOpen, setIsOpen] = useState(false);
@@ -156,26 +158,26 @@ export function BroadcastCampaignBuilder() {
             </DialogTrigger>
             <DialogContent className="max-w-lg">
               <DialogHeader>
-                <DialogTitle>Create Broadcast Campaign</DialogTitle>
+                <DialogTitle>{t("create_broadcast_campaign", "Create Broadcast Campaign")}</DialogTitle>
               </DialogHeader>
               <div className="space-y-4">
                 <div>
-                  <Label>Campaign Name</Label>
+                  <Label>{t("campaign_name", "Campaign Name")}</Label>
                   <Input
                     value={newCampaign.name}
                     onChange={(e) => setNewCampaign({ ...newCampaign, name: e.target.value })}
-                    placeholder="e.g., Q1 Job Opportunities"
+                    placeholder={t("eg_q1_job_opportunities", "e.g., Q1 Job Opportunities")}
                   />
                 </div>
 
                 <div>
-                  <Label>Template</Label>
+                  <Label>{t("template", "Template")}</Label>
                   <Select
                     value={newCampaign.template_name}
                     onValueChange={(value) => setNewCampaign({ ...newCampaign, template_name: value })}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select approved template" />
+                      <SelectValue placeholder={t("select_approved_template", "Select approved template")} />
                     </SelectTrigger>
                     <SelectContent>
                       {templates?.map((template: { id: string; template_name: string }) => (
@@ -188,21 +190,21 @@ export function BroadcastCampaignBuilder() {
                 </div>
 
                 <div>
-                  <Label>Recipients</Label>
+                  <Label>{t("recipients", "Recipients")}</Label>
                   <Tabs value={recipientSource} onValueChange={(v) => setRecipientSource(v as 'manual' | 'consented')}>
                     <TabsList className="w-full mb-3">
                       <TabsTrigger value="consented" className="flex-1 gap-1.5">
                         <Shield className="h-3.5 w-3.5" />
                         Consented ({stats.optedIn})
                       </TabsTrigger>
-                      <TabsTrigger value="manual" className="flex-1">Manual</TabsTrigger>
+                      <TabsTrigger value="manual" className="flex-1">{t("manual", "Manual")}</TabsTrigger>
                     </TabsList>
                     
                     <TabsContent value="consented" className="mt-0">
                       <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
                         <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 mb-2">
                           <Shield className="h-4 w-4" />
-                          <span className="font-medium text-sm">GDPR Compliant</span>
+                          <span className="font-medium text-sm">{t("gdpr_compliant", "GDPR Compliant")}</span>
                         </div>
                         <p className="text-xs text-muted-foreground">
                           Using {stats.optedIn} opted-in contacts. {stats.unknown > 0 && (

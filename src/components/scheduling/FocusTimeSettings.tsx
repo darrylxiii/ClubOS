@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFocusTimeDefender, FocusTimeBlock, FocusTimePreferences } from '@/hooks/useFocusTimeDefender';
@@ -25,11 +26,11 @@ import {
 import { cn } from '@/lib/utils';
 
 const BLOCK_TYPES = [
-  { value: 'focus', label: 'Focus Time', icon: Zap, color: 'bg-blue-500' },
-  { value: 'deep_work', label: 'Deep Work', icon: Brain, color: 'bg-purple-500' },
-  { value: 'lunch', label: 'Lunch', icon: Coffee, color: 'bg-orange-500' },
-  { value: 'personal', label: 'Personal', icon: Calendar, color: 'bg-green-500' },
-  { value: 'no_meetings', label: 'No Meetings', icon: Shield, color: 'bg-red-500' },
+  { value: 'focus', label: t('scheduling.focustimesettings.focusTime', 'Focus Time'), icon: Zap, color: 'bg-blue-500' },
+  { value: 'deep_work', label: t('scheduling.focustimesettings.deepWork', 'Deep Work'), icon: Brain, color: 'bg-purple-500' },
+  { value: 'lunch', label: t('scheduling.focustimesettings.lunch', 'Lunch'), icon: Coffee, color: 'bg-orange-500' },
+  { value: 'personal', label: t('scheduling.focustimesettings.personal', 'Personal'), icon: Calendar, color: 'bg-green-500' },
+  { value: 'no_meetings', label: t('scheduling.focustimesettings.noMeetings', 'No Meetings'), icon: Shield, color: 'bg-red-500' },
 ];
 
 const TIME_SLOTS = Array.from({ length: 24 }, (_, i) => {
@@ -38,6 +39,7 @@ const TIME_SLOTS = Array.from({ length: 24 }, (_, i) => {
 });
 
 export function FocusTimeSettings() {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const {
     focusBlocks,
@@ -130,7 +132,7 @@ export function FocusTimeSettings() {
       <Card>
         <CardContent className="py-8 text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto" />
-          <p className="mt-2 text-muted-foreground">Loading focus settings...</p>
+          <p className="mt-2 text-muted-foreground">{t("loading_focus_settings", "Loading focus settings...")}</p>
         </CardContent>
       </Card>
     );
@@ -165,19 +167,19 @@ export function FocusTimeSettings() {
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
               <div>
-                <span className="text-muted-foreground">Meetings</span>
+                <span className="text-muted-foreground">{t("meetings", "Meetings")}</span>
                 <p className="font-semibold">{todayLoad.meeting_count}</p>
               </div>
               <div>
-                <span className="text-muted-foreground">In Meetings</span>
+                <span className="text-muted-foreground">{t("in_meetings", "In Meetings")}</span>
                 <p className="font-semibold">{Math.round(todayLoad.meeting_minutes / 60)}h {todayLoad.meeting_minutes % 60}m</p>
               </div>
               <div>
-                <span className="text-muted-foreground">Focus Time</span>
+                <span className="text-muted-foreground">{t("focus_time", "Focus Time")}</span>
                 <p className="font-semibold">{Math.round(todayLoad.focus_time_minutes / 60)}h {todayLoad.focus_time_minutes % 60}m</p>
               </div>
               <div>
-                <span className="text-muted-foreground">Back-to-Back</span>
+                <span className="text-muted-foreground">{t("backtoback", "Back-to-Back")}</span>
                 <p className="font-semibold">{todayLoad.back_to_back_count}</p>
               </div>
             </div>
@@ -200,9 +202,9 @@ export function FocusTimeSettings() {
 
       <Tabs defaultValue="blocks" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="blocks">Focus Blocks</TabsTrigger>
-          <TabsTrigger value="preferences">Preferences</TabsTrigger>
-          <TabsTrigger value="insights">AI Insights</TabsTrigger>
+          <TabsTrigger value="blocks">{t("focus_blocks", "Focus Blocks")}</TabsTrigger>
+          <TabsTrigger value="preferences">{t("preferences", "Preferences")}</TabsTrigger>
+          <TabsTrigger value="insights">{t("ai_insights", "AI Insights")}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="blocks" className="space-y-4">
@@ -214,9 +216,7 @@ export function FocusTimeSettings() {
                     <Shield className="h-5 w-5" />
                     Focus Time Blocks
                   </CardTitle>
-                  <CardDescription>
-                    Define protected time blocks for deep work
-                  </CardDescription>
+                  <CardDescription>{t('scheduling.focustimesettings.defineProtectedTimeBlocksForDeep', 'Define protected time blocks for deep work')}</CardDescription>
                 </div>
                 <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
                   <DialogTrigger asChild>
@@ -227,15 +227,13 @@ export function FocusTimeSettings() {
                   </DialogTrigger>
                   <DialogContent>
                     <DialogHeader>
-                      <DialogTitle>Add Focus Block</DialogTitle>
-                      <DialogDescription>
-                        Create a new protected time block
-                      </DialogDescription>
+                      <DialogTitle>{t("add_focus_block", "Add Focus Block")}</DialogTitle>
+                      <DialogDescription>{t('scheduling.focustimesettings.createANewProtectedTimeBlock', 'Create a new protected time block')}</DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4">
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <Label>Day</Label>
+                          <Label>{t("day", "Day")}</Label>
                           <Select
                             value={String(newBlock.day_of_week)}
                             onValueChange={(v) => setNewBlock({ ...newBlock, day_of_week: parseInt(v) })}
@@ -251,7 +249,7 @@ export function FocusTimeSettings() {
                           </Select>
                         </div>
                         <div>
-                          <Label>Type</Label>
+                          <Label>{t("type", "Type")}</Label>
                           <Select
                             value={newBlock.block_type}
                             onValueChange={(v) => setNewBlock({ ...newBlock, block_type: v as any })}
@@ -274,7 +272,7 @@ export function FocusTimeSettings() {
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <Label>Start Time</Label>
+                          <Label>{t("start_time", "Start Time")}</Label>
                           <Select
                             value={newBlock.start_time}
                             onValueChange={(v) => setNewBlock({ ...newBlock, start_time: v })}
@@ -290,7 +288,7 @@ export function FocusTimeSettings() {
                           </Select>
                         </div>
                         <div>
-                          <Label>End Time</Label>
+                          <Label>{t("end_time", "End Time")}</Label>
                           <Select
                             value={newBlock.end_time}
                             onValueChange={(v) => setNewBlock({ ...newBlock, end_time: v })}
@@ -307,11 +305,11 @@ export function FocusTimeSettings() {
                         </div>
                       </div>
                       <div>
-                        <Label>Label (optional)</Label>
+                        <Label>{t("label_optional", "Label (optional)")}</Label>
                         <Input
                           value={newBlock.label || ''}
                           onChange={(e) => setNewBlock({ ...newBlock, label: e.target.value })}
-                          placeholder="e.g., Deep work session"
+                          placeholder={t("eg_deep_work_session", "e.g., Deep work session")}
                         />
                       </div>
                       <div className="flex items-center gap-2">
@@ -319,15 +317,15 @@ export function FocusTimeSettings() {
                           checked={newBlock.sync_to_calendar}
                           onCheckedChange={(v) => setNewBlock({ ...newBlock, sync_to_calendar: v })}
                         />
-                        <Label>Sync to calendar</Label>
+                        <Label>{t("sync_to_calendar", "Sync to calendar")}</Label>
                       </div>
                     </div>
                     <DialogFooter>
                       <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
-                        Cancel
+                        {t('scheduling.focustimesettings.cancel', 'Cancel')}
                       </Button>
                       <Button onClick={handleAddBlock} disabled={createBlock.isPending}>
-                        {createBlock.isPending ? 'Creating...' : 'Create Block'}
+                        {createBlock.isPending ? t('scheduling.focustimesettings.creating', 'Creating...') : t('scheduling.focustimesettings.createBlock', 'Create Block')}
                       </Button>
                     </DialogFooter>
                   </DialogContent>
@@ -388,8 +386,8 @@ export function FocusTimeSettings() {
                 {focusBlocks.length === 0 && (
                   <div className="text-center py-8 text-muted-foreground">
                     <Shield className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                    <p>No focus blocks configured</p>
-                    <p className="text-sm">Add blocks to protect your deep work time</p>
+                    <p>{t("no_focus_blocks_configured", "No focus blocks configured")}</p>
+                    <p className="text-sm">{t("add_blocks_to_protect", "Add blocks to protect your deep work time")}</p>
                   </div>
                 )}
               </div>
@@ -400,19 +398,15 @@ export function FocusTimeSettings() {
         <TabsContent value="preferences">
           <Card>
             <CardHeader>
-              <CardTitle>Focus Time Preferences</CardTitle>
-              <CardDescription>
-                Configure how focus time protection works
-              </CardDescription>
+              <CardTitle>{t("focus_time_preferences", "Focus Time Preferences")}</CardTitle>
+              <CardDescription>{t('scheduling.focustimesettings.configureHowFocusTimeProtectionWorks', 'Configure how focus time protection works')}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <Label>Enable Focus Defender</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Protect focus blocks from meeting requests
-                    </p>
+                    <Label>{t("enable_focus_defender", "Enable Focus Defender")}</Label>
+                    <p className="text-sm text-muted-foreground">{t('scheduling.focustimesettings.protectFocusBlocksFromMeetingRequests', 'Protect focus blocks from meeting requests')}</p>
                   </div>
                   <Switch
                     checked={localPrefs.enable_focus_defender}
@@ -422,10 +416,8 @@ export function FocusTimeSettings() {
 
                 <div className="flex items-center justify-between">
                   <div>
-                    <Label>Protect Mornings</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Keep mornings free for focused work
-                    </p>
+                    <Label>{t("protect_mornings", "Protect Mornings")}</Label>
+                    <p className="text-sm text-muted-foreground">{t('scheduling.focustimesettings.keepMorningsFreeForFocusedWork', 'Keep mornings free for focused work')}</p>
                   </div>
                   <Switch
                     checked={localPrefs.protect_mornings}
@@ -435,7 +427,7 @@ export function FocusTimeSettings() {
 
                 {localPrefs.protect_mornings && (
                   <div className="ml-4">
-                    <Label>Morning Protection Until</Label>
+                    <Label>{t("morning_protection_until", "Morning Protection Until")}</Label>
                     <Select
                       value={String(localPrefs.morning_end_hour)}
                       onValueChange={(v) => setLocalPrefs({ ...localPrefs, morning_end_hour: parseInt(v) })}
@@ -454,10 +446,8 @@ export function FocusTimeSettings() {
 
                 <div className="flex items-center justify-between">
                   <div>
-                    <Label>Allow Override with Reason</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Let bookers override protection with a reason
-                    </p>
+                    <Label>{t("allow_override_with_reason", "Allow Override with Reason")}</Label>
+                    <p className="text-sm text-muted-foreground">{t('scheduling.focustimesettings.letBookersOverrideProtectionWithA', 'Let bookers override protection with a reason')}</p>
                   </div>
                   <Switch
                     checked={localPrefs.allow_override_with_reason}
@@ -467,7 +457,7 @@ export function FocusTimeSettings() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label>Max Daily Meetings</Label>
+                    <Label>{t("max_daily_meetings", "Max Daily Meetings")}</Label>
                     <Input
                       type="number"
                       value={localPrefs.max_daily_meetings}
@@ -477,7 +467,7 @@ export function FocusTimeSettings() {
                     />
                   </div>
                   <div>
-                    <Label>Buffer Between Meetings (min)</Label>
+                    <Label>{t("buffer_between_meetings_min", "Buffer Between Meetings (min)")}</Label>
                     <Input
                       type="number"
                       value={localPrefs.buffer_between_meetings_minutes}
@@ -489,7 +479,7 @@ export function FocusTimeSettings() {
                 </div>
 
                 <div>
-                  <Label>Preferred Meeting Hours</Label>
+                  <Label>{t("preferred_meeting_hours", "Preferred Meeting Hours")}</Label>
                   <div className="flex items-center gap-2 mt-2">
                     <Select
                       value={String(localPrefs.preferred_meeting_hours?.start || 9)}
@@ -535,7 +525,7 @@ export function FocusTimeSettings() {
               </div>
 
               <Button onClick={handleSavePreferences} disabled={savePreferences.isPending}>
-                {savePreferences.isPending ? 'Saving...' : 'Save Preferences'}
+                {savePreferences.isPending ? t('scheduling.focustimesettings.saving', 'Saving...') : t('scheduling.focustimesettings.savePreferences', 'Save Preferences')}
               </Button>
             </CardContent>
           </Card>
@@ -548,22 +538,20 @@ export function FocusTimeSettings() {
                 <Brain className="h-5 w-5" />
                 AI Pattern Analysis
               </CardTitle>
-              <CardDescription>
-                Let QUIN analyze your meeting patterns and suggest optimal focus blocks
-              </CardDescription>
+              <CardDescription>{t('scheduling.focustimesettings.letQuinAnalyzeYourMeetingPatterns', 'Let QUIN analyze your meeting patterns and suggest optimal focus blocks')}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <Button 
                 onClick={() => analyzePatterns.mutate()}
                 disabled={analyzePatterns.isPending}
               >
-                {analyzePatterns.isPending ? 'Analyzing...' : 'Analyze My Patterns'}
+                {analyzePatterns.isPending ? t('scheduling.focustimesettings.analyzing', 'Analyzing...') : t('scheduling.focustimesettings.analyzeMyPatterns', 'Analyze My Patterns')}
               </Button>
 
               {analyzePatterns.data && (
                 <div className="space-y-4">
                   <div>
-                    <h4 className="font-medium mb-2">Suggested Focus Blocks</h4>
+                    <h4 className="font-medium mb-2">{t("suggested_focus_blocks", "Suggested Focus Blocks")}</h4>
                     <div className="space-y-2">
                       {analyzePatterns.data.suggestedBlocks?.map((block: any, i: number) => (
                         <div key={i} className="p-3 bg-muted rounded-lg flex items-center justify-between">
@@ -586,7 +574,7 @@ export function FocusTimeSettings() {
                               auto_detected: true,
                             })}
                           >
-                            Add Block
+                            {t('scheduling.focustimesettings.addBlock', 'Add Block')}
                           </Button>
                         </div>
                       ))}

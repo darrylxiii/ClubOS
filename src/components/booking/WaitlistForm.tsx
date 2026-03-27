@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -28,6 +29,7 @@ export function WaitlistForm({
   preferredDate,
   onSuccess,
 }: WaitlistFormProps) {
+  const { t } = useTranslation('common');
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [formData, setFormData] = useState({
@@ -52,7 +54,7 @@ export function WaitlistForm({
           fieldErrors[field] = error.message;
         });
         setErrors(fieldErrors);
-        toast.error("Please fix the errors in the form");
+        toast.error(t("please_fix_the_errors", "Please fix the errors in the form"));
         return;
       }
     }
@@ -72,11 +74,11 @@ export function WaitlistForm({
 
       if (error) throw error;
 
-      toast.success("Added to waitlist! We'll notify you when a slot opens up.");
+      toast.success(t("added_to_waitlist_well", "Added to waitlist! We'll notify you when a slot opens up."));
       onSuccess?.();
     } catch (error: unknown) {
       console.error("Waitlist error:", error);
-      toast.error("Failed to join waitlist. Please try again.");
+      toast.error(t("failed_to_join_waitlist", "Failed to join waitlist. Please try again."));
     } finally {
       setLoading(false);
     }
@@ -87,7 +89,7 @@ export function WaitlistForm({
       <div className="text-center pb-4 border-b">
         <div className="flex items-center justify-center gap-2 mb-3">
           <Bell className="h-5 w-5 text-primary" />
-          <h3 className="text-lg font-semibold">Join Waitlist</h3>
+          <h3 className="text-lg font-semibold">{t("join_waitlist", "Join Waitlist")}</h3>
         </div>
         <p className="text-sm text-muted-foreground mb-2">
           No slots available for {format(preferredDate, "MMMM d, yyyy")}
@@ -109,7 +111,7 @@ export function WaitlistForm({
               setFormData({ ...formData, name: e.target.value });
               setErrors({ ...errors, name: "" });
             }}
-            placeholder="Your full name"
+            placeholder={t("your_full_name", "Your full name")}
             required
             className={errors.name ? "border-destructive" : ""}
           />
@@ -128,7 +130,7 @@ export function WaitlistForm({
               setFormData({ ...formData, email: e.target.value });
               setErrors({ ...errors, email: "" });
             }}
-            placeholder="you@example.com"
+            placeholder={t("youexamplecom", "you@example.com")}
             required
             className={errors.email ? "border-destructive" : ""}
           />
@@ -136,7 +138,7 @@ export function WaitlistForm({
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="phone">Phone (optional)</Label>
+          <Label htmlFor="phone">{t("phone_optional", "Phone (optional)")}</Label>
           <Input
             id="phone"
             type="tel"
@@ -163,13 +165,13 @@ export function WaitlistForm({
             }}
           >
             <SelectTrigger className={errors.preferred_time_range ? "border-destructive" : ""}>
-              <SelectValue placeholder="Select preferred time" />
+              <SelectValue placeholder={t("select_preferred_time", "Select preferred time")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="morning">Morning (8 AM - 12 PM)</SelectItem>
-              <SelectItem value="afternoon">Afternoon (12 PM - 5 PM)</SelectItem>
-              <SelectItem value="evening">Evening (5 PM - 9 PM)</SelectItem>
-              <SelectItem value="any">Any time</SelectItem>
+              <SelectItem value="morning">{t("morning_8_am_12", "Morning (8 AM - 12 PM)")}</SelectItem>
+              <SelectItem value="afternoon">{t("afternoon_12_pm_5", "Afternoon (12 PM - 5 PM)")}</SelectItem>
+              <SelectItem value="evening">{t("evening_5_pm_9", "Evening (5 PM - 9 PM)")}</SelectItem>
+              <SelectItem value="any">{t("any_time", "Any time")}</SelectItem>
             </SelectContent>
           </Select>
           {errors.preferred_time_range && (
@@ -178,12 +180,12 @@ export function WaitlistForm({
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="notes">Additional Notes (optional)</Label>
+          <Label htmlFor="notes">{t("additional_notes_optional", "Additional Notes (optional)")}</Label>
           <Textarea
             id="notes"
             value={formData.notes}
             onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-            placeholder="Any specific requirements or alternative dates..."
+            placeholder={t("any_specific_requirements_or", "Any specific requirements or alternative dates...")}
             rows={3}
           />
         </div>

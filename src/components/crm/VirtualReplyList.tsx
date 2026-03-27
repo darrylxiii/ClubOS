@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useRef, useEffect } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { Loader2 } from "lucide-react";
@@ -31,6 +32,7 @@ export function VirtualReplyList({
   loadingMore,
   onLoadMore,
 }: VirtualReplyListProps) {
+  const { t } = useTranslation('common');
   const parentRef = useRef<HTMLDivElement>(null);
 
   const virtualizer = useVirtualizer({
@@ -111,7 +113,7 @@ export function VirtualReplyList({
       {loadingMore && (
         <div className="flex items-center justify-center py-4">
           <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
-          <span className="ml-2 text-xs text-muted-foreground">Loading more...</span>
+          <span className="ml-2 text-xs text-muted-foreground">{t("loading_more", "Loading more...")}</span>
         </div>
       )}
     </div>

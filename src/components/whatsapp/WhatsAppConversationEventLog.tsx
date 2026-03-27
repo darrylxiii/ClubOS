@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { format, formatDistanceToNow } from 'date-fns';
 import { 
   MessageSquare, 
@@ -38,6 +39,7 @@ const eventConfig: Record<string, { icon: typeof MessageSquare; label: string; c
 };
 
 export function WhatsAppConversationEventLog({ conversationId, maxHeight = '300px' }: Props) {
+  const { t } = useTranslation('common');
   const { events, loading } = useWhatsAppConversationEvents(conversationId);
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -65,7 +67,7 @@ export function WhatsAppConversationEventLog({ conversationId, maxHeight = '300p
     return (
       <div className="text-center py-6 text-sm text-muted-foreground">
         <Clock className="w-8 h-8 mx-auto mb-2 opacity-50" />
-        <p>No events recorded yet</p>
+        <p>{t("no_events_recorded_yet", "No events recorded yet")}</p>
       </div>
     );
   }
@@ -75,7 +77,7 @@ export function WhatsAppConversationEventLog({ conversationId, maxHeight = '300p
   return (
     <div className="border rounded-lg bg-card">
       <div className="p-3 border-b flex items-center justify-between">
-        <h4 className="text-sm font-medium">Activity Log</h4>
+        <h4 className="text-sm font-medium">{t("activity_log", "Activity Log")}</h4>
         <span className="text-xs text-muted-foreground">{events.length} events</span>
       </div>
       

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useIsMobile } from '@/hooks/use-mobile';
 import ServerSidebar from './ServerSidebar';
 import ChannelList from './ChannelList';
@@ -22,6 +23,7 @@ import { Search, Settings, Bell } from 'lucide-react';
 import MobileLiveHubLayout from './MobileLiveHubLayout';
 
 const LiveHubLayout = () => {
+  const { t } = useTranslation('meetings');
   const isMobile = useIsMobile();
   const [selectedChannelId, setSelectedChannelId] = useState<string | null>(null);
   const [selectedChannelType, setSelectedChannelType] = useState<string>('text');
@@ -163,8 +165,8 @@ const LiveHubLayout = () => {
           ) : (
             <div className="flex items-center justify-center h-full text-muted-foreground">
               <div className="text-center">
-                <h2 className="text-2xl font-semibold mb-2">Welcome to The Quantum Club</h2>
-                <p>Select a channel or start a conversation</p>
+                <h2 className="text-2xl font-semibold mb-2">{t('livehub.welcomeToTQC')}</h2>
+                <p>{t('livehub.selectChannelOrConversation')}</p>
               </div>
             </div>
           )}

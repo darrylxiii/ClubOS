@@ -2,6 +2,7 @@ import { memo } from "react";
 import { AnimatedNumber } from "@/components/ui/animated-number";
 import { Users, Activity, Clock, TrendingUp, AlertCircle, Timer } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslation } from 'react-i18next';
 
 interface JobDashboardStatsBarProps {
   totalCandidates: number;
@@ -31,6 +32,7 @@ export const JobDashboardStatsBar = memo(({
   conversionRate,
   avgTimeToHire,
 }: JobDashboardStatsBarProps) => {
+  const { t } = useTranslation('jobs');
   const stats = [
     {
       icon: Users,

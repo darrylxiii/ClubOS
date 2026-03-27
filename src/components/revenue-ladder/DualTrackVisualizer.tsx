@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { motion } from '@/lib/motion';
 import { TrendingUp, Trophy, Calendar, Infinity, Banknote, CheckCircle2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -11,8 +12,7 @@ interface DualTrackVisualizerProps {
   cumulativeLadder?: RevenueLadder;
 }
 
-function TrackCard({ 
-  ladder, 
+function TrackCard({  ladder, 
   type,
   revenueData,
 }: { 
@@ -24,6 +24,7 @@ function TrackCard({
     year?: number;
   };
 }) {
+const { t } = useTranslation('common');
   const config = type === 'annual' 
     ? {
         icon: Calendar,
@@ -95,7 +96,7 @@ function TrackCard({
               </div>
             </div>
             <div className="text-right">
-              <p className="text-label-sm text-muted-foreground">Milestones</p>
+              <p className="text-label-sm text-muted-foreground">{t("milestones", "Milestones")}</p>
               <p className="text-heading-md font-bold">
                 <span className={config.color}>{unlockedCount}</span>
                 <span className="text-muted-foreground">/{milestones.length}</span>
@@ -109,7 +110,7 @@ function TrackCard({
             <div className="space-y-1">
               <div className="flex items-center gap-2">
                 <Banknote className="h-4 w-4 text-muted-foreground" />
-                <p className="text-label-sm text-muted-foreground">Revenue (excl. VAT)</p>
+                <p className="text-label-sm text-muted-foreground">{t("revenue_excl_vat", "Revenue (excl. VAT)")}</p>
               </div>
               <motion.p 
                 className="text-display-md font-bold tracking-tight"
@@ -132,7 +133,7 @@ function TrackCard({
                 </div>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Cash received (paid invoices only)</p>
+                <p>{t("cash_received_paid_invoices", "Cash received (paid invoices only)")}</p>
               </TooltipContent>
             </Tooltip>
           </div>

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -16,12 +17,13 @@ const CHANGE_CONFIG: Record<string, { icon: typeof UserPlus; label: string; colo
 };
 
 export function OrgChangesFeed({ changes }: Props) {
+  const { t } = useTranslation('common');
   if (changes.length === 0) {
     return (
       <Card>
         <CardContent className="p-12 text-center">
           <CheckCircle className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-          <h3 className="text-lg font-semibold mb-2">No changes detected yet</h3>
+          <h3 className="text-lg font-semibold mb-2">{t("no_changes_detected_yet", "No changes detected yet")}</h3>
           <p className="text-sm text-muted-foreground">
             Changes will appear here after the next organization rescan.
           </p>

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,6 +19,7 @@ export function BreakoutRoomTimer({
   isHost,
   onSetTimer 
 }: BreakoutRoomTimerProps) {
+  const { t } = useTranslation('common');
   const [timerMinutes, setTimerMinutes] = useState(10);
 
   const parseTime = (time: string): number => {
@@ -43,7 +45,7 @@ export function BreakoutRoomTimer({
             !isLowTime && "text-primary"
           )} />
           <div>
-            <p className="text-sm text-muted-foreground">Time Remaining</p>
+            <p className="text-sm text-muted-foreground">{t("time_remaining", "Time Remaining")}</p>
             <p className={cn(
               "text-xl font-mono font-bold",
               isVeryLowTime && "text-destructive",
@@ -70,7 +72,7 @@ export function BreakoutRoomTimer({
           <PopoverContent className="w-64">
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label>Duration (minutes)</Label>
+                <Label>{t("duration_minutes", "Duration (minutes)")}</Label>
                 <div className="flex gap-2">
                   {[5, 10, 15, 20].map(mins => (
                     <Button
@@ -104,7 +106,7 @@ export function BreakoutRoomTimer({
       ) : (
         <div className="flex items-center gap-2 text-muted-foreground">
           <Clock className="h-4 w-4" />
-          <span className="text-sm">No timer set</span>
+          <span className="text-sm">{t("no_timer_set", "No timer set")}</span>
         </div>
       )}
     </Card>

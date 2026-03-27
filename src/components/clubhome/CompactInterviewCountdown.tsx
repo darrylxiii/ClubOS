@@ -6,6 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Video, BookOpen, Clock } from "lucide-react";
 import { format, differenceInHours, differenceInMinutes, differenceInDays } from "date-fns";
+import { useTranslation } from 'react-i18next';
 
 interface Interview {
   id: string;
@@ -18,6 +19,7 @@ interface Interview {
 }
 
 export function CompactInterviewCountdown() {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const navigate = useNavigate();
   const [timeLeft, setTimeLeft] = useState("");

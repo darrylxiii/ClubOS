@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -21,6 +22,7 @@ interface Recommendation {
 }
 
 export function RecommendationsPanel() {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const navigate = useNavigate();
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
@@ -88,7 +90,7 @@ export function RecommendationsPanel() {
           <Sparkles className="h-5 w-5 text-primary" />
         </div>
         <div>
-          <h3 className="font-semibold">Recommended for You</h3>
+          <h3 className="font-semibold">{t("recommended_for_you", "Recommended for You")}</h3>
           <p className="text-sm text-muted-foreground">
             Based on your learning journey
           </p>

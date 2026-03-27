@@ -8,10 +8,12 @@ import {
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslation } from 'react-i18next';
 
 const MAX_VISIBLE = 5;
 
 export function PagePresenceAvatars() {
+  const { t } = useTranslation('common');
   const { viewers } = usePagePresence();
 
   if (viewers.length === 0) return null;
@@ -47,7 +49,7 @@ export function PagePresenceAvatars() {
                 <TooltipContent side="bottom" className="text-xs">
                   <p className="font-medium">{viewer.user_name}</p>
                   <p className="text-muted-foreground">
-                    {viewer.is_editing ? "Editing this page" : "Viewing this page"}
+                    {viewer.is_editing ? t('presence.editing', 'Editing this page') : t('presence.viewing', 'Viewing this page')}
                   </p>
                 </TooltipContent>
               </Tooltip>
@@ -76,7 +78,7 @@ export function PagePresenceAvatars() {
         </AnimatePresence>
 
         <span className="text-[10px] text-muted-foreground hidden sm:inline">
-          {viewers.length === 1 ? "1 other here" : `${viewers.length} others here`}
+          {t('presence.othersHere', '{{count}} others here', { count: viewers.length })}
         </span>
       </div>
     </TooltipProvider>

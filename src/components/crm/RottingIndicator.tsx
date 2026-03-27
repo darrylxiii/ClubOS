@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { AlertTriangle, Clock } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -10,6 +11,7 @@ interface RottingIndicatorProps {
 }
 
 export function RottingIndicator({ lastContactedAt, className, showLabel = false }: RottingIndicatorProps) {
+  const { t } = useTranslation('common');
   if (!lastContactedAt) {
     return (
       <Tooltip>
@@ -19,11 +21,11 @@ export function RottingIndicator({ lastContactedAt, className, showLabel = false
             className
           )}>
             <Clock className="w-3 h-3" />
-            {showLabel && <span>Never contacted</span>}
+            {showLabel && <span>{t("never_contacted", "Never contacted")}</span>}
           </div>
         </TooltipTrigger>
         <TooltipContent>
-          <p>This prospect has never been contacted</p>
+          <p>{t("this_prospect_has_never", "This prospect has never been contacted")}</p>
         </TooltipContent>
       </Tooltip>
     );

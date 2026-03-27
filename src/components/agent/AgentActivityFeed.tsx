@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -44,6 +45,7 @@ const eventTypeConfig: Record<string, { icon: typeof Bot; color: string; label: 
 };
 
 export function AgentActivityFeed({ limit = 20 }: { limit?: number }) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
 
   const { data: events, isLoading } = useQuery({
@@ -71,7 +73,7 @@ export function AgentActivityFeed({ limit = 20 }: { limit?: number }) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Agent Activity</CardTitle>
+          <CardTitle className="text-lg">{t("agent_activity", "Agent Activity")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">

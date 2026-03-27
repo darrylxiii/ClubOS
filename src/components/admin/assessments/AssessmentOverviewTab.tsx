@@ -4,8 +4,10 @@ import { useAssessmentAnalytics } from '@/hooks/useAssessmentAnalytics';
 import { useAssessmentAssignments } from '@/hooks/useAssessmentAssignments';
 import { BarChart, TrendingUp, Users, CheckCircle } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useTranslation } from 'react-i18next';
 
 export const AssessmentOverviewTab = memo(() => {
+  const { t } = useTranslation('admin');
   const { getOverviewStats, loading: analyticsLoading } = useAssessmentAnalytics();
   const { getAssignments } = useAssessmentAssignments();
   const [stats, setStats] = useState({

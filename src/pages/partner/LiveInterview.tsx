@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -16,6 +17,7 @@ interface AnalysisResult {
 }
 
 const LiveInterview = () => {
+    const { t } = useTranslation('partner');
     const [isRecording, setIsRecording] = useState(false);
     const [transcript, setTranscript] = useState<string>("");
     const [analysisLog, setAnalysisLog] = useState<AnalysisResult[]>([]);
@@ -41,12 +43,12 @@ const LiveInterview = () => {
             recognitionRef.current.onerror = (event: any) => {
                 console.error("Speech recognition error", event.error);
                 if (event.error === 'not-allowed') {
-                    toast.error("Microphone access denied.");
+                    toast.error(t('liveInterview.micDenied'));
                     setIsRecording(false);
                 }
             };
         } else {
-            toast.error("Browser does not support Speech Recognition.");
+            toast.error(t('liveInterview.noSpeechSupport'));
         }
 
         return () => {
@@ -90,15 +92,15 @@ const LiveInterview = () => {
         } else {
             recognitionRef.current?.start();
             setIsRecording(true);
-            toast.info("Sentinel is listening...");
+            toast.info(t('liveInterview.listening'));
         }
     };
 
     return (
         <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
             <PartnerPageHeader
-                title="Interview Sentinel"
-                subtitle="Real-time Fact Checking & Copilot"
+                title={t('liveInterview.title')}
+                subtitle={t('liveInterview.subtitle')}
                 actions={
                     <Button
                         onClick={toggleRecording}
@@ -106,28 +108,28 @@ const LiveInterview = () => {
                         size="sm"
                         className="h-9 gap-1.5"
                     >
-                        {isRecording ? <><MicOff className="h-4 w-4" /> Stop</> : <><Mic className="h-4 w-4" /> Start</>}
+                        {isRecording ? <><MicOff className="h-4 w-4" />{t('liveInterview.stop')}</> : <><Mic className="h-4 w-4" />{t('liveInterview.start')}</>}
                     </Button>
                 }
             />
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-[70vh]">
                 <PartnerGlassCard
-                    title="Live Transcript"
-                    description="Real-time speech-to-text stream"
+                    title={t('liveInterview.liveTranscript')}
+                    description={t('liveInterview.speechToText')}
                     className="md:col-span-2 flex flex-col h-full"
                     contentClassName="flex-1 overflow-hidden"
                 >
                     <ScrollArea className="h-full rounded-md p-4 bg-card/20 border border-border/10">
                         <p className="whitespace-pre-wrap text-lg leading-relaxed">
-                            {transcript || <span className="text-muted-foreground italic">Waiting for speech...</span>}
+                            {transcript || <span className="text-muted-foreground italic">{t('liveInterview.waitingForSpeech')}</span>}
                         </p>
                     </ScrollArea>
                 </PartnerGlassCard>
 
                 <PartnerGlassCard
-                    title="Sentinel HUD"
-                    description="Live AI Insights"
+                    title={t('liveInterview.sentinelHud')}
+                    description={t('liveInterview.liveAiInsights')}
                     icon={<CheckCircle className="text-primary h-5 w-5" />}
                     className="flex flex-col h-full border-l-2 border-l-primary"
                     contentClassName="flex-1 overflow-hidden"
@@ -136,7 +138,7 @@ const LiveInterview = () => {
                         <div className="space-y-4">
                             {analysisLog.length === 0 && (
                                 <div className="text-center text-muted-foreground py-10">
-                                    No alerts yet. System is monitoring...
+                                    {t('liveInterview.noAlerts')}
                                 </div>
                             )}
                             {analysisLog.map((log, i) => (

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,6 +27,7 @@ interface StrategistData {
 }
 
 export function PartnerConciergeCard({ companyId }: PartnerConciergeCardProps) {
+  const { t } = useTranslation('common');
   const { data: assignment, isLoading: assignmentLoading } = useStrategistAssignment(companyId);
   const [strategistDetails, setStrategistDetails] = useState<StrategistData | null>(null);
   const [recentUpdates, setRecentUpdates] = useState<string[]>([]);
@@ -99,7 +101,7 @@ export function PartnerConciergeCard({ companyId }: PartnerConciergeCardProps) {
       }
     } catch (error) {
       console.error('Error fetching strategist:', error);
-      toast.error('Failed to load your strategist info');
+      toast.error(t("failed_to_load_your", "Failed to load your strategist info"));
     } finally {
       setLoading(false);
     }
@@ -151,10 +153,8 @@ export function PartnerConciergeCard({ companyId }: PartnerConciergeCardProps) {
               </div>
               <div>
                 <CardTitle className="text-xl flex items-center gap-2">
-                  <span>Your Concierge is Being Assigned</span>
-                  <Badge variant="secondary" className="bg-primary/10 text-primary">
-                    In Progress
-                  </Badge>
+                  <span>{t("your_concierge_is_being", "Your Concierge is Being Assigned")}</span>
+                  <Badge variant="secondary" className="bg-primary/10 text-primary">{t('partnerConciergeCard.badge.inProgress')}</Badge>
                 </CardTitle>
                 <CardDescription className="mt-1">
                   A dedicated talent strategist will be assigned to provide you with white-glove service within 24 hours
@@ -166,7 +166,7 @@ export function PartnerConciergeCard({ companyId }: PartnerConciergeCardProps) {
             <div className="bg-muted/50 rounded-lg p-4 flex items-center gap-3 border border-border/50">
               <Clock className="w-5 h-5 text-primary" />
               <p className="text-sm text-muted-foreground">
-                Need immediate assistance? Contact us at <a href="mailto:partners@thequantumclub.com" className="text-primary hover:underline">partners@thequantumclub.com</a>
+                Need immediate assistance? Contact us at <a href="mailto:partners@thequantumclub.com" className="text-primary hover:underline">{t("partnersthequantumclubcom", "partners@thequantumclub.com")}</a>
               </p>
             </div>
           </CardContent>
@@ -209,9 +209,7 @@ export function PartnerConciergeCard({ companyId }: PartnerConciergeCardProps) {
               </div>
               
               <div className="space-y-1">
-                <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                  Your Dedicated Concierge
-                </p>
+                <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">{t('partnerConciergeCard.yourDedicatedConcierge')}</p>
                 <CardTitle className="text-xl font-bold tracking-tight">
                   {strategistDetails.full_name}
                 </CardTitle>
@@ -262,9 +260,7 @@ export function PartnerConciergeCard({ companyId }: PartnerConciergeCardProps) {
           {/* Contact Info */}
           {strategistDetails.email && (
             <div className="pt-4 border-t border-border/50 space-y-2">
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                Direct Contact
-              </p>
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t('partnerConciergeCard.directContact')}</p>
               <div className="flex items-center gap-2 text-sm">
                 <Mail className="w-4 h-4 text-muted-foreground" />
                 <a 
@@ -307,7 +303,7 @@ export function PartnerConciergeCard({ companyId }: PartnerConciergeCardProps) {
               <Clock className="w-4 h-4 text-primary" />
             </div>
             <div>
-              <p className="text-sm font-medium">Response SLA</p>
+              <p className="text-sm font-medium">{t("response_sla", "Response SLA")}</p>
               <p className="text-xs text-muted-foreground">
                 {strategistDetails.is_available ? '< 4 hours guaranteed' : 'Within 24 hours'}
               </p>

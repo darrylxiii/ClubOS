@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -30,6 +31,7 @@ const actionColors: Record<string, string> = {
 };
 
 export function KPIAuditLogViewer() {
+  const { t } = useTranslation('common');
   const [period, setPeriod] = useState<number>(30);
   const { data: summary, isLoading: summaryLoading } = useKPIAuditSummary(period);
   const { data: history, isLoading: historyLoading } = useKPIAuditHistory(50);
@@ -42,7 +44,7 @@ export function KPIAuditLogViewer() {
           <CardContent className="pt-4">
             <div className="flex items-center gap-2">
               <Activity className="h-4 w-4 text-primary" />
-              <span className="text-sm text-muted-foreground">Total Actions</span>
+              <span className="text-sm text-muted-foreground">{t("total_actions", "Total Actions")}</span>
             </div>
             <p className="text-2xl font-bold mt-1">
               {summaryLoading ? '...' : (summary?.total_actions || 0).toLocaleString()}
@@ -54,7 +56,7 @@ export function KPIAuditLogViewer() {
           <CardContent className="pt-4">
             <div className="flex items-center gap-2">
               <Users className="h-4 w-4 text-primary" />
-              <span className="text-sm text-muted-foreground">Unique Users</span>
+              <span className="text-sm text-muted-foreground">{t("unique_users", "Unique Users")}</span>
             </div>
             <p className="text-2xl font-bold mt-1">
               {summaryLoading ? '...' : (summary?.unique_users || 0)}
@@ -66,7 +68,7 @@ export function KPIAuditLogViewer() {
           <CardContent className="pt-4">
             <div className="flex items-center gap-2">
               <Eye className="h-4 w-4 text-primary" />
-              <span className="text-sm text-muted-foreground">Views</span>
+              <span className="text-sm text-muted-foreground">{t("views", "Views")}</span>
             </div>
             <p className="text-2xl font-bold mt-1">
               {summaryLoading ? '...' : (summary?.by_action_type?.view || 0).toLocaleString()}
@@ -78,7 +80,7 @@ export function KPIAuditLogViewer() {
           <CardContent className="pt-4">
             <div className="flex items-center gap-2">
               <Download className="h-4 w-4 text-primary" />
-              <span className="text-sm text-muted-foreground">Exports</span>
+              <span className="text-sm text-muted-foreground">{t("exports", "Exports")}</span>
             </div>
             <p className="text-2xl font-bold mt-1">
               {summaryLoading ? '...' : (summary?.by_action_type?.export || 0).toLocaleString()}
@@ -99,9 +101,9 @@ export function KPIAuditLogViewer() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="7">Last 7 days</SelectItem>
-              <SelectItem value="30">Last 30 days</SelectItem>
-              <SelectItem value="90">Last 90 days</SelectItem>
+              <SelectItem value="7">{t("last_7_days", "Last 7 days")}</SelectItem>
+              <SelectItem value="30">{t("last_30_days", "Last 30 days")}</SelectItem>
+              <SelectItem value="90">{t("last_90_days", "Last 90 days")}</SelectItem>
             </SelectContent>
           </Select>
         </CardHeader>

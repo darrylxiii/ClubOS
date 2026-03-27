@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -47,6 +48,7 @@ interface ProposalInboxProps {
 }
 
 export function ProposalInbox({ projectId, companyId }: ProposalInboxProps) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -120,10 +122,10 @@ export function ProposalInbox({ projectId, companyId }: ProposalInboxProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["proposal-inbox"] });
-      toast.success("Proposal updated");
+      toast.success(t("proposal_updated", "Proposal updated"));
     },
     onError: (error) => {
-      toast.error("Failed to update proposal: " + error.message);
+      toast.error(t("failed_to_update_proposal", "Failed to update proposal:") + error.message);
     },
   });
 
@@ -191,7 +193,7 @@ export function ProposalInbox({ projectId, companyId }: ProposalInboxProps) {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search proposals..."
+                placeholder={t("search_proposals", "Search proposals...")}
                 className="pl-10"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -205,11 +207,11 @@ export function ProposalInbox({ projectId, companyId }: ProposalInboxProps) {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="newest">Newest First</SelectItem>
-                  <SelectItem value="oldest">Oldest First</SelectItem>
-                  <SelectItem value="match_score">Best Match</SelectItem>
-                  <SelectItem value="rate_low">Rate: Low to High</SelectItem>
-                  <SelectItem value="rate_high">Rate: High to Low</SelectItem>
+                  <SelectItem value="newest">{t("newest_first", "Newest First")}</SelectItem>
+                  <SelectItem value="oldest">{t("oldest_first", "Oldest First")}</SelectItem>
+                  <SelectItem value="match_score">{t("best_match", "Best Match")}</SelectItem>
+                  <SelectItem value="rate_low">{t("rate_low_to_high", "Rate: Low to High")}</SelectItem>
+                  <SelectItem value="rate_high">{t("rate_high_to_low", "Rate: High to Low")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -217,11 +219,11 @@ export function ProposalInbox({ projectId, companyId }: ProposalInboxProps) {
             {/* Status Tabs */}
             <Tabs value={activeTab} onValueChange={setActiveTab}>
               <TabsList className="grid grid-cols-3 w-full">
-                <TabsTrigger value="all">All</TabsTrigger>
+                <TabsTrigger value="all">{t("all", "All")}</TabsTrigger>
                 <TabsTrigger value="submitted">
                   New {tabCounts.submitted > 0 && `(${tabCounts.submitted})`}
                 </TabsTrigger>
-                <TabsTrigger value="shortlisted">Shortlisted</TabsTrigger>
+                <TabsTrigger value="shortlisted">{t("shortlisted", "Shortlisted")}</TabsTrigger>
               </TabsList>
             </Tabs>
           </CardContent>
@@ -266,7 +268,7 @@ export function ProposalInbox({ projectId, companyId }: ProposalInboxProps) {
                           {proposal.freelancer?.full_name}
                         </p>
                         {!proposal.viewed_by_client_at && (
-                          <Badge variant="default" className="text-xs">New</Badge>
+                          <Badge variant="default" className="text-xs">{t("new", "New")}</Badge>
                         )}
                       </div>
                       <p className="text-sm text-muted-foreground truncate">
@@ -298,7 +300,7 @@ export function ProposalInbox({ projectId, companyId }: ProposalInboxProps) {
             <Card>
               <CardContent className="py-8 text-center">
                 <Inbox className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
-                <p className="text-muted-foreground">No proposals yet</p>
+                <p className="text-muted-foreground">{t("no_proposals_yet", "No proposals yet")}</p>
               </CardContent>
             </Card>
           )}
@@ -337,7 +339,7 @@ export function ProposalInbox({ projectId, companyId }: ProposalInboxProps) {
                 <div className="text-center p-4 bg-muted rounded-lg">
                   <DollarSign className="h-5 w-5 mx-auto text-muted-foreground mb-1" />
                   <p className="text-2xl font-bold">€{selectedProposal.proposed_rate}</p>
-                  <p className="text-xs text-muted-foreground">per hour</p>
+                  <p className="text-xs text-muted-foreground">{t("per_hour", "per hour")}</p>
                 </div>
                 <div className="text-center p-4 bg-muted rounded-lg">
                   <Clock className="h-5 w-5 mx-auto text-muted-foreground mb-1" />
@@ -348,14 +350,14 @@ export function ProposalInbox({ projectId, companyId }: ProposalInboxProps) {
                   <div className="text-center p-4 bg-primary/10 rounded-lg">
                     <Sparkles className="h-5 w-5 mx-auto text-primary mb-1" />
                     <p className="text-2xl font-bold text-primary">{selectedProposal.match_score}%</p>
-                    <p className="text-xs text-muted-foreground">AI Match</p>
+                    <p className="text-xs text-muted-foreground">{t("ai_match", "AI Match")}</p>
                   </div>
                 )}
               </div>
 
               {/* Cover Letter */}
               <div>
-                <h4 className="font-medium mb-2">Cover Letter</h4>
+                <h4 className="font-medium mb-2">{t("cover_letter", "Cover Letter")}</h4>
                 <p className="text-muted-foreground whitespace-pre-wrap">
                   {selectedProposal.cover_letter}
                 </p>
@@ -475,7 +477,7 @@ export function ProposalInbox({ projectId, companyId }: ProposalInboxProps) {
           <Card className="h-full flex items-center justify-center">
             <CardContent className="text-center py-12">
               <Inbox className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Select a Proposal</h3>
+              <h3 className="text-lg font-semibold mb-2">{t("select_a_proposal", "Select a Proposal")}</h3>
               <p className="text-muted-foreground">
                 Click on a proposal to view details
               </p>

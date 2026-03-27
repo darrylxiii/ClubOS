@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Badge } from "@/components/ui/badge";
 import { Plus, Users, Calendar, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -9,6 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { RainbowButton } from "@/components/ui/rainbow-button";
 
 export function PartnerActionStrip() {
+  const { t } = useTranslation('common');
   const { totalPending, overdueCount, isLoading: reviewsLoading } = useAggregatedReviewQueue();
   const { user } = useAuth();
 
@@ -95,7 +97,7 @@ export function PartnerActionStrip() {
       ) : (
         <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/30 text-muted-foreground">
           <Users className="h-4 w-4" />
-          <span className="text-sm">No pending reviews</span>
+          <span className="text-sm">{t("no_pending_reviews", "No pending reviews")}</span>
         </div>
       )}
 

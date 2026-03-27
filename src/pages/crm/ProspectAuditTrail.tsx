@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { RoleGate } from '@/components/RoleGate';
 import { motion } from 'framer-motion';
 import { Input } from '@/components/ui/input';
@@ -24,6 +25,7 @@ interface AuditEntry {
 }
 
 export default function ProspectAuditTrail() {
+  const { t } = useTranslation('common');
   const [searchQuery, setSearchQuery] = useState('');
   const [actionFilter, setActionFilter] = useState('all');
   const [selectedProspect, setSelectedProspect] = useState<string | null>(null);
@@ -108,9 +110,7 @@ export default function ProspectAuditTrail() {
             <Activity className="h-8 w-8 text-primary" />
             Prospect Audit Trail
           </h1>
-          <p className="text-muted-foreground mt-2">
-            Complete history of all changes to prospect records
-          </p>
+          <p className="text-muted-foreground mt-2">{t('prospectAuditTrail.desc')}</p>
         </motion.div>
 
         <div className="grid gap-6 lg:grid-cols-3">
@@ -122,7 +122,7 @@ export default function ProspectAuditTrail() {
                   <div className="relative flex-1">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
-                      placeholder="Search by prospect name..."
+                      placeholder={t('prospectAuditTrail.text3')}
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       className="pl-9"
@@ -130,15 +130,15 @@ export default function ProspectAuditTrail() {
                   </div>
                   <Select value={actionFilter} onValueChange={setActionFilter}>
                     <SelectTrigger className="w-40">
-                      <SelectValue placeholder="Filter" />
+                      <SelectValue placeholder={t('prospectAuditTrail.text4')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All Actions</SelectItem>
-                      <SelectItem value="stage_changed">Stage Changed</SelectItem>
-                      <SelectItem value="field_updated">Field Updated</SelectItem>
-                      <SelectItem value="email_sent">Email Sent</SelectItem>
-                      <SelectItem value="owner_changed">Owner Changed</SelectItem>
-                      <SelectItem value="note_added">Note Added</SelectItem>
+                      <SelectItem value="all">{t('prospectAuditTrail.text5')}</SelectItem>
+                      <SelectItem value="stage_changed">{t('prospectAuditTrail.text6')}</SelectItem>
+                      <SelectItem value="field_updated">{t('prospectAuditTrail.text7')}</SelectItem>
+                      <SelectItem value="email_sent">{t('prospectAuditTrail.text8')}</SelectItem>
+                      <SelectItem value="owner_changed">{t('prospectAuditTrail.text9')}</SelectItem>
+                      <SelectItem value="note_added">{t('prospectAuditTrail.text10')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -212,9 +212,7 @@ export default function ProspectAuditTrail() {
               <Card className="bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border-border/50">
                 <CardContent className="py-12 text-center">
                   <Edit className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground">
-                    Select a prospect to view detailed activity
-                  </p>
+                  <p className="text-muted-foreground">{t('prospectAuditTrail.desc2')}</p>
                 </CardContent>
               </Card>
             )}

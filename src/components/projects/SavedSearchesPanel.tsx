@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -30,6 +31,7 @@ interface SavedSearch {
 }
 
 export function SavedSearchesPanel() {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -78,7 +80,7 @@ export function SavedSearchesPanel() {
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success("Search saved! You'll receive alerts for matching projects.");
+      toast.success(t("search_saved_youll_receive", "Search saved! You'll receive alerts for matching projects."));
       queryClient.invalidateQueries({ queryKey: ["saved-searches"] });
       setDialogOpen(false);
       setNewSearch({ name: "", category: "", budget_min: "", budget_max: "", notification_frequency: "daily" });
@@ -112,7 +114,7 @@ export function SavedSearchesPanel() {
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success("Search deleted");
+      toast.success(t("search_deleted", "Search deleted"));
       queryClient.invalidateQueries({ queryKey: ["saved-searches"] });
     },
   });
@@ -144,27 +146,27 @@ export function SavedSearchesPanel() {
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Create Job Alert</DialogTitle>
+                <DialogTitle>{t("create_job_alert", "Create Job Alert")}</DialogTitle>
               </DialogHeader>
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="name">Alert Name</Label>
+                  <Label htmlFor="name">{t("alert_name", "Alert Name")}</Label>
                   <Input
                     id="name"
-                    placeholder="e.g., React Development Projects"
+                    placeholder={t("eg_react_development_projects", "e.g., React Development Projects")}
                     value={newSearch.name}
                     onChange={(e) => setNewSearch(prev => ({ ...prev, name: e.target.value }))}
                   />
                 </div>
                 
                 <div className="space-y-2">
-                  <Label>Category</Label>
+                  <Label>{t("category", "Category")}</Label>
                   <Select
                     value={newSearch.category}
                     onValueChange={(val) => setNewSearch(prev => ({ ...prev, category: val }))}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Any category" />
+                      <SelectValue placeholder={t("any_category", "Any category")} />
                     </SelectTrigger>
                     <SelectContent>
                       {categories.map(cat => (
@@ -176,7 +178,7 @@ export function SavedSearchesPanel() {
                 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>Min Budget (€)</Label>
+                    <Label>{t("min_budget", "Min Budget (€)")}</Label>
                     <Input
                       type="number"
                       placeholder="0"
@@ -185,10 +187,10 @@ export function SavedSearchesPanel() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Max Budget (€)</Label>
+                    <Label>{t("max_budget", "Max Budget (€)")}</Label>
                     <Input
                       type="number"
-                      placeholder="Any"
+                      placeholder={t("any", "Any")}
                       value={newSearch.budget_max}
                       onChange={(e) => setNewSearch(prev => ({ ...prev, budget_max: e.target.value }))}
                     />
@@ -196,7 +198,7 @@ export function SavedSearchesPanel() {
                 </div>
                 
                 <div className="space-y-2">
-                  <Label>Notification Frequency</Label>
+                  <Label>{t("notification_frequency", "Notification Frequency")}</Label>
                   <Select
                     value={newSearch.notification_frequency}
                     onValueChange={(val) => setNewSearch(prev => ({ ...prev, notification_frequency: val }))}
@@ -205,9 +207,9 @@ export function SavedSearchesPanel() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="instant">Instant</SelectItem>
-                      <SelectItem value="daily">Daily Digest</SelectItem>
-                      <SelectItem value="weekly">Weekly Digest</SelectItem>
+                      <SelectItem value="instant">{t("instant", "Instant")}</SelectItem>
+                      <SelectItem value="daily">{t("daily_digest", "Daily Digest")}</SelectItem>
+                      <SelectItem value="weekly">{t("weekly_digest", "Weekly Digest")}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -245,7 +247,7 @@ export function SavedSearchesPanel() {
                   <div className="flex items-center gap-2">
                     <p className="font-medium">{search.name}</p>
                     {!search.is_active && (
-                      <Badge variant="secondary" className="text-xs">Paused</Badge>
+                      <Badge variant="secondary" className="text-xs">{t("paused", "Paused")}</Badge>
                     )}
                   </div>
                   <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
@@ -282,8 +284,8 @@ export function SavedSearchesPanel() {
         ) : (
           <div className="text-center py-8 text-muted-foreground">
             <BellOff className="h-12 w-12 mx-auto mb-4 opacity-50" />
-            <p className="font-medium mb-1">No job alerts yet</p>
-            <p className="text-sm">Create an alert to get notified about matching projects</p>
+            <p className="font-medium mb-1">{t("no_job_alerts_yet", "No job alerts yet")}</p>
+            <p className="text-sm">{t("create_an_alert_to", "Create an alert to get notified about matching projects")}</p>
           </div>
         )}
       </CardContent>

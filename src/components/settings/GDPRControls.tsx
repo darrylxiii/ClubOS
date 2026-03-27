@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -19,6 +20,7 @@ import {
 } from '@/components/ui/alert-dialog';
 
 export const GDPRControls = () => {
+  const { t } = useTranslation('settings');
   const [exporting, setExporting] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [deletionReason, setDeletionReason] = useState('');
@@ -88,10 +90,10 @@ export const GDPRControls = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Shield className="w-5 h-5" />
-            Privacy & Data Rights
+            {t('gdpr.privacyDataRights')}
           </CardTitle>
           <CardDescription>
-            Manage your personal data and exercise your GDPR rights
+            {t('gdpr.privacyDataRightsDesc')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -99,9 +101,9 @@ export const GDPRControls = () => {
           <div className="space-y-3">
             <div className="flex items-start justify-between">
               <div className="space-y-1">
-                <Label className="text-base">Export Your Data</Label>
+                <Label className="text-base">{t('gdpr.exportYourData')}</Label>
                 <p className="text-sm text-muted-foreground">
-                  Download a complete copy of all your personal data in JSON format
+                  {t('gdpr.exportDataDesc')}
                 </p>
               </div>
               <Button 
@@ -110,7 +112,7 @@ export const GDPRControls = () => {
                 variant="outline"
               >
                 <Download className="w-4 h-4 mr-2" />
-                {exporting ? 'Exporting...' : 'Export Data'}
+                {exporting ? t('gdpr.exporting') : t('gdpr.exportData')}
               </Button>
             </div>
           </div>
@@ -120,10 +122,10 @@ export const GDPRControls = () => {
             <div className="space-y-1">
               <Label className="text-base text-destructive flex items-center gap-2">
                 <AlertTriangle className="w-4 h-4" />
-                Delete Account
+                {t('gdpr.deleteAccount')}
               </Label>
               <p className="text-sm text-muted-foreground">
-                Permanently delete your account and all associated data. This action cannot be undone after 30 days.
+                {t('gdpr.deleteAccountDesc')}
               </p>
             </div>
 
@@ -133,14 +135,14 @@ export const GDPRControls = () => {
                   Account deletion scheduled for {new Date(pendingDeletion.scheduled_for).toLocaleDateString()}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  You can still cancel this request before the scheduled date.
+                  {t('gdpr.canCancelBefore')}
                 </p>
                 <Button 
                   onClick={handleCancelDeletion}
                   variant="outline"
                   size="sm"
                 >
-                  Cancel Deletion
+                  {t('gdpr.cancelDeletion')}
                 </Button>
               </div>
             ) : (
@@ -148,12 +150,12 @@ export const GDPRControls = () => {
                 <AlertDialogTrigger asChild>
                   <Button className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
                     <Trash2 className="w-4 h-4 mr-2" />
-                    Delete My Account
+                    {t('gdpr.deleteMyAccount')}
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
-                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                    <AlertDialogTitle>{t('gdpr.areYouSure')}</AlertDialogTitle>
                     <AlertDialogDescription className="space-y-3">
                       <p>
                         This will schedule your account for permanent deletion in 30 days. All of your data including:
@@ -171,23 +173,23 @@ export const GDPRControls = () => {
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <div className="space-y-2 py-4">
-                    <Label htmlFor="reason">Reason for deletion (optional)</Label>
+                    <Label htmlFor="reason">{t('gdpr.deletionReason')}</Label>
                     <Textarea
                       id="reason"
-                      placeholder="Help us improve by telling us why you're leaving..."
+                      placeholder={t('gdpr.deletionReasonPlaceholder')}
                       value={deletionReason}
                       onChange={(e) => setDeletionReason(e.target.value)}
                       rows={3}
                     />
                   </div>
                   <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogCancel>{t('common:actions.cancel')}</AlertDialogCancel>
                     <AlertDialogAction
                       onClick={handleRequestDeletion}
                       disabled={deleting}
                       className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                     >
-                      {deleting ? 'Processing...' : 'Schedule Deletion'}
+                      {deleting ? t('common:status.processing') : t('gdpr.scheduleDeletion')}
                     </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>

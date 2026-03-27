@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Upload, X, FileText, Loader2 } from 'lucide-react';
@@ -23,6 +24,7 @@ const DOCUMENT_TYPES = [
 ];
 
 export function ContractDocumentUpload({ contractId, onUploadComplete }: ContractDocumentUploadProps) {
+  const { t } = useTranslation('common');
   const [open, setOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [documentType, setDocumentType] = useState('contract');
@@ -77,7 +79,7 @@ export function ContractDocumentUpload({ contractId, onUploadComplete }: Contrac
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Upload Document</DialogTitle>
+          <DialogTitle>{t("upload_document", "Upload Document")}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
@@ -123,7 +125,7 @@ export function ContractDocumentUpload({ contractId, onUploadComplete }: Contrac
           </div>
 
           <div className="space-y-2">
-            <Label>Document Type</Label>
+            <Label>{t("document_type", "Document Type")}</Label>
             <Select value={documentType} onValueChange={setDocumentType}>
               <SelectTrigger>
                 <SelectValue />

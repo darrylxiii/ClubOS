@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Building2, MapPin, Plus, Star, Trash2, Edit2, Check, X } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -33,6 +34,7 @@ interface CompanyOfficeManagerProps {
 }
 
 export function CompanyOfficeManager({ companyId, canManage = true }: CompanyOfficeManagerProps) {
+  const { t } = useTranslation('common');
   const [addingNew, setAddingNew] = useState(false);
   const [newLabel, setNewLabel] = useState("");
   const [newLocation, setNewLocation] = useState<LocationResult | null>(null);
@@ -90,7 +92,7 @@ export function CompanyOfficeManager({ companyId, canManage = true }: CompanyOff
               <Building2 className="w-5 h-5 text-primary" />
               Office Locations
             </CardTitle>
-            <CardDescription>Manage company offices used in job postings</CardDescription>
+            <CardDescription>{t("manage_company_offices_used", "Manage company offices used in job postings")}</CardDescription>
           </div>
           {canManage && !addingNew && (
             <Button size="sm" variant="outline" onClick={() => setAddingNew(true)}>
@@ -101,11 +103,11 @@ export function CompanyOfficeManager({ companyId, canManage = true }: CompanyOff
       </CardHeader>
       <CardContent className="space-y-3">
         {isLoading ? (
-          <p className="text-sm text-muted-foreground">Loading offices...</p>
+          <p className="text-sm text-muted-foreground">{t("loading_offices", "Loading offices...")}</p>
         ) : offices.length === 0 && !addingNew ? (
           <div className="text-center py-8 text-muted-foreground">
             <Building2 className="w-8 h-8 mx-auto mb-2 opacity-40" />
-            <p className="text-sm">No office locations added yet</p>
+            <p className="text-sm">{t("no_office_locations_added", "No office locations added yet")}</p>
             {canManage && (
               <Button variant="ghost" size="sm" className="mt-2" onClick={() => setAddingNew(true)}>
                 <Plus className="w-4 h-4 mr-1" /> Add your first office
@@ -171,7 +173,7 @@ export function CompanyOfficeManager({ companyId, canManage = true }: CompanyOff
                         variant="ghost"
                         className="h-7 w-7"
                         onClick={() => handleToggleHQ(office)}
-                        title="Set as headquarters"
+                        title={t("set_as_headquarters", "Set as headquarters")}
                       >
                         <Star className="w-3 h-3" />
                       </Button>
@@ -195,13 +197,13 @@ export function CompanyOfficeManager({ companyId, canManage = true }: CompanyOff
                       </AlertDialogTrigger>
                       <AlertDialogContent>
                         <AlertDialogHeader>
-                          <AlertDialogTitle>Remove office?</AlertDialogTitle>
+                          <AlertDialogTitle>{t("remove_office", "Remove office?")}</AlertDialogTitle>
                           <AlertDialogDescription>
                             This will remove "{office.label}" from the company's offices. Existing jobs using this location will not be affected.
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogCancel>{t("cancel", "Cancel")}</AlertDialogCancel>
                           <AlertDialogAction
                             onClick={() => deleteOffice.mutate({ id: office.id, companyId })}
                           >
@@ -221,16 +223,15 @@ export function CompanyOfficeManager({ companyId, canManage = true }: CompanyOff
           <>
             <Separator />
             <div className="space-y-3 p-3 rounded-xl border border-primary/20 bg-primary/5">
-              <Label className="text-sm font-medium">Add New Office</Label>
+              <Label className="text-sm font-medium">{t("add_new_office", "Add New Office")}</Label>
               <Input
-                placeholder='Office name, e.g. "London Office"'
-                value={newLabel}
+                placeholder="Office name, e.g. London Office" value={newLabel}
                 onChange={(e) => setNewLabel(e.target.value)}
               />
               <EnhancedLocationAutocomplete
                 value={newLocation}
                 onChange={setNewLocation}
-                placeholder="Search for address..."
+                placeholder={t("search_for_address", "Search for address...")}
               />
               <div className="flex items-center gap-2 justify-end">
                 <Button

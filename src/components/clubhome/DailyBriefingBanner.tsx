@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -5,6 +6,7 @@ import { Sunrise, X, AlertTriangle, Calendar, Bot, TrendingUp } from "lucide-rea
 import { useDailyBriefing, useDismissBriefing } from "@/hooks/useDailyBriefing";
 
 export function DailyBriefingBanner() {
+  const { t } = useTranslation('common');
   const { data: briefing, isLoading } = useDailyBriefing();
   const dismiss = useDismissBriefing();
 
@@ -22,10 +24,8 @@ export function DailyBriefingBanner() {
             </div>
             <div className="space-y-2 flex-1 min-w-0">
               <div className="flex items-center gap-2">
-                <p className="text-sm font-semibold">Morning Briefing</p>
-                <Badge variant="secondary" className="text-[10px]">
-                  Powered by QUIN
-                </Badge>
+                <p className="text-sm font-semibold">{t("morning_briefing", "Morning Briefing")}</p>
+                <Badge variant="secondary" className="text-[10px]">{t('dailyBriefingBanner.badge.poweredByQuin')}</Badge>
               </div>
 
               {/* Quick stats */}

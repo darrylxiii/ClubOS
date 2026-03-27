@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Users, Eye, TrendingUp, X } from "lucide-react";
 import { Link } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
+import { useTranslation } from 'react-i18next';
 
 interface Application {
   id: string;
@@ -23,6 +24,7 @@ interface RecentApplicationsListProps {
 }
 
 export const RecentApplicationsList = ({ companyId }: RecentApplicationsListProps) => {
+  const { t } = useTranslation('common');
   const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
   const [candidateNames, setCandidateNames] = useState<Record<string, string>>({});
@@ -109,7 +111,7 @@ export const RecentApplicationsList = ({ companyId }: RecentApplicationsListProp
             <Users className="h-5 w-5" />
             Recent Applications
           </CardTitle>
-          <CardDescription>Latest candidate applications</CardDescription>
+          <CardDescription>{t('recentApplicationsList.description')}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
@@ -130,13 +132,13 @@ export const RecentApplicationsList = ({ companyId }: RecentApplicationsListProp
             <Users className="h-5 w-5" />
             Recent Applications
           </CardTitle>
-          <CardDescription>Latest candidate applications</CardDescription>
+          <CardDescription>{t('recentApplicationsList.description')}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="text-center py-8">
             <Users className="h-12 w-12 mx-auto text-muted-foreground/50 mb-3" />
-            <p className="text-sm text-muted-foreground">No applications yet</p>
-            <p className="text-xs text-muted-foreground mt-1">Applications will appear here as candidates apply</p>
+            <p className="text-sm text-muted-foreground">{t('recentApplicationsList.noApplicationsYet')}</p>
+            <p className="text-xs text-muted-foreground mt-1">{t('recentApplicationsList.applicationsWillAppearHereAsCandidatesAp')}</p>
           </div>
         </CardContent>
       </Card>
@@ -150,7 +152,7 @@ export const RecentApplicationsList = ({ companyId }: RecentApplicationsListProp
           <Users className="h-5 w-5" />
           Recent Applications
         </CardTitle>
-        <CardDescription>Latest candidate applications</CardDescription>
+        <CardDescription>{t('recentApplicationsList.description')}</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="space-y-3">

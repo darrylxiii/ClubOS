@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,6 +17,7 @@ interface EmbeddingStats {
 }
 
 export function EmbeddingDashboard() {
+  const { t } = useTranslation('common');
   const [stats, setStats] = useState<EmbeddingStats[]>([]);
   const [loading, setLoading] = useState(false);
   const [processing, setProcessing] = useState<Record<string, boolean>>({});
@@ -92,7 +94,7 @@ export function EmbeddingDashboard() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Semantic Search</h2>
+          <h2 className="text-3xl font-bold tracking-tight">{t("semantic_search", "Semantic Search")}</h2>
           <p className="text-muted-foreground">
             Embedding coverage and batch generation
           </p>
@@ -185,21 +187,21 @@ export function EmbeddingDashboard() {
         <CardContent className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2">
             <div>
-              <h4 className="font-medium mb-2">What's Enabled</h4>
+              <h4 className="font-medium mb-2">{t("whats_enabled", "What's Enabled")}</h4>
               <ul className="space-y-1 text-sm text-muted-foreground">
-                <li>• Vector embeddings (1536 dimensions)</li>
-                <li>• Semantic similarity search</li>
-                <li>• Cosine distance ranking</li>
-                <li>• HNSW indexes for speed</li>
+                <li>{t("vector_embeddings_1536_dimensions", "• Vector embeddings (1536 dimensions)")}</li>
+                <li>{t("semantic_similarity_search", "• Semantic similarity search")}</li>
+                <li>{t("cosine_distance_ranking", "• Cosine distance ranking")}</li>
+                <li>{t("hnsw_indexes_for_speed", "• HNSW indexes for speed")}</li>
               </ul>
             </div>
             <div>
-              <h4 className="font-medium mb-2">Use Cases</h4>
+              <h4 className="font-medium mb-2">{t("use_cases", "Use Cases")}</h4>
               <ul className="space-y-1 text-sm text-muted-foreground">
-                <li>• Find similar candidates</li>
-                <li>• Match jobs to candidates</li>
-                <li>• Knowledge base search</li>
-                <li>• Enhanced ML matching</li>
+                <li>{t("find_similar_candidates", "• Find similar candidates")}</li>
+                <li>{t("match_jobs_to_candidates", "• Match jobs to candidates")}</li>
+                <li>{t("knowledge_base_search", "• Knowledge base search")}</li>
+                <li>{t("enhanced_ml_matching", "• Enhanced ML matching")}</li>
               </ul>
             </div>
           </div>

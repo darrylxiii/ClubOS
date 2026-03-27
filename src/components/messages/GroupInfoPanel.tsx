@@ -16,6 +16,7 @@ import {
   Info,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 import { useConversationMedia } from '@/hooks/useConversationMedia';
 import { SharedMediaGallery } from './SharedMediaGallery';
 import { SharedLinksPanel } from './SharedLinksPanel';
@@ -41,6 +42,7 @@ interface GroupInfoPanelProps {
 }
 
 export const GroupInfoPanel = ({ conversation, onClose }: GroupInfoPanelProps) => {
+  const { t } = useTranslation('messages');
   const [membersExpanded, setMembersExpanded] = useState(true);
   const [filesExpanded, setFilesExpanded] = useState(false);
   const [linksExpanded, setLinksExpanded] = useState(false);
@@ -54,7 +56,7 @@ export const GroupInfoPanel = ({ conversation, onClose }: GroupInfoPanelProps) =
       <div className="h-16 border-b border-border/50 px-6 flex items-center justify-between bg-card shadow-glass-sm">
         <h3 className="font-semibold flex items-center gap-2">
           <Info className="h-4 w-4 text-primary" />
-          {isGroup ? 'Group Info' : 'Chat Info'}
+          {isGroup ? t('groupInfo.groupInfo') : t('groupInfo.chatInfo')}
         </h3>
         {onClose && (
           <Button variant="ghost" size="icon" onClick={onClose} className="hover:bg-destructive/10">
@@ -87,7 +89,7 @@ export const GroupInfoPanel = ({ conversation, onClose }: GroupInfoPanelProps) =
               <h3 className="font-bold text-lg">{conversation.title}</h3>
               {isGroup && (
                 <p className="text-sm text-muted-foreground">
-                  {conversation.metadata?.participant_count || 0} members
+                  {t('membersCount', { count: conversation.metadata?.participant_count || 0 })}
                 </p>
               )}
             </div>
@@ -105,7 +107,7 @@ export const GroupInfoPanel = ({ conversation, onClose }: GroupInfoPanelProps) =
               <div className="flex items-center gap-2">
                 <Users className="h-4 w-4" />
                 <span className="font-medium">
-                  Members {isGroup ? `(${conversation.participants?.length || 0})` : ''}
+                  {t('groupInfo.members')} {isGroup ? `(${conversation.participants?.length || 0})` : ''}
                 </span>
               </div>
               {membersExpanded ? (
@@ -119,7 +121,7 @@ export const GroupInfoPanel = ({ conversation, onClose }: GroupInfoPanelProps) =
               <div className="space-y-2 pl-2">
                 {(!conversation.participants || conversation.participants.length === 0) ? (
                   <p className="text-sm text-muted-foreground text-center py-4">
-                    No participant data available
+                    {t('groupInfo.noParticipants')}
                   </p>
                 ) : (
                   conversation.participants.map((participant) => {
@@ -147,7 +149,7 @@ export const GroupInfoPanel = ({ conversation, onClose }: GroupInfoPanelProps) =
                       </Avatar>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium truncate">{name}</p>
-                        <p className="text-xs text-muted-foreground">Member</p>
+                        <p className="text-xs text-muted-foreground">{t('groupInfo.member')}</p>
                       </div>
                     </div>
                   );
@@ -168,7 +170,7 @@ export const GroupInfoPanel = ({ conversation, onClose }: GroupInfoPanelProps) =
             >
               <div className="flex items-center gap-2">
                 <FileText className="h-4 w-4" />
-                <span className="font-medium">Shared Files</span>
+                <span className="font-medium">{t('groupInfo.sharedFiles')}</span>
               </div>
               {filesExpanded ? (
                 <ChevronUp className="h-4 w-4" />
@@ -195,7 +197,7 @@ export const GroupInfoPanel = ({ conversation, onClose }: GroupInfoPanelProps) =
             >
               <div className="flex items-center gap-2">
                 <LinkIcon className="h-4 w-4" />
-                <span className="font-medium">Shared Links</span>
+                <span className="font-medium">{t('groupInfo.sharedLinks')}</span>
               </div>
               {linksExpanded ? (
                 <ChevronUp className="h-4 w-4" />

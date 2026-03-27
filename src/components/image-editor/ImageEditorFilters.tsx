@@ -1,4 +1,5 @@
 import { memo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Slider } from '@/components/ui/slider';
 import { cn } from '@/lib/utils';
 import { FILTER_PRESETS, type FilterSettings } from './ImageEditorPresets';
@@ -13,6 +14,7 @@ export const ImageEditorFilters = memo(function ImageEditorFilters({
   onFiltersChange,
 }: ImageEditorFiltersProps) {
   const applyPreset = (presetName: string) => {
+  const { t } = useTranslation('common');
     const preset = FILTER_PRESETS[presetName];
     if (preset) {
       onFiltersChange({
@@ -34,7 +36,7 @@ export const ImageEditorFilters = memo(function ImageEditorFilters({
     <div className="space-y-4">
       {/* Preset Filters */}
       <div>
-        <p className="text-sm font-medium mb-3">Preset Filters</p>
+        <p className="text-sm font-medium mb-3">{t('imageEditor.presetFilters')}</p>
         <div className="grid grid-cols-4 gap-2">
           {Object.keys(FILTER_PRESETS).map((presetName) => {
             const preset = FILTER_PRESETS[presetName];
@@ -67,12 +69,12 @@ export const ImageEditorFilters = memo(function ImageEditorFilters({
 
       {/* Custom Adjustments */}
       <div className="space-y-3 pt-2">
-        <p className="text-sm font-medium">Custom Adjustments</p>
+        <p className="text-sm font-medium">{t('imageEditor.customAdjustments')}</p>
 
         {/* Brightness */}
         <div className="space-y-2">
           <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">Brightness</span>
+            <span className="text-muted-foreground">{t('imageEditor.brightness')}</span>
             <span className="text-muted-foreground font-mono text-xs">
               {filters.brightness}%
             </span>
@@ -89,7 +91,7 @@ export const ImageEditorFilters = memo(function ImageEditorFilters({
         {/* Contrast */}
         <div className="space-y-2">
           <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">Contrast</span>
+            <span className="text-muted-foreground">{t('imageEditor.contrast')}</span>
             <span className="text-muted-foreground font-mono text-xs">
               {filters.contrast}%
             </span>
@@ -106,7 +108,7 @@ export const ImageEditorFilters = memo(function ImageEditorFilters({
         {/* Saturation */}
         <div className="space-y-2">
           <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">Saturation</span>
+            <span className="text-muted-foreground">{t('imageEditor.saturation')}</span>
             <span className="text-muted-foreground font-mono text-xs">
               {filters.saturation}%
             </span>

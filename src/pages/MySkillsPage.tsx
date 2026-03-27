@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -17,6 +18,7 @@ interface Skill {
 }
 
 export default function MySkillsPage() {
+  const { t } = useTranslation('common');
   const [skills, setSkills] = useState<Skill[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -72,10 +74,8 @@ export default function MySkillsPage() {
     <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-8">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold">My Skills</h1>
-            <p className="text-muted-foreground mt-2">
-              Track your verified skills from completed courses
-            </p>
+            <h1 className="text-3xl font-bold">{t('mySkillsPage.text3')}</h1>
+            <p className="text-muted-foreground mt-2">{t('mySkillsPage.desc')}</p>
           </div>
           <Button variant="outline">
             <Download className="w-4 h-4 mr-2" />
@@ -136,11 +136,9 @@ export default function MySkillsPage() {
             <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
               <Award className="w-10 h-10 text-primary" />
             </div>
-            <h3 className="text-xl font-semibold mb-2">No Skills Yet</h3>
-            <p className="text-muted-foreground mb-4">
-              Complete courses to earn verified skills
-            </p>
-            <Button>Browse Courses</Button>
+            <h3 className="text-xl font-semibold mb-2">{t('mySkillsPage.text4')}</h3>
+            <p className="text-muted-foreground mb-4">{t('mySkillsPage.desc2')}</p>
+            <Button>{t('mySkillsPage.text5')}</Button>
           </Card>
         )}
     </div>

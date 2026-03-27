@@ -1,27 +1,14 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createHandler } from '../_shared/handler.ts';
 import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
-import { 
-  Heading, Paragraph, Spacer, Card, InfoRow, 
-  VideoCallCard, StatusBadge, MeetingPrepCard, CalendarButtons 
+import {
+  Heading, Paragraph, Spacer, Card, InfoRow,
+  VideoCallCard, StatusBadge, MeetingPrepCard, CalendarButtons
 } from "../_shared/email-templates/components.ts";
-import { EMAIL_SENDERS, EMAIL_COLORS, getEmailAppUrl, getEmailHeaders, htmlToPlainText } from "../_shared/email-config.ts";
+import { EMAIL_SENDERS, EMAIL_COLORS, getEmailAppUrl } from "../_shared/email-config.ts";
+import { sendEmail } from '../_shared/resend-client.ts';
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
-
-serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  try {
-    const supabaseClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
-    );
+Deno.serve(createHandler(async (req, ctx) => {
+    const supabaseClient = ctx.supabase;
 
     const appUrl = getEmailAppUrl();
 
@@ -62,7 +49,7 @@ serve(async (req) => {
     if (!bookings || bookings.length === 0) {
       return new Response(
         JSON.stringify({ message: "No bookings to remind", count: 0 }),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 200, headers: { ...ctx.corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -176,20 +163,11 @@ serve(async (req) => {
               showFooter: true,
             });
 
-        await fetch("https://api.resend.com/emails", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${Deno.env.get("RESEND_API_KEY")}`,
-          },
-          body: JSON.stringify({
-            from: EMAIL_SENDERS.bookings,
-            to: [booking.guest_email],
-            subject: `Reminder: ${booking.booking_links.title} Tomorrow at ${formattedTime}`,
-            html: reminderHtml,
-            text: htmlToPlainText(reminderHtml),
-            headers: getEmailHeaders(),
-          }),
+        await sendEmail({
+          from: EMAIL_SENDERS.bookings,
+          to: [booking.guest_email],
+          subject: `Reminder: ${booking.booking_links.title} Tomorrow at ${formattedTime}`,
+          html: reminderHtml,
         });
 
         // Mark reminder as sent
@@ -213,13 +191,6 @@ serve(async (req) => {
         failed: errorCount,
         total: bookings.length 
       }),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      { status: 200, headers: { ...ctx.corsHeaders, "Content-Type": "application/json" } }
     );
-  } catch (error: any) {
-    console.error("[Reminders] Error:", error);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
-  }
-});
+}));

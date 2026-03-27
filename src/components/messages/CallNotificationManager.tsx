@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useCallSignaling } from "@/hooks/useCallSignaling";
 import { IncomingCallBanner } from "./IncomingCallBanner";
 import { notify } from "@/lib/notify";
@@ -12,6 +13,7 @@ export function CallNotificationManager({
   conversationId,
   onAcceptCall
 }: CallNotificationManagerProps) {
+  const { t } = useTranslation('messages');
   const { incomingInvitations, acceptCall, declineCall } = useCallSignaling(conversationId);
   const [handledInvitations, setHandledInvitations] = useState<Set<string>>(new Set());
   const [hiddenInvitations, setHiddenInvitations] = useState<Set<string>>(new Set());
@@ -25,8 +27,8 @@ export function CallNotificationManager({
 
       if (document.hidden && 'Notification' in window && Notification.permission === 'granted') {
         const callerName = invitation.caller?.full_name || invitation.caller?.email || 'Someone';
-        new Notification(`Incoming ${invitation.call_type} call`, {
-          body: `${callerName} is calling you`,
+        new Notification(t('calls.incomingCall', { type: invitation.call_type }), {
+          body: t('calls.callerCalling', { name: callerName }),
           icon: invitation.caller?.avatar_url,
           tag: invitation.id
         });
@@ -50,8 +52,8 @@ export function CallNotificationManager({
         // Hide immediately
         setHiddenInvitations(prev => new Set(prev).add(invitation.id));
         
-        notify.info("Call ended", {
-          description: "The caller ended the call",
+        notify.info(t('calls.callEnded'), {
+          description: t('calls.callerEndedCall'),
         });
       }
     });
@@ -73,8 +75,8 @@ export function CallNotificationManager({
     // Then update database
     await declineCall(invitationId);
     
-    notify.info("Call declined", {
-      description: "You declined the call",
+    notify.info(t('calls.callDeclined'), {
+      description: t('calls.youDeclinedCall'),
     });
   };
 

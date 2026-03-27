@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useRef, useEffect } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -26,6 +27,7 @@ const CATEGORY_LABELS: Record<string, string> = {
 const CATEGORY_ORDER = ['quality', 'seniority', 'function', 'industry', 'availability', 'source', 'custom'];
 
 export function CandidateTagManager({ candidateId, compact = false }: CandidateTagManagerProps) {
+  const { t } = useTranslation('common');
   const { assignedTags, tagsByCategory, loading, assignTag, removeTag } = useCandidateTags(candidateId);
   const [search, setSearch] = useState('');
   const [open, setOpen] = useState(false);
@@ -69,7 +71,7 @@ export function CandidateTagManager({ candidateId, compact = false }: CandidateT
                   <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
                   <Input
                     ref={inputRef}
-                    placeholder="Search tags..."
+                    placeholder={t("search_tags", "Search tags...")}
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     className="h-8 pl-7 text-sm"
@@ -78,7 +80,7 @@ export function CandidateTagManager({ candidateId, compact = false }: CandidateT
               </div>
               <div className="max-h-64 overflow-y-auto p-2 space-y-3">
                 {filteredCategories.length === 0 && (
-                  <p className="text-xs text-muted-foreground text-center py-2">No tags available</p>
+                  <p className="text-xs text-muted-foreground text-center py-2">{t("no_tags_available", "No tags available")}</p>
                 )}
                 {filteredCategories.map(({ key, label, tags }) => (
                   <div key={key}>
@@ -106,7 +108,7 @@ export function CandidateTagManager({ candidateId, compact = false }: CandidateT
       </CardHeader>
       <CardContent className="pt-0">
         {assignedTags.length === 0 ? (
-          <p className="text-xs text-muted-foreground">No tags assigned</p>
+          <p className="text-xs text-muted-foreground">{t("no_tags_assigned", "No tags assigned")}</p>
         ) : (
           <div className="flex flex-wrap gap-1.5">
             {assignedTags.map(({ tag_id, tag }) => (

@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { Lock, Users, Globe, Pin, Plus, Save, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { Textarea } from "@/components/ui/textarea";
+import { useTranslation } from 'react-i18next';
 
 interface Note {
   id: string;
@@ -35,6 +36,7 @@ interface Props {
 }
 
 export const CandidateNotesManager = ({ candidateId, userRole, activeTab }: Props) => {
+  const { t } = useTranslation('partner');
   if (userRole === 'candidate') return null;
   const { user } = useAuth();
   const [notes, setNotes] = useState<Note[]>([]);
@@ -80,12 +82,12 @@ export const CandidateNotesManager = ({ candidateId, userRole, activeTab }: Prop
 
   const handleSave = async () => {
     if (!newNote.content.trim()) {
-      toast.error('Note content is required');
+      toast.error(t('candidateNotesManager.toast.noteContentIsRequired'));
       return;
     }
 
     if (!user?.id) {
-      toast.error('You must be logged in to create notes');
+      toast.error(t('candidateNotesManager.toast.youMustBeLoggedInToCreateNotes'));
       return;
     }
 
@@ -106,7 +108,7 @@ export const CandidateNotesManager = ({ candidateId, userRole, activeTab }: Prop
 
       if (error) throw error;
 
-      toast.success('Note saved');
+      toast.success(t('candidateNotesManager.toast.noteSaved'));
       
       // Reset to appropriate default for role
       const defaultType = userRole === 'partner' ? 'partner_shared' : 'tqc_internal';
@@ -129,11 +131,11 @@ export const CandidateNotesManager = ({ candidateId, userRole, activeTab }: Prop
       .eq('id', noteId);
 
     if (error) {
-      toast.error('Failed to delete note');
+      toast.error(t('candidateNotesManager.toast.failedToDeleteNote'));
       return;
     }
 
-    toast.success('Note deleted');
+    toast.success(t('candidateNotesManager.toast.noteDeleted'));
     loadNotes();
   };
 
@@ -144,7 +146,7 @@ export const CandidateNotesManager = ({ candidateId, userRole, activeTab }: Prop
       .eq('id', noteId);
 
     if (error) {
-      toast.error('Failed to update note');
+      toast.error(t('candidateNotesManager.toast.failedToUpdateNote'));
       return;
     }
 
@@ -168,7 +170,7 @@ export const CandidateNotesManager = ({ candidateId, userRole, activeTab }: Prop
   };
 
   if (loading) {
-    return <div>Loading notes...</div>;
+    return <div>{t('candidateNotesManager.loadingNotes')}</div>;
   }
 
   return (
@@ -197,8 +199,8 @@ export const CandidateNotesManager = ({ candidateId, userRole, activeTab }: Prop
                       <div className="flex items-center gap-2">
                         <Lock className="w-4 h-4 text-amber-500" />
                         <div>
-                          <div className="font-medium">TQC Internal</div>
-                          <div className="text-xs text-muted-foreground">Visible only to TQC team</div>
+                          <div className="font-medium">{t('candidateNotesManager.tqcInternal')}</div>
+                          <div className="text-xs text-muted-foreground">{t('candidateNotesManager.visibleOnlyToTqcTeam')}</div>
                         </div>
                       </div>
                     </SelectItem>
@@ -222,8 +224,8 @@ export const CandidateNotesManager = ({ candidateId, userRole, activeTab }: Prop
                     <div className="flex items-center gap-2">
                       <Globe className="w-4 h-4 text-green-500" />
                       <div>
-                        <div className="font-medium">General</div>
-                        <div className="text-xs text-muted-foreground">Visible to everyone</div>
+                        <div className="font-medium">{t('candidateNotesManager.general')}</div>
+                        <div className="text-xs text-muted-foreground">{t('candidateNotesManager.visibleToEveryone')}</div>
                       </div>
                     </div>
                   </SelectItem>
@@ -234,7 +236,7 @@ export const CandidateNotesManager = ({ candidateId, userRole, activeTab }: Prop
             <div>
               <label className="text-sm font-medium mb-2 block">Title (Optional)</label>
               <Input
-                placeholder="Note title..."
+                placeholder={t('candidateNotesManager.placeholder.noteTitle')}
                 value={newNote.title}
                 onChange={(e) => setNewNote(prev => ({ ...prev, title: e.target.value }))}
               />
@@ -248,7 +250,7 @@ export const CandidateNotesManager = ({ candidateId, userRole, activeTab }: Prop
             <Textarea
               value={newNote.content}
               onChange={(e) => setNewNote(prev => ({ ...prev, content: e.target.value }))}
-              placeholder="Add your notes here..."
+              placeholder={t('candidateNotesManager.placeholder.addYourNotesHere')}
               rows={4}
               disabled={saving}
             />
@@ -263,12 +265,12 @@ export const CandidateNotesManager = ({ candidateId, userRole, activeTab }: Prop
 
       <Tabs defaultValue="all">
         <TabsList>
-          <TabsTrigger value="all">All Notes</TabsTrigger>
+          <TabsTrigger value="all">{t('candidateNotesManager.tab.allNotes')}</TabsTrigger>
           {['admin', 'strategist'].includes(userRole) && (
-            <TabsTrigger value="tqc_internal">TQC Internal</TabsTrigger>
+            <TabsTrigger value="tqc_internal">{t('candidateNotesManager.tab.tqcInternal')}</TabsTrigger>
           )}
-          <TabsTrigger value="partner_shared">Partner Shared</TabsTrigger>
-          <TabsTrigger value="general">General</TabsTrigger>
+          <TabsTrigger value="partner_shared">{t('candidateNotesManager.tab.partnerShared')}</TabsTrigger>
+          <TabsTrigger value="general">{t('candidateNotesManager.tab.general')}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="all" className="space-y-3 mt-4">

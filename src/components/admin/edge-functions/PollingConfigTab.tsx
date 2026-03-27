@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -48,6 +49,7 @@ const POLLING_HOOKS: PollingHook[] = [
 ];
 
 export function PollingConfigTab() {
+  const { t } = useTranslation('common');
   const totalCurrentReqs = POLLING_HOOKS.reduce((s, h) => s + (60000 / h.currentInterval), 0);
   const totalOptimizedReqs = POLLING_HOOKS.reduce((s, h) => s + (60000 / h.optimizedInterval), 0);
   const reductionPercent = Math.round(((totalCurrentReqs - totalOptimizedReqs) / totalCurrentReqs) * 100);
@@ -68,7 +70,7 @@ export function PollingConfigTab() {
                 <Timer className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Polling Hooks</p>
+                <p className="text-sm text-muted-foreground">{t("polling_hooks", "Polling Hooks")}</p>
                 <p className="text-2xl font-bold">{POLLING_HOOKS.length}</p>
               </div>
             </div>
@@ -82,7 +84,7 @@ export function PollingConfigTab() {
                 <TrendingDown className="h-5 w-5 text-green-500" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Reduction</p>
+                <p className="text-sm text-muted-foreground">{t("reduction", "Reduction")}</p>
                 <p className="text-2xl font-bold text-green-500">{reductionPercent}%</p>
               </div>
             </div>
@@ -96,7 +98,7 @@ export function PollingConfigTab() {
                 <Gauge className="h-5 w-5 text-accent" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Monthly Saved</p>
+                <p className="text-sm text-muted-foreground">{t("monthly_saved", "Monthly Saved")}</p>
                 <p className="text-2xl font-bold">{(monthlySaved / 1000000).toFixed(1)}M reqs</p>
               </div>
             </div>
@@ -108,8 +110,8 @@ export function PollingConfigTab() {
       <Card className="border-primary/30 bg-primary/5">
         <CardContent className="pt-6">
           <p className="text-sm">
-            <strong>Optimizations applied.</strong> All polling intervals have been increased to optimized values, and{' '}
-            <code className="text-xs bg-muted px-1 py-0.5 rounded">refetchIntervalInBackground: false</code> has been added to prevent background tab polling.
+            <strong>{t("optimizations_applied", "Optimizations applied.")}</strong> All polling intervals have been increased to optimized values, and{' '}
+            <code className="text-xs bg-muted px-1 py-0.5 rounded">{t("refetchintervalinbackground_false", "refetchIntervalInBackground: false")}</code> has been added to prevent background tab polling.
             These changes are silent — no user-facing impact.
           </p>
         </CardContent>
@@ -130,11 +132,11 @@ export function PollingConfigTab() {
               <table className="w-full text-sm">
                 <thead className="border-b">
                   <tr className="text-left text-muted-foreground">
-                    <th className="p-3 font-medium">Hook</th>
-                    <th className="p-3 font-medium">File</th>
-                    <th className="p-3 font-medium text-right">Previous</th>
-                    <th className="p-3 font-medium text-right">Current</th>
-                    <th className="p-3 font-medium text-right">Reduction</th>
+                    <th className="p-3 font-medium">{t("hook", "Hook")}</th>
+                    <th className="p-3 font-medium">{t("file", "File")}</th>
+                    <th className="p-3 font-medium text-right">{t("previous", "Previous")}</th>
+                    <th className="p-3 font-medium text-right">{t("current", "Current")}</th>
+                    <th className="p-3 font-medium text-right">{t("reduction", "Reduction")}</th>
                   </tr>
                 </thead>
                 <tbody>

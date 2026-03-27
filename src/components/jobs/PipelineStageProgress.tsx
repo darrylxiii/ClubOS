@@ -1,4 +1,5 @@
 import { memo } from "react";
+import { useTranslation } from 'react-i18next';
 import { cn } from "@/lib/utils";
 import { CheckCircle, Circle, Clock, XCircle } from "lucide-react";
 import {
@@ -49,6 +50,7 @@ export const PipelineStageProgress = memo(({
   showCounts = true,
   className,
 }: PipelineStageProgressProps) => {
+  const { t } = useTranslation('jobs');
   const maxCandidates = Math.max(...stages.map(s => s.candidateCount), 1);
 
   if (variant === "vertical") {
@@ -97,9 +99,9 @@ export const PipelineStageProgress = memo(({
                   <div className="text-sm">
                     <p className="font-medium">{stage.name}</p>
                     <p className="text-muted-foreground">
-                      {stage.candidateCount} candidates
+                      {t('pipelineStage.candidateCount', '{{count}} candidates', { count: stage.candidateCount })}
                       {stage.avgDaysInStage !== undefined && (
-                        <> · Avg {stage.avgDaysInStage}d</>
+                        <> · {t('pipelineStage.avgDays', 'Avg {{days}}d', { days: stage.avgDaysInStage })}</>
                       )}
                     </p>
                   </div>
@@ -124,7 +126,7 @@ export const PipelineStageProgress = memo(({
           <TooltipProvider key={stage.id}>
             <Tooltip>
               <TooltipTrigger asChild>
-                <div 
+                <div
                   className={cn(
                     "relative h-8 rounded transition-all cursor-default",
                     isActive ? "bg-primary/20" : "bg-muted/30",
@@ -152,9 +154,9 @@ export const PipelineStageProgress = memo(({
                 <div className="text-sm">
                   <p className="font-medium">{stage.name}</p>
                   <p className="text-muted-foreground">
-                    {stage.candidateCount} candidates
+                    {t('pipelineStage.candidateCount', '{{count}} candidates', { count: stage.candidateCount })}
                     {stage.avgDaysInStage !== undefined && (
-                      <> · Avg {stage.avgDaysInStage}d in stage</>
+                      <> · {t('pipelineStage.avgDaysInStage', 'Avg {{days}}d in stage', { days: stage.avgDaysInStage })}</>
                     )}
                   </p>
                 </div>

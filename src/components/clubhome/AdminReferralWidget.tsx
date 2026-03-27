@@ -6,8 +6,10 @@ import { useReferralMetrics } from "@/hooks/useReferralMetrics";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
+import { useTranslation } from 'react-i18next';
 
 export const AdminReferralWidget = () => {
+  const { t } = useTranslation('common');
   const { data: metrics, isLoading } = useReferralMetrics();
 
   const formatCurrency = (value: number) => {
@@ -47,7 +49,7 @@ export const AdminReferralWidget = () => {
           <CardTitle className="flex items-center justify-between text-base">
             <div className="flex items-center gap-2">
               <Users className="h-4 w-4 text-premium" />
-              <span>Referral Network</span>
+              <span>{t('adminReferralWidget.referralNetwork')}</span>
             </div>
             <Button variant="ghost" size="sm" asChild className="text-xs">
               <Link to="/referrals">
@@ -61,7 +63,7 @@ export const AdminReferralWidget = () => {
           {/* Main Stats */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <p className="text-xs text-muted-foreground">Total Referrals</p>
+              <p className="text-xs text-muted-foreground">{t('adminReferralWidget.totalReferrals')}</p>
               <div className="flex items-center gap-2">
                 <span className="text-xl font-bold">{metrics?.totalReferrals || 0}</span>
                 {metrics && metrics.trend !== 0 && (
@@ -72,7 +74,7 @@ export const AdminReferralWidget = () => {
               </div>
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">Successful</p>
+              <p className="text-xs text-muted-foreground">{t('adminReferralWidget.successful')}</p>
               <div className="flex items-center gap-1">
                 <span className="text-xl font-bold text-green-500">{metrics?.successfulReferrals || 0}</span>
                 <span className="text-xs text-muted-foreground">
@@ -92,7 +94,7 @@ export const AdminReferralWidget = () => {
               <p className="font-semibold text-premium">{formatCurrency(metrics?.pendingRewards || 0)}</p>
             </div>
             <div className="p-2 rounded-lg bg-muted/30">
-              <p className="text-xs text-muted-foreground">Paid Out</p>
+              <p className="text-xs text-muted-foreground">{t('adminReferralWidget.paidOut')}</p>
               <p className="font-semibold">{formatCurrency(metrics?.paidOutRewards || 0)}</p>
             </div>
           </div>

@@ -1,10 +1,4 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { createHandler } from '../_shared/handler.ts';
 
 interface MatchResult {
   company_id: string;
@@ -15,25 +9,18 @@ interface MatchResult {
   match_confidence: number;
 }
 
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
+Deno.serve(createHandler(async (req, ctx) => {
+    const { supabase, corsHeaders } = ctx;
 
-  try {
     const { email_address } = await req.json();
-    
+
     if (!email_address) {
       throw new Error('email_address is required');
     }
 
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
     const normalizedEmail = email_address.toLowerCase().trim();
     const domain = normalizedEmail.split('@')[1];
-    
+
     console.log('Matching email:', normalizedEmail, 'domain:', domain);
 
     let match: MatchResult | null = null;
@@ -90,7 +77,7 @@ serve(async (req) => {
     if (!match && domain) {
       // Skip blocked/generic domains
       const blockedDomains = ['gmail.com', 'outlook.com', 'hotmail.com', 'yahoo.com', 'icloud.com', 'live.com', 'msn.com'];
-      
+
       if (!blockedDomains.includes(domain)) {
         const { data: domainMatch } = await supabase
           .from('company_domains')
@@ -127,7 +114,7 @@ serve(async (req) => {
             if (company.website_url) {
               const url = new URL(company.website_url.startsWith('http') ? company.website_url : `https://${company.website_url}`);
               const websiteDomain = url.hostname.replace('www.', '');
-              
+
               if (websiteDomain === domain) {
                 match = {
                   company_id: company.id,
@@ -135,7 +122,7 @@ serve(async (req) => {
                   match_type: 'domain',
                   match_confidence: 0.75,
                 };
-                
+
                 // Auto-add this domain to company_domains for future matches
                 await supabase
                   .from('company_domains')
@@ -144,7 +131,7 @@ serve(async (req) => {
                     domain: domain,
                     is_primary: true,
                   }, { onConflict: 'domain' });
-                
+
                 console.log('Found website domain match, auto-added domain:', match);
                 break;
               }
@@ -165,15 +152,4 @@ serve(async (req) => {
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
-  } catch (error) {
-    console.error('Error in match-emails-to-companies:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    return new Response(
-      JSON.stringify({ success: false, error: errorMessage }),
-      { 
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      }
-    );
-  }
-});
+}));

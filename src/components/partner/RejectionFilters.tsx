@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import {
@@ -47,18 +48,19 @@ export function RejectionFilters({
   onStageChange,
   onDateChange,
 }: Props) {
+  const { t } = useTranslation('common');
   return (
     <Card className="border-border/40">
       <CardContent className="pt-6">
         <div className="flex items-center gap-2 mb-4">
           <Filter className="w-4 h-4 text-muted-foreground" />
-          <h3 className="font-semibold">Filters</h3>
+          <h3 className="font-semibold">{t("filters", "Filters")}</h3>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Rejection Reason Filter */}
           <div className="space-y-2">
-            <Label htmlFor="reason-filter">Rejection Reason</Label>
+            <Label htmlFor="reason-filter">{t("rejection_reason", "Rejection Reason")}</Label>
             <Select value={reasonFilter} onValueChange={onReasonChange}>
               <SelectTrigger id="reason-filter">
                 <SelectValue />
@@ -75,13 +77,13 @@ export function RejectionFilters({
 
           {/* Stage Filter */}
           <div className="space-y-2">
-            <Label htmlFor="stage-filter">Rejection Stage</Label>
+            <Label htmlFor="stage-filter">{t("rejection_stage", "Rejection Stage")}</Label>
             <Select value={stageFilter} onValueChange={onStageChange}>
               <SelectTrigger id="stage-filter">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Stages</SelectItem>
+                <SelectItem value="all">{t("all_stages", "All Stages")}</SelectItem>
                 {stages.map(stage => (
                   <SelectItem key={stage.order} value={stage.name}>
                     {stage.name}
@@ -93,7 +95,7 @@ export function RejectionFilters({
 
           {/* Date Range Filter */}
           <div className="space-y-2">
-            <Label htmlFor="date-filter">Time Period</Label>
+            <Label htmlFor="date-filter">{t("time_period", "Time Period")}</Label>
             <Select value={dateFilter} onValueChange={onDateChange}>
               <SelectTrigger id="date-filter">
                 <SelectValue />

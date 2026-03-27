@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { DynamicChart } from '@/components/charts/DynamicChart';
 import { RecruiterPerformance } from "@/hooks/useAnalytics";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -9,10 +10,11 @@ interface RecruiterPerformanceChartProps {
 }
 
 export function RecruiterPerformanceChart({ data, isLoading }: RecruiterPerformanceChartProps) {
+  const { t } = useTranslation('common');
   if (isLoading) {
     return (
       <div className="h-[400px] w-full flex items-center justify-center">
-        <div className="text-muted-foreground">Loading chart data...</div>
+        <div className="text-muted-foreground">{t("loading_chart_data", "Loading chart data...")}</div>
       </div>
     );
   }
@@ -20,7 +22,7 @@ export function RecruiterPerformanceChart({ data, isLoading }: RecruiterPerforma
   if (!data || data.length === 0) {
     return (
       <div className="h-[400px] w-full flex items-center justify-center">
-        <div className="text-muted-foreground">No recruiter performance data available</div>
+        <div className="text-muted-foreground">{t("no_recruiter_performance_data", "No recruiter performance data available")}</div>
       </div>
     );
   }
@@ -45,7 +47,7 @@ export function RecruiterPerformanceChart({ data, isLoading }: RecruiterPerforma
     <div className="space-y-8">
       {/* Performance Chart */}
       <div>
-        <h4 className="text-sm font-medium mb-4">Recruiter Activity Overview</h4>
+        <h4 className="text-sm font-medium mb-4">{t("recruiter_activity_overview", "Recruiter Activity Overview")}</h4>
         <DynamicChart
           type="bar"
           data={recruiterData}
@@ -66,18 +68,18 @@ export function RecruiterPerformanceChart({ data, isLoading }: RecruiterPerforma
 
       {/* Detailed Table */}
       <div>
-        <h4 className="text-sm font-medium mb-4">Detailed Performance Metrics</h4>
+        <h4 className="text-sm font-medium mb-4">{t("detailed_performance_metrics", "Detailed Performance Metrics")}</h4>
         <div className="border rounded-lg">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Recruiter</TableHead>
-                <TableHead className="text-right">Total Reviews</TableHead>
-                <TableHead className="text-right">Interviews</TableHead>
-                <TableHead className="text-right">Hires</TableHead>
-                <TableHead className="text-right">Jobs</TableHead>
-                <TableHead className="text-right">Conversion</TableHead>
-                <TableHead className="text-right">Avg Response</TableHead>
+                <TableHead>{t("recruiter", "Recruiter")}</TableHead>
+                <TableHead className="text-right">{t("total_reviews", "Total Reviews")}</TableHead>
+                <TableHead className="text-right">{t("interviews", "Interviews")}</TableHead>
+                <TableHead className="text-right">{t("hires", "Hires")}</TableHead>
+                <TableHead className="text-right">{t("jobs", "Jobs")}</TableHead>
+                <TableHead className="text-right">{t("conversion", "Conversion")}</TableHead>
+                <TableHead className="text-right">{t("avg_response", "Avg Response")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Button } from "@/components/ui/button";
 import { MessageSquare, Calendar, Share2, Star, FileText } from "lucide-react";
 import { toast } from "sonner";
@@ -16,6 +17,7 @@ export function CandidateActionBar({
   onShortlist,
   isShortlisted = false
 }: CandidateActionBarProps) {
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
 
   const handleMessage = () => {
@@ -31,7 +33,7 @@ export function CandidateActionBar({
   const handleShare = () => {
     const url = `${window.location.origin}/candidate/${candidateId}`;
     navigator.clipboard.writeText(url);
-    toast.success("Candidate profile link copied to clipboard");
+    toast.success(t("candidate_profile_link_copied", "Candidate profile link copied to clipboard"));
   };
 
   const handleViewDossier = () => {
@@ -73,7 +75,7 @@ export function CandidateActionBar({
         className="gap-2 h-8 text-xs"
       >
         <Share2 className="w-3.5 h-3.5" />
-        Share
+        {t('common:share')}
       </Button>
       <Button
         variant={isShortlisted ? "default" : "outline"}

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Volume2, PhoneOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useHaptics } from '@/hooks/useHaptics';
@@ -9,6 +10,7 @@ interface MobileVoiceIndicatorProps {
 }
 
 const MobileVoiceIndicator = ({ channelName, onTap, onDisconnect }: MobileVoiceIndicatorProps) => {
+  const { t } = useTranslation('meetings');
   const { impact } = useHaptics();
   
   return (
@@ -21,7 +23,7 @@ const MobileVoiceIndicator = ({ channelName, onTap, onDisconnect }: MobileVoiceI
           <Volume2 className="w-5 h-5 text-white animate-pulse" />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-white font-medium text-sm">Voice Connected</p>
+          <p className="text-white font-medium text-sm">{t('livehub.voiceConnected')}</p>
           <p className="text-white/80 text-xs truncate">{channelName}</p>
         </div>
       </div>

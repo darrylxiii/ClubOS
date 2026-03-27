@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ExternalLink, Shield } from "lucide-react";
@@ -19,6 +20,7 @@ interface ContentAttributionProps {
 }
 
 export function ContentAttribution({ attribution }: ContentAttributionProps) {
+  const { t } = useTranslation('common');
   if (!attribution.license.requires_attribution && !attribution.original_source) {
     return null;
   }
@@ -31,7 +33,7 @@ export function ContentAttribution({ attribution }: ContentAttributionProps) {
         </div>
         <div className="flex-1 space-y-2">
           <div className="flex items-center gap-2">
-            <h4 className="text-sm font-semibold">Content Attribution</h4>
+            <h4 className="text-sm font-semibold">{t("content_attribution", "Content Attribution")}</h4>
             <Badge variant="outline" className="squircle-sm text-xs">
               {attribution.license.license_name}
             </Badge>

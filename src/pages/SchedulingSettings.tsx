@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import type { User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
@@ -44,6 +45,7 @@ const TIMEZONES = [
 ];
 
 export default function SchedulingSettings() {
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -90,7 +92,7 @@ export default function SchedulingSettings() {
       .maybeSingle();
 
     if (error) {
-      toast.error("Failed to load scheduling settings");
+      toast.error(t("failed_to_load_scheduling", "Failed to load scheduling settings"));
       setLoading(false);
       setFetchError(true);
       return;
@@ -129,9 +131,9 @@ export default function SchedulingSettings() {
       });
 
     if (error) {
-      toast.error("Failed to save settings");
+      toast.error(t("failed_to_save_settings", "Failed to save settings"));
     } else {
-      toast.success("Settings saved successfully");
+      toast.success(t("settings_saved_successfully", "Settings saved successfully"));
     }
     
     setSaving(false);
@@ -152,7 +154,7 @@ export default function SchedulingSettings() {
   if (fetchError) {
     return (
       <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
-        <ErrorState variant="page" title="Failed to load settings" message="We couldn't load your scheduling settings. Please try again." onRetry={() => { setFetchError(false); loadSettings(); }} />
+        <ErrorState variant="page" title={t("failed_to_load_settings", "Failed to load settings")} message="We couldn't load your scheduling settings. Please try again." onRetry={() => { setFetchError(false); loadSettings(); }} />
       </div>
     );
   }
@@ -163,8 +165,8 @@ export default function SchedulingSettings() {
       
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Scheduling Settings</h1>
-          <p className="text-muted-foreground">Configure your default availability and booking preferences</p>
+          <h1 className="text-3xl font-bold">{t("scheduling_settings", "Scheduling Settings")}</h1>
+          <p className="text-muted-foreground">{t("configure_your_default_availability", "Configure your default availability and booking preferences")}</p>
         </div>
         <Button variant="outline" onClick={() => navigate("/booking-management")}>
           Back to Booking Management
@@ -179,12 +181,12 @@ export default function SchedulingSettings() {
               <Clock className="h-5 w-5" />
               Working Hours
             </CardTitle>
-            <CardDescription>Set your default availability hours</CardDescription>
+            <CardDescription>{t("set_your_default_availability", "Set your default availability hours")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label>Start Time</Label>
+                <Label>{t("start_time", "Start Time")}</Label>
                 <Input
                   type="time"
                   value={settings.default_start_time}
@@ -192,7 +194,7 @@ export default function SchedulingSettings() {
                 />
               </div>
               <div>
-                <Label>End Time</Label>
+                <Label>{t("end_time", "End Time")}</Label>
                 <Input
                   type="time"
                   value={settings.default_end_time}
@@ -230,12 +232,12 @@ export default function SchedulingSettings() {
               <Calendar className="h-5 w-5" />
               Buffer Times
             </CardTitle>
-            <CardDescription>Add breathing room between meetings</CardDescription>
+            <CardDescription>{t("add_breathing_room_between", "Add breathing room between meetings")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label>Buffer Before (min)</Label>
+                <Label>{t("buffer_before_min", "Buffer Before (min)")}</Label>
                 <Input
                   type="number"
                   min="0"
@@ -245,7 +247,7 @@ export default function SchedulingSettings() {
                 />
               </div>
               <div>
-                <Label>Buffer After (min)</Label>
+                <Label>{t("buffer_after_min", "Buffer After (min)")}</Label>
                 <Input
                   type="number"
                   min="0"
@@ -258,7 +260,7 @@ export default function SchedulingSettings() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label>Min Notice (hours)</Label>
+                <Label>{t("min_notice_hours", "Min Notice (hours)")}</Label>
                 <Input
                   type="number"
                   min="0"
@@ -267,7 +269,7 @@ export default function SchedulingSettings() {
                 />
               </div>
               <div>
-                <Label>Advance Booking (days)</Label>
+                <Label>{t("advance_booking_days", "Advance Booking (days)")}</Label>
                 <Input
                   type="number"
                   min="1"
@@ -287,11 +289,11 @@ export default function SchedulingSettings() {
               <Bell className="h-5 w-5" />
               Notifications
             </CardTitle>
-            <CardDescription>Configure booking reminders</CardDescription>
+            <CardDescription>{t("configure_booking_reminders", "Configure booking reminders")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
-              <Label>Send Reminders</Label>
+              <Label>{t("send_reminders", "Send Reminders")}</Label>
               <Switch
                 checked={settings.send_reminders}
                 onCheckedChange={(checked) => setSettings({ ...settings, send_reminders: checked })}
@@ -300,7 +302,7 @@ export default function SchedulingSettings() {
 
             {settings.send_reminders && (
               <div>
-                <Label>Reminder Before</Label>
+                <Label>{t("reminder_before", "Reminder Before")}</Label>
                 <Select
                   value={settings.reminder_minutes_before.toString()}
                   onValueChange={(value) => setSettings({ ...settings, reminder_minutes_before: parseInt(value) })}
@@ -309,18 +311,18 @@ export default function SchedulingSettings() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="15">15 minutes before</SelectItem>
-                    <SelectItem value="30">30 minutes before</SelectItem>
-                    <SelectItem value="60">1 hour before</SelectItem>
-                    <SelectItem value="120">2 hours before</SelectItem>
-                    <SelectItem value="1440">24 hours before</SelectItem>
+                    <SelectItem value="15">{t("15_minutes_before", "15 minutes before")}</SelectItem>
+                    <SelectItem value="30">{t("30_minutes_before", "30 minutes before")}</SelectItem>
+                    <SelectItem value="60">{t("1_hour_before", "1 hour before")}</SelectItem>
+                    <SelectItem value="120">{t("2_hours_before", "2 hours before")}</SelectItem>
+                    <SelectItem value="1440">{t("24_hours_before", "24 hours before")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             )}
 
             <div className="flex items-center justify-between">
-              <Label>Notify on New Booking</Label>
+              <Label>{t("notify_on_new_booking", "Notify on New Booking")}</Label>
               <Switch
                 checked={settings.notify_on_booking}
                 onCheckedChange={(checked) => setSettings({ ...settings, notify_on_booking: checked })}
@@ -336,12 +338,12 @@ export default function SchedulingSettings() {
               <Shield className="h-5 w-5" />
               Booking Preferences
             </CardTitle>
-            <CardDescription>Control how bookings are handled</CardDescription>
+            <CardDescription>{t("control_how_bookings_are", "Control how bookings are handled")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <Label>Auto-Detect Timezone</Label>
+                <Label>{t("autodetect_timezone", "Auto-Detect Timezone")}</Label>
                 <p className="text-sm text-muted-foreground">
                   Automatically detect guest timezone for booking
                 </p>

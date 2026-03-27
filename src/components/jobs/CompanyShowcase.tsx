@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { 
   Users, 
   TrendingUp, 
@@ -25,6 +26,7 @@ interface CompanyShowcaseProps {
 }
 
 export function CompanyShowcase({ company }: CompanyShowcaseProps) {
+  const { t } = useTranslation('common');
   if (!company) return null;
 
   // Mock data for stats (in real app, this would come from API)
@@ -93,7 +95,7 @@ export function CompanyShowcase({ company }: CompanyShowcaseProps) {
                 <div className="flex items-start gap-3 p-4 rounded-lg bg-blue-500/10 border-2 border-blue-500/20">
                   <MapPin className="w-5 h-5 text-blue-500 flex-shrink-0" />
                   <div>
-                    <h4 className="font-semibold text-foreground mb-1">Headquarters</h4>
+                    <h4 className="font-semibold text-foreground mb-1">{t("headquarters", "Headquarters")}</h4>
                     <p className="text-sm text-muted-foreground">{company.headquarters_location}</p>
                   </div>
                 </div>
@@ -104,7 +106,7 @@ export function CompanyShowcase({ company }: CompanyShowcaseProps) {
                 <div className="flex items-start gap-3 p-4 rounded-lg bg-purple-500/10 border-2 border-purple-500/20">
                   <Globe className="w-5 h-5 text-purple-500 flex-shrink-0" />
                   <div>
-                    <h4 className="font-semibold text-foreground mb-1">Website</h4>
+                    <h4 className="font-semibold text-foreground mb-1">{t("website", "Website")}</h4>
                     <a
                       href={company.website_url}
                       target="_blank"

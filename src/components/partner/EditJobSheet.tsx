@@ -42,6 +42,7 @@ import { CompanyOfficeLocationPicker } from "@/components/jobs/CompanyOfficeLoca
 import { LocationMapCard } from "@/components/ui/location-map-card";
 import { PipelineTypeSelector } from "@/components/jobs/PipelineTypeSelector";
 import { JobFeeConfiguration, type FeeConfiguration } from "@/components/jobs/JobFeeConfiguration";
+import { useTranslation } from 'react-i18next';
 
 interface EditJobSheetProps {
   open: boolean;
@@ -67,6 +68,7 @@ interface StealthViewer {
 }
 
 export const EditJobSheet = ({ open, onOpenChange, job, onJobUpdated }: EditJobSheetProps) => {
+  const { t } = useTranslation('partner');
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("basic");
   const [loading, setLoading] = useState(false);
@@ -227,7 +229,7 @@ export const EditJobSheet = ({ open, onOpenChange, job, onJobUpdated }: EditJobS
       setCompanies(data || []);
     } catch (error) {
       console.error('Error fetching companies:', error);
-      toast.error("Failed to load companies");
+      toast.error(t('editJobSheet.toast.failedToLoadCompanies'));
     }
   };
 
@@ -314,10 +316,10 @@ export const EditJobSheet = ({ open, onOpenChange, job, onJobUpdated }: EditJobS
       const updatedDocs = existingDocuments.filter((doc: any) => doc.url !== docUrl);
       setExistingDocuments(updatedDocs);
       setHasUnsavedChanges(true);
-      toast.success("Document will be removed when you save");
+      toast.success(t('editJobSheet.toast.documentWillBeRemovedWhenYouSave'));
     } catch (error) {
       console.error('Error removing document:', error);
-      toast.error("Failed to remove document");
+      toast.error(t('editJobSheet.toast.failedToRemoveDocument'));
     }
   };
 
@@ -339,7 +341,7 @@ export const EditJobSheet = ({ open, onOpenChange, job, onJobUpdated }: EditJobS
       document.body.removeChild(a);
     } catch (error) {
       console.error('Error downloading document:', error);
-      toast.error("Failed to download document");
+      toast.error(t('editJobSheet.toast.failedToDownloadDocument'));
     }
   };
 
@@ -511,13 +513,13 @@ export const EditJobSheet = ({ open, onOpenChange, job, onJobUpdated }: EditJobS
         }
       }
 
-      toast.success("Job updated successfully");
+      toast.success(t('editJobSheet.toast.jobUpdatedSuccessfully'));
       setHasUnsavedChanges(false);
       onJobUpdated();
       onOpenChange(false);
     } catch (error) {
       console.error('Error updating job:', error);
-      toast.error("Failed to update job");
+      toast.error(t('editJobSheet.toast.failedToUpdateJob'));
     } finally {
       setLoading(false);
     }
@@ -525,7 +527,7 @@ export const EditJobSheet = ({ open, onOpenChange, job, onJobUpdated }: EditJobS
 
   const handleClose = () => {
     if (hasUnsavedChanges) {
-      toast.info("You have unsaved changes");
+      toast.info(t('editJobSheet.toast.youHaveUnsavedChanges'));
     }
     onOpenChange(false);
   };
@@ -541,24 +543,24 @@ export const EditJobSheet = ({ open, onOpenChange, job, onJobUpdated }: EditJobS
               <div>
                 <h2 className="text-2xl font-bold">{job?.title || 'Edit Job'}</h2>
                 <p className="text-sm text-muted-foreground">
-                  {hasUnsavedChanges ? "Unsaved changes" : "All changes saved"}
+                  {hasUnsavedChanges ? t('partner.editjobsheet.unsavedChanges', 'Unsaved changes') : t('partner.editjobsheet.allChangesSaved', 'All changes saved')}
                 </p>
               </div>
             </div>
             <div className="flex gap-2">
               <Button variant="outline" onClick={handleClose}>
-                Cancel
+                {t('common:cancel')}
               </Button>
               <Button onClick={handleSubmit} disabled={loading || uploading}>
                 {loading || uploading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    {uploading ? "Uploading..." : "Saving..."}
+                    {uploading ? t('partner.editjobsheet.uploading', 'Uploading...') : t('partner.editjobsheet.saving', 'Saving...')}
                   </>
                 ) : (
                   <>
                     <Save className="mr-2 h-4 w-4" />
-                    Save Changes
+                    {t('common:saveChanges')}
                   </>
                 )}
               </Button>
@@ -601,19 +603,19 @@ export const EditJobSheet = ({ open, onOpenChange, job, onJobUpdated }: EditJobS
               <TabsContent value="basic" className="space-y-6">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Job Details</CardTitle>
-                    <CardDescription>Update the core information about this position</CardDescription>
+                    <CardTitle>{t('editJobSheet.title')}</CardTitle>
+                    <CardDescription>{t('editJobSheet.description')}</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="company">Company *</Label>
+                      <Label htmlFor="company">{t('editJobSheet.label.company')}</Label>
                       <Select
                         value={formData.company_id}
                         onValueChange={(value) => handleFormChange('company_id', value)}
                         required
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder="Select a company" />
+                          <SelectValue placeholder={t('editJobSheet.placeholder.selectACompany')} />
                         </SelectTrigger>
                         <SelectContent>
                           {companies.map((company) => (
@@ -626,23 +628,22 @@ export const EditJobSheet = ({ open, onOpenChange, job, onJobUpdated }: EditJobS
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="title">Job Title *</Label>
+                      <Label htmlFor="title">{t('editJobSheet.label.jobTitle')}</Label>
                       <Input
                         id="title"
                         value={formData.title}
                         onChange={(e) => handleFormChange('title', e.target.value)}
-                        placeholder="e.g., Senior Product Designer"
-                        required
+                        placeholder="e.g., Senior Product Designer required"
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="description">Description</Label>
+                      <Label htmlFor="description">{t('editJobSheet.label.description')}</Label>
                       <Textarea
                         id="description"
                         value={formData.description}
                         onChange={(e) => handleFormChange('description', e.target.value)}
-                        placeholder="Brief overview of the role..."
+                        placeholder={t('editJobSheet.placeholder.briefOverviewOfTheRole')}
                         rows={8}
                         className="resize-none"
                       />
@@ -663,21 +664,19 @@ export const EditJobSheet = ({ open, onOpenChange, job, onJobUpdated }: EditJobS
                         onChange={(e) => handleFormChange('external_url', e.target.value)}
                         placeholder="https://linkedin.com/jobs/..."
                       />
-                      <p className="text-xs text-muted-foreground">
-                        Link to where this job is posted online (LinkedIn, company website, etc.)
-                      </p>
+                      <p className="text-xs text-muted-foreground">{t('editJobSheet.linkToWhereThisJobIsPostedOnlineLinkedin')}</p>
                     </div>
                   </CardContent>
                 </Card>
 
                 <Card>
                   <CardHeader>
-                    <CardTitle>Location & Type</CardTitle>
+                    <CardTitle>{t('editJobSheet.title')}</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="location">Location</Label>
+                        <Label htmlFor="location">{t('editJobSheet.label.location')}</Label>
                         {formData.company_id ? (
                           <CompanyOfficeLocationPicker
                             companyId={formData.company_id}
@@ -697,7 +696,7 @@ export const EditJobSheet = ({ open, onOpenChange, job, onJobUpdated }: EditJobS
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="employment_type">Employment Type</Label>
+                        <Label htmlFor="employment_type">{t('editJobSheet.label.employmentType')}</Label>
                         <Select
                           value={formData.employment_type}
                           onValueChange={(value) => handleFormChange('employment_type', value)}
@@ -706,11 +705,11 @@ export const EditJobSheet = ({ open, onOpenChange, job, onJobUpdated }: EditJobS
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="fulltime">Full-time</SelectItem>
-                            <SelectItem value="parttime">Part-time</SelectItem>
-                            <SelectItem value="contract">Contract</SelectItem>
-                            <SelectItem value="freelance">Freelance</SelectItem>
-                            <SelectItem value="internship">Internship</SelectItem>
+                            <SelectItem value="fulltime">{t('editJobSheet.option.fulltime')}</SelectItem>
+                            <SelectItem value="parttime">{t('editJobSheet.option.parttime')}</SelectItem>
+                            <SelectItem value="contract">{t('editJobSheet.option.contract')}</SelectItem>
+                            <SelectItem value="freelance">{t('editJobSheet.option.freelance')}</SelectItem>
+                            <SelectItem value="internship">{t('editJobSheet.option.internship')}</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -720,12 +719,12 @@ export const EditJobSheet = ({ open, onOpenChange, job, onJobUpdated }: EditJobS
 
                 <Card>
                   <CardHeader>
-                    <CardTitle>Compensation</CardTitle>
-                    <CardDescription>Set the salary range for this position</CardDescription>
+                    <CardTitle>{t('editJobSheet.title')}</CardTitle>
+                    <CardDescription>{t('editJobSheet.description')}</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="currency">Currency</Label>
+                      <Label htmlFor="currency">{t('editJobSheet.label.currency')}</Label>
                       <Select
                         value={formData.currency}
                         onValueChange={(value) => handleFormChange('currency', value)}
@@ -734,17 +733,17 @@ export const EditJobSheet = ({ open, onOpenChange, job, onJobUpdated }: EditJobS
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="EUR">EUR (€) - Euro</SelectItem>
-                          <SelectItem value="USD">USD ($) - US Dollar</SelectItem>
-                          <SelectItem value="GBP">GBP (£) - British Pound</SelectItem>
-                          <SelectItem value="AED">AED (د.إ) - UAE Dirham</SelectItem>
+                          <SelectItem value="EUR">{t('partner.editjobsheet.eurEuro', 'EUR (€) - Euro')}</SelectItem>
+                          <SelectItem value="USD">{t('partner.editjobsheet.usdUsDollar', 'USD ($) - US Dollar')}</SelectItem>
+                          <SelectItem value="GBP">{t('partner.editjobsheet.gbpBritishPound', 'GBP (£) - British Pound')}</SelectItem>
+                          <SelectItem value="AED">{t('partner.editjobsheet.aedUaeDirham', 'AED (د.إ) - UAE Dirham')}</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="salary_min">Min Salary (Annual)</Label>
+                        <Label htmlFor="salary_min">{t('editJobSheet.label.minSalaryAnnual')}</Label>
                         <Input
                           id="salary_min"
                           type="number"
@@ -755,7 +754,7 @@ export const EditJobSheet = ({ open, onOpenChange, job, onJobUpdated }: EditJobS
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="salary_max">Max Salary (Annual)</Label>
+                        <Label htmlFor="salary_max">{t('editJobSheet.label.maxSalaryAnnual')}</Label>
                         <Input
                           id="salary_max"
                           type="number"
@@ -781,42 +780,34 @@ export const EditJobSheet = ({ open, onOpenChange, job, onJobUpdated }: EditJobS
               <TabsContent value="tools" className="space-y-6">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Required Tools & Technologies</CardTitle>
-                    <CardDescription>
-                      Essential skills candidates must have
-                    </CardDescription>
+                    <CardTitle>{t('editJobSheet.title')}</CardTitle>
+                    <CardDescription>{t('editJobSheet.description')}</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <ToolSelector
                       selectedTools={requiredTools}
                       onChange={handleRequiredToolsChange}
-                      placeholder="Search required tools (e.g., Figma, React, Python)..."
+                      placeholder={t('editJobSheet.placeholder.searchRequiredToolsEgFigmaReactPython')}
                     />
                     {requiredTools.length === 0 && (
-                      <p className="text-sm text-muted-foreground mt-4 text-center py-8">
-                        No required tools selected. Add tools that are essential for this role.
-                      </p>
+                      <p className="text-sm text-muted-foreground mt-4 text-center py-8">{t('editJobSheet.noRequiredToolsSelectedAddToolsThatAreEs')}</p>
                     )}
                   </CardContent>
                 </Card>
 
                 <Card>
                   <CardHeader>
-                    <CardTitle>Nice-to-Have Tools</CardTitle>
-                    <CardDescription>
-                      Bonus skills that would be beneficial but not required
-                    </CardDescription>
+                    <CardTitle>{t('editJobSheet.title')}</CardTitle>
+                    <CardDescription>{t('editJobSheet.description')}</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <ToolSelector
                       selectedTools={niceToHaveTools}
                       onChange={handleNiceToHaveToolsChange}
-                      placeholder="Search nice-to-have tools..."
+                      placeholder={t('editJobSheet.placeholder.searchNicetohaveTools')}
                     />
                     {niceToHaveTools.length === 0 && (
-                      <p className="text-sm text-muted-foreground mt-4 text-center py-8">
-                        No nice-to-have tools selected. Add tools that would be a plus.
-                      </p>
+                      <p className="text-sm text-muted-foreground mt-4 text-center py-8">{t('editJobSheet.noNicetohaveToolsSelectedAddToolsThatWou')}</p>
                     )}
                   </CardContent>
                 </Card>
@@ -826,10 +817,8 @@ export const EditJobSheet = ({ open, onOpenChange, job, onJobUpdated }: EditJobS
               <TabsContent value="pipeline" className="space-y-6">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Pipeline Type</CardTitle>
-                    <CardDescription>
-                      Configure how this job handles multiple hires
-                    </CardDescription>
+                    <CardTitle>{t('editJobSheet.title')}</CardTitle>
+                    <CardDescription>{t('editJobSheet.description')}</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <PipelineTypeSelector
@@ -855,10 +844,8 @@ export const EditJobSheet = ({ open, onOpenChange, job, onJobUpdated }: EditJobS
                 {formData.company_id && (
                   <Card>
                     <CardHeader>
-                      <CardTitle>Fee Configuration</CardTitle>
-                      <CardDescription>
-                        Override company default placement fees for this role
-                      </CardDescription>
+                      <CardTitle>{t('editJobSheet.title')}</CardTitle>
+                      <CardDescription>{t('editJobSheet.description')}</CardDescription>
                     </CardHeader>
                     <CardContent>
                       <JobFeeConfiguration
@@ -889,10 +876,8 @@ export const EditJobSheet = ({ open, onOpenChange, job, onJobUpdated }: EditJobS
               <TabsContent value="visibility" className="space-y-6">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Stealth Mode</CardTitle>
-                    <CardDescription>
-                      Control who can see this job posting
-                    </CardDescription>
+                    <CardTitle>{t('editJobSheet.title')}</CardTitle>
+                    <CardDescription>{t('editJobSheet.description')}</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6">
                     <StealthJobToggle
@@ -927,9 +912,7 @@ export const EditJobSheet = ({ open, onOpenChange, job, onJobUpdated }: EditJobS
                         <History className="h-5 w-5" />
                         Access History
                       </CardTitle>
-                      <CardDescription>
-                        View all changes to stealth mode and viewer permissions
-                      </CardDescription>
+                      <CardDescription>{t('editJobSheet.description')}</CardDescription>
                     </CardHeader>
                     <CardContent>
                       <StealthAuditTimeline jobId={job.id} maxHeight="350px" />
@@ -942,10 +925,8 @@ export const EditJobSheet = ({ open, onOpenChange, job, onJobUpdated }: EditJobS
               <TabsContent value="documents" className="space-y-6">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Job Description Document</CardTitle>
-                    <CardDescription>
-                      Upload the main job description file (PDF, DOC, DOCX)
-                    </CardDescription>
+                    <CardTitle>{t('editJobSheet.title')}</CardTitle>
+                    <CardDescription>{t('editJobSheet.description')}</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     {job.job_description_url && !jobDescriptionFile && (
@@ -953,11 +934,11 @@ export const EditJobSheet = ({ open, onOpenChange, job, onJobUpdated }: EditJobS
                         <div className="flex items-center gap-3">
                           <FileText className="h-8 w-8 text-primary" />
                           <div>
-                            <p className="font-medium">Current document uploaded</p>
-                            <p className="text-xs text-muted-foreground">Upload a new file to replace it</p>
+                            <p className="font-medium">{t('editJobSheet.currentDocumentUploaded')}</p>
+                            <p className="text-xs text-muted-foreground">{t('editJobSheet.uploadANewFileToReplaceIt')}</p>
                           </div>
                         </div>
-                        <Badge variant="secondary">Active</Badge>
+                        <Badge variant="secondary">{t('editJobSheet.badge.active')}</Badge>
                       </div>
                     )}
 
@@ -970,9 +951,7 @@ export const EditJobSheet = ({ open, onOpenChange, job, onJobUpdated }: EditJobS
                         onChange={handleJobDescriptionChange}
                         className="max-w-xs mx-auto"
                       />
-                      <p className="text-sm text-muted-foreground mt-2">
-                        Drag & drop or click to upload
-                      </p>
+                      <p className="text-sm text-muted-foreground mt-2">{t('editJobSheet.dragDropOrClickToUpload')}</p>
                     </div>
 
                     {jobDescriptionFile && (
@@ -1003,16 +982,14 @@ export const EditJobSheet = ({ open, onOpenChange, job, onJobUpdated }: EditJobS
 
                 <Card>
                   <CardHeader>
-                    <CardTitle>Supporting Documents</CardTitle>
-                    <CardDescription>
-                      Additional files like company culture decks, benefit guides, etc.
-                    </CardDescription>
+                    <CardTitle>{t('editJobSheet.title')}</CardTitle>
+                    <CardDescription>{t('editJobSheet.description')}</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     {/* Existing documents */}
                     {existingDocuments.length > 0 && (
                       <div className="space-y-2">
-                        <Label>Existing Documents</Label>
+                        <Label>{t('editJobSheet.label.existingDocuments')}</Label>
                         {existingDocuments.map((doc: any, index: number) => (
                           <div key={index} className="p-3 bg-muted rounded-lg flex items-center justify-between">
                             <div className="flex items-center gap-3 flex-1">
@@ -1056,15 +1033,13 @@ export const EditJobSheet = ({ open, onOpenChange, job, onJobUpdated }: EditJobS
                         onChange={handleSupportingDocumentsChange}
                         className="max-w-xs mx-auto"
                       />
-                      <p className="text-xs text-muted-foreground mt-2">
-                        Upload multiple files at once
-                      </p>
+                      <p className="text-xs text-muted-foreground mt-2">{t('editJobSheet.uploadMultipleFilesAtOnce')}</p>
                     </div>
 
                     {/* New documents to upload */}
                     {supportingDocuments.length > 0 && (
                       <div className="space-y-2">
-                        <Label>New Documents (will be uploaded on save)</Label>
+                        <Label>{t('editJobSheet.label.newDocumentsWillBeUploadedOnSave')}</Label>
                         {supportingDocuments.map((file, index) => (
                           <div key={index} className="p-3 bg-primary/10 rounded-lg flex items-center justify-between">
                             <div className="flex items-center gap-3 flex-1">
@@ -1106,18 +1081,18 @@ export const EditJobSheet = ({ open, onOpenChange, job, onJobUpdated }: EditJobS
             </p>
             <div className="flex gap-2">
               <Button variant="outline" onClick={handleClose}>
-                Cancel
+                {t('common:cancel')}
               </Button>
               <Button onClick={handleSubmit} disabled={loading || uploading}>
                 {loading || uploading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    {uploading ? "Uploading..." : "Saving..."}
+                    {uploading ? t('partner.editjobsheet.uploading', 'Uploading...') : t('partner.editjobsheet.saving', 'Saving...')}
                   </>
                 ) : (
                   <>
                     <Save className="mr-2 h-4 w-4" />
-                    Save Changes
+                    {t('common:saveChanges')}
                   </>
                 )}
               </Button>

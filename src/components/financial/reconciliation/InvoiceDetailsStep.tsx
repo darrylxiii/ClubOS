@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { format } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -10,6 +11,7 @@ interface InvoiceDetailsStepProps {
 }
 
 export function InvoiceDetailsStep({ invoice }: InvoiceDetailsStepProps) {
+  const { t } = useTranslation('common');
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('nl-NL', { 
       style: 'currency', 
@@ -46,21 +48,21 @@ export function InvoiceDetailsStep({ invoice }: InvoiceDetailsStepProps) {
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div>
-              <p className="text-sm text-muted-foreground">Invoice Number</p>
+              <p className="text-sm text-muted-foreground">{t("invoice_number", "Invoice Number")}</p>
               <p className="font-mono font-medium">{invoice.invoice_number || '-'}</p>
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Moneybird ID</p>
+              <p className="text-sm text-muted-foreground">{t("moneybird_id", "Moneybird ID")}</p>
               <p className="font-mono text-sm">{invoice.moneybird_id}</p>
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Status</p>
+              <p className="text-sm text-muted-foreground">{t("status", "Status")}</p>
               <Badge variant={getStatusVariant(invoice.state_normalized)} className="capitalize">
                 {invoice.state_normalized}
               </Badge>
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Currency</p>
+              <p className="text-sm text-muted-foreground">{t("currency", "Currency")}</p>
               <p className="font-medium">{invoice.currency || 'EUR'}</p>
             </div>
           </div>
@@ -78,12 +80,12 @@ export function InvoiceDetailsStep({ invoice }: InvoiceDetailsStepProps) {
           <CardContent>
             <div className="space-y-2">
               <div>
-                <p className="text-sm text-muted-foreground">Contact Name (from Moneybird)</p>
+                <p className="text-sm text-muted-foreground">{t("contact_name_from_moneybird", "Contact Name (from Moneybird)")}</p>
                 <p className="font-medium">{invoice.contact_name || 'Unknown'}</p>
               </div>
               {invoice.contact_id && (
                 <div>
-                  <p className="text-sm text-muted-foreground">Contact ID</p>
+                  <p className="text-sm text-muted-foreground">{t("contact_id", "Contact ID")}</p>
                   <p className="font-mono text-sm">{invoice.contact_id}</p>
                 </div>
               )}
@@ -101,7 +103,7 @@ export function InvoiceDetailsStep({ invoice }: InvoiceDetailsStepProps) {
           <CardContent>
             <div className="space-y-2">
               <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">Invoice Date</span>
+                <span className="text-sm text-muted-foreground">{t("invoice_date", "Invoice Date")}</span>
                 <span className="font-medium">
                   {invoice.invoice_date 
                     ? format(new Date(invoice.invoice_date), 'MMM d, yyyy')
@@ -109,7 +111,7 @@ export function InvoiceDetailsStep({ invoice }: InvoiceDetailsStepProps) {
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">Due Date</span>
+                <span className="text-sm text-muted-foreground">{t("due_date", "Due Date")}</span>
                 <span className="font-medium">
                   {invoice.due_date 
                     ? format(new Date(invoice.due_date), 'MMM d, yyyy')
@@ -131,16 +133,16 @@ export function InvoiceDetailsStep({ invoice }: InvoiceDetailsStepProps) {
         <CardContent>
           <div className="space-y-3">
             <div className="flex justify-between items-center">
-              <span className="text-muted-foreground">Total Amount</span>
+              <span className="text-muted-foreground">{t("total_amount", "Total Amount")}</span>
               <span className="text-xl font-bold">{formatCurrency(invoice.total_amount)}</span>
             </div>
             <Separator />
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Paid</span>
+              <span className="text-muted-foreground">{t("paid", "Paid")}</span>
               <span className="text-green-600 font-medium">{formatCurrency(invoice.paid_amount)}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Outstanding</span>
+              <span className="text-muted-foreground">{t("outstanding", "Outstanding")}</span>
               <span className={invoice.unpaid_amount > 0 ? 'text-amber-600 font-medium' : ''}>
                 {formatCurrency(invoice.unpaid_amount)}
               </span>
@@ -152,7 +154,7 @@ export function InvoiceDetailsStep({ invoice }: InvoiceDetailsStepProps) {
       {lineItems && lineItems.length > 0 && (
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-base">Line Items</CardTitle>
+            <CardTitle className="text-base">{t("line_items", "Line Items")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-2">

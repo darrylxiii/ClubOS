@@ -1,8 +1,11 @@
+import { useTranslation } from 'react-i18next';
+
 interface VoiceActivityIndicatorProps {
   isActive: boolean;
 }
 
 const VoiceActivityIndicator = ({ isActive }: VoiceActivityIndicatorProps) => {
+  const { t } = useTranslation('meetings');
   if (!isActive) return null;
   
   return (
@@ -21,7 +24,7 @@ const VoiceActivityIndicator = ({ isActive }: VoiceActivityIndicatorProps) => {
         ))}
       </div>
       <span className="text-xs font-semibold text-green-500 ml-2">
-        You're speaking
+        {t('livehub.youreSpeaking')}
       </span>
     </div>
   );

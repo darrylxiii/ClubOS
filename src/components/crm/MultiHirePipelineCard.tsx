@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -13,6 +14,7 @@ interface MultiHirePipelineCardProps {
 }
 
 export function MultiHirePipelineCard({ className, compact = false }: MultiHirePipelineCardProps) {
+  const { t } = useTranslation('common');
   const { data: metrics, isLoading } = useMultiHirePipelineMetrics();
 
   if (isLoading) {
@@ -101,19 +103,19 @@ export function MultiHirePipelineCard({ className, compact = false }: MultiHireP
             <div className="text-2xl font-bold text-primary">
               {formatCurrencyCompact(totalProjectedValue)}
             </div>
-            <div className="text-xs text-muted-foreground">Total Projected</div>
+            <div className="text-xs text-muted-foreground">{t("total_projected", "Total Projected")}</div>
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold text-green-600">
               {formatCurrencyCompact(realizedValue)}
             </div>
-            <div className="text-xs text-muted-foreground">Realized</div>
+            <div className="text-xs text-muted-foreground">{t("realized", "Realized")}</div>
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold text-amber-600">
               {formatCurrencyCompact(remainingPipeline)}
             </div>
-            <div className="text-xs text-muted-foreground">Remaining</div>
+            <div className="text-xs text-muted-foreground">{t("remaining", "Remaining")}</div>
           </div>
         </div>
 
@@ -141,17 +143,17 @@ export function MultiHirePipelineCard({ className, compact = false }: MultiHireP
         <div className="flex items-center justify-between text-xs pt-2 border-t border-border/50">
           <div className="flex items-center gap-1">
             <div className="w-2 h-2 rounded-full bg-green-500" />
-            <span className="text-muted-foreground">Realized</span>
+            <span className="text-muted-foreground">{t("realized", "Realized")}</span>
           </div>
           <ArrowRight className="h-3 w-3 text-muted-foreground" />
           <div className="flex items-center gap-1">
             <div className="w-2 h-2 rounded-full bg-amber-500" />
-            <span className="text-muted-foreground">In Progress</span>
+            <span className="text-muted-foreground">{t("in_progress", "In Progress")}</span>
           </div>
           <ArrowRight className="h-3 w-3 text-muted-foreground" />
           <div className="flex items-center gap-1">
             <div className="w-2 h-2 rounded-full bg-muted-foreground/30" />
-            <span className="text-muted-foreground">Target</span>
+            <span className="text-muted-foreground">{t("target", "Target")}</span>
           </div>
         </div>
 

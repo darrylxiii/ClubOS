@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
@@ -34,6 +35,7 @@ interface InviteRecord {
 }
 
 export function InviteHistoryTab() {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [resendingId, setResendingId] = useState<string | null>(null);
@@ -66,11 +68,11 @@ export function InviteHistoryTab() {
         .eq('id', id);
 
       if (error) throw error;
-      toast.success('Invitation revoked');
+      toast.success(t("invitation_revoked", "Invitation revoked"));
       queryClient.invalidateQueries({ queryKey: ['invite-history'] });
       queryClient.invalidateQueries({ queryKey: ['invite-stats'] });
     } catch {
-      toast.error('Failed to revoke invitation');
+      toast.error(t("failed_to_revoke_invitation", "Failed to revoke invitation"));
     } finally {
       setRevokeTarget(null);
     }
@@ -79,7 +81,7 @@ export function InviteHistoryTab() {
   const copyInviteLink = (code: string) => {
     const siteUrl = window.location.origin;
     navigator.clipboard.writeText(`${siteUrl}/auth?invite=${code}`);
-    toast.success('Invite link copied to clipboard');
+    toast.success(t("invite_link_copied_to", "Invite link copied to clipboard"));
   };
 
   const resendInvite = async (invite: InviteRecord) => {
@@ -89,7 +91,7 @@ export function InviteHistoryTab() {
       const metadata = invite.metadata || {};
       const recipientEmail = (metadata.email as string) || (metadata.invited_email as string);
       if (!recipientEmail) {
-        toast.error('No email found for this invite');
+        toast.error(t("no_email_found_for", "No email found for this invite"));
         return;
       }
 
@@ -132,7 +134,7 @@ export function InviteHistoryTab() {
       toast.success(`Invitation resent to ${recipientEmail}`);
       queryClient.invalidateQueries({ queryKey: ['invite-history'] });
     } catch {
-      toast.error('Failed to resend invitation');
+      toast.error(t("failed_to_resend_invitation", "Failed to resend invitation"));
     } finally {
       setResendingId(null);
     }
@@ -165,7 +167,7 @@ export function InviteHistoryTab() {
     return (
       <div className="text-center py-12">
         <Mail className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-        <h3 className="text-lg font-semibold mb-1">No invitations yet</h3>
+        <h3 className="text-lg font-semibold mb-1">{t("no_invitations_yet", "No invitations yet")}</h3>
         <p className="text-muted-foreground text-sm">
           Invitations you send will appear here.
         </p>
@@ -213,7 +215,7 @@ export function InviteHistoryTab() {
                       size="sm"
                       onClick={() => copyInviteLink(invite.code)}
                       className="h-7 px-2 text-muted-foreground"
-                      title="Copy invite link"
+                      title={t("copy_invite_link", "Copy invite link")}
                     >
                       <Copy className="h-3.5 w-3.5" />
                     </Button>
@@ -223,7 +225,7 @@ export function InviteHistoryTab() {
                       onClick={() => resendInvite(invite)}
                       disabled={resendingId === invite.id}
                       className="h-7 px-2 text-muted-foreground"
-                      title="Resend invitation"
+                      title={t("resend_invitation", "Resend invitation")}
                     >
                       {resendingId === invite.id ? (
                         <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -236,7 +238,7 @@ export function InviteHistoryTab() {
                       size="sm"
                       onClick={() => setRevokeTarget(invite.id)}
                       className="h-7 px-2 text-muted-foreground hover:text-destructive"
-                      title="Revoke invitation"
+                      title={t("revoke_invitation", "Revoke invitation")}
                     >
                       <XCircle className="h-3.5 w-3.5" />
                     </Button>
@@ -251,13 +253,13 @@ export function InviteHistoryTab() {
       <AlertDialog open={!!revokeTarget} onOpenChange={(open) => !open && setRevokeTarget(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Revoke this invitation?</AlertDialogTitle>
+            <AlertDialogTitle>{t("revoke_this_invitation", "Revoke this invitation?")}</AlertDialogTitle>
             <AlertDialogDescription>
               This will permanently deactivate the invite code. The recipient will no longer be able to use it.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t("cancel", "Cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => revokeTarget && revokeInvite(revokeTarget)}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"

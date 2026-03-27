@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from 'react-i18next';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { GoalsDashboard } from "@/components/agent/GoalsDashboard";
 import { AgentActivityFeed } from "@/components/agent/AgentActivityFeed";
@@ -13,6 +14,7 @@ import { StrategistAgentWidget } from "@/components/agent/StrategistAgentWidget"
 import { Target, Activity, Shield, Settings, Bot, Users, Brain } from "lucide-react";
 
 export default function AgentDashboard() {
+  const { t } = useTranslation('analytics');
   const [activeTab, setActiveTab] = useState("goals");
 
   return (
@@ -23,9 +25,7 @@ export default function AgentDashboard() {
           <Bot className="h-8 w-8 text-primary" />
           QUIN Agent Dashboard
         </h1>
-        <p className="text-muted-foreground">
-          Manage your AI agents, track goals, and control autonomy levels
-        </p>
+        <p className="text-muted-foreground">{t('agentDashboard.desc')}</p>
       </div>
 
       {/* Main Tabs */}

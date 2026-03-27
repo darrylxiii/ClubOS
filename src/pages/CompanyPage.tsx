@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate } from "react-router-dom";
 
 import { Card, CardContent } from "@/components/ui/card";
@@ -76,6 +77,7 @@ interface Company {
 }
 
 export default function CompanyPage() {
+  const { t } = useTranslation('common');
   const { slug } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -159,7 +161,7 @@ export default function CompanyPage() {
       }
     } catch (error) {
       console.error("Error loading company:", error);
-      toast.error("Failed to load company information");
+      toast.error(t('text.companypage.failedToLoadCompanyInformation', 'Failed to load company information'));
       setFetchError(true);
     } finally {
       setLoading(false);
@@ -199,7 +201,7 @@ export default function CompanyPage() {
       setNewsArticles(data || []);
     } catch (error) {
       console.error('Error loading news articles:', error);
-      toast.error('Failed to load news articles');
+      toast.error(t('text.companypage.failedToLoadNewsArticles', 'Failed to load news articles'));
     } finally {
       setNewsLoading(false);
     }
@@ -229,13 +231,13 @@ export default function CompanyPage() {
       setTargetCompaniesCount(targetsRes.count || 0);
     } catch (error) {
       console.error("Error loading stats:", error);
-      toast.error("Failed to load company stats");
+      toast.error(t('text.companypage.failedToLoadCompanyStats', 'Failed to load company stats'));
     }
   };
 
   const handleFollow = async () => {
     if (!user || !company) {
-      toast.error("Please sign in to follow companies");
+      toast.error(t('text.companypage.pleaseSignInToFollowCompanies', 'Please sign in to follow companies'));
       return;
     }
 
@@ -246,7 +248,7 @@ export default function CompanyPage() {
           .delete()
           .eq("company_id", company.id)
           .eq("user_id", user.id);
-        toast.success("Unfollowed company");
+        toast.success(t('text.companypage.unfollowedCompany', 'Unfollowed company'));
         setIsFollowing(false);
         setFollowerCount(prev => Math.max(0, prev - 1));
       } else {
@@ -256,13 +258,13 @@ export default function CompanyPage() {
             company_id: company.id,
             user_id: user.id,
           });
-        toast.success("Following company!");
+        toast.success(t('text.companypage.followingCompany', 'Following company!'));
         setIsFollowing(true);
         setFollowerCount(prev => prev + 1);
       }
     } catch (error) {
       console.error("Error toggling follow:", error);
-      toast.error("Failed to update follow status");
+      toast.error(t('text.companypage.failedToUpdateFollowStatus', 'Failed to update follow status'));
     }
   };
 
@@ -279,11 +281,11 @@ export default function CompanyPage() {
       }).catch(() => {
         // Fallback to clipboard
         navigator.clipboard.writeText(window.location.href);
-        toast.success("Link copied to clipboard!");
+        toast.success(t('text.companypage.linkCopiedToClipboard', 'Link copied to clipboard!'));
       });
     } else if (company) {
       navigator.clipboard.writeText(window.location.href);
-      toast.success("Link copied to clipboard!");
+      toast.success(t('text.companypage.linkCopiedToClipboard', 'Link copied to clipboard!'));
     }
   };
 
@@ -311,11 +313,11 @@ export default function CompanyPage() {
 
       if (updateError) throw updateError;
 
-      toast.success("Cover image updated!");
+      toast.success(t('text.companypage.coverImageUpdated', 'Cover image updated!'));
       loadCompany();
     } catch (error: unknown) {
       console.error("Error uploading cover:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to upload cover image");
+      toast.error(error instanceof Error ? error.message : t('text.companypage.failedToUploadCoverImage', 'Failed to upload cover image'));
     }
   };
 
@@ -324,7 +326,7 @@ export default function CompanyPage() {
       <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
         <ErrorState
           variant="page"
-          title="Failed to load company"
+          title={t('companyPage.text3')}
           message="We couldn't load this company's information. Please try again."
           onRetry={() => { setFetchError(false); setLoading(true); loadCompany(); }}
         />
@@ -349,10 +351,8 @@ export default function CompanyPage() {
           <Card className="border-2">
             <CardContent className="py-12 text-center">
               <Building2 className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-              <h2 className="text-2xl font-bold mb-2">Company Not Found</h2>
-              <p className="text-muted-foreground mb-4">
-                This company is not part of The Quantum Club network.
-              </p>
+              <h2 className="text-2xl font-bold mb-2">{t('companyPage.text4')}</h2>
+              <p className="text-muted-foreground mb-4">{t('companyPage.desc')}</p>
               <Button onClick={handleBack}>
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Go Back
@@ -386,7 +386,7 @@ export default function CompanyPage() {
               <>
                 <img
                   src={company.cover_image_url}
-                  alt="Company header"
+                  alt={t('companyPage.text5')}
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-card/90 to-transparent" />
@@ -552,7 +552,7 @@ export default function CompanyPage() {
                   onClick={handleFollow}
                 >
                   <Heart className={`w-4 h-4 mr-2 ${isFollowing ? 'fill-current' : ''}`} />
-                  {isFollowing ? 'Following' : 'Follow'}
+                  {isFollowing ? t('text.companypage.following', 'Following') : t('text.companypage.follow', 'Follow')}
                 </Button>
               </div>
 
@@ -560,11 +560,11 @@ export default function CompanyPage() {
               <div className="flex items-center gap-6 pt-4 border-t">
                 <div>
                   <p className="text-2xl font-bold">{followerCount}</p>
-                  <p className="text-xs text-muted-foreground">Followers</p>
+                  <p className="text-xs text-muted-foreground">{t('companyPage.text6')}</p>
                 </div>
                 <div>
                   <p className="text-2xl font-bold">{jobCount}</p>
-                  <p className="text-xs text-muted-foreground">Open Roles</p>
+                  <p className="text-xs text-muted-foreground">{t('companyPage.text7')}</p>
                 </div>
                 <div className="ml-auto">
                   <CompanyMembersStack companyId={company.id} maxVisible={5} />
@@ -580,14 +580,14 @@ export default function CompanyPage() {
          {/* Additional Tabs */}
          <Tabs defaultValue="about" className="w-full">
            <TabsList className={`grid w-full ${isAdmin ? 'grid-cols-10' : ((isAdmin || isCompanyMember) ? 'grid-cols-8' : (canAccessTargets ? 'grid-cols-6' : 'grid-cols-5'))}`}>
-            <TabsTrigger value="about">About</TabsTrigger>
+            <TabsTrigger value="about">{t('companyPage.text8')}</TabsTrigger>
             <TabsTrigger value="jobs">Jobs ({jobCount})</TabsTrigger>
             <TabsTrigger value="news">
               <Newspaper className="w-4 h-4 mr-1.5" />
               News ({newsArticles.length})
             </TabsTrigger>
-            <TabsTrigger value="team">Team</TabsTrigger>
-            <TabsTrigger value="culture">Culture</TabsTrigger>
+            <TabsTrigger value="team">{t('companyPage.text9')}</TabsTrigger>
+            <TabsTrigger value="culture">{t('companyPage.text10')}</TabsTrigger>
             {canAccessTargets && (
               <TabsTrigger value="targets">
                 Targets ({targetCompaniesCount})
@@ -656,7 +656,7 @@ export default function CompanyPage() {
             {company.values.length > 0 && (
               <Card>
                 <CardContent className="p-6">
-                  <h3 className="text-lg font-bold mb-4">Our Values</h3>
+                  <h3 className="text-lg font-bold mb-4">{t('companyPage.text11')}</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {company.values.map((value, index) => (
                       <div key={index} className="flex items-center gap-2">
@@ -674,15 +674,15 @@ export default function CompanyPage() {
                 <CardContent className="p-6 space-y-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h2 className="text-xl font-bold">Brand Voice & Knowledge</h2>
-                      <p className="text-muted-foreground text-sm">Configure how the AI represents this company.</p>
+                      <h2 className="text-xl font-bold">{t('companyPage.text12')}</h2>
+                      <p className="text-muted-foreground text-sm">{t('companyPage.text13')}</p>
                     </div>
                   </div>
                   <EntityKnowledgeProfile 
                     entityId={company.id} 
                     entityType="company"
-                    title="Brand Brain Configuration"
-                    description="Instructions and knowledge sources for the RAG engine."
+                    title={t('companyPage.text14')}
+                    description={t('companyPage.text15')}
                   />
                 </CardContent>
               </Card>
@@ -699,7 +699,7 @@ export default function CompanyPage() {
             {/* Jobs Header */}
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h2 className="text-2xl font-bold">Open Positions</h2>
+                <h2 className="text-2xl font-bold">{t('companyPage.text16')}</h2>
                 <p className="text-muted-foreground">
                   {jobCount} {jobCount === 1 ? 'role' : 'roles'} currently available
                 </p>
@@ -718,8 +718,7 @@ export default function CompanyPage() {
                 <CardContent className="p-6">
                   <p className="text-muted-foreground text-center py-12">
                     {(isAdmin || isCompanyMember)
-                      ? "No jobs posted yet. Create your first job to start hiring!"
-                      : "No open positions at the moment. Check back soon!"}
+                      ? t('text.companypage.noJobsPostedYetCreateYour', 'No jobs posted yet. Create your first job to start hiring!') : t('text.companypage.noOpenPositionsAtTheMoment', 'No open positions at the moment. Check back soon!')}
                   </p>
                   {company.careers_page_url && (
                     <div className="text-center">
@@ -736,9 +735,7 @@ export default function CompanyPage() {
                 {jobs.map((job) => (
                   <div key={job.id} className="relative">
                     {(isAdmin || isCompanyMember) && job.status === 'draft' && (
-                      <Badge className="absolute -top-2 -right-2 z-10 bg-yellow-500/10 text-yellow-500 border-yellow-500/20">
-                        Draft
-                      </Badge>
+                      <Badge className="absolute -top-2 -right-2 z-10 bg-yellow-500/10 text-yellow-500 border-yellow-500/20">{t('text.companypage.draft', 'Draft')}</Badge>
                     )}
                     <JobCard
                       id={job.id}
@@ -768,8 +765,8 @@ export default function CompanyPage() {
             {/* Team Management Header */}
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h2 className="text-2xl font-bold">Team & Staff</h2>
-                <p className="text-muted-foreground">Organizational structure and team members</p>
+                <h2 className="text-2xl font-bold">{t('companyPage.text17')}</h2>
+                <p className="text-muted-foreground">{t('companyPage.text18')}</p>
               </div>
               {(isAdmin || isCompanyMember) && (
                 <CompanyMembersDialog companyId={company.id} companyName={company.name} />
@@ -779,18 +776,18 @@ export default function CompanyPage() {
             {/* Team Sub-Tabs */}
             <Tabs defaultValue="directory" className="w-full">
               <TabsList className={`w-full ${(isAdmin || isCompanyMember) ? 'grid-cols-4' : 'grid-cols-3'}`}>
-                <TabsTrigger value="directory">Directory</TabsTrigger>
-                <TabsTrigger value="orgchart">Org Chart</TabsTrigger>
-                <TabsTrigger value="departments">Departments</TabsTrigger>
+                <TabsTrigger value="directory">{t('companyPage.text19')}</TabsTrigger>
+                <TabsTrigger value="orgchart">{t('companyPage.text20')}</TabsTrigger>
+                <TabsTrigger value="departments">{t('companyPage.text21')}</TabsTrigger>
                 {(isAdmin || isCompanyMember) && (
-                  <TabsTrigger value="manage">Manage</TabsTrigger>
+                  <TabsTrigger value="manage">{t('companyPage.text22')}</TabsTrigger>
                 )}
               </TabsList>
 
               <TabsContent value="directory" className="mt-6">
                 <Card>
                   <CardContent className="p-6">
-                    <h3 className="text-lg font-bold mb-4">All Team Members</h3>
+                    <h3 className="text-lg font-bold mb-4">{t('companyPage.text23')}</h3>
                     <CompanyMembersStack companyId={company.id} showFull />
                   </CardContent>
                 </Card>
@@ -816,10 +813,8 @@ export default function CompanyPage() {
             {/* News Header */}
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h2 className="text-2xl font-bold">News & Press</h2>
-                <p className="text-muted-foreground">
-                  Latest news articles and press mentions
-                </p>
+                <h2 className="text-2xl font-bold">{t('companyPage.text24')}</h2>
+                <p className="text-muted-foreground">{t('companyPage.desc2')}</p>
               </div>
               {(isAdmin || isCompanyMember) && (
                 <Button onClick={() => setAddNewsDialogOpen(true)}>
@@ -838,11 +833,10 @@ export default function CompanyPage() {
               <Card>
                 <CardContent className="p-12 text-center">
                   <Newspaper className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-                  <h3 className="text-lg font-semibold mb-2">No news articles yet</h3>
+                  <h3 className="text-lg font-semibold mb-2">{t('companyPage.text25')}</h3>
                   <p className="text-sm text-muted-foreground mb-4">
                     {(isAdmin || isCompanyMember)
-                      ? "Add your first press mention or news article."
-                      : "Check back soon for news and press coverage."}
+                      ? t('text.companypage.addYourFirstPressMentionOr', 'Add your first press mention or news article.') : t('text.companypage.checkBackSoonForNewsAnd', 'Check back soon for news and press coverage.')}
                   </p>
                   {(isAdmin || isCompanyMember) && (
                     <Button onClick={() => setAddNewsDialogOpen(true)}>
@@ -870,7 +864,7 @@ export default function CompanyPage() {
             {company.benefits.length > 0 && (
               <Card>
                 <CardContent className="p-6">
-                  <h3 className="text-lg font-bold mb-4">Benefits & Perks</h3>
+                  <h3 className="text-lg font-bold mb-4">{t('companyPage.text26')}</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {company.benefits.map((benefit, index) => (
                       <div key={index} className="flex items-center gap-2">
@@ -947,7 +941,7 @@ export default function CompanyPage() {
             companyId={company.id}
             onJobCreated={() => {
               loadStats();
-              toast.success("Job created successfully!");
+              toast.success(t('text.companypage.jobCreatedSuccessfully', 'Job created successfully!'));
             }}
           />
 
@@ -958,7 +952,7 @@ export default function CompanyPage() {
             companyId={company.id}
             onSuccess={() => {
               loadNewsArticles();
-              toast.success("News article added successfully!");
+              toast.success(t('text.companypage.newsArticleAddedSuccessfully', 'News article added successfully!'));
             }}
           />
         </>

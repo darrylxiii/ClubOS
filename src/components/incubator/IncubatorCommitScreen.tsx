@@ -1,4 +1,5 @@
 import { memo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -20,6 +21,7 @@ export const IncubatorCommitScreen = memo(({
   onSubmit,
   isSubmitting,
 }: IncubatorCommitScreenProps) => {
+  const { t } = useTranslation('common');
   const [isRecording, setIsRecording] = useState(false);
   const [voiceBlob, setVoiceBlob] = useState<Blob | null>(null);
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
@@ -73,16 +75,14 @@ export const IncubatorCommitScreen = memo(({
     <div className="min-h-screen flex items-center justify-center p-6 bg-gradient-to-br from-background to-muted/10">
       <Card className="max-w-2xl w-full">
         <CardHeader>
-          <CardTitle className="text-3xl font-serif">Final Review</CardTitle>
-          <CardDescription>
-            Review your one-pager and optionally add a 30-second voice rationale.
-          </CardDescription>
+          <CardTitle className="text-3xl font-serif">{t('incubator.finalReview')}</CardTitle>
+          <CardDescription>{t('incubator.reviewYourOnepagerAndOptionallyAddA30sec')}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Plan Summary */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="font-semibold">Plan Summary</h3>
+              <h3 className="font-semibold">{t('incubator.planSummary')}</h3>
               <Badge variant={isValid ? 'default' : 'destructive'}>
                 {totalWordCount} / 450 words
               </Badge>
@@ -131,10 +131,8 @@ export const IncubatorCommitScreen = memo(({
           {/* Voice Rationale (Optional) */}
           <div className="space-y-3">
             <div>
-              <h3 className="font-semibold mb-1">Voice Rationale (Optional)</h3>
-              <p className="text-sm text-muted-foreground">
-                Record a 30-second explanation of your strategy. This helps us understand your thinking process.
-              </p>
+              <h3 className="font-semibold mb-1">{t('incubator.voiceRationaleOptional')}</h3>
+              <p className="text-sm text-muted-foreground">{t('incubator.recordA30secondExplanationOfYourStrategy')}</p>
             </div>
 
             {!voiceBlob ? (

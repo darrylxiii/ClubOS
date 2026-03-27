@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
 
+import { useTranslation } from 'react-i18next';
 import { RoleGate } from '@/components/RoleGate';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -117,6 +118,7 @@ async function downloadJsonFile(filename: string, data: unknown) {
 }
 
 export default function AdminExports() {
+  const { t } = useTranslation('admin');
   const [busy, setBusy] = useState<'schema' | 'data' | null>(null);
   const [lastDataExport, setLastDataExport] = useState<{
     exportId: string;
@@ -221,12 +223,10 @@ export default function AdminExports() {
         <div className="w-full px-4 sm:px-6 lg:px-8 py-6 max-w-3xl">
           <Card>
             <CardHeader>
-              <CardTitle>Database exports</CardTitle>
+              <CardTitle>{t('adminExports.text3')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <p className="text-sm text-muted-foreground">
-                One-time admin export. These downloads are generated on demand and require an authenticated session.
-              </p>
+              <p className="text-sm text-muted-foreground">{t('adminExports.desc')}</p>
 
               <div className="flex flex-col gap-3 sm:flex-row">
                 <Button
@@ -253,7 +253,7 @@ export default function AdminExports() {
                   </p>
                   {lastDataExport.warnings.length > 0 && (
                     <div className="text-sm text-muted-foreground">
-                      <p className="font-medium text-foreground">Warnings</p>
+                      <p className="font-medium text-foreground">{t('adminExports.text4')}</p>
                       <ul className="list-disc pl-5">
                         {lastDataExport.warnings.slice(0, 8).map((w, i) => (
                           <li key={i}>{w}</li>
@@ -269,9 +269,7 @@ export default function AdminExports() {
                       variant="outline"
                       onClick={handleDownloadAllParts}
                       disabled={busy !== null}
-                    >
-                      Download all SQL parts
-                    </Button>
+                    >{t('adminExports.btn2')}</Button>
                   </div>
                 </div>
               )}

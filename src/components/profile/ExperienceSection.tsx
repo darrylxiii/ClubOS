@@ -13,6 +13,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+import { useTranslation } from 'react-i18next';
 
 interface Experience {
   id: string;
@@ -36,6 +37,7 @@ interface ExperienceSectionProps {
 }
 
 export const ExperienceSection = ({ userId, isReadOnly = false }: ExperienceSectionProps = {}) => {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const targetUserId = userId || user?.id;
   const [experiences, setExperiences] = useState<Experience[]>([]);
@@ -93,20 +95,20 @@ export const ExperienceSection = ({ userId, isReadOnly = false }: ExperienceSect
         .eq('id', editingId);
       
       if (error) {
-        toast.error('Failed to update experience');
+        toast.error(t('profile.experiencesection.failedToUpdateExperience', 'Failed to update experience'));
         return;
       }
-      toast.success('Experience updated');
+      toast.success(t('profile.experiencesection.experienceUpdated', 'Experience updated'));
     } else {
       const { error } = await supabase
         .from('profile_experience')
         .insert(payload);
       
       if (error) {
-        toast.error('Failed to add experience');
+        toast.error(t('profile.experiencesection.failedToAddExperience', 'Failed to add experience'));
         return;
       }
-      toast.success('Experience added');
+      toast.success(t('profile.experiencesection.experienceAdded', 'Experience added'));
     }
 
     setIsDialogOpen(false);
@@ -121,10 +123,10 @@ export const ExperienceSection = ({ userId, isReadOnly = false }: ExperienceSect
       .eq('id', id);
 
     if (error) {
-      toast.error('Failed to delete experience');
+      toast.error(t('profile.experiencesection.failedToDeleteExperience', 'Failed to delete experience'));
       return;
     }
-    toast.success('Experience deleted');
+    toast.success(t('profile.experiencesection.experienceDeleted', 'Experience deleted'));
     loadExperiences();
   };
 
@@ -171,7 +173,7 @@ export const ExperienceSection = ({ userId, isReadOnly = false }: ExperienceSect
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-2">
             <Briefcase className="w-5 h-5" />
-            <CardTitle>Work Experience</CardTitle>
+            <CardTitle>{t('profile.experiencesection.workExperience', 'Work Experience')}</CardTitle>
           </div>
           <Dialog open={isDialogOpen} onOpenChange={(open) => {
             setIsDialogOpen(open);
@@ -187,71 +189,71 @@ export const ExperienceSection = ({ userId, isReadOnly = false }: ExperienceSect
             )}
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>{editingId ? 'Edit' : 'Add'} Experience</DialogTitle>
+                <DialogTitle>{editingId ? t('profile.experiencesection.edit', 'Edit') : t('profile.experiencesection.add', 'Add')} Experience</DialogTitle>
               </DialogHeader>
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>Company Name *</Label>
+                    <Label>{t('profile.experiencesection.companyName', 'Company Name *')}</Label>
                     <Input 
                       value={formData.company_name}
                       onChange={(e) => setFormData({...formData, company_name: e.target.value})}
-                      placeholder="The Quantum Club"
+                      placeholder={t('profile.experiencesection.theQuantumClub', 'The Quantum Club')}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Position Title *</Label>
+                    <Label>{t('profile.experiencesection.positionTitle', 'Position Title *')}</Label>
                     <Input 
                       value={formData.position_title}
                       onChange={(e) => setFormData({...formData, position_title: e.target.value})}
-                      placeholder="Senior Software Engineer"
+                      placeholder={t('profile.experiencesection.seniorSoftwareEngineer', 'Senior Software Engineer')}
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>Employment Type</Label>
+                    <Label>{t('profile.experiencesection.employmentType', 'Employment Type')}</Label>
                     <Select value={formData.employment_type} onValueChange={(value) => setFormData({...formData, employment_type: value})}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="fulltime">Full-time</SelectItem>
-                        <SelectItem value="parttime">Part-time</SelectItem>
-                        <SelectItem value="contract">Contract</SelectItem>
-                        <SelectItem value="freelance">Freelance</SelectItem>
-                        <SelectItem value="internship">Internship</SelectItem>
+                        <SelectItem value="fulltime">{t('profile.experiencesection.fulltime', 'Full-time')}</SelectItem>
+                        <SelectItem value="parttime">{t('profile.experiencesection.parttime', 'Part-time')}</SelectItem>
+                        <SelectItem value="contract">{t('profile.experiencesection.contract', 'Contract')}</SelectItem>
+                        <SelectItem value="freelance">{t('profile.experiencesection.freelance', 'Freelance')}</SelectItem>
+                        <SelectItem value="internship">{t('profile.experiencesection.internship', 'Internship')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label>Location Type</Label>
+                    <Label>{t('profile.experiencesection.locationType', 'Location Type')}</Label>
                     <Select value={formData.location_type} onValueChange={(value) => setFormData({...formData, location_type: value})}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="onsite">On-site</SelectItem>
-                        <SelectItem value="remote">Remote</SelectItem>
-                        <SelectItem value="hybrid">Hybrid</SelectItem>
+                        <SelectItem value="onsite">{t('profile.experiencesection.onsite', 'On-site')}</SelectItem>
+                        <SelectItem value="remote">{t('profile.experiencesection.remote', 'Remote')}</SelectItem>
+                        <SelectItem value="hybrid">{t('profile.experiencesection.hybrid', 'Hybrid')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Location</Label>
+                  <Label>{t('profile.experiencesection.location', 'Location')}</Label>
                   <Input 
                     value={formData.location}
                     onChange={(e) => setFormData({...formData, location: e.target.value})}
-                    placeholder="Amsterdam, Netherlands"
+                    placeholder={t('profile.experiencesection.amsterdamNetherlands', 'Amsterdam, Netherlands')}
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>Start Date *</Label>
+                    <Label>{t('profile.experiencesection.startDate', 'Start Date *')}</Label>
                     <Input 
                       type="date"
                       value={formData.start_date}
@@ -260,7 +262,7 @@ export const ExperienceSection = ({ userId, isReadOnly = false }: ExperienceSect
                   </div>
                   {!formData.is_current && (
                     <div className="space-y-2">
-                      <Label>End Date</Label>
+                      <Label>{t('profile.experiencesection.endDate', 'End Date')}</Label>
                       <Input 
                         type="date"
                         value={formData.end_date}
@@ -275,55 +277,55 @@ export const ExperienceSection = ({ userId, isReadOnly = false }: ExperienceSect
                     checked={formData.is_current}
                     onCheckedChange={(checked) => setFormData({...formData, is_current: checked})}
                   />
-                  <Label>I currently work here</Label>
+                  <Label>{t('profile.experiencesection.iCurrentlyWorkHere', 'I currently work here')}</Label>
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Description</Label>
+                  <Label>{t('profile.experiencesection.description', 'Description')}</Label>
                   <Textarea 
                     value={formData.description}
                     onChange={(e) => setFormData({...formData, description: e.target.value})}
-                    placeholder="Describe your role and responsibilities..."
+                    placeholder={t('profile.experiencesection.describeYourRoleAndResponsibilities', 'Describe your role and responsibilities...')}
                     rows={4}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Key Achievements (one per line)</Label>
+                  <Label>{t('profile.experiencesection.keyAchievementsOnePerLine', 'Key Achievements (one per line)')}</Label>
                   <Textarea 
                     value={formData.achievements}
                     onChange={(e) => setFormData({...formData, achievements: e.target.value})}
-                    placeholder="Led team of 5 engineers&#10;Increased system performance by 40%"
+                    placeholder={t('profile.experiencesection.ledTeamOf5Engineers10increasedSystem', 'Led team of 5 engineers&#10;Increased system performance by 40%')}
                     rows={4}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Skills Used (comma-separated)</Label>
+                  <Label>{t('profile.experiencesection.skillsUsedCommaseparated', 'Skills Used (comma-separated)')}</Label>
                   <Input 
                     value={formData.skills_used}
                     onChange={(e) => setFormData({...formData, skills_used: e.target.value})}
-                    placeholder="React, TypeScript, Node.js, AWS"
+                    placeholder={t('profile.experiencesection.reactTypescriptNodejsAws', 'React, TypeScript, Node.js, AWS')}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Visibility</Label>
+                  <Label>{t('profile.experiencesection.visibility', 'Visibility')}</Label>
                   <Select value={formData.visibility} onValueChange={(value) => setFormData({...formData, visibility: value})}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="public">Public</SelectItem>
-                      <SelectItem value="private">Private</SelectItem>
-                      <SelectItem value="company">Company Only</SelectItem>
-                      <SelectItem value="recruiter">Recruiters Only</SelectItem>
+                      <SelectItem value="public">{t('profile.experiencesection.public', 'Public')}</SelectItem>
+                      <SelectItem value="private">{t('profile.experiencesection.private', 'Private')}</SelectItem>
+                      <SelectItem value="company">{t('profile.experiencesection.companyOnly', 'Company Only')}</SelectItem>
+                      <SelectItem value="recruiter">{t('profile.experiencesection.recruitersOnly', 'Recruiters Only')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <Button onClick={handleSave} className="w-full">
-                  {editingId ? 'Update' : 'Add'} Experience
+                  {editingId ? t('profile.experiencesection.update', 'Update') : t('profile.experiencesection.add', 'Add')} Experience
                 </Button>
               </div>
             </DialogContent>
@@ -333,9 +335,7 @@ export const ExperienceSection = ({ userId, isReadOnly = false }: ExperienceSect
       <CardContent>
         <div className="space-y-6">
           {experiences.length === 0 ? (
-            <p className="text-muted-foreground text-center py-8">
-              No work experience added yet. Click "Add Experience" to get started.
-            </p>
+            <p className="text-muted-foreground text-center py-8">{t('profile.experiencesection.noWorkExperienceAddedYetClick', 'No work experience added yet. Click "Add Experience" to get started.')}</p>
           ) : (
             experiences.map((exp) => (
               <div key={exp.id} className="border-l-2 border-primary pl-4 space-y-2">
@@ -376,7 +376,7 @@ export const ExperienceSection = ({ userId, isReadOnly = false }: ExperienceSect
 
                 {exp.achievements.length > 0 && (
                   <div className="space-y-1">
-                    <p className="text-sm font-medium">Key Achievements:</p>
+                    <p className="text-sm font-medium">{t('profile.experiencesection.keyAchievements', 'Key Achievements:')}</p>
                     <ul className="list-disc list-inside space-y-1">
                       {exp.achievements.map((achievement, idx) => (
                         <li key={idx} className="text-sm text-muted-foreground">{achievement}</li>

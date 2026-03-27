@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LayoutDashboard, Package, TrendingDown, Calculator, Euro } from "lucide-react";
 import { useInventoryStats, calculateKIA } from "@/hooks/useInventoryStats";
@@ -10,6 +11,7 @@ import { useNavigate } from "react-router-dom";
 const formatCurrency = (v: number) => new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR' }).format(v);
 
 const InventoryDashboard = () => {
+  const { t } = useTranslation('admin');
   const { stats, monthlyTrend, loading } = useInventoryStats();
   const navigate = useNavigate();
   const kiaDeduction = stats ? calculateKIA(stats.totalPurchaseValue) : 0;

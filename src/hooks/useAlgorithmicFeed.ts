@@ -2,23 +2,48 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
+interface PostProfile {
+  id: string;
+  full_name: string | null;
+  avatar_url: string | null;
+  current_title: string | null;
+}
+
+interface PostCompany {
+  id: string;
+  name: string;
+  logo_url: string | null;
+  slug?: string;
+}
+
+interface PostLike {
+  post_id: string;
+  user_id: string;
+}
+
+interface PostComment {
+  id: string;
+  post_id: string;
+}
+
 interface Post {
   id: string;
   user_id: string;
   company_id: string | null;
   content: string;
-  media_urls: any;
+  media_urls: string[] | null;
   created_at: string;
   updated_at: string;
   poll_question: string | null;
-  poll_options: any;
+  poll_options: Record<string, unknown> | null;
   ai_summary: string | null;
   is_public: boolean;
-  profiles?: any;
-  companies?: any;
-  post_likes?: any[];
-  post_comments?: any[];
+  profiles?: PostProfile | null;
+  companies?: PostCompany | null;
+  post_likes?: PostLike[];
+  post_comments?: PostComment[];
   algorithmScore?: number;
+  [key: string]: unknown;
 }
 
 export function useAlgorithmicFeed() {
@@ -95,7 +120,7 @@ export function useAlgorithmicFeed() {
 
       // Fetch original posts for reposts
       const repostIds = postsData.filter(p => p.repost_of).map(p => p.repost_of).filter(Boolean);
-      let originalPostsData: any[] = [];
+      let originalPostsData: Post[] = [];
       
       if (repostIds.length > 0) {
         // 1. Fetch raw original posts
@@ -156,8 +181,8 @@ export function useAlgorithmicFeed() {
       // Create lookup maps
       const profilesMap = new Map(profilesData?.map(p => [p.id, p]) || []);
       const companiesMap = new Map(companiesData?.map(c => [c.id, c]) || []);
-      const likesMap = new Map<string, any[]>();
-      const commentsMap = new Map<string, any[]>();
+      const likesMap = new Map<string, PostLike[]>();
+      const commentsMap = new Map<string, PostComment[]>();
       const originalPostsMap = new Map(originalPostsData.map(p => [p.id, p]));
 
       likesData?.forEach(like => {
@@ -185,7 +210,7 @@ export function useAlgorithmicFeed() {
       if (user && feedType === 'algorithmic') {
         const scoresPromises = enrichedPosts.map(async (post) => {
           try {
-            const { data: scoreData } = await (supabase as any).rpc('calculate_post_score', {
+            const { data: scoreData } = await supabase.rpc('calculate_post_score' as 'get_my_claims', {
               p_user_id: user.id,
               p_post_id: post.id,
               p_post_created_at: post.created_at,

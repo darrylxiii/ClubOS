@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -65,6 +66,7 @@ export function LiveTranslationPanel({
   transcriptSegments = [],
   onClose
 }: LiveTranslationPanelProps) {
+  const { t } = useTranslation('common');
   const [targetLanguage, setTargetLanguage] = useState('en');
   const [enabled, setEnabled] = useState(true);
   const [showOriginal, setShowOriginal] = useState(false);
@@ -189,7 +191,7 @@ export function LiveTranslationPanel({
         {/* Settings Row */}
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex items-center gap-2">
-            <Label className="text-xs">To:</Label>
+            <Label className="text-xs">{t("to", "To:")}</Label>
             <Select value={targetLanguage} onValueChange={setTargetLanguage}>
               <SelectTrigger className="w-[120px] h-8 text-xs">
                 <SelectValue />
@@ -211,7 +213,7 @@ export function LiveTranslationPanel({
               onCheckedChange={setShowOriginal}
               className="scale-75"
             />
-            <Label htmlFor="showOriginal" className="text-xs">Show original</Label>
+            <Label htmlFor="showOriginal" className="text-xs">{t("show_original", "Show original")}</Label>
           </div>
 
           <Button
@@ -233,7 +235,7 @@ export function LiveTranslationPanel({
           {translations.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               <Languages className="h-10 w-10 mx-auto mb-2 opacity-30" />
-              <p className="text-sm">Translations will appear here</p>
+              <p className="text-sm">{t("translations_will_appear_here", "Translations will appear here")}</p>
               <p className="text-xs mt-1">
                 Speaking detected text will be translated to {
                   SUPPORTED_LANGUAGES.find(l => l.code === targetLanguage)?.name

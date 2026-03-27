@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,6 +8,7 @@ import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export function CompactProfileStrength() {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -52,7 +54,7 @@ export function CompactProfileStrength() {
 
   return (
     <div className="glass-subtle rounded-2xl px-5 py-3.5 flex items-center gap-4">
-      <span className="text-xs text-muted-foreground whitespace-nowrap shrink-0">Profile strength</span>
+      <span className="text-xs text-muted-foreground whitespace-nowrap shrink-0">{t("profile_strength", "Profile strength")}</span>
       <Progress value={completion} className="flex-1 h-2" />
       <span className="text-xs font-medium tabular-nums shrink-0">{completion}%</span>
       <Button

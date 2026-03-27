@@ -4,17 +4,11 @@
  * Takes top 50 candidates from hybrid search and re-ranks to top 5-10
  * using cross-encoder model. Research shows this improves accuracy by 30%.
  * 
- * Uses Lovable AI for cross-encoder scoring simulation since we don't have
+ * Uses Google Gemini for cross-encoder scoring simulation since we don't have
  * direct access to specialized re-ranking models.
  */
 
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { createHandler } from '../_shared/handler.ts';
 
 interface SearchCandidate {
   id: string;
@@ -45,7 +39,7 @@ interface RerankResult {
 }
 
 /**
- * Cross-encoder scoring using Lovable AI
+ * Cross-encoder scoring using Google Gemini
  * Simulates cross-encoder behavior by scoring query-document pairs
  */
 async function crossEncoderScore(
@@ -81,14 +75,14 @@ Consider:
 - Contextual relevance`;
 
     try {
-      const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      const response = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${apiKey}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'google/gemini-3-flash-preview',
+          model: 'gemini-3-flash-preview',
           messages: [
             { role: 'system', content: 'You are a precise semantic relevance scorer. Return only valid JSON.' },
             { role: 'user', content: scoringPrompt }
@@ -191,29 +185,22 @@ async function logRerankMetrics(
   }
 }
 
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
-
+Deno.serve(createHandler(async (req, ctx) => {
   const startTime = Date.now();
 
-  try {
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY not configured');
+    const GOOGLE_API_KEY = Deno.env.get('GOOGLE_API_KEY');
+    if (!GOOGLE_API_KEY) {
+      throw new Error('GOOGLE_API_KEY not configured');
     }
 
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const supabase = ctx.supabase;
 
     const { query, candidates, topK = 5, includeScores = true }: RerankRequest = await req.json();
 
     if (!query || !candidates || candidates.length === 0) {
       return new Response(
         JSON.stringify({ error: 'Query and candidates are required' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 400, headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -224,7 +211,7 @@ serve(async (req) => {
     console.log(`Pre-filtered to ${preFiltered.length} candidates`);
 
     // Step 2: Cross-encoder scoring
-    const rerankScores = await crossEncoderScore(query, preFiltered, LOVABLE_API_KEY);
+    const rerankScores = await crossEncoderScore(query, preFiltered, GOOGLE_API_KEY);
 
     // Step 3: Create results with both scores
     const results: RerankResult[] = preFiltered.map((c, i) => ({
@@ -288,13 +275,6 @@ serve(async (req) => {
           topKReturned: topResults.length,
         },
       }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } }
     );
-  } catch (error) {
-    console.error('Rerank error:', error);
-    return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-  }
-});
+}));

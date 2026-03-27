@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useTranslation } from 'react-i18next';
 import { PageLoadingSkeleton } from "@/components/LoadingSkeletons";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -49,6 +50,7 @@ const REJECTION_COLORS: { [key: string]: string } = {
 };
 
 export default function AdminRejections() {
+  const { t } = useTranslation('common');
   const [loading, setLoading] = useState(true);
   const [rejectedCandidates, setRejectedCandidates] = useState<any[]>([]);
   const [companies, setCompanies] = useState<any[]>([]);
@@ -205,10 +207,8 @@ export default function AdminRejections() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold">Global Rejections</h2>
-          <p className="text-muted-foreground mt-1">
-            Platform-wide rejection analytics and insights
-          </p>
+          <h2 className="text-2xl font-bold">{t('adminRejections.text2')}</h2>
+          <p className="text-muted-foreground mt-1">{t('adminRejections.desc')}</p>
         </div>
         <Button onClick={handleExport} variant="outline">
           <Download className="w-4 h-4 mr-2" />
@@ -220,7 +220,7 @@ export default function AdminRejections() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Rejections</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">{t('adminRejections.text3')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2">
@@ -232,7 +232,7 @@ export default function AdminRejections() {
 
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">This Month</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">{t('adminRejections.text4')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2">
@@ -244,7 +244,7 @@ export default function AdminRejections() {
 
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Top Reason</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">{t('adminRejections.text5')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2">
@@ -258,7 +258,7 @@ export default function AdminRejections() {
 
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Companies</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">{t('adminRejections.text6')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2">
@@ -276,7 +276,7 @@ export default function AdminRejections() {
             <div className="relative">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search candidates..."
+                placeholder={t('adminRejections.text7')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-9"
@@ -285,10 +285,10 @@ export default function AdminRejections() {
 
             <Select value={filterCompany} onValueChange={setFilterCompany}>
               <SelectTrigger>
-                <SelectValue placeholder="All Companies" />
+                <SelectValue placeholder={t('adminRejections.text8')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Companies</SelectItem>
+                <SelectItem value="all">{t('adminRejections.text9')}</SelectItem>
                 {companies.map(company => (
                   <SelectItem key={company.id} value={company.id}>
                     {company.name}
@@ -299,10 +299,10 @@ export default function AdminRejections() {
 
             <Select value={filterJob} onValueChange={setFilterJob}>
               <SelectTrigger>
-                <SelectValue placeholder="All Jobs" />
+                <SelectValue placeholder={t('adminRejections.text10')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Jobs</SelectItem>
+                <SelectItem value="all">{t('adminRejections.text11')}</SelectItem>
                 {jobs.map(job => (
                   <SelectItem key={job.id} value={job.id}>
                     {job.title}
@@ -313,10 +313,10 @@ export default function AdminRejections() {
 
             <Select value={filterReason} onValueChange={setFilterReason}>
               <SelectTrigger>
-                <SelectValue placeholder="All Reasons" />
+                <SelectValue placeholder={t('adminRejections.text12')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Reasons</SelectItem>
+                <SelectItem value="all">{t('adminRejections.text13')}</SelectItem>
                 {Object.entries(REJECTION_LABELS).map(([key, label]) => (
                   <SelectItem key={key} value={key}>
                     {label}

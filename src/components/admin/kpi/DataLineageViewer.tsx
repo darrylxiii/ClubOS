@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -133,6 +134,7 @@ const getLineageData = (
 };
 
 export function DataLineageViewer({ kpis, selectedKPI, onSelectKPI }: DataLineageViewerProps) {
+  const { t } = useTranslation('common');
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('lineage');
   const [internalSelectedKPI, setInternalSelectedKPI] = useState<UnifiedKPI | null>(null);
@@ -206,11 +208,11 @@ export function DataLineageViewer({ kpis, selectedKPI, onSelectKPI }: DataLineag
         <div className="col-span-4">
           <Card className="bg-card/50 backdrop-blur border-border/50">
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium">Select KPI</CardTitle>
+              <CardTitle className="text-sm font-medium">{t("select_kpi", "Select KPI")}</CardTitle>
               <div className="relative mt-2">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search KPIs..."
+                  placeholder={t("search_kpis", "Search KPIs...")}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-9"
@@ -428,7 +430,7 @@ export function DataLineageViewer({ kpis, selectedKPI, onSelectKPI }: DataLineag
                             </div>
                             <span className="font-medium text-foreground">{consumer}</span>
                           </div>
-                          <Badge variant="outline" className="text-xs">Active</Badge>
+                          <Badge variant="outline" className="text-xs">{t("active", "Active")}</Badge>
                         </div>
                       ))}
 
@@ -446,7 +448,7 @@ export function DataLineageViewer({ kpis, selectedKPI, onSelectKPI }: DataLineag
             <Card className="bg-card/50 backdrop-blur border-border/50 h-full flex items-center justify-center">
               <CardContent className="text-center py-12">
                 <GitBranch className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-50" />
-                <p className="text-muted-foreground">Select a KPI to view its data lineage</p>
+                <p className="text-muted-foreground">{t("select_a_kpi_to", "Select a KPI to view its data lineage")}</p>
               </CardContent>
             </Card>
           )}

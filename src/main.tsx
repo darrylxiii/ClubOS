@@ -1,7 +1,16 @@
+// Extend Window with boot status flags used by index.html fallback
+declare global {
+  interface Window {
+    __APP_BOOTING__?: boolean;
+    __MAIN_LOADED__?: boolean;
+    __APP_BOOTED__?: boolean;
+  }
+}
+
 // Signal IMMEDIATELY that the script is executing (before any imports)
 // This allows index.html to detect script loading vs script failure
-(window as any).__APP_BOOTING__ = true;
-(window as any).__MAIN_LOADED__ = true; // Script successfully started executing
+window.__APP_BOOTING__ = true;
+window.__MAIN_LOADED__ = true; // Script successfully started executing
 
 import "./index.css";
 import "./i18n/config";
@@ -14,7 +23,7 @@ initializeGlobalErrorHandlers();
 console.log('[Main] 🚀 Starting application initialization...');
 console.log('[Main] Environment check:', {
   hasSupabaseUrl: !!import.meta.env.VITE_SUPABASE_URL,
-  hasSupabaseKey: !!import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+  hasSupabaseKey: !!import.meta.env.VITE_SUPABASE_ANON_KEY,
   mode: import.meta.env.MODE,
   baseUrl: import.meta.env.BASE_URL,
 });
@@ -40,7 +49,7 @@ async function bootstrap() {
     root.render(<App />);
     
     // Signal to the boot timeout that the app has started
-    (window as any).__APP_BOOTED__ = true;
+    window.__APP_BOOTED__ = true;
     
     console.log('[Main] ✅ Application initialized successfully');
   } catch (error) {

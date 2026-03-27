@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,6 +14,7 @@ interface GuestJoinDialogProps {
 }
 
 export function GuestJoinDialog({ meetingCode, onJoinApproved }: GuestJoinDialogProps) {
+  const { t } = useTranslation('common');
   const [guestName, setGuestName] = useState('');
   const [guestEmail, setGuestEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -23,7 +25,7 @@ export function GuestJoinDialog({ meetingCode, onJoinApproved }: GuestJoinDialog
 
   const requestPermissions = async () => {
     if (!guestName.trim()) {
-      toast.error('Please enter your name first');
+      toast.error(t("please_enter_your_name", "Please enter your name first"));
       return;
     }
 
@@ -40,10 +42,10 @@ export function GuestJoinDialog({ meetingCode, onJoinApproved }: GuestJoinDialog
       stream.getTracks().forEach(track => track.stop());
 
       setPermissionsGranted(true);
-      toast.success('Camera and microphone access granted!');
+      toast.success(t("camera_and_microphone_access", "Camera and microphone access granted!"));
     } catch (error) {
       console.error('[GuestJoin] Permission denied:', error);
-      toast.error('Camera and microphone access required to join the meeting');
+      toast.error(t("camera_and_microphone_access", "Camera and microphone access required to join the meeting"));
     } finally {
       setIsRequestingPermissions(false);
     }
@@ -53,12 +55,12 @@ export function GuestJoinDialog({ meetingCode, onJoinApproved }: GuestJoinDialog
     e.preventDefault();
     
     if (!guestName.trim()) {
-      toast.error('Please enter your name');
+      toast.error(t("please_enter_your_name", "Please enter your name"));
       return;
     }
 
     if (!permissionsGranted) {
-      toast.error('Please grant camera and microphone permissions first');
+      toast.error(t("please_grant_camera_and", "Please grant camera and microphone permissions first"));
       return;
     }
 
@@ -75,7 +77,7 @@ export function GuestJoinDialog({ meetingCode, onJoinApproved }: GuestJoinDialog
         .single();
 
       if (meetingError || !meeting) {
-        toast.error('Meeting not found');
+        toast.error(t("meeting_not_found", "Meeting not found"));
         return;
       }
 
@@ -93,13 +95,13 @@ export function GuestJoinDialog({ meetingCode, onJoinApproved }: GuestJoinDialog
 
       if (requestError) {
         console.error('[GuestJoin] ❌ Failed to create request:', requestError);
-        toast.error('Failed to request access');
+        toast.error(t("failed_to_request_access", "Failed to request access"));
         return;
       }
 
       console.log('[GuestJoin] ✅ Join request created successfully');
       setIsWaiting(true);
-      toast.success('Join request sent! Waiting for host approval...');
+      toast.success(t("join_request_sent_waiting", "Join request sent! Waiting for host approval..."));
 
       // Subscribe to approval status
       console.log('[GuestJoin] 📡 Subscribing to approval updates...');
@@ -119,12 +121,12 @@ export function GuestJoinDialog({ meetingCode, onJoinApproved }: GuestJoinDialog
             
             if (status === 'approved') {
               console.log('[GuestJoin] ✅ Access approved! Joining meeting...');
-              toast.success('Access granted! Joining meeting...');
+              toast.success(t("access_granted_joining_meeting", "Access granted! Joining meeting..."));
               channel.unsubscribe();
               onJoinApproved(guestName.trim(), sessionToken);
             } else if (status === 'rejected') {
               console.log('[GuestJoin] ❌ Access rejected by host');
-              toast.error('Access denied by host');
+              toast.error(t("access_denied_by_host", "Access denied by host"));
               channel.unsubscribe();
               setIsWaiting(false);
             }
@@ -136,7 +138,7 @@ export function GuestJoinDialog({ meetingCode, onJoinApproved }: GuestJoinDialog
 
     } catch (error) {
       console.error('[GuestJoin] Error:', error);
-      toast.error('An error occurred');
+      toast.error(t("an_error_occurred", "An error occurred"));
     } finally {
       setIsSubmitting(false);
     }
@@ -152,7 +154,7 @@ export function GuestJoinDialog({ meetingCode, onJoinApproved }: GuestJoinDialog
             </div>
             
             <div className="text-center space-y-2">
-              <h2 className="text-2xl font-bold text-white">Waiting for Host</h2>
+              <h2 className="text-2xl font-bold text-white">{t("waiting_for_host", "Waiting for Host")}</h2>
               <p className="text-muted-foreground">
                 {guestName}, your request to join has been sent.
                 <br />
@@ -182,7 +184,7 @@ export function GuestJoinDialog({ meetingCode, onJoinApproved }: GuestJoinDialog
           <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-4">
             <Video className="h-8 w-8 text-primary" />
           </div>
-          <h2 className="text-2xl font-bold text-white">Join Meeting</h2>
+          <h2 className="text-2xl font-bold text-white">{t("join_meeting", "Join Meeting")}</h2>
           <p className="text-muted-foreground">
             Enter your details to request access to this meeting
           </p>
@@ -190,12 +192,12 @@ export function GuestJoinDialog({ meetingCode, onJoinApproved }: GuestJoinDialog
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="guest-name">Your Name *</Label>
+            <Label htmlFor="guest-name">{t("your_name", "Your Name *")}</Label>
             <Input
               id="guest-name"
               value={guestName}
               onChange={(e) => setGuestName(e.target.value)}
-              placeholder="John Doe"
+              placeholder={t("john_doe", "John Doe")}
               required
               maxLength={100}
               className="bg-white/5"
@@ -203,13 +205,13 @@ export function GuestJoinDialog({ meetingCode, onJoinApproved }: GuestJoinDialog
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="guest-email">Email (optional)</Label>
+            <Label htmlFor="guest-email">{t("email_optional", "Email (optional)")}</Label>
             <Input
               id="guest-email"
               type="email"
               value={guestEmail}
               onChange={(e) => setGuestEmail(e.target.value)}
-              placeholder="john@example.com"
+              placeholder={t("johnexamplecom", "john@example.com")}
               maxLength={255}
               className="bg-white/5"
             />

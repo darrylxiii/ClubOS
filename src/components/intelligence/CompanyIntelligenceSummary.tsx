@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -27,6 +28,7 @@ interface PartnerMember {
 }
 
 export function CompanyIntelligenceSummary({ companyId }: CompanyIntelligenceSummaryProps) {
+  const { t } = useTranslation('common');
   const [report, setReport] = useState<any>(null);
   const [partnerMembers, setPartnerMembers] = useState<PartnerMember[]>([]);
   const [loading, setLoading] = useState(true);
@@ -170,7 +172,7 @@ export function CompanyIntelligenceSummary({ companyId }: CompanyIntelligenceSum
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Interactions (30d)</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">{t("interactions_30d", "Interactions (30d)")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">{interaction_summary?.last_30_days || 0}</div>
@@ -185,7 +187,7 @@ export function CompanyIntelligenceSummary({ companyId }: CompanyIntelligenceSum
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Relationship Health</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">{t("relationship_health", "Relationship Health")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
@@ -204,7 +206,7 @@ export function CompanyIntelligenceSummary({ companyId }: CompanyIntelligenceSum
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Hiring Urgency</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">{t("hiring_urgency", "Hiring Urgency")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">
@@ -218,7 +220,7 @@ export function CompanyIntelligenceSummary({ companyId }: CompanyIntelligenceSum
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Sentiment</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">{t("sentiment", "Sentiment")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">
@@ -256,13 +258,13 @@ export function CompanyIntelligenceSummary({ companyId }: CompanyIntelligenceSum
                   <Badge variant="outline">{stakeholder.role_type?.replace('_', ' ')}</Badge>
                   <div className="text-right">
                     <div className="text-sm font-medium">{stakeholder.engagement_score}/100</div>
-                    <div className="text-xs text-muted-foreground">Engagement</div>
+                    <div className="text-xs text-muted-foreground">{t("engagement", "Engagement")}</div>
                   </div>
                 </div>
               </div>
             ))}
             {(!stakeholder_map?.top_stakeholders || stakeholder_map.top_stakeholders.length === 0) && (
-              <p className="text-sm text-muted-foreground text-center py-4">No stakeholders identified yet</p>
+              <p className="text-sm text-muted-foreground text-center py-4">{t("no_stakeholders_identified_yet", "No stakeholders identified yet")}</p>
             )}
           </div>
         </CardContent>
@@ -375,11 +377,11 @@ export function CompanyIntelligenceSummary({ companyId }: CompanyIntelligenceSum
             {/* Best Contact & Timing */}
             <div className="grid grid-cols-2 gap-4 pt-2 border-t">
               <div>
-                <div className="text-sm font-medium text-muted-foreground">Best Contact</div>
+                <div className="text-sm font-medium text-muted-foreground">{t("best_contact", "Best Contact")}</div>
                 <div className="font-medium mt-1">{ai_recommendations.best_contact || 'N/A'}</div>
               </div>
               <div>
-                <div className="text-sm font-medium text-muted-foreground">Optimal Timing</div>
+                <div className="text-sm font-medium text-muted-foreground">{t("optimal_timing", "Optimal Timing")}</div>
                 <div className="font-medium mt-1 flex items-center gap-1">
                   <Clock className="h-4 w-4" />
                   {ai_recommendations.optimal_timing || 'N/A'}

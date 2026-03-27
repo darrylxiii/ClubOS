@@ -1,7 +1,7 @@
 // Phase 5: Enhanced Analytics Export Utilities
 import { supabase } from '@/integrations/supabase/client';
 
-export function exportToCSV(data: any[], filename: string) {
+export function exportToCSV(data: Record<string, unknown>[], filename: string) {
   if (!data || data.length === 0) return;
 
   // Extract headers from first object
@@ -30,7 +30,7 @@ export function exportToCSV(data: any[], filename: string) {
   logExport('csv', filename);
 }
 
-export function exportToExcel(data: any[], filename: string) {
+export function exportToExcel(data: Record<string, unknown>[], filename: string) {
   if (!data || data.length === 0) return;
 
   // For now, export as CSV (can be enhanced with xlsx library)
@@ -38,7 +38,7 @@ export function exportToExcel(data: any[], filename: string) {
   logExport('excel', filename);
 }
 
-export function exportToPDF(data: any, filename: string, title: string) {
+export function exportToPDF(data: unknown, filename: string, title: string) {
   // Basic HTML-to-PDF export (can be enhanced with jspdf library)
   const htmlContent = generateHTMLReport(data, title);
   
@@ -48,7 +48,7 @@ export function exportToPDF(data: any, filename: string, title: string) {
   logExport('pdf', filename);
 }
 
-export function exportToJSON(data: any, filename: string) {
+export function exportToJSON(data: unknown, filename: string) {
   const jsonContent = JSON.stringify(data, null, 2);
   const blob = new Blob([jsonContent], { type: 'application/json' });
   const link = document.createElement('a');
@@ -95,7 +95,7 @@ async function logExport(exportType: string, dataScope: string) {
     if (!user) return;
 
     // Use type casting for new table not yet in types
-    await (supabase as any).from('analytics_export_log').insert({
+    await (supabase as unknown as { from: (table: string) => { insert: (data: Record<string, unknown>) => Promise<unknown> } }).from('analytics_export_log').insert({
       user_id: user.id,
       export_type: exportType,
       data_scope: dataScope,
@@ -109,7 +109,7 @@ async function logExport(exportType: string, dataScope: string) {
 }
 
 // Generate HTML report for PDF export
-function generateHTMLReport(data: any, title: string): string {
+function generateHTMLReport(data: unknown, title: string): string {
   return `
 <!DOCTYPE html>
 <html>
@@ -174,7 +174,7 @@ export async function scheduleEmailReport(
 export async function cancelScheduledReport(reportId: string): Promise<boolean> {
   try {
     const { error } = await supabase
-      .from('scheduled_reports' as any)
+      .from('scheduled_reports' as 'profiles')
       .update({ is_active: false })
       .eq('id', reportId);
 
@@ -186,10 +186,10 @@ export async function cancelScheduledReport(reportId: string): Promise<boolean> 
 }
 
 // Get user's scheduled reports
-export async function getScheduledReports(): Promise<any[]> {
+export async function getScheduledReports(): Promise<Record<string, unknown>[]> {
   try {
     const { data, error } = await supabase
-      .from('scheduled_reports' as any)
+      .from('scheduled_reports' as 'profiles')
       .select('*')
       .eq('is_active', true)
       .order('created_at', { ascending: false });

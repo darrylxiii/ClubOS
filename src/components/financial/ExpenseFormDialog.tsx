@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useCallback, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -49,15 +50,16 @@ interface ExpenseFormDialogProps {
 }
 
 const FREQUENCIES = [
-  { value: "monthly", label: "Monthly" },
-  { value: "quarterly", label: "Quarterly" },
-  { value: "semi-annual", label: "Semi-Annual" },
-  { value: "annual", label: "Annual" },
+  { value: "monthly", label: t('financial.expenseformdialog.monthly', 'Monthly') },
+  { value: "quarterly", label: t('financial.expenseformdialog.quarterly', 'Quarterly') },
+  { value: "semi-annual", label: t('financial.expenseformdialog.semiannual', 'Semi-Annual') },
+  { value: "annual", label: t('financial.expenseformdialog.annual', 'Annual') },
 ];
 
 const SUPPORTED_CURRENCIES: Currency[] = ['EUR', 'USD', 'GBP', 'AED'];
 
 export default function ExpenseFormDialog({ open, onOpenChange, editExpense }: ExpenseFormDialogProps) {
+  const { t } = useTranslation('common');
   const queryClient = useQueryClient();
   const isEdit = !!editExpense;
   const { logAction } = useFinancialAuditLog();
@@ -221,7 +223,7 @@ export default function ExpenseFormDialog({ open, onOpenChange, editExpense }: E
           }
 
           next.vat_amount = (parsed.vat_amount ?? 0).toString();
-          filled.push(vatExempt ? 'VAT (exempt → 0)' : 'VAT Amount');
+          filled.push(vatExempt ? t('financial.expenseformdialog.vatExempt0', 'VAT (exempt → 0)') : t('financial.expenseformdialog.vatAmount', 'VAT Amount'));
 
           if (parsed.suggested_expense_category) {
             next.category_name = parsed.suggested_expense_category;
@@ -248,10 +250,10 @@ export default function ExpenseFormDialog({ open, onOpenChange, editExpense }: E
         setParsedFields(filled);
         toast.success(`Receipt parsed — ${filled.length} fields filled automatically.`);
       } else {
-        toast.error("Could not extract data from receipt. Please fill in manually.");
+        toast.error(t("could_not_extract_data", "Could not extract data from receipt. Please fill in manually."));
       }
     } catch (err: any) {
-      toast.error("Upload failed: " + (err.message || "Unknown error"));
+      toast.error(t("upload_failed", "Upload failed:") + (err.message || "Unknown error"));
     } finally {
       setIsUploading(false);
       setIsParsing(false);
@@ -305,7 +307,7 @@ export default function ExpenseFormDialog({ open, onOpenChange, editExpense }: E
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["operating-expenses"] });
-      toast.success(isEdit ? "Expense updated." : "Expense added.");
+      toast.success(isEdit ? t('financial.expenseformdialog.expenseUpdated', 'Expense updated.') : t('financial.expenseformdialog.expenseAdded', 'Expense added.'));
       onOpenChange(false);
     },
     onError: (error: Error) => {
@@ -316,7 +318,7 @@ export default function ExpenseFormDialog({ open, onOpenChange, editExpense }: E
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.category_name || !form.description || !form.amount) {
-      toast.error("Please fill in all required fields.");
+      toast.error(t("please_fill_in_all", "Please fill in all required fields."));
       return;
     }
     saveMutation.mutate();
@@ -329,7 +331,7 @@ export default function ExpenseFormDialog({ open, onOpenChange, editExpense }: E
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{isEdit ? "Edit Expense" : "Add New Expense"}</DialogTitle>
+          <DialogTitle>{isEdit ? t('financial.expenseformdialog.editExpense', 'Edit Expense') : t('financial.expenseformdialog.addNewExpense', 'Add New Expense')}</DialogTitle>
           <DialogDescription>
             {isEdit
               ? "Update expense details."
@@ -349,18 +351,18 @@ export default function ExpenseFormDialog({ open, onOpenChange, editExpense }: E
             {isUploading || isParsing ? (
               <div className="flex items-center justify-center gap-2 text-muted-foreground">
                 <Loader2 className="h-5 w-5 animate-spin" />
-                <span>{isParsing ? "Parsing invoice with AI (QUIN)..." : "Uploading..."}</span>
+                <span>{isParsing ? t('financial.expenseformdialog.parsingInvoiceWithAiQuin', 'Parsing invoice with AI (QUIN)...') : t('financial.expenseformdialog.uploading', 'Uploading...')}</span>
               </div>
             ) : form.receipt_url ? (
               <div className="flex items-center justify-center gap-2 text-muted-foreground">
                 <FileText className="h-5 w-5" />
-                <span className="text-sm">Receipt attached. Drop another to replace.</span>
+                <span className="text-sm">{t("receipt_attached_drop_another", "Receipt attached. Drop another to replace.")}</span>
               </div>
             ) : (
               <div className="flex flex-col items-center gap-1 text-muted-foreground">
                 <Upload className="h-6 w-6" />
-                <span className="text-sm font-medium">Drop PDF or image invoice here</span>
-                <span className="text-xs">QUIN will extract vendor, amount, VAT, currency, category & more</span>
+                <span className="text-sm font-medium">{t("drop_pdf_or_image", "Drop PDF or image invoice here")}</span>
+                <span className="text-xs">{t("quin_will_extract_vendor", "QUIN will extract vendor, amount, VAT, currency, category & more")}</span>
               </div>
             )}
           </div>
@@ -372,14 +374,14 @@ export default function ExpenseFormDialog({ open, onOpenChange, editExpense }: E
               <div>
                 <p className="font-medium text-foreground">QUIN filled {parsedFields.length} fields automatically</p>
                 <p className="text-xs text-muted-foreground mt-0.5">{parsedFields.join(' · ')}</p>
-                <p className="text-xs text-muted-foreground mt-0.5">Review and adjust if needed before saving.</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{t("review_and_adjust_if", "Review and adjust if needed before saving.")}</p>
               </div>
             </div>
           )}
 
           {/* Date */}
           <div className="space-y-2">
-            <Label>Date</Label>
+            <Label>{t("date", "Date")}</Label>
             <Input
               type="date"
               value={form.expense_date}
@@ -406,7 +408,7 @@ export default function ExpenseFormDialog({ open, onOpenChange, editExpense }: E
               </div>
             </div>
             <div className="space-y-2">
-              <Label>Currency</Label>
+              <Label>{t("currency", "Currency")}</Label>
               <Select value={currency} onValueChange={(v) => handleCurrencyChange(v as Currency)}>
                 <SelectTrigger>
                   <SelectValue />
@@ -452,9 +454,7 @@ export default function ExpenseFormDialog({ open, onOpenChange, editExpense }: E
             <Label className="flex items-center gap-2">
               VAT Amount ({currency}, optional)
               {isVatExempt && (
-                <Badge variant="secondary" className="text-xs font-normal">
-                  VAT exempt — set to 0
-                </Badge>
+                <Badge variant="secondary" className="text-xs font-normal">{t('financial.expenseformdialog.vatExemptSetTo0', 'VAT exempt — set to 0')}</Badge>
               )}
             </Label>
             <Input
@@ -468,9 +468,9 @@ export default function ExpenseFormDialog({ open, onOpenChange, editExpense }: E
 
           {/* Category */}
           <div className="space-y-2">
-            <Label>Category</Label>
+            <Label>{t("category", "Category")}</Label>
             <Select value={form.category_name} onValueChange={(v) => setForm({ ...form, category_name: v })}>
-              <SelectTrigger><SelectValue placeholder="Select category" /></SelectTrigger>
+              <SelectTrigger><SelectValue placeholder={t("select_category", "Select category")} /></SelectTrigger>
               <SelectContent>
                 {categories?.map((c) => (
                   <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>
@@ -481,9 +481,9 @@ export default function ExpenseFormDialog({ open, onOpenChange, editExpense }: E
 
           {/* Description */}
           <div className="space-y-2">
-            <Label>Description</Label>
+            <Label>{t("description", "Description")}</Label>
             <Input
-              placeholder="What was this expense for?"
+              placeholder={t("what_was_this_expense", "What was this expense for?")}
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
             />
@@ -491,9 +491,9 @@ export default function ExpenseFormDialog({ open, onOpenChange, editExpense }: E
 
           {/* Vendor */}
           <div className="space-y-2">
-            <Label>Vendor</Label>
+            <Label>{t("vendor", "Vendor")}</Label>
             <Input
-              placeholder="Company / vendor name"
+              placeholder={t("company_vendor_name", "Company / vendor name")}
               value={form.vendor}
               onChange={(e) => setForm({ ...form, vendor: e.target.value })}
             />
@@ -502,8 +502,8 @@ export default function ExpenseFormDialog({ open, onOpenChange, editExpense }: E
           {/* Recurring Toggle */}
           <div className="flex items-center justify-between rounded-lg border p-3">
             <div>
-              <Label className="text-sm font-medium">Recurring Expense</Label>
-              <p className="text-xs text-muted-foreground">Mark as a recurring cost</p>
+              <Label className="text-sm font-medium">{t("recurring_expense", "Recurring Expense")}</Label>
+              <p className="text-xs text-muted-foreground">{t("mark_as_a_recurring", "Mark as a recurring cost")}</p>
             </div>
             <Switch
               checked={form.is_recurring}
@@ -513,12 +513,12 @@ export default function ExpenseFormDialog({ open, onOpenChange, editExpense }: E
 
           {form.is_recurring && (
             <div className="space-y-2">
-              <Label>Frequency</Label>
+              <Label>{t("frequency", "Frequency")}</Label>
               <Select
                 value={form.recurring_frequency}
                 onValueChange={(v) => setForm({ ...form, recurring_frequency: v })}
               >
-                <SelectTrigger><SelectValue placeholder="Select frequency" /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder={t("select_frequency", "Select frequency")} /></SelectTrigger>
                 <SelectContent>
                   {FREQUENCIES.map((f) => (
                     <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>
@@ -530,9 +530,9 @@ export default function ExpenseFormDialog({ open, onOpenChange, editExpense }: E
 
           {/* Notes */}
           <div className="space-y-2">
-            <Label>Notes (optional)</Label>
+            <Label>{t("notes_optional", "Notes (optional)")}</Label>
             <Textarea
-              placeholder="Additional notes..."
+              placeholder={t("additional_notes", "Additional notes...")}
               value={form.notes}
               onChange={(e) => setForm({ ...form, notes: e.target.value })}
               rows={2}
@@ -540,9 +540,9 @@ export default function ExpenseFormDialog({ open, onOpenChange, editExpense }: E
           </div>
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>{t("cancel", "Cancel")}</Button>
             <Button type="submit" disabled={saveMutation.isPending}>
-              {saveMutation.isPending ? "Saving..." : isEdit ? "Update Expense" : "Add Expense"}
+              {saveMutation.isPending ? "Saving..." : isEdit ? t('financial.expenseformdialog.updateExpense', 'Update Expense') : t('financial.expenseformdialog.addExpense', 'Add Expense')}
             </Button>
           </DialogFooter>
         </form>

@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { AlertTriangle, CheckCircle, Clock, Plus, Shield, AlertCircle, Eye, MessageSquare } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+import { useTranslation } from 'react-i18next';
 
 interface SecurityIncident {
   id: string;
@@ -43,6 +44,7 @@ const statusColors = {
 };
 
 export const SecurityIncidentsPanel = () => {
+  const { t } = useTranslation('admin');
   const queryClient = useQueryClient();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [selectedIncident, setSelectedIncident] = useState<SecurityIncident | null>(null);
@@ -91,9 +93,9 @@ export const SecurityIncidentsPanel = () => {
       queryClient.invalidateQueries({ queryKey: ['security-incidents'] });
       setIsCreateOpen(false);
       setNewIncident({ title: '', description: '', severity: 'medium', incident_type: 'security_breach', affected_systems: '' });
-      toast.success('Security incident reported');
+      toast.success(t('compliance.securityIncidentsPanel.securityIncidentReported'));
     },
-    onError: () => toast.error('Failed to create incident')
+    onError: () => toast.error(t('compliance.securityIncidentsPanel.failedToCreateIncident'))
   });
 
   const updateStatusMutation = useMutation({
@@ -115,9 +117,9 @@ export const SecurityIncidentsPanel = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['security-incidents'] });
       setSelectedIncident(null);
-      toast.success('Incident updated');
+      toast.success(t('compliance.securityIncidentsPanel.incidentUpdated'));
     },
-    onError: () => toast.error('Failed to update incident')
+    onError: () => toast.error(t('compliance.securityIncidentsPanel.failedToUpdateIncident'))
   });
 
   const openIncidents = incidents?.filter(i => i.status === 'open' || i.status === 'investigating') || [];
@@ -135,7 +137,7 @@ export const SecurityIncidentsPanel = () => {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Open Incidents</p>
+                <p className="text-sm text-muted-foreground">{t('compliance.securityIncidentsPanel.openIncidents')}</p>
                 <p className="text-3xl font-bold">{openIncidents.length}</p>
               </div>
               <AlertTriangle className={`h-8 w-8 ${openIncidents.length > 0 ? 'text-amber-500' : 'text-muted-foreground'}`} />
@@ -146,7 +148,7 @@ export const SecurityIncidentsPanel = () => {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Critical</p>
+                <p className="text-sm text-muted-foreground">{t('compliance.securityIncidentsPanel.critical')}</p>
                 <p className="text-3xl font-bold text-red-600">{criticalCount}</p>
               </div>
               <AlertCircle className={`h-8 w-8 ${criticalCount > 0 ? 'text-red-500' : 'text-muted-foreground'}`} />
@@ -157,7 +159,7 @@ export const SecurityIncidentsPanel = () => {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Investigating</p>
+                <p className="text-sm text-muted-foreground">{t('compliance.securityIncidentsPanel.investigating')}</p>
                 <p className="text-3xl font-bold">{incidents?.filter(i => i.status === 'investigating').length || 0}</p>
               </div>
               <Eye className="h-8 w-8 text-muted-foreground" />
@@ -168,7 +170,7 @@ export const SecurityIncidentsPanel = () => {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Resolved (30d)</p>
+                <p className="text-sm text-muted-foreground">{t('compliance.securityIncidentsPanel.resolved30d')}</p>
                 <p className="text-3xl font-bold text-green-600">{incidents?.filter(i => i.status === 'resolved' || i.status === 'closed').length || 0}</p>
               </div>
               <CheckCircle className="h-8 w-8 text-green-500" />
@@ -185,9 +187,7 @@ export const SecurityIncidentsPanel = () => {
               <Shield className="h-5 w-5" />
               Security Incidents
             </CardTitle>
-            <CardDescription>
-              Track and manage security incidents for SOC 2 compliance
-            </CardDescription>
+            <CardDescription>{t('compliance.securityincidentspanel.trackAndManageSecurityIncidentsFor', 'Track and manage security incidents for SOC 2 compliance')}</CardDescription>
           </div>
           <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
             <DialogTrigger asChild>
@@ -198,58 +198,58 @@ export const SecurityIncidentsPanel = () => {
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Report Security Incident</DialogTitle>
-                <DialogDescription>Document a new security incident for tracking and resolution.</DialogDescription>
+                <DialogTitle>{t('compliance.securityIncidentsPanel.reportSecurityIncident')}</DialogTitle>
+                <DialogDescription>{t('compliance.securityIncidentsPanel.documentANewSecurityIncidentFor')}</DialogDescription>
               </DialogHeader>
               <div className="space-y-4 py-4">
                 <div>
-                  <label className="text-sm font-medium">Title</label>
+                  <label className="text-sm font-medium">{t('compliance.securityincidentspanel.title', 'Title')}</label>
                   <Input
                     value={newIncident.title}
                     onChange={(e) => setNewIncident(prev => ({ ...prev, title: e.target.value }))}
-                    placeholder="Brief incident title"
+                    placeholder={t('compliance.securityIncidentsPanel.briefIncidentTitle')}
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium">Description</label>
+                  <label className="text-sm font-medium">{t('compliance.securityincidentspanel.description', 'Description')}</label>
                   <Textarea
                     value={newIncident.description}
                     onChange={(e) => setNewIncident(prev => ({ ...prev, description: e.target.value }))}
-                    placeholder="Detailed description of the incident"
+                    placeholder={t('compliance.securityIncidentsPanel.detailedDescriptionOfTheIncident')}
                     rows={3}
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="text-sm font-medium">Severity</label>
+                    <label className="text-sm font-medium">{t('compliance.securityincidentspanel.severity', 'Severity')}</label>
                     <Select value={newIncident.severity} onValueChange={(v: any) => setNewIncident(prev => ({ ...prev, severity: v }))}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="low">Low</SelectItem>
-                        <SelectItem value="medium">Medium</SelectItem>
-                        <SelectItem value="high">High</SelectItem>
-                        <SelectItem value="critical">Critical</SelectItem>
+                        <SelectItem value="low">{t('compliance.securityincidentspanel.low', 'Low')}</SelectItem>
+                        <SelectItem value="medium">{t('compliance.securityincidentspanel.medium', 'Medium')}</SelectItem>
+                        <SelectItem value="high">{t('compliance.securityincidentspanel.high', 'High')}</SelectItem>
+                        <SelectItem value="critical">{t('compliance.securityincidentspanel.critical', 'Critical')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   <div>
-                    <label className="text-sm font-medium">Type</label>
+                    <label className="text-sm font-medium">{t('compliance.securityincidentspanel.type', 'Type')}</label>
                     <Select value={newIncident.incident_type} onValueChange={(v) => setNewIncident(prev => ({ ...prev, incident_type: v }))}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="security_breach">Security Breach</SelectItem>
-                        <SelectItem value="data_leak">Data Leak</SelectItem>
-                        <SelectItem value="unauthorized_access">Unauthorized Access</SelectItem>
-                        <SelectItem value="malware">Malware</SelectItem>
-                        <SelectItem value="phishing">Phishing</SelectItem>
-                        <SelectItem value="policy_violation">Policy Violation</SelectItem>
-                        <SelectItem value="other">Other</SelectItem>
+                        <SelectItem value="security_breach">{t('compliance.securityincidentspanel.securityBreach', 'Security Breach')}</SelectItem>
+                        <SelectItem value="data_leak">{t('compliance.securityincidentspanel.dataLeak', 'Data Leak')}</SelectItem>
+                        <SelectItem value="unauthorized_access">{t('compliance.securityincidentspanel.unauthorizedAccess', 'Unauthorized Access')}</SelectItem>
+                        <SelectItem value="malware">{t('compliance.securityincidentspanel.malware', 'Malware')}</SelectItem>
+                        <SelectItem value="phishing">{t('compliance.securityincidentspanel.phishing', 'Phishing')}</SelectItem>
+                        <SelectItem value="policy_violation">{t('compliance.securityincidentspanel.policyViolation', 'Policy Violation')}</SelectItem>
+                        <SelectItem value="other">{t('compliance.securityincidentspanel.other', 'Other')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                 </div>
                 <div>
-                  <label className="text-sm font-medium">Affected Systems (comma-separated)</label>
+                  <label className="text-sm font-medium">{t('compliance.securityincidentspanel.affectedSystemsCommaseparated', 'Affected Systems (comma-separated)')}</label>
                   <Input
                     value={newIncident.affected_systems}
                     onChange={(e) => setNewIncident(prev => ({ ...prev, affected_systems: e.target.value }))}
@@ -258,9 +258,9 @@ export const SecurityIncidentsPanel = () => {
                 </div>
               </div>
               <DialogFooter>
-                <Button variant="outline" onClick={() => setIsCreateOpen(false)}>Cancel</Button>
+                <Button variant="outline" onClick={() => setIsCreateOpen(false)}>{t('compliance.securityincidentspanel.cancel', 'Cancel')}</Button>
                 <Button onClick={() => createIncidentMutation.mutate(newIncident)} disabled={!newIncident.title}>
-                  Report Incident
+                  {t('compliance.securityincidentspanel.reportIncident', 'Report Incident')}
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -299,8 +299,8 @@ export const SecurityIncidentsPanel = () => {
             <div className="flex items-center justify-center py-12 text-muted-foreground">
               <div className="text-center">
                 <CheckCircle className="h-12 w-12 mx-auto mb-4 text-green-600" />
-                <p className="text-lg font-medium">No Active Security Incidents</p>
-                <p className="text-sm mt-2">All systems are operating normally</p>
+                <p className="text-lg font-medium">{t('compliance.securityIncidentsPanel.noActiveSecurityIncidents')}</p>
+                <p className="text-sm mt-2">{t('compliance.securityIncidentsPanel.allSystemsAreOperatingNormally')}</p>
               </div>
             </div>
           )}
@@ -323,22 +323,22 @@ export const SecurityIncidentsPanel = () => {
               </DialogHeader>
               <div className="space-y-4 py-4">
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">Description</label>
+                  <label className="text-sm font-medium text-muted-foreground">{t('compliance.securityincidentspanel.description', 'Description')}</label>
                   <p className="mt-1">{selectedIncident.description}</p>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="text-sm font-medium text-muted-foreground">Type</label>
+                    <label className="text-sm font-medium text-muted-foreground">{t('compliance.securityincidentspanel.type', 'Type')}</label>
                     <p className="mt-1">{selectedIncident.incident_type.replace(/_/g, ' ')}</p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-muted-foreground">Status</label>
+                    <label className="text-sm font-medium text-muted-foreground">{t('compliance.securityincidentspanel.status', 'Status')}</label>
                     <Badge className={`mt-1 ${statusColors[selectedIncident.status]}`}>{selectedIncident.status}</Badge>
                   </div>
                 </div>
                 {selectedIncident.affected_systems?.length > 0 && (
                   <div>
-                    <label className="text-sm font-medium text-muted-foreground">Affected Systems</label>
+                    <label className="text-sm font-medium text-muted-foreground">{t('compliance.securityincidentspanel.affectedSystems', 'Affected Systems')}</label>
                     <div className="flex gap-2 mt-1">
                       {selectedIncident.affected_systems.map((sys, i) => (
                         <Badge key={i} variant="outline">{sys}</Badge>
@@ -348,7 +348,7 @@ export const SecurityIncidentsPanel = () => {
                 )}
                 {selectedIncident.resolution_notes && (
                   <div>
-                    <label className="text-sm font-medium text-muted-foreground">Resolution Notes</label>
+                    <label className="text-sm font-medium text-muted-foreground">{t('compliance.securityincidentspanel.resolutionNotes', 'Resolution Notes')}</label>
                     <p className="mt-1">{selectedIncident.resolution_notes}</p>
                   </div>
                 )}
@@ -356,17 +356,17 @@ export const SecurityIncidentsPanel = () => {
               <DialogFooter className="gap-2">
                 {selectedIncident.status === 'open' && (
                   <Button variant="outline" onClick={() => updateStatusMutation.mutate({ id: selectedIncident.id, status: 'investigating' })}>
-                    Start Investigation
+                    {t('compliance.securityincidentspanel.startInvestigation', 'Start Investigation')}
                   </Button>
                 )}
                 {selectedIncident.status === 'investigating' && (
                   <Button onClick={() => updateStatusMutation.mutate({ id: selectedIncident.id, status: 'resolved', resolution_notes: 'Resolved via dashboard' })}>
-                    Mark Resolved
+                    {t('compliance.securityincidentspanel.markResolved', 'Mark Resolved')}
                   </Button>
                 )}
                 {selectedIncident.status === 'resolved' && (
                   <Button variant="outline" onClick={() => updateStatusMutation.mutate({ id: selectedIncident.id, status: 'closed' })}>
-                    Close Incident
+                    {t('compliance.securityincidentspanel.closeIncident', 'Close Incident')}
                   </Button>
                 )}
               </DialogFooter>

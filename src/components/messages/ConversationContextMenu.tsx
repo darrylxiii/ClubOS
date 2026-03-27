@@ -15,6 +15,7 @@ import {
   CheckCheck,
 } from 'lucide-react';
 import { ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface ConversationContextMenuProps {
   children: ReactNode;
@@ -43,6 +44,7 @@ export const ConversationContextMenu = ({
   onLeave,
   onDelete,
 }: ConversationContextMenuProps) => {
+  const { t } = useTranslation('messages');
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild>{children}</ContextMenuTrigger>
@@ -51,7 +53,7 @@ export const ConversationContextMenu = ({
           <>
             <ContextMenuItem onClick={onMarkAsRead}>
               <CheckCheck className="mr-2 h-4 w-4" />
-              Mark as read
+              {t('context.markAsRead')}
             </ContextMenuItem>
             <ContextMenuSeparator />
           </>
@@ -60,7 +62,7 @@ export const ConversationContextMenu = ({
         {onPin && (
           <ContextMenuItem onClick={onPin}>
             <Pin className="mr-2 h-4 w-4" />
-            {isPinned ? 'Unpin conversation' : 'Pin conversation'}
+            {isPinned ? t('context.unpinConversation') : t('context.pinConversation')}
           </ContextMenuItem>
         )}
 
@@ -69,12 +71,12 @@ export const ConversationContextMenu = ({
             {isMuted ? (
               <>
                 <Bell className="mr-2 h-4 w-4" />
-                Unmute notifications
+                {t('context.unmuteNotifications')}
               </>
             ) : (
               <>
                 <BellOff className="mr-2 h-4 w-4" />
-                Mute notifications
+                {t('context.muteNotifications')}
               </>
             )}
           </ContextMenuItem>
@@ -83,7 +85,7 @@ export const ConversationContextMenu = ({
         {onArchive && (
           <ContextMenuItem onClick={onArchive}>
             <Archive className="mr-2 h-4 w-4" />
-            {isArchived ? 'Unarchive conversation' : 'Archive conversation'}
+            {isArchived ? t('context.unarchiveConversation') : t('context.archiveConversation')}
           </ContextMenuItem>
         )}
 
@@ -92,7 +94,7 @@ export const ConversationContextMenu = ({
             <ContextMenuSeparator />
             <ContextMenuItem onClick={onLeave} className="text-destructive focus:text-destructive">
               <LogOut className="mr-2 h-4 w-4" />
-              Leave group
+              {t('context.leaveGroup')}
             </ContextMenuItem>
           </>
         )}
@@ -102,7 +104,7 @@ export const ConversationContextMenu = ({
             <ContextMenuSeparator />
             <ContextMenuItem onClick={onDelete} className="text-destructive focus:text-destructive">
               <Trash2 className="mr-2 h-4 w-4" />
-              Delete conversation
+              {t('context.deleteConversation')}
             </ContextMenuItem>
           </>
         )}

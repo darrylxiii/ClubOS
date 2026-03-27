@@ -1,4 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
+import { useTranslation } from 'react-i18next';
 import { Quote } from "lucide-react";
 import { usePlatformMetrics } from "@/hooks/usePlatformMetrics";
 
@@ -24,6 +25,7 @@ const testimonials = [
 ];
 
 export const SocialProof = () => {
+  const { t } = useTranslation('common');
   const { data: metrics, isLoading } = usePlatformMetrics();
 
   const stats = [
@@ -64,10 +66,8 @@ export const SocialProof = () => {
 
         {/* Testimonials */}
         <div className="text-center mb-12">
-          <p className="text-caps text-muted-foreground mb-4">MEMBER TESTIMONIALS</p>
-          <h2 className="text-4xl md:text-6xl font-black uppercase tracking-tight">
-            ELITE OUTCOMES
-          </h2>
+          <p className="text-caps text-muted-foreground mb-4">{t('landing.mEMBERTESTIMONIALS')}</p>
+          <h2 className="text-4xl md:text-6xl font-black uppercase tracking-tight">{t('landing.eLITEOUTCOMES')}</h2>
         </div>
 
         <div className="grid md:grid-cols-3 gap-6">
@@ -95,15 +95,15 @@ export const SocialProof = () => {
         <div className="mt-16 flex flex-wrap justify-center items-center gap-6 text-xs text-muted-foreground">
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 bg-success rounded-full"></div>
-            <span className="font-bold uppercase tracking-wider">GDPR Compliant</span>
+            <span className="font-bold uppercase tracking-wider">{t('landing.gDPRCompliant')}</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 bg-success rounded-full"></div>
-            <span className="font-bold uppercase tracking-wider">Private & Secure</span>
+            <span className="font-bold uppercase tracking-wider">{t('landing.privateSecure')}</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 bg-success rounded-full"></div>
-            <span className="font-bold uppercase tracking-wider">Invite Reviewed</span>
+            <span className="font-bold uppercase tracking-wider">{t('landing.inviteReviewed')}</span>
           </div>
         </div>
       </div>

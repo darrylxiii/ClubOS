@@ -13,6 +13,7 @@ import { ReviewStep } from './partner-provisioning/steps/ReviewStep';
 import { ProvisionSuccessView } from './partner-provisioning/ProvisionSuccessView';
 import { QuickProvisionView } from './partner-provisioning/QuickProvisionView';
 import { ConfirmDialog } from '@/components/dialogs/ConfirmDialog';
+import { useTranslation } from 'react-i18next';
 
 interface PartnerProvisioningModalProps {
   open: boolean;
@@ -33,6 +34,7 @@ const FIELD_TO_STEP: Record<string, number> = {
 };
 
 function extractFirstError(errors: FieldErrors): string {
+  const { t } = useTranslation('admin');
   for (const key of Object.keys(errors)) {
     const err = errors[key];
     if (!err) continue;
@@ -226,7 +228,7 @@ export function PartnerProvisioningModal({
           ) : (
             <>
               {/* Step Progress */}
-              <nav aria-label="Provisioning steps" className="flex items-center justify-between px-2 mb-4">
+              <nav aria-label={t('partnerProvisioningModal.provisioningSteps')} className="flex items-center justify-between px-2 mb-4">
                 {STEP_LABELS.map((label, i) => {
                   const s = i + 1;
                   const isActive = step === s;
@@ -310,7 +312,7 @@ export function PartnerProvisioningModal({
                             form.setError('temporaryPassword', {
                               message: 'Password must be at least 12 characters',
                             });
-                            toast.error('Password must be at least 12 characters');
+                            toast.error(t('partnerProvisioningModal.passwordMustBeAtLeast12'));
                             return;
                           }
                         }
@@ -338,8 +340,8 @@ export function PartnerProvisioningModal({
       <ConfirmDialog
         open={showCloseConfirm}
         onOpenChange={setShowCloseConfirm}
-        title="Unsaved Changes"
-        description="You have unsaved changes. Are you sure you want to close this form?"
+        title={t('partnerProvisioningModal.unsavedChanges')}
+        description={"You have unsaved changes. Are you sure you want to close this form?"}
         confirmText="Discard"
         variant="destructive"
         onConfirm={doClose}

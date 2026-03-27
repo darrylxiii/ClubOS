@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React, { useState } from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
@@ -29,6 +30,7 @@ export function RelationCell({
   relationDatabaseId,
   multiple = true 
 }: RelationCellProps) {
+  const { t } = useTranslation('common');
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
 
@@ -153,7 +155,7 @@ export function RelationCell({
           ) : (
             <span className="text-muted-foreground flex items-center gap-1">
               <Link2 className="h-3 w-3" />
-              <span className="text-xs">Add relation...</span>
+              <span className="text-xs">{t("add_relation", "Add relation...")}</span>
             </span>
           )}
         </Button>
@@ -161,7 +163,7 @@ export function RelationCell({
       <PopoverContent className="w-64 p-2" align="start">
         {!relationDatabaseId ? (
           <div className="space-y-2">
-            <div className="text-sm font-medium">Select database to link</div>
+            <div className="text-sm font-medium">{t("select_database_to_link", "Select database to link")}</div>
             <ScrollArea className="h-48">
               {databases.map((db) => (
                 <button
@@ -184,7 +186,7 @@ export function RelationCell({
             <div className="relative mb-2">
               <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
               <Input
-                placeholder="Search rows..."
+                placeholder={t("search_rows", "Search rows...")}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="pl-7 h-8 text-sm"

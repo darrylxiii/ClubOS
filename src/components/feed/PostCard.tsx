@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import DOMPurify from "dompurify";
 import { supabase } from "@/integrations/supabase/client";
@@ -47,6 +48,7 @@ interface PostCardProps {
 }
 
 export function PostCard({ post, onUpdate }: PostCardProps) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const navigate = useNavigate();
   const [showComments, setShowComments] = useState(false);
@@ -180,11 +182,11 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
 
       if (error) throw error;
 
-      notify.success("Post deleted", { description: "Your post has been deleted successfully." });
+      notify.success("Post deleted", { description: t('feed.postcard.yourPostHasBeenDeletedSuccessfully', 'Your post has been deleted successfully.') });
       onUpdate();
     } catch (error) {
       console.error('Error deleting post:', error);
-      notify.error("Failed to delete", { description: "Please try again." });
+      notify.error("Failed to delete", { description: t('feed.postcard.pleaseTryAgain', 'Please try again.') });
     }
   };
 
@@ -240,7 +242,7 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
   };
 
   const handleReport = () => {
-    notify.success("Report submitted", { description: "Thank you for helping keep our community safe." });
+    notify.success("Report submitted", { description: t('feed.postcard.thankYouForHelpingKeepOur', 'Thank you for helping keep our community safe.') });
   };
 
   const handleAuthorClick = () => {
@@ -323,7 +325,7 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={handleSave}>
                   <Bookmark className="w-4 h-4 mr-2" />
-                  {isSaved ? "Remove from saved" : "Save post"}
+                  {isSaved ? t('feed.postcard.removeFromSaved', 'Remove from saved') : t('feed.postcard.savePost', 'Save post')}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={(e) => { e.preventDefault(); handleShare(); }}>
                   <Copy className="w-4 h-4 mr-2" />
@@ -400,7 +402,7 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
                 onClick={() => setIsCollapsed(!isCollapsed)}
                 className="mt-2 text-primary hover:text-primary/80"
               >
-                {isCollapsed ? "Show full post" : "Show less"}
+                {isCollapsed ? t('feed.postcard.showFullPost', 'Show full post') : t('feed.postcard.showLess', 'Show less')}
               </Button>
             )}
           </div>
@@ -419,7 +421,7 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
                 <CollapsibleTrigger asChild>
                   <Button variant="ghost" size="sm" className="gap-2">
                     <Sparkles className="w-4 h-4" />
-                    {post.repost_of ? 'AI Summary (Original + Your Thoughts)' : 'AI Summary'}
+                    {post.repost_of ? t('feed.postcard.aiSummaryOriginalYourThoughts', 'AI Summary (Original + Your Thoughts)') : t('feed.postcard.aiSummary', 'AI Summary')}
                     <ChevronDown className={`w-4 h-4 transition-transform ${showSummary ? 'rotate-180' : ''}`} />
                   </Button>
                 </CollapsibleTrigger>
@@ -599,7 +601,7 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
                   onClick={() => setMessageDialogOpen(true)}
                 >
                   <Mail className="w-4 h-4 mr-2" />
-                  <span className="text-sm">Message</span>
+                  <span className="text-sm">{t("message", "Message")}</span>
                 </Button>
               )}
               
@@ -609,7 +611,7 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
                 onClick={() => setShareDialogOpen(true)}
               >
                 <Share2 className="w-4 h-4 mr-2" />
-                <span className="text-sm">Share</span>
+                <span className="text-sm">{t("share", "Share")}</span>
               </Button>
             </div>
             

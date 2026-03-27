@@ -1,5 +1,6 @@
 import { createReactBlockSpec } from '@blocknote/react';
 import { useState, useEffect, useRef, useId } from 'react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 
 export const MermaidBlock = createReactBlockSpec(
@@ -23,6 +24,7 @@ export const MermaidBlock = createReactBlockSpec(
       const uniqueId = useId().replace(/:/g, '');
 
       useEffect(() => {
+  const { t } = useTranslation('common');
         const renderDiagram = async () => {
           if (!code) {
             setSvgContent('');
@@ -76,21 +78,21 @@ export const MermaidBlock = createReactBlockSpec(
         return (
           <div className="my-4 p-3 rounded-lg border border-border bg-muted/30">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-medium text-muted-foreground">Mermaid Diagram</span>
+              <span className="text-xs font-medium text-muted-foreground">{t('workspace.mermaidDiagram', 'Mermaid Diagram')}</span>
               <div className="flex gap-2">
                 <button
                   onClick={() => setIsEditing(false)}
                   className="text-xs px-2 py-1 rounded bg-secondary text-secondary-foreground hover:bg-secondary/80"
                   contentEditable={false}
                 >
-                  Cancel
+                  {t('workspace.cancel', 'Cancel')}
                 </button>
                 <button
                   onClick={handleSave}
                   className="text-xs px-2 py-1 rounded bg-accent text-accent-foreground hover:bg-accent/80"
                   contentEditable={false}
                 >
-                  Save
+                  {t('workspace.save', 'Save')}
                 </button>
               </div>
             </div>
@@ -111,7 +113,7 @@ export const MermaidBlock = createReactBlockSpec(
             <textarea
               value={code}
               onChange={(e) => setCode(e.target.value)}
-              placeholder="Enter Mermaid diagram code..."
+              placeholder={t('workspace.enterMermaidCode', 'Enter Mermaid diagram code...')}
               className={cn(
                 "w-full min-h-[80px] p-2 rounded font-mono text-sm",
                 "bg-background border border-input",
@@ -123,7 +125,7 @@ export const MermaidBlock = createReactBlockSpec(
             
             {isLoading && (
               <div className="mt-2 p-4 text-center text-muted-foreground text-sm">
-                Rendering...
+                {t('workspace.rendering', 'Rendering...')}
               </div>
             )}
             {svgContent && !isLoading && (
@@ -160,11 +162,11 @@ export const MermaidBlock = createReactBlockSpec(
             />
           ) : isLoading ? (
             <p className="text-muted-foreground text-sm text-center py-4">
-              Loading diagram...
+              {t('workspace.loadingDiagram', 'Loading diagram...')}
             </p>
           ) : (
             <p className="text-muted-foreground text-sm text-center py-4">
-              Click to add Mermaid diagram
+              {t('workspace.clickToAddMermaid', 'Click to add Mermaid diagram')}
             </p>
           )}
         </div>

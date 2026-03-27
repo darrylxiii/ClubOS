@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 /**
  * Assessment Insights Card
  * 
@@ -67,6 +68,7 @@ const ASSESSMENT_COLORS: Record<string, string> = {
 };
 
 export function AssessmentInsightsCard({ candidateId, userId }: AssessmentInsightsCardProps) {
+  const { t } = useTranslation('common');
   const [results, setResults] = useState<AssessmentResult[]>([]);
   const [insights, setInsights] = useState<AggregatedInsights | null>(null);
   const [loading, setLoading] = useState(true);
@@ -192,7 +194,7 @@ export function AssessmentInsightsCard({ candidateId, userId }: AssessmentInsigh
       <Card className="border-dashed border-2 border-muted">
         <CardContent className="py-8 text-center text-muted-foreground">
           <Target className="h-8 w-8 mx-auto mb-2 opacity-50" />
-          <p className="text-sm">No assessments completed yet</p>
+          <p className="text-sm">{t("no_assessments_completed_yet", "No assessments completed yet")}</p>
           <Button 
             variant="outline" 
             size="sm" 
@@ -221,7 +223,7 @@ export function AssessmentInsightsCard({ candidateId, userId }: AssessmentInsigh
         </CardTitle>
         {insights && (
           <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">Overall</span>
+            <span className="text-sm text-muted-foreground">{t("overall", "Overall")}</span>
             <span className={`text-2xl font-bold ${getScoreColor(insights.overallScore)}`}>
               {insights.overallScore}%
             </span>
@@ -252,7 +254,7 @@ export function AssessmentInsightsCard({ candidateId, userId }: AssessmentInsigh
         {/* Top Strengths */}
         {insights?.topStrengths && insights.topStrengths.length > 0 && (
           <div className="space-y-2">
-            <p className="text-sm font-medium text-muted-foreground">Key Strengths</p>
+            <p className="text-sm font-medium text-muted-foreground">{t("key_strengths", "Key Strengths")}</p>
             <div className="flex flex-wrap gap-2">
               {insights.topStrengths.map((strength, idx) => (
                 <Badge key={idx} variant="secondary" className="bg-green-100 text-green-700">
@@ -266,7 +268,7 @@ export function AssessmentInsightsCard({ candidateId, userId }: AssessmentInsigh
 
         {/* Individual Assessments */}
         <div className="space-y-2">
-          <p className="text-sm font-medium text-muted-foreground">Completed Assessments</p>
+          <p className="text-sm font-medium text-muted-foreground">{t("completed_assessments", "Completed Assessments")}</p>
           <div className="space-y-2">
             {results.slice(0, 4).map((result) => {
               const Icon = ASSESSMENT_ICONS[result.assessmentType] || Brain;

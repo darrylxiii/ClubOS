@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -8,6 +9,7 @@ import { DollarSign, Clock, Briefcase, TrendingUp } from "lucide-react";
 import { formatDuration, secondsToHours } from "@/hooks/useTimeTracking";
 
 export function FreelancerTimeView() {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
 
   // Fetch freelancer's contract-based time data
@@ -146,8 +148,8 @@ export function FreelancerTimeView() {
       {contractStats?.projectBreakdown && contractStats.projectBreakdown.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Time by Project</CardTitle>
-            <CardDescription>Last 30 days</CardDescription>
+            <CardTitle className="text-lg">{t("time_by_project", "Time by Project")}</CardTitle>
+            <CardDescription>{t("last_30_days", "Last 30 days")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {contractStats.projectBreakdown.slice(0, 5).map((project) => (
@@ -176,8 +178,8 @@ export function FreelancerTimeView() {
       {activeContracts && activeContracts.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Active Contracts</CardTitle>
-            <CardDescription>Track time against your contracts</CardDescription>
+            <CardTitle className="text-lg">{t("active_contracts", "Active Contracts")}</CardTitle>
+            <CardDescription>{t("track_time_against_your", "Track time against your contracts")}</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
@@ -192,7 +194,7 @@ export function FreelancerTimeView() {
                       €{contract.hourly_rate}/hr • {contract.total_hours_budget || '∞'}h budget
                     </p>
                   </div>
-                  <Badge variant="secondary">Active</Badge>
+                  <Badge variant="secondary">{t("active", "Active")}</Badge>
                 </div>
               ))}
             </div>

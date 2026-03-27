@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { MessageSkeleton } from "@/components/LoadingSkeletons";
 import { Button } from '@/components/ui/button';
@@ -36,6 +37,7 @@ interface BlockCommentsProps {
 }
 
 export function BlockComments({ pageId, blockId, className }: BlockCommentsProps) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [isOpen, setIsOpen] = useState(false);
@@ -88,10 +90,10 @@ export function BlockComments({ pageId, blockId, className }: BlockCommentsProps
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['block-comments', pageId, blockId] });
       setNewComment('');
-      toast.success('Comment added');
+      toast.success(t("comment_added", "Comment added"));
     },
     onError: () => {
-      toast.error('Failed to add comment');
+      toast.error(t("failed_to_add_comment", "Failed to add comment"));
     },
   });
 
@@ -105,7 +107,7 @@ export function BlockComments({ pageId, blockId, className }: BlockCommentsProps
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['block-comments', pageId, blockId] });
-      toast.success('Comment resolved');
+      toast.success(t("comment_resolved", "Comment resolved"));
     },
   });
 
@@ -213,7 +215,7 @@ export function BlockComments({ pageId, blockId, className }: BlockCommentsProps
         <div className="p-3 border-t">
           <div className="flex gap-2">
             <Textarea
-              placeholder="Add a comment..."
+              placeholder={t("add_a_comment", "Add a comment...")}
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
               className="min-h-[60px] resize-none text-sm"
@@ -225,7 +227,7 @@ export function BlockComments({ pageId, blockId, className }: BlockCommentsProps
             />
           </div>
           <div className="flex justify-between items-center mt-2">
-            <span className="text-xs text-muted-foreground">⌘+Enter to submit</span>
+            <span className="text-xs text-muted-foreground">{t("enter_to_submit", "⌘+Enter to submit")}</span>
             <Button 
               size="sm" 
               onClick={handleSubmit}

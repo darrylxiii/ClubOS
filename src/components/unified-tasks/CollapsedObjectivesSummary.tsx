@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -26,6 +27,7 @@ export function CollapsedObjectivesSummary({
   selectedObjective,
   onSelectObjective,
 }: CollapsedObjectivesSummaryProps) {
+  const { t } = useTranslation('common');
   const [sheetOpen, setSheetOpen] = useState(false);
 
   if (objectives.length === 0) return null;
@@ -92,7 +94,7 @@ export function CollapsedObjectivesSummary({
             className="h-7 px-2 text-xs gap-1 shrink-0 text-muted-foreground"
           >
             <ChevronRight className="h-3 w-3" />
-            <span className="hidden sm:inline">Expand</span>
+            <span className="hidden sm:inline">{t("expand", "Expand")}</span>
           </Button>
         </SheetTrigger>
         <SheetContent side="right" className="w-full sm:max-w-[800px] overflow-y-auto">
@@ -105,8 +107,8 @@ export function CollapsedObjectivesSummary({
           <div className="mt-6">
             <Tabs defaultValue="board" className="space-y-4">
               <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="board">Board</TabsTrigger>
-                <TabsTrigger value="list">List</TabsTrigger>
+                <TabsTrigger value="board">{t("board", "Board")}</TabsTrigger>
+                <TabsTrigger value="list">{t("list", "List")}</TabsTrigger>
               </TabsList>
               <TabsContent value="board">
                 <ObjectivesBoard />

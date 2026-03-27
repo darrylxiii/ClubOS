@@ -1,17 +1,13 @@
 /**
  * AI-Powered Error Grouping Edge Function
- * Uses Lovable AI to semantically analyze and group errors
+ * Uses Google Gemini to semantically analyze and group errors
  */
 
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createHandler } from '../_shared/handler.ts';
 import { withTracing, traceLog, createChildSpan, endSpan } from "../_shared/edge-tracing.ts";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-trace-id, x-span-id, traceparent',
-};
+const corsHeaders: Record<string, string> = {};
 
 interface ErrorReport {
   message: string;
@@ -60,22 +56,22 @@ Respond with JSON only:
 }`;
 
   try {
-    // Use Lovable AI Gateway (no external API key required)
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    // Use Google Gemini API (no external API key required)
+    const GOOGLE_API_KEY = Deno.env.get('GOOGLE_API_KEY');
     
-    if (!LOVABLE_API_KEY) {
-      console.log('LOVABLE_API_KEY not configured, using fallback grouping');
+    if (!GOOGLE_API_KEY) {
+      console.log('GOOGLE_API_KEY not configured, using fallback grouping');
       return generateFallbackGrouping(error);
     }
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    const response = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Authorization': `Bearer ${GOOGLE_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash-lite',
+        model: 'gemini-2.5-flash-lite',
         messages: [
           {
             role: 'system',
@@ -89,11 +85,11 @@ Respond with JSON only:
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Lovable AI error:', response.status, errorText);
+      console.error('Google Gemini error:', response.status, errorText);
       
       // Don't throw for rate limits, just use fallback
       if (response.status === 429 || response.status === 402) {
-        console.log('AI rate limited or credits exhausted, using fallback');
+        console.log('AI rate limited or quota exceeded, using fallback');
         return generateFallbackGrouping(error);
       }
       
@@ -188,13 +184,9 @@ function generateFallbackGrouping(error: ErrorReport): ErrorGroup {
   };
 }
 
-const handler = async (req: Request): Promise<Response> => {
-  // Handle CORS preflight
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
+Deno.serve(createHandler(async (req, ctx) => {
+  Object.assign(corsHeaders, ctx.corsHeaders);
 
-  try {
     const { error, existingGroups = [] } = await req.json() as {
       error: ErrorReport;
       existingGroups?: string[];
@@ -228,20 +220,4 @@ const handler = async (req: Request): Promise<Response> => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
     );
-  } catch (err) {
-    console.error('[ai-error-grouping] Error:', err);
-    
-    return new Response(
-      JSON.stringify({
-        success: false,
-        error: err instanceof Error ? err.message : 'Unknown error',
-      }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      }
-    );
-  }
-};
-
-serve(withTracing(handler, { name: 'ai-error-grouping' }));
+}));

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -36,6 +37,7 @@ export function CandidateQuickActions({
   pendingApplications,
   upcomingInterviews
 }: CandidateQuickActionsProps) {
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
 
   const actions: QuickAction[] = [
@@ -105,7 +107,7 @@ export function CandidateQuickActions({
 
   return (
     <div className="glass-subtle rounded-2xl p-6">
-      <h3 className="text-sm font-medium text-muted-foreground mb-4">Quick Actions</h3>
+      <h3 className="text-sm font-medium text-muted-foreground mb-4">{t("quick_actions", "Quick Actions")}</h3>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {visibleActions.map((action) => {
             const Icon = action.icon;

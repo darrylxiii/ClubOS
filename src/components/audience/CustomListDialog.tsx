@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from 'react-i18next';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,6 +27,7 @@ const iconOptions = ['📋', '👥', '⭐', '🎯', '💼', '🏆', '🎨', '�
 const colorOptions = ['#6366f1', '#ec4899', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444', '#3b82f6', '#14b8a6'];
 
 export const CustomListDialog = ({ isOpen, onClose, onSave, list }: CustomListDialogProps) => {
+  const { t } = useTranslation('common');
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [selectedIcon, setSelectedIcon] = useState('📋');
@@ -48,7 +50,7 @@ export const CustomListDialog = ({ isOpen, onClose, onSave, list }: CustomListDi
 
   const handleSave = async () => {
     if (!name.trim()) {
-      toast.error('Please enter a list name');
+      toast.error(t('audience.pleaseEnterAListName'));
       return;
     }
 
@@ -74,7 +76,7 @@ export const CustomListDialog = ({ isOpen, onClose, onSave, list }: CustomListDi
           .eq('id', list.id);
 
         if (error) throw error;
-        toast.success('List updated');
+        toast.success(t('audience.listUpdated'));
       } else {
         // Create new list
         const { error } = await (supabase as any)
@@ -82,13 +84,13 @@ export const CustomListDialog = ({ isOpen, onClose, onSave, list }: CustomListDi
           .insert(listData);
 
         if (error) throw error;
-        toast.success('List created');
+        toast.success(t('audience.listCreated'));
       }
 
       onSave();
     } catch (error) {
       console.error('Error saving list:', error);
-      toast.error('Failed to save list');
+      toast.error(t('audience.failedToSaveList'));
     } finally {
       setSaving(false);
     }
@@ -103,7 +105,7 @@ export const CustomListDialog = ({ isOpen, onClose, onSave, list }: CustomListDi
 
         <div className="space-y-4 py-4">
           <div className="space-y-2">
-            <Label htmlFor="list-name">List Name</Label>
+            <Label htmlFor="list-name">{t('audience.listName')}</Label>
             <Input
               id="list-name"
               value={name}
@@ -114,19 +116,19 @@ export const CustomListDialog = ({ isOpen, onClose, onSave, list }: CustomListDi
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="list-description">Description (Optional)</Label>
+            <Label htmlFor="list-description">{t('audience.descriptionOptional')}</Label>
             <Textarea
               id="list-description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="What is this list for?"
+              placeholder={t('audience.whatIsThisListFor')}
               className="bg-background/50 resize-none"
               rows={3}
             />
           </div>
 
           <div className="space-y-2">
-            <Label>Icon</Label>
+            <Label>{t('audience.icon')}</Label>
             <div className="flex flex-wrap gap-2">
               {iconOptions.map((icon) => (
                 <button
@@ -146,7 +148,7 @@ export const CustomListDialog = ({ isOpen, onClose, onSave, list }: CustomListDi
           </div>
 
           <div className="space-y-2">
-            <Label>Color</Label>
+            <Label>{t('audience.color')}</Label>
             <div className="flex flex-wrap gap-2">
               {colorOptions.map((color) => (
                 <button
@@ -166,9 +168,7 @@ export const CustomListDialog = ({ isOpen, onClose, onSave, list }: CustomListDi
         </div>
 
         <div className="flex gap-3">
-          <Button variant="outline" onClick={onClose} className="flex-1">
-            Cancel
-          </Button>
+          <Button variant="outline" onClick={onClose} className="flex-1">{t('audience.cancel')}</Button>
           <Button onClick={handleSave} disabled={saving} className="flex-1">
             {saving ? 'Saving...' : list ? 'Update List' : 'Create List'}
           </Button>

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -14,6 +15,7 @@ import { Clock, Sparkles, Calendar } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function TaskSchedulingPreferences() {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -85,10 +87,10 @@ export function TaskSchedulingPreferences() {
         });
 
       if (error) throw error;
-      toast.success('Scheduling preferences saved');
+      toast.success(t("scheduling_preferences_saved", "Scheduling preferences saved"));
     } catch (error) {
       console.error('Error saving preferences:', error);
-      toast.error('Failed to save preferences');
+      toast.error(t("failed_to_save_preferences", "Failed to save preferences"));
     } finally {
       setSaving(false);
     }
@@ -103,7 +105,7 @@ export function TaskSchedulingPreferences() {
   };
 
   if (loading) {
-    return <div className="p-4">Loading preferences...</div>;
+    return <div className="p-4">{t("loading_preferences", "Loading preferences...")}</div>;
   }
 
   return (
@@ -143,11 +145,11 @@ export function TaskSchedulingPreferences() {
         <div className="space-y-4">
           <div className="flex items-center gap-2">
             <Clock className="w-4 h-4 text-accent" />
-            <Label className="text-base font-semibold">Working Hours</Label>
+            <Label className="text-base font-semibold">{t("working_hours", "Working Hours")}</Label>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="start-time" className="text-sm">Start Time</Label>
+              <Label htmlFor="start-time" className="text-sm">{t("start_time", "Start Time")}</Label>
               <Input
                 id="start-time"
                 type="time"
@@ -159,7 +161,7 @@ export function TaskSchedulingPreferences() {
               />
             </div>
             <div>
-              <Label htmlFor="end-time" className="text-sm">End Time</Label>
+              <Label htmlFor="end-time" className="text-sm">{t("end_time", "End Time")}</Label>
               <Input
                 id="end-time"
                 type="time"
@@ -179,7 +181,7 @@ export function TaskSchedulingPreferences() {
         <div className="space-y-4">
           <div className="flex items-center gap-2">
             <Calendar className="w-4 h-4 text-accent" />
-            <Label className="text-base font-semibold">Working Days</Label>
+            <Label className="text-base font-semibold">{t("working_days", "Working Days")}</Label>
           </div>
           <div className="flex flex-wrap gap-2">
             {weekDays.map((day) => (
@@ -209,7 +211,7 @@ export function TaskSchedulingPreferences() {
         {/* Task Duration */}
         <div className="space-y-4">
           <div className="flex justify-between items-center">
-            <Label className="text-base font-semibold">Default Task Duration</Label>
+            <Label className="text-base font-semibold">{t("default_task_duration", "Default Task Duration")}</Label>
             <span className="text-sm font-bold">{preferences.preferred_task_duration_minutes} min</span>
           </div>
           <Slider
@@ -229,7 +231,7 @@ export function TaskSchedulingPreferences() {
         {/* Break Between Tasks */}
         <div className="space-y-4">
           <div className="flex justify-between items-center">
-            <Label className="text-base font-semibold">Break Between Tasks</Label>
+            <Label className="text-base font-semibold">{t("break_between_tasks", "Break Between Tasks")}</Label>
             <span className="text-sm font-bold">{preferences.break_between_tasks_minutes} min</span>
           </div>
           <Slider
@@ -249,7 +251,7 @@ export function TaskSchedulingPreferences() {
         {/* Max Tasks Per Day */}
         <div className="space-y-4">
           <div className="flex justify-between items-center">
-            <Label className="text-base font-semibold">Max Tasks Per Day</Label>
+            <Label className="text-base font-semibold">{t("max_tasks_per_day", "Max Tasks Per Day")}</Label>
             <span className="text-sm font-bold">{preferences.max_tasks_per_day} tasks</span>
           </div>
           <Slider
@@ -275,7 +277,7 @@ export function TaskSchedulingPreferences() {
 
         <div className="p-4 bg-accent/5 border border-accent/20 rounded-lg">
           <p className="text-xs text-muted-foreground">
-            <strong>About AI Scheduling:</strong> When enabled, our AI analyzes your calendar, 
+            <strong>{t("about_ai_scheduling", "About AI Scheduling:")}</strong> When enabled, our AI analyzes your calendar, 
             task priorities, and these preferences to automatically schedule tasks at optimal times. 
             Similar to Motion.app, it dynamically adjusts as new tasks arrive or your schedule changes.
           </p>

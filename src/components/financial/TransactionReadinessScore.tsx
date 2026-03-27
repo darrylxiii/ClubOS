@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
@@ -21,6 +22,7 @@ interface TransactionReadinessScoreProps {
 }
 
 export function TransactionReadinessScore({ year, legalEntity }: TransactionReadinessScoreProps) {
+  const { t } = useTranslation('common');
   const currentYear = year || new Date().getFullYear();
   const { data: metrics } = useMoneybirdFinancials(currentYear, legalEntity);
 
@@ -209,7 +211,7 @@ export function TransactionReadinessScore({ year, legalEntity }: TransactionRead
           <Shield className="h-5 w-5" />
           Transaction Readiness Score
         </CardTitle>
-        <CardDescription>10-dimension exit-readiness assessment</CardDescription>
+        <CardDescription>{t("10dimension_exitreadiness_assessment", "10-dimension exit-readiness assessment")}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Overall Score */}

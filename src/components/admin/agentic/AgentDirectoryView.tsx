@@ -10,6 +10,7 @@ import {
   Shield, Zap, Eye, Brain,
 } from 'lucide-react';
 import AgentFeedbackButton from './AgentFeedbackButton';
+import { useTranslation } from 'react-i18next';
 
 interface Agent {
   id: string;
@@ -82,6 +83,7 @@ export default function AgentDirectoryView({ onOpenChat }: { onOpenChat?: (agent
   }, []);
 
   const getAgentIcon = (name: string) => {
+  const { t } = useTranslation('admin');
     const key = Object.keys(AGENT_ICONS).find((k) => name.toLowerCase().includes(k));
     return AGENT_ICONS[key || ''] || Bot;
   };
@@ -196,7 +198,7 @@ export default function AgentDirectoryView({ onOpenChat }: { onOpenChat?: (agent
         {showDecisions && (
           <div className="space-y-2">
             {decisions.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-6">No agent decisions recorded yet.</p>
+              <p className="text-sm text-muted-foreground text-center py-6">{t('agentic.agentDirectoryView.noAgentDecisionsRecordedYet')}</p>
             ) : (
               decisions.map((d) => (
                 <Card key={d.id} variant="static" className="p-3">
@@ -211,7 +213,7 @@ export default function AgentDirectoryView({ onOpenChat }: { onOpenChat?: (agent
                           </span>
                         )}
                         {d.was_overridden && (
-                          <Badge variant="destructive" className="text-[10px]">Overridden</Badge>
+                          <Badge variant="destructive" className="text-[10px]">{t('agentic.agentDirectoryView.overridden')}</Badge>
                         )}
                       </div>
                       <p className="text-xs text-foreground/80 truncate">{d.decision_made}</p>

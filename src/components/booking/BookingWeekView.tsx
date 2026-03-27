@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -26,6 +27,7 @@ interface TimeSlot {
 }
 
 export function BookingWeekView({ bookingLink, onTimeSelect }: BookingWeekViewProps) {
+  const { t } = useTranslation('common');
   const [currentWeekStart, setCurrentWeekStart] = useState(() => startOfWeek(new Date(), { weekStartsOn: 1 }));
   const [slots, setSlots] = useState<Record<string, TimeSlot[]>>({});
   const [loading, setLoading] = useState(true);
@@ -123,7 +125,7 @@ export function BookingWeekView({ bookingLink, onTimeSelect }: BookingWeekViewPr
         <Loader2 className="h-10 w-10 animate-spin text-primary" />
         <div className="text-center space-y-2">
           <p className="text-base font-medium">{loadingStage}</p>
-          <p className="text-sm text-muted-foreground">Please wait...</p>
+          <p className="text-sm text-muted-foreground">{t("please_wait", "Please wait...")}</p>
         </div>
       </div>
     );

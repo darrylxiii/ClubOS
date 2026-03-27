@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { ThumbsUp, ThumbsDown, Check } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 
 interface Props {
   decisionId: string;
@@ -11,6 +12,7 @@ interface Props {
 }
 
 export default function AgentFeedbackButton({ decisionId, agentName }: Props) {
+  const { t } = useTranslation('admin');
   const { user } = useAuth();
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -31,7 +33,7 @@ export default function AgentFeedbackButton({ decisionId, agentName }: Props) {
       setSubmitted(true);
       toast.success(`Feedback recorded for ${agentName}`);
     } catch (err) {
-      toast.error('Failed to submit feedback');
+      toast.error(t('agentic.agentFeedbackButton.failedToSubmitFeedback'));
     } finally {
       setLoading(false);
     }

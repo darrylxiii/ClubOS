@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -22,6 +23,7 @@ interface BoardInvitationFormProps {
 }
 
 export function BoardInvitationForm({ boardId }: BoardInvitationFormProps) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [emails, setEmails] = useState<string[]>([]);
   const [currentEmail, setCurrentEmail] = useState('');
@@ -35,12 +37,12 @@ export function BoardInvitationForm({ boardId }: BoardInvitationFormProps) {
 
     // Basic email validation
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
-      toast.error('Please enter a valid email address');
+      toast.error(t("please_enter_a_valid", "Please enter a valid email address"));
       return;
     }
 
     if (emails.includes(trimmedEmail)) {
-      toast.error('Email already added');
+      toast.error(t("email_already_added", "Email already added"));
       return;
     }
 
@@ -56,7 +58,7 @@ export function BoardInvitationForm({ boardId }: BoardInvitationFormProps) {
     e.preventDefault();
 
     if (emails.length === 0) {
-      toast.error('Please add at least one email address');
+      toast.error(t("please_add_at_least", "Please add at least one email address"));
       return;
     }
 
@@ -87,9 +89,9 @@ export function BoardInvitationForm({ boardId }: BoardInvitationFormProps) {
     } catch (error: unknown) {
       console.error('Failed to send invitations:', error);
       if (error instanceof Error && error.message?.includes('duplicate')) {
-        toast.error('Some emails already have pending invitations');
+        toast.error(t("some_emails_already_have", "Some emails already have pending invitations"));
       } else {
-        toast.error('Failed to send invitations');
+        toast.error(t("failed_to_send_invitations", "Failed to send invitations"));
       }
     } finally {
       setIsSubmitting(false);
@@ -99,7 +101,7 @@ export function BoardInvitationForm({ boardId }: BoardInvitationFormProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="email">Email Addresses</Label>
+        <Label htmlFor="email">{t("email_addresses", "Email Addresses")}</Label>
         <div className="flex gap-2">
           <Input
             id="email"
@@ -112,7 +114,7 @@ export function BoardInvitationForm({ boardId }: BoardInvitationFormProps) {
                 addEmail();
               }
             }}
-            placeholder="colleague@example.com"
+            placeholder={t("colleagueexamplecom", "colleague@example.com")}
           />
           <Button type="button" onClick={addEmail} variant="outline">
             <Plus className="h-4 w-4" />
@@ -138,26 +140,26 @@ export function BoardInvitationForm({ boardId }: BoardInvitationFormProps) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="role">Role</Label>
+        <Label htmlFor="role">{t("role", "Role")}</Label>
         <Select value={role} onValueChange={(v) => setRole(v as BoardMemberRole)}>
           <SelectTrigger id="role">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="admin">Admin - Can manage board and members</SelectItem>
-            <SelectItem value="editor">Editor - Can create and edit tasks</SelectItem>
-            <SelectItem value="viewer">Viewer - Can only view tasks</SelectItem>
+            <SelectItem value="admin">{t("admin_can_manage_board", "Admin - Can manage board and members")}</SelectItem>
+            <SelectItem value="editor">{t("editor_can_create_and", "Editor - Can create and edit tasks")}</SelectItem>
+            <SelectItem value="viewer">{t("viewer_can_only_view", "Viewer - Can only view tasks")}</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="message">Personal Message (optional)</Label>
+        <Label htmlFor="message">{t("personal_message_optional", "Personal Message (optional)")}</Label>
         <Textarea
           id="message"
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          placeholder="Add a personal note to your invitation..."
+          placeholder={t("add_a_personal_note", "Add a personal note to your invitation...")}
           rows={3}
         />
       </div>

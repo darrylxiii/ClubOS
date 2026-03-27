@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,6 +19,7 @@ export function BreakoutRoomBroadcast({
   onBroadcast,
   onRecallAll
 }: BreakoutRoomBroadcastProps) {
+  const { t } = useTranslation('common');
   const [message, setMessage] = useState('');
   const [sending, setSending] = useState(false);
   const [recalling, setRecalling] = useState(false);
@@ -54,7 +56,7 @@ export function BreakoutRoomBroadcast({
         <div className="flex items-start gap-3">
           <Megaphone className="h-5 w-5 text-primary shrink-0 mt-0.5" />
           <div>
-            <p className="text-sm font-medium text-primary">Message from Host</p>
+            <p className="text-sm font-medium text-primary">{t("message_from_host", "Message from Host")}</p>
             <p className="text-sm mt-1">{lastMessage}</p>
           </div>
         </div>
@@ -82,13 +84,13 @@ export function BreakoutRoomBroadcast({
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Broadcast to All Rooms</DialogTitle>
+              <DialogTitle>{t("broadcast_to_all_rooms", "Broadcast to All Rooms")}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4 py-4">
               <Input
                 value={message}
                 onChange={e => setMessage(e.target.value)}
-                placeholder="Type your message..."
+                placeholder={t("type_your_message", "Type your message...")}
                 onKeyPress={e => e.key === 'Enter' && handleBroadcast()}
               />
               <p className="text-sm text-muted-foreground">

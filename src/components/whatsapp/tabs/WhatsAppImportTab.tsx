@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -14,6 +15,7 @@ import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
 
 export function WhatsAppImportTab() {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const navigate = useNavigate();
   
@@ -44,7 +46,7 @@ export function WhatsAppImportTab() {
     if (!selectedFile) return;
 
     if (!selectedFile.name.endsWith('.txt') && !selectedFile.name.endsWith('.zip')) {
-      toast.error('Please select a .txt or .zip file');
+      toast.error(t("please_select_a_txt", "Please select a .txt or .zip file"));
       return;
     }
 
@@ -83,7 +85,7 @@ export function WhatsAppImportTab() {
 
   const handleUpload = async () => {
     if (!file || !selectedCompanyId) {
-      toast.error('Please select a file and company');
+      toast.error(t("please_select_a_file", "Please select a file and company"));
       return;
     }
 
@@ -133,7 +135,7 @@ export function WhatsAppImportTab() {
       setImportResult(parseResult);
       setParsing(false);
       setStep(4);
-      toast.success('WhatsApp chat imported successfully!');
+      toast.success(t("whatsapp_chat_imported_successfully", "WhatsApp chat imported successfully!"));
     } catch (error: unknown) {
       console.error('Upload error:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to import chat');
@@ -154,8 +156,8 @@ export function WhatsAppImportTab() {
   return (
     <div className="p-6 w-full space-y-6">
       <div>
-        <h2 className="text-xl font-bold">Import WhatsApp Chat</h2>
-        <p className="text-sm text-muted-foreground">Upload a WhatsApp chat export to track company interactions</p>
+        <h2 className="text-xl font-bold">{t("import_whatsapp_chat", "Import WhatsApp Chat")}</h2>
+        <p className="text-sm text-muted-foreground">{t("upload_a_whatsapp_chat", "Upload a WhatsApp chat export to track company interactions")}</p>
       </div>
 
       {/* Progress Steps */}
@@ -186,14 +188,14 @@ export function WhatsAppImportTab() {
         <div className="grid md:grid-cols-2 gap-6">
           <Card>
             <CardHeader>
-              <CardTitle>Upload WhatsApp Export</CardTitle>
-              <CardDescription>Export your WhatsApp chat and upload the .txt file</CardDescription>
+              <CardTitle>{t("upload_whatsapp_export", "Upload WhatsApp Export")}</CardTitle>
+              <CardDescription>{t("export_your_whatsapp_chat", "Export your WhatsApp chat and upload the .txt file")}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="border-2 border-dashed rounded-lg p-8 text-center">
                 <Upload className="h-10 w-10 mx-auto mb-4 text-muted-foreground" />
                 <Label htmlFor="file-upload" className="cursor-pointer">
-                  <span className="text-lg font-medium">Choose a file</span>
+                  <span className="text-lg font-medium">{t("choose_a_file", "Choose a file")}</span>
                   <p className="text-sm text-muted-foreground mt-2">.txt or .zip files only</p>
                 </Label>
                 <Input
@@ -206,13 +208,13 @@ export function WhatsAppImportTab() {
               </div>
 
               <div className="bg-muted p-4 rounded-lg mt-4">
-                <h4 className="font-medium mb-2 text-sm">How to export from WhatsApp:</h4>
+                <h4 className="font-medium mb-2 text-sm">{t("how_to_export_from", "How to export from WhatsApp:")}</h4>
                 <ol className="list-decimal list-inside space-y-1 text-xs text-muted-foreground">
-                  <li>Open the WhatsApp chat you want to export</li>
-                  <li>Tap the three dots (⋮) menu</li>
-                  <li>Select "More" → "Export chat"</li>
-                  <li>Choose "Without Media"</li>
-                  <li>Save the .txt file and upload it here</li>
+                  <li>{t("open_the_whatsapp_chat", "Open the WhatsApp chat you want to export")}</li>
+                  <li>{t("tap_the_three_dots", "Tap the three dots (⋮) menu")}</li>
+                  <li>{t("select_more_export_chat", "Select ')More\" → \"Export chat\"")}</li>
+                  <li>{t("choose_without_media", "Choose ')Without Media'")}</li>
+                  <li>{t("save_the_txt_file", "Save the .txt file and upload it here")}</li>
                 </ol>
               </div>
             </CardContent>
@@ -262,8 +264,8 @@ export function WhatsAppImportTab() {
         <div className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Chat Preview</CardTitle>
-              <CardDescription>Preview of the first few messages</CardDescription>
+              <CardTitle>{t("chat_preview", "Chat Preview")}</CardTitle>
+              <CardDescription>{t("preview_of_the_first", "Preview of the first few messages")}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-2 max-h-[200px] overflow-y-auto">
@@ -282,15 +284,15 @@ export function WhatsAppImportTab() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Select Company</CardTitle>
-              <CardDescription>Which company is this conversation about?</CardDescription>
+              <CardTitle>{t("select_company", "Select Company")}</CardTitle>
+              <CardDescription>{t("which_company_is_this", "Which company is this conversation about?")}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label>Company</Label>
+                <Label>{t("company", "Company")}</Label>
                 <Select value={selectedCompanyId} onValueChange={setSelectedCompanyId}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select company" />
+                    <SelectValue placeholder={t("select_company", "Select company")} />
                   </SelectTrigger>
                   <SelectContent>
                     {companies.map(company => (
@@ -330,14 +332,14 @@ export function WhatsAppImportTab() {
       {step === 3 && (
         <Card>
           <CardHeader>
-            <CardTitle>Processing Chat</CardTitle>
-            <CardDescription>Parsing messages and resolving participants...</CardDescription>
+            <CardTitle>{t("processing_chat", "Processing Chat")}</CardTitle>
+            <CardDescription>{t("parsing_messages_and_resolving", "Parsing messages and resolving participants...")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="flex items-center gap-4">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
               <div className="flex-1">
-                <p className="font-medium">Analyzing messages</p>
+                <p className="font-medium">{t("analyzing_messages", "Analyzing messages")}</p>
                 <p className="text-sm text-muted-foreground">
                   This may take a minute for large conversations
                 </p>
@@ -354,21 +356,21 @@ export function WhatsAppImportTab() {
           <CardHeader>
             <div className="flex items-center gap-2">
               <CheckCircle className="h-6 w-6 text-green-500" />
-              <CardTitle>Import Complete!</CardTitle>
+              <CardTitle>{t("import_complete", "Import Complete!")}</CardTitle>
             </div>
-            <CardDescription>Your WhatsApp chat has been successfully imported</CardDescription>
+            <CardDescription>{t("your_whatsapp_chat_has", "Your WhatsApp chat has been successfully imported")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="grid grid-cols-3 gap-4">
               <div className="p-4 bg-muted rounded-lg text-center">
                 <FileText className="h-8 w-8 mx-auto mb-2 text-primary" />
                 <div className="text-2xl font-bold">{importResult.total_messages}</div>
-                <div className="text-sm text-muted-foreground">Messages</div>
+                <div className="text-sm text-muted-foreground">{t("messages", "Messages")}</div>
               </div>
               <div className="p-4 bg-muted rounded-lg text-center">
                 <Users className="h-8 w-8 mx-auto mb-2 text-primary" />
                 <div className="text-2xl font-bold">{importResult.participants_detected?.length || 0}</div>
-                <div className="text-sm text-muted-foreground">Participants</div>
+                <div className="text-sm text-muted-foreground">{t("participants", "Participants")}</div>
               </div>
               <div className="p-4 bg-muted rounded-lg text-center">
                 <Calendar className="h-8 w-8 mx-auto mb-2 text-primary" />

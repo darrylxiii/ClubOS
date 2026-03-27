@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useParams, Link } from 'react-router-dom';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -42,6 +43,7 @@ interface MeetingInsight {
 }
 
 export default function MeetingInsights() {
+  const { t } = useTranslation('meetings');
   const { meetingId } = useParams();
   const [insights, setInsights] = useState<MeetingInsight | null>(null);
   const [meeting, setMeeting] = useState<any>(null);
@@ -65,7 +67,7 @@ export default function MeetingInsights() {
 
       if (meetingError) throw meetingError;
       if (!meetingData) {
-        toast.error('Meeting not found');
+        toast.error("Meeting not found");
         return;
       }
       setMeeting(meetingData);
@@ -80,13 +82,13 @@ export default function MeetingInsights() {
       if (insightsError) {
         throw insightsError;
       } else if (!insightsData) {
-        toast.info('Meeting analysis is still processing');
+        toast.info("Meeting analysis is still processing");
       } else {
         setInsights(insightsData as unknown as MeetingInsight);
       }
     } catch (error) {
       console.error('Error loading meeting data:', error);
-      toast.error('Failed to load meeting insights');
+      toast.error("Failed to load meeting insights");
     } finally {
       setLoading(false);
     }
@@ -102,14 +104,14 @@ export default function MeetingInsights() {
     a.download = `meeting-transcript-${meetingId}.txt`;
     a.click();
     URL.revokeObjectURL(url);
-    toast.success('Transcript downloaded');
+    toast.success("Transcript downloaded");
   };
 
   const copySummary = async () => {
     if (!insights?.summary) return;
     await navigator.clipboard.writeText(insights.summary);
     setCopied(true);
-    toast.success('Summary copied to clipboard');
+    toast.success("Summary copied to clipboard");
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -117,7 +119,7 @@ export default function MeetingInsights() {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        toast.error('Please sign in to create tasks');
+        toast.error("Please sign in to create tasks");
         return;
       }
 
@@ -138,10 +140,10 @@ export default function MeetingInsights() {
       });
 
       if (error) throw error;
-      toast.success('Task added to Club Pilot');
+      toast.success("Task added to Club Pilot");
     } catch (error) {
       console.error('Error creating task:', error);
-      toast.error('Failed to create task');
+      toast.error("Failed to create task");
     }
   };
 
@@ -167,7 +169,7 @@ export default function MeetingInsights() {
       <div className="flex items-center justify-center h-[60vh]">
         <div className="text-center space-y-4">
           <Brain className="h-12 w-12 mx-auto animate-pulse text-purple-500" />
-          <p className="text-muted-foreground">Loading meeting insights...</p>
+          <p className="text-muted-foreground">{t('meetingInsights.text2')}</p>
         </div>
       </div>
     );
@@ -180,10 +182,8 @@ export default function MeetingInsights() {
           <CardContent className="pt-6">
             <div className="text-center space-y-4">
               <AlertCircle className="h-12 w-12 mx-auto text-muted-foreground" />
-              <h2 className="text-xl font-semibold">No Insights Available</h2>
-              <p className="text-muted-foreground">
-                This meeting hasn't been analyzed yet or the AI Notetaker wasn't enabled.
-              </p>
+              <h2 className="text-xl font-semibold">{t('meetingInsights.text3')}</h2>
+              <p className="text-muted-foreground">{t('meetingInsights.desc')}</p>
               <Button asChild>
                 <Link to="/meetings">
                   <ArrowLeft className="h-4 w-4 mr-2" />
@@ -308,7 +308,7 @@ export default function MeetingInsights() {
             {insights.decisions && insights.decisions.length > 0 && (
               <Card>
                 <CardHeader>
-                  <CardTitle>Key Decisions</CardTitle>
+                  <CardTitle>{t('meetingInsights.text4')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <ul className="space-y-3">
@@ -326,8 +326,8 @@ export default function MeetingInsights() {
             {/* Full Transcript */}
             <Card>
               <CardHeader>
-                <CardTitle>Full Transcript</CardTitle>
-                <CardDescription>Complete conversation record with timestamps</CardDescription>
+                <CardTitle>{t('meetingInsights.text5')}</CardTitle>
+                <CardDescription>{t('meetingInsights.text6')}</CardDescription>
               </CardHeader>
               <CardContent>
                 <ScrollArea className="h-[400px] w-full rounded-md border p-4">
@@ -344,7 +344,7 @@ export default function MeetingInsights() {
             {/* Sentiment */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">Overall Sentiment</CardTitle>
+                <CardTitle className="text-base">{t('meetingInsights.text7')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="flex items-center gap-2">
@@ -394,7 +394,7 @@ export default function MeetingInsights() {
             {insights.topics && insights.topics.length > 0 && (
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base">Topics Discussed</CardTitle>
+                  <CardTitle className="text-base">{t('meetingInsights.text8')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="flex flex-wrap gap-2">

@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from '@/lib/motion';
 import { Trophy, Star, TrendingUp, X, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { fireConfetti } from '@/utils/fireConfetti';
+import { useTranslation } from 'react-i18next';
 
 interface Achievement {
   id: string;
@@ -65,6 +66,7 @@ export function KPIAchievementCelebration({
   }, [achievement]);
 
   const handleDismiss = () => {
+  const { t } = useTranslation('admin');
     setIsVisible(false);
     setTimeout(onDismiss, 300);
   };

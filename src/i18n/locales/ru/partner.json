@@ -1,0 +1,2368 @@
+{
+  "title": "Портал партнёра",
+  "subtitle": "Управление наймом и рекрутингом",
+  "dashboard": {
+    "title": "Главная панель",
+    "welcome": "С возвращением",
+    "overview": "Обзор",
+    "recentActivity": "Последняя активность",
+    "quickActions": "Быстрые действия",
+    "stats": "Ваша статистика"
+  },
+  "candidates": {
+    "title": "Кандидаты",
+    "active": "Активные кандидаты",
+    "pipeline": "Воронка кандидатов",
+    "shortlisted": "В шорт-листе",
+    "interviewed": "Прошли собеседование",
+    "offered": "Получили предложение",
+    "hired": "Наняты",
+    "viewAll": "Показать всех кандидатов",
+    "addCandidate": "Добавить кандидата",
+    "searchCandidates": "Поиск кандидатов"
+  },
+  "jobs": {
+    "title": "Вакансии",
+    "activeJobs": "Активные вакансии",
+    "draftJobs": "Черновики вакансий",
+    "closedJobs": "Закрытые вакансии",
+    "createJob": "Создать вакансию",
+    "viewAll": "Показать все вакансии",
+    "applicationsReceived": "Получено заявок",
+    "positionsFilled": "Позиций закрыто"
+  },
+  "analytics": {
+    "title": "Аналитика",
+    "hiringMetrics": "Показатели найма",
+    "timeToHire": "Время до найма",
+    "costPerHire": "Стоимость найма",
+    "offerAcceptance": "Коэффициент принятия предложений",
+    "sourceEffectiveness": "Эффективность источников",
+    "pipelineHealth": "Состояние воронки"
+  },
+  "team": {
+    "title": "Команда",
+    "members": "Участники команды",
+    "addMember": "Добавить участника",
+    "roles": "Роли и разрешения",
+    "activity": "Активность команды",
+    "inviteMember": "Пригласить участника"
+  },
+  "settings": {
+    "title": "Настройки",
+    "company": "Профиль компании",
+    "branding": "Брендинг",
+    "integrations": "Интеграции",
+    "notifications": "Уведомления",
+    "billing": "Биллинг",
+    "apiAccess": "Доступ к API"
+  },
+  "company": {
+    "title": "Профиль компании",
+    "name": "Название компании",
+    "logo": "Логотип компании",
+    "description": "Описание",
+    "industry": "Отрасль",
+    "size": "Размер компании",
+    "location": "Штаб-квартира",
+    "website": "Веб-сайт",
+    "culture": "Культура компании",
+    "benefits": "Преимущества и бонусы"
+  },
+  "pipeline": {
+    "title": "Воронка найма",
+    "stages": "Этапы воронки",
+    "customize": "Настроить этапы",
+    "metrics": "Показатели по этапам",
+    "bottlenecks": "Узкие места",
+    "velocity": "Скорость воронки"
+  },
+  "interviews": {
+    "title": "Собеседования",
+    "scheduled": "Запланированные собеседования",
+    "pending": "Ожидают обратной связи",
+    "completed": "Завершённые",
+    "schedule": "Назначить собеседование",
+    "feedback": "Оставить отзыв",
+    "scorecards": "Оценочные листы"
+  },
+  "offers": {
+    "title": "Предложения",
+    "pending": "Ожидающие предложения",
+    "accepted": "Принятые",
+    "declined": "Отклонённые",
+    "createOffer": "Создать предложение",
+    "template": "Шаблоны предложений",
+    "approval": "Процесс согласования"
+  },
+  "reports": {
+    "title": "Отчёты",
+    "generate": "Сформировать отчёт",
+    "scheduled": "Запланированные отчёты",
+    "download": "Скачать",
+    "share": "Поделиться отчётом",
+    "types": {
+      "hiring": "Отчёт по найму",
+      "diversity": "Отчёт по разнообразию",
+      "pipeline": "Отчёт по воронке",
+      "source": "Отчёт по источникам"
+    }
+  },
+  "integrations": {
+    "title": "Интеграции",
+    "ats": "Интеграция с ATS",
+    "calendar": "Синхронизация календаря",
+    "email": "Интеграция электронной почты",
+    "linkedin": "LinkedIn",
+    "slack": "Slack",
+    "teams": "Microsoft Teams"
+  },
+  "notifications": {
+    "newApplication": "Получена новая заявка",
+    "interviewScheduled": "Собеседование назначено",
+    "feedbackPending": "Ожидается обратная связь",
+    "offerAccepted": "Предложение принято",
+    "candidateUpdate": "Обновление по кандидату"
+  },
+  "actions": {
+    "viewDetails": "Подробности",
+    "edit": "Редактировать",
+    "delete": "Удалить",
+    "archive": "Архивировать",
+    "export": "Экспорт",
+    "share": "Поделиться"
+  },
+  "filters": {
+    "all": "Все",
+    "byJob": "По вакансии",
+    "byStage": "По этапу",
+    "byDate": "По дате",
+    "bySource": "По источнику",
+    "byRecruiter": "По рекрутеру"
+  },
+  "empty": {
+    "noCandidates": "Кандидатов пока нет",
+    "noJobs": "Вакансий нет",
+    "noInterviews": "Собеседований не запланировано",
+    "noOffers": "Нет ожидающих предложений"
+  },
+  "status": {
+    "active": "Активный",
+    "inactive": "Неактивный",
+    "pending": "Ожидает",
+    "verified": "Проверено"
+  },
+  "referrals": {
+    "title": "Рекомендации",
+    "myReferrals": "Мои рекомендации",
+    "earnings": "Вознаграждения за рекомендации",
+    "pending": "Ожидающие вознаграждения",
+    "refer": "Рекомендовать кандидата",
+    "referCompany": "Рекомендовать компанию"
+  },
+  "support": {
+    "title": "Поддержка",
+    "helpCenter": "Центр помощи",
+    "contact": "Связаться с поддержкой",
+    "documentation": "Документация",
+    "faq": "Часто задаваемые вопросы"
+  },
+  "funnel": {
+    "steps": {
+      "aboutYou": "О Вас",
+      "yourBrief": "Ваш запрос",
+      "review": "Проверка"
+    },
+    "partnerRequest": "Запрос партнёра",
+    "briefsThisWeek": "{{count}} запросов отправлено на этой неделе",
+    "beginYourSearch": "Начните Ваш поиск",
+    "andYourName": "И Ваше имя?",
+    "followUpAtAddress": "Мы свяжемся по этому адресу",
+    "soWeKnowWho": "Чтобы мы знали, с кем связаться",
+    "workEmail": "Рабочая электронная почта",
+    "dataNeverShared": "Ваши данные никогда не передаются третьим сторонам.",
+    "continue": "Продолжить",
+    "verifying": "Проверка…",
+    "couldNotVerifyEmail": "Мы не смогли подтвердить этот адрес электронной почты. Вы можете попробовать другой или подтвердить с помощью кода.",
+    "useDifferentEmail": "Использовать другую почту",
+    "verifyWithCode": "Подтвердить кодом",
+    "enterOtpCode": "Введите 6-значный код, отправленный на",
+    "didntReceive": "Не получили?",
+    "resendCode": "Отправить код повторно",
+    "yourName": "Ваше имя",
+    "hiringNeedsTitle": "Расскажите о Ваших потребностях в найме",
+    "hiringNeedsSubtitle": "Это поможет нам подобрать подходящего стратега.",
+    "companySize": "Размер компании",
+    "selectRange": "Выберите диапазон",
+    "rolesPerYear": "Приблизительное количество позиций в год",
+    "whenToStart": "Когда Вам необходимо начать?",
+    "timeline": "Сроки",
+    "recruitmentBudget": "Бюджет на подбор",
+    "idealHire": "Опишите Вашего идеального кандидата",
+    "optional": "необязательно",
+    "descriptionPlaceholder": "Конкретные должности, уровень старшинства или задачи…",
+    "website": "Веб-сайт",
+    "headquarters": "Штаб-квартира",
+    "almostThere": "Почти готово",
+    "helpsUsReachYou": "Добавьте последние детали и проверьте Ваш запрос.",
+    "phoneNumber": "Лучший номер для связи",
+    "phoneHint": "Ваш стратег может позвонить для обсуждения запроса. WhatsApp или телефон.",
+    "yourDetails": "Ваши данные",
+    "summary": {
+      "name": "Имя",
+      "email": "Электронная почта",
+      "company": "Компания",
+      "industry": "Отрасль",
+      "companySize": "Размер",
+      "rolesPerYear": "Позиций/год",
+      "timeline": "Сроки",
+      "budget": "Бюджет",
+      "website": "Веб-сайт",
+      "location": "Местоположение",
+      "phone": "Телефон",
+      "notes": "Примечания",
+      "role": "Роль",
+      "seniority": "Уровень",
+      "hiringDriver": "Причина найма",
+      "context": "Дополнительный контекст"
+    },
+    "restoringProgress": "Восстановление Вашего прогресса…",
+    "back": "Назад",
+    "submitting": "Отправка…",
+    "submitBrief": "Получить мой шорт-лист",
+    "welcomeBack": "С возвращением!",
+    "progressRestored": "Ваш прогресс восстановлен.",
+    "resumingProgress": "Восстановление Вашего прогресса…",
+    "validEmailRequired": "Пожалуйста, введите корректный адрес электронной почты",
+    "verificationCodeSent": "Код подтверждения отправлен",
+    "checkEmail": "Проверьте {{email}} для получения кода",
+    "couldNotSendCode": "Не удалось отправить код подтверждения",
+    "invalidCode": "Неверный код подтверждения",
+    "verificationFailed": "Ошибка подтверждения",
+    "completeRequiredFields": "Пожалуйста, заполните все обязательные поля",
+    "selectCompanySize": "Пожалуйста, выберите размер компании",
+    "requestSubmitted": "Запрос отправлен!",
+    "strategistInTouch": "Стратег свяжется с Вами в ближайшее время.",
+    "strategistInTouch24h": "Стратег свяжется с Вами в течение 24 часов.",
+    "couldNotVerifyRequest": "Не удалось подтвердить Ваш запрос",
+    "somethingWentWrong": "Что-то пошло не так",
+    "tellUsAboutRole": "Расскажите о роли",
+    "tellUsAboutRoleSubtitle": "Чем больше контекста Вы предоставите, тем лучше будет Ваш шорт-лист.",
+    "roleTitle": "Какую роль Вы хотите заполнить?",
+    "roleTitlePlaceholder": "напр., VP of Engineering, CFO, Head of Product",
+    "hiringDriver": "Что является причиной этого найма?",
+    "hiringDriverGrowth": "Рост - масштабирование команды",
+    "hiringDriverReplacement": "Замена - сотрудник ушёл",
+    "hiringDriverNewFunction": "Новая функция - создание с нуля",
+    "hiringDriverConfidential": "Конфиденциально - закрытый поиск",
+    "seniorityLevel": "Уровень",
+    "seniorityDirector": "Директор / VP",
+    "seniorityCSuite": "C-Suite",
+    "seniorityHead": "Руководитель / Старший лидер",
+    "senioritySpecialist": "Специалист",
+    "additionalContext": "Что ещё нам следует знать?",
+    "additionalContextPlaceholder": "Размер команды, линия подчинения, проблемы с предыдущими наймами, конкретные навыки...",
+    "whereAreYouBased": "Где Вы расположены?",
+    "roleRequired": "Пожалуйста, укажите роль, которую Вы хотите заполнить"
+  },
+  "funnelAnalytics": {
+    "text1": "Аналитика воронки",
+    "text2": "Отслеживание запросов партнёров в реальном времени",
+    "text3": "Всего просмотров",
+    "text4": "Уникальные сессии",
+    "text5": "Отправки",
+    "text6": "Конверсия",
+    "text7": "Процент отсева",
+    "text8": "Прогресс по этапам воронки",
+    "text9": "Распределение статусов запросов",
+    "text10": "Запросы партнёров",
+    "text11": "Фильтр по статусу",
+    "text12": "Все статусы",
+    "text13": "Ожидает",
+    "text14": "На рассмотрении",
+    "text15": "Одобрено",
+    "text16": "Отклонено",
+    "text17": "Дата",
+    "text18": "Компания",
+    "text19": "Контакт",
+    "text20": "Отрасль",
+    "text21": "Тип",
+    "text22": "Статус",
+    "text23": "Источник"
+  },
+  "partnerAnalyticsDashboard": {
+    "text1": "С Вашим аккаунтом не связана компания",
+    "text2": "Обзор",
+    "text3": "Воронка",
+    "text4": "Тренды",
+    "text5": "Бенчмарки"
+  },
+  "partnerFunnel": {
+    "desc": "Опишите роль. Мы позаботимся об остальном.",
+    "desc2": "Без комиссий до найма. Без долгосрочных контрактов.",
+    "text3": "Quantum Club",
+    "text4": "Quantum Club",
+    "text5": "Приём заявок на партнёрство временно приостановлен",
+    "text6": "Quantum Club",
+    "text7": "Quantum Club",
+    "text8": "Поделитесь Вашим запросом",
+    "text9": "Поговорите со стратегом",
+    "text10": "Просмотрите Ваш шорт-лист"
+  },
+  "partnerRejections": {
+    "text1": "Возможности пула талантов",
+    "text2": "Поиск кандидатов...",
+    "text3": "Все вакансии",
+    "text4": "Все вакансии",
+    "text5": "Все причины",
+    "text6": "Все причины"
+  },
+  "partnerRelationships": {
+    "text1": "Связи с кандидатами",
+    "text2": "Отслеживайте и развивайте Ваши контакты с кандидатами"
+  },
+  "partnerSetup": {
+    "desc": "Нажмите на иконку камеры для загрузки",
+    "desc2": "Мы можем автоматически импортировать Вашу фотографию из LinkedIn."
+  },
+  "partnerWelcome": {
+    "title": "Что дальше",
+    "desc": "Ваша организация",
+    "desc2": "Ваш персональный стратег",
+    "desc3": "Обзор открытых ролей",
+    "desc4": "Просматривайте эксклюзивные возможности, подобранные для Вашей сети",
+    "desc5": "Предложить кандидатов",
+    "desc6": "Представляйте лучших специалистов через наш оптимизированный процесс",
+    "desc7": "Запланировать онбординг-звонок"
+  },
+  "addCandidateDialog": {
+    "toast": {
+      "duplicateEmailDetected": "Обнаружен дублирующий email",
+      "duplicateEmailDetectedDesc": "Кандидат с таким email уже существует. Пожалуйста, найдите существующего кандидата или используйте другой email.",
+      "databaseError": "Ошибка базы данных",
+      "databaseErrorDesc": "Не удалось привязать данные кандидата. Попробуйте ещё раз или обратитесь в поддержку.",
+      "permissionDenied": "Доступ запрещён",
+      "permissionDeniedDesc": "У Вас нет прав для добавления кандидатов. Обратитесь к администратору.",
+      "duplicateCandidate": "Дублирующий кандидат",
+      "duplicateCandidateDesc": "Этот кандидат уже есть в системе. Проверьте существующие заявки."
+    },
+    "placeholder": {
+      "johnDoe": "Иван Иванов",
+      "techCorp": "Tech Corp",
+      "seniorDeveloper": "Старший разработчик",
+      "whyThisCandidateSourceSpecialConsiderati": "Почему этот кандидат? Источник? Особые условия?"
+    }
+  },
+  "addJobTeamMemberDialog": {
+    "dialogTitle": "Добавить участника команды",
+    "toast": {
+      "failedToLoadTeamMembers": "Не удалось загрузить участников команды",
+      "failedToLoadTqcTeamMembers": "Не удалось загрузить участников команды TQC",
+      "pleaseSelectATeamMember": "Пожалуйста, выберите участника команды",
+      "pleaseSelectAUser": "Пожалуйста, выберите пользователя",
+      "pleaseProvideAReasonForThisAssignment": "Пожалуйста, укажите причину назначения",
+      "teamMemberAddedSuccessfully": "Участник команды успешно добавлен"
+    },
+    "label": {
+      "teamMember": "Участник команды",
+      "role": "Роль",
+      "permissions": "Разрешения",
+      "selectTqcTeamMember": "Выбрать участника команды TQC",
+      "assignmentReason": "Причина назначения"
+    },
+    "placeholder": {
+      "selectATeamMember": "Выберите участника команды",
+      "searchTqcTeamByNameOrEmail": "Поиск по имени или email...",
+      "whyIsThisPersonBeingAssignedToThisJob": "Почему этот человек назначается на эту вакансию?"
+    },
+    "badge": {
+      "admin": "Админ",
+      "strategist": "Стратег"
+    },
+    "noMatchingTeamMembersFound": "Подходящие участники команды не найдены",
+    "externalUsersReceiveLimitedTimeboxedAcce": "Внешние пользователи получают ограниченный по времени доступ с ведением журнала аудита",
+    "dialogDescription": "Назначьте участника команды или внешнего пользователя на эту вакансию с определённой ролью и разрешениями.",
+    "option": {
+      "hiringManager": "Менеджер по найму",
+      "founderexecutiveReviewer": "Основатель/руководитель-ревьюер",
+      "technicalInterviewer": "Технический интервьюер",
+      "behavioralInterviewer": "Поведенческий интервьюер",
+      "panelMember": "Член комиссии",
+      "interviewCoordinator": "Координатор собеседований",
+      "observer": "Наблюдатель"
+    }
+  },
+  "addStageDialog": {
+    "dialogTitle": "Добавить новый этап воронки",
+    "placeholder": {
+      "buildingroomNumberReceptionInstructionsP": "Номер здания/кабинета, инструкции для рецепции, информация о парковке, заметки о доступности...",
+      "listMaterialsCandidatesShouldPreparePort": "Перечислите материалы, которые кандидаты должны подготовить (портфолио, рекомендации, сертификаты и т.д.)"
+    },
+    "configureEveryDetailForALuxuryTailoredCa": "Настройте каждую деталь для премиального, индивидуального опыта кандидата",
+    "candidatesCanChooseBetweenOnlineOrInpers": "Кандидаты могут выбрать между онлайн и очным форматом. Настройте оба варианта выше или предоставьте гибкие инструкции.",
+    "thisHelpsEvaluatorsProvideConsistentStru": "Это помогает оценщикам давать последовательную, структурированную обратную связь",
+    "quickstartWithPreconfiguredStageTemplate": "Быстрый старт с предварительно настроенными шаблонами этапов",
+    "option": {
+      "noTeamMembersAvailable": "Нет доступных участников команды"
+    },
+    "desc": {
+      "stageConfigurationSavedAndAuditLogged": "Конфигурация этапа сохранена и зафиксирована в журнале аудита"
+    }
+  },
+  "addToJobDialog": {
+    "dialogTitle": "Добавить в воронку вакансии",
+    "toast": {
+      "candidateAddedButInteractionLogFailed": "Кандидат добавлен, но запись взаимодействия не удалась",
+      "candidateAddedButAuditLogFailed": "Кандидат добавлен, но запись в журнал аудита не удалась",
+      "failedToAddCandidate": "Не удалось добавить кандидата в вакансию"
+    },
+    "label": {
+      "startingStage": "Начальный этап",
+      "notesOptional": "Заметки (необязательно)"
+    },
+    "placeholder": {
+      "searchJobsByTitleOrCompany": "Поиск вакансий по названию или компании...",
+      "whyAreYouAddingThisCandidate": "Почему Вы добавляете этого кандидата?"
+    },
+    "badge": {
+      "alreadyInPipeline": "Уже в воронке"
+    },
+    "noActiveJobsFound": "Активные вакансии не найдены."
+  },
+  "adminBoardTools": {
+    "toast": {
+      "globalAnalytics": "Глобальная аналитика",
+      "globalAnalyticsDesc": "Межкорпоративные данные и метрики всей платформы",
+      "talentPoolAccessGranted": "Доступ к пулу талантов предоставлен",
+      "talentPoolAccessGrantedDesc": "Полный доступ к 12 847 профилям кандидатов",
+      "companyManagement": "Управление компаниями",
+      "companyManagementDesc": "Управляйте всеми партнёрскими компаниями и их уровнями доступа",
+      "bulkOperations": "Массовые операции",
+      "bulkOperationsDesc": "Выполняйте массовые действия с несколькими вакансиями и кандидатами",
+      "platformSettings": "Настройки платформы",
+      "platformSettingsDesc": "Настройте глобальные правила платформы, модели ИИ и рабочие процессы",
+      "aiConfiguration": "Конфигурация ИИ",
+      "aiConfigurationDesc": "Настройте алгоритмы подбора, весовые коэффициенты и модели ML",
+      "systemHealthOptimal": "Состояние системы: оптимальное",
+      "systemHealthOptimalDesc": "Все сервисы работают нормально. 99,97% аптайм",
+      "globalDataExport": "Глобальный экспорт данных",
+      "globalDataExportDesc": "Экспорт анонимизированной аналитики платформы...",
+      "accessControl": "Управление доступом",
+      "accessControlDesc": "Управляйте ролями, разрешениями и политиками безопасности"
+    },
+    "badge": {
+      "quantumClubAdmin": "АДМИНИСТРАТОР QUANTUM CLUB"
+    },
+    "platformwideManagementAnalytics": "Управление и аналитика всей платформы",
+    "companyManagement": "Управление компаниями",
+    "viewManageAllPartners": "Просмотр и управление всеми партнёрами",
+    "bulkOperations": "Массовые операции",
+    "crossjobActionsAtScale": "Межвакансионные действия в масштабе",
+    "aiModelConfig": "Конфигурация модели ИИ",
+    "tuneMatchingAlgorithms": "Настройка алгоритмов подбора",
+    "systemHealth": "Состояние системы",
+    "platformStatusUptime": "Статус и аптайм платформы",
+    "accessControl": "Управление доступом",
+    "rolesPermissions": "Роли и разрешения",
+    "platformSettings": "Настройки платформы",
+    "globalConfigurations": "Глобальные конфигурации",
+    "exportGlobalData": "Экспорт глобальных данных",
+    "platformwideAnalytics": "Аналитика всей платформы",
+    "refreshAllMetrics": "Обновить все метрики",
+    "recalculateEverything": "Пересчитать всё"
+  },
+  "adminJobTools": {
+    "sheetTitle": "Дамп email",
+    "toast": {
+      "metricsUpdatedSuccessfully": "Метрики успешно обновлены",
+      "aiMatchingEngine": "Движок ИИ-подбора",
+      "aiMatchingEngineDesc": "Анализ глобального пула талантов для идеальных совпадений...",
+      "found23HighpotentialCandidates": "Найдено 23 перспективных кандидата",
+      "found23HighpotentialCandidatesDesc": "Применена продвинутая ИИ-оценка. Проверьте в воронке.",
+      "bulkImport": "Массовый импорт",
+      "bulkImportDesc": "Загрузите CSV или подключите ATS для импорта кандидатов",
+      "pipelineHealth94": "Состояние воронки: 94%",
+      "pipelineHealth94Desc": "Отличный поток. Среднее время до найма: 12 дней",
+      "exportingPipelineData": "Экспорт данных воронки",
+      "exportingPipelineDataDesc": "Полный экспорт аналитики с соблюдением GDPR",
+      "recalculatingMetrics": "Пересчёт метрик...",
+      "recalculatingMetricsDesc": "Используются последние модели ИИ и алгоритмы оценки"
+    },
+    "badge": {
+      "adminJobTools": "ИНСТРУМЕНТЫ АДМИНИСТРАТОРА"
+    },
+    "joblevelOperations": "Операции на уровне вакансии"
+  },
+  "advancedJobFilters": {
+    "title": "Расширенные фильтры",
+    "status": "Статус",
+    "company": "Компания",
+    "createdDateRange": "Диапазон дат создания",
+    "fromDate": "С даты",
+    "toDate": "По дату"
+  },
+  "applicantPipeline": {
+    "noActiveJobs": "Нет активных вакансий",
+    "applicantPipeline": "Воронка кандидатов",
+    "noApplicationsYet": "Заявок пока нет",
+    "toast": {
+      "failedToLoadApplicants": "Не удалось загрузить кандидатов"
+    },
+    "publishAJobToStartReceivingApplications": "Опубликуйте вакансию, чтобы начать получать заявки",
+    "applicationsWillAppearHereOnceCandidates": "Заявки появятся здесь, когда кандидаты начнут откликаться",
+    "noCandidatesInThisStage": "На этом этапе нет кандидатов"
+  },
+  "applicationsAnalytics": {
+    "title": "Распределение по воронке",
+    "avgTimeToHire": "Среднее время до найма",
+    "conversionRate": "Конверсия",
+    "activePipelines": "Активные воронки",
+    "stalledPipelines": "Застопоренные воронки",
+    "excellent": "Отлично",
+    "needsImprovement": "Требует улучшения",
+    "inProgress": "В процессе",
+    "needAttention": "Требуют внимания"
+  },
+  "applicationsFilters": {
+    "placeholder": {
+      "allStatuses": "Все статусы",
+      "allJobs": "Все вакансии",
+      "allCompanies": "Все компании",
+      "allSources": "Все источники",
+      "allUrgency": "Любая срочность"
+    },
+    "option": {
+      "allStatuses": "Все статусы",
+      "active": "Активные",
+      "hired": "Наняты",
+      "rejected": "Отклонены",
+      "withdrawn": "Отозваны",
+      "allJobs": "Все вакансии",
+      "allCompanies": "Все компании",
+      "allSources": "Все источники",
+      "linkedin": "LinkedIn",
+      "referral": "Рекомендация",
+      "direct": "Прямой",
+      "agency": "Агентство",
+      "all": "Все",
+      "recentActivity": "Недавняя активность"
+    }
+  },
+  "applicationsTable": {
+    "badge": {
+      "noActivity": "Нет активности",
+      "urgent": "Срочно",
+      "pendingSignup": "Ожидает регистрации"
+    },
+    "noApplicationsFoundMatchingYourFilters": "Не найдено заявок, соответствующих Вашим фильтрам"
+  },
+  "benchmarkComparison": {
+    "badge": {
+      "updatedToday": "Обновлено сегодня"
+    },
+    "completeMoreHiringCyclesToUnlockBenchmar": "Завершите больше циклов найма для разблокировки сравнительных бенчмарков"
+  },
+  "calendarInterviewLinker": {
+    "badge": {
+      "tqc": "TQC"
+    },
+    "automaticallyDetectedInterviewsFromYourC": "Автоматически обнаруженные собеседования из Вашего календаря",
+    "selectACalendarEventToLinkAsAnInterview": "Выберите событие календаря для привязки как собеседование",
+    "interviewsThatHaveBeenConfirmedAndLinked": "Собеседования, которые были подтверждены и привязаны к этой вакансии",
+    "dialogDescription": "Просматривайте события календаря или автоматически обнаруженные собеседования"
+  },
+  "candidateActionDialog": {
+    "toast": {
+      "noNextStageAvailable": "Следующий этап недоступен",
+      "pleaseProvideARejectionReason": "Пожалуйста, укажите причину отклонения",
+      "failedToProcessAction": "Не удалось обработать действие"
+    },
+    "label": {
+      "rejectionReason": "Причина отклонения *"
+    },
+    "placeholder": {
+      "selectAReason": "Выберите причину"
+    },
+    "clubCheckAdvanceCandidate": "Club Check - Продвинуть кандидата",
+    "thisCandidateHasPassedClubVettingStandar": "Этот кандидат прошёл стандарты проверки Club",
+    "option": {
+      "notAFit": "Не подходит",
+      "salaryExpectations": "Зарплатные ожидания",
+      "location": "Местоположение",
+      "seniorityMismatch": "Несоответствие уровня",
+      "skillsGap": "Недостаток навыков",
+      "culturalFit": "Культурное соответствие",
+      "other": "Другое"
+    },
+    "desc": {
+      "clubCheckCompletedSuccessfully": "Club Check успешно завершён",
+      "feedbackRecordedAndCandidateNotified": "Обратная связь записана, кандидат уведомлён"
+    }
+  },
+  "candidateAnalytics": {
+    "toast": {
+      "failedToLoadAnalytics": "Не удалось загрузить аналитику"
+    },
+    "badge": {
+      "highInterest": "Высокий интерес",
+      "excellentFit": "Отличное соответствие",
+      "highlyEngaged": "Высокая вовлечённость"
+    },
+    "profileViews": "Просмотры профиля",
+    "uniqueViewers": "Уникальные просмотры",
+    "engagementScore": "Оценка вовлечённости",
+    "fitScore": "Оценка соответствия",
+    "noProfileViewsYet": "Просмотров профиля пока нет",
+    "thisCandidateHasReceivedSignificantAtten": "Этот кандидат получил значительное внимание от команды",
+    "aiAnalysisShowsStrongAlignmentWithRoleRe": "ИИ-анализ показывает сильное соответствие требованиям роли",
+    "candidateShowsStrongEngagementWithTheApp": "Кандидат демонстрирует высокую вовлечённость в процесс подачи заявки",
+    "noInsightsAvailableYetProfileViewsAndInt": "Аналитика пока недоступна. Просмотры профиля и взаимодействия сгенерируют ИИ-аналитику.",
+    "description": "Участники команды, недавно просматривавшие этот профиль"
+  },
+  "candidateDecisionDashboard": {
+    "dialogTitle": "Перевести на этап предложения",
+    "toast": {
+      "noApplicationSelected": "Заявка не выбрана",
+      "candidateMovedToOfferStage": "Кандидат переведён на этап предложения",
+      "failedToMoveCandidateToOfferStage": "Не удалось перевести кандидата на этап предложения",
+      "failedToLogVerdict": "Не удалось записать решение",
+      "openingInterviewScheduler": "Открытие планировщика собеседований..."
+    },
+    "placeholder": {
+      "addNotesAboutYourDecision": "Добавьте заметки о Вашем решении..."
+    },
+    "overall": "Общая оценка",
+    "yearsExp": "Лет опыта",
+    "salaryRange": "Диапазон зарплаты",
+    "noticePeriod": "Срок уведомления",
+    "preferredLocation": "Предпочтительное местоположение",
+    "quickActions": "Быстрые действия",
+    "alert": {
+      "thisActionWillTriggerTheOfferWorkflowAndDesc": "Это действие запустит процесс предложения и уведомит заинтересованные стороны."
+    }
+  },
+  "candidateDetailDialog": {
+    "title": "Информация о кандидате",
+    "toast": {
+      "failedToAddComment": "Не удалось добавить комментарий",
+      "commentAdded": "Комментарий добавлен",
+      "failedToSubmitScorecard": "Не удалось отправить оценочный лист",
+      "scorecardSubmitted": "Оценочный лист отправлен",
+      "failedToMoveCandidate": "Не удалось переместить кандидата",
+      "candidateMoved": "Кандидат перемещён"
+    },
+    "placeholder": {
+      "moveToStage": "Перевести на этап...",
+      "whatAreTheirStrengths": "Каковы их сильные стороны?",
+      "anyConcerns": "Есть ли опасения?",
+      "additionalNotes": "Дополнительные заметки..."
+    },
+    "tab": {
+      "overview": "Обзор",
+      "scorecard": "Оценочный лист",
+      "comments": "Комментарии",
+      "activity": "Активность"
+    },
+    "activityTimelineComingSoon": "Хронология активности скоро появится",
+    "pipelineStage": "Этап воронки",
+    "option": {
+      "strongYes": "Определённо да",
+      "yes": "Да",
+      "neutral": "Нейтрально",
+      "strongNo": "Определённо нет"
+    }
+  },
+  "candidateDocumentsViewer": {
+    "dialogTitle": "Выберите тип документа",
+    "toast": {
+      "failedToLoadDocuments": "Не удалось загрузить документы",
+      "failedToUpdateDocument": "Не удалось обновить документ",
+      "documentDeleted": "Документ удалён",
+      "failedToDeleteDocument": "Не удалось удалить документ"
+    },
+    "label": {
+      "documentType": "Тип документа",
+      "expiryDateOptional": "Срок действия (необязательно)"
+    },
+    "loadingDocuments": "Загрузка документов",
+    "releaseToUpload": "Отпустите для загрузки",
+    "noDocumentsYet": "Документов пока нет",
+    "uploadTheFirstDocumentToGetStarted": "Загрузите первый документ для начала",
+    "documentsWillBeAutomaticallyArchivedAfte": "Документы будут автоматически архивированы после этой даты для соблюдения GDPR",
+    "verified": "Проверено",
+    "title": {
+      "documentPreview": "Предпросмотр документа"
+    }
+  },
+  "candidateInteractionLog": {
+    "title": "Хронология взаимодействий",
+    "toast": {
+      "pleaseEnterNoteContent": "Пожалуйста, введите содержание заметки",
+      "noteAddedSuccessfully": "Заметка успешно добавлена",
+      "failedToAddNote": "Не удалось добавить заметку"
+    },
+    "label": {
+      "logNewInteraction": "Записать новое взаимодействие"
+    },
+    "placeholder": {
+      "enterInteractionDetails": "Введите детали взаимодействия..."
+    },
+    "noInteractionsLoggedYet": "Взаимодействий пока не зарегистрировано",
+    "description": "Загрузка взаимодействий с кандидатом...",
+    "option": {
+      "note": "Заметка",
+      "phoneCall": "Телефонный звонок",
+      "email": "Электронная почта",
+      "message": "Сообщение",
+      "meeting": "Встреча"
+    }
+  },
+  "candidateInternalRatingCard": {
+    "title": "История оценок",
+    "toast": {
+      "ratingsUpdatedSuccessfully": "Оценки успешно обновлены",
+      "failedToUpdateRatings": "Не удалось обновить оценки"
+    },
+    "placeholder": {
+      "addContextForTheseRatings": "Добавьте контекст для этих оценок..."
+    },
+    "overallTeamAssessmentOfCandidateQuality": "Общая оценка качества кандидата командой",
+    "candidateResponsivenessAndInterestLevel": "Отзывчивость кандидата и уровень заинтересованности",
+    "skillsAndExperienceAlignmentWithOpportun": "Соответствие навыков и опыта возможностям",
+    "viewAllRatingChangesAndTeamMemberAssessm": "Просмотрите все изменения оценок и оценки участников команды с течением времени",
+    "description": "Метрики оценки командой (не видны кандидату)"
+  },
+  "candidateInvitationDialog": {
+    "toast": {
+      "invitationSentSuccessfully": "Приглашение успешно отправлено!",
+      "failedToSendInvitation": "Не удалось отправить приглашение"
+    },
+    "label": {
+      "emailAddress": "Адрес электронной почты",
+      "linkToSpecificJobsOptional": "Привязать к конкретным вакансиям (необязательно)",
+      "personalMessage": "Личное сообщение"
+    },
+    "selectedJobsWillBeMentionedInTheInvitati": "Выбранные вакансии будут упомянуты в письме-приглашении",
+    "thisMessageWillBeIncludedInTheInvitation": "Это сообщение будет включено в письмо-приглашение",
+    "whatHappensNext": "Что происходит дальше?"
+  },
+  "candidateLinkedJobs": {
+    "toast": {
+      "failedToLoadLinkedJobs": "Не удалось загрузить связанные вакансии"
+    },
+    "applied": "Подано",
+    "lastUpdated": "Последнее обновление",
+    "salaryRange": "Диапазон зарплаты",
+    "stageProgress": "Прогресс по этапам",
+    "description": "Заявки на вакансии не найдены"
+  },
+  "candidateNotesManager": {
+    "toast": {
+      "noteContentIsRequired": "Содержание заметки обязательно",
+      "youMustBeLoggedInToCreateNotes": "Для создания заметок необходимо войти в систему",
+      "noteSaved": "Заметка сохранена",
+      "failedToDeleteNote": "Не удалось удалить заметку",
+      "noteDeleted": "Заметка удалена",
+      "failedToUpdateNote": "Не удалось обновить заметку"
+    },
+    "placeholder": {
+      "noteTitle": "Заголовок заметки...",
+      "addYourNotesHere": "Добавьте Ваши заметки здесь..."
+    },
+    "tab": {
+      "allNotes": "Все заметки",
+      "tqcInternal": "Внутренние TQC",
+      "partnerShared": "Доступные партнёру",
+      "general": "Общие"
+    },
+    "loadingNotes": "Загрузка заметок...",
+    "tqcInternal": "Внутренние TQC",
+    "visibleOnlyToTqcTeam": "Видны только команде TQC",
+    "general": "Общие",
+    "visibleToEveryone": "Видны всем"
+  },
+  "candidatePipelineStatus": {
+    "toast": {
+      "failedToLoadPipelineStatus": "Не удалось загрузить статус воронки",
+      "pipelineStageUpdated": "Этап воронки обновлён",
+      "failedToUpdateStage": "Не удалось обновить этап"
+    },
+    "currentStage": "Текущий этап",
+    "progress": "Прогресс",
+    "description": "Активные заявки не найдены"
+  },
+  "candidateQuickActions": {
+    "dialogTitle": "Импорт из LinkedIn",
+    "toast": {
+      "pleaseEnterALinkedinUrl": "Пожалуйста, введите URL LinkedIn",
+      "linkedinProfileImportedSuccessfully": "Профиль LinkedIn успешно импортирован.",
+      "failedToImportLinkedinProfile": "Не удалось импортировать профиль LinkedIn",
+      "profileExportedSuccessfully": "Профиль успешно экспортирован",
+      "failedToExportProfile": "Не удалось экспортировать профиль"
+    },
+    "label": {
+      "linkedinProfileUrl": "URL профиля LinkedIn"
+    },
+    "dialogDescription": "Введите URL профиля LinkedIn для автоматического обогащения профиля кандидата"
+  },
+  "companyAchievements": {
+    "title": "Пользовательские достижения",
+    "basicInformation": "Основная информация",
+    "unlockCriteria": "Критерии разблокировки",
+    "noCustomAchievementsYet": "Пользовательских достижений пока нет",
+    "label": {
+      "achievementName": "Название достижения *",
+      "description": "Описание *",
+      "icon": "Иконка",
+      "interactionType": "Тип взаимодействия *",
+      "requiredAmount": "Необходимое количество *",
+      "timeboundChallenge": "Ограниченное по времени задание",
+      "daysToComplete": "Дней на выполнение *"
+    },
+    "placeholder": {
+      "describeWhatThisAchievementRepresentsAnd": "Опишите, что представляет это достижение и как его заработать"
+    },
+    "requireCompletionWithinASpecificTimefram": "Требовать выполнения в определённый срок",
+    "createYourFirstCustomAchievementToRecogn": "Создайте Ваше первое пользовательское достижение для признания и поощрения выдающихся вкладов команды.",
+    "noPlatformAchievementsEarnedByTeamMember": "Участники команды пока не заработали достижений платформы",
+    "analytics": "Аналитика",
+    "description": "Стандартные достижения, заработанные участниками Вашей команды на платформе",
+    "dialogDescription": "Определите критерии и награды за выдающиеся вклады команды",
+    "created": "Создано",
+    "totalAwarded": "Всего выдано",
+    "avgPerAchievement": "Среднее на достижение",
+    "active": "Активное"
+  },
+  "companyAnalyticsChart": {
+    "toast": {
+      "failedToLoadAnalytics": "Не удалось загрузить аналитику"
+    },
+    "desc": {
+      "last30Days": "Последние 30 дней",
+      "currentFollowers": "Текущие подписчики",
+      "reactionsComments": "Реакции и комментарии"
+    }
+  },
+  "companyBranding": {
+    "brandColors": "Цвета бренда",
+    "typography": "Типографика",
+    "logosAssets": "Логотипы и материалы",
+    "brandPreview": "Предпросмотр бренда",
+    "toast": {
+      "failedToLoadBranding": "Не удалось загрузить брендинг",
+      "brandingUpdatedSuccessfully": "Брендинг успешно обновлён",
+      "failedToUpdateBranding": "Не удалось обновить брендинг"
+    },
+    "label": {
+      "primaryColor": "Основной цвет",
+      "secondaryColor": "Дополнительный цвет",
+      "accentColor": "Акцентный цвет",
+      "headingFont": "Шрифт заголовков",
+      "bodyFont": "Шрифт основного текста",
+      "lightLogoUrl": "URL светлого логотипа",
+      "darkLogoUrl": "URL тёмного логотипа",
+      "faviconUrl": "URL фавикона",
+      "socialPreviewImage": "Изображение для социальных сетей"
+    },
+    "description": "Настройте визуальную идентичность Вашей компании"
+  },
+  "companyBrandingEditor": {
+    "preview": "Предпросмотр",
+    "headingExample": "Пример заголовка",
+    "toast": {
+      "failedToLoadBrandingSettings": "Не удалось загрузить настройки брендинга",
+      "brandingUpdatedSuccessfully": "Брендинг успешно обновлён",
+      "failedToUpdateBranding": "Не удалось обновить брендинг"
+    },
+    "label": {
+      "primaryColor": "Основной цвет",
+      "secondaryColor": "Дополнительный цвет",
+      "accentColor": "Акцентный цвет",
+      "headingFont": "Шрифт заголовков",
+      "bodyFont": "Шрифт основного текста"
+    },
+    "placeholder": {
+      "interRobotoEtc": "Inter, Roboto и т.д."
+    },
+    "bodyTextExampleWithYourSelectedFontAndCo": "Пример основного текста с выбранным шрифтом и цветами.",
+    "description": "Настройте визуальную идентичность Вашей компании"
+  },
+  "companyFollowers": {
+    "toast": {
+      "failedToLoadFollowers": "Не удалось загрузить подписчиков"
+    },
+    "badge": {
+      "notificationsOn": "Уведомления включены"
+    },
+    "noFollowersYet": "Подписчиков пока нет"
+  },
+  "companyPosts": {
+    "companyPosts": "Публикации компании",
+    "toast": {
+      "failedToLoadPosts": "Не удалось загрузить публикации",
+      "postUpdatedSuccessfully": "Публикация успешно обновлена",
+      "postCreatedSuccessfully": "Публикация успешно создана",
+      "failedToSavePost": "Не удалось сохранить публикацию",
+      "postDeletedSuccessfully": "Публикация успешно удалена",
+      "failedToDeletePost": "Не удалось удалить публикацию"
+    },
+    "label": {
+      "title": "Заголовок",
+      "content": "Содержание",
+      "postType": "Тип публикации",
+      "tagsCommaSeparated": "Теги (через запятую)"
+    },
+    "badge": {
+      "featured": "Избранное",
+      "private": "Приватное"
+    },
+    "manageYourCompanyNewsAndUpdates": "Управляйте новостями и обновлениями компании",
+    "noPostsYetCreateYourFirstPostToGetStarte": "Публикаций пока нет. Создайте первую публикацию для начала.",
+    "public": "Публичное",
+    "featured": "Избранное",
+    "dialogDescription": "Делитесь новостями, вехами, мероприятиями и обновлениями с Вашей аудиторией",
+    "option": {
+      "news": "Новости",
+      "milestone": "Веха",
+      "event": "Мероприятие",
+      "media": "Медиа"
+    }
+  },
+  "companyProfile": {
+    "title": "Профиль компании",
+    "toast": {
+      "failedToLoadCompanyProfile": "Не удалось загрузить профиль компании",
+      "companyProfileUpdated": "Профиль компании обновлён",
+      "failedToUpdateCompanyProfile": "Не удалось обновить профиль компании"
+    },
+    "label": {
+      "companyName": "Название компании",
+      "tagline": "Слоган",
+      "description": "Описание",
+      "website": "Веб-сайт",
+      "linkedinUrl": "URL LinkedIn",
+      "headquartersLocation": "Расположение штаб-квартиры",
+      "industry": "Отрасль",
+      "companySize": "Размер компании"
+    },
+    "description": "Управляйте информацией о компании и брендингом"
+  },
+  "companyWall": {
+    "title": "Стена компании",
+    "toast": {
+      "failedToLoadCompanyPosts": "Не удалось загрузить публикации компании"
+    },
+    "badge": {
+      "featured": "Избранное"
+    },
+    "noPostsYetBeTheFirstToShareSomething": "Публикаций пока нет. Будьте первым, кто поделится чем-нибудь!",
+    "description": "Последние новости, обновления и объявления"
+  },
+  "contractDeadlineAlerts": {
+    "badge": {
+      "breached": "НАРУШЕНО"
+    },
+    "milestoneDeadlineHasPassed": "Срок вехи истёк",
+    "milestoneDeadlineApproaching": "Приближается срок вехи"
+  },
+  "createInterviewDialog": {
+    "toast": {
+      "pleaseFillInAllRequiredFields": "Пожалуйста, заполните все обязательные поля",
+      "pleaseSelectAtLeastOneInterviewer": "Пожалуйста, выберите хотя бы одного интервьюера",
+      "interviewScheduledButFailedToAddToGoogle": "Собеседование запланировано, но не удалось добавить в Google Calendar",
+      "interviewScheduledAndAddedToYourGoogleCa": "Собеседование запланировано и добавлено в Ваш Google Calendar!",
+      "interviewScheduledButCalendarSyncFailed": "Собеседование запланировано, но синхронизация с календарём не удалась",
+      "interviewScheduledSuccessfully": "Собеседование успешно запланировано"
+    },
+    "label": {
+      "addToGoogleCalendar": "Добавить в Google Calendar",
+      "interviewType": "Тип собеседования *",
+      "meetingTitle": "Название встречи *",
+      "description": "Описание",
+      "date": "Дата *",
+      "time": "Время *",
+      "durationMinutes": "Продолжительность (минуты)"
+    },
+    "placeholder": {
+      "companyCandidateNameInterviewStage": "Компания - Имя кандидата - Этап собеседования",
+      "candidateEmail": "Email кандидата",
+      "meetingDescriptionAndAgenda": "Описание и повестка встречи"
+    },
+    "badge": {
+      "candidate": "Кандидат"
+    },
+    "googleCalendarConnected": "Google Calendar подключён",
+    "interviewWillBeSyncedToYourCalendarAndAt": "Собеседование будет синхронизировано с Вашим календарём, участники получат приглашения",
+    "googleCalendarNotConnected": "Google Calendar не подключён",
+    "connectYourGoogleCalendarToAutomatically": "Подключите Ваш Google Calendar для автоматической синхронизации собеседований и отправки приглашений",
+    "titleAndDescriptionAutogeneratedWithComp": "Название и описание генерируются автоматически с данными компании, кандидата и интервьюера",
+    "noTeamMembersAssignedToThisJob": "К этой вакансии не назначены участники команды",
+    "aipoweredAutofill": "Автозаполнение с ИИ"
+  },
+  "createJobDialog": {
+    "toast": {
+      "jobCreatedButFailedToAddSomeViewers": "Вакансия создана, но не удалось добавить некоторых наблюдателей"
+    },
+    "selectACompanyFirstToChooseFromSavedOffi": "Сначала выберите компанию для выбора из сохранённых офисов",
+    "compensationDetailsAreSharedOnlyWithShor": "Детали компенсации предоставляются только кандидатам из шорт-листа, если не указано иное в объявлении."
+  },
+  "createPostDialog": {
+    "dialogTitle": "Создать публикацию",
+    "toast": {
+      "youMustBeLoggedInToCreateAPost": "Для создания публикации необходимо войти в систему",
+      "postCreatedSuccessfully": "Публикация успешно создана",
+      "failedToCreatePost": "Не удалось создать публикацию"
+    },
+    "label": {
+      "title": "Заголовок",
+      "postType": "Тип публикации",
+      "content": "Содержание",
+      "tagsCommaSeparated": "Теги (через запятую)",
+      "audience": "Аудитория",
+      "publicPost": "Публичная публикация",
+      "featured": "Избранное",
+      "publishNow": "Опубликовать сейчас"
+    },
+    "placeholder": {
+      "excitingNewsToShareRequired": "Интересные новости для публикации... обязательно",
+      "shareYourStory": "Расскажите Вашу историю..."
+    },
+    "dialogDescription": "Делитесь новостями, обновлениями или объявлениями с Вашими подписчиками",
+    "option": {
+      "news": "Новости",
+      "milestone": "Веха",
+      "event": "Мероприятие",
+      "media": "Медиа"
+    }
+  },
+  "duplicateCandidateDialog": {
+    "dialogTitle": "Кандидат уже в воронке",
+    "badge": {
+      "nameMatch": "Совпадение имени",
+      "linkedinMatch": "Совпадение LinkedIn"
+    }
+  },
+  "editJobDialog": {
+    "dialogTitle": "Редактировать вакансию",
+    "toast": {
+      "failedToLoadCompanies": "Не удалось загрузить компании",
+      "jobUpdatedSuccessfully": "Вакансия успешно обновлена",
+      "failedToUpdateJob": "Не удалось обновить вакансию"
+    },
+    "label": {
+      "company": "Компания *",
+      "jobTitle": "Название вакансии *",
+      "description": "Описание",
+      "location": "Местоположение",
+      "employmentType": "Тип занятости",
+      "currency": "Валюта",
+      "minSalary": "Минимальная зарплата",
+      "maxSalary": "Максимальная зарплата",
+      "addSupportingDocuments": "Добавить сопроводительные документы",
+      "nicetohaveTools": "Желательные инструменты"
+    },
+    "placeholder": {
+      "selectACompany": "Выберите компанию",
+      "searchToolsEgNotionFigmaPython": "Поиск инструментов (напр., Notion, Figma, Python)...",
+      "searchAdditionalTools": "Поиск дополнительных инструментов..."
+    },
+    "currentDocumentUploadedUploadANewFileToR": "Документ загружен. Загрузите новый файл для замены.",
+    "selectToolsCandidatesMustBeProficientWit": "Выберите инструменты, которыми кандидаты должны владеть",
+    "bonusSkillsThatWouldBeBeneficial": "Дополнительные навыки, которые будут полезны",
+    "option": {
+      "fulltime": "Полная занятость",
+      "parttime": "Частичная занятость",
+      "contract": "Контракт",
+      "freelance": "Фриланс"
+    }
+  },
+  "editJobSheet": {
+    "title": "Детали вакансии",
+    "toast": {
+      "failedToLoadCompanies": "Не удалось загрузить компании",
+      "documentWillBeRemovedWhenYouSave": "Документ будет удалён при сохранении",
+      "failedToRemoveDocument": "Не удалось удалить документ",
+      "failedToDownloadDocument": "Не удалось скачать документ",
+      "jobUpdatedSuccessfully": "Вакансия успешно обновлена",
+      "failedToUpdateJob": "Не удалось обновить вакансию",
+      "youHaveUnsavedChanges": "У Вас есть несохранённые изменения"
+    },
+    "label": {
+      "company": "Компания *",
+      "jobTitle": "Название вакансии *",
+      "description": "Описание",
+      "location": "Местоположение",
+      "employmentType": "Тип занятости",
+      "currency": "Валюта",
+      "minSalaryAnnual": "Мин. зарплата (годовая)",
+      "maxSalaryAnnual": "Макс. зарплата (годовая)",
+      "existingDocuments": "Существующие документы",
+      "newDocumentsWillBeUploadedOnSave": "Новые документы (будут загружены при сохранении)"
+    },
+    "placeholder": {
+      "selectACompany": "Выберите компанию",
+      "briefOverviewOfTheRole": "Краткое описание роли...",
+      "searchRequiredToolsEgFigmaReactPython": "Поиск обязательных инструментов (напр., Figma, React, Python)...",
+      "searchNicetohaveTools": "Поиск желательных инструментов..."
+    },
+    "badge": {
+      "active": "Активна"
+    },
+    "linkToWhereThisJobIsPostedOnlineLinkedin": "Ссылка на размещение вакансии (LinkedIn, сайт компании и т.д.)",
+    "noRequiredToolsSelectedAddToolsThatAreEs": "Обязательные инструменты не выбраны. Добавьте инструменты, необходимые для этой роли.",
+    "noNicetohaveToolsSelectedAddToolsThatWou": "Желательные инструменты не выбраны. Добавьте инструменты, которые будут плюсом.",
+    "currentDocumentUploaded": "Документ загружен",
+    "uploadANewFileToReplaceIt": "Загрузите новый файл для замены",
+    "dragDropOrClickToUpload": "Перетащите или нажмите для загрузки",
+    "uploadMultipleFilesAtOnce": "Загружайте несколько файлов одновременно",
+    "description": "Обновите основную информацию о позиции",
+    "option": {
+      "fulltime": "Полная занятость",
+      "parttime": "Частичная занятость",
+      "contract": "Контракт",
+      "freelance": "Фриланс",
+      "internship": "Стажировка"
+    }
+  },
+  "enhancedAnalytics": {
+    "title": "Всего заявок",
+    "enhancedAnalytics": "Расширенная аналитика"
+  },
+  "internalReviewPanel": {
+    "toast": {
+      "selectAtLeastOneCandidate": "Выберите хотя бы одного кандидата.",
+      "rejectionNoteIsRequired": "Заметка об отклонении обязательна.",
+      "undoIsNotYetAvailableForThisAction": "Отмена пока недоступна для этого действия."
+    },
+    "placeholder": {
+      "searchByNameTitleOrSkill": "Поиск по имени, должности или навыку...",
+      "rejectionReason": "Причина отклонения..."
+    },
+    "allClear": "Все готово",
+    "noCandidatesAwaitingInternalReview": "Нет кандидатов, ожидающих внутренней проверки.",
+    "dialogDescription": "Укажите причину отклонения кандидата из воронки."
+  },
+  "interviewFeedbackDialog": {
+    "dialogTitle": "Обратная связь по собеседованию",
+    "toast": {
+      "pleaseSelectARecommendation": "Пожалуйста, выберите рекомендацию",
+      "feedbackSubmittedSuccessfully": "Обратная связь успешно отправлена"
+    },
+    "label": {
+      "recommendation": "Рекомендация *",
+      "keyStrengths": "Ключевые сильные стороны",
+      "concernsAreasForImprovement": "Опасения / области для улучшения",
+      "keyObservations": "Ключевые наблюдения",
+      "detailedNotes": "Подробные заметки"
+    },
+    "placeholder": {
+      "egStrongProblemsolvingSkills": "Напр., сильные навыки решения проблем",
+      "egLimitedExperienceWithXTechnology": "Напр., ограниченный опыт с технологией X",
+      "egHandledPressureWellDuringTechnicalChal": "Напр., хорошо справлялся с давлением во время технического задания",
+      "provideComprehensiveNotesAboutTheIntervi": "Предоставьте подробные заметки о собеседовании..."
+    },
+    "strongYesExceptionalCandidate": "Определённо да - исключительный кандидат",
+    "yesGoodFitRecommendToProceed": "Да - хорошее соответствие, рекомендую продолжить",
+    "maybeHasPotentialButConcernsExist": "Возможно - есть потенциал, но есть опасения",
+    "noNotTheRightFit": "Нет - не подходит",
+    "strongNoDefinitelyNotSuitable": "Определённо нет - однозначно не подходит"
+  },
+  "jobAnalytics": {
+    "title": "Конверсия по этапам",
+    "noAnalyticsDataAvailable": "Данные аналитики недоступны",
+    "totalApplications": "Всего заявок",
+    "active": "Активные",
+    "hires": "Нанято",
+    "avgTimeToHire": "Среднее время до найма",
+    "fastestHire": "Быстрейший найм",
+    "average": "Среднее",
+    "slowestHire": "Самый долгий найм",
+    "avgFitScore": "Средняя оценка соответствия",
+    "engagementRate": "Уровень вовлечённости",
+    "interviewPass": "Прохождение собеседования",
+    "offerAcceptance": "Принятие предложения",
+    "clubSync": "Club Sync",
+    "directApply": "Прямое обращение",
+    "referrals": "Рекомендации",
+    "description": "Откуда приходят кандидаты"
+  },
+  "jobCard": {
+    "toast": {
+      "headhunterAgentActivatedAnalyzingJobRequ": "Агент-хедхантер активирован... анализ требований вакансии.",
+      "agentFinishedSearchButFoundNoNewStrongMa": "Агент завершил поиск, но не нашёл новых сильных совпадений."
+    },
+    "viewOriginalPosting": "Просмотреть оригинал объявления"
+  },
+  "jobDashboardCandidates": {
+    "noApplicationsYet": "Заявок пока нет",
+    "toast": {
+      "failedToLoadCandidates": "Не удалось загрузить кандидатов"
+    },
+    "applicationsWillAppearHereOnceCandidates": "Заявки появятся здесь, когда кандидаты начнут откликаться",
+    "reviewAndAdvancePremiumCandidatesFasterW": "Просматривайте и продвигайте премиум-кандидатов быстрее с нашей эксклюзивной проверкой",
+    "noCandidatesInThisStage": "На этом этапе нет кандидатов"
+  },
+  "jobDocuments": {
+    "toast": {
+      "failedToLoadDocuments": "Не удалось загрузить документы",
+      "jobDescriptionUploadedSuccessfully": "Описание вакансии успешно загружено",
+      "documentRemovedSuccessfully": "Документ успешно удалён",
+      "failedToRemoveDocument": "Не удалось удалить документ",
+      "downloadStarted": "Скачивание начато",
+      "failedToDownloadDocument": "Не удалось скачать документ",
+      "failedToOpenDocumentViewer": "Не удалось открыть просмотрщик документов"
+    },
+    "label": {
+      "existingDocuments": "Существующие документы",
+      "addMoreDocuments": "Добавить ещё документы"
+    },
+    "currentJobDescription": "Текущее описание вакансии",
+    "uploadedDocumentReadyToView": "Загруженный документ готов к просмотру",
+    "noJobDescriptionUploadedYet": "Описание вакансии ещё не загружено",
+    "fileWillBeUploadedAutomaticallyWhenSelec": "Файл будет загружен автоматически при выборе",
+    "noSupportingDocumentsUploadedYet": "Сопроводительные документы ещё не загружены",
+    "filesWillBeUploadedAutomaticallyWhenSele": "Файлы будут загружены автоматически при выборе",
+    "poweredByGoogleDocsViewer": "На базе Google Docs Viewer",
+    "previewNotAvailableForThisFileType": "Предпросмотр недоступен для этого типа файла",
+    "uploadInProgress": "Загрузка в процессе"
+  },
+  "jobManagement": {
+    "jobPostings": "Объявления о вакансиях",
+    "noJobsYet": "Вакансий пока нет",
+    "toast": {
+      "failedToLoadJobs": "Не удалось загрузить вакансии",
+      "jobArchived": "Вакансия архивирована",
+      "jobDeleted": "Вакансия удалена",
+      "failedToUpdateJobStatus": "Не удалось обновить статус вакансии"
+    },
+    "createYourFirstJobPostingToStartReceivin": "Создайте Ваше первое объявление о вакансии, чтобы начать получать заявки"
+  },
+  "jobTeamPanel": {
+    "toast": {
+      "failedToLoadTeamMembers": "Не удалось загрузить участников команды",
+      "teamMemberRemoved": "Участник команды удалён",
+      "failedToRemoveTeamMember": "Не удалось удалить участника команды"
+    },
+    "badge": {
+      "primary": "Основной"
+    },
+    "noTeamMembersYet": "Участников команды пока нет",
+    "menu": {
+      "removeFromTeam": "Удалить из команды"
+    },
+    "teamMemberOptions": "Параметры участника команды"
+  },
+  "offerPipelineWidget": {
+    "badge": {
+      "urgent": "Срочно"
+    }
+  },
+  "partnerAnalytics": {
+    "title": "Всего кандидатов",
+    "tab": {
+      "pipelineHealth": "Состояние воронки",
+      "conversionRates": "Конверсия"
+    },
+    "description": "Текущее распределение по этапам воронки"
+  },
+  "partnerConciergeCard": {
+    "badge": {
+      "inProgress": "В процессе"
+    },
+    "yourDedicatedConcierge": "Ваш персональный консьерж",
+    "directContact": "Прямой контакт"
+  },
+  "partnerDomainSettings": {
+    "toast": {
+      "pleaseEnterAValidDomainEgExamplecom": "Пожалуйста, введите корректный домен (напр., example.com)",
+      "thisDomainIsAlreadyConfigured": "Этот домен уже настроен",
+      "domainRequestSubmittedForAdminApproval": "Запрос домена отправлен на утверждение администратору",
+      "failedToSubmitDomainRequest": "Не удалось отправить запрос домена"
+    },
+    "label": {
+      "requestNewDomain": "Запросить новый домен"
+    },
+    "noDomainsConfiguredYet": "Домены пока не настроены",
+    "contactYourAdministratorToSetUpAuthorize": "Свяжитесь с Вашим администратором для настройки авторизованных доменов",
+    "domainRequestsRequireAdminApprovalBefore": "Запросы доменов требуют утверждения администратором до активации",
+    "description": "Участники команды могут быть приглашены только с этих email-доменов",
+    "loadingDomainSettings": "Загрузка настроек домена..."
+  },
+  "partnerFirstReviewPanel": {
+    "toast": {
+      "selectARejectionReason": "Выберите причину отклонения.",
+      "rejectionNotesAreRequired": "Заметки об отклонении обязательны."
+    }
+  },
+  "partnerJobsHome": {
+    "noJobsFound": "Вакансии не найдены",
+    "toast": {
+      "failedToLoadJobs": "Не удалось загрузить вакансии",
+      "noDraftJobsSelectedToPublish": "Не выбраны черновики вакансий для публикации",
+      "failedToPublishSelectedJobs": "Не удалось опубликовать выбранные вакансии",
+      "noPublishedJobsSelectedToClose": "Не выбраны опубликованные вакансии для закрытия",
+      "failedToCloseSelectedJobs": "Не удалось закрыть выбранные вакансии",
+      "noJobsSelectedToArchive": "Не выбраны вакансии для архивации",
+      "failedToArchiveSelectedJobs": "Не удалось архивировать выбранные вакансии",
+      "failedToPublishJob": "Не удалось опубликовать вакансию",
+      "failedToUnpublishJob": "Не удалось снять вакансию с публикации",
+      "failedToCloseJob": "Не удалось закрыть вакансию",
+      "failedToReopenJob": "Не удалось повторно открыть вакансию",
+      "failedToArchiveJob": "Не удалось архивировать вакансию",
+      "failedToRestoreJob": "Не удалось восстановить вакансию"
+    },
+    "yourPremiumHiringAccelerator": "Ваш премиальный ускоритель найма.",
+    "getVettedCandidatesInDaysNotWeeks": "Получайте проверенных кандидатов за дни, а не недели",
+    "prevettedTalent": "Предварительно проверенные таланты",
+    "everyCandidateIsClubverifiedForQuality": "Каждый кандидат проверен Club на качество",
+    "dedicatedSupport": "Выделенная поддержка",
+    "personalRecruiterAssistanceIncluded": "Персональная помощь рекрутера включена",
+    "liveUpdatesEnabled": "Обновления в реальном времени включены",
+    "desc": {
+      "candidatesCanNowSeeAndApplyToThisJob": "Кандидаты теперь могут видеть и откликаться на эту вакансию"
+    }
+  },
+  "pipelineAuditLog": {
+    "title": "Журнал аудита вакансии",
+    "badge": {
+      "overrideDuplicate": "Перезапись дубликата"
+    },
+    "description": "Полное отслеживание всех взаимодействий и изменений вакансии"
+  },
+  "pipelineCustomizer": {
+    "title": "Премиальный редактор воронки",
+    "toast": {
+      "stageRemoved": "Этап удалён",
+      "selectAReviewerFirst": "Сначала выберите ревьюера.",
+      "reviewerAssigned": "Ревьюер назначен",
+      "failedToAssignReviewer": "Не удалось назначить ревьюера",
+      "failedToRemoveReviewer": "Не удалось удалить ревьюера",
+      "reviewerRemoved": "Ревьюер удалён",
+      "pipelineSaved": "Воронка сохранена",
+      "signatureSecure": "Подпись защищена"
+    },
+    "label": {
+      "stageOwner": "Владелец этапа",
+      "format": "Формат",
+      "description": "Описание",
+      "primary": "Основной"
+    },
+    "placeholder": {
+      "describeWhatHappensInThisStage": "Опишите, что происходит на этом этапе..."
+    },
+    "reviewGateAssignments": "Назначения на проверку",
+    "onlyAdminAndStrategistRolesCanChangeRevi": "Только роли администратора и стратега могут изменять назначения ревьюеров.",
+    "primary": "Основной",
+    "description": "Настройте этапы Вашей эксклюзивной воронки найма",
+    "option": {
+      "online": "Онлайн",
+      "inperson": "Очно",
+      "hybrid": "Гибрид",
+      "noReviewersAvailable": "Нет доступных ревьюеров"
+    }
+  },
+  "pipelineDisplaySettings": {
+    "label": {
+      "showOwnershipIcons": "Показывать иконки владельцев",
+      "showFormatDetails": "Показывать детали формата",
+      "showTeamAssignments": "Показывать назначения команды",
+      "showLocationmeetingInfo": "Показывать информацию о месте/встрече",
+      "showEvaluationSetup": "Показывать настройку оценки",
+      "showSchedulingDetails": "Показывать детали планирования",
+      "showAdvancedMetadata": "Показывать расширенные метаданные"
+    },
+    "customizeWhatInformationIsShownInThePipe": "Настройте, какая информация отображается в воронке"
+  },
+  "pipelineMeetingCard": {
+    "badge": {
+      "scheduled": "Запланировано"
+    },
+    "prepSent": "Подготовка отправлена",
+    "prepPending": "Подготовка ожидает"
+  },
+  "scheduleInterviewButton": {
+    "toast": {
+      "interviewScheduledSuccessfully": "Собеседование успешно запланировано"
+    }
+  },
+  "smartSchedulingPanel": {
+    "badge": {
+      "excellent": "Отлично",
+      "good": "Хорошо",
+      "fair": "Удовлетворительно",
+      "limited": "Ограничено",
+      "googleCalendar": "Google Calendar",
+      "bestMatch": "Лучшее совпадение"
+    },
+    "noAvailableSlotsFound": "Свободные слоты не найдены",
+    "tryAdjustingTheDurationOrSelectingDiffer": "Попробуйте изменить продолжительность или выбрать других интервьюеров"
+  },
+  "teamActivityCard": {
+    "title": "Активность команды",
+    "noTeamActivityYet": "Активности команды пока нет"
+  },
+  "teamInviteWidget": {
+    "label": {
+      "recentInvitations": "Недавние приглашения",
+      "allInvitations": "Все приглашения"
+    },
+    "dialogDescription": "Отправьте приглашение для присоединения к Вашей организации"
+  },
+  "teamManagement": {
+    "teamMembers": "Участники команды",
+    "noTeamMembersYet": "Участников команды пока нет",
+    "toast": {
+      "failedToLoadTeamMembers": "Не удалось загрузить участников команды",
+      "teamMemberRemoved": "Участник команды удалён",
+      "failedToRemoveTeamMember": "Не удалось удалить участника команды"
+    },
+    "inviteTeamMembersToCollaborateOnJobPosti": "Пригласите участников команды для совместной работы над вакансиями"
+  },
+  "textDocumentCreator": {
+    "toast": {
+      "pleaseEnterSomeContent": "Пожалуйста, введите содержание",
+      "pleaseEnterADocumentTitle": "Пожалуйста, введите название документа"
+    },
+    "label": {
+      "documentTitle": "Название документа *",
+      "documentContent": "Содержание документа *"
+    },
+    "placeholder": {
+      "typeOrPasteYourContentHere1010youCanIncl": "Введите или вставьте содержание здесь...&#10;&#10;Вы можете включить:&#10;- Вопросы для собеседования&#10;- Информацию о компании&#10;- Детали преимуществ&#10;- Технические требования&#10;- Любой другой релевантный текст"
+    },
+    "giveYourDocumentADescriptiveName": "Дайте документу описательное название",
+    "plainTextFormatPerfectForQuickReferenceD": "Текстовый формат - идеален для справочных документов"
+  },
+  "upcomingInterviewsWidget": {
+    "dialogTitle": "Документ подготовки к собеседованию",
+    "today": "Сегодня",
+    "thisWeek": "На этой неделе",
+    "upcoming": "Предстоящие",
+    "toast": {
+      "pleaseEnterFeedback": "Пожалуйста, введите обратную связь",
+      "feedbackSubmittedSuccessfully": "Обратная связь успешно отправлена"
+    },
+    "label": {
+      "currentDocument": "Текущий документ",
+      "feedback": "Обратная связь"
+    },
+    "placeholder": {
+      "enterYourFeedbackAboutTheCandidateAndInt": "Введите Вашу обратную связь о кандидате и собеседовании..."
+    },
+    "loadingInterviews": "Загрузка собеседований...",
+    "pleaseSubmitFeedbackToKeepThePipelineMov": "Пожалуйста, отправьте обратную связь, чтобы воронка продвигалась",
+    "noPrepDocumentUploadedYetUseTheManualEnt": "Документ подготовки ещё не загружен. Используйте ручной ввод или привязку календаря."
+  },
+  "bulkEmailDialog": {
+    "dialogDescription": "Отправить email всем выбранным кандидатам"
+  },
+  "candidateReviewCard": {
+    "internalReviewNotes": "Внутренние заметки проверки"
+  },
+  "candidateShortlistWidget": {
+    "starCandidatesFromApplicationsToAccessTh": "Отметьте кандидатов из заявок для быстрого доступа"
+  },
+  "candidateWorkAuthCard": {
+    "noWorkAuthorizationDataAvailable": "Данные о разрешении на работу недоступны",
+    "requiresSponsorship": "Требуется спонсорство",
+    "noSponsorshipRequired": "Спонсорство не требуется"
+  },
+  "changeOrdersPanel": {
+    "noChangeOrdersYet": "Изменений заказов пока нет",
+    "noProcessedChangeOrdersYet": "Обработанных изменений заказов пока нет"
+  },
+  "contractBudgetDashboard": {
+    "awaitingYourApproval": "Ожидает Вашего утверждения",
+    "activeMilestoneWork": "Активная работа по вехам"
+  },
+  "dailyBriefing": {
+    "letQuinAnalyzeYourHiringActivity": "Позвольте QUIN проанализировать Вашу деятельность по найму"
+  },
+  "dossierActivityWidget": {
+    "browseCandidatesToSeeTheirProfilesHere": "Просматривайте кандидатов для отображения их профилей здесь"
+  },
+  "editCandidateDialog": {
+    "dialogDescription": "Обновите информацию о кандидате. Все изменения будут зафиксированы."
+  },
+  "enhancedCandidateActionDialog": {
+    "selectWhichStageToMoveThisCandidateTo": "Выберите, на какой этап перевести кандидата",
+    "selectWhichPreviousStageToMoveThisCandid": "Выберите, на какой предыдущий этап вернуть кандидата",
+    "aReasonIsRequiredForAccountability": "Причина обязательна для подотчётности"
+  },
+  "enhancedCandidateDetails": {
+    "alert": {
+      "limitedCandidateInformationAvailableFullDesc": "Ограниченная информация о кандидате. Полные данные станут доступны, когда кандидат откликнется на Ваши вакансии."
+    }
+  },
+  "interviewSuccessWidget": {
+    "noApplicationsYetPostAJobToStartHiring": "Заявок пока нет. Опубликуйте вакансию, чтобы начать найм."
+  },
+  "linkedInJobImport": {
+    "byConnectingYouAuthorizeTheQuantumClubTo": "Подключаясь, Вы предоставляете The Quantum Club доступ к объявлениям о вакансиях Вашей компании на LinkedIn.",
+    "dialogDescription": "Подключите Ваш аккаунт LinkedIn для автоматического импорта объявлений о вакансиях.",
+    "alert": {
+      "thisWillImportAllActiveJobPostingsFromYoDesc": "Это импортирует все активные объявления о вакансиях с Вашей страницы компании в LinkedIn. Убедитесь, что у Вас есть доступ администратора к странице компании в LinkedIn."
+    }
+  },
+  "manualInterviewEntryDialog": {
+    "dialogDescription": "Добавьте собеседование, которое уже запланировано, но ещё не в системе"
+  },
+  "partnerInterviewHub": {
+    "noUpcomingInterviewsScheduled": "Нет запланированных собеседований",
+    "noCompletedInterviewsYet": "Завершённых собеседований пока нет",
+    "noCandidatesReadyForDecision": "Нет кандидатов, готовых к решению",
+    "interviewsNeedScorecardsBeforeDecisions": "Для принятия решений необходимы оценочные листы собеседований",
+    "description": "Отслеживайте собеседования, просматривайте аналитику и принимайте решения о найме",
+    "allEvaluatorsHaveSubmittedScorecards": "Все оценщики отправили оценочные листы"
+  },
+  "positionFillCountdown": {
+    "allPositionsFilledGreatWork": "Все позиции заполнены! Отличная работа."
+  },
+  "reviewShortcutOverlay": {
+    "dialogDescription": "Ускорьте процесс проверки с помощью этих горячих клавиш."
+  },
+  "targetCompanies": {
+    "beheerBedrijvenVoorHeadhuntingKandidaten": "Управление компаниями для хедхантинга кандидатов"
+  },
+  "targetCompanyDetailDialog": {
+    "nogGeenComments": "Комментариев пока нет"
+  },
+  "targetCompanyDialog": {
+    "zoekBestaandeBedrijvenNaamEnWebsiteWorde": "Поиск существующих компаний - название и сайт заполнятся автоматически",
+    "selecteerDeJobWaarvoorDitBedrijfGetarget": "Выберите вакансию, для которой таргетируется компания, или оставьте пустым для всех вакансий"
+  },
+  "targetCompanyTable": {
+    "laden": "Загрузка...",
+    "geenBedrijvenGevonden": "Компании не найдены"
+  },
+  "executiveDashboard": {
+    "noCandidatesInFinalStageYet": "На финальном этапе пока нет кандидатов"
+  },
+  "hiringManagerDashboard": {
+    "feedbackManagementComingSoon": "Управление обратной связью скоро появится"
+  },
+  "observerDashboard": {
+    "youHaveObserverAccessToThisRoleViewPipel": "У Вас есть доступ наблюдателя к этой роли. Просмотрите воронку на вкладке \"Воронка\" выше."
+  },
+  "adminNotesEditor": {
+    "theseNotesAreForInternalUseOnlyAndWillNo": "Эти заметки предназначены только для внутреннего использования и не будут видны кандидату или партнёрам."
+  },
+  "jobBulkActionBar": {
+    "menu": {
+      "bulkActions": "Массовые действия"
+    },
+    "publish": "Опубликовать"
+  },
+  "jobTableView": {
+    "menu": {
+      "visibleColumns": "Видимые столбцы"
+    },
+    "tooltip": {
+      "confidential": "Конфиденциально"
+    },
+    "noJobsFound": "Вакансии не найдены"
+  },
+  "jobsAIInsightsWidget": {
+    "title": "Аналитика QUIN",
+    "noInsightsAvailableYet": "Аналитика пока недоступна",
+    "addMoreJobsToGenerateAiPredictions": "Добавьте больше вакансий для генерации ИИ-прогнозов",
+    "quinInsightsTemporarilyUnavailable": "Аналитика QUIN временно недоступна",
+    "hiringForecast": "Прогноз найма",
+    "strategicRecommendations": "Стратегические рекомендации"
+  },
+  "keyboardShortcutsDialog": {
+    "dialogTitle": "Горячие клавиши",
+    "dialogDescription": "Навигация и управление вакансиями с помощью этих сочетаний клавиш"
+  },
+  "savedFilterPresets": {
+    "dialogTitle": "Сохранить набор фильтров",
+    "toast": {
+      "pleaseEnterANameForYourPreset": "Пожалуйста, введите название для набора"
+    },
+    "noSavedPresets": "Нет сохранённых наборов",
+    "saveYourCurrentFiltersForQuickAccess": "Сохраните текущие фильтры для быстрого доступа",
+    "presets": "Наборы",
+    "savedViews": "Сохранённые представления",
+    "dialogDescription": "Сохраните текущие фильтры для быстрого доступа."
+  },
+  "jobsCompactHeader": {
+    "placeholder": {
+      "searchJobs": "Поиск вакансий..."
+    },
+    "menu": {
+      "navigation": "Навигация",
+      "adminTools": "Инструменты администратора"
+    },
+    "newJob": "Новая вакансия",
+    "jobs": "Вакансии"
+  },
+  "jobsUnifiedFilterBar": {
+    "menu": {
+      "company": "Компания",
+      "createdDate": "Дата создания",
+      "layout": "Макет",
+      "savedViews": "Сохранённые представления"
+    },
+    "advancedFilters": "Расширенные фильтры",
+    "views": "Представления"
+  },
+  "jobListView": {
+    "noActivity": "Нет активности",
+    "dashboard": "Панель управления",
+    "tooltip": {
+      "confidential": "Конфиденциально"
+    },
+    "noJobsFound": "Вакансии не найдены"
+  },
+  "jobStatusSummaryBar": {
+    "publishedJobsWillAppearInSearchResultsAn": "Опубликованные вакансии будут отображаться в результатах поиска, и кандидаты смогут на них откликнуться."
+  },
+  "jobsAnalyticsWidget": {
+    "openJobs": "Открытые вакансии",
+    "avgDaysOpen": "Среднее дней открыто",
+    "fillRate": "Процент заполнения",
+    "activePipeline": "Активная воронка"
+  },
+  "jobCardHeader": {
+    "viewOriginalPosting": "Просмотреть оригинал объявления",
+    "thisJobIsOnlyVisibleToSelectedUsers": "Эта вакансия видна только выбранным пользователям"
+  },
+  "jobCardLastActivity": {
+    "lastActivity": "Последняя активность"
+  },
+  "jobCardMetrics": {
+    "hiringProgress": "Прогресс найма",
+    "conversion": "Конверсия",
+    "interviews": "Собеседования"
+  },
+  "compactJobCard": {
+    "tooltip": {
+      "confidential": "Конфиденциально"
+    }
+  },
+  "jobsInlineStats": {
+    "clubSync": "Club Sync"
+  },
+  "liveInterview": {
+    "title": "Интервью-сентинел",
+    "subtitle": "Проверка фактов и ИИ-помощник в реальном времени",
+    "micDenied": "Доступ к микрофону запрещён.",
+    "noSpeechSupport": "Браузер не поддерживает распознавание речи.",
+    "listening": "Сентинел слушает...",
+    "stop": "Стоп",
+    "start": "Старт",
+    "liveTranscript": "Прямая расшифровка",
+    "speechToText": "Преобразование речи в текст в реальном времени",
+    "waitingForSpeech": "Ожидание речи...",
+    "sentinelHud": "Интерфейс сентинела",
+    "liveAiInsights": "ИИ-аналитика в реальном времени",
+    "noAlerts": "Пока нет предупреждений. Система мониторит..."
+  },
+  "billing": {
+    "title": "Биллинг и счета",
+    "description": "Управляйте платёжными данными и просматривайте счета",
+    "tabDetails": "Платёжные данные",
+    "tabInvoices": "Счета",
+    "billingInfo": "Платёжная информация",
+    "billingInfoDesc": "Обновите платёжные данные Вашей компании для выставления счетов",
+    "yourInvoices": "Ваши счета",
+    "yourInvoicesDesc": "Просматривайте и скачивайте счета за комиссии за трудоустройство"
+  },
+  "sla": {
+    "responseTime": "Время ответа",
+    "responseTimeDesc": "Время до первого ответа",
+    "shortlistDelivery": "Доставка шорт-листа",
+    "shortlistDeliveryDesc": "Доставка шорт-листа кандидатов",
+    "interviewScheduling": "Планирование собеседований",
+    "interviewSchedulingDesc": "Время настройки собеседования",
+    "replacementGuarantee": "Гарантия замены",
+    "replacementGuaranteeDesc": "Период замены кандидата",
+    "target": "Цель",
+    "belowTarget": "Ниже целевого уровня. Пересмотрите процессы для улучшения показателей.",
+    "recentPerformance": "Недавние показатели SLA",
+    "last30Days": "Отслеживание SLA за последние 30 дней",
+    "noMetrics": "Метрики SLA ещё не зафиксированы"
+  },
+  "billingDashboard": {
+    "recentInvoices": "Недавние счета",
+    "viewDownload": "Просмотр и скачивание Ваших счетов",
+    "download": "Скачать",
+    "noInvoices": "Счета не найдены"
+  },
+  "auditLog": {
+    "searchPlaceholder": "Поиск по пользователю или действию...",
+    "allActions": "Все действия",
+    "candidateMoved": "Кандидат перемещён",
+    "jobCreated": "Вакансия создана",
+    "teamInvited": "Команда приглашена",
+    "applicationRejected": "Заявка отклонена",
+    "noEntries": "Записи журнала аудита не найдены"
+  },
+  "addCandidate": {
+    "addedButAuditFailed": "Добавлен, но аудит не записан",
+    "addedButLogFailed": "Добавлен, но журнал не записан",
+    "addedSuccessfully": "Успешно добавлен",
+    "addedToPipeline": "Добавлен в воронку",
+    "adding": "Добавление",
+    "addToPipeline": "Добавить в воронку",
+    "adminNotes": "Заметки администратора",
+    "aiFillDetails": "Заполнить данные с ИИ",
+    "alreadyInPipeline": "Уже в воронке",
+    "contactRequired": "Контакт обязателен",
+    "contactRequiredDesc": "Необходимо указать контактные данные",
+    "creditAssignment": "Назначение кредита",
+    "creditDescription": "Описание кредита",
+    "currentCompany": "Текущая компания",
+    "currentTitle": "Текущая должность",
+    "duplicateCheckFailed": "Проверка дубликатов не удалась",
+    "emailOptional": "Email (необязательно)",
+    "enterDetailsManually": "Ввести данные вручную",
+    "enterLinkedInUrl": "Введите URL LinkedIn",
+    "existing": "Существующий",
+    "existingProfileLinked": "Существующий профиль привязан",
+    "failedImportLinkedIn": "Не удалось импортировать из LinkedIn",
+    "failedToAdd": "Не удалось добавить",
+    "fullName": "Полное имя",
+    "fullNameRequired": "Полное имя обязательно",
+    "importing": "Импорт",
+    "importProfile": "Импортировать профиль",
+    "linkedinImporter": "Импорт из LinkedIn",
+    "linkedinImporterDesc": "Описание импорта из LinkedIn",
+    "linkedinProfileImported": "Профиль LinkedIn импортирован",
+    "linkedinProfileRecommended": "Рекомендуется профиль LinkedIn",
+    "linkedinProfileUrl": "URL профиля LinkedIn",
+    "linkedinRecommended": "LinkedIn рекомендуется",
+    "linkedinRecommendedDesc": "Описание рекомендации LinkedIn",
+    "linkedinTimedOut": "Таймаут LinkedIn",
+    "linkedinUrlFormat": "Формат URL LinkedIn",
+    "linkExisting": "Привязать существующего",
+    "linkExistingDesc": "Описание привязки существующего",
+    "nameAndPhotoExtracted": "Имя и фото извлечены",
+    "nameExtractedManual": "Имя извлечено вручную",
+    "nameExtractedVerify": "Имя извлечено, проверьте",
+    "nameFromLinkedIn": "Имя из LinkedIn",
+    "noCandidatesFound": "Кандидаты не найдены",
+    "noTeamMemberFound": "Участник команды не найден",
+    "notesOptional": "Заметки (необязательно)",
+    "phoneOptional": "Телефон (необязательно)",
+    "profileImported": "Профиль импортирован",
+    "resumeCV": "Резюме / CV",
+    "searchPlaceholder": "Поиск...",
+    "searchTeamMembers": "Поиск участников команды",
+    "selectedCount": "Выбрано",
+    "selectTeamMembers": "Выберите участников команды",
+    "startingPipelineStage": "Начальный этап воронки",
+    "startTypingToSearch": "Начните вводить для поиска",
+    "step1Description": "Описание шага 1",
+    "step1Title": "Шаг 1",
+    "title": "Название",
+    "toast": {
+      "failedToAdd": "Не удалось добавить кандидата",
+      "unexpectedError": "Произошла непредвиденная ошибка. Попробуйте ещё раз или обратитесь в поддержку."
+    },
+    "tryAgainOrManual": "Попробовать снова или ввести вручную",
+    "validEmailRequired": "Требуется корректный email",
+    "verifyManually": "Проверить вручную",
+    "whyAddingCandidate": "Почему добавляете кандидата"
+  },
+  " ": "",
+  "_": "_",
+  "-": "-",
+  ",": ",",
+  ":": ":",
+  "?": "?",
+  "": {
+    "": ""
+  },
+  "@": "@",
+  "@/utils/triggerAutoEnrich": "@/utils/triggerAutoEnrich",
+  "*": "*",
+  "*, candidate_profiles(expected_salary)": "*, candidate_profiles(expected_salary)",
+  "*, companies(name)": "*, companies(name)",
+  "*, contact_roles(name)": "*, contact_roles(name)",
+  "*, profiles:evaluator_id(full_name)": "*, profiles:evaluator_id(full_name)",
+  "*, profiles:user_id(full_name)": "*, profiles:user_id(full_name)",
+  "*, profiles(full_name)": "*, profiles(full_name)",
+  "/": "/",
+  "1_hour": "1_hour",
+  "1_month": "1_month",
+  "1_week": "1_week",
+  "123_business_st_city": "123_business_st_city",
+  "15_hours": "15_hours",
+  "15_minutes": "15_minutes",
+  "2_hours": "2_hours",
+  "2_months": "2_months",
+  "2_weeks": "2_weeks",
+  "3_months": "3_months",
+  "30_minutes": "30_minutes",
+  "45_minutes": "45_minutes",
+  "a": "A",
+  "aanvullende_opmerkingen_strategie_etc": "Aanvullende_opmerkingen_strategie_etc",
+  "accepted": "Принято",
+  "across_all_pipeline_stages": "По всем этапам воронки",
+  "acties": "Действия",
+  "active_candidates": "Активные кандидаты",
+  "add_a_concern": "Добавить опасение",
+  "add_a_strength": "Добавить сильную сторону",
+  "add_any_additional_notes": "Добавить дополнительные заметки",
+  "add_internal_notes_about": "Добавить внутренние заметки о",
+  "add_interview_from_calendar": "Добавить собеседование из календаря",
+  "add_interview_manually": "Добавить собеседование вручную",
+  "added": "Добавлено",
+  "additional_details": "Дополнительные детали",
+  "additional_locations": "Дополнительные локации",
+  "additional_work_authorization_details": "Дополнительные данные о разрешении на работу",
+  "admin": "Администратор",
+  "advance_to_stage": "Продвинуть на этап",
+  "ai_summary": "Сводка ИИ",
+  "aigenerated_summary": "Сводка, сгенерированная ИИ",
+  "all_clear": "Все готово",
+  "all_slas_met": "Все SLA выполнены",
+  "all_stages": "Все этапы",
+  "alle_bedrijven": "Все компании",
+  "alle_jobs": "Все вакансии",
+  "allowed": "Разрешено",
+  "allowed_domains": "Разрешённые домены",
+  "andere_rol": "Другая роль",
+  "annual_revenue_goal": "Годовая цель по выручке",
+  "any_additional_details_about": "Любые дополнительные детали о",
+  "applied": "Подано",
+  "assessment": "Оценка",
+  "assessment_type": "Тип оценки",
+  "attach_files_links_or": "Прикрепить файлы, ссылки или",
+  "average_rejection_stage": "Средний этап отклонения",
+  "avg_days": "Среднее дней",
+  "avg_feedback_time": "Среднее время обратной связи",
+  "avg_time_in_stage": "Среднее время на этапе",
+  "avg_time_to_hire": "Среднее время до найма",
+  "basic_information": "Основная информация",
+  "be_specific_about_what": "Будьте конкретны в том, что",
+  "bedrijf_bijgewerkt": "Компания обновлена",
+  "bedrijf_toegevoegd": "Компания добавлена",
+  "bedrijf_verwijderd": "Компания удалена",
+  "bedrijfsnaam": "Название компании",
+  "behavioral": "Поведенческое",
+  "behavioral_interview": "Поведенческое собеседование",
+  "bijv_amsterdam_nederland": "Напр., Амстердам, Нидерланды",
+  "bonus_tools": "Дополнительные инструменты",
+  "brief_summary_of_candidates": "Краткая сводка по кандидатам",
+  "browse_applications": "Просмотр заявок",
+  "cad": "CAD",
+  "calculating_skill_match_scores": "Расчёт оценок совпадения навыков",
+  "calendar_event": "Событие календаря",
+  "candidate": "Кандидат",
+  "candidate_contacted": "Кандидат контактирован",
+  "candidate_expectations_align_with": "Ожидания кандидата соответствуют",
+  "candidate_id": "ID кандидата",
+  "candidate_id, candidate_email, candidate_full_name": "candidate_id, candidate_email, candidate_full_name",
+  "candidate_moved_back_to": "Кандидат возвращён на",
+  "candidate_profile_link_copied": "Ссылка на профиль кандидата скопирована",
+  "candidate_profile_updated_successfully": "Профиль кандидата успешно обновлён",
+  "candidate_shortlisted": "Кандидат в шорт-листе",
+  "candidates_exported_successfully": "Кандидаты успешно экспортированы",
+  "candidates_ready_for_your": "Кандидаты готовы для Вашего",
+  "candidates_will_appear_here": "Кандидаты появятся здесь",
+  "candidates_worldwide_will_be": "Кандидаты по всему миру будут",
+  "case_study": "Кейс-стади",
+  "category": "Категория",
+  "change_order_history": "История изменений заказа",
+  "channel": "Канал",
+  "chatmessaging": "Чат/сообщения",
+  "choose_a_candidate": "Выберите кандидата",
+  "choose_a_clear_descriptive": "Выберите понятное описательное",
+  "choose_how_this_stage": "Выберите, как этот этап",
+  "clear_schedule": "Свободный график",
+  "click_scan_calendar_to": "Нажмите \"Сканировать календарь\" для",
+  "coding_challenge": "Задание по программированию",
+  "comment_toegevoegd": "Комментарий добавлен",
+  "comments": "Комментарии",
+  "committed": "Подтверждено",
+  "company_actions": "Действия компании",
+  "company_id": "ID компании",
+  "company_id, companies(id, name)": "company_id, companies(id, name)",
+  "company_insiders": "Инсайдеры компании",
+  "company_member_id, external_user_id": "company_member_id, external_user_id",
+  "compensation": "Компенсация",
+  "compensation_expectations": "Ожидания по компенсации",
+  "complete_interviews_and_submit": "Завершите собеседования и отправьте",
+  "confirmed": "Подтверждено",
+  "consider": "Рассмотреть",
+  "contact_information": "Контактная информация",
+  "contact_toegevoegd": "Контакт добавлен",
+  "contact_verwijderd": "Контакт удалён",
+  "continue_where_you_left": "Продолжить с того места, где остановились",
+  "contract_breakdown": "Разбивка контракта",
+  "convert": "Конвертировать",
+  "coordinates_captured_for_map": "Координаты зафиксированы для карты",
+  "create_new_role": "Создать новую роль",
+  "created": "Создано",
+  "created_at, source_channel, created_by": "created_at, source_channel, created_by",
+  "created_at, submitted_at, meeting_id": "created_at, submitted_at, meeting_id",
+  "csv_exported_successfully": "CSV успешно экспортирован",
+  "culture_fit": "Культурное соответствие",
+  "currency": "Валюта",
+  "current_company": "Текущая компания",
+  "current_position": "Текущая должность",
+  "current_salary": "Текущая зарплата",
+  "current_schedule": "Текущий график",
+  "current_stage": "Текущий этап",
+  "current_title": "Текущая должность",
+  "daily_briefing_generated": "Ежедневный брифинг сгенерирован",
+  "date": "Дата",
+  "days_in_pipeline": "Дней в воронке",
+  "define_scoring_criteria_rubric": "Определите критерии и рубрику оценки",
+  "define_scoring_feedback_requirements": "Определите требования к оценке и обратной связи",
+  "department": "Отдел",
+  "description": "Описание",
+  "desired_locations_commaseparated": "Желаемые локации (через запятую)",
+  "desired_salary": "Желаемая зарплата",
+  "detailed_feedback": "Подробная обратная связь",
+  "detected_at": "Обнаружено",
+  "difficulty": "Сложность",
+  "documents": "Документы",
+  "draft_restored": "Черновик восстановлен",
+  "duration_min": "Продолжительность (мин)",
+  "duration_minutes": "Продолжительность (минуты)",
+  "easy": "Легко",
+  "edit_candidate_profile": "Редактировать профиль кандидата",
+  "eg_1_234_567": "Напр., 1 234 567",
+  "eg_1_month_2": "Напр., 1 месяц, 2",
+  "eg_100000": "Напр., 100000",
+  "eg_120000": "Напр., 120000",
+  "eg_150000": "Напр., 150000",
+  "eg_5": "Напр., 5",
+  "eg_5_years_typescript": "Напр., 5 лет TypeScript",
+  "eg_80000": "Напр., 80000",
+  "eg_acme_corp": "Напр., Acme Corp",
+  "eg_amsterdam_berlin_london": "Напр., Амстердам, Берлин, Лондон",
+  "eg_candidate_requested_different": "Напр., кандидат запросил другое",
+  "eg_english_dutch_german": "Напр., английский, нидерландский, немецкий",
+  "eg_english_native_spanish": "Напр., английский (родной), испанский",
+  "eg_experience_with_figma": "Напр., опыт с Figma",
+  "eg_fintech_saas": "Напр., финтех, SaaS",
+  "eg_h1b_green_card": "Напр., H1B, Green Card",
+  "eg_hackerrank_leetcode_custom": "Напр., HackerRank, LeetCode, Custom",
+  "eg_hybrid_remote_onsite": "Напр., гибрид, удалённо, в офисе",
+  "eg_lena_jude": "Напр., Елена Иванова",
+  "eg_lenaexamplecom": "Напр., lena@example.com",
+  "eg_pmp_aws_certified": "Напр., PMP, AWS Certified",
+  "eg_react_python_project": "Напр., React, Python, проект",
+  "eg_react_typescript_nodejs": "Напр., React, TypeScript, Node.js",
+  "eg_san_francisco_ca": "Напр., Москва, Россия",
+  "eg_senior_product_designer": "Напр., старший продуктовый дизайнер",
+  "eg_senior_product_manager": "Напр., старший продакт-менеджер",
+  "eg_standard_technical_interview": "Напр., стандартное техническое собеседование",
+  "eg_technical_interview_culture": "Напр., техническое собеседование, культура",
+  "eg_united_states": "Напр., Россия",
+  "email": "Email",
+  "email_address": "Адрес электронной почты",
+  "email_body": "Тело письма",
+  "email_subject": "Тема письма",
+  "email_template": "Шаблон письма",
+  "emailbedrijfnl": "email@company.nl",
+  "employment_type": "Тип занятости",
+  "en-US": "en-US",
+  "engagement_score, fit_score": "engagement_score, fit_score",
+  "enterprise_500": "Корпорация (500+)",
+  "eur": "EUR",
+  "executive_summary": "Сводка для руководства",
+  "expected_start_date_optional": "Ожидаемая дата начала (необязательно)",
+  "experience_level_aligns_well": "Уровень опыта хорошо соответствует",
+  "expired": "Истёк",
+  "explain_hybrid_options_to": "Объясните гибридные варианты для",
+  "explain_why_this_candidate": "Объясните, почему этот кандидат",
+  "explain_why_youre_making": "Объясните, почему Вы принимаете",
+  "external_job_url_optional": "Внешний URL вакансии (необязательно)",
+  "external_user_id": "external_user_id",
+  "extra_informatie_over_contact": "Дополнительная информация о контакте",
+  "failed_to_confirm_interview": "Не удалось подтвердить собеседование",
+  "failed_to_dismiss_interview": "Не удалось отклонить собеседование",
+  "failed_to_export_candidates": "Не удалось экспортировать кандидатов",
+  "failed_to_generate_briefing": "Не удалось сгенерировать брифинг",
+  "failed_to_generate_report": "Не удалось сгенерировать отчёт",
+  "failed_to_link_interview": "Не удалось привязать собеседование",
+  "failed_to_load_calendar": "Не удалось загрузить календарь",
+  "failed_to_load_companies": "Не удалось загрузить компании",
+  "failed_to_load_pipeline": "Не удалось загрузить воронку",
+  "failed_to_load_rejected": "Не удалось загрузить отклонённых",
+  "failed_to_load_your": "Не удалось загрузить Ваши",
+  "failed_to_reconsider_candidate": "Не удалось пересмотреть кандидата",
+  "failed_to_reschedule_interview": "Не удалось перенести собеседование",
+  "failed_to_revoke_invitation": "Не удалось отозвать приглашение",
+  "failed_to_scan_calendar": "Не удалось просканировать календарь",
+  "failed_to_send_bulk": "Не удалось отправить массово",
+  "failed_to_send_invitation": "Не удалось отправить приглашение",
+  "failed_to_update_candidate": "Не удалось обновить кандидата",
+  "fee_amount": "Сумма комиссии",
+  "fee_override": "Переопределение комиссии",
+  "feedback": "Обратная связь",
+  "final_interview": "Финальное собеседование",
+  "flexible": "Гибкий",
+  "for_internal_use_only": "Только для внутреннего использования",
+  "format": "Формат",
+  "fout_bij_laden_van": "Ошибка при загрузке",
+  "fout_bij_opslaan_van": "Ошибка при сохранении",
+  "fout_bij_stemmen": "Ошибка при голосовании",
+  "fout_bij_toevoegen_comment": "Ошибка при добавлении комментария",
+  "fout_bij_toevoegen_contact": "Ошибка при добавлении контакта",
+  "fout_bij_verwijderen_contact": "Ошибка при удалении контакта",
+  "fout_bij_verwijderen_van": "Ошибка при удалении",
+  "freelance_rate": "Ставка фрилансера",
+  "full_name": "Полное имя",
+  "full_name, avatar_url": "full_name, avatar_url",
+  "full_name, email, current_title, current_company": "full_name, email, current_title, current_company",
+  "functie_specificaties": "Спецификации должности",
+  "functies": "Должности",
+  "gbp": "GBP",
+  "geen_votes": "Нет голосов",
+  "github_url": "URL GitHub",
+  "good": "Хорошо",
+  "handmatig_toevoegen": "Добавить вручную",
+  "hard": "Сложно",
+  "hire_rate": "Процент найма",
+  "hires_this_month": "Наймы в этом месяце",
+  "hoog_10": "Высокий (10)",
+  "hybrid": "Гибрид",
+  "id": "ID",
+  "immediate": "Немедленно",
+  "import_jobs_from_linkedin": "Импорт вакансий из LinkedIn",
+  "in_person": "Очно",
+  "in_progress": "В процессе",
+  "inbox_zero": "Входящие пусты",
+  "incomplete": "Не завершено",
+  "industrie": "Отрасль",
+  "industry_preferences": "Предпочтения по отрасли",
+  "initial_note": "Начальная заметка",
+  "internal_notes_for_the": "Внутренние заметки для",
+  "interview_added_successfully": "Собеседование успешно добавлено",
+  "interview_confirmed": "Собеседование подтверждено",
+  "interview_dismissed": "Собеседование отклонено",
+  "interview_linked_successfully": "Собеседование успешно привязано",
+  "interview_rescheduled_successfully": "Собеседование успешно перенесено",
+  "interview_type": "Тип собеседования",
+  "interviewers": "Интервьюеры",
+  "interviews_conducted": "Проведено собеседований",
+  "interviews_this_week": "Собеседования на этой неделе",
+  "invalid_target_stage": "Недопустимый целевой этап",
+  "invitation_revoked": "Приглашение отозвано",
+  "invite": "Пригласить",
+  "invite_colleagues_to_collaborate": "Пригласите коллег для сотрудничества",
+  "jd_file": "Файл JD",
+  "job": "Вакансия",
+  "job_description_file_optional": "Файл описания вакансии (необязательно)",
+  "job_description_url, supporting_documents": "job_description_url, supporting_documents",
+  "job_id": "ID вакансии",
+  "job_link_copied_to": "Ссылка на вакансию скопирована",
+  "job_not_found_it": "Вакансия не найдена",
+  "justification": "Обоснование",
+  "key_strengths": "Ключевые сильные стороны",
+  "laag_1": "Низкий (1)",
+  "languages_commaseparated": "Языки (через запятую)",
+  "latestage_rejections": "Отклонения на поздних этапах",
+  "link_copied_to_clipboard": "Ссылка скопирована в буфер обмена",
+  "link_interview_to_job": "Привязать собеседование к вакансии",
+  "linked": "Привязано",
+  "linked_to_user_account": "Привязано к аккаунту пользователя",
+  "linkedin": "LinkedIn",
+  "linkedin_url": "URL LinkedIn",
+  "links": "Ссылки",
+  "locatie": "Местоположение",
+  "location": "Местоположение",
+  "location_fit": "Соответствие локации",
+  "location_mismatch": "Несовпадение локации",
+  "location_not_aligned_with": "Локация не соответствует",
+  "location_or_remote_work": "Местоположение или удалённая работа",
+  "logo_url, website_url, headquarters_location": "logo_url, website_url, headquarters_location",
+  "manage": "Управление",
+  "max": "Макс",
+  "max_salary": "Максимальная зарплата",
+  "medium": "Средне",
+  "meeting_link": "Ссылка на встречу",
+  "meeting_type": "Тип встречи",
+  "member": "Участник",
+  "metadata": "Метаданные",
+  "mijn_bedrijven": "Мои компании",
+  "min": "Мин",
+  "min_salary": "Минимальная зарплата",
+  "mismatch_analysis": "Анализ несовпадений",
+  "monitor_probation_periods_and": "Отслеживание испытательных сроков и",
+  "move_back_to_stage": "Вернуть на этап",
+  "my_calendar": "Мой календарь",
+  "naam": "Имя",
+  "naam_contact": "Имя контакта",
+  "naam_van_het_bedrijf": "Название компании",
+  "name": "Имя",
+  "new_date": "Новая дата",
+  "nicetohave": "Желательно",
+  "nicetohave_tools": "Желательные инструменты",
+  "nl-NL": "nl-NL",
+  "no_authorized_to_work": "Нет разрешения на работу",
+  "no_candidates_for_report": "Нет кандидатов для отчёта",
+  "no_candidates_in_pipeline": "Нет кандидатов в воронке",
+  "no_candidates_in_this": "Нет кандидатов на этом",
+  "no_candidates_to_export": "Нет кандидатов для экспорта",
+  "no_companies_found": "Компании не найдены",
+  "no_interview_data": "Нет данных о собеседованиях",
+  "no_interview_recordings_yet": "Записей собеседований пока нет",
+  "no_jobs": "Нет вакансий",
+  "no_linked_interviews_yet": "Привязанных собеседований пока нет",
+  "no_new_interviews_detected": "Новые собеседования не обнаружены",
+  "no_pending_commitments": "Нет ожидающих обязательств",
+  "no_pending_interviews_detected": "Ожидающие собеседования не обнаружены",
+  "no_pending_offers": "Нет ожидающих предложений",
+  "no_pending_reviews": "Нет ожидающих проверок",
+  "no_recent_activity": "Нет недавней активности",
+  "no_rejected_candidates_match": "Нет отклонённых кандидатов, соответствующих",
+  "no_talent_matches_yet": "Совпадений талантов пока нет",
+  "no_team_members_available": "Нет доступных участников команды",
+  "no_team_members_yet": "Участников команды пока нет",
+  "no_unread_messages": "Нет непрочитанных сообщений",
+  "no_upcoming_calendar_events": "Нет предстоящих событий календаря",
+  "no_urgent_actions_required": "Срочных действий не требуется",
+  "no_urgent_deadlines_this": "Нет срочных дедлайнов на",
+  "none": "Нет",
+  "not_now_but_in": "Не сейчас, но через",
+  "notes": "Заметки",
+  "notes_optional": "Заметки (необязательно)",
+  "notice_period": "Срок уведомления",
+  "notities": "Заметки",
+  "of_custom_rol": "Или пользовательская роль",
+  "offer_acceptance": "Принятие предложения",
+  "offers_extended_to_candidates": "Предложения, отправленные кандидатам",
+  "online": "Онлайн",
+  "onsite": "В офисе",
+  "optional_if_you_upload": "Необязательно, если Вы загружаете",
+  "overall_spend": "Общие расходы",
+  "overview": "Обзор",
+  "paid": "Оплачено",
+  "paid_out": "Выплачено",
+  "panel_interview": "Панельное собеседование",
+  "partner_interview": "Собеседование с партнёром",
+  "partner_preference_pattern": "Паттерн предпочтений партнёра",
+  "partnersthequantumclubcom": "partners@thequantumclub.com",
+  "pass": "Пройдено",
+  "pending": "Ожидает",
+  "pending_actions": "Ожидающие действия",
+  "pending_offers": "Ожидающие предложения",
+  "pending_release": "Ожидает выпуска",
+  "per_industrie": "По отрасли",
+  "per_status": "По статусу",
+  "personality_assessment": "Оценка личности",
+  "phone": "Телефон",
+  "phone_call": "Телефонный звонок",
+  "pipeline_display_options": "Параметры отображения воронки",
+  "pipeline_journey": "Путь по воронке",
+  "pipeline_settings_opening": "Открытие настроек воронки",
+  "pipeline_stage_added_successfully": "Этап воронки успешно добавлен",
+  "pipeline_stages": "Этапы воронки",
+  "platform": "Платформа",
+  "please_enter_an_email": "Пожалуйста, введите email",
+  "please_fill_in_all": "Пожалуйста, заполните все",
+  "please_fill_in_both": "Пожалуйста, заполните оба",
+  "please_fix_the_form": "Пожалуйста, исправьте ошибки формы",
+  "please_provide_a_reason": "Пожалуйста, укажите причину",
+  "please_select_a_date": "Пожалуйста, выберите дату",
+  "please_select_a_rejection": "Пожалуйста, выберите причину отклонения",
+  "please_select_a_target": "Пожалуйста, выберите целевой",
+  "please_use_an_email": "Пожалуйста, используйте email",
+  "portfolio_review": "Обзор портфолио",
+  "portfolio_url": "URL портфолио",
+  "potential_concerns": "Возможные опасения",
+  "preferences": "Предпочтения",
+  "preferred_currency": "Предпочтительная валюта",
+  "preferred_locations": "Предпочтительные локации",
+  "premium_vetting_candidate_management": "Премиальная проверка и управление кандидатами",
+  "preparation_instructions": "Инструкции по подготовке",
+  "primary_rejection_reason": "Основная причина отклонения",
+  "prioriteit": "Приоритет",
+  "proceed": "Продолжить",
+  "provide_specific_reasons_for": "Укажите конкретные причины для",
+  "publish_your_jobs_to": "Опубликуйте Ваши вакансии для",
+  "published_at": "Опубликовано",
+  "quality_score": "Оценка качества",
+  "quantum_club_elite_offers": "Элитные предложения Quantum Club",
+  "quick_actions": "Быстрые действия",
+  "quin_daily_briefing": "Ежедневный брифинг QUIN",
+  "readonly_view_for_stakeholders": "Режим только для чтения для заинтересованных сторон",
+  "reason_for_moving_back": "Причина возврата",
+  "reason_for_rejection": "Причина отклонения",
+  "reason_for_rescheduling_optional": "Причина переноса (необязательно)",
+  "recent_views": "Недавние просмотры",
+  "recommendation": "Рекомендация",
+  "recordings_will_appear_here": "Записи появятся здесь",
+  "recruiter": "Рекрутер",
+  "reject": "Отклонить",
+  "reject_change_order": "Отклонить изменение заказа",
+  "rejected": "Отклонено",
+  "rejected_by": "Отклонено",
+  "rejected_candidates": "Отклонённые кандидаты",
+  "rejection_reason": "Причина отклонения",
+  "rejection_stage": "Этап отклонения",
+  "remaining": "Осталось",
+  "remote_only": "Только удалённо",
+  "remote_preference": "Предпочтение удалённой работы",
+  "report_generated_successfully": "Отчёт успешно сгенерирован",
+  "required_tools": "Обязательные инструменты",
+  "required_tools_and_technologies": "Обязательные инструменты и технологии",
+  "requirements": "Требования",
+  "reschedule_interview": "Перенести собеседование",
+  "response_sla": "SLA ответа",
+  "resume_available": "Резюме доступно",
+  "resumes/": "resumes/",
+  "review_summary": "Сводка проверки",
+  "reviewed_by": "Проверено",
+  "right_to_work_details": "Данные о праве на работу",
+  "rol": "Роль",
+  "role": "Роль",
+  "salary": "Зарплата",
+  "salary_compatible": "Зарплата совместима",
+  "salary_expectations_too_high": "Зарплатные ожидания слишком высоки",
+  "salary_mismatch": "Несовпадение зарплаты",
+  "salary_range_optional": "Диапазон зарплаты (необязательно)",
+  "scaleup_50500": "Scaleup (50-500)",
+  "scheduled_start, scheduled_end, user_id": "scheduled_start, scheduled_end, user_id",
+  "scheduling": "Планирование",
+  "scope_change": "Изменение объёма",
+  "search_companies": "Поиск компаний",
+  "search_roles": "Поиск ролей",
+  "select": "Выбрать",
+  "select_a_candidate": "Выберите кандидата",
+  "select_a_company": "Выберите компанию",
+  "select_a_job": "Выберите вакансию",
+  "select_a_role_to": "Выберите роль для",
+  "select_assessment_type": "Выберите тип оценки",
+  "select_candidate": "Выберите кандидата",
+  "select_category": "Выберите категорию",
+  "select_company_size": "Выберите размер компании",
+  "select_department": "Выберите отдел",
+  "select_existing_link_or": "Выберите существующую ссылку или",
+  "select_from_your_company": "Выберите из Вашей компании",
+  "select_interview_type": "Выберите тип собеседования",
+  "select_notice_period": "Выберите срок уведомления",
+  "select_remote_preference": "Выберите предпочтение по удалённой работе",
+  "select_sponsorship_requirement": "Выберите требование спонсорства",
+  "select_target_stage": "Выберите целевой этап",
+  "select_team_members": "Выберите участников команды",
+  "select_urgency": "Выберите срочность",
+  "selecteer_een_open_job": "Выберите открытую вакансию",
+  "selecteer_rol": "Выберите роль",
+  "sending_to": "Отправка",
+  "seniority": "Уровень",
+  "seniority_level": "Уровень",
+  "setting_expectations_upfront_reduces": "Установление ожиданий заранее снижает",
+  "share": "Поделиться",
+  "skills_commaseparated": "Навыки (через запятую)",
+  "skills_gap": "Недостаток навыков",
+  "skills_languages": "Навыки и языки",
+  "smart_filters": "Умные фильтры",
+  "source": "Источник",
+  "source_information": "Информация об источнике",
+  "sourced_by": "Найден",
+  "sourced_by, source_context, created_at": "sourced_by, source_context, created_at",
+  "specific_gaps_select_all": "Конкретные пробелы (выберите все)",
+  "sponsorship_needed": "Требуется спонсорство",
+  "stage_description": "Описание этапа",
+  "stage_name": "Название этапа",
+  "stage_weight_for_analytics": "Вес этапа для аналитики",
+  "start_date": "Дата начала",
+  "start_time": "Время начала",
+  "start_with_the_fundamentals": "Начните с основ",
+  "startup_lt50": "Стартап (<50)",
+  "stealth": "Скрытый",
+  "strong": "Сильный",
+  "strong_hire": "Сильный найм",
+  "strong_skills_alignment_with": "Сильное соответствие навыков",
+  "subject": "Тема",
+  "submitted_at": "Отправлено",
+  "submitting": "Отправка",
+  "supporting_documents": "Сопроводительные документы",
+  "supporting_documents_optional": "Сопроводительные документы (необязательно)",
+  "sync": "Синхронизация",
+  "sync_failed": "Синхронизация не удалась",
+  "T": "T",
+  "target_bedrijven": "Целевые компании",
+  "target_voor_specifieke_job": "Цель для конкретной вакансии",
+  "technical": "Техническое",
+  "technical_interview": "Техническое собеседование",
+  "technical_test": "Техническое тестирование",
+  "telefoon": "Телефон",
+  "this_week": "На этой неделе",
+  "this_will_be_shown": "Это будет показано",
+  "time": "Время",
+  "time_limit_minutes": "Ограничение времени (минуты)",
+  "time_period": "Период времени",
+  "timetohire_forecast": "Прогноз времени до найма",
+  "title, bio, availability": "title, bio, availability",
+  "title, created_at": "title, created_at",
+  "today": "Сегодня",
+  "tomorrow": "Завтра",
+  "top_match_factors": "Ключевые факторы совпадения",
+  "top_skills": "Основные навыки",
+  "total_budget": "Общий бюджет",
+  "total_rejections": "Всего отклонений",
+  "tqc_introduction": "Представление TQC",
+  "type": "Тип",
+  "typical_duration_for_this": "Типичная продолжительность для этого",
+  "updated": "Обновлено",
+  "upvoted_by": "Поддержано",
+  "urgency": "Срочность",
+  "usd": "USD",
+  "user_id": "user_id",
+  "user_id, role": "user_id, role",
+  "video_call": "Видеозвонок",
+  "view": "Просмотр",
+  "visa_status": "Визовый статус",
+  "visibility": "Видимость",
+  "voeg_een_comment_toe": "Добавить комментарий",
+  "voltooid": "Завершено",
+  "vote_toegevoegd": "Голос добавлен",
+  "vote_verwijderd": "Голос удалён",
+  "votes": "Голоса",
+  "vs_last_month": "По сравнению с прошлым месяцем",
+  "vul_minimaal_een_naam": "Введите как минимум имя",
+  "website_url": "URL веб-сайта",
+  "what_should_candidates_prepare": "Что кандидаты должны подготовить",
+  "what_will_this_person": "Чем будет заниматься этот человек",
+  "where_will_this_person": "Где будет работать этот человек",
+  "why_are_you_advancing": "Почему Вы продвигаете",
+  "work_model": "Модель работы",
+  "write_a_brief_executive": "Напишите краткую сводку для руководства",
+  "write_your_email_here": "Напишите Ваш email здесь",
+  "years_of_experience": "Лет опыта",
+  "yes_requires_sponsorship": "Да, требуется спонсорство",
+  "youll_receive_a_digest": "Вы получите дайджест",
+  "your_briefing_awaits": "Ваш брифинг ожидает",
+  "your_concierge_is_being": "Ваш консьерж",
+  "your_draft_has_been": "Ваш черновик был",
+  "your_progress_is_saved": "Ваш прогресс сохранён",
+  "zoek_bedrijf": "Поиск компании",
+  "zoek_in_repository": "Поиск в репозитории",
+  "دإ_aed": "AED",
+  "id, candidate_full_name, candidate_email, current_stage_index": "Id, candidate_full_name, candidate_email, current_stage_index",
+  "id, content, created_at, sender_id": "Id, content, created_at, sender_id",
+  "id, email, full_name, avatar_url": "Id, email, full_name, avatar_url",
+  "id, full_name": "Id, full_name",
+  "id, full_name, avatar_url": "Id, full_name, avatar_url",
+  "id, full_name, avatar_url, current_title": "Id, full_name, avatar_url, current_title",
+  "id, full_name, email": "Id, full_name, email",
+  "id, full_name, email, avatar_url": "Id, full_name, email, avatar_url",
+  "id, full_name, email, avatar_url, current_title, current_company, linkedin_url, tags": "Id, full_name, email, avatar_url, current_title, current_company, linkedin_url, tags",
+  "id, full_name, linkedin_url": "Id, full_name, linkedin_url",
+  "id, job_id, candidate_id, current_stage_index, created_at, sourced_by": "Id, job_id, candidate_id, current_stage_index, created_at, sourced_by",
+  "id, job_id, status, applied_at, current_stage_index, stages, created_at, updated_at": "Id, job_id, status, applied_at, current_stage_index, stages, created_at, updated_at",
+  "id, job_title, user_id": "Id, job_title, user_id",
+  "id, name": "Id, name",
+  "id, reviewer_id, is_primary, assigned_at": "Id, reviewer_id, is_primary, assigned_at",
+  "id, role, profiles:user_id (full_name, avatar_url)": "Id, role, profiles:user_id (full_name, avatar_url)",
+  "id, status": "Id, status",
+  "id, status, scheduled_start": "Id, status, scheduled_start",
+  "id, status, updated_at": "Id, status, updated_at",
+  "id, title": "Id, title",
+  "id, title, companies(name)": "Id, title, companies(name)",
+  "id, title, company_name, status, pipeline_stages": "Id, title, company_name, status, pipeline_stages",
+  "id, title, pipeline_stages, status": "Id, title, pipeline_stages, status",
+  "id, title, status": "Id, title, status",
+  "id, user_id, full_name, title, bio, email, availability, photo_url": "Id, user_id, full_name, title, bio, email, availability, photo_url",
+  "id, user_id, granted_by, granted_at": "Id, user_id, granted_by, granted_at",
+  "id, user_id, job_title": "Id, user_id, job_title"
+}

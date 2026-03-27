@@ -11,6 +11,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 
 interface MeetingModeIndicatorProps {
@@ -26,6 +27,7 @@ export function MeetingModeIndicator({
   connectionQuality,
   className
 }: MeetingModeIndicatorProps) {
+  const { t } = useTranslation("meetings");
   const getQualityColor = () => {
     switch (connectionQuality) {
       case 'excellent': return 'text-emerald-500';
@@ -47,7 +49,7 @@ export function MeetingModeIndicator({
       return {
         icon: Server,
         label: 'SFU',
-        description: 'Using cloud infrastructure for optimal performance with many participants',
+        description: t('mode.sfuDescription'),
         color: 'text-purple-500',
         bgColor: 'bg-purple-500/10'
       };
@@ -55,7 +57,7 @@ export function MeetingModeIndicator({
     return {
       icon: Users,
       label: 'P2P',
-      description: 'Direct peer-to-peer connections for low latency',
+      description: t('mode.p2pDescription'),
       color: 'text-blue-500',
       bgColor: 'bg-blue-500/10'
     };
@@ -88,7 +90,7 @@ export function MeetingModeIndicator({
             <div className="flex items-center gap-2">
               <ModeIcon className={cn("h-4 w-4", modeInfo.color)} />
               <span className="font-medium">
-                {mode === 'sfu' ? 'Cloud Infrastructure (SFU)' : 'Peer-to-Peer Mesh'}
+                {mode === 'sfu' ? t('mode.sfuTitle') : t('mode.p2pTitle')}
               </span>
             </div>
             <p className="text-xs text-muted-foreground">
@@ -96,11 +98,11 @@ export function MeetingModeIndicator({
             </p>
             <div className="flex items-center gap-2 pt-1 border-t text-xs">
               {getQualityIcon()}
-              <span className="capitalize">{connectionQuality} connection</span>
+              <span className="capitalize">{t('mode.connectionQuality', { quality: connectionQuality })}</span>
             </div>
             {mode === 'sfu' && (
               <p className="text-xs text-muted-foreground">
-                Automatically selected for meetings with 6+ participants
+                {t('mode.sfuAutoSelected')}
               </p>
             )}
           </div>

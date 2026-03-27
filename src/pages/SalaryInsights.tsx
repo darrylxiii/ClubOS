@@ -7,6 +7,7 @@
  */
 
 import { useState, useEffect } from "react";
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -19,6 +20,7 @@ import { DataQualityIndicator } from "@/components/salary/DataQualityIndicator";
 import { NoDataAvailable } from "@/components/salary/NoDataAvailable";
 
 export default function SalaryInsights() {
+  const { t } = useTranslation('analytics');
   const [role, setRole] = useState("Software Engineer");
   const [location, setLocation] = useState("Amsterdam");
   const [experience, setExperience] = useState([3]);
@@ -124,10 +126,8 @@ export default function SalaryInsights() {
     <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-black uppercase mb-2">Salary Intelligence</h1>
-          <p className="text-muted-foreground">
-            Real market insights powered by platform data
-          </p>
+          <h1 className="text-3xl font-black uppercase mb-2">{t('salaryInsights.text3')}</h1>
+          <p className="text-muted-foreground">{t('salaryInsights.desc')}</p>
         </div>
         <Button onClick={exportReport} variant="outline" disabled={!hasData}>
           <Download className="w-4 h-4 mr-2" />
@@ -192,9 +192,9 @@ export default function SalaryInsights() {
               className="w-full"
             />
             <div className="flex justify-between text-xs text-muted-foreground">
-              <span>Entry Level</span>
-              <span>Mid-Senior</span>
-              <span>Executive</span>
+              <span>{t('salaryInsights.text4')}</span>
+              <span>{t('salaryInsights.text5')}</span>
+              <span>{t('salaryInsights.text6')}</span>
             </div>
           </div>
         </CardContent>
@@ -206,7 +206,7 @@ export default function SalaryInsights() {
           <CardContent className="py-12">
             <div className="flex flex-col items-center justify-center gap-4">
               <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
-              <p className="text-muted-foreground">Fetching market data...</p>
+              <p className="text-muted-foreground">{t('salaryInsights.text7')}</p>
             </div>
           </CardContent>
         </Card>
@@ -254,19 +254,19 @@ export default function SalaryInsights() {
                   {/* Markers */}
                   <div className="absolute bottom-0 left-0 right-0 h-full flex items-end justify-between px-4 pb-4">
                     <div className="text-center">
-                      <div className="text-xs text-muted-foreground mb-1">25th</div>
+                      <div className="text-xs text-muted-foreground mb-1">{"25th"}</div>
                       <Badge variant="outline" className="bg-background/80">
                         {formatCurrency(aggregated.p25, aggregated.currency)}
                       </Badge>
                     </div>
                     <div className="text-center">
-                      <div className="text-xs text-muted-foreground mb-1">Median</div>
+                      <div className="text-xs text-muted-foreground mb-1">{t('salaryInsights.text8')}</div>
                       <Badge className="bg-primary/20 text-primary border-primary/30">
                         {formatCurrency(aggregated.median, aggregated.currency)}
                       </Badge>
                     </div>
                     <div className="text-center">
-                      <div className="text-xs text-muted-foreground mb-1">75th</div>
+                      <div className="text-xs text-muted-foreground mb-1">{"75th"}</div>
                       <Badge variant="outline" className="bg-background/80">
                         {formatCurrency(aggregated.p75, aggregated.currency)}
                       </Badge>
@@ -279,11 +279,11 @@ export default function SalaryInsights() {
                   <Card>
                     <CardContent className="pt-6">
                       <div className="text-center space-y-2">
-                        <p className="text-sm text-muted-foreground">Entry Range</p>
+                        <p className="text-sm text-muted-foreground">{t('salaryInsights.text9')}</p>
                         <p className="text-2xl font-bold">
                           {formatCurrency(aggregated.min, aggregated.currency)}
                         </p>
-                        <Badge variant="outline">25th Percentile</Badge>
+                        <Badge variant="outline">{"25th Percentile"}</Badge>
                       </div>
                     </CardContent>
                   </Card>
@@ -291,7 +291,7 @@ export default function SalaryInsights() {
                   <Card>
                     <CardContent className="pt-6">
                       <div className="text-center space-y-2">
-                        <p className="text-sm text-muted-foreground">Market Average</p>
+                        <p className="text-sm text-muted-foreground">{t('salaryInsights.text10')}</p>
                         <p className="text-2xl font-bold">
                           {formatCurrency(aggregated.median, aggregated.currency)}
                         </p>
@@ -305,11 +305,11 @@ export default function SalaryInsights() {
                   <Card>
                     <CardContent className="pt-6">
                       <div className="text-center space-y-2">
-                        <p className="text-sm text-muted-foreground">Competitive</p>
+                        <p className="text-sm text-muted-foreground">{t('salaryInsights.text11')}</p>
                         <p className="text-2xl font-bold">
                           {formatCurrency(aggregated.max, aggregated.currency)}
                         </p>
-                        <Badge variant="outline">75th Percentile</Badge>
+                        <Badge variant="outline">{"75th Percentile"}</Badge>
                       </div>
                     </CardContent>
                   </Card>
@@ -329,7 +329,7 @@ export default function SalaryInsights() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="p-4 rounded-lg bg-success/10 border border-success/30">
-                <h4 className="font-bold mb-2">Your Market Position</h4>
+                <h4 className="font-bold mb-2">{t('salaryInsights.text12')}</h4>
                 <p className="text-sm text-muted-foreground">
                   For a {role} in {location} with {experience[0]} years of experience, 
                   the market range is {formatCurrency(aggregated.min, aggregated.currency)} - {formatCurrency(aggregated.max, aggregated.currency)}.
@@ -342,7 +342,7 @@ export default function SalaryInsights() {
                     1
                   </div>
                   <div>
-                    <h5 className="font-bold mb-1">Know Your Value</h5>
+                    <h5 className="font-bold mb-1">{t('salaryInsights.text13')}</h5>
                     <p className="text-sm text-muted-foreground">
                       With {experience[0]} years of experience, target the {experience[0] >= 5 ? '50th-75th' : '25th-50th'} percentile based on your skills.
                     </p>
@@ -354,7 +354,7 @@ export default function SalaryInsights() {
                     2
                   </div>
                   <div>
-                    <h5 className="font-bold mb-1">Consider Total Compensation</h5>
+                    <h5 className="font-bold mb-1">{t('salaryInsights.text14')}</h5>
                     <p className="text-sm text-muted-foreground">
                       In {location}, equity and bonuses can add 15-30% to base salary.
                     </p>
@@ -366,10 +366,8 @@ export default function SalaryInsights() {
                     3
                   </div>
                   <div>
-                    <h5 className="font-bold mb-1">Timing Matters</h5>
-                    <p className="text-sm text-muted-foreground">
-                      Negotiate after receiving an offer, not during initial interviews.
-                    </p>
+                    <h5 className="font-bold mb-1">{t('salaryInsights.text15')}</h5>
+                    <p className="text-sm text-muted-foreground">{t('salaryInsights.desc2')}</p>
                   </div>
                 </div>
               </div>

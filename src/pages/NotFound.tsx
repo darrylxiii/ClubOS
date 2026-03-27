@@ -1,5 +1,6 @@
 import { useLocation, Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Home, Calendar, MessageCircle, ArrowLeft, Search } from "lucide-react";
 import { motion } from "framer-motion";
@@ -7,6 +8,7 @@ import quantumLogoLight from "@/assets/quantum-logo-dark.png";
 import quantumLogoDark from "@/assets/quantum-club-logo.png";
 
 const NotFound = () => {
+  const { t } = useTranslation('common');
   const location = useLocation();
   const navigate = useNavigate();
   const [countdown, setCountdown] = useState(15);
@@ -32,9 +34,9 @@ const NotFound = () => {
   }, [countdown, navigate]);
 
   const quickLinks = [
-    { icon: Home, label: "Home", path: "/" },
-    { icon: Calendar, label: "Meetings", path: "/meetings" },
-    { icon: MessageCircle, label: "Messages", path: "/messages" },
+    { icon: Home, label: t('navigation.home'), path: "/" },
+    { icon: Calendar, label: t('navigation.meetings'), path: "/meetings" },
+    { icon: MessageCircle, label: t('common:messages'), path: "/messages" },
   ];
 
   return (
@@ -97,10 +99,10 @@ const NotFound = () => {
             </h1>
             <div className="mt-[-2rem] md:mt-[-3rem]">
               <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
-                Page Not Found
+                {t('notFound.title')}
               </h2>
               <p className="text-muted-foreground max-w-md mx-auto">
-                The page you're looking for doesn't exist or has been moved to a new location.
+                {t('notFound.description')}
               </p>
             </div>
           </div>
@@ -118,7 +120,7 @@ const NotFound = () => {
           {/* Quick Links */}
           <div className="space-y-4 mb-8">
             <p className="text-sm font-medium text-muted-foreground text-center">
-              Quick Navigation
+              {t('notFound.quickNavigation')}
             </p>
             <div className="grid grid-cols-3 gap-3">
               {quickLinks.map((link, index) => (
@@ -155,13 +157,13 @@ const NotFound = () => {
                 className="w-full gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-xl h-12"
               >
                 <ArrowLeft className="h-4 w-4" />
-                Return to Home
+                {t('notFound.returnHome')}
               </Button>
             </Link>
             
             {/* Auto-redirect countdown */}
             <p className="text-xs text-muted-foreground">
-              Auto-redirecting in <span className="font-semibold text-foreground">{countdown}s</span>
+              {t('notFound.autoRedirecting', { seconds: countdown })}
             </p>
           </motion.div>
         </motion.div>
@@ -173,9 +175,9 @@ const NotFound = () => {
           transition={{ delay: 0.7, duration: 0.4 }}
           className="text-center text-xs text-muted-foreground mt-8"
         >
-          Need help?{" "}
+          {t('notFound.needHelp')}{" "}
           <Link to="/support" className="text-primary hover:underline">
-            Contact Support
+            {t('notFound.contactSupport')}
           </Link>
         </motion.p>
       </motion.div>

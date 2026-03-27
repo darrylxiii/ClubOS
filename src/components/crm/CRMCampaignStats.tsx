@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -11,6 +12,7 @@ interface CRMCampaignStatsProps {
 }
 
 export function CRMCampaignStats({ dateRange = 'month' }: CRMCampaignStatsProps) {
+  const { t } = useTranslation('common');
   const { data, loading } = useCRMAnalytics({ dateRange });
 
   if (loading) {
@@ -58,17 +60,17 @@ export function CRMCampaignStats({ dateRange = 'month' }: CRMCampaignStatsProps)
           <div className="text-center p-2 rounded-lg bg-muted/20">
             <Mail className="w-4 h-4 mx-auto text-muted-foreground mb-1" />
             <p className="text-lg font-bold">{totalSent.toLocaleString()}</p>
-            <p className="text-xs text-muted-foreground">Total Sent</p>
+            <p className="text-xs text-muted-foreground">{t("total_sent", "Total Sent")}</p>
           </div>
           <div className="text-center p-2 rounded-lg bg-muted/20">
             <Eye className="w-4 h-4 mx-auto text-blue-500 mb-1" />
             <p className="text-lg font-bold">{avgOpenRate.toFixed(1)}%</p>
-            <p className="text-xs text-muted-foreground">Open Rate</p>
+            <p className="text-xs text-muted-foreground">{t("open_rate", "Open Rate")}</p>
           </div>
           <div className="text-center p-2 rounded-lg bg-muted/20">
             <MessageSquare className="w-4 h-4 mx-auto text-green-500 mb-1" />
             <p className="text-lg font-bold">{avgReplyRate.toFixed(1)}%</p>
-            <p className="text-xs text-muted-foreground">Reply Rate</p>
+            <p className="text-xs text-muted-foreground">{t("reply_rate", "Reply Rate")}</p>
           </div>
         </div>
 
@@ -114,8 +116,8 @@ export function CRMCampaignStats({ dateRange = 'month' }: CRMCampaignStatsProps)
           ) : (
             <div className="text-center py-6 text-muted-foreground">
               <Mail className="w-8 h-8 mx-auto mb-2 opacity-50" />
-              <p className="text-sm">No campaigns yet</p>
-              <p className="text-xs">Import your first campaign to see stats</p>
+              <p className="text-sm">{t("no_campaigns_yet", "No campaigns yet")}</p>
+              <p className="text-xs">{t("import_your_first_campaign", "Import your first campaign to see stats")}</p>
             </div>
           )}
         </div>

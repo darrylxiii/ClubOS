@@ -6,12 +6,14 @@ import { formatDistanceToNow } from "date-fns";
 import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useTranslation } from 'react-i18next';
 
 interface TeamActivityCardProps {
   jobId: string;
 }
 
 export const TeamActivityCard = ({ jobId }: TeamActivityCardProps) => {
+  const { t } = useTranslation('partner');
   const { teamMembers, loading } = useTeamActivity(jobId);
   const navigate = useNavigate();
 
@@ -28,7 +30,7 @@ export const TeamActivityCard = ({ jobId }: TeamActivityCardProps) => {
     return (
       <Card className="border-2 border-primary/20 bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl">
         <CardHeader>
-          <CardTitle className="font-black uppercase text-sm">Team Activity</CardTitle>
+          <CardTitle className="font-black uppercase text-sm">{t('teamActivityCard.title')}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex items-center gap-2">
@@ -50,7 +52,7 @@ export const TeamActivityCard = ({ jobId }: TeamActivityCardProps) => {
   return (
     <Card className="border-2 border-primary/20 bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl">
       <CardHeader>
-        <CardTitle className="font-black uppercase text-sm">Team Activity</CardTitle>
+        <CardTitle className="font-black uppercase text-sm">{t('teamActivityCard.title')}</CardTitle>
       </CardHeader>
       <CardContent>
         {memberCount === 0 ? (
@@ -64,7 +66,7 @@ export const TeamActivityCard = ({ jobId }: TeamActivityCardProps) => {
                 </Avatar>
               ))}
             </div>
-            <span className="text-sm text-muted-foreground">No team activity yet</span>
+            <span className="text-sm text-muted-foreground">{t('teamActivityCard.noTeamActivityYet')}</span>
           </div>
         ) : (
           <div className="flex items-center gap-2">

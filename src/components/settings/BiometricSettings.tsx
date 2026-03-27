@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
@@ -13,6 +14,7 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
 export function BiometricSettings() {
+  const { t } = useTranslation('common');
   const { isAvailable, biometryType, biometryName, isNative, authenticate } = useBiometricAuth();
   const [biometricEnabled, setBiometricEnabled] = useState(false);
   const [autoLockTimeout, setAutoLockTimeout] = useState('5');
@@ -41,7 +43,7 @@ export function BiometricSettings() {
     if (enabled && isAvailable) {
       const result = await authenticate('Enable biometric login');
       if (!result.success) {
-        toast.error('Failed to verify biometrics');
+        toast.error(t("failed_to_verify_biometrics", "Failed to verify biometrics"));
         return;
       }
     }
@@ -53,7 +55,7 @@ export function BiometricSettings() {
       toast.success(enabled ? `${biometryName} enabled` : `${biometryName} disabled`);
     } catch (error) {
       console.error('Error saving biometric settings:', error);
-      toast.error('Failed to save settings');
+      toast.error(t("failed_to_save_settings", "Failed to save settings"));
     } finally {
       setIsSaving(false);
     }
@@ -61,7 +63,7 @@ export function BiometricSettings() {
 
   const handleTimeoutChange = async (value: string) => {
     setAutoLockTimeout(value);
-    toast.success('Auto-lock timeout updated');
+    toast.success(t("autolock_timeout_updated", "Auto-lock timeout updated"));
   };
 
   if (isLoading) {
@@ -87,8 +89,8 @@ export function BiometricSettings() {
               <Shield className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <CardTitle className="text-lg">Biometric Security</CardTitle>
-              <CardDescription>Secure your account with biometric authentication</CardDescription>
+              <CardTitle className="text-lg">{t("biometric_security", "Biometric Security")}</CardTitle>
+              <CardDescription>{t("secure_your_account_with", "Secure your account with biometric authentication")}</CardDescription>
             </div>
           </div>
           {isNative && (
@@ -125,17 +127,17 @@ export function BiometricSettings() {
                 <Clock className="h-6 w-6 text-muted-foreground" />
               </div>
               <div>
-                <Label className="text-base font-medium">Auto-lock</Label>
-                <p className="text-sm text-muted-foreground">Lock the app after inactivity</p>
+                <Label className="text-base font-medium">{t("autolock", "Auto-lock")}</Label>
+                <p className="text-sm text-muted-foreground">{t("lock_the_app_after", "Lock the app after inactivity")}</p>
               </div>
             </div>
             <Select value={autoLockTimeout} onValueChange={handleTimeoutChange}>
               <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="1">1 minute</SelectItem>
-                <SelectItem value="5">5 minutes</SelectItem>
-                <SelectItem value="15">15 minutes</SelectItem>
-                <SelectItem value="30">30 minutes</SelectItem>
+                <SelectItem value="1">{t("1_minute", "1 minute")}</SelectItem>
+                <SelectItem value="5">{t("5_minutes", "5 minutes")}</SelectItem>
+                <SelectItem value="15">{t("15_minutes", "15 minutes")}</SelectItem>
+                <SelectItem value="30">{t("30_minutes", "30 minutes")}</SelectItem>
               </SelectContent>
             </Select>
           </div>

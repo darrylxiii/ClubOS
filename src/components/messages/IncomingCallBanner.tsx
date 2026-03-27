@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { createPortal } from 'react-dom';
 import { Phone, PhoneOff, Video } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -22,6 +23,7 @@ export function IncomingCallBanner({
   onDecline,
   createdAt
 }: IncomingCallBannerProps) {
+  const { t } = useTranslation('common');
   const [timeRemaining, setTimeRemaining] = useState(30);
   const [isConnecting, setIsConnecting] = useState(false);
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -160,7 +162,7 @@ export function IncomingCallBanner({
           <div className="container mx-auto px-4 py-3">
             <div className="flex items-center justify-center gap-3">
               <Phone className="h-5 w-5 text-white animate-pulse" />
-              <p className="text-white font-medium">Connecting to call...</p>
+              <p className="text-white font-medium">{t("connecting_to_call", "Connecting to call...")}</p>
             </div>
           </div>
         </motion.div>

@@ -1,6 +1,7 @@
 import { memo } from "react";
 import { JobStatusBadge as UnifiedJobStatusBadge } from "@/components/ui/UnifiedStatusBadge";
 import { getStatusConfig } from "@/lib/statusConfig";
+import { useTranslation } from 'react-i18next';
 
 export type JobStatus = "draft" | "published" | "closed" | "archived" | "pending_approval";
 
@@ -21,6 +22,7 @@ export const JobStatusBadge = memo(({
   showIcon = true,
   size = "md"
 }: JobStatusBadgeProps) => {
+  const { t } = useTranslation('jobs');
   return (
     <UnifiedJobStatusBadge 
       status={status} 

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -24,6 +25,7 @@ export function JobDeleteDialog({
   isAdmin,
   onConfirm 
 }: JobDeleteDialogProps) {
+  const { t } = useTranslation('common');
   const [confirmText, setConfirmText] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -53,7 +55,7 @@ export function JobDeleteDialog({
         <DialogHeader>
           <div className="flex items-center gap-2">
             <Trash2 className="h-5 w-5 text-destructive" />
-            <DialogTitle>Delete Job Permanently</DialogTitle>
+            <DialogTitle>{t("delete_job_permanently", "Delete Job Permanently")}</DialogTitle>
           </div>
           <DialogDescription>
             {isDraft 
@@ -69,7 +71,7 @@ export function JobDeleteDialog({
             <Alert variant="destructive">
               <AlertTriangle className="h-4 w-4" />
               <AlertDescription>
-                <div className="font-semibold mb-2">Deletion Impact:</div>
+                <div className="font-semibold mb-2">{t("deletion_impact", "Deletion Impact:")}</div>
                 <ul className="space-y-1 text-sm">
                   {applicationCount > 0 && (
                     <li className="flex items-center gap-2">
@@ -83,8 +85,8 @@ export function JobDeleteDialog({
                       Revenue tracking data will be lost
                     </li>
                   )}
-                  <li>Deal pipeline analytics will be affected</li>
-                  <li>Job history will be permanently erased</li>
+                  <li>{t("deal_pipeline_analytics_will", "Deal pipeline analytics will be affected")}</li>
+                  <li>{t("job_history_will_be", "Job history will be permanently erased")}</li>
                 </ul>
               </AlertDescription>
             </Alert>
@@ -102,22 +104,22 @@ export function JobDeleteDialog({
           {/* Job Details */}
           <div className="rounded-lg border bg-muted/50 p-4 space-y-2">
             <div className="flex justify-between">
-              <span className="text-sm text-muted-foreground">Job Title:</span>
+              <span className="text-sm text-muted-foreground">{t("job_title", "Job Title:")}</span>
               <span className="text-sm font-medium">{job.title}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-muted-foreground">Status:</span>
+              <span className="text-sm text-muted-foreground">{t("status", "Status:")}</span>
               <span className="text-sm font-medium capitalize">{job.status}</span>
             </div>
             {applicationCount > 0 && (
               <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">Applications:</span>
+                <span className="text-sm text-muted-foreground">{t("applications", "Applications:")}</span>
                 <span className="text-sm font-medium">{applicationCount}</span>
               </div>
             )}
             {job.deal_value_override && (
               <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">Deal Value:</span>
+                <span className="text-sm text-muted-foreground">{t("deal_value", "Deal Value:")}</span>
                 <span className="text-sm font-medium">{formatCurrency(job.deal_value_override)}</span>
               </div>
             )}
@@ -133,7 +135,7 @@ export function JobDeleteDialog({
                 id="confirm"
                 value={confirmText}
                 onChange={(e) => setConfirmText(e.target.value)}
-                placeholder="Enter job title"
+                placeholder={t("enter_job_title", "Enter job title")}
               />
             </div>
           )}

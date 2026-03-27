@@ -20,8 +20,10 @@ import {
 import { useCostMetrics } from '@/hooks/useCostMetrics';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 
 function formatCurrency(amount: number): string {
+  const { t } = useTranslation('admin');
   return `€${amount.toFixed(2)}`;
 }
 
@@ -157,16 +159,16 @@ export function CostOverview() {
       {/* Detailed Tabs */}
       <Tabs defaultValue="breakdown" className="space-y-4">
         <TabsList className="bg-muted/50">
-          <TabsTrigger value="breakdown">Cost Breakdown</TabsTrigger>
-          <TabsTrigger value="cron">Cron Jobs</TabsTrigger>
-          <TabsTrigger value="ai">AI Usage</TabsTrigger>
-          <TabsTrigger value="storage">Storage</TabsTrigger>
+          <TabsTrigger value="breakdown">{t('kpi.costOverview.costBreakdown')}</TabsTrigger>
+          <TabsTrigger value="cron">{t('kpi.costOverview.cronJobs')}</TabsTrigger>
+          <TabsTrigger value="ai">{t('kpi.costOverview.aiUsage')}</TabsTrigger>
+          <TabsTrigger value="storage">{t('kpi.costOverview.storage')}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="breakdown" className="space-y-4">
           <Card className="bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border-border/50">
             <CardHeader>
-              <CardTitle className="text-base">Monthly Cost Breakdown</CardTitle>
+              <CardTitle className="text-base">{t('kpi.costOverview.monthlyCostBreakdown')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {costSummary?.breakdown.map(item => (
@@ -196,7 +198,7 @@ export function CostOverview() {
         <TabsContent value="cron" className="space-y-4">
           <Card className="bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border-border/50">
             <CardHeader>
-              <CardTitle className="text-base">Cron Job Costs</CardTitle>
+              <CardTitle className="text-base">{t('kpi.costOverview.cronJobCosts')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
@@ -238,7 +240,7 @@ export function CostOverview() {
         <TabsContent value="ai" className="space-y-4">
           <Card className="bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border-border/50">
             <CardHeader>
-              <CardTitle className="text-base">AI Function Usage (24h)</CardTitle>
+              <CardTitle className="text-base">{t('kpi.costOverview.aiFunctionUsage24h')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
@@ -272,7 +274,7 @@ export function CostOverview() {
                 {Object.keys(aiUsageByFunction).length === 0 && (
                   <div className="text-center py-8 text-muted-foreground">
                     <CheckCircle className="h-8 w-8 mx-auto mb-2 text-emerald-500" />
-                    <p>No AI function calls in the last 24 hours</p>
+                    <p>{t('kpi.costOverview.noAiFunctionCallsInThe')}</p>
                   </div>
                 )}
               </div>
@@ -283,7 +285,7 @@ export function CostOverview() {
         <TabsContent value="storage" className="space-y-4">
           <Card className="bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border-border/50">
             <CardHeader>
-              <CardTitle className="text-base">Storage Buckets</CardTitle>
+              <CardTitle className="text-base">{t('kpi.costOverview.storageBuckets')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
@@ -327,20 +329,20 @@ export function CostOverview() {
           <ul className="space-y-2 text-sm">
             <li className="flex items-start gap-2">
               <CheckCircle className="h-4 w-4 text-emerald-500 mt-0.5" />
-              <span className="line-through text-muted-foreground">Reduce <code className="bg-muted px-1 rounded">region-health-check</code> frequency from every minute to every 5 minutes</span>
-              <Badge variant="outline" className="text-emerald-500 border-emerald-500/30 ml-2">Done</Badge>
+              <span className="line-through text-muted-foreground">Reduce <code className="bg-muted px-1 rounded">region-health-check</code>{"frequency from every minute to every 5 minutes"}</span>
+              <Badge variant="outline" className="text-emerald-500 border-emerald-500/30 ml-2">{t('kpi.costOverview.done')}</Badge>
             </li>
             <li className="flex items-start gap-2">
               <CheckCircle className="h-4 w-4 text-emerald-500 mt-0.5" />
-              <span>Add cleanup job for <code className="bg-muted px-1 rounded">webrtc_signals</code> table (currently growing fast)</span>
+              <span>Add cleanup job for <code className="bg-muted px-1 rounded">webrtc_signals</code>{"table (currently growing fast)"}</span>
             </li>
             <li className="flex items-start gap-2">
               <CheckCircle className="h-4 w-4 text-emerald-500 mt-0.5" />
-              <span>Cache AI responses for repeated queries to reduce API calls</span>
+              <span>{t('kpi.costOverview.cacheAiResponsesForRepeatedQueries')}</span>
             </li>
             <li className="flex items-start gap-2">
               <CheckCircle className="h-4 w-4 text-emerald-500 mt-0.5" />
-              <span>Review meeting recordings - consider auto-cleanup after 90 days</span>
+              <span>{t('kpi.costOverview.reviewMeetingRecordingsConsiderAutocleanupAfter')}</span>
             </li>
           </ul>
         </CardContent>

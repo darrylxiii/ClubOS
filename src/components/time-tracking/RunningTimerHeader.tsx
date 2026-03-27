@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -13,6 +14,7 @@ import { useTimeTracking, formatDuration } from "@/hooks/useTimeTracking";
 import { cn } from "@/lib/utils";
 
 export function RunningTimerHeader() {
+  const { t } = useTranslation('common');
   const { runningEntry, projects, stopTimer, switchProject } = useTimeTracking();
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
 
@@ -64,7 +66,7 @@ export function RunningTimerHeader() {
                       style={{ backgroundColor: currentProject.color }}
                     />
                   )}
-                  <SelectValue placeholder="No project" />
+                  <SelectValue placeholder={t("no_project", "No project")} />
                 </div>
               </SelectTrigger>
               <SelectContent>

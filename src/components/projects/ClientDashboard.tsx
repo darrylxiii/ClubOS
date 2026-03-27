@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, Briefcase, Users, Clock, CheckCircle2, Loader2 } from "lucide-react";
@@ -8,6 +9,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { formatDistanceToNow } from "date-fns";
 
 export function ClientDashboard() {
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -127,7 +129,7 @@ export function ClientDashboard() {
       <Card className="p-6">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-lg font-semibold mb-1">Ready to hire top talent?</h3>
+            <h3 className="text-lg font-semibold mb-1">{t("ready_to_hire_top", "Ready to hire top talent?")}</h3>
             <p className="text-sm text-muted-foreground">
               Post a project and get matched with qualified freelancers in minutes
             </p>
@@ -159,7 +161,7 @@ export function ClientDashboard() {
       {/* Recent Projects */}
       <Card className="p-6">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold">Recent Projects</h3>
+          <h3 className="text-lg font-semibold">{t("recent_projects", "Recent Projects")}</h3>
           {recentProjects && recentProjects.length > 0 && (
             <Button variant="ghost" size="sm" onClick={() => navigate("/projects/my-projects")}>
               View All
@@ -195,7 +197,7 @@ export function ClientDashboard() {
         ) : (
           <div className="text-center py-12 text-muted-foreground">
             <Briefcase className="h-12 w-12 mx-auto mb-4 opacity-50" />
-            <p>No projects yet. Create your first project to get started!</p>
+            <p>{t("no_projects_yet_create", "No projects yet. Create your first project to get started!")}</p>
           </div>
         )}
       </Card>

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -15,6 +16,7 @@ interface Props {
 }
 
 export function OrgPeopleTable({ people }: Props) {
+  const { t } = useTranslation('common');
   const [search, setSearch] = useState('');
   const [filterDept, setFilterDept] = useState<string>('all');
   const [filterSeniority, setFilterSeniority] = useState<string>('all');
@@ -80,7 +82,7 @@ export function OrgPeopleTable({ people }: Props) {
         <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
-            placeholder="Search by name, title, skill..."
+            placeholder={t("search_by_name_title", "Search by name, title, skill...")}
             value={search}
             onChange={e => setSearch(e.target.value)}
             className="pl-9"
@@ -88,22 +90,22 @@ export function OrgPeopleTable({ people }: Props) {
         </div>
         <Select value={filterDept} onValueChange={setFilterDept}>
           <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Department" />
+            <SelectValue placeholder={t("department", "Department")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Departments</SelectItem>
+            <SelectItem value="all">{t("all_departments", "All Departments")}</SelectItem>
             {RECOGNIZED_DEPARTMENTS.map(d => (
               <SelectItem key={d} value={d}>{d}</SelectItem>
             ))}
-            <SelectItem value="Unclassified">Unclassified</SelectItem>
+            <SelectItem value="Unclassified">{t("unclassified", "Unclassified")}</SelectItem>
           </SelectContent>
         </Select>
         <Select value={filterSeniority} onValueChange={setFilterSeniority}>
           <SelectTrigger className="w-[160px]">
-            <SelectValue placeholder="Seniority" />
+            <SelectValue placeholder={t("seniority", "Seniority")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Levels</SelectItem>
+            <SelectItem value="all">{t("all_levels", "All Levels")}</SelectItem>
             {SENIORITY_ORDER.map(s => (
               <SelectItem key={s} value={s}>{s}</SelectItem>
             ))}
@@ -111,13 +113,13 @@ export function OrgPeopleTable({ people }: Props) {
         </Select>
         <Select value={filterStatus} onValueChange={setFilterStatus}>
           <SelectTrigger className="w-[140px]">
-            <SelectValue placeholder="Status" />
+            <SelectValue placeholder={t("status", "Status")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All</SelectItem>
-            <SelectItem value="current">Current</SelectItem>
-            <SelectItem value="departed">Departed</SelectItem>
-            <SelectItem value="new_hire">New Hire</SelectItem>
+            <SelectItem value="all">{t("all", "All")}</SelectItem>
+            <SelectItem value="current">{t("current", "Current")}</SelectItem>
+            <SelectItem value="departed">{t("departed", "Departed")}</SelectItem>
+            <SelectItem value="new_hire">{t("new_hire", "New Hire")}</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -209,10 +211,10 @@ function PersonRow({ person, showDepartment }: { person: CompanyPerson; showDepa
             </Badge>
           )}
           {person.employment_status === 'departed' && (
-            <Badge variant="destructive" className="text-xs">Departed</Badge>
+            <Badge variant="destructive" className="text-xs">{t("departed", "Departed")}</Badge>
           )}
           {person.employment_status === 'new_hire' && (
-            <Badge className="text-xs bg-emerald-500/10 text-emerald-600 border-emerald-500/20">New</Badge>
+            <Badge className="text-xs bg-emerald-500/10 text-emerald-600 border-emerald-500/20">{t("new", "New")}</Badge>
           )}
         </div>
         <p className="text-sm text-muted-foreground truncate">{person.current_title || 'No title'}</p>

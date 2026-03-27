@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Grid, MessageSquare, Bell, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -7,11 +8,12 @@ interface LiveHubBottomNavProps {
 }
 
 const LiveHubBottomNav = ({ activePanel, onPanelChange }: LiveHubBottomNavProps) => {
+  const { t } = useTranslation('meetings');
   const navItems = [
-    { id: 'servers' as const, icon: Grid, label: 'Servers' },
-    { id: 'messages' as const, icon: MessageSquare, label: 'Messages' },
-    { id: 'notifications' as const, icon: Bell, label: 'Notifications' },
-    { id: 'you' as const, icon: User, label: 'You' },
+    { id: 'servers' as const, icon: Grid, label: t('livehub.servers') },
+    { id: 'messages' as const, icon: MessageSquare, label: t('livehub.messages') },
+    { id: 'notifications' as const, icon: Bell, label: t('livehub.notifications') },
+    { id: 'you' as const, icon: User, label: t('livehub.you') },
   ];
 
   return (

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Trash2, GripVertical } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 
 interface Instruction {
   id: string;
@@ -16,6 +17,7 @@ interface Instruction {
 }
 
 export default function AgentInstructionsPanel({ agentName }: { agentName: string }) {
+  const { t } = useTranslation('admin');
   const { user } = useAuth();
   const [instructions, setInstructions] = useState<Instruction[]>([]);
   const [newInstruction, setNewInstruction] = useState('');
@@ -48,12 +50,12 @@ export default function AgentInstructionsPanel({ agentName }: { agentName: strin
       .single();
 
     if (error) {
-      toast.error('Failed to add instruction');
+      toast.error(t('agentic.agentInstructionsPanel.failedToAddInstruction'));
       return;
     }
     if (data) setInstructions((prev) => [data, ...prev]);
     setNewInstruction('');
-    toast.success('Instruction added');
+    toast.success(t('agentic.agentInstructionsPanel.instructionAdded'));
   };
 
   const toggleInstruction = async (id: string, isActive: boolean) => {
@@ -69,7 +71,7 @@ export default function AgentInstructionsPanel({ agentName }: { agentName: strin
   const deleteInstruction = async (id: string) => {
     await supabase.from('agent_instructions').delete().eq('id', id);
     setInstructions((prev) => prev.filter((i) => i.id !== id));
-    toast.success('Instruction removed');
+    toast.success(t('agentic.agentInstructionsPanel.instructionRemoved'));
   };
 
   return (
@@ -85,7 +87,7 @@ export default function AgentInstructionsPanel({ agentName }: { agentName: strin
           <input
             type="text"
             className="flex-1 bg-muted/20 border border-border/30 rounded-lg px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
-            placeholder="e.g., Only source candidates with 5+ years for senior roles"
+            placeholder={"e.g., Only source candidates with 5+ years for senior roles"}
             value={newInstruction}
             onChange={(e) => setNewInstruction(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && addInstruction()}
@@ -97,7 +99,7 @@ export default function AgentInstructionsPanel({ agentName }: { agentName: strin
 
         {/* Instructions list */}
         {loading ? (
-          <p className="text-xs text-muted-foreground">Loading...</p>
+          <p className="text-xs text-muted-foreground">{t('common:status.loading')}</p>
         ) : instructions.length === 0 ? (
           <p className="text-xs text-muted-foreground text-center py-2">
             No instructions yet. Add one above to guide this agent.

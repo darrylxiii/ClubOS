@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React, { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -30,6 +31,7 @@ export function AIExecutiveSummary({
   onRefresh,
   isRefreshing,
 }: AIExecutiveSummaryProps) {
+  const { t } = useTranslation('common');
   const safeDomainHealth = domainHealth || {};
   const safeAllKPIs = Array.isArray(allKPIs) ? allKPIs : [];
   
@@ -91,7 +93,7 @@ export function AIExecutiveSummary({
               <Sparkles className="h-4 w-4 text-primary" />
             </div>
             <div>
-              <CardTitle className="text-base">AI Executive Summary</CardTitle>
+              <CardTitle className="text-base">{t("ai_executive_summary", "AI Executive Summary")}</CardTitle>
               <p className="text-xs text-muted-foreground">
                 Powered by QUIN Intelligence
               </p>
@@ -122,19 +124,19 @@ export function AIExecutiveSummary({
         <div className="grid grid-cols-4 gap-2">
           <div className="text-center p-2 bg-rose-500/10 rounded-lg">
             <div className="text-lg font-bold text-rose-600">{insights.criticalKPIs.length}</div>
-            <div className="text-[10px] text-muted-foreground">Critical</div>
+            <div className="text-[10px] text-muted-foreground">{t("critical", "Critical")}</div>
           </div>
           <div className="text-center p-2 bg-amber-500/10 rounded-lg">
             <div className="text-lg font-bold text-amber-600">{insights.warningKPIs.length}</div>
-            <div className="text-[10px] text-muted-foreground">Warning</div>
+            <div className="text-[10px] text-muted-foreground">{t("warning", "Warning")}</div>
           </div>
           <div className="text-center p-2 bg-emerald-500/10 rounded-lg">
             <div className="text-lg font-bold text-emerald-600">{insights.improvingKPIs.length}</div>
-            <div className="text-[10px] text-muted-foreground">Improving</div>
+            <div className="text-[10px] text-muted-foreground">{t("improving", "Improving")}</div>
           </div>
           <div className="text-center p-2 bg-muted/50 rounded-lg">
             <div className="text-lg font-bold text-muted-foreground">{insights.decliningKPIs.length}</div>
-            <div className="text-[10px] text-muted-foreground">Declining</div>
+            <div className="text-[10px] text-muted-foreground">{t("declining", "Declining")}</div>
           </div>
         </div>
 

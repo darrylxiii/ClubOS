@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from 'react-i18next';
 import { useActivationFunnel, useTimeToMilestone, ACTIVATION_MILESTONES, ActivationFunnelStep } from "@/hooks/useActivationMetrics";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -8,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowDown, Clock, Users, TrendingUp, Target, Zap } from "lucide-react";
 
 export default function ActivationFunnelDashboard() {
+  const { t } = useTranslation('admin');
   const [days, setDays] = useState(30);
   const { data: funnelData, isLoading: funnelLoading } = useActivationFunnel(days);
   const { data: timeMetrics, isLoading: timeLoading } = useTimeToMilestone(days);
@@ -23,17 +25,17 @@ export default function ActivationFunnelDashboard() {
     <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Activation Funnel</h1>
-          <p className="text-muted-foreground">Track user progression through key milestones</p>
+          <h1 className="text-2xl font-bold">{t('activationFunnelDashboard.text1')}</h1>
+          <p className="text-muted-foreground">{t('activationFunnelDashboard.text2')}</p>
         </div>
         <Select value={days.toString()} onValueChange={(v) => setDays(Number(v))}>
           <SelectTrigger className="w-[140px]">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="7">Last 7 days</SelectItem>
-            <SelectItem value="30">Last 30 days</SelectItem>
-            <SelectItem value="90">Last 90 days</SelectItem>
+            <SelectItem value="7">{t('activationFunnelDashboard.text3')}</SelectItem>
+            <SelectItem value="30">{t('activationFunnelDashboard.text4')}</SelectItem>
+            <SelectItem value="90">{t('activationFunnelDashboard.text5')}</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -113,7 +115,7 @@ export default function ActivationFunnelDashboard() {
             <TrendingUp className="h-5 w-5" />
             Conversion Funnel
           </CardTitle>
-          <CardDescription>User progression through activation milestones</CardDescription>
+          <CardDescription>{t('activationFunnelDashboard.text6')}</CardDescription>
         </CardHeader>
         <CardContent>
           {funnelLoading ? (
@@ -174,7 +176,7 @@ export default function ActivationFunnelDashboard() {
             <Clock className="h-5 w-5" />
             Time to Milestone
           </CardTitle>
-          <CardDescription>Average time users take to reach each milestone</CardDescription>
+          <CardDescription>{t('activationFunnelDashboard.text7')}</CardDescription>
         </CardHeader>
         <CardContent>
           {timeLoading ? (

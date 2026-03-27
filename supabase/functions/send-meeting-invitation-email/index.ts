@@ -6,6 +6,7 @@ import {
   CalendarButtons, SchemaEvent 
 } from "../_shared/email-templates/components.ts";
 import { EMAIL_SENDERS, EMAIL_COLORS, getEmailAppUrl } from "../_shared/email-config.ts";
+import { sendEmail } from '../_shared/resend-client.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -65,8 +66,6 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    const resendApiKey = Deno.env.get('RESEND_API_KEY');
-    
     const emailData: EmailRequest = await req.json();
     
     // Use APP_URL from env or fallback to production URL
@@ -158,43 +157,24 @@ serve(async (req) => {
       showFooter: true,
     });
 
-    // Actually send the email via Resend
-    if (resendApiKey) {
-      console.log('[send-meeting-invitation-email] Sending email via Resend to:', emailData.inviteeEmail);
-      
-      const emailResponse = await fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${resendApiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          from: EMAIL_SENDERS.meetings,
-          to: [emailData.inviteeEmail],
-          subject: `Meeting Invitation: ${emailData.meetingTitle}`,
-          html: htmlContent,
-          attachments: [
-            {
-              filename: 'meeting.ics',
-              content: btoa(icsContent),
-              type: 'text/calendar',
-            }
-          ],
-        }),
-      });
+    // Send the email via shared Resend client
+    console.log('[send-meeting-invitation-email] Sending email via Resend to:', emailData.inviteeEmail);
 
-      if (!emailResponse.ok) {
-        const errorText = await emailResponse.text();
-        console.error('[send-meeting-invitation-email] Resend error:', errorText);
-        throw new Error(`Failed to send email: ${errorText}`);
-      }
+    const emailResult = await sendEmail({
+      from: EMAIL_SENDERS.meetings,
+      to: [emailData.inviteeEmail],
+      subject: `Meeting Invitation: ${emailData.meetingTitle}`,
+      html: htmlContent,
+      attachments: [
+        {
+          filename: 'meeting.ics',
+          content: btoa(icsContent),
+          type: 'text/calendar',
+        }
+      ],
+    });
 
-      const emailResult = await emailResponse.json();
-      console.log('[send-meeting-invitation-email] Email sent successfully:', emailResult.id);
-    } else {
-      console.log('[send-meeting-invitation-email] RESEND_API_KEY not configured, skipping email send');
-      console.log('[send-meeting-invitation-email] Would send email to:', emailData.inviteeEmail);
-    }
+    console.log('[send-meeting-invitation-email] Email sent successfully:', emailResult.id);
 
     // Update notification queue status
     await supabase
@@ -207,9 +187,9 @@ serve(async (req) => {
       .eq('notification_type', 'email');
 
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         success: true,
-        message: resendApiKey ? 'Email sent successfully' : 'Email queued (no API key)',
+        message: 'Email sent successfully',
         icsAttachment: btoa(icsContent)
       }),
       { 

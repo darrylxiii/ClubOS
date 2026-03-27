@@ -7,6 +7,7 @@ import { Shield, AlertTriangle, ArrowRight, ShieldAlert, ShieldCheck, RefreshCw 
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
+import { useTranslation } from 'react-i18next';
 
 interface SecurityStats {
   total: number;
@@ -18,6 +19,7 @@ interface SecurityStats {
 }
 
 export const SecurityAlertsWidget = () => {
+  const { t } = useTranslation('common');
   const [stats, setStats] = useState<SecurityStats>({
     total: 0,
     critical: 0,
@@ -202,14 +204,14 @@ export const SecurityAlertsWidget = () => {
 
         {/* Blocked IPs */}
         <div className="flex items-center justify-between text-xs sm:text-sm">
-          <span className="text-muted-foreground">Blocked IPs</span>
+          <span className="text-muted-foreground">{t('securityAlertsWidget.blockedIps')}</span>
           <Badge variant="outline" className="text-xs">{stats.blockedIps}</Badge>
         </div>
         
         {/* Mobile-only Details button */}
         <Button variant="outline" size="sm" asChild className="w-full mt-4 sm:hidden">
           <Link to="/admin/anti-hacking" className="flex items-center justify-center gap-1">
-            View Details <ArrowRight className="h-4 w-4" />
+            {t('common:viewDetails')} <ArrowRight className="h-4 w-4" />
           </Link>
         </Button>
       </CardContent>

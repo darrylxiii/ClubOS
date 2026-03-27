@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -70,6 +71,7 @@ export function ManualTimeEntryDialog({
   open,
   onOpenChange,
 }: ManualTimeEntryDialogProps) {
+  const { t } = useTranslation('common');
   const { projects, tasks, addManualEntry } = useTimeTracking();
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
 
@@ -131,7 +133,7 @@ export function ManualTimeEntryDialog({
               name="date"
               render={({ field }) => (
                 <FormItem className="flex flex-col">
-                  <FormLabel>Date</FormLabel>
+                  <FormLabel>{t("date", "Date")}</FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
@@ -145,7 +147,7 @@ export function ManualTimeEntryDialog({
                           {field.value ? (
                             format(field.value, "PPP")
                           ) : (
-                            <span>Pick a date</span>
+                            <span>{t("pick_a_date", "Pick a date")}</span>
                           )}
                           <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                         </Button>
@@ -173,7 +175,7 @@ export function ManualTimeEntryDialog({
                 name="start_time"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Start Time</FormLabel>
+                    <FormLabel>{t("start_time", "Start Time")}</FormLabel>
                     <FormControl>
                       <Input type="time" {...field} />
                     </FormControl>
@@ -187,7 +189,7 @@ export function ManualTimeEntryDialog({
                 name="end_time"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>End Time</FormLabel>
+                    <FormLabel>{t("end_time", "End Time")}</FormLabel>
                     <FormControl>
                       <Input type="time" {...field} />
                     </FormControl>
@@ -203,7 +205,7 @@ export function ManualTimeEntryDialog({
               name="project_id"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Project</FormLabel>
+                  <FormLabel>{t("project", "Project")}</FormLabel>
                   <Select
                     onValueChange={(value) => {
                       field.onChange(value);
@@ -214,7 +216,7 @@ export function ManualTimeEntryDialog({
                   >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select a project" />
+                        <SelectValue placeholder={t("select_a_project", "Select a project")} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -243,11 +245,11 @@ export function ManualTimeEntryDialog({
                 name="task_id"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Task</FormLabel>
+                    <FormLabel>{t("task", "Task")}</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select a task (optional)" />
+                          <SelectValue placeholder={t("select_a_task_optional", "Select a task (optional)")} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -270,10 +272,10 @@ export function ManualTimeEntryDialog({
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Description</FormLabel>
+                  <FormLabel>{t("description", "Description")}</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="What did you work on?"
+                      placeholder={t("what_did_you_work", "What did you work on?")}
                       className="resize-none"
                       rows={3}
                       {...field}

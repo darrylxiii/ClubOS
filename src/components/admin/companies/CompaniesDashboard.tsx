@@ -5,8 +5,10 @@ import { TotalApplicationsCard } from "./TotalApplicationsCard";
 import { CompanyFollowersCard } from "./CompanyFollowersCard";
 import { useCompanyMetrics } from "@/hooks/useCompanyMetrics";
 import { useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from 'react-i18next';
 
 export const CompaniesDashboard = () => {
+  const { t } = useTranslation('admin');
   const queryClient = useQueryClient();
   const { isLoading } = useCompanyMetrics();
 
@@ -17,7 +19,7 @@ export const CompaniesDashboard = () => {
   return (
     <div className="space-y-6">
       <DashboardHeader
-        title="Companies Overview"
+        title={t('companies.companiesDashboard.companiesOverview')}
         description="Manage company accounts and engagement"
         onRefresh={handleRefresh}
         isRefreshing={isLoading}

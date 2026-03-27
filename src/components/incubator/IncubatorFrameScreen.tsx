@@ -1,4 +1,5 @@
 import { memo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -12,6 +13,7 @@ interface IncubatorFrameScreenProps {
 }
 
 export const IncubatorFrameScreen = memo(({ onComplete }: IncubatorFrameScreenProps) => {
+  const { t } = useTranslation('common');
   const [problem, setProblem] = useState('');
   const [customer, setCustomer] = useState('');
   const [successMetric, setSuccessMetric] = useState('');
@@ -36,17 +38,13 @@ export const IncubatorFrameScreen = memo(({ onComplete }: IncubatorFrameScreenPr
     <div className="min-h-screen flex items-center justify-center p-6 bg-gradient-to-br from-background to-muted/10">
       <Card className="max-w-2xl w-full">
         <CardHeader>
-          <CardTitle className="text-3xl font-serif">Frame Your Strategy</CardTitle>
-          <CardDescription>
-            Lock in your north star. These answers will guide your plan and help us measure consistency.
-          </CardDescription>
+          <CardTitle className="text-3xl font-serif">{t('incubator.frameYourStrategy')}</CardTitle>
+          <CardDescription>{t('incubator.lockInYourNorthStarTheseAnswersWillGuide')}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <Alert>
             <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              Answer each question in 1-2 sentences. Be specific and concise.
-            </AlertDescription>
+            <AlertDescription>{t('incubator.answerEachQuestionIn12SentencesBeSpecifi')}</AlertDescription>
           </Alert>
 
           {/* Problem */}
@@ -108,14 +106,10 @@ export const IncubatorFrameScreen = memo(({ onComplete }: IncubatorFrameScreenPr
             disabled={!isValid}
             className="w-full"
             size="lg"
-          >
-            Lock In Framework & Continue
-          </Button>
+          >{t('incubator.lockInFrameworkContinue')}</Button>
 
           {!isValid && (
-            <p className="text-sm text-muted-foreground text-center">
-              Fill out all fields to continue
-            </p>
+            <p className="text-sm text-muted-foreground text-center">{t('incubator.fillOutAllFieldsToContinue')}</p>
           )}
         </CardContent>
       </Card>

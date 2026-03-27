@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useCostIntelligence } from '@/hooks/useSubscriptionBudgets';
@@ -5,6 +6,7 @@ import { DollarSign, TrendingDown, Activity, AlertTriangle, Users, BarChart3 } f
 import { formatCurrency } from '@/lib/revenueCalculations';
 
 export function CostIntelligenceCards() {
+  const { t } = useTranslation('common');
   const { data, isLoading } = useCostIntelligence();
 
   if (isLoading) {
@@ -24,7 +26,7 @@ export function CostIntelligenceCards() {
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       <Card>
         <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle className="text-sm font-medium text-muted-foreground">Cost per Placement</CardTitle>
+          <CardTitle className="text-sm font-medium text-muted-foreground">{t("cost_per_placement", "Cost per Placement")}</CardTitle>
           <DollarSign className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
@@ -37,7 +39,7 @@ export function CostIntelligenceCards() {
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle className="text-sm font-medium text-muted-foreground">Cost per Revenue €</CardTitle>
+          <CardTitle className="text-sm font-medium text-muted-foreground">{t("cost_per_revenue", "Cost per Revenue €")}</CardTitle>
           <TrendingDown className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
@@ -50,7 +52,7 @@ export function CostIntelligenceCards() {
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle className="text-sm font-medium text-muted-foreground">Subscription Health</CardTitle>
+          <CardTitle className="text-sm font-medium text-muted-foreground">{t("subscription_health", "Subscription Health")}</CardTitle>
           <Activity className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
@@ -63,7 +65,7 @@ export function CostIntelligenceCards() {
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle className="text-sm font-medium text-muted-foreground">Savings Opportunities</CardTitle>
+          <CardTitle className="text-sm font-medium text-muted-foreground">{t("savings_opportunities", "Savings Opportunities")}</CardTitle>
           <AlertTriangle className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>

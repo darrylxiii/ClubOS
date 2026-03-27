@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -21,6 +22,7 @@ import { format } from 'date-fns';
 import { SendToPilotButton } from '@/components/meetings/SendToPilotButton';
 
 export default function MeetingNotes() {
+  const { t } = useTranslation('meetings');
   const { meetingId } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -61,7 +63,7 @@ export default function MeetingNotes() {
       }
     } catch (error) {
       console.error('Error loading recording:', error);
-      toast.error('Failed to load meeting notes');
+      toast.error("Failed to load meeting notes");
     } finally {
       setLoading(false);
     }
@@ -123,7 +125,7 @@ export default function MeetingNotes() {
     link.click();
     URL.revokeObjectURL(url);
     
-    toast.success('Meeting notes exported');
+    toast.success("Meeting notes exported");
   };
 
   const shareWithTeam = async () => {
@@ -133,9 +135,9 @@ export default function MeetingNotes() {
     
     try {
       await navigator.clipboard.writeText(shareUrl);
-      toast.success('Link copied to clipboard');
+      toast.success("Link copied to clipboard");
     } catch {
-      toast.error('Failed to copy link');
+      toast.error("Failed to copy link");
     }
   };
 
@@ -172,7 +174,7 @@ export default function MeetingNotes() {
           </Button>
           <Alert>
             <AlertTriangle className="h-4 w-4" />
-            <AlertTitle>Recording Not Found</AlertTitle>
+            <AlertTitle>{t('meetingNotes.text1')}</AlertTitle>
             <AlertDescription>
               This meeting recording could not be found or you don't have access to it.
             </AlertDescription>
@@ -246,16 +248,16 @@ export default function MeetingNotes() {
             {/* Tabs for different sections */}
             <Tabs defaultValue="summary" className="w-full">
               <TabsList className="w-full grid grid-cols-4">
-                <TabsTrigger value="summary">Summary</TabsTrigger>
-                <TabsTrigger value="actions">Action Items</TabsTrigger>
-                <TabsTrigger value="moments">Key Moments</TabsTrigger>
-                <TabsTrigger value="skills">Skills</TabsTrigger>
+                <TabsTrigger value="summary">{t('meetingNotes.text2')}</TabsTrigger>
+                <TabsTrigger value="actions">{t('meetingNotes.text3')}</TabsTrigger>
+                <TabsTrigger value="moments">{t('meetingNotes.text4')}</TabsTrigger>
+                <TabsTrigger value="skills">{t('meetingNotes.text5')}</TabsTrigger>
               </TabsList>
 
               <TabsContent value="summary" className="space-y-4">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Executive Summary</CardTitle>
+                    <CardTitle>{t('meetingNotes.text6')}</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <p className="text-muted-foreground leading-relaxed">
@@ -264,11 +266,11 @@ export default function MeetingNotes() {
 
                     <div className="mt-6 grid grid-cols-2 gap-4">
                       <div className={`p-4 rounded-lg ${getFitColor(candidateEval.overallFit)}`}>
-                        <p className="text-xs font-medium mb-1">Overall Fit</p>
+                        <p className="text-xs font-medium mb-1">{t('meetingNotes.text7')}</p>
                         <p className="text-2xl font-bold capitalize">{candidateEval.overallFit || 'N/A'}</p>
                       </div>
                       <div className={`p-4 rounded-lg ${getFitColor(decisionGuidance.recommendation)}`}>
-                        <p className="text-xs font-medium mb-1">Recommendation</p>
+                        <p className="text-xs font-medium mb-1">{t('meetingNotes.text8')}</p>
                         <p className="text-2xl font-bold capitalize">
                           {decisionGuidance.recommendation?.replace('_', ' ') || 'N/A'}
                         </p>
@@ -277,7 +279,7 @@ export default function MeetingNotes() {
 
                     {candidateEval.strengths && candidateEval.strengths.length > 0 && (
                       <div className="mt-6">
-                        <h4 className="font-semibold mb-2">Strengths</h4>
+                        <h4 className="font-semibold mb-2">{t('meetingNotes.text9')}</h4>
                         <ul className="space-y-1">
                           {candidateEval.strengths.map((strength: string, idx: number) => (
                             <li key={idx} className="flex items-start gap-2 text-sm">
@@ -291,7 +293,7 @@ export default function MeetingNotes() {
 
                     {candidateEval.weaknesses && candidateEval.weaknesses.length > 0 && (
                       <div className="mt-4">
-                        <h4 className="font-semibold mb-2">Areas for Concern</h4>
+                        <h4 className="font-semibold mb-2">{t('meetingNotes.text10')}</h4>
                         <ul className="space-y-1">
                           {candidateEval.weaknesses.map((weakness: string, idx: number) => (
                             <li key={idx} className="flex items-start gap-2 text-sm">
@@ -345,7 +347,7 @@ export default function MeetingNotes() {
               <TabsContent value="actions" className="space-y-4">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Action Items</CardTitle>
+                    <CardTitle>{t('meetingNotes.text11')}</CardTitle>
                   </CardHeader>
                   <CardContent>
                     {analysis.actionItems && analysis.actionItems.length > 0 ? (
@@ -366,7 +368,7 @@ export default function MeetingNotes() {
                         ))}
                       </div>
                     ) : (
-                      <p className="text-muted-foreground text-center py-8">No action items identified</p>
+                      <p className="text-muted-foreground text-center py-8">{t('meetingNotes.text12')}</p>
                     )}
                   </CardContent>
                 </Card>
@@ -375,7 +377,7 @@ export default function MeetingNotes() {
               <TabsContent value="moments" className="space-y-4">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Key Moments</CardTitle>
+                    <CardTitle>{t('meetingNotes.text13')}</CardTitle>
                   </CardHeader>
                   <CardContent>
                     {analysis.keyMoments && analysis.keyMoments.length > 0 ? (
@@ -401,7 +403,7 @@ export default function MeetingNotes() {
                         </div>
                       </ScrollArea>
                     ) : (
-                      <p className="text-muted-foreground text-center py-8">No key moments identified</p>
+                      <p className="text-muted-foreground text-center py-8">{t('meetingNotes.text14')}</p>
                     )}
                   </CardContent>
                 </Card>
@@ -410,7 +412,7 @@ export default function MeetingNotes() {
               <TabsContent value="skills" className="space-y-4">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Skills Assessment</CardTitle>
+                    <CardTitle>{t('meetingNotes.text15')}</CardTitle>
                   </CardHeader>
                   <CardContent>
                     {candidateEval.skillsAssessment && candidateEval.skillsAssessment.length > 0 ? (
@@ -440,7 +442,7 @@ export default function MeetingNotes() {
                         ))}
                       </div>
                     ) : (
-                      <p className="text-muted-foreground text-center py-8">No skills assessment available</p>
+                      <p className="text-muted-foreground text-center py-8">{t('meetingNotes.text16')}</p>
                     )}
                   </CardContent>
                 </Card>
@@ -453,7 +455,7 @@ export default function MeetingNotes() {
             {decisionGuidance.nextSteps && decisionGuidance.nextSteps.length > 0 && (
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base">Next Steps</CardTitle>
+                  <CardTitle className="text-base">{t('meetingNotes.text17')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <ul className="space-y-2">
@@ -471,22 +473,22 @@ export default function MeetingNotes() {
             {analysis.followUpEmail && (
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base">Follow-Up Email</CardTitle>
+                  <CardTitle className="text-base">{t('meetingNotes.text18')}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <div>
-                    <p className="text-xs font-medium text-muted-foreground mb-1">Subject</p>
+                    <p className="text-xs font-medium text-muted-foreground mb-1">{t('meetingNotes.text19')}</p>
                     <p className="text-sm font-medium">{analysis.followUpEmail.subject}</p>
                   </div>
                   <div>
-                    <p className="text-xs font-medium text-muted-foreground mb-1">Body</p>
+                    <p className="text-xs font-medium text-muted-foreground mb-1">{t('meetingNotes.text20')}</p>
                     <p className="text-sm text-muted-foreground whitespace-pre-wrap">
                       {analysis.followUpEmail.body}
                     </p>
                   </div>
                   <Button size="sm" variant="outline" className="w-full" onClick={() => {
                     navigator.clipboard.writeText(analysis.followUpEmail.body);
-                    toast.success('Email copied to clipboard');
+                    toast.success("Email copied to clipboard");
                   }}>
                     Copy Email
                   </Button>

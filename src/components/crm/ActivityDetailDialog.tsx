@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import {
   Dialog,
@@ -42,6 +43,7 @@ export function ActivityDetailDialog({
   onOpenChange,
   onComplete 
 }: ActivityDetailDialogProps) {
+  const { t } = useTranslation('common');
   const [outcome, setOutcome] = useState<string>('');
   const [outcomeNotes, setOutcomeNotes] = useState('');
   const [completing, setCompleting] = useState(false);
@@ -114,7 +116,7 @@ export function ActivityDetailDialog({
           {/* Description */}
           {activity.description && (
             <div>
-              <Label className="text-xs text-muted-foreground">Description</Label>
+              <Label className="text-xs text-muted-foreground">{t("description", "Description")}</Label>
               <p className="text-sm mt-1">{activity.description}</p>
             </div>
           )}
@@ -122,7 +124,7 @@ export function ActivityDetailDialog({
           {/* Note */}
           {activity.note && (
             <div>
-              <Label className="text-xs text-muted-foreground">Note</Label>
+              <Label className="text-xs text-muted-foreground">{t("note", "Note")}</Label>
               <p className="text-sm mt-1 bg-muted/20 p-3 rounded-lg">{activity.note}</p>
             </div>
           )}
@@ -130,11 +132,11 @@ export function ActivityDetailDialog({
           {/* Complete Section */}
           {!activity.is_done && (
             <div className="border-t border-border/30 pt-4 space-y-3">
-              <Label>Mark as Complete</Label>
+              <Label>{t("mark_as_complete", "Mark as Complete")}</Label>
               
               <Select value={outcome} onValueChange={setOutcome}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select outcome..." />
+                  <SelectValue placeholder={t("select_outcome", "Select outcome...")} />
                 </SelectTrigger>
                 <SelectContent>
                   {ACTIVITY_OUTCOMES.map(o => (
@@ -146,7 +148,7 @@ export function ActivityDetailDialog({
               </Select>
 
               <Textarea
-                placeholder="Add notes about the outcome..."
+                placeholder={t("add_notes_about_the", "Add notes about the outcome...")}
                 value={outcomeNotes}
                 onChange={(e) => setOutcomeNotes(e.target.value)}
                 className="min-h-20 bg-muted/20"
@@ -177,7 +179,7 @@ export function ActivityDetailDialog({
             <div className="border-t border-border/30 pt-4">
               <div className="flex items-center gap-2 text-green-500 mb-2">
                 <CheckCircle className="w-5 h-5" />
-                <span className="font-medium">Completed</span>
+                <span className="font-medium">{t("completed", "Completed")}</span>
               </div>
               {activity.outcome && (
                 <Badge variant="outline" className="mb-2">

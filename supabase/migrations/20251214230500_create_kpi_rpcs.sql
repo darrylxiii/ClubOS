@@ -47,6 +47,7 @@ end;
 $$;
 
 -- RPC to get Edge Function Health (Mock for now as we don't have func logs accessible via SQL easily)
+DROP FUNCTION IF EXISTS "public"."get_edge_function_health"() CASCADE;
 create or replace function "public"."get_edge_function_health"()
 returns json
 language plpgsql

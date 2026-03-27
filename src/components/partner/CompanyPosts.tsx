@@ -11,12 +11,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2, Eye, Calendar, MessageSquare } from "lucide-react";
 import { format } from "date-fns";
+import { useTranslation } from 'react-i18next';
 
 interface CompanyPostsProps {
   companyId: string;
 }
 
 export const CompanyPosts = ({ companyId }: CompanyPostsProps) => {
+  const { t } = useTranslation('partner');
   const [posts, setPosts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -50,7 +52,7 @@ export const CompanyPosts = ({ companyId }: CompanyPostsProps) => {
       setPosts(data || []);
     } catch (error) {
       console.error('Error fetching posts:', error);
-      toast.error("Failed to load posts");
+      toast.error(t('companyPosts.toast.failedToLoadPosts'));
     } finally {
       setLoading(false);
     }
@@ -79,14 +81,14 @@ export const CompanyPosts = ({ companyId }: CompanyPostsProps) => {
           .eq('id', editingPost.id);
 
         if (error) throw error;
-        toast.success("Post updated successfully");
+        toast.success(t('companyPosts.toast.postUpdatedSuccessfully'));
       } else {
         const { error } = await supabase
           .from('company_posts')
           .insert([postData]);
 
         if (error) throw error;
-        toast.success("Post created successfully");
+        toast.success(t('companyPosts.toast.postCreatedSuccessfully'));
       }
 
       setDialogOpen(false);
@@ -102,7 +104,7 @@ export const CompanyPosts = ({ companyId }: CompanyPostsProps) => {
       fetchPosts();
     } catch (error) {
       console.error('Error saving post:', error);
-      toast.error("Failed to save post");
+      toast.error(t('companyPosts.toast.failedToSavePost'));
     }
   };
 
@@ -129,11 +131,11 @@ export const CompanyPosts = ({ companyId }: CompanyPostsProps) => {
         .eq('id', postId);
 
       if (error) throw error;
-      toast.success("Post deleted successfully");
+      toast.success(t('companyPosts.toast.postDeletedSuccessfully'));
       fetchPosts();
     } catch (error) {
       console.error('Error deleting post:', error);
-      toast.error("Failed to delete post");
+      toast.error(t('companyPosts.toast.failedToDeletePost'));
     }
   };
 
@@ -158,8 +160,8 @@ export const CompanyPosts = ({ companyId }: CompanyPostsProps) => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-black uppercase">Company Posts</h2>
-          <p className="text-sm text-muted-foreground">Manage your company news and updates</p>
+          <h2 className="text-2xl font-black uppercase">{t('companyPosts.companyPosts')}</h2>
+          <p className="text-sm text-muted-foreground">{t('companyPosts.manageYourCompanyNewsAndUpdates')}</p>
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
@@ -181,13 +183,11 @@ export const CompanyPosts = ({ companyId }: CompanyPostsProps) => {
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{editingPost ? 'Edit Post' : 'Create New Post'}</DialogTitle>
-              <DialogDescription>
-                Share news, milestones, events, and updates with your audience
-              </DialogDescription>
+              <DialogDescription>{t('companyPosts.dialogDescription')}</DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="title">Title</Label>
+                <Label htmlFor="title">{t('companyPosts.label.title')}</Label>
                 <Input
                   id="title"
                   value={formData.title}
@@ -197,7 +197,7 @@ export const CompanyPosts = ({ companyId }: CompanyPostsProps) => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="content">Content</Label>
+                <Label htmlFor="content">{t('companyPosts.label.content')}</Label>
                 <Textarea
                   id="content"
                   value={formData.content}
@@ -209,7 +209,7 @@ export const CompanyPosts = ({ companyId }: CompanyPostsProps) => {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="post_type">Post Type</Label>
+                  <Label htmlFor="post_type">{t('companyPosts.label.postType')}</Label>
                   <Select
                     value={formData.post_type}
                     onValueChange={(value: any) => setFormData({ ...formData, post_type: value })}
@@ -218,17 +218,17 @@ export const CompanyPosts = ({ companyId }: CompanyPostsProps) => {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="news">News</SelectItem>
-                      <SelectItem value="milestone">Milestone</SelectItem>
-                      <SelectItem value="event">Event</SelectItem>
-                      <SelectItem value="update">Update</SelectItem>
-                      <SelectItem value="media">Media</SelectItem>
+                      <SelectItem value="news">{t('companyPosts.option.news')}</SelectItem>
+                      <SelectItem value="milestone">{t('companyPosts.option.milestone')}</SelectItem>
+                      <SelectItem value="event">{t('companyPosts.option.event')}</SelectItem>
+                      <SelectItem value="update">{t('common:update')}</SelectItem>
+                      <SelectItem value="media">{t('companyPosts.option.media')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="tags">Tags (comma separated)</Label>
+                  <Label htmlFor="tags">{t('companyPosts.label.tagsCommaSeparated')}</Label>
                   <Input
                     id="tags"
                     value={formData.tags}
@@ -246,7 +246,7 @@ export const CompanyPosts = ({ companyId }: CompanyPostsProps) => {
                     onChange={(e) => setFormData({ ...formData, is_public: e.target.checked })}
                     className="w-4 h-4"
                   />
-                  <span className="text-sm">Public</span>
+                  <span className="text-sm">{t('companyPosts.public')}</span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
@@ -255,13 +255,13 @@ export const CompanyPosts = ({ companyId }: CompanyPostsProps) => {
                     onChange={(e) => setFormData({ ...formData, is_featured: e.target.checked })}
                     className="w-4 h-4"
                   />
-                  <span className="text-sm">Featured</span>
+                  <span className="text-sm">{t('companyPosts.featured')}</span>
                 </label>
               </div>
 
               <div className="flex justify-end gap-2">
                 <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
-                  Cancel
+                  {t('common:cancel')}
                 </Button>
                 <Button type="submit">
                   {editingPost ? 'Update' : 'Create'} Post
@@ -277,7 +277,7 @@ export const CompanyPosts = ({ companyId }: CompanyPostsProps) => {
           <Card>
             <CardContent className="py-12 text-center">
               <MessageSquare className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-              <p className="text-muted-foreground">No posts yet. Create your first post to get started.</p>
+              <p className="text-muted-foreground">{t('companyPosts.noPostsYetCreateYourFirstPostToGetStarte')}</p>
             </CardContent>
           </Card>
         ) : (
@@ -291,10 +291,10 @@ export const CompanyPosts = ({ companyId }: CompanyPostsProps) => {
                         {post.post_type}
                       </Badge>
                       {post.is_featured && (
-                        <Badge variant="secondary">Featured</Badge>
+                        <Badge variant="secondary">{t('companyPosts.badge.featured')}</Badge>
                       )}
                       {!post.is_public && (
-                        <Badge variant="outline">Private</Badge>
+                        <Badge variant="outline">{t('companyPosts.badge.private')}</Badge>
                       )}
                     </div>
                     <CardTitle className="text-xl">{post.title}</CardTitle>

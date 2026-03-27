@@ -1,3 +1,12 @@
+-- 1. DROP EXISTING CONFLICTING TABLES FROM PREVIOUS MIGRATIONS IF ANY
+DROP TABLE IF EXISTS "public"."sales_kpi_metrics" CASCADE;
+DROP TABLE IF EXISTS "public"."kpi_metrics" CASCADE;
+DROP TABLE IF EXISTS "public"."web_kpi_metrics" CASCADE;
+DROP TABLE IF EXISTS "public"."platform_metrics" CASCADE;
+DROP TABLE IF EXISTS "public"."sales_proposals" CASCADE;
+DROP TABLE IF EXISTS "public"."sales_conversations" CASCADE;
+DROP VIEW IF EXISTS "public"."sales_conversations" CASCADE;
+
 -- 1. Sales KPI Metrics
 create table "public"."sales_kpi_metrics" (
   "id" uuid not null default gen_random_uuid(),
@@ -32,8 +41,11 @@ create table "public"."kpi_metrics" (
   "period_type" text not null,
   "period_start" timestamp with time zone,
   "period_end" timestamp with time zone,
+  "trend_direction" text check (trend_direction in ('up', 'down', 'stable')),
+  "trend_percent" numeric,
   "metadata" jsonb default '{}'::jsonb,
   "created_at" timestamp with time zone not null default now(),
+  "updated_at" timestamp with time zone default now(),
   constraint "kpi_metrics_pkey" primary key ("id")
 );
 
@@ -97,7 +109,6 @@ select
   max(a.created_at) as last_message_at,
   count(a.id) as message_count,
   (p.stage = 'qualified') as is_qualified,
-  p.status,
   p.owner_id
 from
   "public"."crm_prospects" p
@@ -106,7 +117,7 @@ left join
 where
   a.activity_type in ('email', 'call', 'meeting')
 group by
-  p.id, p.company_name, p.stage, p.status, p.owner_id;
+  p.id, p.company_name, p.stage, p.owner_id;
 
 
 -- 7. Indices for Performance

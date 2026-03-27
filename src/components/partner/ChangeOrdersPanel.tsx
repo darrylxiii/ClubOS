@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -29,6 +30,7 @@ interface ChangeOrdersPanelProps {
 }
 
 export function ChangeOrdersPanel({ changeOrders, contracts }: ChangeOrdersPanelProps) {
+  const { t } = useTranslation('common');
   const [selectedOrder, setSelectedOrder] = useState<ContractChangeOrder | null>(null);
   const [rejectReason, setRejectReason] = useState("");
   const [showRejectDialog, setShowRejectDialog] = useState(false);
@@ -121,7 +123,7 @@ export function ChangeOrdersPanel({ changeOrders, contracts }: ChangeOrdersPanel
 
                 {order.scope_change && (
                   <div className="mb-3 p-3 bg-background rounded-md">
-                    <div className="text-sm text-muted-foreground mb-1">Scope Change:</div>
+                    <div className="text-sm text-muted-foreground mb-1">{t("scope_change", "Scope Change:")}</div>
                     <div className="text-sm text-foreground">{order.scope_change}</div>
                   </div>
                 )}
@@ -149,7 +151,7 @@ export function ChangeOrdersPanel({ changeOrders, contracts }: ChangeOrdersPanel
 
                 {order.justification && (
                   <div className="mb-4 p-3 bg-muted/30 rounded-md">
-                    <div className="text-sm text-muted-foreground mb-1">Justification:</div>
+                    <div className="text-sm text-muted-foreground mb-1">{t("justification", "Justification:")}</div>
                     <div className="text-sm text-foreground">{order.justification}</div>
                   </div>
                 )}
@@ -160,7 +162,7 @@ export function ChangeOrdersPanel({ changeOrders, contracts }: ChangeOrdersPanel
                     onClick={() => handleApprove(order)}
                   >
                     <CheckCircle className="h-4 w-4 mr-2" />
-                    Approve
+                    {t('common:approve')}
                   </Button>
                   <Button 
                     size="sm"
@@ -171,7 +173,7 @@ export function ChangeOrdersPanel({ changeOrders, contracts }: ChangeOrdersPanel
                     }}
                   >
                     <XCircle className="h-4 w-4 mr-2" />
-                    Reject
+                    {t('common:reject')}
                   </Button>
                 </div>
               </div>
@@ -183,17 +185,13 @@ export function ChangeOrdersPanel({ changeOrders, contracts }: ChangeOrdersPanel
       {/* Processed Change Orders */}
       <Card>
         <CardHeader>
-          <CardTitle>Change Order History</CardTitle>
+          <CardTitle>{t("change_order_history", "Change Order History")}</CardTitle>
         </CardHeader>
         <CardContent>
           {processedOrders.length === 0 && pendingOrders.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              No change orders yet
-            </div>
+            <div className="text-center py-8 text-muted-foreground">{t('changeOrdersPanel.noChangeOrdersYet')}</div>
           ) : processedOrders.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              No processed change orders yet
-            </div>
+            <div className="text-center py-8 text-muted-foreground">{t('changeOrdersPanel.noProcessedChangeOrdersYet')}</div>
           ) : (
             <div className="space-y-3">
               {processedOrders.map((order) => (
@@ -237,14 +235,14 @@ export function ChangeOrdersPanel({ changeOrders, contracts }: ChangeOrdersPanel
       <Dialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Reject Change Order</DialogTitle>
+            <DialogTitle>{t("reject_change_order", "Reject Change Order")}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <p className="text-sm text-muted-foreground">
               Please provide a reason for rejecting this change order:
             </p>
             <Textarea
-              placeholder="Reason for rejection..."
+              placeholder={t("reason_for_rejection", "Reason for rejection...")}
               value={rejectReason}
               onChange={(e) => setRejectReason(e.target.value)}
               rows={4}
@@ -252,7 +250,7 @@ export function ChangeOrdersPanel({ changeOrders, contracts }: ChangeOrdersPanel
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowRejectDialog(false)}>
-              Cancel
+              {t('common:cancel')}
             </Button>
             <Button 
               variant="destructive" 

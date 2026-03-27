@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,6 +14,7 @@ import { toast } from "sonner";
 import { MergePreviewDialog } from "./MergePreviewDialog";
 
 export function MergeSuggestionsTable() {
+  const { t } = useTranslation('common');
   const [suggestions, setSuggestions] = useState<MergeSuggestion[]>([]);
   const [loading, setLoading] = useState(true);
   const [minConfidence, setMinConfidence] = useState(70);
@@ -41,7 +43,7 @@ export function MergeSuggestionsTable() {
       setSuggestions(data);
     } catch (error) {
       console.error('Error loading suggestions:', error);
-      toast.error('Failed to load merge suggestions');
+      toast.error(t("failed_to_load_merge", "Failed to load merge suggestions"));
     } finally {
       setLoading(false);
     }
@@ -52,7 +54,7 @@ export function MergeSuggestionsTable() {
       const result = await mergeService.executeMerge(candidateId, userId, 'auto');
       
       if (result.success) {
-        toast.success('Merge approved and executed successfully');
+        toast.success(t("merge_approved_and_executed", "Merge approved and executed successfully"));
         loadSuggestions();
       } else {
         throw new Error(result.error || 'Merge failed');
@@ -66,11 +68,11 @@ export function MergeSuggestionsTable() {
   const handleReject = async (candidateId: string, userId: string) => {
     try {
       await mergeService.rejectMerge(candidateId, userId, 'Manually rejected by admin');
-      toast.success('Merge suggestion rejected');
+      toast.success(t("merge_suggestion_rejected", "Merge suggestion rejected"));
       loadSuggestions();
     } catch (error) {
       console.error('Error rejecting merge:', error);
-      toast.error('Failed to reject merge');
+      toast.error(t("failed_to_reject_merge", "Failed to reject merge"));
     }
   };
 
@@ -114,7 +116,7 @@ export function MergeSuggestionsTable() {
     <>
       <Card>
         <CardHeader>
-          <CardTitle>Auto-Detected Merge Suggestions</CardTitle>
+          <CardTitle>{t("autodetected_merge_suggestions", "Auto-Detected Merge Suggestions")}</CardTitle>
           <CardDescription>
             Review and approve automatically detected potential profile matches
           </CardDescription>
@@ -133,17 +135,17 @@ export function MergeSuggestionsTable() {
               />
             </div>
             <div className="space-y-2">
-              <Label>Match Type</Label>
+              <Label>{t("match_type", "Match Type")}</Label>
               <Select value={matchType} onValueChange={setMatchType}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Types</SelectItem>
-                  <SelectItem value="email_match">📧 Email Match</SelectItem>
-                  <SelectItem value="name_match">👤 Name Match</SelectItem>
-                  <SelectItem value="partial_link">🔗 Partial Link</SelectItem>
-                  <SelectItem value="manual">🔍 Manual</SelectItem>
+                  <SelectItem value="all">{t("all_types", "All Types")}</SelectItem>
+                  <SelectItem value="email_match">{t("email_match", "📧 Email Match")}</SelectItem>
+                  <SelectItem value="name_match">{t("name_match", "👤 Name Match")}</SelectItem>
+                  <SelectItem value="partial_link">{t("partial_link", "🔗 Partial Link")}</SelectItem>
+                  <SelectItem value="manual">{t("manual", "🔍 Manual")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -156,7 +158,7 @@ export function MergeSuggestionsTable() {
           ) : suggestions.length === 0 ? (
             <div className="text-center py-12">
               <AlertCircle className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-              <p className="text-muted-foreground">No merge suggestions found</p>
+              <p className="text-muted-foreground">{t("no_merge_suggestions_found", "No merge suggestions found")}</p>
               <p className="text-sm text-muted-foreground mt-1">
                 Try adjusting the filters to see more results
               </p>
@@ -166,11 +168,11 @@ export function MergeSuggestionsTable() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Candidate</TableHead>
-                    <TableHead>User Account</TableHead>
-                    <TableHead>Match Type</TableHead>
-                    <TableHead>Confidence</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead>{t("candidate", "Candidate")}</TableHead>
+                    <TableHead>{t("user_account", "User Account")}</TableHead>
+                    <TableHead>{t("match_type", "Match Type")}</TableHead>
+                    <TableHead>{t("confidence", "Confidence")}</TableHead>
+                    <TableHead className="text-right">{t("actions", "Actions")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>

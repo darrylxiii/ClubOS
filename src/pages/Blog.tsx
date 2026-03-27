@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Helmet } from 'react-helmet-async';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import BlogHero from '@/components/blog/BlogHero';
@@ -11,6 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 const useDebounce = (value: string, delay: number) => {
+  const { t } = useTranslation('common');
   const [debouncedValue, setDebouncedValue] = useState(value);
   useEffect(() => {
     const handler = setTimeout(() => setDebouncedValue(value), delay);
@@ -56,12 +58,12 @@ const Blog: React.FC = () => {
         });
 
         if (response.data?.success) {
-          toast.success('You have been unsubscribed from The Quantum Club newsletter.');
+          toast.success("You have been unsubscribed from The Quantum Club newsletter.");
         } else {
           toast.error(response.data?.message || 'Invalid or expired unsubscribe link.');
         }
       } catch {
-        toast.error('Something went wrong. Please try again.');
+        toast.error("Something went wrong. Please try again.");
       }
 
       // Clean URL

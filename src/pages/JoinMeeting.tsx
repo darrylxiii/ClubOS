@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,6 +11,7 @@ import { toast } from 'sonner';
 
 
 export default function JoinMeeting() {
+  const { t } = useTranslation('meetings');
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [code, setCode] = useState(searchParams.get('code') || '');
@@ -36,7 +38,7 @@ export default function JoinMeeting() {
 
   const joinMeeting = async () => {
     if (code.length < 10) {
-      toast.error('Please enter a valid meeting code');
+      toast.error("Please enter a valid meeting code");
       return;
     }
 
@@ -53,14 +55,14 @@ export default function JoinMeeting() {
         .single();
 
       if (error || !meeting) {
-        toast.error('Meeting not found', {
+        toast.error("Meeting not found", {
           description: 'Please check the code and try again',
         });
         return;
       }
 
       if (meeting.status === 'ended') {
-        toast.error('This meeting has ended');
+        toast.error("This meeting has ended");
         return;
       }
 
@@ -73,7 +75,7 @@ export default function JoinMeeting() {
           join_source: 'join_page',
         });
 
-      toast.success('Joining meeting...', {
+      toast.success("Joining meeting...", {
         description: meeting.title,
       });
 
@@ -81,7 +83,7 @@ export default function JoinMeeting() {
       navigate(`/meeting/${formattedCode}`);
     } catch (error: unknown) {
       console.error('Error joining meeting:', error);
-      toast.error('Failed to join meeting', {
+      toast.error("Failed to join meeting", {
         description: error instanceof Error ? error.message : 'Unknown error',
       });
     } finally {
@@ -103,18 +105,18 @@ export default function JoinMeeting() {
             <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-2">
               <Video className="h-6 w-6 text-primary" />
             </div>
-            <CardTitle className="text-2xl">Join a Meeting</CardTitle>
+            <CardTitle className="text-2xl">{t('joinMeeting.text2')}</CardTitle>
             <CardDescription>
               Enter the meeting code to join
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="code">Meeting Code</Label>
+              <Label htmlFor="code">{t('joinMeeting.text3')}</Label>
               <Input
                 id="code"
                 type="text"
-                placeholder="ABC-DEFG-HIJ"
+                placeholder={t('joinMeeting.text4')}
                 value={displayCode(code)}
                 onChange={handleCodeChange}
                 onKeyPress={handleKeyPress}
@@ -122,9 +124,7 @@ export default function JoinMeeting() {
                 maxLength={12}
                 autoFocus
               />
-              <p className="text-xs text-muted-foreground text-center">
-                Enter the 10-character meeting code
-              </p>
+              <p className="text-xs text-muted-foreground text-center">{t('joinMeeting.desc')}</p>
             </div>
 
             <Button

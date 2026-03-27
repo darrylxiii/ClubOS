@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -55,6 +56,7 @@ interface SocialActivityFeedProps {
 }
 
 export const SocialActivityFeed = ({ userId, isReadOnly = false }: SocialActivityFeedProps = {}) => {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const navigate = useNavigate();
   const targetUserId = userId || user?.id;
@@ -172,8 +174,8 @@ export const SocialActivityFeed = ({ userId, isReadOnly = false }: SocialActivit
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle>Social Activity</CardTitle>
-            <CardDescription>{isReadOnly ? 'Latest posts, stories, and likes' : 'Your latest posts, stories, and likes'}</CardDescription>
+            <CardTitle>{t('profile.socialActivity')}</CardTitle>
+            <CardDescription>{isReadOnly ? t('profile.latestActivity') : t('profile.yourLatestActivity')}</CardDescription>
           </div>
           {!isReadOnly && (
             <Button
@@ -183,7 +185,7 @@ export const SocialActivityFeed = ({ userId, isReadOnly = false }: SocialActivit
               className="gap-2"
             >
               <Settings className="w-4 h-4" />
-              Connect Platforms
+              {t('profile.connectPlatforms')}
             </Button>
           )}
         </div>
@@ -192,7 +194,7 @@ export const SocialActivityFeed = ({ userId, isReadOnly = false }: SocialActivit
         {/* Connected Platforms Overview */}
         {socialAccounts.length > 0 && (
           <div className="mb-6">
-            <p className="text-sm text-muted-foreground mb-3">Connected Platforms</p>
+            <p className="text-sm text-muted-foreground mb-3">{t('profile.connectedPlatforms')}</p>
             <div className="flex flex-wrap gap-2">
               {socialAccounts.map((account) => (
                 <Badge key={account.id} variant="secondary" className="gap-2">
@@ -208,16 +210,16 @@ export const SocialActivityFeed = ({ userId, isReadOnly = false }: SocialActivit
 
         <Tabs defaultValue="posts" className="w-full">
           <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="posts">Posts ({posts.length})</TabsTrigger>
-            <TabsTrigger value="stories">Stories ({stories.length})</TabsTrigger>
-            <TabsTrigger value="likes">Likes ({likes.length})</TabsTrigger>
+            <TabsTrigger value="posts">{t('profile.posts')} ({posts.length})</TabsTrigger>
+            <TabsTrigger value="stories">{t('profile.stories')} ({stories.length})</TabsTrigger>
+            <TabsTrigger value="likes">{t('profile.likes')} ({likes.length})</TabsTrigger>
           </TabsList>
 
           <TabsContent value="posts" className="space-y-4">
             {posts.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
                 <MessageCircle className="w-12 h-12 mx-auto mb-4 opacity-20" />
-                <p>No posts yet</p>
+                <p>{t('profile.noPostsYet')}</p>
               </div>
             ) : (
               posts.map((post) => {
@@ -262,7 +264,7 @@ export const SocialActivityFeed = ({ userId, isReadOnly = false }: SocialActivit
                         onClick={() => navigate(`/feed?highlight=${post.id}`)}
                         className="text-xs gap-1 h-auto py-1 px-2"
                       >
-                        See full post
+                        {t('profile.seeFullPost')}
                         <ArrowRight className="w-3 h-3" />
                       </Button>
                     </div>
@@ -276,7 +278,7 @@ export const SocialActivityFeed = ({ userId, isReadOnly = false }: SocialActivit
             {stories.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
                 <Video className="w-12 h-12 mx-auto mb-4 opacity-20" />
-                <p>No stories in the last 24 hours</p>
+                <p>{t('profile.noStories')}</p>
               </div>
             ) : (
               <div className="grid grid-cols-3 gap-4">
@@ -304,7 +306,7 @@ export const SocialActivityFeed = ({ userId, isReadOnly = false }: SocialActivit
             {likes.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
                 <Heart className="w-12 h-12 mx-auto mb-4 opacity-20" />
-                <p>No liked posts yet</p>
+                <p>{t('profile.noLikedPosts')}</p>
               </div>
             ) : (
               likes.map((like) => {
@@ -344,7 +346,7 @@ export const SocialActivityFeed = ({ userId, isReadOnly = false }: SocialActivit
                         onClick={() => navigate(`/feed?highlight=${like.post_id}`)}
                         className="text-xs gap-1 h-auto py-1 px-2"
                       >
-                        See full post
+                        {t('profile.seeFullPost')}
                         <ArrowRight className="w-3 h-3" />
                       </Button>
                     </div>
@@ -358,11 +360,11 @@ export const SocialActivityFeed = ({ userId, isReadOnly = false }: SocialActivit
         {socialAccounts.length === 0 && !isReadOnly && (
           <div className="mt-6 p-6 border rounded-lg bg-muted/50 text-center">
             <p className="text-sm text-muted-foreground mb-3">
-              Connect your social media accounts to see aggregated posts from other platforms
+              {t('profile.connectSocialDesc')}
             </p>
             <Button onClick={() => navigate('/settings#social')} variant="default" size="sm">
               <Settings className="w-4 h-4 mr-2" />
-              Connect Social Platforms
+              {t('profile.connectSocialPlatforms')}
             </Button>
           </div>
         )}

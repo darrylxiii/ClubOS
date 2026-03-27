@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
@@ -23,6 +24,7 @@ export function DetailedReadReceipts({
   conversationId, 
   isGroup 
 }: DetailedReadReceiptsProps) {
+  const { t } = useTranslation('common');
   const [receipts, setReceipts] = useState<ReadReceipt[]>([]);
   const [totalParticipants, setTotalParticipants] = useState(0);
 
@@ -82,7 +84,7 @@ export function DetailedReadReceipts({
       </HoverCardTrigger>
       <HoverCardContent className="w-80">
         <div className="space-y-3">
-          <h4 className="font-semibold text-sm">Read by</h4>
+          <h4 className="font-semibold text-sm">{t("read_by", "Read by")}</h4>
           <div className="space-y-2 max-h-[300px] overflow-y-auto">
             {receipts.map((receipt) => (
               <div key={receipt.user_id} className="flex items-center gap-2">

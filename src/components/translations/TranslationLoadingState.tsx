@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { CheckCircle, XCircle, Loader2, RefreshCw, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -19,6 +20,7 @@ interface TranslationLoadingStateProps {
 }
 
 export function TranslationLoadingState({ queries, onRetry, className }: TranslationLoadingStateProps) {
+  const { t } = useTranslation('common');
   const allLoaded = queries.every(q => q.status === 'success');
   const hasErrors = queries.some(q => q.status === 'error');
   const isLoading = queries.some(q => q.status === 'loading');
@@ -26,7 +28,7 @@ export function TranslationLoadingState({ queries, onRetry, className }: Transla
   return (
     <div className={cn('rounded-lg border bg-card p-4 space-y-3', className)}>
       <div className="flex items-center justify-between">
-        <h3 className="font-medium text-sm">System Status</h3>
+        <h3 className="font-medium text-sm">{t("system_status", "System Status")}</h3>
         {allLoaded && (
           <span className="text-xs text-green-600 flex items-center gap-1">
             <CheckCircle className="h-3 w-3" /> All systems ready

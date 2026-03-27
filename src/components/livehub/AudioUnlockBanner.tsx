@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Volume2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -9,6 +10,7 @@ interface AudioUnlockBannerProps {
 }
 
 export function AudioUnlockBanner({ onUnlock }: AudioUnlockBannerProps) {
+  const { t } = useTranslation('meetings');
   const [showBanner, setShowBanner] = useState(false);
   const [isUnlocking, setIsUnlocking] = useState(false);
 
@@ -56,7 +58,7 @@ export function AudioUnlockBanner({ onUnlock }: AudioUnlockBannerProps) {
     )}>
       <Volume2 className="w-5 h-5 flex-shrink-0" />
       <span className="text-sm font-medium">
-        Click to enable audio from other participants
+        {t('livehub.clickToEnableAudio')}
       </span>
       <Button
         size="sm"
@@ -65,7 +67,7 @@ export function AudioUnlockBanner({ onUnlock }: AudioUnlockBannerProps) {
         disabled={isUnlocking}
         className="bg-white text-amber-600 hover:bg-amber-50"
       >
-        {isUnlocking ? 'Enabling...' : 'Enable Audio'}
+        {isUnlocking ? t('livehub.enabling') : t('livehub.enableAudio')}
       </Button>
     </div>
   );

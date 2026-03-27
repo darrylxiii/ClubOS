@@ -15,9 +15,11 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { EmptyState } from '@/components/EmptyState';
 
 export default function JobAnalyticsIndex({ embedded = false }: { embedded?: boolean }) {
+  const { t } = useTranslation('admin');
   const navigate = useNavigate();
 
   const { data: jobs, isLoading } = useQuery({
@@ -84,10 +86,8 @@ export default function JobAnalyticsIndex({ embedded = false }: { embedded?: boo
             <div className="flex items-center gap-3">
               <BarChart3 className="h-8 w-8 text-primary" />
               <div>
-                <h1 className="text-3xl font-bold">Per-Job Analytics</h1>
-                <p className="text-muted-foreground">
-                  View detailed analytics for each job posting
-                </p>
+                <h1 className="text-3xl font-bold">{t('jobAnalyticsIndex.text2')}</h1>
+                <p className="text-muted-foreground">{t('jobAnalyticsIndex.desc')}</p>
               </div>
             </div>
           </div>
@@ -98,7 +98,7 @@ export default function JobAnalyticsIndex({ embedded = false }: { embedded?: boo
               <CardContent className="pt-6">
                 <div className="flex items-center gap-2">
                   <Briefcase className="h-4 w-4 text-muted-foreground" />
-                  <p className="text-sm text-muted-foreground">Active Jobs</p>
+                  <p className="text-sm text-muted-foreground">{t('jobAnalyticsIndex.text3')}</p>
                 </div>
                 <p className="text-2xl font-bold">{jobs?.length || 0}</p>
               </CardContent>
@@ -107,7 +107,7 @@ export default function JobAnalyticsIndex({ embedded = false }: { embedded?: boo
               <CardContent className="pt-6">
                 <div className="flex items-center gap-2">
                   <Users className="h-4 w-4 text-muted-foreground" />
-                  <p className="text-sm text-muted-foreground">Total Applications</p>
+                  <p className="text-sm text-muted-foreground">{t('jobAnalyticsIndex.text4')}</p>
                 </div>
                 <p className="text-2xl font-bold">
                   {Object.values(applicationCounts || {}).reduce((a, b) => a + b, 0)}
@@ -118,7 +118,7 @@ export default function JobAnalyticsIndex({ embedded = false }: { embedded?: boo
               <CardContent className="pt-6">
                 <div className="flex items-center gap-2">
                   <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                  <p className="text-sm text-muted-foreground">Avg. Applications</p>
+                  <p className="text-sm text-muted-foreground">{t('jobAnalyticsIndex.text5')}</p>
                 </div>
                 <p className="text-2xl font-bold">
                   {jobs?.length ? Math.round(
@@ -131,7 +131,7 @@ export default function JobAnalyticsIndex({ embedded = false }: { embedded?: boo
               <CardContent className="pt-6">
                 <div className="flex items-center gap-2">
                   <Clock className="h-4 w-4 text-muted-foreground" />
-                  <p className="text-sm text-muted-foreground">New This Month</p>
+                  <p className="text-sm text-muted-foreground">{t('jobAnalyticsIndex.text6')}</p>
                 </div>
                 <p className="text-2xl font-bold">
                   {jobs?.filter(j => {
@@ -148,14 +148,14 @@ export default function JobAnalyticsIndex({ embedded = false }: { embedded?: boo
           {/* Jobs List */}
           <Card>
             <CardHeader>
-              <CardTitle>Active Jobs</CardTitle>
+              <CardTitle>{t('jobAnalyticsIndex.text7')}</CardTitle>
               <CardDescription>
                 Click on a job to view its detailed analytics
               </CardDescription>
             </CardHeader>
             <CardContent>
               {isLoading ? (
-                <div className="text-center py-8 text-muted-foreground">Loading jobs...</div>
+                <div className="text-center py-8 text-muted-foreground">{t('jobAnalyticsIndex.text8')}</div>
               ) : jobs && jobs.length > 0 ? (
                 <ScrollArea className="h-[500px]">
                   <div className="space-y-3">
@@ -192,8 +192,8 @@ export default function JobAnalyticsIndex({ embedded = false }: { embedded?: boo
               ) : (
                 <EmptyState
                   icon={Briefcase}
-                  title="No Active Jobs"
-                  description="Create a job posting to start tracking analytics."
+                  title={t('jobAnalyticsIndex.text9')}
+                  description={t('jobAnalyticsIndex.text10')}
                   action={{
                     label: "Create Job",
                     onClick: () => navigate('/jobs/new')

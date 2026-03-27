@@ -58,14 +58,14 @@ ALTER TABLE placement_fees ADD COLUMN IF NOT EXISTS closed_by UUID;
 ALTER TABLE placement_fees ADD COLUMN IF NOT EXISTS closer_name TEXT;
 
 -- Add sourcing and salary variance columns to job_closures
-ALTER TABLE job_closures ADD COLUMN IF NOT EXISTS sourced_by UUID;
-ALTER TABLE job_closures ADD COLUMN IF NOT EXISTS sourcer_name TEXT;
-ALTER TABLE job_closures ADD COLUMN IF NOT EXISTS original_sourced_by UUID;
-ALTER TABLE job_closures ADD COLUMN IF NOT EXISTS sourcer_override_reason TEXT;
-ALTER TABLE job_closures ADD COLUMN IF NOT EXISTS estimated_salary_min NUMERIC;
-ALTER TABLE job_closures ADD COLUMN IF NOT EXISTS estimated_salary_max NUMERIC;
-ALTER TABLE job_closures ADD COLUMN IF NOT EXISTS salary_variance_percent NUMERIC;
-ALTER TABLE job_closures ADD COLUMN IF NOT EXISTS closer_name TEXT;
+-- ALTER TABLE job_closures ADD COLUMN IF NOT EXISTS sourced_by UUID;
+-- ALTER TABLE job_closures ADD COLUMN IF NOT EXISTS sourcer_name TEXT;
+-- ALTER TABLE job_closures ADD COLUMN IF NOT EXISTS original_sourced_by UUID;
+-- ALTER TABLE job_closures ADD COLUMN IF NOT EXISTS sourcer_override_reason TEXT;
+-- ALTER TABLE job_closures ADD COLUMN IF NOT EXISTS estimated_salary_min NUMERIC;
+-- ALTER TABLE job_closures ADD COLUMN IF NOT EXISTS estimated_salary_max NUMERIC;
+-- ALTER TABLE job_closures ADD COLUMN IF NOT EXISTS salary_variance_percent NUMERIC;
+-- ALTER TABLE job_closures ADD COLUMN IF NOT EXISTS closer_name TEXT;
 
 -- Create indexes for performance
 CREATE INDEX IF NOT EXISTS idx_sourcing_credits_application ON sourcing_credits(application_id);

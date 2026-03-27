@@ -8,12 +8,14 @@ import { Users, MessageSquare, Eye, Settings } from "lucide-react";
 import { CandidateDetailDialog } from "./CandidateDetailDialog";
 import { PipelineCustomizer } from "./PipelineCustomizer";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { useTranslation } from 'react-i18next';
 
 interface ApplicantPipelineProps {
   companyId: string;
 }
 
 export const ApplicantPipeline = ({ companyId }: ApplicantPipelineProps) => {
+  const { t } = useTranslation('partner');
   const [jobs, setJobs] = useState<any[]>([]);
   const [applications, setApplications] = useState<any[]>([]);
   const [selectedJob, setSelectedJob] = useState<string | null>(null);
@@ -60,7 +62,7 @@ export const ApplicantPipeline = ({ companyId }: ApplicantPipelineProps) => {
       }
     } catch (error) {
       console.error('Error fetching data:', error);
-      toast.error("Failed to load applicants");
+      toast.error(t('applicantPipeline.toast.failedToLoadApplicants'));
     } finally {
       setLoading(false);
     }
@@ -91,10 +93,8 @@ export const ApplicantPipeline = ({ companyId }: ApplicantPipelineProps) => {
       <Card className="border-2 border-dashed">
         <CardContent className="flex flex-col items-center justify-center py-12">
           <Users className="w-12 h-12 text-muted-foreground mb-4" />
-          <h3 className="text-lg font-bold mb-2">No active jobs</h3>
-          <p className="text-sm text-muted-foreground">
-            Publish a job to start receiving applications
-          </p>
+          <h3 className="text-lg font-bold mb-2">{t('applicantPipeline.noActiveJobs')}</h3>
+          <p className="text-sm text-muted-foreground">{t('applicantPipeline.publishAJobToStartReceivingApplications')}</p>
         </CardContent>
       </Card>
     );
@@ -103,7 +103,7 @@ export const ApplicantPipeline = ({ companyId }: ApplicantPipelineProps) => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-black uppercase">Applicant Pipeline</h2>
+        <h2 className="text-2xl font-black uppercase">{t('applicantPipeline.applicantPipeline')}</h2>
         <div className="flex gap-2">
           <Dialog open={customizerOpen} onOpenChange={setCustomizerOpen}>
             <DialogTrigger asChild>
@@ -146,10 +146,8 @@ export const ApplicantPipeline = ({ companyId }: ApplicantPipelineProps) => {
         <Card className="border-2 border-dashed">
           <CardContent className="flex flex-col items-center justify-center py-12">
             <Users className="w-12 h-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-bold mb-2">No applications yet</h3>
-            <p className="text-sm text-muted-foreground">
-              Applications will appear here once candidates start applying
-            </p>
+            <h3 className="text-lg font-bold mb-2">{t('applicantPipeline.noApplicationsYet')}</h3>
+            <p className="text-sm text-muted-foreground">{t('applicantPipeline.applicationsWillAppearHereOnceCandidates')}</p>
           </CardContent>
         </Card>
       ) : (
@@ -171,9 +169,7 @@ export const ApplicantPipeline = ({ companyId }: ApplicantPipelineProps) => {
                 </CardHeader>
                 <CardContent>
                   {stageApplications.length === 0 ? (
-                    <p className="text-sm text-muted-foreground text-center py-4">
-                      No candidates in this stage
-                    </p>
+                    <p className="text-sm text-muted-foreground text-center py-4">{t('applicantPipeline.noCandidatesInThisStage')}</p>
                   ) : (
                     <div className="space-y-2">
                       {stageApplications.map(app => (
@@ -202,7 +198,7 @@ export const ApplicantPipeline = ({ companyId }: ApplicantPipelineProps) => {
                               }}
                             >
                               <Eye className="w-4 h-4 mr-2" />
-                              View Details
+                              {t('common:viewDetails')}
                             </Button>
                           </div>
                         </div>

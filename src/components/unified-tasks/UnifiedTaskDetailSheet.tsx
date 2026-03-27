@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
@@ -57,6 +58,7 @@ export const UnifiedTaskDetailSheet = ({
   onTaskUpdated,
   onStatusChange,
 }: UnifiedTaskDetailSheetProps) => {
+  const { t } = useTranslation('common');
   const queryClient = useQueryClient();
   const [newSubtaskTitle, setNewSubtaskTitle] = useState("");
   const [activeTab, setActiveTab] = useState("overview");
@@ -225,21 +227,21 @@ export const UnifiedTaskDetailSheet = ({
         <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0">
           <TabsList className="w-full justify-start rounded-none border-b bg-transparent p-0 h-9 shrink-0">
             <TabsTrigger value="overview" className="h-9 rounded-none border-b-2 border-transparent px-4 text-xs data-[state=active]:border-primary data-[state=active]:bg-transparent">
-              Overview
+              {t('tasks.overview', 'Overview')}
             </TabsTrigger>
             <TabsTrigger value="subtasks" className="h-9 rounded-none border-b-2 border-transparent px-4 text-xs data-[state=active]:border-primary data-[state=active]:bg-transparent">
               <div className="flex items-center gap-1.5">
-                Subtasks
+                {t('tasks.subtasks', 'Subtasks')}
                 {subtasks.length > 0 && (
                   <Badge variant="secondary" className="h-4 px-1 text-[9px]">{completedSubtasks}/{subtasks.length}</Badge>
                 )}
               </div>
             </TabsTrigger>
             <TabsTrigger value="activity" className="h-9 rounded-none border-b-2 border-transparent px-4 text-xs data-[state=active]:border-primary data-[state=active]:bg-transparent">
-              Activity
+              {t('tasks.activity', 'Activity')}
             </TabsTrigger>
             <TabsTrigger value="comments" className="h-9 rounded-none border-b-2 border-transparent px-4 text-xs data-[state=active]:border-primary data-[state=active]:bg-transparent">
-              Comments
+              {t('tasks.comments', 'Comments')}
             </TabsTrigger>
           </TabsList>
 
@@ -297,7 +299,7 @@ export const UnifiedTaskDetailSheet = ({
               <div className="flex items-center gap-2 p-2.5 rounded-lg border border-primary/20 bg-primary/5">
                 <Briefcase className="h-3.5 w-3.5 text-primary shrink-0" />
                 <div className="min-w-0 flex-1">
-                  <p className="text-[10px] text-muted-foreground leading-none mb-0.5">Job / Company</p>
+                  <p className="text-[10px] text-muted-foreground leading-none mb-0.5">{t('tasks.jobCompany', 'Job / Company')}</p>
                   <div className="flex items-center gap-1.5">
                     {task.job && (
                       <Link to={`/job-dashboard?jobId=${task.job_id}`} className="text-xs font-medium hover:text-primary transition-colors flex items-center gap-1">
@@ -321,7 +323,7 @@ export const UnifiedTaskDetailSheet = ({
               <div className="flex items-center gap-2 p-2.5 rounded-lg border border-border/30 bg-muted/20">
                 <Target className="h-3.5 w-3.5 text-primary shrink-0" />
                 <div className="min-w-0 flex-1">
-                  <p className="text-[10px] text-muted-foreground leading-none mb-0.5">Objective</p>
+                  <p className="text-[10px] text-muted-foreground leading-none mb-0.5">{t('tasks.objective', 'Objective')}</p>
                   <Link to={`/objectives/${objective.id}`} className="text-xs font-medium hover:text-primary transition-colors flex items-center gap-1">
                     <span className="truncate">{objective.title}</span>
                     <ExternalLink className="h-2.5 w-2.5 shrink-0" />
@@ -335,7 +337,7 @@ export const UnifiedTaskDetailSheet = ({
               <div className="flex items-center gap-2 p-2.5 rounded-lg border border-border/30 bg-muted/20">
                 <Briefcase className="h-3.5 w-3.5 text-blue-500 shrink-0" />
                 <div className="min-w-0 flex-1">
-                  <p className="text-[10px] text-muted-foreground leading-none mb-0.5">Project</p>
+                  <p className="text-[10px] text-muted-foreground leading-none mb-0.5">{t('tasks.project', 'Project')}</p>
                   <Link to={`/projects/${project.id}`} className="text-xs font-medium hover:text-blue-600 transition-colors flex items-center gap-1">
                     <span className="truncate">{project.title}</span>
                     <ExternalLink className="h-2.5 w-2.5 shrink-0" />
@@ -347,10 +349,10 @@ export const UnifiedTaskDetailSheet = ({
             {/* Description */}
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <h4 className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Description</h4>
+                <h4 className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">{t('tasks.description', 'Description')}</h4>
                 {!editingField && (
                   <button onClick={() => setEditingField('description')} className="text-[10px] text-muted-foreground hover:text-foreground transition-colors flex items-center gap-0.5">
-                    <Pencil className="h-2.5 w-2.5" /> Edit
+                    <Pencil className="h-2.5 w-2.5" /> {t('tasks.edit', 'Edit')}
                   </button>
                 )}
               </div>
@@ -368,7 +370,7 @@ export const UnifiedTaskDetailSheet = ({
                 </div>
               ) : (
                 <p className="text-xs text-muted-foreground/50 italic cursor-pointer hover:text-muted-foreground transition-colors" onClick={() => setEditingField('description')}>
-                  Click to add description...
+                  {t('tasks.clickToAddDescription', 'Click to add description...')}
                 </p>
               )}
             </div>
@@ -376,7 +378,7 @@ export const UnifiedTaskDetailSheet = ({
             {/* Owners */}
             {owners.length > 0 && (
               <div>
-                <h4 className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">Owners</h4>
+                <h4 className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">{t('tasks.owners', 'Owners')}</h4>
                 <div className="flex flex-wrap gap-1.5">
                   {owners.map((owner: any) => (
                     <div key={owner.id} className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-muted/50 border border-border/30 text-xs">
@@ -394,11 +396,11 @@ export const UnifiedTaskDetailSheet = ({
             {/* Dependencies */}
             {(blockingTasks.length > 0 || blockedByTasks.length > 0) && (
               <div className="space-y-2.5">
-                <h4 className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Dependencies</h4>
+                <h4 className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">{t('tasks.dependencies', 'Dependencies')}</h4>
                 {blockingTasks.length > 0 && (
                   <div className="space-y-1">
                     <div className="flex items-center gap-1 text-[10px] font-medium text-amber-600">
-                      <Lock className="h-3 w-3" /> Blocking {blockingTasks.length}
+                      <Lock className="h-3 w-3" /> {t('tasks.blockingCount', 'Blocking {{count}}', { count: blockingTasks.length })}
                     </div>
                     {blockingTasks.map((dep: any) => (
                       <div key={dep.id} className="flex items-center gap-2 p-1.5 rounded border border-amber-500/20 bg-amber-500/5 text-[11px]">
@@ -412,7 +414,7 @@ export const UnifiedTaskDetailSheet = ({
                 {blockedByTasks.length > 0 && (
                   <div className="space-y-1">
                     <div className="flex items-center gap-1 text-[10px] font-medium text-destructive">
-                      <Unlock className="h-3 w-3" /> Blocked by {blockedByTasks.length}
+                      <Unlock className="h-3 w-3" /> {t('tasks.blockedByCount', 'Blocked by {{count}}', { count: blockedByTasks.length })}
                     </div>
                     {blockedByTasks.map((dep: any) => (
                       <div key={dep.id} className="flex items-center gap-2 p-1.5 rounded border border-destructive/20 bg-destructive/5 text-[11px]">
@@ -431,19 +433,19 @@ export const UnifiedTaskDetailSheet = ({
               {task.scheduled_start && (
                 <div className="p-2.5 rounded-lg border border-border/30 bg-muted/20">
                   <div className="flex items-center gap-1 text-[10px] text-muted-foreground mb-0.5">
-                    <Clock className="h-2.5 w-2.5" /> Scheduled
+                    <Clock className="h-2.5 w-2.5" /> {t('tasks.scheduled', 'Scheduled')}
                   </div>
                   <p className="text-xs font-medium">{format(new Date(task.scheduled_start), "MMM d, HH:mm")}</p>
                 </div>
               )}
               <div className="p-2.5 rounded-lg border border-border/30 bg-muted/20">
                 <div className="flex items-center gap-1 text-[10px] text-muted-foreground mb-0.5">
-                  <Calendar className="h-2.5 w-2.5" /> Due Date
+                  <Calendar className="h-2.5 w-2.5" /> {t('tasks.dueDate', 'Due Date')}
                 </div>
                 <Popover>
                   <PopoverTrigger asChild>
                     <button className="text-xs font-medium hover:text-primary transition-colors text-left">
-                      {task.due_date ? format(new Date(task.due_date), "MMM d, yyyy") : "Set due date..."}
+                      {task.due_date ? format(new Date(task.due_date), "MMM d, yyyy") : t('tasks.setDueDate', 'Set due date...')}
                     </button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
@@ -470,12 +472,12 @@ export const UnifiedTaskDetailSheet = ({
               {subtasks.length === 0 && (
                 <div className="flex flex-col items-center justify-center py-8 border border-dashed border-border/30 rounded-lg text-muted-foreground">
                   <CheckSquare className="h-6 w-6 mb-1.5 opacity-20" />
-                  <p className="text-xs">No subtasks yet</p>
+                  <p className="text-xs">{t('tasks.noSubtasksYet', 'No subtasks yet')}</p>
                 </div>
               )}
             </div>
             <form onSubmit={handleAddSubtask} className="flex gap-1.5 pt-2 border-t border-border/30 shrink-0">
-              <Input placeholder="Add subtask…" value={newSubtaskTitle} onChange={(e) => setNewSubtaskTitle(e.target.value)} className="bg-background text-xs h-8" />
+              <Input placeholder={t('tasks.addSubtask', 'Add subtask...')} value={newSubtaskTitle} onChange={(e) => setNewSubtaskTitle(e.target.value)} className="bg-background text-xs h-8" />
               <Button type="submit" size="icon" className="h-8 w-8 shrink-0"><Plus className="h-3.5 w-3.5" /></Button>
             </form>
           </TabsContent>
@@ -484,7 +486,7 @@ export const UnifiedTaskDetailSheet = ({
             {activityLog.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
                 <Clock className="h-6 w-6 mb-1.5 opacity-20" />
-                <p className="text-xs">No activity recorded yet</p>
+                <p className="text-xs">{t('tasks.noActivityRecorded', 'No activity recorded yet')}</p>
               </div>
             ) : (
               <div className="space-y-2">

@@ -1,4 +1,5 @@
 import { useState, memo, useMemo } from "react";
+import { useTranslation } from 'react-i18next';
 import { Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -36,7 +37,9 @@ const CATEGORY_LABELS: Record<string, string> = {
   other: "Other",
 };
 
-export const ToolSelector = memo(function ToolSelector({ selectedTools, onChange, placeholder = "Search tools..." }: ToolSelectorProps) {
+export const ToolSelector = memo(function ToolSelector({ selectedTools, onChange, placeholder }: ToolSelectorProps) {
+  const { t } = useTranslation('jobs');
+  const resolvedPlaceholder = placeholder || t('toolSelector.searchPlaceholder', 'Search tools...');
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [isOpen, setIsOpen] = useState(false);
@@ -87,7 +90,7 @@ export const ToolSelector = memo(function ToolSelector({ selectedTools, onChange
               setIsOpen(true);
             }}
             onFocus={() => setIsOpen(true)}
-            placeholder={placeholder}
+            placeholder={resolvedPlaceholder}
             className="pl-9"
           />
         </div>
@@ -111,7 +114,7 @@ export const ToolSelector = memo(function ToolSelector({ selectedTools, onChange
           <div className="absolute z-50 w-full max-h-64 overflow-y-auto border-2 rounded-xl bg-background shadow-lg">
             {filteredTools.length === 0 ? (
               <div className="p-4 text-sm text-muted-foreground text-center">
-                No tools found. Try a different search term.
+                {t('toolSelector.noResults', 'No tools found. Try a different search term.')}
               </div>
             ) : (
               filteredTools.map((tool) => {
@@ -189,5 +192,5 @@ export const ToolSelector = memo(function ToolSelector({ selectedTools, onChange
   // Custom comparison - only re-render if tool IDs or placeholder change
   const prevIds = prevProps.selectedTools.map(t => t.id).sort().join(',');
   const nextIds = nextProps.selectedTools.map(t => t.id).sort().join(',');
-  return prevIds === nextIds && prevProps.placeholder === nextProps.placeholder;
+  return prevIds === nextIds;
 });

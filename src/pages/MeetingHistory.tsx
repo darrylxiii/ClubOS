@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from 'react-i18next';
 import { ErrorState } from "@/components/ui/error-state";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -43,6 +44,7 @@ interface MeetingRecording {
 }
 
 const MeetingHistory = () => {
+  const { t } = useTranslation('meetings');
   const { user } = useAuth();
   const navigate = useNavigate();
   const [recordings, setRecordings] = useState<MeetingRecording[]>([]);
@@ -106,7 +108,7 @@ const MeetingHistory = () => {
     } catch (error) {
       console.error('Error loading recordings:', error);
       setFetchError('Failed to load meeting recordings');
-      toast.error('Failed to load meeting recordings');
+      toast.error(t('text.meetinghistory.failedToLoadMeetingRecordings', 'Failed to load meeting recordings'));
     } finally {
       setIsLoading(false);
     }
@@ -136,12 +138,12 @@ const MeetingHistory = () => {
 
   const handleFileUpload = async () => {
     if (!user || !uploadFile) {
-      toast.error('Please select a file to upload');
+      toast.error(t('text.meetinghistory.pleaseSelectAFileToUpload', 'Please select a file to upload'));
       return;
     }
 
     if (!uploadForm.title) {
-      toast.error('Please enter a title for the recording');
+      toast.error(t('text.meetinghistory.pleaseEnterATitleForThe', 'Please enter a title for the recording'));
       return;
     }
 
@@ -187,7 +189,7 @@ const MeetingHistory = () => {
       if (dbError) throw dbError;
 
       setUploadProgress(100);
-      toast.success('Recording uploaded successfully!');
+      toast.success(t('text.meetinghistory.recordingUploadedSuccessfully', 'Recording uploaded successfully!'));
       setIsUploadOpen(false);
       setUploadFile(null);
       setUploadForm({
@@ -202,7 +204,7 @@ const MeetingHistory = () => {
       loadRecordings();
     } catch (error) {
       console.error('Error uploading recording:', error);
-      toast.error('Failed to upload recording');
+      toast.error(t('text.meetinghistory.failedToUploadRecording', 'Failed to upload recording'));
     } finally {
       setUploadProgress(0);
     }
@@ -211,7 +213,7 @@ const MeetingHistory = () => {
   const analyzeRecording = async (recordingId: string) => {
     try {
       setAnalyzingRecording(recordingId);
-      toast.info('Starting AI analysis... This may take a few minutes.');
+      toast.info(t('text.meetinghistory.startingAiAnalysisThisMayTake', 'Starting AI analysis... This may take a few minutes.'));
 
       const { error } = await supabase.functions.invoke('meeting-debrief', {
         body: { recordingId }
@@ -219,11 +221,11 @@ const MeetingHistory = () => {
 
       if (error) throw error;
 
-      toast.success('Analysis completed successfully!');
+      toast.success(t('text.meetinghistory.analysisCompletedSuccessfully', 'Analysis completed successfully!'));
       loadRecordings();
     } catch (error) {
       console.error('Error analyzing recording:', error);
-      toast.error('Failed to analyze recording. Please try again.');
+      toast.error(t('text.meetinghistory.failedToAnalyzeRecordingPleaseTry', 'Failed to analyze recording. Please try again.'));
     } finally {
       setAnalyzingRecording(null);
     }
@@ -256,11 +258,11 @@ const MeetingHistory = () => {
 
       if (error) throw error;
 
-      toast.success('Recording deleted successfully');
+      toast.success(t('text.meetinghistory.recordingDeletedSuccessfully', 'Recording deleted successfully'));
       loadRecordings();
     } catch (error) {
       console.error('Error deleting recording:', error);
-      toast.error('Failed to delete recording');
+      toast.error(t('text.meetinghistory.failedToDeleteRecording', 'Failed to delete recording'));
     }
   };
 
@@ -286,7 +288,7 @@ const MeetingHistory = () => {
   if (fetchError && recordings.length === 0) {
     return (
       <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
-        <ErrorState variant="page" title="Recordings Unavailable" message={fetchError} onRetry={loadRecordings} />
+        <ErrorState variant="page" title={t('text.meetinghistory.recordings', 'Recordings')} Unavailable message={fetchError} onRetry={loadRecordings} />
       </div>
     );
   }
@@ -295,17 +297,15 @@ const MeetingHistory = () => {
     <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
       <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <h1 className="text-4xl font-black uppercase tracking-tight mb-2">Meeting Recordings</h1>
-          <p className="text-muted-foreground">
-            Access and review all your interview recordings in one place
-          </p>
+          <h1 className="text-4xl font-black uppercase tracking-tight mb-2">{t('meetingHistory.title')}</h1>
+          <p className="text-muted-foreground">{t('meetingHistory.desc')}</p>
         </div>
 
         {/* Calendar Integration Warning */}
         {!hasCalendarConnected && (
           <Alert className="mb-6 border-accent/50 bg-accent/5">
             <AlertCircle className="h-5 w-5 text-accent" />
-            <AlertTitle className="text-lg font-bold">Calendar Integration Not Connected</AlertTitle>
+            <AlertTitle className="text-lg font-bold">{t('text.meetinghistory.calendarIntegrationNotConnected', 'Calendar Integration Not Connected')}</AlertTitle>
             <AlertDescription className="mt-2 space-y-3">
               <p className="text-muted-foreground">
                 Connect your calendar to automatically capture all online meetings here.
@@ -332,7 +332,7 @@ const MeetingHistory = () => {
                 <div className="relative">
                   <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder="Search by title, company, or position..."
+                    placeholder={t('text.meetinghistory.searchByTitleCompanyOrPosition', 'Search by title, company, or position...')}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="pl-10"
@@ -343,15 +343,15 @@ const MeetingHistory = () => {
                 <Select value={filterType} onValueChange={setFilterType}>
                   <SelectTrigger>
                     <Filter className="w-4 h-4 mr-2" />
-                    <SelectValue placeholder="Filter by type" />
+                    <SelectValue placeholder={t('text.meetinghistory.filterByType', 'Filter by type')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Types</SelectItem>
-                    <SelectItem value="screening">Screening</SelectItem>
-                    <SelectItem value="technical">Technical</SelectItem>
-                    <SelectItem value="behavioral">Behavioral</SelectItem>
-                    <SelectItem value="final">Final Round</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
+                    <SelectItem value="all">{t('text.meetinghistory.allTypes', 'All Types')}</SelectItem>
+                    <SelectItem value="screening">{t('text.meetinghistory.screening', 'Screening')}</SelectItem>
+                    <SelectItem value="technical">{t('text.meetinghistory.technical', 'Technical')}</SelectItem>
+                    <SelectItem value="behavioral">{t('text.meetinghistory.behavioral', 'Behavioral')}</SelectItem>
+                    <SelectItem value="final">{t('text.meetinghistory.finalRound', 'Final Round')}</SelectItem>
+                    <SelectItem value="other">{t('text.meetinghistory.other', 'Other')}</SelectItem>
                   </SelectContent>
                 </Select>
 
@@ -364,14 +364,12 @@ const MeetingHistory = () => {
                   </DialogTrigger>
                   <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
-                      <DialogTitle>Upload Meeting Recording</DialogTitle>
-                      <DialogDescription>
-                        Add a new interview recording to your library
-                      </DialogDescription>
+                      <DialogTitle>{t('text.meetinghistory.uploadMeetingRecording', 'Upload Meeting Recording')}</DialogTitle>
+                      <DialogDescription>{t('text.meetinghistory.addANewInterviewRecordingTo', 'Add a new interview recording to your library')}</DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4">
                       <div>
-                        <Label htmlFor="file">Recording File</Label>
+                        <Label htmlFor="file">{t('text.meetinghistory.recordingFile', 'Recording File')}</Label>
                         <Input
                           id="file"
                           type="file"
@@ -379,14 +377,12 @@ const MeetingHistory = () => {
                           onChange={(e) => setUploadFile(e.target.files?.[0] || null)}
                           className="cursor-pointer"
                         />
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Supported formats: MP4, WebM, QuickTime, MP3, WAV (Max 500MB)
-                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">{t('meetingHistory.desc2')}</p>
                       </div>
 
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <Label htmlFor="title">Title *</Label>
+                          <Label htmlFor="title">{t('text.meetinghistory.title', 'Title *')}</Label>
                           <Input
                             id="title"
                             value={uploadForm.title}
@@ -395,7 +391,7 @@ const MeetingHistory = () => {
                           />
                         </div>
                         <div>
-                          <Label htmlFor="meeting_date">Meeting Date</Label>
+                          <Label htmlFor="meeting_date">{t('text.meetinghistory.meetingDate', 'Meeting Date')}</Label>
                           <Input
                             id="meeting_date"
                             type="date"
@@ -407,7 +403,7 @@ const MeetingHistory = () => {
 
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <Label htmlFor="company_name">Company</Label>
+                          <Label htmlFor="company_name">{t('text.meetinghistory.company', 'Company')}</Label>
                           <Input
                             id="company_name"
                             value={uploadForm.company_name}
@@ -416,7 +412,7 @@ const MeetingHistory = () => {
                           />
                         </div>
                         <div>
-                          <Label htmlFor="position">Position</Label>
+                          <Label htmlFor="position">{t('text.meetinghistory.position', 'Position')}</Label>
                           <Input
                             id="position"
                             value={uploadForm.position}
@@ -427,7 +423,7 @@ const MeetingHistory = () => {
                       </div>
 
                       <div>
-                        <Label htmlFor="meeting_type">Interview Type</Label>
+                        <Label htmlFor="meeting_type">{t('text.meetinghistory.interviewType', 'Interview Type')}</Label>
                         <Select
                           value={uploadForm.meeting_type}
                           onValueChange={(value) => setUploadForm({ ...uploadForm, meeting_type: value })}
@@ -436,33 +432,33 @@ const MeetingHistory = () => {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="screening">Screening</SelectItem>
-                            <SelectItem value="technical">Technical</SelectItem>
-                            <SelectItem value="behavioral">Behavioral</SelectItem>
-                            <SelectItem value="final">Final Round</SelectItem>
-                            <SelectItem value="other">Other</SelectItem>
+                            <SelectItem value="screening">{t('text.meetinghistory.screening', 'Screening')}</SelectItem>
+                            <SelectItem value="technical">{t('text.meetinghistory.technical', 'Technical')}</SelectItem>
+                            <SelectItem value="behavioral">{t('text.meetinghistory.behavioral', 'Behavioral')}</SelectItem>
+                            <SelectItem value="final">{t('text.meetinghistory.finalRound', 'Final Round')}</SelectItem>
+                            <SelectItem value="other">{t('text.meetinghistory.other', 'Other')}</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
 
                       <div>
-                        <Label htmlFor="description">Description</Label>
+                        <Label htmlFor="description">{t('text.meetinghistory.description', 'Description')}</Label>
                         <Textarea
                           id="description"
                           value={uploadForm.description}
                           onChange={(e) => setUploadForm({ ...uploadForm, description: e.target.value })}
-                          placeholder="Brief description of the interview..."
+                          placeholder={t('text.meetinghistory.briefDescriptionOfTheInterview', 'Brief description of the interview...')}
                           rows={2}
                         />
                       </div>
 
                       <div>
-                        <Label htmlFor="notes">Notes</Label>
+                        <Label htmlFor="notes">{t('text.meetinghistory.notes', 'Notes')}</Label>
                         <Textarea
                           id="notes"
                           value={uploadForm.notes}
                           onChange={(e) => setUploadForm({ ...uploadForm, notes: e.target.value })}
-                          placeholder="Any additional notes or observations..."
+                          placeholder={t('text.meetinghistory.anyAdditionalNotesOrObservations', 'Any additional notes or observations...')}
                           rows={3}
                         />
                       </div>
@@ -470,7 +466,7 @@ const MeetingHistory = () => {
                       {uploadProgress > 0 && (
                         <div className="space-y-2">
                           <div className="flex justify-between text-sm">
-                            <span>Uploading...</span>
+                            <span>{t('text.meetinghistory.uploading', 'Uploading...')}</span>
                             <span>{uploadProgress}%</span>
                           </div>
                           <div className="w-full bg-muted rounded-full h-2">
@@ -501,17 +497,16 @@ const MeetingHistory = () => {
         {/* Recordings Grid */}
         {isLoading ? (
           <div className="text-center py-12">
-            <p className="text-muted-foreground">Loading recordings...</p>
+            <p className="text-muted-foreground">{t('meetingHistory.desc3')}</p>
           </div>
         ) : filteredRecordings.length === 0 ? (
           <Card className="border-0 bg-card/30 backdrop-blur-md">
             <CardContent className="text-center py-12">
               <Video className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-              <h3 className="text-lg font-semibold mb-2">No Recordings Yet</h3>
+              <h3 className="text-lg font-semibold mb-2">{t('meetingHistory.title')}</h3>
               <p className="text-muted-foreground mb-4">
                 {searchQuery || filterType !== "all"
-                  ? "No recordings match your search criteria"
-                  : "Upload your first interview recording to get started"}
+                  ? t('text.meetinghistory.noRecordingsMatchYourSearchCriteria', 'No recordings match your search criteria') : t('text.meetinghistory.uploadYourFirstInterviewRecordingTo', 'Upload your first interview recording to get started')}
               </p>
               <Button onClick={() => setIsUploadOpen(true)} className="bg-gradient-accent text-background">
                 <Plus className="w-4 h-4 mr-2" />
@@ -571,7 +566,7 @@ const MeetingHistory = () => {
                     <>
                       <Separator />
                       <div>
-                        <p className="text-xs font-semibold mb-1">Notes:</p>
+                        <p className="text-xs font-semibold mb-1">{t('meetingHistory.desc4')}</p>
                         <p className="text-xs text-muted-foreground line-clamp-3">
                           {recording.notes}
                         </p>
@@ -624,7 +619,7 @@ const MeetingHistory = () => {
                     ) : recording.analysis_status === 'processing' || analyzingRecording === recording.id ? (
                       <Button size="sm" variant="secondary" className="w-full" disabled>
                         <InlineLoader />
-                        Analyzing...
+                        {t('text.meetinghistory.analyzing', 'Analyzing...')}
                       </Button>
                     ) : recording.analysis_status === 'failed' ? (
                       <Button
@@ -670,9 +665,7 @@ const MeetingHistory = () => {
           <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{selectedRecordingAnalysis?.title}</DialogTitle>
-              <DialogDescription>
-                AI-powered interview debrief and analysis
-              </DialogDescription>
+              <DialogDescription>{t('text.meetinghistory.aipoweredInterviewDebriefAndAnalysis', 'AI-powered interview debrief and analysis')}</DialogDescription>
             </DialogHeader>
             {selectedRecordingAnalysis?.ai_analysis && (
               <MeetingAnalysisCard

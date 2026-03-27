@@ -7,6 +7,14 @@ import {
 } from '../pushNotificationService';
 import { supabase } from '@/integrations/supabase/client';
 
+vi.mock('@/integrations/supabase/client', () => ({
+  supabase: {
+    functions: {
+      invoke: vi.fn().mockResolvedValue({ data: { success: true }, error: null }),
+    },
+  },
+}));
+
 describe('pushNotificationService', () => {
   beforeEach(() => { vi.clearAllMocks(); });
 

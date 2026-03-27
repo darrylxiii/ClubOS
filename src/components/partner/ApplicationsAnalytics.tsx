@@ -10,6 +10,7 @@ import {
   AlertTriangle
 } from "lucide-react";
 import { useRecharts } from "@/hooks/useRecharts";
+import { useTranslation } from 'react-i18next';
 
 interface ApplicationsAnalyticsProps {
   applications: any[];
@@ -17,6 +18,7 @@ interface ApplicationsAnalyticsProps {
 }
 
 export const ApplicationsAnalytics = ({ applications, jobs }: ApplicationsAnalyticsProps) => {
+  const { t } = useTranslation('partner');
   const { recharts, isLoading: rechartsLoading } = useRecharts();
 
   // Calculate conversion rates by stage
@@ -82,7 +84,7 @@ export const ApplicationsAnalytics = ({ applications, jobs }: ApplicationsAnalyt
         <Card>
           <CardContent className="pt-6">
             <div className="space-y-2">
-              <p className="text-sm text-muted-foreground">Avg. Time to Hire</p>
+              <p className="text-sm text-muted-foreground">{t('applicationsAnalytics.avgTimeToHire')}</p>
               <div className="flex items-center gap-2">
                 <p className="text-3xl font-bold">{Math.round(avgTimeToHire)}</p>
                 <p className="text-sm text-muted-foreground">days</p>
@@ -90,12 +92,12 @@ export const ApplicationsAnalytics = ({ applications, jobs }: ApplicationsAnalyt
               {avgTimeToHire < 30 ? (
                 <div className="flex items-center gap-1 text-green-500 text-sm">
                   <TrendingDown className="w-4 h-4" />
-                  <span>Excellent</span>
+                  <span>{t('applicationsAnalytics.excellent')}</span>
                 </div>
               ) : (
                 <div className="flex items-center gap-1 text-amber-500 text-sm">
                   <TrendingUp className="w-4 h-4" />
-                  <span>Needs improvement</span>
+                  <span>{t('applicationsAnalytics.needsImprovement')}</span>
                 </div>
               )}
             </div>
@@ -105,7 +107,7 @@ export const ApplicationsAnalytics = ({ applications, jobs }: ApplicationsAnalyt
         <Card>
           <CardContent className="pt-6">
             <div className="space-y-2">
-              <p className="text-sm text-muted-foreground">Conversion Rate</p>
+              <p className="text-sm text-muted-foreground">{t('applicationsAnalytics.conversionRate')}</p>
               <div className="flex items-center gap-2">
                 <p className="text-3xl font-bold">
                   {applications.length > 0 
@@ -125,7 +127,7 @@ export const ApplicationsAnalytics = ({ applications, jobs }: ApplicationsAnalyt
         <Card>
           <CardContent className="pt-6">
             <div className="space-y-2">
-              <p className="text-sm text-muted-foreground">Active Pipelines</p>
+              <p className="text-sm text-muted-foreground">{t('applicationsAnalytics.activePipelines')}</p>
               <div className="flex items-center gap-2">
                 <p className="text-3xl font-bold">
                   {applications.filter(a => a.status === 'active').length}
@@ -133,7 +135,7 @@ export const ApplicationsAnalytics = ({ applications, jobs }: ApplicationsAnalyt
               </div>
               <div className="flex items-center gap-1 text-muted-foreground text-sm">
                 <Users className="w-4 h-4" />
-                <span>In progress</span>
+                <span>{t('applicationsAnalytics.inProgress')}</span>
               </div>
             </div>
           </CardContent>
@@ -142,7 +144,7 @@ export const ApplicationsAnalytics = ({ applications, jobs }: ApplicationsAnalyt
         <Card>
           <CardContent className="pt-6">
             <div className="space-y-2">
-              <p className="text-sm text-muted-foreground">Stalled Pipelines</p>
+              <p className="text-sm text-muted-foreground">{t('applicationsAnalytics.stalledPipelines')}</p>
               <div className="flex items-center gap-2">
                 <p className="text-3xl font-bold">
                   {applications.filter(a => {
@@ -155,7 +157,7 @@ export const ApplicationsAnalytics = ({ applications, jobs }: ApplicationsAnalyt
               </div>
               <div className="flex items-center gap-1 text-amber-500 text-sm">
                 <Clock className="w-4 h-4" />
-                <span>Need attention</span>
+                <span>{t('applicationsAnalytics.needAttention')}</span>
               </div>
             </div>
           </CardContent>
@@ -166,7 +168,7 @@ export const ApplicationsAnalytics = ({ applications, jobs }: ApplicationsAnalyt
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>Pipeline Distribution</CardTitle>
+            <CardTitle>{t('applicationsAnalytics.title')}</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
@@ -183,7 +185,7 @@ export const ApplicationsAnalytics = ({ applications, jobs }: ApplicationsAnalyt
 
         <Card>
           <CardHeader>
-            <CardTitle>Source Breakdown</CardTitle>
+            <CardTitle>{t('applicationsAnalytics.title')}</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>

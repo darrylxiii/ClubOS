@@ -102,18 +102,18 @@ const handler = async (req: Request): Promise<Response> => {
             from_email: fromEmail,
             from_name: message.from?.emailAddress?.name || "",
             from_avatar_url: avatarUrl,
-            to_emails: (message.toRecipients || []).map((r: any) => ({
-              email: r.emailAddress?.address,
-              name: r.emailAddress?.name,
-            })),
-            cc_emails: (message.ccRecipients || []).map((r: any) => ({
-              email: r.emailAddress?.address,
-              name: r.emailAddress?.name,
-            })),
-            bcc_emails: (message.bccRecipients || []).map((r: any) => ({
-              email: r.emailAddress?.address,
-              name: r.emailAddress?.name,
-            })),
+            to_emails: (message.toRecipients || []).map((r: Record<string, unknown>) => {
+              const ea = r.emailAddress as Record<string, unknown> | undefined;
+              return { email: ea?.address as string, name: ea?.name as string };
+            }),
+            cc_emails: (message.ccRecipients || []).map((r: Record<string, unknown>) => {
+              const ea = r.emailAddress as Record<string, unknown> | undefined;
+              return { email: ea?.address as string, name: ea?.name as string };
+            }),
+            bcc_emails: (message.bccRecipients || []).map((r: Record<string, unknown>) => {
+              const ea = r.emailAddress as Record<string, unknown> | undefined;
+              return { email: ea?.address as string, name: ea?.name as string };
+            }),
             reply_to: message.replyTo?.[0]?.emailAddress?.address,
             body_text: message.body?.contentType === "text" ? message.body?.content : null,
             body_html: message.body?.contentType === "html" ? message.body?.content : null,
@@ -170,15 +170,15 @@ const handler = async (req: Request): Promise<Response> => {
               from_email: fromEmail,
               from_name: message.from?.emailAddress?.name || "",
               from_avatar_url: avatarUrl,
-              to_emails: (message.toRecipients || []).map((r: any) => ({
+              to_emails: (message.toRecipients || []).map((r: Record<string, unknown>) => ({
                 email: r.emailAddress?.address,
                 name: r.emailAddress?.name,
               })),
-              cc_emails: (message.ccRecipients || []).map((r: any) => ({
+              cc_emails: (message.ccRecipients || []).map((r: Record<string, unknown>) => ({
                 email: r.emailAddress?.address,
                 name: r.emailAddress?.name,
               })),
-              bcc_emails: (message.bccRecipients || []).map((r: any) => ({
+              bcc_emails: (message.bccRecipients || []).map((r: Record<string, unknown>) => ({
                 email: r.emailAddress?.address,
                 name: r.emailAddress?.name,
               })),
@@ -234,10 +234,10 @@ const handler = async (req: Request): Promise<Response> => {
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error syncing Outlook emails:", error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
       {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },

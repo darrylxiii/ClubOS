@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { BarChart3, Clock, AlertCircle, Plus, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import { RainbowButton } from "@/components/ui/rainbow-button";
+import { useTranslation } from 'react-i18next';
 
 interface StageData {
   name: string;
@@ -18,6 +19,7 @@ interface HiringPipelineOverviewProps {
 }
 
 export const HiringPipelineOverview = ({ companyId }: HiringPipelineOverviewProps) => {
+  const { t } = useTranslation('common');
   const [stages, setStages] = useState<StageData[]>([]);
   const [loading, setLoading] = useState(true);
   const [totalActive, setTotalActive] = useState(0);
@@ -114,7 +116,7 @@ export const HiringPipelineOverview = ({ companyId }: HiringPipelineOverviewProp
             <BarChart3 className="h-5 w-5" />
             Hiring Pipeline
           </CardTitle>
-          <CardDescription>Current stage breakdown</CardDescription>
+          <CardDescription>{t('hiringPipelineOverview.description')}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="h-48 bg-muted/50 rounded-lg animate-pulse" />
@@ -131,14 +133,14 @@ export const HiringPipelineOverview = ({ companyId }: HiringPipelineOverviewProp
             <BarChart3 className="h-5 w-5" />
             Hiring Pipeline
           </CardTitle>
-          <CardDescription>Current stage breakdown</CardDescription>
+          <CardDescription>{t('hiringPipelineOverview.description')}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="text-center py-8">
             <div className="mx-auto mb-4 h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
               <Sparkles className="h-6 w-6 text-primary" />
             </div>
-            <p className="text-sm font-medium mb-1">Your hiring pipeline starts here</p>
+            <p className="text-sm font-medium mb-1">{t('hiringPipelineOverview.yourHiringPipelineStartsHere')}</p>
             <p className="text-xs text-muted-foreground mb-5 max-w-[240px] mx-auto">
               We source, screen, and present candidates — you just review
             </p>

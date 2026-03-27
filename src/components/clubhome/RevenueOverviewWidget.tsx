@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { T } from "@/components/T";
+import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { usePlatformSettings } from "@/hooks/usePlatformSettings";
@@ -21,6 +22,7 @@ interface RevenueData {
 }
 
 export const RevenueOverviewWidget = () => {
+  const { t } = useTranslation('common');
   const { settings } = usePlatformSettings();
   
   const { data: revenue, isLoading } = useQuery({
@@ -123,7 +125,7 @@ export const RevenueOverviewWidget = () => {
                   <Info className="h-3 w-3 text-muted-foreground" />
                 </TooltipTrigger>
                 <TooltipContent className="max-w-xs">
-                  <p>Estimated based on {formatCurrency(settings.estimated_placement_fee)} avg placement fee × {revenue?.currentHires || 0} hires this month</p>
+                  <p>{t('revenue.estimatedBasis', 'Estimated based on {{fee}} avg placement fee x {{hires}} hires this month', { fee: formatCurrency(settings.estimated_placement_fee), hires: revenue?.currentHires || 0 })}</p>
                 </TooltipContent>
               </Tooltip>
             </div>
@@ -140,7 +142,7 @@ export const RevenueOverviewWidget = () => {
           <div>
             <p className="text-xs text-muted-foreground mb-1">
               <T k="common:metrics.currentMonth" fallback="This Month" />
-              <span className="ml-1">({revenue?.currentHires || 0} placements)</span>
+              <span className="ml-1">({t('revenue.placementsCount', '{{count}} placements', { count: revenue?.currentHires || 0 })})</span>
             </p>
             <div className="flex items-center gap-2">
               <span className="text-2xl font-bold">{formatCurrency(revenue?.currentMonth || 0)}</span>
@@ -164,7 +166,7 @@ export const RevenueOverviewWidget = () => {
                 <T k="common:metrics.lastMonth" fallback="Last Month" />
               </p>
               <p className="font-semibold">{formatCurrency(revenue?.lastMonth || 0)}</p>
-              <p className="text-xs text-muted-foreground">{revenue?.lastMonthHires || 0} placements</p>
+              <p className="text-xs text-muted-foreground">{t('revenue.placementsCount', '{{count}} placements', { count: revenue?.lastMonthHires || 0 })}</p>
             </div>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -173,11 +175,11 @@ export const RevenueOverviewWidget = () => {
                     <T k="common:metrics.pipeline" fallback="Pipeline Value" />
                   </p>
                   <p className="font-semibold text-premium">{formatCurrency(revenue?.pipelineValue || 0)}</p>
-                  <p className="text-xs text-muted-foreground">{revenue?.pipelineCount || 0} active</p>
+                  <p className="text-xs text-muted-foreground">{t('revenue.activeCount', '{{count}} active', { count: revenue?.pipelineCount || 0 })}</p>
                 </div>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Estimated at {settings.pipeline_conversion_rate * 100}% conversion rate</p>
+                <p>{t('revenue.estimatedConversion', 'Estimated at {{rate}}% conversion rate', { rate: settings.pipeline_conversion_rate * 100 })}</p>
               </TooltipContent>
             </Tooltip>
           </div>

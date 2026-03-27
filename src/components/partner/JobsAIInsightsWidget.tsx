@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAggregatedHiringIntelligence, useRefreshAggregatedIntelligence } from '@/hooks/useAggregatedHiringIntelligence';
+import { useTranslation } from 'react-i18next';
 
 interface JobsAIInsightsWidgetProps {
   companyId?: string;
@@ -154,6 +155,7 @@ const LoadingSkeleton = () => (
 );
 
 export const JobsAIInsightsWidget = memo(({ companyId }: JobsAIInsightsWidgetProps) => {
+  const { t } = useTranslation('partner');
   const [isOpen, setIsOpen] = useState(true);
   const { data: insights, isLoading, error } = useAggregatedHiringIntelligence(companyId);
   const refreshMutation = useRefreshAggregatedIntelligence();
@@ -163,7 +165,7 @@ export const JobsAIInsightsWidget = memo(({ companyId }: JobsAIInsightsWidgetPro
       <Card className="bg-card/10 backdrop-blur-xl border-border/20 p-4">
         <div className="flex items-center gap-2 text-muted-foreground text-sm">
           <Brain className="h-4 w-4" />
-          <span>QUIN Insights temporarily unavailable</span>
+          <span>{t('jobsAIInsightsWidget.quinInsightsTemporarilyUnavailable')}</span>
         </div>
       </Card>
     );
@@ -179,7 +181,7 @@ export const JobsAIInsightsWidget = memo(({ companyId }: JobsAIInsightsWidgetPro
                 <div className="p-1.5 rounded-lg bg-primary/10">
                   <Brain className="h-4 w-4 text-primary" />
                 </div>
-                <CardTitle className="text-base">QUIN Insights</CardTitle>
+                <CardTitle className="text-base">{t('jobsAIInsightsWidget.title')}</CardTitle>
                 <Badge variant="outline" className="text-[10px] bg-primary/5 text-primary border-primary/30">
                   <Sparkles className="h-2.5 w-2.5 mr-1" />
                   AI
@@ -237,7 +239,7 @@ export const JobsAIInsightsWidget = memo(({ companyId }: JobsAIInsightsWidgetPro
                 <div>
                   <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-2">
                     <Target className="h-3 w-3" />
-                    <span>Hiring Forecast</span>
+                    <span>{t('jobsAIInsightsWidget.hiringForecast')}</span>
                   </div>
                   <div className="grid grid-cols-3 gap-2">
                     <ForecastCard 
@@ -263,7 +265,7 @@ export const JobsAIInsightsWidget = memo(({ companyId }: JobsAIInsightsWidgetPro
                   <div>
                     <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-2">
                       <TrendingUp className="h-3 w-3" />
-                      <span>Strategic Recommendations</span>
+                      <span>{t('jobsAIInsightsWidget.strategicRecommendations')}</span>
                     </div>
                     <div className="space-y-2">
                       {insights.strategicRecommendations.slice(0, 3).map((rec, idx) => (
@@ -289,8 +291,8 @@ export const JobsAIInsightsWidget = memo(({ companyId }: JobsAIInsightsWidgetPro
             ) : (
               <div className="text-center py-6 text-muted-foreground">
                 <Brain className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                <p className="text-sm">No insights available yet</p>
-                <p className="text-xs">Add more jobs to generate AI predictions</p>
+                <p className="text-sm">{t('jobsAIInsightsWidget.noInsightsAvailableYet')}</p>
+                <p className="text-xs">{t('jobsAIInsightsWidget.addMoreJobsToGenerateAiPredictions')}</p>
               </div>
             )}
           </CardContent>

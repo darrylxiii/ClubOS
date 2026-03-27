@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { createPortal } from 'react-dom';
 import { Phone, PhoneOff, Video, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -26,6 +27,7 @@ export function IncomingCallCard({
   onDecline,
   createdAt
 }: IncomingCallCardProps) {
+  const { t } = useTranslation('common');
   const [timeRemaining, setTimeRemaining] = useState(30);
   const [isConnecting, setIsConnecting] = useState(false);
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -179,7 +181,7 @@ export function IncomingCallCard({
                 <div className="absolute inset-0 bg-green-400 rounded-full animate-ping opacity-75" />
                 <Phone className="h-12 w-12 text-white relative" />
               </div>
-              <p className="text-white text-xl font-semibold">Connecting...</p>
+              <p className="text-white text-xl font-semibold">{t("connecting", "Connecting...")}</p>
             </div>
           </div>
         </motion.div>
@@ -292,8 +294,8 @@ export function IncomingCallCard({
 
                 {/* Button labels */}
                 <div className="flex items-center justify-center gap-6 mt-3">
-                  <span className="text-sm text-muted-foreground w-16 text-center">Decline</span>
-                  <span className="text-sm text-muted-foreground w-20 text-center">Accept</span>
+                  <span className="text-sm text-muted-foreground w-16 text-center">{t("decline", "Decline")}</span>
+                  <span className="text-sm text-muted-foreground w-20 text-center">{t("accept", "Accept")}</span>
                 </div>
               </div>
             </div>

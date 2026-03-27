@@ -21,6 +21,7 @@ import {
   CheckSquare,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 
 interface JobBulkActionBarProps {
   selectedCount: number;
@@ -45,6 +46,7 @@ export const JobBulkActionBar = memo(({
   isProcessing = false,
   className,
 }: JobBulkActionBarProps) => {
+  const { t } = useTranslation('partner');
   if (selectedCount === 0) return null;
 
   return (
@@ -78,7 +80,7 @@ export const JobBulkActionBar = memo(({
             disabled={isProcessing}
           >
             <Flag className="w-4 h-4 text-success" />
-            <span className="hidden sm:inline">Publish</span>
+            <span className="hidden sm:inline">{t('jobBulkActionBar.publish')}</span>
           </Button>
 
           <Button
@@ -89,7 +91,7 @@ export const JobBulkActionBar = memo(({
             disabled={isProcessing}
           >
             <XCircle className="w-4 h-4 text-warning" />
-            <span className="hidden sm:inline">Close</span>
+            <span className="hidden sm:inline">{t('common:close')}</span>
           </Button>
 
           <Button
@@ -100,7 +102,7 @@ export const JobBulkActionBar = memo(({
             disabled={isProcessing}
           >
             <Archive className="w-4 h-4" />
-            <span className="hidden sm:inline">Archive</span>
+            <span className="hidden sm:inline">{t('common:archive')}</span>
           </Button>
 
           {/* More actions dropdown */}
@@ -112,7 +114,7 @@ export const JobBulkActionBar = memo(({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48 bg-card/95 backdrop-blur-xl">
-              <DropdownMenuLabel>Bulk Actions</DropdownMenuLabel>
+              <DropdownMenuLabel>{t('jobBulkActionBar.menu.bulkActions')}</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={onExportSelected} className="gap-2">
                 <Download className="w-4 h-4" />

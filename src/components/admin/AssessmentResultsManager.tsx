@@ -10,6 +10,7 @@ import { Eye, Search, Download } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { format } from 'date-fns';
 import { notify } from '@/lib/notify';
+import { useTranslation } from 'react-i18next';
 
 interface AssessmentResult {
   id: string;
@@ -25,6 +26,7 @@ interface AssessmentResult {
 }
 
 export const AssessmentResultsManager = () => {
+  const { t } = useTranslation('admin');
   const [results, setResults] = useState<AssessmentResult[]>([]);
   const [filteredResults, setFilteredResults] = useState<AssessmentResult[]>([]);
   const [loading, setLoading] = useState(true);
@@ -134,7 +136,7 @@ export const AssessmentResultsManager = () => {
     <>
       <Card>
         <CardHeader>
-          <CardTitle>Assessment Results</CardTitle>
+          <CardTitle>{t('assessmentResultsManager.assessmentResults')}</CardTitle>
           <CardDescription>
             View and analyze all user assessment results ({results.length} total)
           </CardDescription>
@@ -144,7 +146,7 @@ export const AssessmentResultsManager = () => {
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search by name, email, or assessment..."
+                placeholder={t('assessmentResultsManager.searchByNameEmailOrAssessment')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-9"
@@ -152,7 +154,7 @@ export const AssessmentResultsManager = () => {
             </div>
             <Select value={typeFilter} onValueChange={setTypeFilter}>
               <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Filter by type" />
+                <SelectValue placeholder={t('assessmentResultsManager.filterByType')} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Types</SelectItem>
@@ -171,12 +173,12 @@ export const AssessmentResultsManager = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>User</TableHead>
-                  <TableHead>Assessment</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Score</TableHead>
-                  <TableHead>Completed</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead>{t('assessmentResultsManager.user')}</TableHead>
+                  <TableHead>{t('assessmentResultsManager.assessment')}</TableHead>
+                  <TableHead>{t('common:fields.type')}</TableHead>
+                  <TableHead>{t('assessmentResultsManager.score')}</TableHead>
+                  <TableHead>{t('assessmentResultsManager.completed')}</TableHead>
+                  <TableHead className="text-right">{t('common:fields.actions')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -235,12 +237,12 @@ export const AssessmentResultsManager = () => {
           <div className="space-y-4">
             {selectedResult?.score && (
               <div>
-                <h4 className="font-semibold mb-2">Overall Score</h4>
+                <h4 className="font-semibold mb-2">{t('assessmentResultsManager.overallScore')}</h4>
                 <p className="text-2xl font-bold">{Math.round(selectedResult.score)}%</p>
               </div>
             )}
             <div>
-              <h4 className="font-semibold mb-2">Detailed Results</h4>
+              <h4 className="font-semibold mb-2">{t('assessmentResultsManager.detailedResults')}</h4>
               <pre className="bg-muted p-4 rounded-lg overflow-x-auto text-sm">
                 {JSON.stringify(selectedResult?.results_data, null, 2)}
               </pre>

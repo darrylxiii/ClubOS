@@ -1,4 +1,5 @@
 import { createReactBlockSpec } from '@blocknote/react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 
 export const QuoteBlock = createReactBlockSpec(
@@ -30,7 +31,7 @@ export const QuoteBlock = createReactBlockSpec(
                   props: { author: e.target.value },
                 })
               }
-              placeholder="Author name"
+              placeholder={t('workspace.authorName', 'Author name')}
               className={cn(
                 "text-sm text-muted-foreground bg-transparent border-none",
                 "focus:outline-none focus:ring-0 placeholder:text-muted-foreground/50",

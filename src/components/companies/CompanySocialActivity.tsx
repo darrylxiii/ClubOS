@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -28,6 +29,7 @@ interface CompanyStory {
 }
 
 export function CompanySocialActivity({ companyId, isCompanyMember }: CompanySocialActivityProps) {
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
   const [posts, setPosts] = useState<CompanyPost[]>([]);
   const [stories, setStories] = useState<CompanyStory[]>([]);
@@ -133,8 +135,8 @@ export function CompanySocialActivity({ companyId, isCompanyMember }: CompanySoc
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>Social Activity</CardTitle>
-              <CardDescription>Your latest posts, stories, and likes</CardDescription>
+              <CardTitle>{t("social_activity", "Social Activity")}</CardTitle>
+              <CardDescription>{t("your_latest_posts_stories", "Your latest posts, stories, and likes")}</CardDescription>
             </div>
             {isCompanyMember && (
               <Button
@@ -161,7 +163,7 @@ export function CompanySocialActivity({ companyId, isCompanyMember }: CompanySoc
               {posts.length === 0 ? (
                 <div className="text-center py-12 text-muted-foreground">
                   <MessageCircle className="w-12 h-12 mx-auto mb-4 opacity-20" />
-                  <p>No posts yet</p>
+                  <p>{t("no_posts_yet", "No posts yet")}</p>
                   {isCompanyMember && (
                     <Button variant="outline" size="sm" className="mt-4">
                       Create First Post
@@ -176,7 +178,7 @@ export function CompanySocialActivity({ companyId, isCompanyMember }: CompanySoc
                         <div className="aspect-square rounded-lg overflow-hidden bg-muted">
                           <img
                             src={post.media_url}
-                            alt="Post media"
+                            alt={t("post_media", "Post media")}
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                           />
                         </div>
@@ -203,7 +205,7 @@ export function CompanySocialActivity({ companyId, isCompanyMember }: CompanySoc
               {stories.length === 0 ? (
                 <div className="text-center py-12 text-muted-foreground">
                   <ImageIcon className="w-12 h-12 mx-auto mb-4 opacity-20" />
-                  <p>No active stories</p>
+                  <p>{t("no_active_stories", "No active stories")}</p>
                   {isCompanyMember && (
                     <Button 
                       variant="outline" 
@@ -227,7 +229,7 @@ export function CompanySocialActivity({ companyId, isCompanyMember }: CompanySoc
                       ) : (
                         <img
                           src={story.media_url}
-                          alt="Story"
+                          alt={t("story", "Story")}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                         />
                       )}
@@ -247,7 +249,7 @@ export function CompanySocialActivity({ companyId, isCompanyMember }: CompanySoc
               <div className="text-center py-12">
                 <Heart className="w-12 h-12 mx-auto mb-4 text-red-500 opacity-20" />
                 <p className="text-2xl font-bold mb-2">{totalLikes}</p>
-                <p className="text-sm text-muted-foreground">Total likes across all posts</p>
+                <p className="text-sm text-muted-foreground">{t("total_likes_across_all", "Total likes across all posts")}</p>
               </div>
             </TabsContent>
           </Tabs>

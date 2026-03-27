@@ -1,9 +1,4 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-application-name, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-};
+import { createHandler } from '../_shared/handler.ts';
 
 interface AssessmentDimension {
   score: number;
@@ -76,25 +71,16 @@ const DIMENSION_WEIGHTS: Record<string, number> = {
   location_match: 0.10,
 };
 
-Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  try {
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
+Deno.serve(createHandler(async (req, ctx) => {
     const { candidate_id, job_id } = await req.json();
     if (!candidate_id) {
       return new Response(JSON.stringify({ error: "candidate_id required" }), {
-        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400, headers: { ...ctx.corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     // Fetch candidate
-    const { data: candidate } = await supabase
+    const { data: candidate } = await ctx.supabase
       .from("candidate_profiles")
       .select("*")
       .eq("id", candidate_id)
@@ -102,7 +88,7 @@ Deno.serve(async (req) => {
 
     if (!candidate) {
       return new Response(JSON.stringify({ error: "Candidate not found" }), {
-        status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 404, headers: { ...ctx.corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -120,35 +106,35 @@ Deno.serve(async (req) => {
       { data: meetingParticipants },
       { data: valuesPokerSessions },
     ] = await Promise.all([
-      supabase.from("profile_skills").select("*").eq("user_id", candidate_id),
-      supabase.from("candidate_interactions").select("*").eq("candidate_id", candidate_id),
-      supabase.from("candidate_application_logs").select("*").eq("candidate_profile_id", candidate_id),
-      supabase.from("skills_taxonomy").select("canonical_name, synonyms, display_name"),
-      supabase.from("applications").select("id").eq("candidate_id", candidate_id),
-      supabase.from("unified_communications").select("original_timestamp, direction, channel")
+      ctx.supabase.from("profile_skills").select("*").eq("user_id", candidate_id),
+      ctx.supabase.from("candidate_interactions").select("*").eq("candidate_id", candidate_id),
+      ctx.supabase.from("candidate_application_logs").select("*").eq("candidate_profile_id", candidate_id),
+      ctx.supabase.from("skills_taxonomy").select("canonical_name, synonyms, display_name"),
+      ctx.supabase.from("applications").select("id").eq("candidate_id", candidate_id),
+      ctx.supabase.from("unified_communications").select("original_timestamp, direction, channel")
         .eq("entity_id", candidate_id).order("original_timestamp", { ascending: true }).limit(100),
-      supabase.from("profile_experience").select("*").eq("user_id", candidate_id).order("start_date", { ascending: false }),
+      ctx.supabase.from("profile_experience").select("*").eq("user_id", candidate_id).order("start_date", { ascending: false }),
       // NEW: Interview intelligence (AI-computed scores from meetings)
-      supabase.from("interview_intelligence").select("culture_fit_score, technical_depth_score, communication_clarity_score, overall_score, meeting_id, created_at")
+      ctx.supabase.from("interview_intelligence").select("culture_fit_score, technical_depth_score, communication_clarity_score, overall_score, meeting_id, created_at")
         .eq("candidate_id", candidate_id),
       // NEW: Candidate interview performance (structured performance data)
-      supabase.from("candidate_interview_performance").select("cultural_fit_score, technical_competence_score, communication_clarity_score, hiring_recommendation, key_strengths, red_flags")
+      ctx.supabase.from("candidate_interview_performance").select("cultural_fit_score, technical_competence_score, communication_clarity_score, hiring_recommendation, key_strengths, red_flags")
         .eq("candidate_id", candidate_id),
       // NEW: Meeting participants (attendance tracking) — use user_id if candidate has one
       candidate.user_id
-        ? supabase.from("meeting_participants").select("id, attended, joined_at, left_at").eq("user_id", candidate.user_id).eq("attended", true)
+        ? ctx.supabase.from("meeting_participants").select("id, attended, joined_at, left_at").eq("user_id", candidate.user_id).eq("attended", true)
         : Promise.resolve({ data: [] }),
       // NEW: Values poker sessions (culture assessment games)
       candidate.user_id
-        ? supabase.from("values_poker_sessions").select("culture_fit_scores, consistency_score, value_archetype, red_flags").eq("user_id", candidate.user_id)
+        ? ctx.supabase.from("values_poker_sessions").select("culture_fit_scores, consistency_score, value_archetype, red_flags").eq("user_id", candidate.user_id)
         : Promise.resolve({ data: [] }),
     ]);
 
     // Fetch interview feedback via applications
-    let allFeedback: any[] = [];
+    let allFeedback: Record<string, unknown>[] = [];
     if (applications && applications.length > 0) {
-      const appIds = applications.map((a: any) => a.id);
-      const { data: appFeedback } = await supabase
+      const appIds = applications.map((a: Record<string, unknown>) => a.id);
+      const { data: appFeedback } = await ctx.supabase
         .from("interview_feedback")
         .select("*")
         .in("application_id", appIds);
@@ -156,12 +142,12 @@ Deno.serve(async (req) => {
     }
 
     // Fetch job data + job_locations if job_id provided
-    let job: any = null;
-    let jobLocations: any[] = [];
+    let job: Record<string, unknown> | null = null;
+    let jobLocations: Record<string, unknown>[] = [];
     if (job_id) {
       const [{ data: jobData }, { data: jl }] = await Promise.all([
-        supabase.from("jobs").select("*").eq("id", job_id).single(),
-        supabase.from("job_locations").select("*").eq("job_id", job_id),
+        ctx.supabase.from("jobs").select("*").eq("id", job_id).single(),
+        ctx.supabase.from("job_locations").select("*").eq("job_id", job_id),
       ]);
       job = jobData;
       jobLocations = jl || [];
@@ -221,7 +207,7 @@ Deno.serve(async (req) => {
     };
 
     // Write back
-    await supabase
+    await ctx.supabase
       .from("candidate_profiles")
       .update({
         assessment_breakdown: breakdown,
@@ -232,20 +218,14 @@ Deno.serve(async (req) => {
       .eq("id", candidate_id);
 
     return new Response(JSON.stringify({ success: true, breakdown }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...ctx.corsHeaders, "Content-Type": "application/json" },
     });
-  } catch (error) {
-    console.error("Assessment calculation error:", error);
-    return new Response(JSON.stringify({ error: String(error) }), {
-      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  }
-});
+}));
 
 // ==================== SKILLS MATCH ====================
 function computeSkillsMatch(
-  candidate: any, profileSkills: any[], job: any | null, taxonomy: any[],
-  intelligence: any
+  candidate: Record<string, unknown>, profileSkills: Record<string, unknown>[], job: Record<string, unknown> | null, taxonomy: Record<string, unknown>[],
+  intelligence: Record<string, unknown[]>
 ): AssessmentDimension {
   // Gather candidate skills from all sources with proficiency weights
   const candidateSkillNames = new Set<string>();
@@ -263,8 +243,9 @@ function computeSkillsMatch(
 
   if (candidate.skills) {
     const arr = Array.isArray(candidate.skills) ? candidate.skills : [];
-    arr.forEach((s: any) => {
-      const name = typeof s === "string" ? s : s?.name || s?.skill;
+    arr.forEach((s: unknown) => {
+      const sObj = s as Record<string, unknown>;
+      const name = typeof s === "string" ? s : sObj?.name || sObj?.skill;
       if (name) {
         const lower = name.toLowerCase().trim();
         candidateSkillNames.add(lower);
@@ -276,7 +257,7 @@ function computeSkillsMatch(
   // Also extract keywords from work_history titles as fallback
   if (candidateSkillNames.size === 0 && candidate.work_history) {
     const wh = Array.isArray(candidate.work_history) ? candidate.work_history : [];
-    wh.forEach((w: any) => {
+    wh.forEach((w: Record<string, unknown>) => {
       const title = (w.title || w.job_title || '').toLowerCase();
       const keywords = title.split(/[\s,/\-&]+/).filter((k: string) => k.length > 2);
       keywords.forEach((k: string) => {
@@ -324,18 +305,20 @@ function computeSkillsMatch(
   // Get must-have requirements
   const mustHave: string[] = [];
   if (job.requirements && Array.isArray(job.requirements)) {
-    job.requirements.forEach((r: any) => {
-      const name = typeof r === "string" ? r : r?.name || r?.skill || r?.label;
-      if (name) mustHave.push(name.toLowerCase().trim());
+    job.requirements.forEach((r: unknown) => {
+      const rObj = r as Record<string, unknown>;
+      const name = typeof r === "string" ? r : rObj?.name || rObj?.skill || rObj?.label;
+      if (name) mustHave.push(String(name).toLowerCase().trim());
     });
   }
 
   // Get nice-to-have
   const niceToHave: string[] = [];
   if (job.nice_to_have && Array.isArray(job.nice_to_have)) {
-    job.nice_to_have.forEach((r: any) => {
-      const name = typeof r === "string" ? r : r?.name || r?.skill || r?.label;
-      if (name) niceToHave.push(name.toLowerCase().trim());
+    job.nice_to_have.forEach((r: unknown) => {
+      const rObj = r as Record<string, unknown>;
+      const name = typeof r === "string" ? r : rObj?.name || rObj?.skill || rObj?.label;
+      if (name) niceToHave.push(String(name).toLowerCase().trim());
     });
   }
 
@@ -410,13 +393,13 @@ function computeSkillsMatch(
 }
 
 // ==================== EXPERIENCE ====================
-function computeExperience(candidate: any, job: any | null, profileExperience: any[] = []): AssessmentDimension {
+function computeExperience(candidate: Record<string, unknown>, job: Record<string, unknown> | null, profileExperience: Record<string, unknown>[] = []): AssessmentDimension {
   let yoe = candidate.years_of_experience;
   let workHistory = Array.isArray(candidate.work_history) ? candidate.work_history : [];
 
   // FALLBACK 1: If work_history is empty, build it from profile_experience table
   if (workHistory.length === 0 && profileExperience.length > 0) {
-    workHistory = profileExperience.map((pe: any) => ({
+    workHistory = profileExperience.map((pe: Record<string, unknown>) => ({
       title: pe.position_title || pe.title,
       company: pe.company_name || pe.company,
       start_date: pe.start_date,
@@ -433,7 +416,7 @@ function computeExperience(candidate: any, job: any | null, profileExperience: a
       : candidate.linkedin_profile_data;
     const exp = lpd?.experience || lpd?.positions || lpd?.work_history || [];
     if (Array.isArray(exp) && exp.length > 0) {
-      workHistory = exp.map((e: any) => ({
+      workHistory = exp.map((e: Record<string, unknown>) => ({
         title: e.title || e.position_title || e.role,
         company: e.company || e.company_name || e.organization,
         start_date: e.start_date || e.startDate,
@@ -485,7 +468,7 @@ function computeExperience(candidate: any, job: any | null, profileExperience: a
   // Detect career progression from work history
   let progressionBonus = 0;
   if (workHistory.length >= 2) {
-    const titles = workHistory.map((w: any) => (w.title || w.job_title || w.position_title || '').toLowerCase());
+    const titles = workHistory.map((w: Record<string, unknown>) => (String(w.title || w.job_title || w.position_title || '')).toLowerCase());
     const seniorityKeywords = ['intern', 'trainee', 'junior', 'mid', 'senior', 'lead', 'principal', 'head', 'director', 'vp', 'cto', 'ceo'];
     const titleLevels = titles.map((t: string) => {
       for (let i = seniorityKeywords.length - 1; i >= 0; i--) {
@@ -537,7 +520,7 @@ function computeExperience(candidate: any, job: any | null, profileExperience: a
 }
 
 // Helper: compute total years of experience from work history date ranges
-function computeYearsFromWorkHistory(workHistory: any[]): number {
+function computeYearsFromWorkHistory(workHistory: Record<string, unknown>[]): number {
   const now = new Date();
   let totalMonths = 0;
 
@@ -574,8 +557,8 @@ function computeYearsFromWorkHistory(workHistory: any[]): number {
 
 // ==================== ENGAGEMENT ====================
 function computeEngagement(
-  candidate: any, interactions: any[], applicationLogs: any[], communications: any[],
-  intelligence: any
+  candidate: Record<string, unknown>, interactions: Record<string, unknown>[], applicationLogs: Record<string, unknown>[], communications: Record<string, unknown>[],
+  intelligence: Record<string, unknown[]>
 ): AssessmentDimension {
   const sources: string[] = [];
   let totalScore = 0;
@@ -596,8 +579,8 @@ function computeEngagement(
 
   // 2. Communications / response time (25% — was 30%)
   if (communications && communications.length > 0) {
-    const inbound = communications.filter((c: any) => c.direction === 'inbound');
-    const outbound = communications.filter((c: any) => c.direction === 'outbound');
+    const inbound = communications.filter((c: Record<string, unknown>) => c.direction === 'inbound');
+    const outbound = communications.filter((c: Record<string, unknown>) => c.direction === 'outbound');
 
     // Calculate average response time
     let totalResponseMs = 0;
@@ -704,15 +687,15 @@ function computeEngagement(
 }
 
 // ==================== CULTURE FIT ====================
-function computeCultureFit(candidate: any, feedback: any[], intelligence: any): AssessmentDimension {
+function computeCultureFit(candidate: Record<string, unknown>, feedback: Record<string, unknown>[], intelligence: Record<string, unknown[]>): AssessmentDimension {
   const sources: string[] = [];
   let totalScore = 0;
   let weights = 0;
 
   // 1. NEW PRIMARY: interview_intelligence.culture_fit_score (0-100, highest quality AI signal)
   const iiCultureScores = (intelligence.interviewIntelligence || [])
-    .filter((ii: any) => ii.culture_fit_score != null && ii.culture_fit_score > 0)
-    .map((ii: any) => ii.culture_fit_score);
+    .filter((ii: Record<string, unknown>) => ii.culture_fit_score != null && (ii.culture_fit_score as number) > 0)
+    .map((ii: Record<string, unknown>) => ii.culture_fit_score as number);
 
   if (iiCultureScores.length > 0) {
     const avg = iiCultureScores.reduce((a: number, b: number) => a + b, 0) / iiCultureScores.length;
@@ -723,8 +706,8 @@ function computeCultureFit(candidate: any, feedback: any[], intelligence: any): 
 
   // 2. NEW: candidate_interview_performance.cultural_fit_score (0-100)
   const ipCultureScores = (intelligence.interviewPerformance || [])
-    .filter((ip: any) => ip.cultural_fit_score != null && ip.cultural_fit_score > 0)
-    .map((ip: any) => ip.cultural_fit_score);
+    .filter((ip: Record<string, unknown>) => ip.cultural_fit_score != null && (ip.cultural_fit_score as number) > 0)
+    .map((ip: Record<string, unknown>) => ip.cultural_fit_score as number);
 
   if (ipCultureScores.length > 0) {
     const avg = ipCultureScores.reduce((a: number, b: number) => a + b, 0) / ipCultureScores.length;
@@ -752,7 +735,7 @@ function computeCultureFit(candidate: any, feedback: any[], intelligence: any): 
     for (const vp of vpSessions) {
       if (vp.culture_fit_scores) {
         const scores = typeof vp.culture_fit_scores === 'object' ? vp.culture_fit_scores : {};
-        const vals = Object.values(scores).filter((v: any) => typeof v === 'number' && v > 0) as number[];
+        const vals = Object.values(scores).filter((v: unknown) => typeof v === 'number' && v > 0) as number[];
         if (vals.length > 0) {
           vpScores.push(vals.reduce((a, b) => a + b, 0) / vals.length);
         }
@@ -835,7 +818,7 @@ function computeCultureFit(candidate: any, feedback: any[], intelligence: any): 
 }
 
 // ==================== SALARY MATCH ====================
-function computeSalaryMatch(candidate: any, job: any | null): AssessmentDimension {
+function computeSalaryMatch(candidate: Record<string, unknown>, job: Record<string, unknown> | null): AssessmentDimension {
   let candidateMin = candidate.desired_salary_min;
   let candidateMax = candidate.desired_salary_max;
   let salaryConfidence = 0.85;
@@ -933,7 +916,7 @@ function computeSalaryMatch(candidate: any, job: any | null): AssessmentDimensio
 }
 
 // Helper: infer seniority from candidate data
-function inferSeniority(candidate: any): string | null {
+function inferSeniority(candidate: Record<string, unknown>): string | null {
   const title = (candidate.current_title || '').toLowerCase();
   const yoe = candidate.years_of_experience;
 
@@ -964,7 +947,7 @@ function inferSeniority(candidate: any): string | null {
 
 // ==================== LOCATION MATCH ====================
 function computeLocationMatch(
-  candidate: any, job: any | null, jobLocations: any[]
+  candidate: Record<string, unknown>, job: Record<string, unknown> | null, jobLocations: Record<string, unknown>[]
 ): AssessmentDimension {
   const desiredLocations = candidate.desired_locations;
   const remotePref = (candidate.remote_preference || '').toLowerCase();

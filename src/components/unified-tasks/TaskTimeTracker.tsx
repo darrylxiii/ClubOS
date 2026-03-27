@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -23,6 +24,7 @@ export function TaskTimeTracker({
   onUpdate,
   compact = false,
 }: TaskTimeTrackerProps) {
+  const { t } = useTranslation('common');
   const [isRunning, setIsRunning] = useState(timerRunning);
   const [startedAt, setStartedAt] = useState<Date | null>(
     timerStartedAt ? new Date(timerStartedAt) : null
@@ -86,10 +88,10 @@ export function TaskTimeTracker({
 
       setIsRunning(true);
       setStartedAt(new Date(now));
-      toast.success("Timer started");
+      toast.success(t("timer_started", "Timer started"));
     } catch (error) {
       console.error("Error starting timer:", error);
-      toast.error("Failed to start timer");
+      toast.error(t("failed_to_start_timer", "Failed to start timer"));
     } finally {
       setLoading(false);
     }
@@ -123,7 +125,7 @@ export function TaskTimeTracker({
       onUpdate?.();
     } catch (error) {
       console.error("Error stopping timer:", error);
-      toast.error("Failed to stop timer");
+      toast.error(t("failed_to_stop_timer", "Failed to stop timer"));
     } finally {
       setLoading(false);
     }

@@ -13,7 +13,7 @@ export default {
     extend: {
       fontFamily: {
         sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
-        display: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        display: ["'DM Serif Display'", 'Georgia', "'Times New Roman'", 'serif'],
       },
       fontSize: {
         // === LUXURY TYPOGRAPHY SYSTEM (ARTIFACT B) ===
@@ -119,6 +119,7 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+
       },
       backgroundImage: {
         "gradient-hero": "var(--gradient-hero)",

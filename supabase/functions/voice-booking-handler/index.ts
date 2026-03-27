@@ -6,7 +6,7 @@
  */
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.58.0';
+import { createClient, SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2.58.0';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -29,7 +29,7 @@ serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const lovableKey = Deno.env.get('LOVABLE_API_KEY')!;
+    const googleApiKey = Deno.env.get('GOOGLE_API_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const { 
@@ -54,7 +54,7 @@ serve(async (req) => {
         return handleStart(supabase, session_id, booking_link_slug);
       
       case 'process':
-        return handleProcess(supabase, lovableKey, session_id, transcript || '', user_timezone);
+        return handleProcess(supabase, googleApiKey, session_id, transcript || '', user_timezone);
       
       case 'confirm':
         return handleConfirm(supabase, session_id);
@@ -78,7 +78,7 @@ serve(async (req) => {
   }
 });
 
-async function handleStart(supabase: any, sessionId: string, bookingLinkSlug?: string) {
+async function handleStart(supabase: SupabaseClient, sessionId: string, bookingLinkSlug?: string) {
   // Get booking link info if provided
   let bookingLink = null;
   let hostName = 'our team';
@@ -127,9 +127,9 @@ async function handleStart(supabase: any, sessionId: string, bookingLinkSlug?: s
 }
 
 async function handleProcess(
-  supabase: any, 
-  lovableKey: string, 
-  sessionId: string, 
+  supabase: SupabaseClient,
+  googleApiKey: string,
+  sessionId: string,
   userTranscript: string,
   userTimezone: string
 ) {
@@ -170,7 +170,7 @@ async function handleProcess(
     if (slotsResponse.ok) {
       const slotsData = await slotsResponse.json();
       if (slotsData.slots?.length > 0) {
-        availableSlotsText = slotsData.slots.slice(0, 10).map((slot: any) => {
+        availableSlotsText = slotsData.slots.slice(0, 10).map((slot: { start: string }) => {
           const date = new Date(slot.start);
           return date.toLocaleString('en-US', { 
             weekday: 'long', 
@@ -196,7 +196,7 @@ Your tasks:
 3. Be conversational and natural
 
 Conversation so far:
-${transcriptHistory.map((t: any) => `${t.role}: ${t.content}`).join('\n')}
+${transcriptHistory.map((t: { role: string; content: string }) => `${t.role}: ${t.content}`).join('\n')}
 
 Respond with JSON:
 {
@@ -211,14 +211,14 @@ Respond with JSON:
   "needs_info": ["date", "time", "name", "email"] // what's still missing
 }`;
 
-  const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+  const aiResponse = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${lovableKey}`,
+      'Authorization': `Bearer ${googleApiKey}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'google/gemini-2.5-flash-lite',
+      model: 'gemini-2.5-flash-lite',
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userTranscript }
@@ -271,7 +271,7 @@ Respond with JSON:
   );
 }
 
-async function handleConfirm(supabase: any, sessionId: string) {
+async function handleConfirm(supabase: SupabaseClient, sessionId: string) {
   const { data: session, error: sessionError } = await supabase
     .from('voice_booking_sessions')
     .select('*, booking_links(*, profiles:owner_id(full_name, email))')
@@ -354,7 +354,7 @@ async function handleConfirm(supabase: any, sessionId: string) {
   );
 }
 
-async function handleEnd(supabase: any, sessionId: string) {
+async function handleEnd(supabase: SupabaseClient, sessionId: string) {
   const { data: session } = await supabase
     .from('voice_booking_sessions')
     .select('started_at')

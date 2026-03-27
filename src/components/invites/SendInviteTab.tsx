@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -27,6 +28,7 @@ interface SendInviteTabProps {
 }
 
 export function SendInviteTab({ onOpenProvisioning }: SendInviteTabProps = {}) {
+  const { t } = useTranslation('common');
   const [recipientName, setRecipientName] = useState("");
   const [email, setEmail] = useState("");
   const [role, setRole] = useState("member");
@@ -42,12 +44,12 @@ export function SendInviteTab({ onOpenProvisioning }: SendInviteTabProps = {}) {
     try {
       emailSchema.parse(email.trim());
     } catch {
-      toast.error("Please enter a valid email address.");
+      toast.error(t("please_enter_a_valid", "Please enter a valid email address."));
       return;
     }
 
     if (!recipientName.trim()) {
-      toast.error("Please enter the recipient's name.");
+      toast.error(t("please_enter_the_recipients", "Please enter the recipient's name."));
       return;
     }
 
@@ -134,7 +136,7 @@ export function SendInviteTab({ onOpenProvisioning }: SendInviteTabProps = {}) {
       });
 
       if (sendError) {
-        toast.warning('Invite created but email delivery failed. Share the code manually.');
+        toast.warning(t("invite_created_but_email", "Invite created but email delivery failed. Share the code manually."));
       } else {
         toast.success(`Invitation sent to ${recipientName.trim()}`);
       }
@@ -166,7 +168,7 @@ export function SendInviteTab({ onOpenProvisioning }: SendInviteTabProps = {}) {
       setRole("member");
     } catch (error) {
       logger.error('Send invite error', error instanceof Error ? error : new Error(String(error)), { componentName: 'SendInviteTab' });
-      toast.error('Failed to send invitation');
+      toast.error(t("failed_to_send_invitation", "Failed to send invitation"));
     } finally {
       setSending(false);
     }
@@ -175,7 +177,7 @@ export function SendInviteTab({ onOpenProvisioning }: SendInviteTabProps = {}) {
   const copyInviteLink = (code: string) => {
     const siteUrl = window.location.origin;
     navigator.clipboard.writeText(`${siteUrl}/auth?invite=${code}`);
-    toast.success('Invite link copied to clipboard');
+    toast.success(t("invite_link_copied_to", "Invite link copied to clipboard"));
   };
 
   const shareWhatsApp = (inv: InviteSuccess) => {
@@ -220,22 +222,22 @@ export function SendInviteTab({ onOpenProvisioning }: SendInviteTabProps = {}) {
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor="invite-name">Full Name *</Label>
+          <Label htmlFor="invite-name">{t("full_name", "Full Name *")}</Label>
           <Input
             id="invite-name"
             type="text"
-            placeholder="Jane Smith"
+            placeholder={t("jane_smith", "Jane Smith")}
             value={recipientName}
             onChange={(e) => setRecipientName(e.target.value)}
           />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="invite-email">Email Address *</Label>
+          <Label htmlFor="invite-email">{t("email_address", "Email Address *")}</Label>
           <Input
             id="invite-email"
             type="email"
-            placeholder="colleague@company.com"
+            placeholder={t("colleaguecompanycom", "colleague@company.com")}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
@@ -244,26 +246,26 @@ export function SendInviteTab({ onOpenProvisioning }: SendInviteTabProps = {}) {
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor="invite-role">Role</Label>
+          <Label htmlFor="invite-role">{t("role", "Role")}</Label>
           <Select value={role} onValueChange={setRole}>
             <SelectTrigger id="invite-role">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="member">Member</SelectItem>
-              <SelectItem value="recruiter">Recruiter</SelectItem>
-              <SelectItem value="partner">Partner</SelectItem>
+              <SelectItem value="member">{t("member", "Member")}</SelectItem>
+              <SelectItem value="recruiter">{t("recruiter", "Recruiter")}</SelectItem>
+              <SelectItem value="partner">{t("partner", "Partner")}</SelectItem>
             </SelectContent>
           </Select>
         </div>
 
         {role === 'partner' && (
           <div className="space-y-2">
-            <Label htmlFor="invite-company">Company Name</Label>
+            <Label htmlFor="invite-company">{t("company_name", "Company Name")}</Label>
             <Input
               id="invite-company"
               type="text"
-              placeholder="Acme Corp"
+              placeholder={t("acme_corp", "Acme Corp")}
               value={companyName}
               onChange={(e) => setCompanyName(e.target.value)}
             />
@@ -276,7 +278,7 @@ export function SendInviteTab({ onOpenProvisioning }: SendInviteTabProps = {}) {
           <div className="flex items-start gap-3">
             <Crown className="h-5 w-5 text-primary mt-0.5 shrink-0" />
             <div className="space-y-1">
-              <p className="text-sm font-medium">Recommended: Full Provisioning</p>
+              <p className="text-sm font-medium">{t("recommended_full_provisioning", "Recommended: Full Provisioning")}</p>
               <p className="text-xs text-muted-foreground">
                 Pre-configure their account, company, and access so they can log in immediately with everything ready. No verification steps needed.
               </p>
@@ -300,10 +302,10 @@ export function SendInviteTab({ onOpenProvisioning }: SendInviteTabProps = {}) {
       )}
 
       <div className="space-y-2">
-        <Label htmlFor="invite-message">Personal Message (Optional)</Label>
+        <Label htmlFor="invite-message">{t("personal_message_optional", "Personal Message (Optional)")}</Label>
         <Textarea
           id="invite-message"
-          placeholder="Add a personal note to the invitation…"
+          placeholder={t("add_a_personal_note", "Add a personal note to the invitation…")}
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           rows={3}

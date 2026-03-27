@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -79,6 +80,7 @@ const defaultPrefs: NotificationPrefs = {
 };
 
 export const NotificationPreferences = () => {
+  const { t } = useTranslation('settings');
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -120,7 +122,7 @@ export const NotificationPreferences = () => {
       }
     } catch (error) {
       console.error('Error loading preferences:', error);
-      toast.error('Failed to load notification preferences');
+      toast.error(t('notifications.failedLoad'));
     } finally {
       setLoading(false);
     }
@@ -141,10 +143,10 @@ export const NotificationPreferences = () => {
 
       if (error) throw error;
 
-      toast.success('Notification preferences saved');
+      toast.success(t('notifications.preferencesSaved'));
     } catch (error) {
       console.error('Error saving preferences:', error);
-      toast.error('Failed to save preferences');
+      toast.error(t('notifications.failedSave'));
     } finally {
       setSaving(false);
     }
@@ -171,9 +173,9 @@ export const NotificationPreferences = () => {
       {/* Preferred Channel */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Preferred Channel</CardTitle>
+          <CardTitle className="text-base">{t('notifications.preferredChannel')}</CardTitle>
           <CardDescription>
-            Choose your primary communication channel
+            {t('notifications.preferredChannelDesc')}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -198,18 +200,18 @@ export const NotificationPreferences = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
             <Mail className="w-4 h-4" />
-            Email Notifications
+            {t('notifications.emailNotifications')}
           </CardTitle>
           <CardDescription>
-            Choose what email notifications you want to receive
+            {t('notifications.emailNotificationsDesc')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label>Enable Email Notifications</Label>
+              <Label>{t('notifications.enableEmail')}</Label>
               <p className="text-sm text-muted-foreground">
-                Master switch for all email notifications
+                {t('notifications.masterSwitchEmail')}
               </p>
             </div>
             <Switch
@@ -222,11 +224,11 @@ export const NotificationPreferences = () => {
 
           <div className="space-y-4" style={{ opacity: prefs.email_enabled ? 1 : 0.5 }}>
             {[
-              { key: 'email_applications' as const, label: 'Application Updates' },
-              { key: 'email_messages' as const, label: 'New Messages' },
-              { key: 'email_interviews' as const, label: 'Interview Reminders' },
-              { key: 'email_job_matches' as const, label: 'Job Matches' },
-              { key: 'email_system' as const, label: 'System Updates' },
+              { key: 'email_applications' as const, label: t('notifications.applicationUpdates') },
+              { key: 'email_messages' as const, label: t('notifications.newMessages') },
+              { key: 'email_interviews' as const, label: t('notifications.interviewReminders') },
+              { key: 'email_job_matches' as const, label: t('notifications.jobMatches') },
+              { key: 'email_system' as const, label: t('notifications.systemUpdates') },
             ].map(({ key, label }) => (
               <div key={key} className="flex items-center justify-between">
                 <Label>{label}</Label>
@@ -244,9 +246,9 @@ export const NotificationPreferences = () => {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label>Email Digest</Label>
+                <Label>{t('notifications.emailDigest')}</Label>
                 <p className="text-sm text-muted-foreground">
-                  Receive a summary instead of individual emails
+                  {t('notifications.emailDigestDesc')}
                 </p>
               </div>
               <Switch
@@ -258,7 +260,7 @@ export const NotificationPreferences = () => {
 
             {prefs.email_digest && (
               <div className="space-y-2">
-                <Label>Digest Frequency</Label>
+                <Label>{t('notifications.digestFrequency')}</Label>
                 <Select
                   value={prefs.email_digest_frequency}
                   onValueChange={(value) => updatePref('email_digest_frequency', value)}
@@ -268,9 +270,9 @@ export const NotificationPreferences = () => {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="daily">Daily</SelectItem>
-                    <SelectItem value="weekly">Weekly</SelectItem>
-                    <SelectItem value="never">Never</SelectItem>
+                    <SelectItem value="daily">{t('notifications.daily')}</SelectItem>
+                    <SelectItem value="weekly">{t('notifications.weekly')}</SelectItem>
+                    <SelectItem value="never">{t('notifications.never')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -284,14 +286,14 @@ export const NotificationPreferences = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
             <Phone className="w-4 h-4" />
-            SMS Notifications
-            <Badge variant="secondary" className="text-xs">Optional</Badge>
+            {t('notifications.smsNotifications')}
+            <Badge variant="secondary" className="text-xs">{t('notifications.optional')}</Badge>
           </CardTitle>
           <CardDescription>
-            Receive text messages for time-sensitive updates
+            {t('notifications.smsDesc')}
             {!hasPhone && (
               <span className="block mt-1 text-destructive">
-                Add a phone number in your profile to enable SMS notifications.
+                {t('notifications.addPhoneForSMS')}
               </span>
             )}
           </CardDescription>
@@ -299,9 +301,9 @@ export const NotificationPreferences = () => {
         <CardContent className="space-y-6">
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label>Enable SMS Notifications</Label>
+              <Label>{t('notifications.enableSMS')}</Label>
               <p className="text-sm text-muted-foreground">
-                Master switch for all SMS notifications
+                {t('notifications.masterSwitchSMS')}
               </p>
             </div>
             <Switch
@@ -316,10 +318,10 @@ export const NotificationPreferences = () => {
               <Separator />
               <div className="space-y-4">
                 {[
-                  { key: 'sms_interviews' as const, label: 'Interview Reminders' },
-                  { key: 'sms_reminders' as const, label: 'Meeting Reminders' },
-                  { key: 'sms_stage_updates' as const, label: 'Stage Updates' },
-                  { key: 'sms_offers' as const, label: 'Offer Notifications' },
+                  { key: 'sms_interviews' as const, label: t('notifications.interviewReminders') },
+                  { key: 'sms_reminders' as const, label: t('notifications.meetingReminders') },
+                  { key: 'sms_stage_updates' as const, label: t('notifications.stageUpdates') },
+                  { key: 'sms_offers' as const, label: t('notifications.offerNotifications') },
                 ].map(({ key, label }) => (
                   <div key={key} className="flex items-center justify-between">
                     <Label>{label}</Label>
@@ -340,14 +342,14 @@ export const NotificationPreferences = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
             <MessageSquare className="w-4 h-4" />
-            WhatsApp Notifications
-            <Badge variant="secondary" className="text-xs">Optional</Badge>
+            {t('notifications.whatsappNotifications')}
+            <Badge variant="secondary" className="text-xs">{t('notifications.optional')}</Badge>
           </CardTitle>
           <CardDescription>
-            Get updates directly on WhatsApp for a more personal experience
+            {t('notifications.whatsappDesc')}
             {!hasPhone && (
               <span className="block mt-1 text-destructive">
-                Add a phone number in your profile to enable WhatsApp notifications.
+                {t('notifications.addPhoneForWhatsApp')}
               </span>
             )}
           </CardDescription>
@@ -355,9 +357,9 @@ export const NotificationPreferences = () => {
         <CardContent className="space-y-6">
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label>Enable WhatsApp Notifications</Label>
+              <Label>{t('notifications.enableWhatsApp')}</Label>
               <p className="text-sm text-muted-foreground">
-                Master switch for all WhatsApp notifications
+                {t('notifications.masterSwitchWhatsApp')}
               </p>
             </div>
             <Switch
@@ -372,11 +374,11 @@ export const NotificationPreferences = () => {
               <Separator />
               <div className="space-y-4">
                 {[
-                  { key: 'whatsapp_interviews' as const, label: 'Interview Reminders' },
-                  { key: 'whatsapp_reminders' as const, label: 'Meeting Reminders' },
-                  { key: 'whatsapp_stage_updates' as const, label: 'Stage Updates' },
-                  { key: 'whatsapp_offers' as const, label: 'Offer Notifications' },
-                  { key: 'whatsapp_job_matches' as const, label: 'Job Matches' },
+                  { key: 'whatsapp_interviews' as const, label: t('notifications.interviewReminders') },
+                  { key: 'whatsapp_reminders' as const, label: t('notifications.meetingReminders') },
+                  { key: 'whatsapp_stage_updates' as const, label: t('notifications.stageUpdates') },
+                  { key: 'whatsapp_offers' as const, label: t('notifications.offerNotifications') },
+                  { key: 'whatsapp_job_matches' as const, label: t('notifications.jobMatches') },
                 ].map(({ key, label }) => (
                   <div key={key} className="flex items-center justify-between">
                     <Label>{label}</Label>
@@ -397,18 +399,18 @@ export const NotificationPreferences = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
             <Bell className="w-4 h-4" />
-            In-App Notifications
+            {t('notifications.inAppNotifications')}
           </CardTitle>
           <CardDescription>
-            Control notifications you see within the platform
+            {t('notifications.inAppDesc')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label>Enable In-App Notifications</Label>
+              <Label>{t('notifications.enableInApp')}</Label>
               <p className="text-sm text-muted-foreground">
-                Show notifications in the app
+                {t('notifications.showInApp')}
               </p>
             </div>
             <Switch
@@ -421,11 +423,11 @@ export const NotificationPreferences = () => {
 
           <div className="space-y-4" style={{ opacity: prefs.inapp_enabled ? 1 : 0.5 }}>
             {[
-              { key: 'inapp_applications' as const, label: 'Application Updates' },
-              { key: 'inapp_messages' as const, label: 'New Messages' },
-              { key: 'inapp_interviews' as const, label: 'Interview Reminders' },
-              { key: 'inapp_job_matches' as const, label: 'Job Matches' },
-              { key: 'inapp_system' as const, label: 'System Updates' },
+              { key: 'inapp_applications' as const, label: t('notifications.applicationUpdates') },
+              { key: 'inapp_messages' as const, label: t('notifications.newMessages') },
+              { key: 'inapp_interviews' as const, label: t('notifications.interviewReminders') },
+              { key: 'inapp_job_matches' as const, label: t('notifications.jobMatches') },
+              { key: 'inapp_system' as const, label: t('notifications.systemUpdates') },
             ].map(({ key, label }) => (
               <div key={key} className="flex items-center justify-between">
                 <Label>{label}</Label>
@@ -445,18 +447,18 @@ export const NotificationPreferences = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
             <Moon className="w-4 h-4" />
-            Quiet Hours
+            {t('notifications.quietHours')}
           </CardTitle>
           <CardDescription>
-            Pause notifications during specific times
+            {t('notifications.quietHoursDesc')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label>Enable Quiet Hours</Label>
+              <Label>{t('notifications.enableQuietHours')}</Label>
               <p className="text-sm text-muted-foreground">
-                Mute notifications during these times
+                {t('notifications.muteNotifications')}
               </p>
             </div>
             <Switch
@@ -470,7 +472,7 @@ export const NotificationPreferences = () => {
               <Separator />
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Start Time</Label>
+                  <Label>{t('notifications.startTime')}</Label>
                   <Input
                     type="time"
                     value={prefs.quiet_hours_start}
@@ -478,7 +480,7 @@ export const NotificationPreferences = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>End Time</Label>
+                  <Label>{t('notifications.endTime')}</Label>
                   <Input
                     type="time"
                     value={prefs.quiet_hours_end}
@@ -493,7 +495,7 @@ export const NotificationPreferences = () => {
 
       {/* Save Button */}
       <Button onClick={savePreferences} disabled={saving} className="w-full">
-        {saving ? 'Saving...' : 'Save Notification Preferences'}
+        {saving ? t('common:status.saving') : t('notifications.savePreferences')}
       </Button>
     </div>
   );

@@ -47,7 +47,7 @@ serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const lovableKey = Deno.env.get("LOVABLE_API_KEY");
+    const googleApiKey = Deno.env.get("GOOGLE_API_KEY");
     const supabase = createClient(supabaseUrl, serviceKey);
 
     const { candidateId, candidateIds, batchSize = 10 } = await req.json();
@@ -77,10 +77,10 @@ serve(async (req) => {
         if (text.length < 20) { skipped++; continue; }
 
         try {
-          // Use Lovable AI to generate a condensed representation, then store as text
+          // Use Google Gemini to generate a condensed representation, then store as text
           // Since we don't have a vector embedding model, we store the text for future
           // similarity matching via the AI gateway
-          if (!lovableKey) {
+          if (!googleApiKey) {
             // Fallback: store the text itself as a searchable representation
             await supabase
               .from("candidate_profiles")
@@ -97,14 +97,14 @@ serve(async (req) => {
           }
 
           // Use AI to generate a structured embedding-ready summary
-          const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          const aiResp = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
             method: "POST",
             headers: {
-              Authorization: `Bearer ${lovableKey}`,
+              Authorization: `Bearer ${googleApiKey}`,
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              model: "google/gemini-3-flash-preview",
+              model: "gemini-3-flash-preview",
               messages: [
                 {
                   role: "system",

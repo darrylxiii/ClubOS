@@ -4,14 +4,15 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Heart, ThumbsUp, Smile, Sparkles, Flame, Trophy } from "lucide-react";
 import { notify } from "@/lib/notify";
+import { useTranslation } from "react-i18next";
 
-const REACTIONS = [
-  { type: 'like', icon: ThumbsUp, label: 'Like', color: 'text-blue-500' },
-  { type: 'love', icon: Heart, label: 'Love', color: 'text-red-500' },
-  { type: 'celebrate', icon: Trophy, label: 'Celebrate', color: 'text-yellow-500' },
-  { type: 'insightful', icon: Sparkles, label: 'Insightful', color: 'text-purple-500' },
-  { type: 'funny', icon: Smile, label: 'Funny', color: 'text-orange-500' },
-  { type: 'fire', icon: Flame, label: 'Fire', color: 'text-red-600' },
+const REACTION_DEFS = [
+  { type: 'like', icon: ThumbsUp, labelKey: 'reactions.like', fallback: 'Like', color: 'text-blue-500' },
+  { type: 'love', icon: Heart, labelKey: 'reactions.love', fallback: 'Love', color: 'text-red-500' },
+  { type: 'celebrate', icon: Trophy, labelKey: 'reactions.celebrate', fallback: 'Celebrate', color: 'text-yellow-500' },
+  { type: 'insightful', icon: Sparkles, labelKey: 'reactions.insightful', fallback: 'Insightful', color: 'text-purple-500' },
+  { type: 'funny', icon: Smile, labelKey: 'reactions.funny', fallback: 'Funny', color: 'text-orange-500' },
+  { type: 'fire', icon: Flame, labelKey: 'reactions.fire', fallback: 'Fire', color: 'text-red-600' },
 ];
 
 interface InteractiveReactionsProps {
@@ -21,6 +22,8 @@ interface InteractiveReactionsProps {
 }
 
 export function InteractiveReactions({ postId, postAuthorId, initialReactions = {} }: InteractiveReactionsProps) {
+  const { t } = useTranslation('common');
+  const REACTIONS = REACTION_DEFS.map(r => ({ ...r, label: t(r.labelKey, r.fallback) }));
   const { user } = useAuth();
   const [reactions, setReactions] = useState<Record<string, number>>(initialReactions);
   const [userReaction, setUserReaction] = useState<string | null>(null);
@@ -82,7 +85,7 @@ export function InteractiveReactions({ postId, postAuthorId, initialReactions = 
 
   const handleReaction = async (reactionType: string) => {
     if (!user) {
-      notify.error("Please sign in to react");
+      notify.error(t('feed.signInToReact', 'Please sign in to react'));
       return;
     }
 

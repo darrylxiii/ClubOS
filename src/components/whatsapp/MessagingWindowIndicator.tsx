@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Clock, AlertTriangle, CheckCircle } from 'lucide-react';
@@ -9,6 +10,7 @@ interface MessagingWindowIndicatorProps {
 }
 
 export function MessagingWindowIndicator({ expiresAt, compact = false }: MessagingWindowIndicatorProps) {
+  const { t } = useTranslation('common');
   if (!expiresAt) {
     return (
       <TooltipProvider>
@@ -19,7 +21,7 @@ export function MessagingWindowIndicator({ expiresAt, compact = false }: Messagi
             </Badge>
           </TooltipTrigger>
           <TooltipContent>
-            <p>24h messaging window is closed. Only template messages can be sent.</p>
+            <p>{t("24h_messaging_window_is", "24h messaging window is closed. Only template messages can be sent.")}</p>
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
@@ -43,7 +45,7 @@ export function MessagingWindowIndicator({ expiresAt, compact = false }: Messagi
             </Badge>
           </TooltipTrigger>
           <TooltipContent>
-            <p>24h messaging window expired. Only template messages can be sent.</p>
+            <p>{t("24h_messaging_window_expired", "24h messaging window expired. Only template messages can be sent.")}</p>
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
@@ -68,7 +70,7 @@ export function MessagingWindowIndicator({ expiresAt, compact = false }: Messagi
           </TooltipTrigger>
           <TooltipContent>
             <p>Messaging window expires soon at {format(expiry, 'HH:mm')}</p>
-            <p className="text-xs text-muted-foreground">Send a message to keep the conversation going</p>
+            <p className="text-xs text-muted-foreground">{t("send_a_message_to", "Send a message to keep the conversation going")}</p>
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
@@ -92,7 +94,7 @@ export function MessagingWindowIndicator({ expiresAt, compact = false }: Messagi
         </TooltipTrigger>
         <TooltipContent>
           <p>Messaging window active until {format(expiry, 'MMM d, HH:mm')}</p>
-          <p className="text-xs text-muted-foreground">You can send free-form messages</p>
+          <p className="text-xs text-muted-foreground">{t("you_can_send_freeform", "You can send free-form messages")}</p>
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>

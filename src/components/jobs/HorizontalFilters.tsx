@@ -9,6 +9,7 @@ import { Slider } from "@/components/ui/slider";
 import { FilterPill } from "./FilterPill";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import type { JobFilters } from "./JobFilterSidebar";
+import { useTranslation } from 'react-i18next';
 
 interface HorizontalFiltersProps {
   filters: JobFilters;
@@ -23,11 +24,11 @@ interface HorizontalFiltersProps {
 }
 
 const COMMON_LOCATIONS = ["Amsterdam", "London", "Berlin", "New York", "Remote"];
-const EMPLOYMENT_TYPES = [
-  { value: "fulltime", label: "Full-time" },
-  { value: "parttime", label: "Part-time" },
-  { value: "contract", label: "Contract" },
-  { value: "freelance", label: "Freelance" },
+const EMPLOYMENT_TYPE_KEYS = [
+  { value: "fulltime", labelKey: "filters.fullTime", fallback: "Full-time" },
+  { value: "parttime", labelKey: "filters.partTime", fallback: "Part-time" },
+  { value: "contract", labelKey: "filters.contract", fallback: "Contract" },
+  { value: "freelance", labelKey: "filters.freelance", fallback: "Freelance" },
 ];
 
 export const HorizontalFilters = memo(({
@@ -41,6 +42,7 @@ export const HorizontalFilters = memo(({
   isExpanded,
   onToggleExpanded,
 }: HorizontalFiltersProps) => {
+  const { t } = useTranslation('jobs');
   const [openPopover, setOpenPopover] = useState<string | null>(null);
 
   const hasActiveFilters = 
@@ -92,7 +94,7 @@ export const HorizontalFilters = memo(({
                 <div>
                   <FilterPill
                     icon={<MapPin className="w-4 h-4" />}
-                    label="Location"
+                    label={t('filters.location', 'Location')}
                     count={filters.locations.length}
                     isActive={filters.locations.length > 0}
                     onClear={() => onFiltersChange({ ...filters, locations: [] })}
@@ -101,7 +103,7 @@ export const HorizontalFilters = memo(({
               </PopoverTrigger>
               <PopoverContent className="w-80 bg-card/95 backdrop-blur-xl">
                 <div className="space-y-4">
-                  <div className="font-semibold text-sm">Select Locations</div>
+                  <div className="font-semibold text-sm">{t('filters.selectLocations', 'Select Locations')}</div>
                   <div className="space-y-2">
                     {COMMON_LOCATIONS.map(location => (
                       <div key={location} className="flex items-center gap-2">
@@ -126,7 +128,7 @@ export const HorizontalFilters = memo(({
                 <div>
                   <FilterPill
                     icon={<DollarSign className="w-4 h-4" />}
-                    label="Salary"
+                    label={t('filters.salary', 'Salary')}
                     count={(filters.salaryMin > 0 || filters.salaryMax < 500000) ? 1 : 0}
                     isActive={filters.salaryMin > 0 || filters.salaryMax < 500000}
                     onClear={() => onFiltersChange({ ...filters, salaryMin: 0, salaryMax: 500000 })}
@@ -135,7 +137,7 @@ export const HorizontalFilters = memo(({
               </PopoverTrigger>
               <PopoverContent className="w-80 bg-card/95 backdrop-blur-xl">
                 <div className="space-y-4">
-                  <div className="font-semibold text-sm">Salary Range (EUR)</div>
+                  <div className="font-semibold text-sm">{t('filters.salaryRange', 'Salary Range (EUR)')}</div>
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm text-muted-foreground">
                       <span>€{(filters.salaryMin / 1000).toFixed(0)}k</span>
@@ -160,7 +162,7 @@ export const HorizontalFilters = memo(({
                 <div>
                   <FilterPill
                     icon={<Briefcase className="w-4 h-4" />}
-                    label="Type"
+                    label={t('filters.type', 'Type')}
                     count={filters.employmentTypes.length}
                     isActive={filters.employmentTypes.length > 0}
                     onClear={() => onFiltersChange({ ...filters, employmentTypes: [] })}
@@ -169,9 +171,9 @@ export const HorizontalFilters = memo(({
               </PopoverTrigger>
               <PopoverContent className="w-80 bg-card/95 backdrop-blur-xl">
                 <div className="space-y-4">
-                  <div className="font-semibold text-sm">Employment Type</div>
+                  <div className="font-semibold text-sm">{t('filters.employmentType', 'Employment Type')}</div>
                   <div className="space-y-2">
-                    {EMPLOYMENT_TYPES.map(type => (
+                    {EMPLOYMENT_TYPE_KEYS.map(type => (
                       <div key={type.value} className="flex items-center gap-2">
                         <Checkbox
                           id={`type-${type.value}`}
@@ -179,7 +181,7 @@ export const HorizontalFilters = memo(({
                           onCheckedChange={() => handleEmploymentTypeToggle(type.value)}
                         />
                         <label htmlFor={`type-${type.value}`} className="text-sm cursor-pointer flex-1">
-                          {type.label}
+                          {t(type.labelKey, type.fallback)}
                         </label>
                       </div>
                     ))}
@@ -194,7 +196,7 @@ export const HorizontalFilters = memo(({
                 <div>
                   <FilterPill
                     icon={<Building2 className="w-4 h-4" />}
-                    label="Companies"
+                    label={t('filters.companies', 'Companies')}
                     count={filters.companies.length}
                     isActive={filters.companies.length > 0}
                     onClear={() => onFiltersChange({ ...filters, companies: [] })}
@@ -203,7 +205,7 @@ export const HorizontalFilters = memo(({
               </PopoverTrigger>
               <PopoverContent className="w-80 bg-card/95 backdrop-blur-xl max-h-96 overflow-y-auto">
                 <div className="space-y-4">
-                  <div className="font-semibold text-sm">Select Companies</div>
+                  <div className="font-semibold text-sm">{t('filters.selectCompanies', 'Select Companies')}</div>
                   <div className="space-y-2">
                     {availableCompanies.slice(0, 20).map(company => (
                       <div key={company} className="flex items-center gap-2">
@@ -228,7 +230,7 @@ export const HorizontalFilters = memo(({
                 <div>
                   <FilterPill
                     icon={<Users className="w-4 h-4" />}
-                    label="Departments"
+                    label={t('filters.departments', 'Departments')}
                     count={filters.departments.length}
                     isActive={filters.departments.length > 0}
                     onClear={() => onFiltersChange({ ...filters, departments: [] })}
@@ -237,7 +239,7 @@ export const HorizontalFilters = memo(({
               </PopoverTrigger>
               <PopoverContent className="w-80 bg-card/95 backdrop-blur-xl max-h-96 overflow-y-auto">
                 <div className="space-y-4">
-                  <div className="font-semibold text-sm">Select Departments</div>
+                  <div className="font-semibold text-sm">{t('filters.selectDepartments', 'Select Departments')}</div>
                   <div className="space-y-2">
                     {availableDepartments.slice(0, 20).map(dept => (
                       <div key={dept} className="flex items-center gap-2">
@@ -262,7 +264,7 @@ export const HorizontalFilters = memo(({
                 <div>
                   <FilterPill
                     icon={<Wifi className="w-4 h-4" />}
-                    label="Remote"
+                    label={t('filters.remote', 'Remote')}
                     count={filters.remoteOnly ? 1 : 0}
                     isActive={filters.remoteOnly}
                     onClear={() => onFiltersChange({ ...filters, remoteOnly: false })}
@@ -271,7 +273,7 @@ export const HorizontalFilters = memo(({
               </PopoverTrigger>
               <PopoverContent className="w-80 bg-card/95 backdrop-blur-xl">
                 <div className="space-y-4">
-                  <div className="font-semibold text-sm">Remote Options</div>
+                  <div className="font-semibold text-sm">{t('filters.remoteOptions', 'Remote Options')}</div>
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
                       <Checkbox
@@ -282,7 +284,7 @@ export const HorizontalFilters = memo(({
                         }
                       />
                       <label htmlFor="remote-only" className="text-sm cursor-pointer">
-                        Remote only
+                        {t('filters.remoteOnly', 'Remote only')}
                       </label>
                     </div>
                   </div>
@@ -301,7 +303,7 @@ export const HorizontalFilters = memo(({
                 className="gap-2 text-muted-foreground hover:text-foreground"
               >
                 <X className="w-4 h-4" />
-                Clear All
+                {t('common:clearAll', 'Clear All')}
               </Button>
             )}
           </div>
@@ -312,8 +314,7 @@ export const HorizontalFilters = memo(({
           <div className="px-4 pb-4 border-t border-border/30 pt-4 bg-background/20">
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">
-                Showing <span className="font-semibold text-foreground">{filteredJobsCount}</span> of{" "}
-                <span className="font-semibold text-foreground">{totalJobs}</span> jobs
+                {t('filters.showingOfJobs', 'Showing {{filtered}} of {{total}} jobs', { filtered: filteredJobsCount, total: totalJobs })}
               </span>
               {hasActiveFilters && (
                 <div className="flex gap-2 flex-wrap">

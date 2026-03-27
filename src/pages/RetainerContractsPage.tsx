@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -15,6 +16,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 
 export default function RetainerContractsPage() {
+  const { t } = useTranslation('contracts');
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -104,8 +106,8 @@ export default function RetainerContractsPage() {
     <div className="container max-w-6xl py-8 space-y-8">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Retainer Contracts</h1>
-          <p className="text-muted-foreground">Manage ongoing client relationships</p>
+          <h1 className="text-3xl font-bold">{t('retainerContractsPage.text2')}</h1>
+          <p className="text-muted-foreground">{t('retainerContractsPage.text3')}</p>
         </div>
         <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
           <DialogTrigger asChild>
@@ -116,26 +118,26 @@ export default function RetainerContractsPage() {
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Create Retainer Contract</DialogTitle>
-              <DialogDescription>Set up a recurring monthly arrangement</DialogDescription>
+              <DialogTitle>{t('retainerContractsPage.text4')}</DialogTitle>
+              <DialogDescription>{t('retainerContractsPage.text5')}</DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <Label>Monthly Hours</Label>
+                <Label>{t('retainerContractsPage.text6')}</Label>
                 <Input type="number" placeholder="20" />
               </div>
               <div className="space-y-2">
-                <Label>Monthly Rate (€)</Label>
+                <Label>{"Monthly Rate (€)"}</Label>
                 <Input type="number" placeholder="2000" />
               </div>
               <div className="space-y-2">
-                <Label>Terms & Description</Label>
-                <Textarea placeholder="Describe the scope of work..." />
+                <Label>{t('retainerContractsPage.text7')}</Label>
+                <Textarea placeholder={t('retainerContractsPage.text8')} />
               </div>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>Cancel</Button>
-              <Button>Create Contract</Button>
+              <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>{t('retainerContractsPage.text9')}</Button>
+              <Button>{t('retainerContractsPage.text10')}</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -143,9 +145,9 @@ export default function RetainerContractsPage() {
 
       <Tabs defaultValue="active" className="w-full">
         <TabsList>
-          <TabsTrigger value="active">Active</TabsTrigger>
-          <TabsTrigger value="pending">Pending</TabsTrigger>
-          <TabsTrigger value="completed">Completed</TabsTrigger>
+          <TabsTrigger value="active">{t('retainerContractsPage.text11')}</TabsTrigger>
+          <TabsTrigger value="pending">{t('retainerContractsPage.text12')}</TabsTrigger>
+          <TabsTrigger value="completed">{t('retainerContractsPage.text13')}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="active" className="mt-6">
@@ -168,17 +170,17 @@ export default function RetainerContractsPage() {
                     <div className="p-3 rounded-lg bg-muted">
                       <Clock className="h-5 w-5 mx-auto mb-1 text-muted-foreground" />
                       <p className="text-lg font-semibold">{retainer.monthly_hours}h</p>
-                      <p className="text-xs text-muted-foreground">Monthly</p>
+                      <p className="text-xs text-muted-foreground">{t('retainerContractsPage.text14')}</p>
                     </div>
                     <div className="p-3 rounded-lg bg-muted">
                       <DollarSign className="h-5 w-5 mx-auto mb-1 text-muted-foreground" />
                       <p className="text-lg font-semibold">€{retainer.monthly_rate}</p>
-                      <p className="text-xs text-muted-foreground">Rate</p>
+                      <p className="text-xs text-muted-foreground">{t('retainerContractsPage.text15')}</p>
                     </div>
                     <div className="p-3 rounded-lg bg-muted">
                       <Calendar className="h-5 w-5 mx-auto mb-1 text-muted-foreground" />
                       <p className="text-lg font-semibold">{totalHoursThisMonth(retainer.id)}h</p>
-                      <p className="text-xs text-muted-foreground">This Month</p>
+                      <p className="text-xs text-muted-foreground">{t('retainerContractsPage.text16')}</p>
                     </div>
                   </div>
 
@@ -195,9 +197,7 @@ export default function RetainerContractsPage() {
                       <Plus className="h-4 w-4 mr-1" />
                       Log Hours
                     </Button>
-                    <Button variant="outline" size="sm" className="flex-1">
-                      View Details
-                    </Button>
+                    <Button variant="outline" size="sm" className="flex-1">{t('retainerContractsPage.btn')}</Button>
                   </div>
                 </CardContent>
               </Card>
@@ -206,8 +206,8 @@ export default function RetainerContractsPage() {
               <Card className="col-span-2">
                 <CardContent className="flex flex-col items-center justify-center py-12">
                   <CheckCircle className="h-12 w-12 text-muted-foreground mb-4" />
-                  <p className="text-lg font-medium">No active retainers</p>
-                  <p className="text-muted-foreground">Create a retainer contract to get started</p>
+                  <p className="text-lg font-medium">{t('retainerContractsPage.text17')}</p>
+                  <p className="text-muted-foreground">{t('retainerContractsPage.text18')}</p>
                 </CardContent>
               </Card>
             )}
@@ -220,15 +220,15 @@ export default function RetainerContractsPage() {
               <Card key={retainer.id}>
                 <CardHeader>
                   <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg">Pending Retainer</CardTitle>
+                    <CardTitle className="text-lg">{t('retainerContractsPage.text19')}</CardTitle>
                     {getStatusBadge(retainer.status)}
                   </div>
                 </CardHeader>
                 <CardContent>
                   <p className="text-muted-foreground">€{retainer.monthly_rate}/mo • {retainer.monthly_hours}h</p>
                   <div className="flex gap-2 mt-4">
-                    <Button size="sm">Accept</Button>
-                    <Button size="sm" variant="outline">Decline</Button>
+                    <Button size="sm">{t('retainerContractsPage.text20')}</Button>
+                    <Button size="sm" variant="outline">{t('retainerContractsPage.text21')}</Button>
                   </div>
                 </CardContent>
               </Card>
@@ -237,7 +237,7 @@ export default function RetainerContractsPage() {
         </TabsContent>
 
         <TabsContent value="completed" className="mt-6">
-          <p className="text-muted-foreground text-center py-12">No completed retainers</p>
+          <p className="text-muted-foreground text-center py-12">{t('retainerContractsPage.text22')}</p>
         </TabsContent>
       </Tabs>
 
@@ -245,8 +245,8 @@ export default function RetainerContractsPage() {
       <Dialog open={logHoursDialogOpen} onOpenChange={setLogHoursDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Log Hours</DialogTitle>
-            <DialogDescription>Record time spent on this retainer</DialogDescription>
+            <DialogTitle>{t('retainerContractsPage.text23')}</DialogTitle>
+            <DialogDescription>{t('retainerContractsPage.text24')}</DialogDescription>
           </DialogHeader>
           <form
             onSubmit={(e) => {
@@ -261,12 +261,12 @@ export default function RetainerContractsPage() {
           >
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <Label>Hours</Label>
-                <Input name="hours" type="number" step="0.5" min="0.5" placeholder="2.5" required />
+                <Label>{t('retainerContractsPage.text25')}</Label>
+                <Input name="hours" type="number" step="0.5" min="0.5" placeholder="2.5 required" />
               </div>
               <div className="space-y-2">
-                <Label>Description</Label>
-                <Textarea name="description" placeholder="What did you work on?" required />
+                <Label>{t('retainerContractsPage.text26')}</Label>
+                <Textarea name="description" placeholder={t('retainerContractsPage.text27')} required />
               </div>
             </div>
             <DialogFooter>

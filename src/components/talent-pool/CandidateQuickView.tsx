@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -52,6 +53,7 @@ export function CandidateQuickView({
   onGenerateDossier,
   onWhatsApp,
 }: CandidateQuickViewProps) {
+  const { t } = useTranslation('common');
   if (!candidate) return null;
 
   const initials = candidate.full_name
@@ -100,7 +102,7 @@ export function CandidateQuickView({
                   <p className="text-lg font-semibold">
                     {candidate.move_probability !== null ? `${candidate.move_probability}%` : '-'}
                   </p>
-                  <p className="text-xs text-muted-foreground">Move %</p>
+                  <p className="text-xs text-muted-foreground">{t("move", "Move %")}</p>
                 </CardContent>
               </Card>
               <Card className="bg-muted/30">
@@ -111,7 +113,7 @@ export function CandidateQuickView({
                       ? `${candidate.relationship?.warmth_score || 0}`
                       : '-'}
                   </p>
-                  <p className="text-xs text-muted-foreground">Warmth</p>
+                  <p className="text-xs text-muted-foreground">{t("warmth", "Warmth")}</p>
                 </CardContent>
               </Card>
               <Card className="bg-muted/30">
@@ -122,7 +124,7 @@ export function CandidateQuickView({
                       ? `${candidate.relationship?.response_rate || 0}%`
                       : '-'}
                   </p>
-                  <p className="text-xs text-muted-foreground">Response</p>
+                  <p className="text-xs text-muted-foreground">{t("response", "Response")}</p>
                 </CardContent>
               </Card>
             </div>
@@ -131,7 +133,7 @@ export function CandidateQuickView({
 
             {/* Contact Info */}
             <div className="space-y-3 mb-6">
-              <h4 className="text-sm font-medium">Contact</h4>
+              <h4 className="text-sm font-medium">{t("contact", "Contact")}</h4>
               {candidate.email && (
                 <a
                   href={`mailto:${candidate.email}`}
@@ -166,7 +168,7 @@ export function CandidateQuickView({
 
             {/* Details */}
             <div className="space-y-3 mb-6">
-              <h4 className="text-sm font-medium">Details</h4>
+              <h4 className="text-sm font-medium">{t("details", "Details")}</h4>
               {candidate.current_company && (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Building2 className="h-4 w-4" />
@@ -208,7 +210,7 @@ export function CandidateQuickView({
               <>
                 <Separator className="my-4" />
                 <div className="mb-6">
-                  <h4 className="text-sm font-medium mb-2">Top Skills</h4>
+                  <h4 className="text-sm font-medium mb-2">{t("top_skills", "Top Skills")}</h4>
                   <div className="flex flex-wrap gap-1.5">
                     {displaySkills.map((skill, i) => (
                       <Badge key={i} variant="secondary" className="text-xs">
@@ -227,7 +229,7 @@ export function CandidateQuickView({
 
             {/* Last Contact */}
             <div className="mb-6 text-sm text-muted-foreground">
-              <span className="font-medium">Last contact:</span> {lastContact}
+              <span className="font-medium">{t("last_contact", "Last contact:")}</span> {lastContact}
             </div>
 
             <Separator className="my-4" />

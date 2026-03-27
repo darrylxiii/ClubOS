@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 
 export default function InviteComplete() {
+  const { t } = useTranslation('common');
   const { token } = useParams();
   const navigate = useNavigate();
   const [merging, setMerging] = useState(true);
@@ -18,7 +20,7 @@ export default function InviteComplete() {
       const { data: { user }, error: userError } = await supabase.auth.getUser();
       
       if (userError || !user) {
-        toast.error('Authentication failed');
+        toast.error(t('inviteComplete.authFailed'));
         navigate('/');
         return;
       }
@@ -26,7 +28,7 @@ export default function InviteComplete() {
       // Validate email matches invitation
       const expectedEmail = sessionStorage.getItem('expected_invitation_email');
       if (expectedEmail && user.email !== expectedEmail) {
-        toast.error('This invitation was sent to a different email address');
+        toast.error(t('inviteComplete.wrongEmail'));
         await supabase.auth.signOut();
         navigate('/');
         return;
@@ -40,7 +42,7 @@ export default function InviteComplete() {
         .single();
 
       if (inviteError || !invite) {
-        toast.error('Invalid invitation');
+        toast.error(t('inviteComplete.invalidInvitation'));
         navigate('/');
         return;
       }
@@ -55,7 +57,7 @@ export default function InviteComplete() {
 
       if (mergeError) throw mergeError;
 
-      toast.success('Welcome to The Quantum Club!');
+      toast.success(t('inviteComplete.welcome'));
       
       setTimeout(() => {
         navigate('/home');
@@ -63,7 +65,7 @@ export default function InviteComplete() {
 
     } catch (error) {
       console.error('Merge error:', error);
-      toast.error('Failed to complete registration');
+      toast.error(t('inviteComplete.registrationFailed'));
       navigate('/');
     }
   };
@@ -74,13 +76,13 @@ export default function InviteComplete() {
         {merging ? (
           <>
             <Loader2 className="w-12 h-12 animate-spin text-primary mx-auto" />
-            <p className="text-lg font-medium">Setting up your account...</p>
-            <p className="text-sm text-muted-foreground">This will only take a moment</p>
+            <p className="text-lg font-medium">{t('inviteComplete.settingUp')}</p>
+            <p className="text-sm text-muted-foreground">{t('inviteComplete.onlyAMoment')}</p>
           </>
         ) : (
           <>
             <CheckCircle2 className="w-12 h-12 text-green-600 mx-auto" />
-            <p className="text-lg font-medium">All set! Redirecting...</p>
+            <p className="text-lg font-medium">{t('inviteComplete.allSet')}</p>
           </>
         )}
       </div>

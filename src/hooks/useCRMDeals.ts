@@ -94,7 +94,7 @@ export function useCRMDeals(options: UseDealsOptions = {}) {
 
       if (fetchError) throw fetchError;
 
-      const mappedDeals: CRMDeal[] = (data || []).map((p: any) => ({
+      const mappedDeals: CRMDeal[] = (data || []).map((p) => ({
         id: p.id,
         prospect_id: p.id,
         title: `${p.full_name} - ${p.company_name || 'Unknown Company'}`,

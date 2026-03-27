@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -42,6 +43,7 @@ interface PersonalKPIGoalsProps {
 }
 
 export function PersonalKPIGoals({ availableKPIs = [] }: PersonalKPIGoalsProps) {
+  const { t } = useTranslation('common');
   const queryClient = useQueryClient();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingGoal, setEditingGoal] = useState<PersonalGoal | null>(null);
@@ -93,10 +95,10 @@ export function PersonalKPIGoals({ availableKPIs = [] }: PersonalKPIGoalsProps) 
       queryClient.invalidateQueries({ queryKey: ['personal-kpi-goals'] });
       setIsDialogOpen(false);
       resetForm();
-      toast.success('Personal goal created');
+      toast.success(t("personal_goal_created", "Personal goal created"));
     },
     onError: (error) => {
-      toast.error('Failed to create goal: ' + error.message);
+      toast.error(t("failed_to_create_goal", "Failed to create goal:") + error.message);
     }
   });
 
@@ -112,7 +114,7 @@ export function PersonalKPIGoals({ availableKPIs = [] }: PersonalKPIGoalsProps) 
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['personal-kpi-goals'] });
       setEditingGoal(null);
-      toast.success('Goal updated');
+      toast.success(t("goal_updated", "Goal updated"));
     }
   });
 
@@ -127,7 +129,7 @@ export function PersonalKPIGoals({ availableKPIs = [] }: PersonalKPIGoalsProps) 
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['personal-kpi-goals'] });
-      toast.success('Goal removed');
+      toast.success(t("goal_removed", "Goal removed"));
     }
   });
 
@@ -190,18 +192,18 @@ export function PersonalKPIGoals({ availableKPIs = [] }: PersonalKPIGoalsProps) 
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Set Personal KPI Goal</DialogTitle>
+                <DialogTitle>{t("set_personal_kpi_goal", "Set Personal KPI Goal")}</DialogTitle>
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4 mt-4">
                 <div className="space-y-2">
-                  <Label>Select KPI</Label>
+                  <Label>{t("select_kpi", "Select KPI")}</Label>
                   <select
                     value={formData.kpi_name}
                     onChange={(e) => setFormData({ ...formData, kpi_name: e.target.value })}
                     className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
                     required
                   >
-                    <option value="">Choose a KPI...</option>
+                    <option value="">{t("choose_a_kpi", "Choose a KPI...")}</option>
                     {availableForGoals.map(kpi => (
                       <option key={kpi.id} value={kpi.name}>
                         {kpi.displayName} (Current: {kpi.value?.toLocaleString()})
@@ -211,11 +213,11 @@ export function PersonalKPIGoals({ availableKPIs = [] }: PersonalKPIGoalsProps) 
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Personal Target</Label>
+                  <Label>{t("personal_target", "Personal Target")}</Label>
                   <Input
                     type="number"
                     step="0.01"
-                    placeholder="Enter your target..."
+                    placeholder={t("enter_your_target", "Enter your target...")}
                     value={formData.personal_target}
                     onChange={(e) => setFormData({ ...formData, personal_target: e.target.value })}
                     required
@@ -228,9 +230,9 @@ export function PersonalKPIGoals({ availableKPIs = [] }: PersonalKPIGoalsProps) 
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Notes (optional)</Label>
+                  <Label>{t("notes_optional", "Notes (optional)")}</Label>
                   <Textarea
-                    placeholder="Why is this goal important to you?"
+                    placeholder={t("why_is_this_goal", "Why is this goal important to you?")}
                     value={formData.notes}
                     onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                     rows={2}

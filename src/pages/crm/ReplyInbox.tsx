@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { RoleGate } from '@/components/RoleGate';
 import { Button } from '@/components/ui/button';
@@ -38,6 +39,7 @@ import { useUndoableAction } from '@/hooks/useUndoableAction';
 type TabFilter = 'all' | 'hot' | 'warm' | 'objections' | 'unread';
 
 function ReplyInboxContent() {
+  const { t } = useTranslation('common');
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<TabFilter>('all');
   const [selectedReply, setSelectedReply] = useState<CRMEmailReply | null>(null);
@@ -286,7 +288,7 @@ function ReplyInboxContent() {
                 {counts.unread > 0 && <span className="text-primary font-medium">{counts.unread} unread</span>}
                 {counts.unread > 0 && ' · '}
                 AI-categorized replies
-                {lastUpdate && <span className="ml-1 text-primary">· Live</span>}
+                {lastUpdate && <span className="ml-1 text-primary">{t("live", "· Live")}</span>}
               </p>
             </div>
             <CRMActivityReminderBell />
@@ -318,7 +320,7 @@ function ReplyInboxContent() {
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
               <Input
                 data-search-input
-                placeholder="Search replies... (press /)"
+                placeholder={t("search_replies_press", "Search replies... (press /)")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-8 w-56 h-8 text-sm bg-muted/20 border-border/30"
@@ -411,7 +413,7 @@ function ReplyInboxContent() {
           ) : (
             <div className="flex flex-col items-center justify-center h-64 text-muted-foreground">
               <Inbox className="w-10 h-10 mb-3 opacity-30" />
-              <p className="text-sm">No replies found</p>
+              <p className="text-sm">{t("no_replies_found", "No replies found")}</p>
             </div>
           )}
         </div>
@@ -431,7 +433,7 @@ function ReplyInboxContent() {
             <div className="flex-1 flex items-center justify-center text-muted-foreground">
               <div className="text-center">
                 <Mail className="w-12 h-12 mx-auto mb-3 opacity-20" />
-                <p className="text-sm font-medium">Select a reply to view details</p>
+                <p className="text-sm font-medium">{t("select_a_reply_to", "Select a reply to view details")}</p>
                 <p className="text-xs mt-1.5 text-muted-foreground/60">
                   Use <kbd className="px-1.5 py-0.5 rounded bg-muted text-[10px] font-mono">j</kbd> / <kbd className="px-1.5 py-0.5 rounded bg-muted text-[10px] font-mono">k</kbd> to navigate · <kbd className="px-1.5 py-0.5 rounded bg-muted text-[10px] font-mono">?</kbd> for all shortcuts
                 </p>

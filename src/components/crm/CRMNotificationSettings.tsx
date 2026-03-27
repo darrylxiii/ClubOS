@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
@@ -16,6 +17,7 @@ interface NotificationSetting {
 }
 
 export function CRMNotificationSettings() {
+  const { t } = useTranslation('common');
   const [settings, setSettings] = useState<NotificationSetting[]>([
     {
       id: 'new_reply',
@@ -65,14 +67,14 @@ export function CRMNotificationSettings() {
     setSettings(prev => prev.map(s => 
       s.id === id ? { ...s, enabled: !s.enabled } : s
     ));
-    toast.success('Notification preference updated');
+    toast.success(t("notification_preference_updated", "Notification preference updated"));
   };
 
   const handleChannelChange = (id: string, channel: 'email' | 'push' | 'both') => {
     setSettings(prev => prev.map(s => 
       s.id === id ? { ...s, channel } : s
     ));
-    toast.success('Notification channel updated');
+    toast.success(t("notification_channel_updated", "Notification channel updated"));
   };
 
   return (
@@ -112,9 +114,9 @@ export function CRMNotificationSettings() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="email">Email</SelectItem>
-                    <SelectItem value="push">Push</SelectItem>
-                    <SelectItem value="both">Both</SelectItem>
+                    <SelectItem value="email">{t("email", "Email")}</SelectItem>
+                    <SelectItem value="push">{t("push", "Push")}</SelectItem>
+                    <SelectItem value="both">{t("both", "Both")}</SelectItem>
                   </SelectContent>
                 </Select>
                 <Switch 
@@ -129,7 +131,7 @@ export function CRMNotificationSettings() {
         <div className="pt-4 border-t border-border/50">
           <div className="flex items-center justify-between">
             <div>
-              <Label className="text-sm font-medium">Daily Digest</Label>
+              <Label className="text-sm font-medium">{t("daily_digest", "Daily Digest")}</Label>
               <p className="text-xs text-muted-foreground">
                 Receive a summary of all CRM activity
               </p>
@@ -139,9 +141,9 @@ export function CRMNotificationSettings() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="never">Never</SelectItem>
-                <SelectItem value="daily">Daily</SelectItem>
-                <SelectItem value="weekly">Weekly</SelectItem>
+                <SelectItem value="never">{t("never", "Never")}</SelectItem>
+                <SelectItem value="daily">{t("daily", "Daily")}</SelectItem>
+                <SelectItem value="weekly">{t("weekly", "Weekly")}</SelectItem>
               </SelectContent>
             </Select>
           </div>

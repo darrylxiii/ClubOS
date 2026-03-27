@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Image, Video, FileText, BarChart2 } from "lucide-react";
@@ -21,6 +22,7 @@ export function ContentOptionsDialog({
   onPollSelect,
   disabled
 }: ContentOptionsDialogProps) {
+  const { t } = useTranslation('common');
   const handleOptionClick = (callback: () => void) => {
     callback();
     onOpenChange(false);
@@ -30,7 +32,7 @@ export function ContentOptionsDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Add to your post</DialogTitle>
+          <DialogTitle>{t("add_to_your_post", "Add to your post")}</DialogTitle>
         </DialogHeader>
         
         <div className="grid grid-cols-2 gap-3 py-4">
@@ -41,7 +43,7 @@ export function ContentOptionsDialog({
             disabled={disabled}
           >
             <Image className="w-8 h-8" />
-            <span>Photo</span>
+            <span>{t("photo", "Photo")}</span>
           </Button>
           
           <Button
@@ -51,7 +53,7 @@ export function ContentOptionsDialog({
             disabled={disabled}
           >
             <Video className="w-8 h-8" />
-            <span>Video</span>
+            <span>{t("video", "Video")}</span>
           </Button>
           
           <Button
@@ -61,7 +63,7 @@ export function ContentOptionsDialog({
             disabled={disabled}
           >
             <FileText className="w-8 h-8" />
-            <span>Document</span>
+            <span>{t("document", "Document")}</span>
           </Button>
           
           <Button
@@ -71,7 +73,7 @@ export function ContentOptionsDialog({
             disabled={disabled}
           >
             <BarChart2 className="w-8 h-8" />
-            <span>Poll</span>
+            <span>{t("poll", "Poll")}</span>
           </Button>
         </div>
       </DialogContent>

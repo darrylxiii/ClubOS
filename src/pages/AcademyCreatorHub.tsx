@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from "react-router-dom";
 
 import { Card } from "@/components/ui/card";
@@ -28,6 +29,7 @@ import { CreateCourseDialog } from "@/components/academy/CreateCourseDialog";
 import { GenerateCourseDialog } from "@/components/academy/GenerateCourseDialog";
 
 export default function AcademyCreatorHub() {
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -118,7 +120,7 @@ export default function AcademyCreatorHub() {
       <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
         <ErrorState
           variant="page"
-          title="Failed to load Creator Hub"
+          title={t('academyCreatorHub.text3')}
           message="We couldn't load your course data. Please try again."
           onRetry={() => { setFetchError(false); loadCreatorData(); }}
         />
@@ -143,8 +145,8 @@ export default function AcademyCreatorHub() {
               <GraduationCap className="h-6 w-6 text-primary" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold">Creator Hub</h1>
-              <p className="text-muted-foreground">Manage your courses and track your impact</p>
+              <h1 className="text-3xl font-bold">{t('academyCreatorHub.text4')}</h1>
+              <p className="text-muted-foreground">{t('academyCreatorHub.text5')}</p>
             </div>
           </div>
           <div className="flex gap-3">
@@ -168,7 +170,7 @@ export default function AcademyCreatorHub() {
           <Card className="p-6 squircle">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Total Courses</p>
+                <p className="text-sm text-muted-foreground">{t('academyCreatorHub.text6')}</p>
                 <p className="text-3xl font-bold mt-2">{stats.totalCourses}</p>
               </div>
               <div className="p-3 squircle-sm bg-primary/10">
@@ -180,7 +182,7 @@ export default function AcademyCreatorHub() {
           <Card className="p-6 squircle">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Published</p>
+                <p className="text-sm text-muted-foreground">{t('academyCreatorHub.text7')}</p>
                 <p className="text-3xl font-bold mt-2">{stats.publishedCourses}</p>
               </div>
               <div className="p-3 squircle-sm bg-green-500/10">
@@ -192,7 +194,7 @@ export default function AcademyCreatorHub() {
           <Card className="p-6 squircle">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Total Modules</p>
+                <p className="text-sm text-muted-foreground">{t('academyCreatorHub.text8')}</p>
                 <p className="text-3xl font-bold mt-2">{stats.totalModules}</p>
               </div>
               <div className="p-3 squircle-sm bg-blue-500/10">
@@ -204,7 +206,7 @@ export default function AcademyCreatorHub() {
           <Card className="p-6 squircle">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Total Students</p>
+                <p className="text-sm text-muted-foreground">{t('academyCreatorHub.text9')}</p>
                 <p className="text-3xl font-bold mt-2">{stats.totalStudents}</p>
               </div>
               <div className="p-3 squircle-sm bg-purple-500/10">
@@ -217,18 +219,16 @@ export default function AcademyCreatorHub() {
         {/* Tabs */}
         <Tabs defaultValue="courses" className="space-y-6">
           <TabsList className="squircle">
-            <TabsTrigger value="courses">My Courses</TabsTrigger>
-            <TabsTrigger value="analytics">Analytics</TabsTrigger>
+            <TabsTrigger value="courses">{t('academyCreatorHub.text10')}</TabsTrigger>
+            <TabsTrigger value="analytics">{t('academyCreatorHub.text11')}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="courses" className="space-y-4">
             {courses.length === 0 ? (
               <Card className="p-12 text-center squircle">
                 <BookOpen className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                <h3 className="text-xl font-semibold mb-2">No courses yet</h3>
-                <p className="text-muted-foreground mb-6">
-                  Create your first course and start sharing your knowledge
-                </p>
+                <h3 className="text-xl font-semibold mb-2">{t('academyCreatorHub.text12')}</h3>
+                <p className="text-muted-foreground mb-6">{t('academyCreatorHub.desc')}</p>
                 <Button onClick={() => setShowCreateCourse(true)}>
                   <Plus className="mr-2 h-4 w-4" />
                   Create Your First Course
@@ -320,10 +320,8 @@ export default function AcademyCreatorHub() {
           <TabsContent value="analytics" className="space-y-4">
             <Card className="p-12 text-center squircle">
               <BarChart3 className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-              <h3 className="text-xl font-semibold mb-2">Analytics Coming Soon</h3>
-              <p className="text-muted-foreground">
-                Track student engagement, course completion rates, and more
-              </p>
+              <h3 className="text-xl font-semibold mb-2">{t('academyCreatorHub.text13')}</h3>
+              <p className="text-muted-foreground">{t('academyCreatorHub.desc2')}</p>
             </Card>
           </TabsContent>
         </Tabs>

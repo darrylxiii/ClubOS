@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -19,6 +20,7 @@ interface AddNewsArticleDialogProps {
 }
 
 export function AddNewsArticleDialog({ open, onOpenChange, companyId, onSuccess }: AddNewsArticleDialogProps) {
+  const { t } = useTranslation('common');
   const [loading, setLoading] = useState(false);
   const [url, setUrl] = useState('');
   const [title, setTitle] = useState('');
@@ -48,12 +50,12 @@ export function AddNewsArticleDialog({ open, onOpenChange, companyId, onSuccess 
     e.preventDefault();
     
     if (!isValidUrl(url)) {
-      toast.error('Please enter a valid URL');
+      toast.error(t("please_enter_a_valid", "Please enter a valid URL"));
       return;
     }
 
     if (!title.trim()) {
-      toast.error('Title is required');
+      toast.error(t("title_is_required", "Title is required"));
       return;
     }
 
@@ -72,7 +74,7 @@ export function AddNewsArticleDialog({ open, onOpenChange, companyId, onSuccess 
           .eq('is_pinned', true);
 
         if (count && count >= 3) {
-          toast.error('Maximum 3 pinned articles allowed');
+          toast.error(t("maximum_3_pinned_articles", "Maximum 3 pinned articles allowed"));
           setIsPinned(false);
           setLoading(false);
           return;
@@ -98,13 +100,13 @@ export function AddNewsArticleDialog({ open, onOpenChange, companyId, onSuccess 
 
       if (error) throw error;
 
-      toast.success('News article added successfully');
+      toast.success(t("news_article_added_successfully", "News article added successfully"));
       resetForm();
       onOpenChange(false);
       if (onSuccess) onSuccess();
     } catch (error) {
       console.error('Error adding news article:', error);
-      toast.error('Failed to add news article');
+      toast.error(t("failed_to_add_news", "Failed to add news article"));
     } finally {
       setLoading(false);
     }
@@ -137,7 +139,7 @@ export function AddNewsArticleDialog({ open, onOpenChange, companyId, onSuccess 
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* URL */}
           <div className="space-y-2">
-            <Label htmlFor="url">Article URL *</Label>
+            <Label htmlFor="url">{t("article_url", "Article URL *")}</Label>
             <Input
               id="url"
               type="url"
@@ -150,10 +152,10 @@ export function AddNewsArticleDialog({ open, onOpenChange, companyId, onSuccess 
 
           {/* Title */}
           <div className="space-y-2">
-            <Label htmlFor="title">Title *</Label>
+            <Label htmlFor="title">{t("title", "Title *")}</Label>
             <Input
               id="title"
-              placeholder="Article headline"
+              placeholder={t("article_headline", "Article headline")}
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               required
@@ -162,10 +164,10 @@ export function AddNewsArticleDialog({ open, onOpenChange, companyId, onSuccess 
 
           {/* Description */}
           <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
+            <Label htmlFor="description">{t("description", "Description")}</Label>
             <Textarea
               id="description"
-              placeholder="Brief summary of the article"
+              placeholder={t("brief_summary_of_the", "Brief summary of the article")}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={3}
@@ -178,7 +180,7 @@ export function AddNewsArticleDialog({ open, onOpenChange, companyId, onSuccess 
 
           {/* Image URL */}
           <div className="space-y-2">
-            <Label htmlFor="imageUrl">Image URL</Label>
+            <Label htmlFor="imageUrl">{t("image_url", "Image URL")}</Label>
             <Input
               id="imageUrl"
               type="url"
@@ -191,10 +193,10 @@ export function AddNewsArticleDialog({ open, onOpenChange, companyId, onSuccess 
           <div className="grid grid-cols-2 gap-4">
             {/* Source Name */}
             <div className="space-y-2">
-              <Label htmlFor="sourceName">Source</Label>
+              <Label htmlFor="sourceName">{t("source", "Source")}</Label>
               <Input
                 id="sourceName"
-                placeholder="TechCrunch, Bloomberg, etc."
+                placeholder={t("techcrunch_bloomberg_etc", "TechCrunch, Bloomberg, etc.")}
                 value={sourceName}
                 onChange={(e) => setSourceName(e.target.value)}
               />
@@ -202,7 +204,7 @@ export function AddNewsArticleDialog({ open, onOpenChange, companyId, onSuccess 
 
             {/* Published Date */}
             <div className="space-y-2">
-              <Label htmlFor="publishedDate">Published Date</Label>
+              <Label htmlFor="publishedDate">{t("published_date", "Published Date")}</Label>
               <Input
                 id="publishedDate"
                 type="date"
@@ -214,10 +216,10 @@ export function AddNewsArticleDialog({ open, onOpenChange, companyId, onSuccess 
 
           {/* Author */}
           <div className="space-y-2">
-            <Label htmlFor="author">Author</Label>
+            <Label htmlFor="author">{t("author", "Author")}</Label>
             <Input
               id="author"
-              placeholder="Author name"
+              placeholder={t("author_name", "Author name")}
               value={author}
               onChange={(e) => setAuthor(e.target.value)}
             />
@@ -225,11 +227,11 @@ export function AddNewsArticleDialog({ open, onOpenChange, companyId, onSuccess 
 
           {/* Tags */}
           <div className="space-y-2">
-            <Label htmlFor="tags">Tags</Label>
+            <Label htmlFor="tags">{t("tags", "Tags")}</Label>
             <div className="flex gap-2">
               <Input
                 id="tags"
-                placeholder="Add a tag"
+                placeholder={t("add_a_tag", "Add a tag")}
                 value={tagInput}
                 onChange={(e) => setTagInput(e.target.value)}
                 onKeyDown={(e) => {
@@ -265,7 +267,7 @@ export function AddNewsArticleDialog({ open, onOpenChange, companyId, onSuccess 
           <div className="space-y-3 pt-2 border-t border-border">
             <div className="flex items-center justify-between">
               <div>
-                <Label htmlFor="featured">Featured Article</Label>
+                <Label htmlFor="featured">{t("featured_article", "Featured Article")}</Label>
                 <p className="text-xs text-muted-foreground">
                   Highlight this article with a special badge
                 </p>
@@ -279,7 +281,7 @@ export function AddNewsArticleDialog({ open, onOpenChange, companyId, onSuccess 
 
             <div className="flex items-center justify-between">
               <div>
-                <Label htmlFor="pinned">Pin Article</Label>
+                <Label htmlFor="pinned">{t("pin_article", "Pin Article")}</Label>
                 <p className="text-xs text-muted-foreground">
                   Keep at top of feed (max 3)
                 </p>

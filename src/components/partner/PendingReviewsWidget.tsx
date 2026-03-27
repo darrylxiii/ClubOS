@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { useAggregatedReviewQueue, type ReviewJobSummary } from '@/hooks/useAggregatedReviewQueue';
 import { ReviewHubDialog } from './ReviewHubDialog';
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 
 function formatSlaCountdown(oldestAt: string | null, slaHours: number): string | null {
   if (!oldestAt) return null;
@@ -19,6 +20,7 @@ function formatSlaCountdown(oldestAt: string | null, slaHours: number): string |
 }
 
 export const PendingReviewsWidget = () => {
+  const { t } = useTranslation('partner');
   const { jobs, totalPending, overdueCount, isLoading } = useAggregatedReviewQueue();
   const [hubOpen, setHubOpen] = useState(false);
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
@@ -66,7 +68,7 @@ export const PendingReviewsWidget = () => {
                 )}
               </div>
               <div>
-                <CardTitle className="text-base">Candidate Reviews</CardTitle>
+                <CardTitle className="text-base">{"Candidate Reviews"}</CardTitle>
                 <p className="text-xs text-muted-foreground mt-0.5">
                   {totalPending > 0
                     ? `${totalPending} candidate${totalPending > 1 ? 's' : ''} awaiting your review`
@@ -95,7 +97,7 @@ export const PendingReviewsWidget = () => {
           {totalPending === 0 ? (
             <div className="flex items-center justify-center py-4 gap-2 text-success">
               <CheckCircle2 className="h-5 w-5" />
-              <span className="text-sm font-medium">All reviews complete</span>
+              <span className="text-sm font-medium">{"All reviews complete"}</span>
             </div>
           ) : (
             <>

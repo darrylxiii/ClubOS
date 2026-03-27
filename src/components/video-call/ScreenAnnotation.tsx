@@ -1,4 +1,5 @@
 import { useRef, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Pencil, Square, Circle, Eraser, X, MousePointer } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -11,6 +12,7 @@ interface ScreenAnnotationProps {
 type Tool = 'pen' | 'square' | 'circle' | 'eraser' | 'pointer';
 
 export function ScreenAnnotation({ isAnnotating, onClose }: ScreenAnnotationProps) {
+  const { t } = useTranslation('common');
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [tool, setTool] = useState<Tool>('pen');
@@ -179,7 +181,7 @@ export function ScreenAnnotation({ isAnnotating, onClose }: ScreenAnnotationProp
           onClick={clearCanvas}
           className="rounded-full h-10 px-4"
         >
-          Clear
+          {t('meetings.clear', 'Clear')}
         </Button>
         
         <Button

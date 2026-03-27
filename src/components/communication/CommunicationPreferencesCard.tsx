@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Settings, MessageSquare, Mail, Phone, Users, Bell, Clock, Moon, Save } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -40,6 +41,7 @@ const timezones = [
 ];
 
 export function CommunicationPreferencesCard({ preferences, onUpdate }: Props) {
+  const { t } = useTranslation('common');
   const [saving, setSaving] = useState(false);
   const [localPrefs, setLocalPrefs] = useState<Partial<Preferences>>(preferences || {
     preferred_channel: 'whatsapp',
@@ -121,7 +123,7 @@ export function CommunicationPreferencesCard({ preferences, onUpdate }: Props) {
           
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
-              <Label className="text-xs">Start</Label>
+              <Label className="text-xs">{t("start", "Start")}</Label>
               <Input
                 type="time"
                 value={localPrefs.quiet_hours_start}
@@ -129,7 +131,7 @@ export function CommunicationPreferencesCard({ preferences, onUpdate }: Props) {
               />
             </div>
             <div className="space-y-1">
-              <Label className="text-xs">End</Label>
+              <Label className="text-xs">{t("end", "End")}</Label>
               <Input
                 type="time"
                 value={localPrefs.quiet_hours_end}
@@ -168,7 +170,7 @@ export function CommunicationPreferencesCard({ preferences, onUpdate }: Props) {
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium">Job Alerts</p>
+                <p className="text-sm font-medium">{t("job_alerts", "Job Alerts")}</p>
                 <p className="text-xs text-muted-foreground">
                   New opportunities matching your profile
                 </p>
@@ -181,7 +183,7 @@ export function CommunicationPreferencesCard({ preferences, onUpdate }: Props) {
             
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium">Meeting Reminders</p>
+                <p className="text-sm font-medium">{t("meeting_reminders", "Meeting Reminders")}</p>
                 <p className="text-xs text-muted-foreground">
                   Reminders for scheduled interviews and calls
                 </p>
@@ -194,7 +196,7 @@ export function CommunicationPreferencesCard({ preferences, onUpdate }: Props) {
             
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium">Marketing & Updates</p>
+                <p className="text-sm font-medium">{t("marketing_updates", "Marketing & Updates")}</p>
                 <p className="text-xs text-muted-foreground">
                   Platform news, tips, and career insights
                 </p>
@@ -211,7 +213,7 @@ export function CommunicationPreferencesCard({ preferences, onUpdate }: Props) {
 
         {/* Daily Limit */}
         <div className="space-y-3">
-          <Label>Maximum Messages Per Day</Label>
+          <Label>{t("maximum_messages_per_day", "Maximum Messages Per Day")}</Label>
           <Select
             value={String(localPrefs.max_messages_per_day)}
             onValueChange={(v) => updateLocal('max_messages_per_day', parseInt(v))}
@@ -220,10 +222,10 @@ export function CommunicationPreferencesCard({ preferences, onUpdate }: Props) {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="3">3 messages</SelectItem>
-              <SelectItem value="5">5 messages (recommended)</SelectItem>
-              <SelectItem value="10">10 messages</SelectItem>
-              <SelectItem value="999">Unlimited</SelectItem>
+              <SelectItem value="3">{t("3_messages", "3 messages")}</SelectItem>
+              <SelectItem value="5">{t("5_messages_recommended", "5 messages (recommended)")}</SelectItem>
+              <SelectItem value="10">{t("10_messages", "10 messages")}</SelectItem>
+              <SelectItem value="999">{t("unlimited", "Unlimited")}</SelectItem>
             </SelectContent>
           </Select>
           <p className="text-xs text-muted-foreground">

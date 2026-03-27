@@ -1,4 +1,5 @@
 import { memo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { motion } from '@/lib/motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,6 +17,7 @@ interface ResultsDashboardProps {
 }
 
 export const ResultsDashboard = memo(({ profile, outcome, jobMatches }: ResultsDashboardProps) => {
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
 
   const handleDownload = () => {
@@ -36,10 +38,8 @@ export const ResultsDashboard = memo(({ profile, outcome, jobMatches }: ResultsD
           className="text-center space-y-4"
         >
           <Trophy className="w-20 h-20 mx-auto text-primary" />
-          <h1 className="text-4xl md:text-5xl font-bold">Your Results</h1>
-          <p className="text-xl text-muted-foreground">
-            Complete psychological profile and career matches
-          </p>
+          <h1 className="text-4xl md:text-5xl font-bold">{t('miljoenenjacht.yourResults')}</h1>
+          <p className="text-xl text-muted-foreground">{t('miljoenenjacht.completePsychologicalProfileAndCareerMat')}</p>
         </motion.div>
 
         {/* Outcome Summary */}
@@ -144,7 +144,7 @@ export const ResultsDashboard = memo(({ profile, outcome, jobMatches }: ResultsD
         >
           <Card>
             <CardHeader>
-              <CardTitle>Cognitive Biases Detected</CardTitle>
+              <CardTitle>{t('miljoenenjacht.cognitiveBiasesDetected')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

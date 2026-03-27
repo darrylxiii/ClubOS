@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Calculator, TrendingUp, TrendingDown, Target } from "lucide-react";
@@ -10,6 +11,7 @@ interface UnitEconomicsProps {
 }
 
 export function UnitEconomics({ ltv, cac, arpu, churnRate }: UnitEconomicsProps) {
+  const { t } = useTranslation('common');
   const formatCurrency = (cents: number) => {
     return new Intl.NumberFormat('en-EU', {
       style: 'currency',
@@ -47,13 +49,13 @@ export function UnitEconomics({ ltv, cac, arpu, churnRate }: UnitEconomicsProps)
           <Calculator className="w-5 h-5" />
           Unit Economics
         </CardTitle>
-        <CardDescription>Key SaaS efficiency metrics</CardDescription>
+        <CardDescription>{t("key_saas_efficiency_metrics", "Key SaaS efficiency metrics")}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         {/* LTV */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium">Customer Lifetime Value (LTV)</span>
+            <span className="text-sm font-medium">{t("customer_lifetime_value_ltv", "Customer Lifetime Value (LTV)")}</span>
             <span className="text-lg font-bold">{formatCurrency(ltv)}</span>
           </div>
           <div className="text-xs text-muted-foreground">
@@ -64,7 +66,7 @@ export function UnitEconomics({ ltv, cac, arpu, churnRate }: UnitEconomicsProps)
         {/* CAC */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium">Customer Acquisition Cost (CAC)</span>
+            <span className="text-sm font-medium">{t("customer_acquisition_cost_cac", "Customer Acquisition Cost (CAC)")}</span>
             <span className="text-lg font-bold">{formatCurrency(cac)}</span>
           </div>
           <div className="text-xs text-muted-foreground">
@@ -77,7 +79,7 @@ export function UnitEconomics({ ltv, cac, arpu, churnRate }: UnitEconomicsProps)
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Target className="w-4 h-4" />
-              <span className="text-sm font-medium">LTV/CAC Ratio</span>
+              <span className="text-sm font-medium">{t("ltvcac_ratio", "LTV/CAC Ratio")}</span>
             </div>
             <div className="flex items-center gap-2">
               <span className={`text-xl font-bold ${ltvCacHealth.color}`}>
@@ -99,7 +101,7 @@ export function UnitEconomics({ ltv, cac, arpu, churnRate }: UnitEconomicsProps)
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <TrendingUp className="w-4 h-4" />
-              <span className="text-sm font-medium">CAC Payback Period</span>
+              <span className="text-sm font-medium">{t("cac_payback_period", "CAC Payback Period")}</span>
             </div>
             <div className="flex items-center gap-2">
               <span className={`text-xl font-bold ${paybackHealth.color}`}>
@@ -121,7 +123,7 @@ export function UnitEconomics({ ltv, cac, arpu, churnRate }: UnitEconomicsProps)
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <TrendingDown className="w-4 h-4" />
-              <span className="text-sm font-medium">Monthly Churn Rate</span>
+              <span className="text-sm font-medium">{t("monthly_churn_rate", "Monthly Churn Rate")}</span>
             </div>
             <div className="flex items-center gap-2">
               <span className={`text-xl font-bold ${churnHealth.color}`}>
@@ -140,7 +142,7 @@ export function UnitEconomics({ ltv, cac, arpu, churnRate }: UnitEconomicsProps)
 
         {/* ARPU */}
         <div className="flex items-center justify-between p-4 rounded-lg border">
-          <span className="text-sm font-medium">Average Revenue Per User (ARPU)</span>
+          <span className="text-sm font-medium">{t("average_revenue_per_user", "Average Revenue Per User (ARPU)")}</span>
           <span className="text-lg font-bold">{formatCurrency(arpu)}/mo</span>
         </div>
       </CardContent>

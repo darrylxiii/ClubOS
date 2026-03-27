@@ -6,6 +6,7 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Flame, Snowflake, AlertTriangle, TrendingUp, Eye, X, Zap } from "lucide-react";
 import { usePredictiveSignals, useAcknowledgeSignal } from "@/hooks/usePredictiveSignals";
 import { cn } from "@/lib/utils";
+import { useTranslation } from 'react-i18next';
 
 const signalConfig: Record<string, { icon: typeof Flame; color: string; label: string }> = {
   heating_up: { icon: Flame, color: "text-orange-500 bg-orange-500/10", label: "Heating Up" },
@@ -27,6 +28,7 @@ function strengthLabel(strength: number) {
 }
 
 export function PredictiveSignalsStrip() {
+  const { t } = useTranslation('common');
   const { data: signals, isLoading } = usePredictiveSignals();
   const acknowledge = useAcknowledgeSignal();
 

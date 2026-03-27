@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { motion } from '@/lib/motion';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -39,6 +40,7 @@ export function ProspectDetailHero({
   onStageChange,
   onConvertToPartner,
 }: ProspectDetailHeroProps) {
+  const { t } = useTranslation('common');
   const stageConfig = PROSPECT_STAGES.find(s => s.value === prospect.stage);
 
   const getInitials = (name: string) => {
@@ -197,7 +199,7 @@ export function ProspectDetailHero({
               <span className="text-lg font-bold text-green-500">
                 {prospect.deal_value.toLocaleString()}
               </span>
-              <span className="text-[10px] text-muted-foreground">Deal Value</span>
+              <span className="text-[10px] text-muted-foreground">{t("deal_value", "Deal Value")}</span>
             </div>
           )}
         </div>

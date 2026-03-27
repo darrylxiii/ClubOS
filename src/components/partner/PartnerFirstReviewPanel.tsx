@@ -16,6 +16,7 @@ import { CandidateReviewCard } from './CandidateReviewCard';
 import { ReviewSessionStats } from './ReviewSessionStats';
 import { ReviewShortcutOverlay } from './ReviewShortcutOverlay';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 
 interface PartnerFirstReviewPanelProps {
   jobId: string;
@@ -41,6 +42,7 @@ function formatTagLabel(tag: string): string {
 }
 
 export const PartnerFirstReviewPanel = ({ jobId }: PartnerFirstReviewPanelProps) => {
+  const { t } = useTranslation('partner');
   const {
     partnerPending,
     reviewQueue,
@@ -141,11 +143,11 @@ export const PartnerFirstReviewPanel = ({ jobId }: PartnerFirstReviewPanelProps)
   const handleReject = useCallback(async () => {
     if (!currentApplication || isSubmitting) return;
     if (!rejectionReason) {
-      toast.error('Select a rejection reason.');
+      toast.error(t('partnerFirstReviewPanel.toast.selectARejectionReason'));
       return;
     }
     if (!notes.trim()) {
-      toast.error('Rejection notes are required.');
+      toast.error(t('partnerFirstReviewPanel.toast.rejectionNotesAreRequired'));
       return;
     }
     setSwipeDirection('left');
@@ -233,8 +235,8 @@ export const PartnerFirstReviewPanel = ({ jobId }: PartnerFirstReviewPanelProps)
             <Star className="h-6 w-6 text-success" />
           </div>
           <div>
-            <p className="font-semibold">All reviews complete</p>
-            <p className="text-sm text-muted-foreground">No candidates are waiting for your review.</p>
+            <p className="font-semibold">{"All reviews complete"}</p>
+            <p className="text-sm text-muted-foreground">{"No candidates are waiting for your review."}</p>
           </div>
         </CardContent>
       </Card>
@@ -279,7 +281,7 @@ export const PartnerFirstReviewPanel = ({ jobId }: PartnerFirstReviewPanelProps)
           {!currentApplication ? (
             <Card className="border-success/20">
               <CardContent className="py-8 flex flex-col items-center gap-2 text-center">
-                <p className="text-sm text-muted-foreground">Queue is clear. Check the Held tab for parked candidates.</p>
+                <p className="text-sm text-muted-foreground">{"Queue is clear. Check the Held tab for parked candidates."}</p>
               </CardContent>
             </Card>
           ) : (
@@ -296,7 +298,7 @@ export const PartnerFirstReviewPanel = ({ jobId }: PartnerFirstReviewPanelProps)
               {currentApplication.matchScore !== null && currentApplication.matchScore < 40 && (
                 <div className="flex items-center gap-2 rounded-lg bg-destructive/10 border border-destructive/20 px-3 py-2 text-sm text-destructive">
                   <AlertTriangle className="h-4 w-4 shrink-0" />
-                  <span>Low match score — review carefully before advancing.</span>
+                  <span>{"Low match score — review carefully before advancing."}</span>
                 </div>
               )}
 
@@ -328,7 +330,7 @@ export const PartnerFirstReviewPanel = ({ jobId }: PartnerFirstReviewPanelProps)
 
               {/* Quick feedback tags */}
               <div className="space-y-2">
-                <Label className="text-xs">Quick feedback</Label>
+                <Label className="text-xs">{"Quick feedback"}</Label>
                 <div className="flex flex-wrap gap-1.5">
                   {QUICK_TAGS.map((tag) => (
                     <Button
@@ -347,7 +349,7 @@ export const PartnerFirstReviewPanel = ({ jobId }: PartnerFirstReviewPanelProps)
 
               {/* Rating */}
               <div className="flex items-center gap-3">
-                <Label className="text-xs">Rating</Label>
+                <Label className="text-xs">{"Rating"}</Label>
                 <div className="flex items-center gap-0.5">
                   {[1, 2, 3, 4, 5].map((star) => (
                     <button
@@ -366,11 +368,11 @@ export const PartnerFirstReviewPanel = ({ jobId }: PartnerFirstReviewPanelProps)
 
               {/* Notes */}
               <div className="space-y-1.5">
-                <Label className="text-xs">Review notes</Label>
+                <Label className="text-xs">{"Review notes"}</Label>
                 <Textarea
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Context for strategist and hiring team"
+                  placeholder={"Context for strategist and hiring team"}
                   className="min-h-20"
                 />
               </div>
@@ -382,13 +384,13 @@ export const PartnerFirstReviewPanel = ({ jobId }: PartnerFirstReviewPanelProps)
                   animate={{ opacity: 1, height: 'auto' }}
                   className="space-y-3 rounded-lg border border-destructive/30 bg-destructive/5 p-4"
                 >
-                  <p className="text-sm font-medium text-destructive">Rejection details</p>
+                  <p className="text-sm font-medium text-destructive">{"Rejection details"}</p>
 
                   <div className="space-y-1.5">
-                    <Label className="text-xs">Reason</Label>
+                    <Label className="text-xs">{"Reason"}</Label>
                     <Select value={rejectionReason} onValueChange={setRejectionReason}>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select reason" />
+                        <SelectValue placeholder={"Select reason"} />
                       </SelectTrigger>
                       <SelectContent>
                         {REJECTION_REASONS.map((r) => (
@@ -399,21 +401,21 @@ export const PartnerFirstReviewPanel = ({ jobId }: PartnerFirstReviewPanelProps)
                   </div>
 
                   <div className="space-y-1.5">
-                    <Label className="text-xs">Specific gaps (comma separated)</Label>
+                    <Label className="text-xs">{"Specific gaps (comma separated)"}</Label>
                     <Textarea
                       value={specificGapsText}
                       onChange={(e) => setSpecificGapsText(e.target.value)}
-                      placeholder="e.g. stakeholder management, enterprise sales"
+                      placeholder={"e.g. stakeholder management, enterprise sales"}
                       className="min-h-16"
                     />
                   </div>
 
                   <div className="space-y-1.5">
-                    <Label className="text-xs">Ideal candidate profile (optional)</Label>
+                    <Label className="text-xs">{"Ideal candidate profile (optional)"}</Label>
                     <Textarea
                       value={idealCandidate}
                       onChange={(e) => setIdealCandidate(e.target.value)}
-                      placeholder="What would make this profile stronger"
+                      placeholder={"What would make this profile stronger"}
                       className="min-h-16"
                     />
                   </div>
@@ -469,7 +471,7 @@ export const PartnerFirstReviewPanel = ({ jobId }: PartnerFirstReviewPanelProps)
                     })}
                     disabled={isSubmitting}
                   >
-                    Approve
+                    {t('common:approve')}
                   </Button>
                   <Button
                     size="sm"
@@ -482,7 +484,7 @@ export const PartnerFirstReviewPanel = ({ jobId }: PartnerFirstReviewPanelProps)
                     })}
                     disabled={isSubmitting}
                   >
-                    Reject
+                    {t('common:reject')}
                   </Button>
                 </div>
               </div>

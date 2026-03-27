@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { DeadlineAlert } from "@/hooks/usePartnerContracts";
 import { AlertTriangle, Clock, X, Bell } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslation } from 'react-i18next';
 
 interface ContractDeadlineAlertsProps {
   alerts: DeadlineAlert[];
@@ -11,11 +12,12 @@ interface ContractDeadlineAlertsProps {
   className?: string;
 }
 
-export function ContractDeadlineAlerts({ 
-  alerts, 
+export function ContractDeadlineAlerts({
+  alerts,
   onDismiss,
-  className 
+  className
 }: ContractDeadlineAlertsProps) {
+  const { t } = useTranslation('partner');
   const breachedAlerts = alerts.filter(a => a.alert_type === 'breached');
   const approachingAlerts = alerts.filter(a => a.alert_type === 'approaching');
 
@@ -73,12 +75,8 @@ export function ContractDeadlineAlerts({
                   key={alert.id}
                   className="flex items-center gap-2 text-sm"
                 >
-                  <Badge variant="destructive" className="text-xs">
-                    BREACHED
-                  </Badge>
-                  <span className="text-destructive">
-                    Milestone deadline has passed
-                  </span>
+                  <Badge variant="destructive" className="text-xs">{t('contractDeadlineAlerts.badge.breached')}</Badge>
+                  <span className="text-destructive">{t('contractDeadlineAlerts.milestoneDeadlineHasPassed')}</span>
                   {onDismiss && (
                     <Button 
                       variant="ghost" 
@@ -86,7 +84,7 @@ export function ContractDeadlineAlerts({
                       className="h-5 px-2 text-xs ml-auto"
                       onClick={() => onDismiss(alert.id)}
                     >
-                      Dismiss
+                      {t('common:dismiss')}
                     </Button>
                   )}
                 </div>
@@ -98,9 +96,7 @@ export function ContractDeadlineAlerts({
                   className="flex items-center gap-2 text-sm"
                 >
                   <Clock className="h-4 w-4 text-yellow-600" />
-                  <span className="text-yellow-700 dark:text-yellow-500">
-                    Milestone deadline approaching
-                  </span>
+                  <span className="text-yellow-700 dark:text-yellow-500">{t('contractDeadlineAlerts.milestoneDeadlineApproaching')}</span>
                   {onDismiss && (
                     <Button 
                       variant="ghost" 
@@ -108,7 +104,7 @@ export function ContractDeadlineAlerts({
                       className="h-5 px-2 text-xs ml-auto"
                       onClick={() => onDismiss(alert.id)}
                     >
-                      Dismiss
+                      {t('common:dismiss')}
                     </Button>
                   )}
                 </div>

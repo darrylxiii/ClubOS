@@ -1,12 +1,11 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.7";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+import { verifyTwilioWebhook } from '../_shared/webhook-verifier.ts';
+import { getCorsHeaders } from '../_shared/cors.ts';
 
 serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
+
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -22,6 +21,21 @@ serve(async (req) => {
     formData.forEach((value, key) => {
       payload[key] = value.toString();
     });
+
+    // Verify Twilio signature
+    const twilioAuthToken = Deno.env.get('TWILIO_AUTH_TOKEN');
+    const twilioSignature = req.headers.get('X-Twilio-Signature');
+    if (twilioAuthToken && twilioSignature) {
+      const requestUrl = new URL(req.url).toString();
+      const isValid = await verifyTwilioWebhook(requestUrl, payload, twilioSignature, twilioAuthToken);
+      if (!isValid) {
+        console.error('[Twilio SMS Webhook] Signature verification failed');
+        return new Response('Invalid signature', { status: 403 });
+      }
+      console.log('[Twilio SMS Webhook] Signature verified');
+    } else if (Deno.env.get('DENO_ENV') !== 'development') {
+      console.warn('[Twilio SMS Webhook] Signature verification skipped — missing TWILIO_AUTH_TOKEN or X-Twilio-Signature');
+    }
 
     console.log("Twilio SMS webhook received:", JSON.stringify(payload, null, 2));
 

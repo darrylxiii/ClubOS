@@ -63,7 +63,7 @@ export interface WorkflowCondition {
 export interface AIAnalysisRequest {
   prompt: string;
   context?: Record<string, unknown>;
-  model?: 'google/gemini-2.5-flash' | 'google/gemini-2.5-pro' | 'openai/gpt-5' | 'openai/gpt-5-mini';
+  model?: 'gemini-2.5-flash' | 'gemini-2.5-flash-lite' | 'gemini-2.5-pro';
   maxTokens?: number;
   temperature?: number;
 }

@@ -1,4 +1,3 @@
-import { useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -7,7 +6,6 @@ import { useTaskCompletion } from "@/hooks/useTaskCompletion";
 import { TaskCompletionFeedbackModal } from "@/components/unified-tasks/TaskCompletionFeedbackModal";
 import { DashboardWidget } from "./DashboardWidget";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Target, CheckCircle2, ArrowRight, Flame } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -17,6 +15,7 @@ import {
   format,
   startOfDay,
 } from "date-fns";
+import { useTranslation } from 'react-i18next';
 
 const PRIORITY_ORDER: Record<string, number> = { high: 0, medium: 1, low: 2 };
 
@@ -51,15 +50,15 @@ function useDueDateLabel(dueDate: string | null, isOverdue: boolean | null) {
 
 const PriorityBadge = ({ priority }: { priority: string }) => {
   const config: Record<string, { label: string; className: string }> = {
-    high: { label: "High", className: "bg-red-500/15 text-red-400 border-red-500/20" },
-    medium: { label: "Med", className: "bg-amber-500/15 text-amber-400 border-amber-500/20" },
-    low: { label: "Low", className: "bg-blue-500/15 text-blue-400 border-blue-500/20" },
+    high: { label: "High", className: "bg-red-500/10 text-red-500 border-red-500/30 shadow-[inset_0_0_8px_rgba(239,68,68,0.1)]" },
+    medium: { label: "Med", className: "bg-amber-500/10 text-amber-500 border-amber-500/30 shadow-[inset_0_0_8px_rgba(245,158,11,0.1)]" },
+    low: { label: "Low", className: "bg-blue-500/10 text-blue-500 border-blue-500/30 shadow-[inset_0_0_8px_rgba(59,130,246,0.1)]" },
   };
   const c = config[priority] || config.low;
   return (
-    <Badge variant="outline" className={cn("text-[10px] px-1.5 py-0 h-4 font-medium", c.className)}>
+    <div className={cn("text-[8px] uppercase tracking-[0.15em] px-2 py-[2px] rounded-full border-[0.5px] font-bold backdrop-blur-sm", c.className)}>
       {c.label}
-    </Badge>
+    </div>
   );
 };
 
@@ -70,7 +69,7 @@ const AssigneeStack = ({ emails }: { emails: string[] }) => {
   const extra = emails.length - 3;
 
   return (
-    <div className="flex -space-x-1.5">
+    <div className="flex -space-x-2 relative z-0">
       {shown.map((email) => {
         const p = profileMap.get(email.toLowerCase());
         const initials = (p?.full_name || email)
@@ -80,15 +79,15 @@ const AssigneeStack = ({ emails }: { emails: string[] }) => {
           .map((s) => s[0]?.toUpperCase())
           .join("");
         return (
-          <Avatar key={email} className="h-5 w-5 border border-background">
+          <Avatar key={email} className="h-6 w-6 border-[1.5px] border-background ring-1 ring-white/10 shadow-md hover:z-10 transition-transform">
             {p?.avatar_url && <AvatarImage src={p.avatar_url} alt={p.full_name || email} />}
-            <AvatarFallback className="text-[8px] bg-muted">{initials}</AvatarFallback>
+            <AvatarFallback className="text-[9px] bg-muted/80 text-muted-foreground font-semibold">{initials}</AvatarFallback>
           </Avatar>
         );
       })}
       {extra > 0 && (
-        <Avatar className="h-5 w-5 border border-background">
-          <AvatarFallback className="text-[8px] bg-muted">+{extra}</AvatarFallback>
+        <Avatar className="h-6 w-6 border-[1.5px] border-background ring-1 ring-white/10 shadow-md">
+          <AvatarFallback className="text-[9px] bg-muted/80 text-muted-foreground font-semibold">+{extra}</AvatarFallback>
         </Avatar>
       )}
     </div>
@@ -108,22 +107,26 @@ const TaskItem = ({
     .filter((e): e is string => !!e);
 
   return (
-    <div className="group flex items-center gap-2 py-2 px-1 rounded-lg transition-colors hover:bg-muted/30">
+    <div className="group relative flex items-center gap-3 py-2 px-3 -mx-1 rounded-xl transition-all duration-300 hover:bg-white/[0.03] dark:hover:bg-white/[0.02] border border-transparent hover:border-white/5 overflow-hidden">
+      {/* Active indication line on hover */}
+      <div className="absolute left-0 top-1/2 -translate-y-1/2 h-[60%] w-[3px] bg-transparent group-hover:bg-primary/50 transition-colors rounded-r-full" />
+
       <button
         onClick={() => onComplete(task.id, task.title)}
-        className="flex-shrink-0 text-muted-foreground hover:text-emerald-400 transition-colors"
-        aria-label="Complete task"
+        className="relative flex-shrink-0 h-4 w-4 rounded-full border-[1.5px] border-muted-foreground/30 group-hover:border-emerald-500/50 flex items-center justify-center transition-all duration-300 group/btn"
+        aria-label={"Complete task"}
       >
-        <CheckCircle2 className="h-4 w-4" />
+        <div className="absolute inset-0 rounded-full bg-emerald-500 scale-0 group-hover/btn:scale-100 transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
+        <CheckCircle2 className="h-3 w-3 text-white opacity-0 group-hover/btn:opacity-100 scale-50 group-hover/btn:scale-100 transition-all duration-300 relative z-10" />
       </button>
 
-      <span className="flex-1 text-sm truncate">{task.title}</span>
+      <span className="flex-1 text-[13px] tracking-tight truncate font-medium text-foreground/80 group-hover:text-foreground transition-colors">{task.title}</span>
 
       <AssigneeStack emails={assigneeEmails} />
       <PriorityBadge priority={task.priority} />
 
       {dueLabel && (
-        <span className={cn("text-[11px] font-medium whitespace-nowrap tabular-nums", dueLabel.className)}>
+        <span className={cn("text-[10px] font-semibold tracking-wider whitespace-nowrap tabular-nums uppercase", dueLabel.className)}>
           {dueLabel.text}
         </span>
       )}
@@ -158,7 +161,7 @@ export const AdminTasksWidget = () => {
       let query = supabase
         .from("unified_tasks")
         .select("id, title, status, priority, due_date, is_overdue")
-        .not("status", "in", '("completed","cancelled")')
+        .not("status", "in", "(completed,cancelled)")
         .order("is_overdue", { ascending: false, nullsFirst: false })
         .order("due_date", { ascending: true, nullsFirst: false })
         .limit(20);
@@ -196,7 +199,7 @@ export const AdminTasksWidget = () => {
           .select("id, email")
           .in("id", assigneeUserIds);
         if (profiles) {
-          emailMap = new Map(profiles.map((p) => [p.id, p.email]));
+          emailMap = new Map(profiles.map((p) => [p.id, p.email || ""]));
         }
       }
 
@@ -239,7 +242,7 @@ export const AdminTasksWidget = () => {
   return (
     <>
       <DashboardWidget
-        title="Action Items"
+        title={"Action Items"}
         icon={Target}
         iconClassName="text-primary"
         isLoading={isLoading}

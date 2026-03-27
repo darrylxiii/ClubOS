@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,6 +22,7 @@ interface SmartAlert {
 }
 
 export function SmartAlertsPanel({ companyId }: { companyId: string }) {
+  const { t } = useTranslation('common');
   const queryClient = useQueryClient();
 
   const { data: alerts, isLoading } = useQuery({
@@ -120,8 +122,8 @@ export function SmartAlertsPanel({ companyId }: { companyId: string }) {
               <Sparkles className="h-5 w-5 text-emerald-500" />
             </div>
             <div>
-              <p className="font-medium text-emerald-600 dark:text-emerald-400">All Clear</p>
-              <p className="text-sm text-muted-foreground">No urgent actions required. Your hiring is on track.</p>
+              <p className="font-medium text-emerald-600 dark:text-emerald-400">{t("all_clear", "All Clear")}</p>
+              <p className="text-sm text-muted-foreground">{t("no_urgent_actions_required", "No urgent actions required. Your hiring is on track.")}</p>
             </div>
           </div>
         ) : (

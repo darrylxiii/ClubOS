@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { motion } from '@/lib/motion';
 import { Search, Filter, TrendingUp, TrendingDown, AlertTriangle, CheckCircle, Users, Clock, MessageSquare, Mail, Phone, Calendar, MoreHorizontal } from 'lucide-react';
@@ -50,6 +51,7 @@ export function PartnerRelationshipGrid({
   onScheduleMeeting,
   onViewProfile
 }: PartnerRelationshipGridProps) {
+  const { t } = useTranslation('common');
   const [search, setSearch] = useState('');
   const [riskFilter, setRiskFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('risk');
@@ -84,7 +86,7 @@ export function PartnerRelationshipGrid({
         <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search candidates..."
+            placeholder={t("search_candidates", "Search candidates...")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-9"
@@ -93,24 +95,24 @@ export function PartnerRelationshipGrid({
         <Select value={riskFilter} onValueChange={setRiskFilter}>
           <SelectTrigger className="w-[150px]">
             <Filter className="h-4 w-4 mr-2" />
-            <SelectValue placeholder="Risk Level" />
+            <SelectValue placeholder={t("risk_level", "Risk Level")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Levels</SelectItem>
-            <SelectItem value="critical">Critical</SelectItem>
-            <SelectItem value="high">High Risk</SelectItem>
-            <SelectItem value="medium">Medium</SelectItem>
-            <SelectItem value="low">Healthy</SelectItem>
+            <SelectItem value="all">{t("all_levels", "All Levels")}</SelectItem>
+            <SelectItem value="critical">{t("critical", "Critical")}</SelectItem>
+            <SelectItem value="high">{t("high_risk", "High Risk")}</SelectItem>
+            <SelectItem value="medium">{t("medium", "Medium")}</SelectItem>
+            <SelectItem value="low">{t("healthy", "Healthy")}</SelectItem>
           </SelectContent>
         </Select>
         <Select value={sortBy} onValueChange={setSortBy}>
           <SelectTrigger className="w-[150px]">
-            <SelectValue placeholder="Sort by" />
+            <SelectValue placeholder={t("sort_by", "Sort by")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="risk">Risk Level</SelectItem>
-            <SelectItem value="engagement">Engagement</SelectItem>
-            <SelectItem value="recent">Last Contact</SelectItem>
+            <SelectItem value="risk">{t("risk_level", "Risk Level")}</SelectItem>
+            <SelectItem value="engagement">{t("engagement", "Engagement")}</SelectItem>
+            <SelectItem value="recent">{t("last_contact", "Last Contact")}</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -163,7 +165,7 @@ export function PartnerRelationshipGrid({
                   {/* Engagement Bar */}
                   <div>
                     <div className="flex justify-between text-xs mb-1">
-                      <span className="text-muted-foreground">Engagement</span>
+                      <span className="text-muted-foreground">{t("engagement", "Engagement")}</span>
                       <span className="font-medium">{(relationship.engagement_score || 0).toFixed(1)}/10</span>
                     </div>
                     <Progress value={engagementPercent} className="h-1.5" />
@@ -173,11 +175,11 @@ export function PartnerRelationshipGrid({
                   <div className="grid grid-cols-3 gap-2 text-center">
                     <div className="p-2 rounded bg-muted/50">
                       <p className="text-sm font-bold">{Math.round((relationship.response_rate || 0) * 100)}%</p>
-                      <p className="text-[10px] text-muted-foreground">Response</p>
+                      <p className="text-[10px] text-muted-foreground">{t("response", "Response")}</p>
                     </div>
                     <div className="p-2 rounded bg-muted/50">
                       <p className="text-sm font-bold">{relationship.total_communications || 0}</p>
-                      <p className="text-[10px] text-muted-foreground">Messages</p>
+                      <p className="text-[10px] text-muted-foreground">{t("messages", "Messages")}</p>
                     </div>
                     <div className="p-2 rounded bg-muted/50">
                       <div className="flex justify-center">
@@ -189,7 +191,7 @@ export function PartnerRelationshipGrid({
                           <span className="text-sm font-bold">—</span>
                         )}
                       </div>
-                      <p className="text-[10px] text-muted-foreground">Sentiment</p>
+                      <p className="text-[10px] text-muted-foreground">{t("sentiment", "Sentiment")}</p>
                     </div>
                   </div>
 
@@ -265,8 +267,8 @@ export function PartnerRelationshipGrid({
       {filtered.length === 0 && (
         <div className="text-center py-12">
           <Users className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
-          <p className="text-muted-foreground">No candidates found</p>
-          <p className="text-sm text-muted-foreground/70">Try adjusting your filters</p>
+          <p className="text-muted-foreground">{t("no_candidates_found", "No candidates found")}</p>
+          <p className="text-sm text-muted-foreground/70">{t("try_adjusting_your_filters", "Try adjusting your filters")}</p>
         </div>
       )}
     </div>

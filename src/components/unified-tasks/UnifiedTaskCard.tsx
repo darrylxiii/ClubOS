@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useDraggable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -16,6 +17,7 @@ interface UnifiedTaskCardProps {
 }
 
 export const UnifiedTaskCard = ({ task, onClick, isFocused, taskIndex }: UnifiedTaskCardProps) => {
+    const { t } = useTranslation('common');
     const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
         id: task.id,
         data: task,
@@ -65,7 +67,7 @@ export const UnifiedTaskCard = ({ task, onClick, isFocused, taskIndex }: Unified
 
                     <div className="flex items-center gap-1">
                         {task.task_type === 'meeting' && (
-                            <div className="p-1 rounded-md bg-purple-500/10 text-purple-500 dark:text-purple-400" title="Meeting">
+                            <div className="p-1 rounded-md bg-purple-500/10 text-purple-500 dark:text-purple-400" title={t('tasks.meeting', 'Meeting')}>
                                 <UsersIcon className="h-3 w-3" />
                             </div>
                         )}

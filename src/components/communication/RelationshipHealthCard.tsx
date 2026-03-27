@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { format, formatDistanceToNow } from 'date-fns';
 import { motion } from '@/lib/motion';
 import { TrendingUp, TrendingDown, Clock, MessageSquare, AlertTriangle, CheckCircle, XCircle, Phone, Mail, User, Building2, Users } from 'lucide-react';
@@ -40,6 +41,7 @@ export function RelationshipHealthCard({
   onSendMessage,
   onGenerateInsights
 }: RelationshipHealthCardProps) {
+  const { t } = useTranslation('common');
   const risk = riskConfig[relationship.risk_level as keyof typeof riskConfig] || riskConfig.medium;
   const RiskIcon = risk.icon;
   const EntityIcon = entityIcons[relationship.entity_type as keyof typeof entityIcons] || User;
@@ -100,7 +102,7 @@ export function RelationshipHealthCard({
           {/* Engagement Score */}
           <div>
             <div className="flex items-center justify-between text-sm mb-1">
-              <span className="text-muted-foreground">Engagement</span>
+              <span className="text-muted-foreground">{t("engagement", "Engagement")}</span>
               <span className="font-medium">{relationship.engagement_score?.toFixed(1) || '0'}/10</span>
             </div>
             <Progress value={engagementPercent} className="h-2" />
@@ -110,11 +112,11 @@ export function RelationshipHealthCard({
           <div className="grid grid-cols-3 gap-3 text-center">
             <div className="p-2 rounded-lg bg-muted/50">
               <p className="text-lg font-bold">{responseRate}%</p>
-              <p className="text-xs text-muted-foreground">Response Rate</p>
+              <p className="text-xs text-muted-foreground">{t("response_rate", "Response Rate")}</p>
             </div>
             <div className="p-2 rounded-lg bg-muted/50">
               <p className="text-lg font-bold">{relationship.total_communications || 0}</p>
-              <p className="text-xs text-muted-foreground">Messages</p>
+              <p className="text-xs text-muted-foreground">{t("messages", "Messages")}</p>
             </div>
             <div className="p-2 rounded-lg bg-muted/50">
               <div className="flex items-center justify-center">
@@ -126,7 +128,7 @@ export function RelationshipHealthCard({
                   <span className="text-lg font-bold">—</span>
                 )}
               </div>
-              <p className="text-xs text-muted-foreground">Sentiment</p>
+              <p className="text-xs text-muted-foreground">{t("sentiment", "Sentiment")}</p>
             </div>
           </div>
 
@@ -134,7 +136,7 @@ export function RelationshipHealthCard({
           <div className="flex items-center justify-between text-sm">
             <div className="flex items-center gap-1 text-muted-foreground">
               <Clock className="h-4 w-4" />
-              <span>Last contact</span>
+              <span>{t("last_contact", "Last contact")}</span>
             </div>
             <span className={cn(
               "font-medium",
@@ -150,7 +152,7 @@ export function RelationshipHealthCard({
           {/* Preferred Channel */}
           {relationship.preferred_channel && (
             <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Preferred channel</span>
+              <span className="text-muted-foreground">{t("preferred_channel", "Preferred channel")}</span>
               <Badge variant="secondary" className="capitalize">
                 {relationship.preferred_channel}
               </Badge>
@@ -160,7 +162,7 @@ export function RelationshipHealthCard({
           {/* Recommended Action */}
           {relationship.recommended_action && (
             <div className="p-3 rounded-lg bg-primary/5 border border-primary/20">
-              <p className="text-xs font-medium text-primary mb-1">Recommended Action</p>
+              <p className="text-xs font-medium text-primary mb-1">{t("recommended_action", "Recommended Action")}</p>
               <p className="text-sm">{relationship.recommended_action}</p>
             </div>
           )}

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { 
@@ -49,6 +50,7 @@ export function WhatsAppTemplateSelector({
   onSync,
   onSelect
 }: WhatsAppTemplateSelectorProps) {
+  const { t } = useTranslation('common');
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState<TemplateCategory>('all');
   const [selectedTemplate, setSelectedTemplate] = useState<WhatsAppTemplate | null>(null);
@@ -217,7 +219,7 @@ export function WhatsAppTemplateSelector({
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search templates..."
+                  placeholder={t("search_templates", "Search templates...")}
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   className="pl-10"
@@ -226,10 +228,10 @@ export function WhatsAppTemplateSelector({
               
               <Tabs value={category} onValueChange={(v) => setCategory(v as TemplateCategory)}>
                 <TabsList className="w-full">
-                  <TabsTrigger value="all" className="flex-1">All</TabsTrigger>
-                  <TabsTrigger value="MARKETING" className="flex-1">Marketing</TabsTrigger>
-                  <TabsTrigger value="UTILITY" className="flex-1">Utility</TabsTrigger>
-                  <TabsTrigger value="AUTHENTICATION" className="flex-1">Auth</TabsTrigger>
+                  <TabsTrigger value="all" className="flex-1">{t("all", "All")}</TabsTrigger>
+                  <TabsTrigger value="MARKETING" className="flex-1">{t("marketing", "Marketing")}</TabsTrigger>
+                  <TabsTrigger value="UTILITY" className="flex-1">{t("utility", "Utility")}</TabsTrigger>
+                  <TabsTrigger value="AUTHENTICATION" className="flex-1">{t("auth", "Auth")}</TabsTrigger>
                 </TabsList>
               </Tabs>
             </div>
@@ -245,7 +247,7 @@ export function WhatsAppTemplateSelector({
                       className="text-center py-12 text-muted-foreground"
                     >
                       <FileText className="w-12 h-12 mx-auto mb-3 opacity-30" />
-                      <p>No templates found</p>
+                      <p>{t("no_templates_found", "No templates found")}</p>
                     </motion.div>
                   ) : (
                     filteredTemplates.map((template, index) => (
@@ -325,7 +327,7 @@ export function WhatsAppTemplateSelector({
               {/* Variable Inputs */}
               {variables.length > 0 && (
                 <div className="space-y-4">
-                  <h4 className="font-semibold">Fill in Variables</h4>
+                  <h4 className="font-semibold">{t("fill_in_variables", "Fill in Variables")}</h4>
                   {variables.map((variable) => (
                     <div key={variable} className="space-y-2">
                       <Label htmlFor={`var-${variable}`}>
@@ -347,7 +349,7 @@ export function WhatsAppTemplateSelector({
 
               {/* Live Preview */}
               <div>
-                <h4 className="font-semibold mb-3">Preview</h4>
+                <h4 className="font-semibold mb-3">{t("preview", "Preview")}</h4>
                 <div className="p-4 rounded-xl bg-[#005c4b] text-white">
                   <p className="text-sm whitespace-pre-wrap">
                     {getPreviewWithParams(selectedTemplate)}

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { AccountLinking } from '@/components/AccountLinking';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -8,12 +9,13 @@ interface ConnectionsTabProps {
 }
 
 export function ConnectionsTab({ userId }: ConnectionsTabProps) {
+  const { t } = useTranslation('common');
   if (!userId) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Connections</CardTitle>
-          <CardDescription>Please log in to manage your connections</CardDescription>
+          <CardTitle>{t("connections", "Connections")}</CardTitle>
+          <CardDescription>{t("please_log_in_to", "Please log in to manage your connections")}</CardDescription>
         </CardHeader>
       </Card>
     );
@@ -30,8 +32,8 @@ export function ConnectionsTab({ userId }: ConnectionsTabProps) {
 
       <Card>
         <CardHeader>
-          <CardTitle>Account Linking</CardTitle>
-          <CardDescription>Link multiple authentication methods to your account</CardDescription>
+          <CardTitle>{t("account_linking", "Account Linking")}</CardTitle>
+          <CardDescription>{t("link_multiple_authentication_methods", "Link multiple authentication methods to your account")}</CardDescription>
         </CardHeader>
         <CardContent>
           <AccountLinking />

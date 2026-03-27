@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from '@/lib/motion';
 import {
@@ -35,6 +36,7 @@ import { TierBadge, MoveProbabilityBadge } from '@/components/talent-pool';
 import { formatDistanceToNow } from 'date-fns';
 
 export default function TalentPoolListDetail() {
+  const { t } = useTranslation('candidates');
   const { listId } = useParams<{ listId: string }>();
   const navigate = useNavigate();
   const { list, members, isLoading, removeMember } = useTalentPoolListDetail(listId);
@@ -77,7 +79,7 @@ export default function TalentPoolListDetail() {
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <FolderOpen className="w-12 h-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-medium">List not found</h3>
+            <h3 className="text-lg font-medium">{t('talentPoolListDetail.text1')}</h3>
             <Button variant="outline" className="mt-4" onClick={() => navigate('/admin/talent-pool/lists')}>
               Back to Lists
             </Button>
@@ -105,7 +107,7 @@ export default function TalentPoolListDetail() {
             </div>
             <h1 className="text-2xl font-bold">{list.name}</h1>
             {list.list_type === 'smart' && (
-              <Badge variant="secondary">Smart List</Badge>
+              <Badge variant="secondary">{t('talentPoolListDetail.text2')}</Badge>
             )}
           </div>
           {list.description && (
@@ -134,7 +136,7 @@ export default function TalentPoolListDetail() {
         <Card className="border-dashed">
           <CardContent className="flex flex-col items-center justify-center py-12">
             <Users className="w-12 h-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-medium mb-2">No candidates yet</h3>
+            <h3 className="text-lg font-medium mb-2">{t('talentPoolListDetail.text3')}</h3>
             <p className="text-muted-foreground text-center mb-4">
               {list.list_type === 'smart'
                 ? 'No candidates match the smart list criteria'
@@ -161,11 +163,11 @@ export default function TalentPoolListDetail() {
                     className="rounded border-input"
                   />
                 </TableHead>
-                <TableHead>Candidate</TableHead>
-                <TableHead>Company</TableHead>
-                <TableHead>Tier</TableHead>
-                <TableHead>Move Probability</TableHead>
-                <TableHead>Added</TableHead>
+                <TableHead>{t('talentPoolListDetail.text4')}</TableHead>
+                <TableHead>{t('talentPoolListDetail.text5')}</TableHead>
+                <TableHead>{t('talentPoolListDetail.text6')}</TableHead>
+                <TableHead>{t('talentPoolListDetail.text7')}</TableHead>
+                <TableHead>{t('talentPoolListDetail.text8')}</TableHead>
                 <TableHead className="w-12"></TableHead>
               </TableRow>
             </TableHeader>

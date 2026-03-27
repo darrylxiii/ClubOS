@@ -1,6 +1,7 @@
 import { createReactBlockSpec } from '@blocknote/react';
 import { ChevronRight } from 'lucide-react';
 import { useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 
 export const ToggleBlock = createReactBlockSpec(
@@ -18,6 +19,7 @@ export const ToggleBlock = createReactBlockSpec(
       const [isOpen, setIsOpen] = useState(props.block.props.isOpen);
 
       const handleToggle = useCallback((e: React.MouseEvent) => {
+  const { t } = useTranslation('common');
         e.stopPropagation();
         const newState = !isOpen;
         setIsOpen(newState);
@@ -52,7 +54,7 @@ export const ToggleBlock = createReactBlockSpec(
                 contentEditable={false}
               >
                 <span className="opacity-60 italic">
-                  Click to add nested content (use blocks below)
+                  {t('workspace.clickToAddNestedContent', 'Click to add nested content (use blocks below)')}
                 </span>
               </div>
             </div>

@@ -14,9 +14,9 @@ serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const lovableApiKey = Deno.env.get("LOVABLE_API_KEY");
+    const googleApiKey = Deno.env.get("GOOGLE_API_KEY");
 
-    if (!lovableApiKey) {
+    if (!googleApiKey) {
       return new Response(
         JSON.stringify({ error: "AI service not configured" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -81,7 +81,7 @@ serve(async (req) => {
       );
     }
 
-    // Generate sourcing strategy via Lovable AI
+    // Generate sourcing strategy via Google Gemini
     const prompt = `You are an elite headhunter at a top-tier recruitment agency. Generate a comprehensive sourcing strategy for this role.
 
 Job Title: ${job.title}
@@ -92,14 +92,14 @@ Salary Range: ${job.salary_min && job.salary_max ? `${job.salary_currency || "EU
 
 Return your response using the suggest_sourcing_strategy function.`;
 
-    const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const aiResp = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${lovableApiKey}`,
+        Authorization: `Bearer ${googleApiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model: "gemini-3-flash-preview",
         messages: [
           { role: "system", content: "You are an expert technical recruiter specializing in Boolean search and multi-platform talent sourcing. Always respond using the provided tool." },
           { role: "user", content: prompt },
@@ -179,7 +179,7 @@ Return your response using the suggest_sourcing_strategy function.`;
       }
       if (aiResp.status === 402) {
         return new Response(
-          JSON.stringify({ error: "AI credits exhausted. Please add funds." }),
+          JSON.stringify({ error: "AI quota exceeded. Please add funds." }),
           { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }

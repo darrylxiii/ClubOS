@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Button } from '@/components/ui/button';
@@ -19,6 +20,7 @@ export function AudioCallInterface({
   invitationId,
   onCancel
 }: AudioCallInterfaceProps) {
+  const { t } = useTranslation('common');
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
   const [audioEnabled, setAudioEnabled] = useState(true);
   const [permissionDenied, setPermissionDenied] = useState(false);
@@ -47,17 +49,17 @@ export function AudioCallInterface({
       });
 
       setLocalStream(stream);
-      toast.success('Microphone access granted');
+      toast.success(t("microphone_access_granted", "Microphone access granted"));
     } catch (error: unknown) {
       console.error('Error accessing microphone:', error);
       setPermissionDenied(true);
       const err = error as { name?: string };
       if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-        toast.error('Microphone access denied. Please allow permissions in your browser.');
+        toast.error(t("microphone_access_denied_please", "Microphone access denied. Please allow permissions in your browser."));
       } else if (err.name === 'NotFoundError') {
-        toast.error('No microphone found on your device.');
+        toast.error(t("no_microphone_found_on", "No microphone found on your device."));
       } else {
-        toast.error('Failed to access microphone. Please check your device.');
+        toast.error(t("failed_to_access_microphone", "Failed to access microphone. Please check your device."));
       }
     }
   };
@@ -102,7 +104,7 @@ export function AudioCallInterface({
           <MicOff className="h-10 w-10 text-destructive" />
         </div>
         <div>
-          <h3 className="text-xl font-bold mb-2">Microphone Access Required</h3>
+          <h3 className="text-xl font-bold mb-2">{t("microphone_access_required", "Microphone Access Required")}</h3>
           <p className="text-muted-foreground mb-4">
             Please enable microphone permissions in your browser to start a voice call.
           </p>

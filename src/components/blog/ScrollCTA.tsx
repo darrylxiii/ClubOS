@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, X } from 'lucide-react';
@@ -33,6 +34,7 @@ const defaultCTA = {
 };
 
 const ScrollCTA: React.FC = () => {
+  const { t } = useTranslation('common');
   const [visible, setVisible] = useState(false);
   const [dismissed, setDismissed] = useState(false);
   const { category } = useParams<{ category?: string }>();
@@ -77,7 +79,7 @@ const ScrollCTA: React.FC = () => {
               <button
                 onClick={() => setDismissed(true)}
                 className="p-1 text-muted-foreground hover:text-foreground transition-colors ml-2"
-                aria-label="Dismiss"
+                aria-label={t('blog.dismiss')}
               >
                 <X className="h-4 w-4" />
               </button>

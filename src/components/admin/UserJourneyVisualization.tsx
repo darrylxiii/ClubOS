@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
@@ -12,6 +13,7 @@ interface JourneyStep {
 }
 
 export function UserJourneyVisualization() {
+  const { t } = useTranslation('common');
   const [journeys, setJourneys] = useState<JourneyStep[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -65,13 +67,13 @@ export function UserJourneyVisualization() {
   };
 
   if (loading) {
-    return <div className="text-muted-foreground">Loading journey data...</div>;
+    return <div className="text-muted-foreground">{t("loading_journey_data", "Loading journey data...")}</div>;
   }
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Top User Journeys (24h)</CardTitle>
+        <CardTitle>{t("top_user_journeys_24h", "Top User Journeys (24h)")}</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">

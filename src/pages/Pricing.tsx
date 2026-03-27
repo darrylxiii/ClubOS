@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -92,6 +93,7 @@ const CANDIDATE_PLANS = [
 ];
 
 export default function Pricing() {
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
   const { user } = useAuth();
   const [userType, setUserType] = useState<"partner" | "candidate">("partner");
@@ -142,17 +144,17 @@ export default function Pricing() {
       <div className="container max-w-7xl mx-auto py-8 px-4">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
-            Choose Your Plan
+            {t('pricing.title')}
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Select the perfect plan to accelerate your recruitment or career growth
+            {t('pricing.subtitle')}
           </p>
         </div>
 
         <Tabs value={userType} onValueChange={(v) => setUserType(v as "partner" | "candidate")} className="mb-8">
           <TabsList className="grid w-full max-w-md mx-auto grid-cols-2">
-            <TabsTrigger value="partner">For Companies</TabsTrigger>
-            <TabsTrigger value="candidate">For Candidates</TabsTrigger>
+            <TabsTrigger value="partner">{t('pricing.forCompanies')}</TabsTrigger>
+            <TabsTrigger value="candidate">{t('pricing.forCandidates')}</TabsTrigger>
           </TabsList>
         </Tabs>
 
@@ -169,7 +171,7 @@ export default function Pricing() {
               {plan.popular && (
                 <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary">
                   <Sparkles className="w-3 h-3 mr-1" />
-                  Most Popular
+                  {t('pricing.mostPopular')}
                 </Badge>
               )}
 
@@ -178,7 +180,7 @@ export default function Pricing() {
                 <p className="text-sm text-muted-foreground mb-4">{plan.description}</p>
                 <div className="mb-4">
                   <span className="text-4xl font-bold">€{plan.price}</span>
-                  <span className="text-muted-foreground">/month</span>
+                  <span className="text-muted-foreground">/{t('pricing.month')}</span>
                 </div>
               </div>
 
@@ -201,11 +203,11 @@ export default function Pricing() {
                 {loadingPlan === plan.priceId ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    <span className="sr-only">Processing subscription</span>
-                    Subscribe Now
+                    <span className="sr-only">{t('pricing.processing')}</span>
+                    {t('pricing.subscribeNow')}
                   </>
                 ) : (
-                  "Subscribe Now"
+                  t('pricing.subscribeNow')
                 )}
               </Button>
             </Card>
@@ -213,11 +215,11 @@ export default function Pricing() {
         </div>
 
         <div className="mt-12 text-center text-sm text-muted-foreground">
-          <p>All plans include a 14-day free trial. Cancel anytime.</p>
+          <p>{t('pricing.trialNote')}</p>
           <p className="mt-2">
-            Need a custom plan?{" "}
+            {t('pricing.needCustomPlan')}{" "}
             <Button variant="link" className="p-0 h-auto" onClick={() => navigate("/contact")}>
-              Contact us
+              {t('pricing.contactUs')}
             </Button>
           </p>
         </div>

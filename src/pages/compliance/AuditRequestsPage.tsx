@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from 'react-i18next';
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -29,6 +30,7 @@ interface AuditRequest {
 }
 
 export default function AuditRequestsPage() {
+  const { t } = useTranslation('compliance');
   const [requests, setRequests] = useState<AuditRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -172,9 +174,9 @@ export default function AuditRequestsPage() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Audit Requests</h1>
+            <h1 className="text-3xl font-bold text-foreground">{t('auditRequests.title')}</h1>
             <p className="text-muted-foreground mt-1">
-              Manage customer audit requests and compliance documentation
+              {t('auditRequests.description')}
             </p>
           </div>
           <CreateAuditRequestDialog onSubmit={createAuditRequest} />
@@ -185,7 +187,7 @@ export default function AuditRequestsPage() {
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground">
-                Total Requests
+                {t('auditRequests.totalRequests')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -196,7 +198,7 @@ export default function AuditRequestsPage() {
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                 <Clock className="h-4 w-4 text-yellow-500" />
-                Pending
+                {t('auditRequests.pending')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -207,7 +209,7 @@ export default function AuditRequestsPage() {
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                 <FileText className="h-4 w-4 text-blue-500" />
-                In Progress
+                {t('auditRequests.inProgress')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -218,7 +220,7 @@ export default function AuditRequestsPage() {
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                 <CheckCircle2 className="h-4 w-4 text-green-500" />
-                Completed
+                {t('auditRequests.completed')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -234,7 +236,7 @@ export default function AuditRequestsPage() {
               <div className="flex-1 relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search by request number, requester, or audit type..."
+                  placeholder={t('auditRequests.searchPlaceholder')}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
@@ -242,14 +244,14 @@ export default function AuditRequestsPage() {
               </div>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger className="w-full md:w-[200px]">
-                  <SelectValue placeholder="Filter by status" />
+                  <SelectValue placeholder={t('auditRequests.filterByStatus')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Statuses</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="in_progress">In Progress</SelectItem>
-                  <SelectItem value="completed">Completed</SelectItem>
-                  <SelectItem value="rejected">Rejected</SelectItem>
+                  <SelectItem value="all">{t('auditRequests.allStatuses')}</SelectItem>
+                  <SelectItem value="pending">{t('auditRequests.pending')}</SelectItem>
+                  <SelectItem value="in_progress">{t('auditRequests.inProgress')}</SelectItem>
+                  <SelectItem value="completed">{t('auditRequests.completed')}</SelectItem>
+                  <SelectItem value="rejected">{t('auditRequests.rejected')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -261,13 +263,13 @@ export default function AuditRequestsPage() {
           {loading ? (
             <Card>
               <CardContent className="py-12 text-center text-muted-foreground">
-                Loading audit requests...
+                {t('auditRequests.loading')}
               </CardContent>
             </Card>
           ) : filteredRequests.length === 0 ? (
             <Card>
               <CardContent className="py-12 text-center text-muted-foreground">
-                No audit requests found
+                {t('auditRequests.noResults')}
               </CardContent>
             </Card>
           ) : (
@@ -293,14 +295,14 @@ export default function AuditRequestsPage() {
                             variant="outline"
                             onClick={() => updateRequestStatus(request.id, "in_progress")}
                           >
-                            Start Review
+                            {t('auditRequests.startReview')}
                           </Button>
                           <Button
                             size="sm"
                             variant="outline"
                             onClick={() => updateRequestStatus(request.id, "rejected")}
                           >
-                            Reject
+                            {t('auditRequests.reject')}
                           </Button>
                         </>
                       )}
@@ -309,7 +311,7 @@ export default function AuditRequestsPage() {
                           size="sm"
                           onClick={() => updateRequestStatus(request.id, "completed")}
                         >
-                          Mark Complete
+                          {t('auditRequests.markComplete')}
                         </Button>
                       )}
                     </div>
@@ -318,13 +320,13 @@ export default function AuditRequestsPage() {
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                     <div>
-                      <p className="text-muted-foreground">Requester</p>
+                      <p className="text-muted-foreground">{t('auditRequests.requester')}</p>
                       <p className="font-medium text-foreground">
                         {request.requester_name} ({request.requester_email})
                       </p>
                     </div>
                     <div>
-                      <p className="text-muted-foreground">Due Date</p>
+                      <p className="text-muted-foreground">{t('auditRequests.dueDate')}</p>
                       <p className="font-medium text-foreground">
                         {request.due_date
                           ? new Date(request.due_date).toLocaleDateString()
@@ -332,12 +334,12 @@ export default function AuditRequestsPage() {
                       </p>
                     </div>
                     <div className="md:col-span-2">
-                      <p className="text-muted-foreground">Purpose</p>
+                      <p className="text-muted-foreground">{t('auditRequests.purpose')}</p>
                       <p className="font-medium text-foreground">{request.audit_purpose}</p>
                     </div>
                     {request.requested_documents && request.requested_documents.length > 0 && (
                       <div className="md:col-span-2">
-                        <p className="text-muted-foreground mb-2">Requested Documents</p>
+                        <p className="text-muted-foreground mb-2">{t('auditRequests.requestedDocuments')}</p>
                         <div className="flex flex-wrap gap-2">
                           {request.requested_documents.map((doc, idx) => (
                             <Badge key={idx} variant="outline">
@@ -391,77 +393,77 @@ function CreateAuditRequestDialog({ onSubmit }: { onSubmit: (data: any) => void 
       <DialogTrigger asChild>
         <Button>
           <Plus className="h-4 w-4 mr-2" />
-          New Request
+          {t('auditRequests.newRequest')}
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Create Audit Request</DialogTitle>
+          <DialogTitle>{t('auditRequests.createRequest')}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="audit_type">Audit Type</Label>
+              <Label htmlFor="audit_type">{t('auditRequests.auditType')}</Label>
               <Select
                 value={formData.audit_type}
                 onValueChange={(value) => setFormData({ ...formData, audit_type: value })}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select type" />
+                  <SelectValue placeholder={t('auditRequests.selectType')} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="SOC 2">SOC 2</SelectItem>
                   <SelectItem value="ISO 27001">ISO 27001</SelectItem>
                   <SelectItem value="GDPR">GDPR</SelectItem>
                   <SelectItem value="HIPAA">HIPAA</SelectItem>
-                  <SelectItem value="Internal">Internal</SelectItem>
+                  <SelectItem value="Internal">{t('auditRequests.internal')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="priority">Priority</Label>
+              <Label htmlFor="priority">{t('auditRequests.priority')}</Label>
               <Select
                 value={formData.priority}
                 onValueChange={(value) => setFormData({ ...formData, priority: value })}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select priority" />
+                  <SelectValue placeholder={t('auditRequests.selectPriority')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="low">Low</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="high">High</SelectItem>
-                  <SelectItem value="urgent">Urgent</SelectItem>
+                  <SelectItem value="low">{t('auditRequests.low')}</SelectItem>
+                  <SelectItem value="medium">{t('auditRequests.medium')}</SelectItem>
+                  <SelectItem value="high">{t('auditRequests.high')}</SelectItem>
+                  <SelectItem value="urgent">{t('auditRequests.urgent')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="audit_scope">Audit Scope</Label>
+            <Label htmlFor="audit_scope">{t('auditRequests.auditScope')}</Label>
             <Input
               id="audit_scope"
               value={formData.audit_scope}
               onChange={(e) => setFormData({ ...formData, audit_scope: e.target.value })}
-              placeholder="e.g., Security controls, Data processing"
+              placeholder={t('auditRequests.scopePlaceholder')}
               required
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="audit_purpose">Audit Purpose</Label>
+            <Label htmlFor="audit_purpose">{t('auditRequests.auditPurpose')}</Label>
             <Textarea
               id="audit_purpose"
               value={formData.audit_purpose}
               onChange={(e) => setFormData({ ...formData, audit_purpose: e.target.value })}
-              placeholder="Describe the purpose of this audit..."
+              placeholder={t('auditRequests.purposePlaceholder')}
               required
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="requester_name">Requester Name</Label>
+              <Label htmlFor="requester_name">{t('auditRequests.requesterName')}</Label>
               <Input
                 id="requester_name"
                 value={formData.requester_name}
@@ -470,7 +472,7 @@ function CreateAuditRequestDialog({ onSubmit }: { onSubmit: (data: any) => void 
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="requester_email">Requester Email</Label>
+              <Label htmlFor="requester_email">{t('auditRequests.requesterEmail')}</Label>
               <Input
                 id="requester_email"
                 type="email"
@@ -482,7 +484,7 @@ function CreateAuditRequestDialog({ onSubmit }: { onSubmit: (data: any) => void 
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="due_date">Due Date</Label>
+            <Label htmlFor="due_date">{t('auditRequests.dueDate')}</Label>
             <Input
               id="due_date"
               type="date"
@@ -492,20 +494,20 @@ function CreateAuditRequestDialog({ onSubmit }: { onSubmit: (data: any) => void 
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="requested_documents">Requested Documents (comma-separated)</Label>
+            <Label htmlFor="requested_documents">{t('auditRequests.requestedDocsLabel')}</Label>
             <Textarea
               id="requested_documents"
               value={formData.requested_documents}
               onChange={(e) => setFormData({ ...formData, requested_documents: e.target.value })}
-              placeholder="e.g., Security policies, Incident response plan, Access logs"
+              placeholder={t('auditRequests.docsPlaceholder')}
             />
           </div>
 
           <div className="flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
-              Cancel
+              {t('auditRequests.cancel')}
             </Button>
-            <Button type="submit">Create Request</Button>
+            <Button type="submit">{t('auditRequests.createRequest')}</Button>
           </div>
         </form>
       </DialogContent>

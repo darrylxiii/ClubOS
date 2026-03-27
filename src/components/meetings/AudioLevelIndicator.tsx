@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { cn } from '@/lib/utils';
 import { Mic, MicOff, AlertTriangle } from 'lucide-react';
@@ -21,6 +22,7 @@ export function AudioLevelIndicator({
   size = 'md',
   variant = 'bar'
 }: AudioLevelIndicatorProps) {
+  const { t } = useTranslation('common');
   const [audioLevel, setAudioLevel] = useState(0);
   const [isSilent, setIsSilent] = useState(false);
   const [silenceDuration, setSilenceDuration] = useState(0);
@@ -170,7 +172,7 @@ export function AudioLevelIndicator({
             </div>
           </TooltipTrigger>
           <TooltipContent>
-            <p>Microphone is muted</p>
+            <p>{t("microphone_is_muted", "Microphone is muted")}</p>
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
@@ -268,13 +270,13 @@ export function AudioLevelIndicator({
         <TooltipContent side="bottom">
           {isSilent ? (
             <div className="text-center">
-              <p className="font-medium text-destructive">No audio detected</p>
+              <p className="font-medium text-destructive">{t("no_audio_detected", "No audio detected")}</p>
               <p className="text-xs text-muted-foreground">
                 Check your microphone settings or speak louder
               </p>
             </div>
           ) : (
-            <p>Microphone is working</p>
+            <p>{t("microphone_is_working", "Microphone is working")}</p>
           )}
         </TooltipContent>
       </Tooltip>

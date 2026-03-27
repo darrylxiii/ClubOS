@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -32,6 +33,7 @@ interface BillingDetailsFormProps {
 }
 
 export function BillingDetailsForm({ companyId }: BillingDetailsFormProps) {
+  const { t } = useTranslation('common');
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
 
@@ -125,7 +127,7 @@ export function BillingDetailsForm({ companyId }: BillingDetailsFormProps) {
             name="legal_company_name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Legal Company Name *</FormLabel>
+                <FormLabel>{t("legal_company_name", "Legal Company Name *")}</FormLabel>
                 <FormControl>
                   <Input {...field} />
                 </FormControl>
@@ -139,7 +141,7 @@ export function BillingDetailsForm({ companyId }: BillingDetailsFormProps) {
             name="vat_number"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>VAT Number</FormLabel>
+                <FormLabel>{t("vat_number", "VAT Number")}</FormLabel>
                 <FormControl>
                   <Input {...field} />
                 </FormControl>
@@ -153,7 +155,7 @@ export function BillingDetailsForm({ companyId }: BillingDetailsFormProps) {
             name="billing_email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Billing Email *</FormLabel>
+                <FormLabel>{t("billing_email", "Billing Email *")}</FormLabel>
                 <FormControl>
                   <Input type="email" {...field} />
                 </FormControl>
@@ -167,7 +169,7 @@ export function BillingDetailsForm({ companyId }: BillingDetailsFormProps) {
             name="payment_method"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Payment Method</FormLabel>
+                <FormLabel>{t("payment_method", "Payment Method")}</FormLabel>
                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
                     <SelectTrigger>
@@ -175,9 +177,9 @@ export function BillingDetailsForm({ companyId }: BillingDetailsFormProps) {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="invoice">Invoice (Bank Transfer)</SelectItem>
-                    <SelectItem value="stripe">Credit Card (Stripe)</SelectItem>
-                    <SelectItem value="bank_transfer">Direct Bank Transfer</SelectItem>
+                    <SelectItem value="invoice">{t("invoice_bank_transfer", "Invoice (Bank Transfer)")}</SelectItem>
+                    <SelectItem value="stripe">{t("credit_card_stripe", "Credit Card (Stripe)")}</SelectItem>
+                    <SelectItem value="bank_transfer">{t("direct_bank_transfer", "Direct Bank Transfer")}</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -187,14 +189,14 @@ export function BillingDetailsForm({ companyId }: BillingDetailsFormProps) {
         </div>
 
         <div className="space-y-4">
-          <h3 className="text-sm font-medium">Billing Address</h3>
+          <h3 className="text-sm font-medium">{t("billing_address", "Billing Address")}</h3>
           
           <FormField
             control={form.control}
             name="billing_address_line1"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Address Line 1 *</FormLabel>
+                <FormLabel>{t("address_line_1", "Address Line 1 *")}</FormLabel>
                 <FormControl>
                   <Input {...field} />
                 </FormControl>
@@ -208,7 +210,7 @@ export function BillingDetailsForm({ companyId }: BillingDetailsFormProps) {
             name="billing_address_line2"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Address Line 2</FormLabel>
+                <FormLabel>{t("address_line_2", "Address Line 2")}</FormLabel>
                 <FormControl>
                   <Input {...field} />
                 </FormControl>
@@ -223,7 +225,7 @@ export function BillingDetailsForm({ companyId }: BillingDetailsFormProps) {
               name="billing_city"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>City *</FormLabel>
+                  <FormLabel>{t("city", "City *")}</FormLabel>
                   <FormControl>
                     <Input {...field} />
                   </FormControl>
@@ -237,7 +239,7 @@ export function BillingDetailsForm({ companyId }: BillingDetailsFormProps) {
               name="billing_postal_code"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Postal Code *</FormLabel>
+                  <FormLabel>{t("postal_code", "Postal Code *")}</FormLabel>
                   <FormControl>
                     <Input {...field} />
                   </FormControl>
@@ -251,7 +253,7 @@ export function BillingDetailsForm({ companyId }: BillingDetailsFormProps) {
               name="billing_country"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Country</FormLabel>
+                  <FormLabel>{t("country", "Country")}</FormLabel>
                   <FormControl>
                     <Input {...field} />
                   </FormControl>
@@ -264,7 +266,7 @@ export function BillingDetailsForm({ companyId }: BillingDetailsFormProps) {
 
         {form.watch('payment_method') === 'bank_transfer' && (
           <div className="space-y-4">
-            <h3 className="text-sm font-medium">Bank Account Details</h3>
+            <h3 className="text-sm font-medium">{t("bank_account_details", "Bank Account Details")}</h3>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
@@ -286,7 +288,7 @@ export function BillingDetailsForm({ companyId }: BillingDetailsFormProps) {
                 name="bank_account_swift"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>SWIFT/BIC</FormLabel>
+                    <FormLabel>{t("swiftbic", "SWIFT/BIC")}</FormLabel>
                     <FormControl>
                       <Input {...field} />
                     </FormControl>

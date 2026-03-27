@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 /**
  * WhatsApp Booking Dashboard Component
  * 
@@ -26,6 +27,7 @@ import { useWhatsAppBooking } from '@/hooks/useWhatsAppBooking';
 import { cn } from '@/lib/utils';
 
 export function WhatsAppBookingDashboard() {
+  const { t } = useTranslation('common');
   const {
     sessions,
     isLoading,
@@ -60,13 +62,13 @@ export function WhatsAppBookingDashboard() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'active':
-        return <Badge variant="default" className="bg-green-500">Active</Badge>;
+        return <Badge variant="default" className="bg-green-500">{t("active", "Active")}</Badge>;
       case 'awaiting_confirmation':
-        return <Badge variant="default" className="bg-yellow-500">Confirming</Badge>;
+        return <Badge variant="default" className="bg-yellow-500">{t("confirming", "Confirming")}</Badge>;
       case 'completed':
-        return <Badge variant="secondary">Completed</Badge>;
+        return <Badge variant="secondary">{t("completed", "Completed")}</Badge>;
       case 'expired':
-        return <Badge variant="outline">Expired</Badge>;
+        return <Badge variant="outline">{t("expired", "Expired")}</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -111,7 +113,7 @@ export function WhatsAppBookingDashboard() {
               </div>
               <div>
                 <p className="text-2xl font-bold">{activeSessions.length}</p>
-                <p className="text-sm text-muted-foreground">Active Sessions</p>
+                <p className="text-sm text-muted-foreground">{t("active_sessions", "Active Sessions")}</p>
               </div>
             </div>
           </CardContent>
@@ -124,7 +126,7 @@ export function WhatsAppBookingDashboard() {
               </div>
               <div>
                 <p className="text-2xl font-bold">{completedSessions.length}</p>
-                <p className="text-sm text-muted-foreground">Bookings Made</p>
+                <p className="text-sm text-muted-foreground">{t("bookings_made", "Bookings Made")}</p>
               </div>
             </div>
           </CardContent>
@@ -137,7 +139,7 @@ export function WhatsAppBookingDashboard() {
               </div>
               <div>
                 <p className="text-2xl font-bold">{sessions.length}</p>
-                <p className="text-sm text-muted-foreground">Total Sessions</p>
+                <p className="text-sm text-muted-foreground">{t("total_sessions", "Total Sessions")}</p>
               </div>
             </div>
           </CardContent>
@@ -148,7 +150,7 @@ export function WhatsAppBookingDashboard() {
         {/* Test Console */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Test Console</CardTitle>
+            <CardTitle className="text-lg">{t("test_console", "Test Console")}</CardTitle>
             <CardDescription>
               Simulate WhatsApp messages for testing
             </CardDescription>
@@ -156,7 +158,7 @@ export function WhatsAppBookingDashboard() {
           <CardContent className="space-y-4">
             <div className="flex gap-2">
               <Input
-                placeholder="Phone number"
+                placeholder={t("phone_number", "Phone number")}
                 value={testPhone}
                 onChange={(e) => setTestPhone(e.target.value)}
                 className="w-40"
@@ -194,7 +196,7 @@ export function WhatsAppBookingDashboard() {
 
             <div className="flex gap-2">
               <Input
-                placeholder="Type a message..."
+                placeholder={t("type_a_message", "Type a message...")}
                 value={testMessage}
                 onChange={(e) => setTestMessage(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSendTest()}
@@ -248,7 +250,7 @@ export function WhatsAppBookingDashboard() {
         {/* Active Sessions List */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Sessions</CardTitle>
+            <CardTitle className="text-lg">{t("sessions", "Sessions")}</CardTitle>
             <CardDescription>
               Recent WhatsApp booking sessions
             </CardDescription>

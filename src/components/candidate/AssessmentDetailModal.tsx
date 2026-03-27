@@ -24,6 +24,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { trackAssessmentInteraction } from '@/services/sessionTracking';
 import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface AssessmentResult {
   id: string;
@@ -51,6 +52,7 @@ export const AssessmentDetailModal = memo(({
   result,
   allowRetake = false
 }: AssessmentDetailModalProps) => {
+  const { t } = useTranslation('candidates');
   const navigate = useNavigate();
   const { user } = useAuth();
 

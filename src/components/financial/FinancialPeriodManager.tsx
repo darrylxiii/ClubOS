@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -36,6 +37,7 @@ const STATUS_CONFIG: Record<string, { label: string; variant: 'default' | 'secon
 };
 
 export function FinancialPeriodManager({ year }: { year: number }) {
+  const { t } = useTranslation('common');
   const queryClient = useQueryClient();
   const [confirmAction, setConfirmAction] = useState<{ periodId: string; newStatus: string; label: string } | null>(null);
 
@@ -69,7 +71,7 @@ export function FinancialPeriodManager({ year }: { year: number }) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['financial-periods', year] });
-      toast.success('Period status updated');
+      toast.success(t("period_status_updated", "Period status updated"));
     },
     onError: (err: Error) => toast.error(err.message),
   });
@@ -145,7 +147,7 @@ export function FinancialPeriodManager({ year }: { year: number }) {
                       </>
                     )}
                     {p.status === 'locked' && (
-                      <p className="text-xs text-muted-foreground italic">Permanently locked — contact engineering to unlock.</p>
+                      <p className="text-xs text-muted-foreground italic">{t("permanently_locked_contact_engineering", "Permanently locked — contact engineering to unlock.")}</p>
                     )}
                   </div>
                 </div>
@@ -171,7 +173,7 @@ export function FinancialPeriodManager({ year }: { year: number }) {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t("cancel", "Cancel")}</AlertDialogCancel>
             <AlertDialogAction onClick={confirmUpdate} className={confirmAction?.newStatus === 'locked' ? 'bg-destructive hover:bg-destructive/90' : ''}>
               {confirmAction?.label === 'reopen' ? 'Reopen' : `${confirmAction?.label} Period`}
             </AlertDialogAction>

@@ -6,12 +6,14 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Save, Palette } from "lucide-react";
+import { useTranslation } from 'react-i18next';
 
 interface CompanyBrandingProps {
   companyId: string;
 }
 
 export const CompanyBranding = ({ companyId }: CompanyBrandingProps) => {
+  const { t } = useTranslation('partner');
   const [branding, setBranding] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -40,7 +42,7 @@ export const CompanyBranding = ({ companyId }: CompanyBrandingProps) => {
       });
     } catch (error) {
       console.error('Error fetching branding:', error);
-      toast.error("Failed to load branding");
+      toast.error(t('companyBranding.toast.failedToLoadBranding'));
     } finally {
       setLoading(false);
     }
@@ -58,10 +60,10 @@ export const CompanyBranding = ({ companyId }: CompanyBrandingProps) => {
 
       if (error) throw error;
       
-      toast.success("Branding updated successfully");
+      toast.success(t('companyBranding.toast.brandingUpdatedSuccessfully'));
     } catch (error) {
       console.error('Error updating branding:', error);
-      toast.error("Failed to update branding");
+      toast.error(t('companyBranding.toast.failedToUpdateBranding'));
     } finally {
       setSaving(false);
     }
@@ -82,9 +84,7 @@ export const CompanyBranding = ({ companyId }: CompanyBrandingProps) => {
               <Palette className="w-6 h-6" />
               Company Branding
             </CardTitle>
-            <CardDescription>
-              Customize your company's visual identity
-            </CardDescription>
+            <CardDescription>{t('companyBranding.description')}</CardDescription>
           </div>
           <Button onClick={handleSave} disabled={saving}>
             <Save className="w-4 h-4 mr-2" />
@@ -94,10 +94,10 @@ export const CompanyBranding = ({ companyId }: CompanyBrandingProps) => {
       </CardHeader>
       <CardContent className="space-y-6">
         <div>
-          <h3 className="text-lg font-bold mb-4">Brand Colors</h3>
+          <h3 className="text-lg font-bold mb-4">{t('companyBranding.brandColors')}</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="space-y-2">
-              <Label htmlFor="primary_color">Primary Color</Label>
+              <Label htmlFor="primary_color">{t('companyBranding.label.primaryColor')}</Label>
               <div className="flex gap-2">
                 <Input
                   id="primary_color"
@@ -116,7 +116,7 @@ export const CompanyBranding = ({ companyId }: CompanyBrandingProps) => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="secondary_color">Secondary Color</Label>
+              <Label htmlFor="secondary_color">{t('companyBranding.label.secondaryColor')}</Label>
               <div className="flex gap-2">
                 <Input
                   id="secondary_color"
@@ -135,7 +135,7 @@ export const CompanyBranding = ({ companyId }: CompanyBrandingProps) => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="accent_color">Accent Color</Label>
+              <Label htmlFor="accent_color">{t('companyBranding.label.accentColor')}</Label>
               <div className="flex gap-2">
                 <Input
                   id="accent_color"
@@ -156,35 +156,35 @@ export const CompanyBranding = ({ companyId }: CompanyBrandingProps) => {
         </div>
 
         <div>
-          <h3 className="text-lg font-bold mb-4">Typography</h3>
+          <h3 className="text-lg font-bold mb-4">{t('companyBranding.typography')}</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <Label htmlFor="font_heading">Heading Font</Label>
+              <Label htmlFor="font_heading">{t('companyBranding.label.headingFont')}</Label>
               <Input
                 id="font_heading"
                 value={branding?.font_heading || 'Inter'}
                 onChange={(e) => setBranding({ ...branding, font_heading: e.target.value })}
-                placeholder="e.g. Inter, Roboto, Poppins"
+                placeholder="e.g. Inter, Roboto," Poppins
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="font_body">Body Font</Label>
+              <Label htmlFor="font_body">{t('companyBranding.label.bodyFont')}</Label>
               <Input
                 id="font_body"
                 value={branding?.font_body || 'Inter'}
                 onChange={(e) => setBranding({ ...branding, font_body: e.target.value })}
-                placeholder="e.g. Inter, Roboto, Open Sans"
+                placeholder="e.g. Inter, Roboto," Open Sans
               />
             </div>
           </div>
         </div>
 
         <div>
-          <h3 className="text-lg font-bold mb-4">Logos & Assets</h3>
+          <h3 className="text-lg font-bold mb-4">{t('companyBranding.logosAssets')}</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <Label htmlFor="logo_light_url">Light Logo URL</Label>
+              <Label htmlFor="logo_light_url">{t('companyBranding.label.lightLogoUrl')}</Label>
               <Input
                 id="logo_light_url"
                 type="url"
@@ -195,7 +195,7 @@ export const CompanyBranding = ({ companyId }: CompanyBrandingProps) => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="logo_dark_url">Dark Logo URL</Label>
+              <Label htmlFor="logo_dark_url">{t('companyBranding.label.darkLogoUrl')}</Label>
               <Input
                 id="logo_dark_url"
                 type="url"
@@ -206,7 +206,7 @@ export const CompanyBranding = ({ companyId }: CompanyBrandingProps) => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="favicon_url">Favicon URL</Label>
+              <Label htmlFor="favicon_url">{t('companyBranding.label.faviconUrl')}</Label>
               <Input
                 id="favicon_url"
                 type="url"
@@ -217,7 +217,7 @@ export const CompanyBranding = ({ companyId }: CompanyBrandingProps) => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="social_preview_image">Social Preview Image</Label>
+              <Label htmlFor="social_preview_image">{t('companyBranding.label.socialPreviewImage')}</Label>
               <Input
                 id="social_preview_image"
                 type="url"
@@ -230,7 +230,7 @@ export const CompanyBranding = ({ companyId }: CompanyBrandingProps) => {
         </div>
 
         <div className="p-6 bg-secondary rounded-lg">
-          <h3 className="text-lg font-bold mb-4">Brand Preview</h3>
+          <h3 className="text-lg font-bold mb-4">{t('companyBranding.brandPreview')}</h3>
           <div className="flex items-center gap-4">
             <div 
               className="w-16 h-16 rounded"

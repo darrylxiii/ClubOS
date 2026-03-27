@@ -23,7 +23,7 @@ export interface AuthPrefetchData {
   companyMembership: CompanyMembership | null;
   companyMemberships: CompanyMembership[];
   activeCompanyId: string | null;
-  preferences: Record<string, any> | null;
+  preferences: Record<string, unknown> | null;
   mfaFactors: { hasVerifiedTotp: boolean };
 }
 
@@ -74,13 +74,13 @@ async function fetchAuthData(userId: string): Promise<AuthPrefetchData> {
 
   logger.info('[useAuthPrefetch] Fetched in', { elapsed: Date.now() - startTime });
 
-  const companyMemberships: CompanyMembership[] = (companyMemberResult.data || []).map((m: any) => ({
+  const companyMemberships: CompanyMembership[] = (companyMemberResult.data || []).map((m) => ({
     company_id: m.company_id,
     role: m.role,
-    company_name: (m.companies as any)?.name ?? undefined,
+    company_name: (m.companies as { name: string } | null)?.name ?? undefined,
   }));
 
-  const activeCompanyId = (prefsResult.data as any)?.active_company_id ?? null;
+  const activeCompanyId = (prefsResult.data as { active_company_id?: string | null } | null)?.active_company_id ?? null;
 
   return {
     roles,

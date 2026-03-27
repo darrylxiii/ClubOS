@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,6 +17,7 @@ import { cn } from "@/lib/utils";
 import { DateRange } from "react-day-picker";
 
 const AssetRegister = () => {
+  const { t } = useTranslation('admin');
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<AssetCategory | "all">("all");
   const [statusFilter, setStatusFilter] = useState<AssetStatus | "all">("all");
@@ -65,11 +67,11 @@ const AssetRegister = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-semibold">Asset Register</h2>
-          <p className="text-muted-foreground text-sm">Manage all company assets</p>
+          <h2 className="text-xl font-semibold">{t('assetRegister.title', 'Asset Register')}</h2>
+          <p className="text-muted-foreground text-sm">{t('assetRegister.subtitle', 'Manage all company assets')}</p>
         </div>
         <Button onClick={handleAddNew}>
-          <Plus className="h-4 w-4 mr-2" />Add Asset
+          <Plus className="h-4 w-4 mr-2" />{t('assetRegister.addAsset', 'Add Asset')}
         </Button>
       </div>
 
@@ -79,7 +81,7 @@ const AssetRegister = () => {
           <CardContent className="pt-4">
             <div className="text-2xl font-bold">{filteredAssets.length}</div>
             <p className="text-muted-foreground text-sm">
-              {hasActiveFilters ? 'Filtered Assets' : 'Total Assets'}
+              {hasActiveFilters ? t('assetRegister.filteredAssets', 'Filtered Assets') : t('assetRegister.totalAssets', 'Total Assets')}
             </p>
           </CardContent>
         </Card>
@@ -88,19 +90,19 @@ const AssetRegister = () => {
             <div className="text-2xl font-bold">
               {filteredAssets.filter(a => a.status === 'active').length}
             </div>
-            <p className="text-muted-foreground text-sm">Active</p>
+            <p className="text-muted-foreground text-sm">{t('assetRegister.active', 'Active')}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-4">
             <div className="text-2xl font-bold">{formatCurrency(totalValue)}</div>
-            <p className="text-muted-foreground text-sm">Purchase Value</p>
+            <p className="text-muted-foreground text-sm">{t('assetRegister.purchaseValue', 'Purchase Value')}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-4">
             <div className="text-2xl font-bold">{formatCurrency(totalBookValue)}</div>
-            <p className="text-muted-foreground text-sm">Book Value</p>
+            <p className="text-muted-foreground text-sm">{t('assetRegister.bookValue', 'Book Value')}</p>
           </CardContent>
         </Card>
       </div>
@@ -109,8 +111,8 @@ const AssetRegister = () => {
       <div className="flex flex-wrap gap-4">
         <div className="relative flex-1 min-w-[200px] max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input 
-            placeholder="Search assets..." 
+          <Input
+            placeholder={t('assetRegister.searchPlaceholder', 'Search assets...')} 
             value={search} 
             onChange={(e) => setSearch(e.target.value)} 
             className="pl-10" 
@@ -122,7 +124,7 @@ const AssetRegister = () => {
             <SelectValue placeholder="Category" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Categories</SelectItem>
+            <SelectItem value="all">{t('assetRegister.allCategories', 'All Categories')}</SelectItem>
             {Object.entries(CATEGORY_LABELS).map(([k, v]) => (
               <SelectItem key={k} value={k}>{v}</SelectItem>
             ))}
@@ -134,13 +136,13 @@ const AssetRegister = () => {
             <SelectValue placeholder="Status" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Status</SelectItem>
-            <SelectItem value="active">Active</SelectItem>
-            <SelectItem value="under_maintenance">Under Maintenance</SelectItem>
-            <SelectItem value="disposed">Disposed</SelectItem>
-            <SelectItem value="fully_depreciated">Fully Depreciated</SelectItem>
-            <SelectItem value="sold">Sold</SelectItem>
-            <SelectItem value="written_off">Written Off</SelectItem>
+            <SelectItem value="all">{t('assetRegister.allStatus', 'All Status')}</SelectItem>
+            <SelectItem value="active">{t('assetRegister.active', 'Active')}</SelectItem>
+            <SelectItem value="under_maintenance">{t('assetRegister.underMaintenance', 'Under Maintenance')}</SelectItem>
+            <SelectItem value="disposed">{t('assetRegister.disposed', 'Disposed')}</SelectItem>
+            <SelectItem value="fully_depreciated">{t('assetRegister.fullyDepreciated', 'Fully Depreciated')}</SelectItem>
+            <SelectItem value="sold">{t('assetRegister.sold', 'Sold')}</SelectItem>
+            <SelectItem value="written_off">{t('assetRegister.writtenOff', 'Written Off')}</SelectItem>
           </SelectContent>
         </Select>
 
@@ -163,7 +165,7 @@ const AssetRegister = () => {
                   format(dateRange.from, "LLL dd, y")
                 )
               ) : (
-                "Purchase date range"
+                t('assetRegister.purchaseDateRange', 'Purchase date range')
               )}
             </Button>
           </PopoverTrigger>
@@ -194,7 +196,7 @@ const AssetRegister = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Package className="h-5 w-5" />
-            {hasActiveFilters ? `Filtered Assets (${filteredAssets.length})` : 'All Assets'}
+            {hasActiveFilters ? `${t('assetRegister.filteredAssets', 'Filtered Assets')} (${filteredAssets.length})` : t('assetRegister.allAssets', 'All Assets')}
           </CardTitle>
         </CardHeader>
         <CardContent>

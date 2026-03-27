@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Briefcase, Building2, Mail, Linkedin, Star } from 'lucide-react';
@@ -29,6 +30,7 @@ interface SharedCandidateCardProps {
 }
 
 export function SharedCandidateCard({ application, visibility }: SharedCandidateCardProps) {
+  const { t } = useTranslation('common');
   const displayName = visibility.show_candidate_names
     ? application.full_name
     : 'Candidate';
@@ -116,7 +118,7 @@ export function SharedCandidateCard({ application, visibility }: SharedCandidate
               className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
             >
               <Linkedin className="w-3 h-3" />
-              <span>LinkedIn</span>
+              <span>{t("linkedin", "LinkedIn")}</span>
             </a>
           )}
         </div>

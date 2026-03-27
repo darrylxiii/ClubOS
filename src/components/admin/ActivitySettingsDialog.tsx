@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Settings } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from 'react-i18next';
 
 export interface ActivityThresholds {
   greenDays: number;
@@ -87,8 +88,9 @@ export function ActivitySettingsDialog({ onThresholdsChange }: ActivitySettingsD
   }, [open]);
 
   const handleSave = () => {
+  const { t } = useTranslation('admin');
     if (greenDays >= yellowDays) {
-      toast.error('Active threshold must be less than Warning threshold');
+      toast.error(t('activitySettingsDialog.activeThresholdMustBeLessThan'));
       return;
     }
 
@@ -99,7 +101,7 @@ export function ActivitySettingsDialog({ onThresholdsChange }: ActivitySettingsD
 
     saveActivityThresholds(thresholds);
     onThresholdsChange(thresholds);
-    toast.success('Activity thresholds updated');
+    toast.success(t('activitySettingsDialog.activityThresholdsUpdated'));
     setOpen(false);
   };
 
@@ -108,7 +110,7 @@ export function ActivitySettingsDialog({ onThresholdsChange }: ActivitySettingsD
     setYellowDays(DEFAULT_THRESHOLDS.yellowDays);
     saveActivityThresholds(DEFAULT_THRESHOLDS);
     onThresholdsChange(DEFAULT_THRESHOLDS);
-    toast.success('Reset to default thresholds');
+    toast.success(t('activitySettingsDialog.resetToDefaultThresholds'));
   };
 
   return (
@@ -121,7 +123,7 @@ export function ActivitySettingsDialog({ onThresholdsChange }: ActivitySettingsD
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Activity Status Thresholds</DialogTitle>
+          <DialogTitle>{t('activitySettingsDialog.activityStatusThresholds')}</DialogTitle>
           <DialogDescription>
             Configure when candidates are marked as Active (Green), Warning (Yellow), or Inactive (Red)
           </DialogDescription>
@@ -169,7 +171,7 @@ export function ActivitySettingsDialog({ onThresholdsChange }: ActivitySettingsD
           </div>
 
           <div className="space-y-2">
-            <Label>Inactive (Red)</Label>
+            <Label>{t('activitySettingsDialog.inactiveRed')}</Label>
             <p className="text-xs text-muted-foreground">
               Candidates with activity beyond {yellowDays} days will be marked as Inactive (Red)
             </p>

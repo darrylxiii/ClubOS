@@ -3,8 +3,10 @@ import { MetricCardSkeleton } from "../shared/MetricCardSkeleton";
 import { AnimatedCard, CardVisual, CardBody, CardTitle, CardDescription } from "@/components/ui/animated-card";
 import { Visual1 } from "@/components/ui/visual-1";
 import { TrendingUp } from "lucide-react";
+import { useTranslation } from 'react-i18next';
 
 export const TotalJobsCard = () => {
+  const { t } = useTranslation('admin');
   const { metrics, topByJobs, isLoading } = useCompanyMetrics();
 
   if (isLoading || !metrics) {
@@ -22,7 +24,7 @@ export const TotalJobsCard = () => {
       <CardBody>
         <div className="flex items-start justify-between">
           <div className="space-y-1">
-            <CardDescription>Total Jobs</CardDescription>
+            <CardDescription>{t('companies.totalJobsCard.totalJobs')}</CardDescription>
             <CardTitle>{metrics.total_jobs}</CardTitle>
           </div>
           <div className="flex items-center gap-1 text-green-500 text-sm font-medium">

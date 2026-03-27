@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -33,6 +34,7 @@ interface LiveInsight {
 }
 
 export function EnhancedMLDashboard() {
+  const { t } = useTranslation('common');
   const [insights, setInsights] = useState<LiveInsight[]>([]);
   const [loading, setLoading] = useState(true);
   const [showTestData, setShowTestData] = useState(true);
@@ -218,7 +220,7 @@ export function EnhancedMLDashboard() {
                     <span className="ml-2">{formatInsightType(insight.insight_type)}</span>
                   </Badge>
                   {insight.interaction?.is_test_data && (
-                    <Badge variant="secondary">Test Data</Badge>
+                    <Badge variant="secondary">{t("test_data", "Test Data")}</Badge>
                   )}
                 </div>
                 <div className="text-xs text-muted-foreground">
@@ -248,7 +250,7 @@ export function EnhancedMLDashboard() {
                   {insight.insight_type === 'budget_signals' && (
                     <div>
                       {insight.extracted_budget && (
-                        <p><span className="font-medium">Budget: </span>€{insight.extracted_budget.toLocaleString()}</p>
+                        <p><span className="font-medium">{t("budget", "Budget:")}</span>€{insight.extracted_budget.toLocaleString()}</p>
                       )}
                       <p className="text-muted-foreground">{insight.insight_text}</p>
                     </div>
@@ -264,7 +266,7 @@ export function EnhancedMLDashboard() {
 
                   {insight.evidence_quotes && insight.evidence_quotes.length > 0 && (
                     <div className="mt-2 pt-2 border-t">
-                      <p className="text-xs font-medium text-muted-foreground">Evidence:</p>
+                      <p className="text-xs font-medium text-muted-foreground">{t("evidence", "Evidence:")}</p>
                       <ul className="text-xs text-muted-foreground list-disc list-inside">
                         {insight.evidence_quotes.slice(0, 2).map((quote, i) => (
                           <li key={i}>{quote}</li>

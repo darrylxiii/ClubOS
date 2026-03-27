@@ -7,31 +7,31 @@
 import { SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2.39.7';
 
 export interface UserContext {
-  profile: any;
+  profile: Record<string, unknown> | null;
   roles: string[];
-  company: any | null;
-  applications: any[];
-  tasks: any[];
-  bookings: any[];
-  achievements: any[];
-  emails: any[];
-  meetings: any[];
+  company: Record<string, unknown> | null;
+  applications: Record<string, unknown>[];
+  tasks: Record<string, unknown>[];
+  bookings: Record<string, unknown>[];
+  achievements: Record<string, unknown>[];
+  emails: Record<string, unknown>[];
+  meetings: Record<string, unknown>[];
   socialStats: {
     posts: number;
     followers: number;
     connections: number;
   };
   urgentItems: {
-    upcomingInterviews: any[];
-    urgentTasks: any[];
+    upcomingInterviews: Record<string, unknown>[];
+    urgentTasks: Record<string, unknown>[];
     actionEmails: number;
   };
 }
 
 export interface AIMemoryContext {
-  memories: any[];
-  trendInsights: any[];
-  userTrends: any[];
+  memories: Record<string, unknown>[];
+  trendInsights: Record<string, unknown>[];
+  userTrends: Record<string, unknown>[];
 }
 
 /**

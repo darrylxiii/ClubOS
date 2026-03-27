@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 interface CreatePostDialogProps {
   open: boolean;
@@ -40,6 +41,7 @@ const PLATFORMS = [
 ];
 
 export const CreatePostDialog = ({ open, onOpenChange }: CreatePostDialogProps) => {
+  const { t } = useTranslation("common");
   const [postType, setPostType] = useState<"standard" | "poll" | "event" | "article">("standard");
   const [content, setContent] = useState("");
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(["internal"]);
@@ -77,13 +79,13 @@ export const CreatePostDialog = ({ open, onOpenChange }: CreatePostDialogProps) 
 
       if (data?.suggestions && data.suggestions.length > 0) {
         setAiSuggestions(data.suggestions);
-        toast.success("AI suggestions generated");
+        toast.success(t('social.createPost.suggestionsGenerated'));
       } else {
-        toast.info("No suggestions available. Try again later.");
+        toast.info(t('social.createPost.noSuggestions'));
       }
     } catch (error) {
       console.error('AI suggestion error:', error);
-      toast.error("Failed to generate suggestions");
+      toast.error(t('social.createPost.suggestionsFailed'));
     } finally {
       setLoadingSuggestions(false);
     }
@@ -92,17 +94,17 @@ export const CreatePostDialog = ({ open, onOpenChange }: CreatePostDialogProps) 
   const applySuggestion = (suggestion: string) => {
     setContent(suggestion);
     setAiSuggestions([]);
-    toast.success("Suggestion applied");
+    toast.success(t('social.createPost.suggestionApplied'));
   };
 
   const handleSubmit = async () => {
     if (!content.trim()) {
-      toast.error("Please enter some content");
+      toast.error(t('social.createPost.enterContent'));
       return;
     }
 
     if (selectedPlatforms.length === 0) {
-      toast.error("Please select at least one platform");
+      toast.error(t('social.createPost.selectPlatform'));
       return;
     }
 
@@ -136,12 +138,12 @@ export const CreatePostDialog = ({ open, onOpenChange }: CreatePostDialogProps) 
 
       if (error) throw error;
 
-      toast.success("Post created successfully!");
+      toast.success(t('social.createPost.created'));
       onOpenChange(false);
       resetForm();
     } catch (error) {
       console.error("Error creating post:", error);
-      toast.error("Failed to create post");
+      toast.error(t('social.createPost.createFailed'));
     } finally {
       setIsSubmitting(false);
     }
@@ -159,13 +161,13 @@ export const CreatePostDialog = ({ open, onOpenChange }: CreatePostDialogProps) 
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-2xl">Create New Post</DialogTitle>
+          <DialogTitle className="text-2xl">{t('social.createPost.title')}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6">
           {/* Platform Selection */}
           <div>
-            <Label className="mb-3 block">Select Platforms</Label>
+            <Label className="mb-3 block">{t('social.createPost.selectPlatforms')}</Label>
             <div className="flex flex-wrap gap-2">
               {PLATFORMS.map((platform) => (
                 <Badge
@@ -186,30 +188,30 @@ export const CreatePostDialog = ({ open, onOpenChange }: CreatePostDialogProps) 
             <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="standard" className="gap-2">
                 <ImageIcon className="h-4 w-4" />
-                Post
+                {t('social.createPost.tabs.post')}
               </TabsTrigger>
               <TabsTrigger value="poll" className="gap-2">
                 <BarChart className="h-4 w-4" />
-                Poll
+                {t('social.createPost.tabs.poll')}
               </TabsTrigger>
               <TabsTrigger value="event" className="gap-2">
                 <CalendarIcon className="h-4 w-4" />
-                Event
+                {t('social.createPost.tabs.event')}
               </TabsTrigger>
               <TabsTrigger value="article" className="gap-2">
                 <FileText className="h-4 w-4" />
-                Article
+                {t('social.createPost.tabs.article')}
               </TabsTrigger>
             </TabsList>
 
             <TabsContent value="standard" className="space-y-4">
               <div>
-                <Label htmlFor="content">What's on your mind?</Label>
+                <Label htmlFor="content">{t('social.createPost.whatsOnMind')}</Label>
                 <Textarea
                   id="content"
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
-                  placeholder="Share your thoughts..."
+                  placeholder={t('social.createPost.sharePlaceholder')}
                   className="min-h-[150px] mt-2"
                 />
               </div>
@@ -217,17 +219,17 @@ export const CreatePostDialog = ({ open, onOpenChange }: CreatePostDialogProps) 
 
             <TabsContent value="poll" className="space-y-4">
               <div>
-                <Label htmlFor="poll-question">Poll Question</Label>
+                <Label htmlFor="poll-question">{t('social.createPost.pollQuestion')}</Label>
                 <Textarea
                   id="poll-question"
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
-                  placeholder="Ask a question..."
+                  placeholder={t('social.createPost.askQuestion')}
                   className="mt-2"
                 />
               </div>
               <div>
-                <Label>Options</Label>
+                <Label>{t('social.createPost.options')}</Label>
                 <div className="space-y-2 mt-2">
                   {pollOptions.map((option, idx) => (
                     <div key={idx} className="flex gap-2">
@@ -258,7 +260,7 @@ export const CreatePostDialog = ({ open, onOpenChange }: CreatePostDialogProps) 
                       onClick={() => setPollOptions([...pollOptions, ""])}
                     >
                       <Plus className="h-4 w-4 mr-2" />
-                      Add Option
+                      {t('social.createPost.addOption')}
                     </Button>
                   )}
                 </div>
@@ -267,18 +269,18 @@ export const CreatePostDialog = ({ open, onOpenChange }: CreatePostDialogProps) 
 
             <TabsContent value="event" className="space-y-4">
               <div>
-                <Label htmlFor="event-description">Event Description</Label>
+                <Label htmlFor="event-description">{t('social.createPost.eventDescription')}</Label>
                 <Textarea
                   id="event-description"
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
-                  placeholder="Describe your event..."
+                  placeholder={t('social.createPost.describeEvent')}
                   className="mt-2"
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="event-date">Date & Time</Label>
+                  <Label htmlFor="event-date">{t('social.createPost.dateTime')}</Label>
                   <Input
                     id="event-date"
                     type="datetime-local"
@@ -290,20 +292,20 @@ export const CreatePostDialog = ({ open, onOpenChange }: CreatePostDialogProps) 
                   />
                 </div>
                 <div>
-                  <Label htmlFor="event-location">Location</Label>
+                  <Label htmlFor="event-location">{t('social.createPost.location')}</Label>
                   <Input
                     id="event-location"
                     value={eventDetails.location}
                     onChange={(e) =>
                       setEventDetails({ ...eventDetails, location: e.target.value })
                     }
-                    placeholder="Event location"
+                    placeholder={t('social.createPost.eventLocationPlaceholder')}
                     className="mt-2"
                   />
                 </div>
               </div>
               <div>
-                <Label htmlFor="event-link">Event Link</Label>
+                <Label htmlFor="event-link">{t('social.createPost.eventLink')}</Label>
                 <Input
                   id="event-link"
                   type="url"
@@ -317,12 +319,12 @@ export const CreatePostDialog = ({ open, onOpenChange }: CreatePostDialogProps) 
 
             <TabsContent value="article" className="space-y-4">
               <div>
-                <Label htmlFor="article-content">Article Content</Label>
+                <Label htmlFor="article-content">{t('social.createPost.articleContent')}</Label>
                 <Textarea
                   id="article-content"
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
-                  placeholder="Write your article..."
+                  placeholder={t('social.createPost.writeArticle')}
                   className="min-h-[300px] mt-2"
                 />
               </div>
@@ -334,12 +336,12 @@ export const CreatePostDialog = ({ open, onOpenChange }: CreatePostDialogProps) 
             {loadingSuggestions ? (
               <>
                 <span className="animate-spin">⏳</span>
-                Generating...
+                {t('social.createPost.generating')}
               </>
             ) : (
               <>
                 <Sparkles className="h-4 w-4" />
-                Get AI Suggestions
+                {t('social.createPost.getAISuggestions')}
               </>
             )}
           </Button>
@@ -347,7 +349,7 @@ export const CreatePostDialog = ({ open, onOpenChange }: CreatePostDialogProps) 
           {/* Display AI Suggestions */}
           {aiSuggestions.length > 0 && (
             <div className="space-y-2">
-              <Label>AI Suggestions (click to use)</Label>
+              <Label>{t('social.createPost.aiSuggestionsLabel')}</Label>
               <div className="space-y-2 max-h-40 overflow-y-auto">
                 {aiSuggestions.map((suggestion, idx) => (
                   <Card 
@@ -365,10 +367,10 @@ export const CreatePostDialog = ({ open, onOpenChange }: CreatePostDialogProps) 
           {/* Submit */}
           <div className="flex gap-3">
             <Button variant="outline" onClick={() => onOpenChange(false)} className="flex-1">
-              Cancel
+              {t('actions.cancel')}
             </Button>
             <Button onClick={handleSubmit} disabled={isSubmitting} className="flex-1">
-              {isSubmitting ? "Publishing..." : "Publish"}
+              {isSubmitting ? t('social.createPost.publishing') : t('social.createPost.publish')}
             </Button>
           </div>
         </div>

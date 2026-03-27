@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -21,6 +22,7 @@ interface AnalyticsData {
 }
 
 export function MeetingAnalyticsDashboard() {
+  const { t } = useTranslation('common');
   const { recharts, isLoading: chartsLoading } = useRecharts();
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
@@ -190,7 +192,7 @@ export function MeetingAnalyticsDashboard() {
       <div className="grid md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Total Meetings</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("total_meetings", "Total Meetings")}</CardTitle>
             <Video className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -207,7 +209,7 @@ export function MeetingAnalyticsDashboard() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Avg Participants</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("avg_participants", "Avg Participants")}</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -220,7 +222,7 @@ export function MeetingAnalyticsDashboard() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Join Rate</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("join_rate", "Join Rate")}</CardTitle>
             <Target className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -233,7 +235,7 @@ export function MeetingAnalyticsDashboard() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Avg Duration</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("avg_duration", "Avg Duration")}</CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -249,8 +251,8 @@ export function MeetingAnalyticsDashboard() {
       <div className="grid md:grid-cols-2 gap-4">
         <Card>
           <CardHeader>
-            <CardTitle>Meeting Trend</CardTitle>
-            <CardDescription>Last 8 weeks</CardDescription>
+            <CardTitle>{t("meeting_trend", "Meeting Trend")}</CardTitle>
+            <CardDescription>{t("last_8_weeks", "Last 8 weeks")}</CardDescription>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
@@ -268,8 +270,8 @@ export function MeetingAnalyticsDashboard() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Creation Methods</CardTitle>
-            <CardDescription>How meetings are created</CardDescription>
+            <CardTitle>{t("creation_methods", "Creation Methods")}</CardTitle>
+            <CardDescription>{t("how_meetings_are_created", "How meetings are created")}</CardDescription>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
@@ -298,8 +300,8 @@ export function MeetingAnalyticsDashboard() {
       {analytics.invitationMethods.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>Invitation Methods</CardTitle>
-            <CardDescription>How you invite participants</CardDescription>
+            <CardTitle>{t("invitation_methods", "Invitation Methods")}</CardTitle>
+            <CardDescription>{t("how_you_invite_participants", "How you invite participants")}</CardDescription>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>

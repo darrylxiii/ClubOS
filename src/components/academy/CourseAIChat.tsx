@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -16,6 +17,7 @@ interface CourseAIChatProps {
 }
 
 export function CourseAIChat({ courseId }: CourseAIChatProps) {
+  const { t } = useTranslation('common');
   const [isExpanded, setIsExpanded] = useState(false);
   const [input, setInput] = useState("");
   const [answer, setAnswer] = useState("");
@@ -182,7 +184,7 @@ export function CourseAIChat({ courseId }: CourseAIChatProps) {
             <div className="absolute inset-0 bg-background/95 backdrop-blur-sm flex items-center justify-center p-4 rounded-lg">
               <div className="text-center max-w-sm">
                 <Sparkles className="w-10 h-10 mx-auto mb-3 text-primary" />
-                <h4 className="text-lg font-semibold mb-2">Sign in to continue</h4>
+                <h4 className="text-lg font-semibold mb-2">{t("sign_in_to_continue", "Sign in to continue")}</h4>
                 <p className="text-sm text-muted-foreground mb-4">
                   Unlock unlimited AI questions and full course access
                 </p>

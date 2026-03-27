@@ -1,12 +1,14 @@
 import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 /**
  * Background service that monitors for cancelled bookings
  * and automatically promotes waitlist entries
  */
 export function useWaitlistAutoPromotion(bookingLinkId: string) {
+  const { t } = useTranslation('common');
   useEffect(() => {
     const channel = supabase
       .channel(`waitlist-${bookingLinkId}`)
@@ -35,7 +37,7 @@ export function useWaitlistAutoPromotion(bookingLinkId: string) {
               if (error) throw error;
 
               if (data.promoted) {
-                toast.success("A waitlist guest has been notified of the available slot!");
+                toast.success(t('booking.waitlistPromoted', 'A waitlist guest has been notified of the available slot!'));
               }
             } catch (error) {
               console.error("Error promoting waitlist:", error);

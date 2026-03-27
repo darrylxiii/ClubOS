@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import { RoleGate } from '@/components/RoleGate';
@@ -29,6 +30,7 @@ import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 
 export default function WorkspaceList() {
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [search, setSearch] = useState('');
@@ -93,7 +95,7 @@ export default function WorkspaceList() {
                     <PanelLeft className="h-4 w-4" />
                   )}
                 </Button>
-                <span className="text-sm text-muted-foreground">OS Notes</span>
+                <span className="text-sm text-muted-foreground">{t('workspaceList.text7')}</span>
               </div>
               
               <Button
@@ -112,10 +114,8 @@ export default function WorkspaceList() {
               {/* Header */}
               <div className="flex items-center justify-between mb-8">
                 <div>
-                  <h1 className="text-3xl font-bold">OS Notes</h1>
-                  <p className="text-muted-foreground mt-1">
-                    Your personal workspace for notes, docs, and more
-                  </p>
+                  <h1 className="text-3xl font-bold">{t('workspaceList.text8')}</h1>
+                  <p className="text-muted-foreground mt-1">{t('workspaceList.desc')}</p>
                 </div>
                 <Button onClick={() => handleCreatePage()}>
                   <Plus className="h-4 w-4 mr-2" />
@@ -129,7 +129,7 @@ export default function WorkspaceList() {
                 <Input
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search pages..."
+                  placeholder={t('workspaceList.text9')}
                   className="pl-10"
                 />
               </div>
@@ -165,7 +165,7 @@ export default function WorkspaceList() {
                   ) : isError ? (
                     <Card className="p-12 text-center">
                       <AlertCircle className="h-12 w-12 mx-auto text-destructive mb-4" />
-                      <h3 className="text-lg font-semibold mb-2">Failed to load pages</h3>
+                      <h3 className="text-lg font-semibold mb-2">{t('workspaceList.text10')}</h3>
                       <p className="text-muted-foreground mb-4">
                         {(error as Error)?.message || 'Something went wrong. Please try again.'}
                       </p>
@@ -177,10 +177,8 @@ export default function WorkspaceList() {
                   ) : filteredPages.length === 0 ? (
                     <Card className="p-12 text-center">
                       <Sparkles className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                      <h3 className="text-lg font-semibold mb-2">Create your first page</h3>
-                      <p className="text-muted-foreground mb-4">
-                        Start with a blank page or choose from our templates
-                      </p>
+                      <h3 className="text-lg font-semibold mb-2">{t('workspaceList.text11')}</h3>
+                      <p className="text-muted-foreground mb-4">{t('workspaceList.desc2')}</p>
                       <div className="flex gap-2 justify-center">
                         <Button onClick={() => handleCreatePage()}>
                           <Plus className="h-4 w-4 mr-2" />
@@ -225,10 +223,8 @@ export default function WorkspaceList() {
                   {favorites.length === 0 ? (
                     <Card className="p-12 text-center">
                       <Star className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                      <h3 className="text-lg font-semibold mb-2">No favorites yet</h3>
-                      <p className="text-muted-foreground">
-                        Click the star icon on any page to add it to your favorites
-                      </p>
+                      <h3 className="text-lg font-semibold mb-2">{t('workspaceList.text12')}</h3>
+                      <p className="text-muted-foreground">{t('workspaceList.desc3')}</p>
                     </Card>
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -261,10 +257,8 @@ export default function WorkspaceList() {
                   {recent.length === 0 ? (
                     <Card className="p-12 text-center">
                       <Clock className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                      <h3 className="text-lg font-semibold mb-2">No recent pages</h3>
-                      <p className="text-muted-foreground">
-                        Pages you visit will appear here for quick access
-                      </p>
+                      <h3 className="text-lg font-semibold mb-2">{t('workspaceList.text13')}</h3>
+                      <p className="text-muted-foreground">{t('workspaceList.desc4')}</p>
                     </Card>
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -297,10 +291,8 @@ export default function WorkspaceList() {
                   {isAdmin && (
                     <div className="flex items-center justify-between mb-6 p-4 rounded-lg bg-primary/5 border border-primary/20">
                       <div>
-                        <h3 className="font-medium">Template Management</h3>
-                        <p className="text-sm text-muted-foreground">
-                          Create, edit, and import templates for your team
-                        </p>
+                        <h3 className="font-medium">{t('workspaceList.text14')}</h3>
+                        <p className="text-sm text-muted-foreground">{t('workspaceList.desc5')}</p>
                       </div>
                       <Button onClick={() => navigate('/admin/templates')}>
                         <Settings className="h-4 w-4 mr-2" />
@@ -329,9 +321,7 @@ export default function WorkspaceList() {
                           variant="secondary" 
                           size="sm" 
                           className="w-full mt-3 opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          Use template
-                        </Button>
+                        >{t('workspaceList.btn6')}</Button>
                       </Card>
                     ))}
                   </div>

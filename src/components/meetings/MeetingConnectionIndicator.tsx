@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { ConnectionQuality, ConnectionStats } from '@/hooks/useConnectionQuality';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -42,6 +43,7 @@ export function MeetingConnectionIndicator({
   onReconnect,
   className
 }: MeetingConnectionIndicatorProps) {
+  const { t } = useTranslation('common');
   const [isHovered, setIsHovered] = useState(false);
   
   // Determine which quality to display (worst peer if available)
@@ -107,7 +109,7 @@ export function MeetingConnectionIndicator({
         >
           <div className="p-3 space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Connection Quality</span>
+              <span className="text-sm font-medium">{t("connection_quality", "Connection Quality")}</span>
               <span className={cn(
                 "text-xs px-2 py-0.5 rounded-full font-medium",
                 displayQuality === 'excellent' && "bg-emerald-500/20 text-emerald-500",
@@ -122,7 +124,7 @@ export function MeetingConnectionIndicator({
             
             <div className="space-y-2 text-xs">
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Latency</span>
+                <span className="text-muted-foreground">{t("latency", "Latency")}</span>
                 <span className={cn(
                   stats.latency > 200 ? "text-red-500" : stats.latency > 100 ? "text-yellow-500" : "text-foreground"
                 )}>
@@ -130,7 +132,7 @@ export function MeetingConnectionIndicator({
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Packet Loss</span>
+                <span className="text-muted-foreground">{t("packet_loss", "Packet Loss")}</span>
                 <span className={cn(
                   stats.packetLoss > 5 ? "text-red-500" : stats.packetLoss > 2 ? "text-yellow-500" : "text-foreground"
                 )}>
@@ -138,7 +140,7 @@ export function MeetingConnectionIndicator({
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Jitter</span>
+                <span className="text-muted-foreground">{t("jitter", "Jitter")}</span>
                 <span className={cn(
                   stats.jitter > 30 ? "text-red-500" : stats.jitter > 15 ? "text-yellow-500" : "text-foreground"
                 )}>
@@ -146,7 +148,7 @@ export function MeetingConnectionIndicator({
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Bitrate</span>
+                <span className="text-muted-foreground">{t("bitrate", "Bitrate")}</span>
                 <span>{stats.bitrate.toFixed(0)} kbps</span>
               </div>
             </div>

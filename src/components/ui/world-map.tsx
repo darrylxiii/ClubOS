@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 "use client";
 
 import { useRef, useState, useMemo } from "react";
@@ -26,6 +27,7 @@ export function WorldMap({
   animationDuration = 2,
   loop = true
 }: MapProps) {
+  const { t } = useTranslation('common');
   const svgRef = useRef<SVGSVGElement>(null);
   const [hoveredLocation, setHoveredLocation] = useState<string | null>(null);
   const { theme } = useTheme();
@@ -71,7 +73,7 @@ export function WorldMap({
       <img
         src={`data:image/svg+xml;utf8,${encodeURIComponent(svgMap)}`}
         className="h-full w-full [mask-image:linear-gradient(to_bottom,transparent,white_10%,white_90%,transparent)] pointer-events-none select-none object-cover"
-        alt="world map"
+        alt={t("world_map", "world map")}
         draggable={false}
       />
       <svg

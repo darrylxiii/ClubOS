@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Smile } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -21,6 +22,7 @@ interface EmojiPickerProps {
 }
 
 export function EmojiPicker({ onSelect }: EmojiPickerProps) {
+  const { t } = useTranslation('common');
   const [search, setSearch] = useState('');
   const [open, setOpen] = useState(false);
 
@@ -47,7 +49,7 @@ export function EmojiPicker({ onSelect }: EmojiPickerProps) {
       <PopoverContent className="w-80 p-0" align="start">
         <div className="p-2 border-b border-border">
           <Input
-            placeholder="Search emoji..."
+            placeholder={t("search_emoji", "Search emoji...")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="h-8"

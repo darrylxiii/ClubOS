@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,6 +12,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { ChevronDown } from 'lucide-react';
 
 export function SubscriptionsTab() {
+  const { t } = useTranslation('common');
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [editSubscription, setEditSubscription] = useState<VendorSubscription | null>(null);
   const [calendarOpen, setCalendarOpen] = useState(true);
@@ -29,7 +31,7 @@ export function SubscriptionsTab() {
       <Collapsible open={calendarOpen} onOpenChange={setCalendarOpen}>
         <CollapsibleTrigger asChild>
           <Button variant="ghost" className="flex items-center gap-2 w-full justify-between p-0 h-auto mb-2">
-            <span className="text-lg font-semibold">Renewal Calendar</span>
+            <span className="text-lg font-semibold">{t("renewal_calendar", "Renewal Calendar")}</span>
             <ChevronDown className={`h-4 w-4 transition-transform ${calendarOpen ? 'rotate-180' : ''}`} />
           </Button>
         </CollapsibleTrigger>
@@ -42,7 +44,7 @@ export function SubscriptionsTab() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
-            <CardTitle>Vendor Subscriptions</CardTitle>
+            <CardTitle>{t("vendor_subscriptions", "Vendor Subscriptions")}</CardTitle>
             <CardDescription>
               Manage all SaaS and recurring operational costs
             </CardDescription>

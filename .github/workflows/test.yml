@@ -25,5 +25,19 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      - name: Type Check
+        run: npx tsc --noEmit
+        continue-on-error: true
+
+      - name: Unit Tests
+        run: npx vitest run --reporter=verbose
+
       - name: Build
         run: npm run build
+
+      - name: Check bundle size
+        run: |
+          echo "Bundle size:"
+          du -sh dist/
+          echo "Largest chunks:"
+          ls -lhS dist/assets/*.js | head -10

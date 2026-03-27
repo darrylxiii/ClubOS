@@ -20,6 +20,7 @@ import {
   Sparkles
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 
 interface CandidateCommandCenterProps {
   candidate: any;
@@ -38,6 +39,7 @@ export const CandidateCommandCenter = memo(({
   onAction,
   className,
 }: CandidateCommandCenterProps) => {
+  const { t } = useTranslation('candidates');
   const [activeTab, setActiveTab] = useState('overview');
 
   // Calculate quick stats
@@ -86,21 +88,21 @@ export const CandidateCommandCenter = memo(({
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
             <Brain className="h-5 w-5 text-primary" />
-            Command Center
+            {t('commandCenter.title', 'Command Center')}
           </CardTitle>
           <Badge variant="outline" className="text-xs">
             <Sparkles className="h-3 w-3 mr-1" />
-            AI-Powered
+            {t('commandCenter.aiPowered', 'AI-Powered')}
           </Badge>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="grid grid-cols-4 w-full">
-            <TabsTrigger value="overview" className="text-xs">Overview</TabsTrigger>
-            <TabsTrigger value="assessments" className="text-xs">Assessments</TabsTrigger>
-            <TabsTrigger value="interviews" className="text-xs">Interviews</TabsTrigger>
-            <TabsTrigger value="actions" className="text-xs">Actions</TabsTrigger>
+            <TabsTrigger value="overview" className="text-xs">{t('commandCenter.overview', 'Overview')}</TabsTrigger>
+            <TabsTrigger value="assessments" className="text-xs">{t('commandCenter.assessments', 'Assessments')}</TabsTrigger>
+            <TabsTrigger value="interviews" className="text-xs">{t('commandCenter.interviews', 'Interviews')}</TabsTrigger>
+            <TabsTrigger value="actions" className="text-xs">{t('commandCenter.actions', 'Actions')}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-4 mt-4">
@@ -110,19 +112,19 @@ export const CandidateCommandCenter = memo(({
                 <div className="text-2xl font-bold text-primary">
                   {avgAssessmentScore || '-'}
                 </div>
-                <div className="text-xs text-muted-foreground">Avg Score</div>
+                <div className="text-xs text-muted-foreground">{t('commandCenter.avgScore', 'Avg Score')}</div>
               </div>
               <div className="text-center p-3 bg-muted/50 rounded-lg">
                 <div className="text-2xl font-bold">{completedMeetings}</div>
-                <div className="text-xs text-muted-foreground">Interviews</div>
+                <div className="text-xs text-muted-foreground">{t('commandCenter.interviews', 'Interviews')}</div>
               </div>
               <div className="text-center p-3 bg-muted/50 rounded-lg">
                 <div className="text-2xl font-bold">{assessments.length}</div>
-                <div className="text-xs text-muted-foreground">Assessments</div>
+                <div className="text-xs text-muted-foreground">{t('commandCenter.assessments', 'Assessments')}</div>
               </div>
               <div className="text-center p-3 bg-muted/50 rounded-lg">
                 <div className="text-2xl font-bold">{upcomingMeetings}</div>
-                <div className="text-xs text-muted-foreground">Upcoming</div>
+                <div className="text-xs text-muted-foreground">{t('commandCenter.upcoming', 'Upcoming')}</div>
               </div>
             </div>
 
@@ -132,7 +134,7 @@ export const CandidateCommandCenter = memo(({
                 <div className="space-y-1">
                   <div className="flex items-center gap-2 text-sm font-medium text-green-600">
                     <CheckCircle2 className="h-4 w-4" />
-                    Strengths
+                    {t('commandCenter.strengths', 'Strengths')}
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {strengths.map((s, i) => (
@@ -148,7 +150,7 @@ export const CandidateCommandCenter = memo(({
                 <div className="space-y-1">
                   <div className="flex items-center gap-2 text-sm font-medium text-amber-600">
                     <XCircle className="h-4 w-4" />
-                    Areas to Explore
+                    {t('commandCenter.areasToExplore', 'Areas to Explore')}
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {concerns.map((c, i) => (
@@ -171,28 +173,28 @@ export const CandidateCommandCenter = memo(({
                   onClick={() => onAction?.('email', { email: candidate.email })}
                 >
                   <Mail className="h-4 w-4 mr-2" />
-                  Email
+                  {t('commandCenter.email', 'Email')}
                 </Button>
               )}
               {candidate.phone && (
-                <Button 
-                  variant="outline" 
-                  size="sm" 
+                <Button
+                  variant="outline"
+                  size="sm"
                   className="flex-1"
                   onClick={() => onAction?.('call', { phone: candidate.phone })}
                 >
                   <Phone className="h-4 w-4 mr-2" />
-                  Call
+                  {t('commandCenter.call', 'Call')}
                 </Button>
               )}
-              <Button 
-                variant="outline" 
-                size="sm" 
+              <Button
+                variant="outline"
+                size="sm"
                 className="flex-1"
                 onClick={() => onAction?.('message')}
               >
                 <MessageSquare className="h-4 w-4 mr-2" />
-                Message
+                {t('commandCenter.message', 'Message')}
               </Button>
             </div>
           </TabsContent>
@@ -201,14 +203,14 @@ export const CandidateCommandCenter = memo(({
             {assessments.length === 0 ? (
               <div className="text-center py-6 text-muted-foreground">
                 <FileText className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                <p className="text-sm">No assessments completed yet</p>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
+                <p className="text-sm">{t('commandCenter.noAssessments', 'No assessments completed yet')}</p>
+                <Button
+                  variant="outline"
+                  size="sm"
                   className="mt-3"
                   onClick={() => onAction?.('assign_assessment')}
                 >
-                  Assign Assessment
+                  {t('commandCenter.assignAssessment', 'Assign Assessment')}
                 </Button>
               </div>
             ) : (
@@ -239,14 +241,14 @@ export const CandidateCommandCenter = memo(({
             {meetings.length === 0 ? (
               <div className="text-center py-6 text-muted-foreground">
                 <Video className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                <p className="text-sm">No interviews scheduled</p>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
+                <p className="text-sm">{t('commandCenter.noInterviews', 'No interviews scheduled')}</p>
+                <Button
+                  variant="outline"
+                  size="sm"
                   className="mt-3"
                   onClick={() => onAction?.('schedule_interview')}
                 >
-                  Schedule Interview
+                  {t('commandCenter.scheduleInterview', 'Schedule Interview')}
                 </Button>
               </div>
             ) : (
@@ -284,31 +286,31 @@ export const CandidateCommandCenter = memo(({
                 onClick={() => onAction?.('schedule_interview')}
               >
                 <Calendar className="h-5 w-5 mb-1" />
-                <span className="text-xs">Schedule</span>
+                <span className="text-xs">{t('commandCenter.schedule', 'Schedule')}</span>
               </Button>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 className="h-auto py-3 flex-col"
                 onClick={() => onAction?.('assign_assessment')}
               >
                 <FileText className="h-5 w-5 mb-1" />
-                <span className="text-xs">Assign Test</span>
+                <span className="text-xs">{t('commandCenter.assignTest', 'Assign Test')}</span>
               </Button>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 className="h-auto py-3 flex-col"
                 onClick={() => onAction?.('advance_stage')}
               >
                 <ArrowRight className="h-5 w-5 mb-1" />
-                <span className="text-xs">Advance</span>
+                <span className="text-xs">{t('commandCenter.advance', 'Advance')}</span>
               </Button>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 className="h-auto py-3 flex-col"
                 onClick={() => onAction?.('view_salary_insights')}
               >
                 <TrendingUp className="h-5 w-5 mb-1" />
-                <span className="text-xs">Salary Insights</span>
+                <span className="text-xs">{t('commandCenter.salaryInsights', 'Salary Insights')}</span>
               </Button>
             </div>
           </TabsContent>

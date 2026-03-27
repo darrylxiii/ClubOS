@@ -1,4 +1,5 @@
 import { CreatePost } from "@/components/feed/CreatePost";
+import { useTranslation } from 'react-i18next';
 import { PostCard } from "@/components/feed/PostCard";
 import { Stories } from "@/components/feed/Stories";
 import { useAuth } from "@/contexts/AuthContext";
@@ -10,6 +11,7 @@ import { useAlgorithmicFeed } from "@/hooks/useAlgorithmicFeed";
 import { BackgroundVideo } from "@/components/BackgroundVideo";
 
 export default function Feed() {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const { posts, loading, feedType, setFeedType, refetch } = useAlgorithmicFeed();
 

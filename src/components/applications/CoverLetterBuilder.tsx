@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -30,6 +31,7 @@ export function CoverLetterBuilder({
   companyName: initialCompanyName,
   onComplete,
 }: CoverLetterBuilderProps) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [selectedJobId, setSelectedJobId] = useState(initialJobId || '');
   const [selectedTone, setSelectedTone] = useState<CoverLetterTone>('professional');
@@ -202,7 +204,7 @@ export function CoverLetterBuilder({
       {/* Step 1: Select Job */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Step 1: Select a Job</CardTitle>
+          <CardTitle className="text-lg">{t("step_1_select_a", "Step 1: Select a Job")}</CardTitle>
           <CardDescription>
             Choose a job to tailor your cover letter
           </CardDescription>
@@ -218,7 +220,7 @@ export function CoverLetterBuilder({
           ) : (
             <Select value={selectedJobId} onValueChange={setSelectedJobId}>
               <SelectTrigger>
-                <SelectValue placeholder="Select a job..." />
+                <SelectValue placeholder={t("select_a_job", "Select a job...")} />
               </SelectTrigger>
               <SelectContent>
                 {jobs.map(job => (
@@ -235,7 +237,7 @@ export function CoverLetterBuilder({
       {/* Step 2: Choose Tone */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Step 2: Choose Tone</CardTitle>
+          <CardTitle className="text-lg">{t("step_2_choose_tone", "Step 2: Choose Tone")}</CardTitle>
           <CardDescription>
             Select the writing style that best fits the role
           </CardDescription>

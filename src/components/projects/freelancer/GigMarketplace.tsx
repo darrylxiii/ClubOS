@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -48,6 +49,7 @@ interface Gig {
 }
 
 export function GigMarketplace() {
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All Categories");
@@ -83,11 +85,11 @@ export function GigMarketplace() {
   const getTalentBadge = (level: string) => {
     switch (level) {
       case "top_rated_plus":
-        return <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white">Top Rated Plus</Badge>;
+        return <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white">{t("top_rated_plus", "Top Rated Plus")}</Badge>;
       case "top_rated":
-        return <Badge className="bg-gradient-to-r from-primary to-primary/80">Top Rated</Badge>;
+        return <Badge className="bg-gradient-to-r from-primary to-primary/80">{t("top_rated", "Top Rated")}</Badge>;
       case "rising_star":
-        return <Badge variant="secondary">Rising Star</Badge>;
+        return <Badge variant="secondary">{t("rising_star", "Rising Star")}</Badge>;
       default:
         return null;
     }
@@ -119,7 +121,7 @@ export function GigMarketplace() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search gigs..."
+                placeholder={t("search_gigs", "Search gigs...")}
                 className="pl-10"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -144,11 +146,11 @@ export function GigMarketplace() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="recommended">Recommended</SelectItem>
-                <SelectItem value="best_selling">Best Selling</SelectItem>
-                <SelectItem value="newest">Newest</SelectItem>
-                <SelectItem value="price_low">Price: Low to High</SelectItem>
-                <SelectItem value="price_high">Price: High to Low</SelectItem>
+                <SelectItem value="recommended">{t("recommended", "Recommended")}</SelectItem>
+                <SelectItem value="best_selling">{t("best_selling", "Best Selling")}</SelectItem>
+                <SelectItem value="newest">{t("newest", "Newest")}</SelectItem>
+                <SelectItem value="price_low">{t("price_low_to_high", "Price: Low to High")}</SelectItem>
+                <SelectItem value="price_high">{t("price_high_to_low", "Price: High to Low")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -178,7 +180,7 @@ export function GigMarketplace() {
         <Card>
           <CardContent className="py-12 text-center">
             <Sparkles className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No Gigs Found</h3>
+            <h3 className="text-lg font-semibold mb-2">{t("no_gigs_found", "No Gigs Found")}</h3>
             <p className="text-muted-foreground mb-4">
               {searchQuery || selectedCategory !== "All Categories"
                 ? "Try adjusting your search or filters"
@@ -271,7 +273,7 @@ function GigCard({ gig }: { gig: any }) {
 
         {/* Price */}
         <div className="flex items-center justify-between pt-2 border-t">
-          <span className="text-xs text-muted-foreground">Starting at</span>
+          <span className="text-xs text-muted-foreground">{t("starting_at", "Starting at")}</span>
           <span className="text-lg font-bold">
             €{gig.starting_price || gig.basic_price}
           </span>

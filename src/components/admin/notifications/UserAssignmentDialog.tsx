@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -33,6 +34,7 @@ export function UserAssignmentDialog({
   onOpenChange,
   notificationTypeId,
 }: UserAssignmentDialogProps) {
+  const { t } = useTranslation('common');
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [channel, setChannel] = useState<"email" | "push" | "both">("email");
@@ -81,16 +83,16 @@ export function UserAssignmentDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[450px]">
         <DialogHeader>
-          <DialogTitle>Add User Assignment</DialogTitle>
+          <DialogTitle>{t("add_user_assignment", "Add User Assignment")}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
           <div className="space-y-2">
-            <Label>Search User</Label>
+            <Label>{t("search_user", "Search User")}</Label>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search by name or email..."
+                placeholder={t("search_by_name_or", "Search by name or email...")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10"
@@ -99,7 +101,7 @@ export function UserAssignmentDialog({
           </div>
 
           <div className="space-y-2">
-            <Label>Select User</Label>
+            <Label>{t("select_user", "Select User")}</Label>
             <ScrollArea className="h-[200px] rounded-md border">
               {isLoading ? (
                 <div className="p-4 text-center text-sm text-muted-foreground">
@@ -147,7 +149,7 @@ export function UserAssignmentDialog({
 
           {selectedUser && (
             <div className="p-3 rounded-lg bg-muted">
-              <p className="text-sm font-medium">Selected:</p>
+              <p className="text-sm font-medium">{t("selected", "Selected:")}</p>
               <p className="text-sm">{selectedUser.full_name || "Unnamed"}</p>
               <p className="text-xs text-muted-foreground">
                 {selectedUser.email}
@@ -156,7 +158,7 @@ export function UserAssignmentDialog({
           )}
 
           <div className="space-y-2">
-            <Label>Notification Channel</Label>
+            <Label>{t("notification_channel", "Notification Channel")}</Label>
             <Select
               value={channel}
               onValueChange={(value) =>
@@ -167,9 +169,9 @@ export function UserAssignmentDialog({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="email">Email Only</SelectItem>
-                <SelectItem value="push">Push Only</SelectItem>
-                <SelectItem value="both">Email & Push</SelectItem>
+                <SelectItem value="email">{t("email_only", "Email Only")}</SelectItem>
+                <SelectItem value="push">{t("push_only", "Push Only")}</SelectItem>
+                <SelectItem value="both">{t("email_push", "Email & Push")}</SelectItem>
               </SelectContent>
             </Select>
           </div>

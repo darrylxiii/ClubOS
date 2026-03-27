@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { motion } from '@/lib/motion';
 import { Shield, AlertTriangle, CheckCircle2, XCircle, TrendingDown, Wallet, Calendar } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -12,6 +13,7 @@ interface CFOSafetyGuardProps {
 }
 
 export function CFOSafetyGuard({ estimatedCost, className }: CFOSafetyGuardProps) {
+  const { t } = useTranslation('common');
   const { data: financialHealth } = useFinancialHealth();
   const checkRewardSafety = useCheckRewardSafety();
   const safetyResult = checkRewardSafety.data;
@@ -48,7 +50,7 @@ export function CFOSafetyGuard({ estimatedCost, className }: CFOSafetyGuardProps
             <Shield className={cn("h-6 w-6", statusConfig.color)} />
           </div>
           <div>
-            <h3 className="text-heading-sm font-semibold">CFO Safety Check</h3>
+            <h3 className="text-heading-sm font-semibold">{t("cfo_safety_check", "CFO Safety Check")}</h3>
             <p className="text-label-sm text-muted-foreground">
               Financial impact analysis
             </p>
@@ -69,7 +71,7 @@ export function CFOSafetyGuard({ estimatedCost, className }: CFOSafetyGuardProps
           >
             <div className="flex items-center gap-2 text-muted-foreground">
               <Wallet className="h-4 w-4" />
-              <span className="text-label-sm">Cash Position</span>
+              <span className="text-label-sm">{t("cash_position", "Cash Position")}</span>
             </div>
             <p className="text-heading-md font-bold">
               {formatCurrency(financialHealth.currentCash)}
@@ -84,7 +86,7 @@ export function CFOSafetyGuard({ estimatedCost, className }: CFOSafetyGuardProps
           >
             <div className="flex items-center gap-2 text-muted-foreground">
               <TrendingDown className="h-4 w-4" />
-              <span className="text-label-sm">Monthly Burn</span>
+              <span className="text-label-sm">{t("monthly_burn", "Monthly Burn")}</span>
             </div>
             <p className="text-heading-md font-bold">
               {formatCurrency(financialHealth.monthlyBurn)}
@@ -99,7 +101,7 @@ export function CFOSafetyGuard({ estimatedCost, className }: CFOSafetyGuardProps
           >
             <div className="flex items-center gap-2 text-muted-foreground">
               <Calendar className="h-4 w-4" />
-              <span className="text-label-sm">Runway</span>
+              <span className="text-label-sm">{t("runway", "Runway")}</span>
             </div>
             <p className={cn(
               "text-heading-md font-bold",
@@ -115,7 +117,7 @@ export function CFOSafetyGuard({ estimatedCost, className }: CFOSafetyGuardProps
       {/* Reward Impact */}
       <div className="space-y-4 p-4 rounded-xl bg-muted/30 border border-border/30">
         <div className="flex items-center justify-between">
-          <span className="text-label-sm text-muted-foreground">Proposed Reward</span>
+          <span className="text-label-sm text-muted-foreground">{t("proposed_reward", "Proposed Reward")}</span>
           <span className="text-heading-sm font-bold">{formatCurrency(estimatedCost)}</span>
         </div>
         
@@ -123,7 +125,7 @@ export function CFOSafetyGuard({ estimatedCost, className }: CFOSafetyGuardProps
           <>
             <div className="space-y-2">
               <div className="flex items-center justify-between text-label-sm">
-                <span className="text-muted-foreground">% of Cash Position</span>
+                <span className="text-muted-foreground">{t("of_cash_position", "% of Cash Position")}</span>
                 <span className={cn(
                   "font-medium",
                   (estimatedCost / financialHealth.currentCash) * 100 > 15 ? "text-warning" : "text-success"
@@ -138,14 +140,14 @@ export function CFOSafetyGuard({ estimatedCost, className }: CFOSafetyGuardProps
             </div>
 
             <div className="flex items-center justify-between text-label-sm">
-              <span className="text-muted-foreground">Runway Impact</span>
+              <span className="text-muted-foreground">{t("runway_impact", "Runway Impact")}</span>
               <span className="font-medium">
                 -{(estimatedCost / financialHealth.monthlyBurn).toFixed(1)} months
               </span>
             </div>
 
             <div className="flex items-center justify-between text-label-sm">
-              <span className="text-muted-foreground">New Runway After Reward</span>
+              <span className="text-muted-foreground">{t("new_runway_after_reward", "New Runway After Reward")}</span>
               <span className={cn(
                 "font-medium",
                 (financialHealth.currentCash - estimatedCost) / financialHealth.monthlyBurn < 6 

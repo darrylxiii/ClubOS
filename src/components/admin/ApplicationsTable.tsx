@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useRef } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -43,6 +44,7 @@ export function ApplicationsTable({
   onQuickApprove,
   onQuickReject
 }: ApplicationsTableProps) {
+  const { t } = useTranslation('common');
   const parentRef = useRef<HTMLDivElement>(null);
   
   const virtualizer = useVirtualizer({
@@ -88,7 +90,7 @@ export function ApplicationsTable({
   if (applications.length === 0) {
     return (
       <div className="text-center py-12 border rounded-lg">
-        <p className="text-lg text-muted-foreground">No applications found</p>
+        <p className="text-lg text-muted-foreground">{t("no_applications_found", "No applications found")}</p>
         <p className="text-sm text-muted-foreground mt-2">
           Adjust your filters or wait for new submissions
         </p>
@@ -107,13 +109,13 @@ export function ApplicationsTable({
                 onCheckedChange={onSelectAll}
               />
             </TableHead>
-            <TableHead>Candidate</TableHead>
-            <TableHead>Contact</TableHead>
-            <TableHead>Current Role</TableHead>
-            <TableHead>Desired Salary</TableHead>
-            <TableHead>Submitted</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
+            <TableHead>{t("candidate", "Candidate")}</TableHead>
+            <TableHead>{t("contact", "Contact")}</TableHead>
+            <TableHead>{t("current_role", "Current Role")}</TableHead>
+            <TableHead>{t("desired_salary", "Desired Salary")}</TableHead>
+            <TableHead>{t("submitted", "Submitted")}</TableHead>
+            <TableHead>{t("status", "Status")}</TableHead>
+            <TableHead className="text-right">{t("actions", "Actions")}</TableHead>
           </TableRow>
         </TableHeader>
       </Table>
@@ -136,7 +138,7 @@ export function ApplicationsTable({
             const hasAccount = !!(app.user_id || app.email_verified);
             const accountStatusBadge = hasAccount 
               ? null
-              : <Badge variant="outline" className="border-amber-500/50 text-amber-600 dark:text-amber-400 text-[10px] ml-2">Pending</Badge>;
+              : <Badge variant="outline" className="border-amber-500/50 text-amber-600 dark:text-amber-400 text-[10px] ml-2">{t("pending", "Pending")}</Badge>;
             
             return (
               <div

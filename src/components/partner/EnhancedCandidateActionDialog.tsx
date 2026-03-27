@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -73,6 +74,7 @@ export function EnhancedCandidateActionDialog({
   actionType,
   onComplete
 }: Props) {
+  const { t } = useTranslation('common');
   const [submitting, setSubmitting] = useState(false);
   const [feedbackText, setFeedbackText] = useState("");
   
@@ -116,17 +118,17 @@ export function EnhancedCandidateActionDialog({
 
   const handleSubmit = async () => {
     if (actionType === 'decline' && !rejectionReason) {
-      toast.error("Please select a rejection reason");
+      toast.error(t("please_select_a_rejection", "Please select a rejection reason"));
       return;
     }
 
     if ((actionType === 'advance' || actionType === 'move_back') && targetStageIndex === null) {
-      toast.error("Please select a target stage");
+      toast.error(t("please_select_a_target", "Please select a target stage"));
       return;
     }
 
     if (actionType === 'move_back' && !feedbackText.trim()) {
-      toast.error("Please provide a reason for moving back");
+      toast.error(t("please_provide_a_reason", "Please provide a reason for moving back"));
       return;
     }
 
@@ -143,7 +145,7 @@ export function EnhancedCandidateActionDialog({
         .maybeSingle();
 
       if (!jobData) {
-        toast.error("Job not found. It may have been deleted.");
+        toast.error(t("job_not_found_it", "Job not found. It may have been deleted."));
         setSubmitting(false);
         return;
       }
@@ -172,7 +174,7 @@ export function EnhancedCandidateActionDialog({
       if ((actionType === 'advance' || actionType === 'move_back') && targetStageIndex !== null) {
         // Validate target stage
         if (targetStageIndex < 0 || targetStageIndex >= stages.length) {
-          toast.error("Invalid target stage");
+          toast.error(t("invalid_target_stage", "Invalid target stage"));
           setSubmitting(false);
           return;
         }
@@ -543,13 +545,13 @@ export function EnhancedCandidateActionDialog({
               </div>
 
               <div>
-                <Label htmlFor="target-stage">Advance to Stage *</Label>
+                <Label htmlFor="target-stage">{t("advance_to_stage", "Advance to Stage *")}</Label>
                 <Select 
                   value={targetStageIndex?.toString()} 
                   onValueChange={(value) => setTargetStageIndex(parseInt(value))}
                 >
                   <SelectTrigger className="mt-2">
-                    <SelectValue placeholder="Select target stage..." />
+                    <SelectValue placeholder={t("select_target_stage", "Select target stage...")} />
                   </SelectTrigger>
                   <SelectContent>
                     {stages
@@ -561,18 +563,16 @@ export function EnhancedCandidateActionDialog({
                       ))}
                   </SelectContent>
                 </Select>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Select which stage to move this candidate to
-                </p>
+                <p className="text-xs text-muted-foreground mt-1">{t('enhancedCandidateActionDialog.selectWhichStageToMoveThisCandidateTo')}</p>
               </div>
 
               <div>
-                <Label htmlFor="advancement-notes">Notes (Optional)</Label>
+                <Label htmlFor="advancement-notes">{t("notes_optional", "Notes (Optional)")}</Label>
                 <Textarea
                   id="advancement-notes"
                   value={feedbackText}
                   onChange={(e) => setFeedbackText(e.target.value)}
-                  placeholder="Why are you advancing this candidate? Any key highlights..."
+                  placeholder={t("why_are_you_advancing", "Why are you advancing this candidate? Any key highlights...")}
                   rows={3}
                   className="mt-2"
                 />
@@ -581,13 +581,13 @@ export function EnhancedCandidateActionDialog({
           ) : actionType === 'move_back' ? (
             <>
               <div>
-                <Label htmlFor="target-stage">Move Back to Stage *</Label>
+                <Label htmlFor="target-stage">{t("move_back_to_stage", "Move Back to Stage *")}</Label>
                 <Select 
                   value={targetStageIndex?.toString()} 
                   onValueChange={(value) => setTargetStageIndex(parseInt(value))}
                 >
                   <SelectTrigger className="mt-2">
-                    <SelectValue placeholder="Select target stage..." />
+                    <SelectValue placeholder={t("select_target_stage", "Select target stage...")} />
                   </SelectTrigger>
                   <SelectContent>
                     {stages
@@ -599,30 +599,26 @@ export function EnhancedCandidateActionDialog({
                       ))}
                   </SelectContent>
                 </Select>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Select which previous stage to move this candidate to
-                </p>
+                <p className="text-xs text-muted-foreground mt-1">{t('enhancedCandidateActionDialog.selectWhichPreviousStageToMoveThisCandid')}</p>
               </div>
 
               <div>
-                <Label htmlFor="move-back-reason">Reason for Moving Back *</Label>
+                <Label htmlFor="move-back-reason">{t("reason_for_moving_back", "Reason for Moving Back *")}</Label>
                 <Textarea
                   id="move-back-reason"
                   value={feedbackText}
                   onChange={(e) => setFeedbackText(e.target.value)}
-                  placeholder="Explain why this candidate needs to return to a previous stage..."
+                  placeholder={t("explain_why_this_candidate", "Explain why this candidate needs to return to a previous stage...")}
                   rows={4}
                   className="mt-2"
                 />
-                <p className="text-xs text-muted-foreground mt-1">
-                  A reason is required for accountability
-                </p>
+                <p className="text-xs text-muted-foreground mt-1">{t('enhancedCandidateActionDialog.aReasonIsRequiredForAccountability')}</p>
               </div>
             </>
           ) : (
             <>
               <div>
-                <Label>Primary Rejection Reason *</Label>
+                <Label>{t("primary_rejection_reason", "Primary Rejection Reason *")}</Label>
                 <div className="grid grid-cols-2 gap-2 mt-2">
                   {REJECTION_REASONS.map(reason => (
                     <Button
@@ -640,7 +636,7 @@ export function EnhancedCandidateActionDialog({
 
               {(rejectionReason === 'skills_gap' || rejectionReason === 'other') && (
                 <div>
-                  <Label>Specific Gaps (Select all that apply)</Label>
+                  <Label>{t("specific_gaps_select_all", "Specific Gaps (Select all that apply)")}</Label>
                   <div className="flex flex-wrap gap-2 mt-2">
                     {SKILL_TAGS.map(tag => (
                       <Badge
@@ -657,12 +653,12 @@ export function EnhancedCandidateActionDialog({
               )}
 
               <div>
-                <Label htmlFor="rejection-feedback">Detailed Feedback</Label>
+                <Label htmlFor="rejection-feedback">{t("detailed_feedback", "Detailed Feedback")}</Label>
                 <Textarea
                   id="rejection-feedback"
                   value={feedbackText}
                   onChange={(e) => setFeedbackText(e.target.value)}
-                  placeholder="Provide specific reasons for rejection to improve our matching..."
+                  placeholder={t("provide_specific_reasons_for", "Provide specific reasons for rejection to improve our matching...")}
                   rows={4}
                   className="mt-2"
                 />
@@ -673,7 +669,7 @@ export function EnhancedCandidateActionDialog({
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={submitting}>
-            Cancel
+            {t('common:cancel')}
           </Button>
           <Button onClick={handleSubmit} disabled={submitting}>
             {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

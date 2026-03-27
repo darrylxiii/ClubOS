@@ -1,4 +1,5 @@
 import { memo, useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from '@/lib/motion';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -42,6 +43,7 @@ const TUTORIAL_STEPS = [
 ];
 
 export const TutorialOverlay = memo(({ onComplete }: TutorialOverlayProps) => {
+  const { t } = useTranslation('common');
   const [currentStep, setCurrentStep] = useState(0);
   const [show, setShow] = useState(false);
 

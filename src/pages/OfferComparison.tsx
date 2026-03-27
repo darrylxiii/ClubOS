@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useProfile } from '@/hooks/useProfile';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -25,6 +26,7 @@ import { OfferNegotiationChat } from '@/components/offers/OfferNegotiationChat';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 export default function OfferComparison() {
+  const { t } = useTranslation('common');
   const { offers, stats, isLoading, acceptOffer, declineOffer, startNegotiation } = useCandidateOffers();
   const [selectedOffer, setSelectedOffer] = useState<CandidateOffer | null>(null);
   const [showNegotiationChat, setShowNegotiationChat] = useState(false);
@@ -84,10 +86,8 @@ export default function OfferComparison() {
             <Scale className="h-6 w-6 text-primary" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold">Offer Comparison</h1>
-            <p className="text-muted-foreground">
-              Compare and evaluate your job offers with Club AI's insights
-            </p>
+            <h1 className="text-3xl font-bold">{t('offerComparison.text3')}</h1>
+            <p className="text-muted-foreground">{t('offerComparison.desc')}</p>
           </div>
         </div>
       </div>
@@ -101,7 +101,7 @@ export default function OfferComparison() {
                 <DollarSign className="h-5 w-5 text-blue-500" />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Total Offers</p>
+                <p className="text-xs text-muted-foreground">{t('offerComparison.text4')}</p>
                 <p className="text-2xl font-bold">{stats.total}</p>
               </div>
             </div>
@@ -115,7 +115,7 @@ export default function OfferComparison() {
                 <Clock className="h-5 w-5 text-amber-500" />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Pending</p>
+                <p className="text-xs text-muted-foreground">{t('offerComparison.text5')}</p>
                 <p className="text-2xl font-bold">{stats.pending}</p>
               </div>
             </div>
@@ -129,7 +129,7 @@ export default function OfferComparison() {
                 <CheckCircle className="h-5 w-5 text-green-500" />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Accepted</p>
+                <p className="text-xs text-muted-foreground">{t('offerComparison.text6')}</p>
                 <p className="text-2xl font-bold">{stats.accepted}</p>
               </div>
             </div>
@@ -143,7 +143,7 @@ export default function OfferComparison() {
                 <MessageSquare className="h-5 w-5 text-purple-500" />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Negotiating</p>
+                <p className="text-xs text-muted-foreground">{t('offerComparison.text7')}</p>
                 <p className="text-2xl font-bold">{stats.negotiating}</p>
               </div>
             </div>
@@ -157,7 +157,7 @@ export default function OfferComparison() {
                 <TrendingUp className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Highest Offer</p>
+                <p className="text-xs text-muted-foreground">{t('offerComparison.text8')}</p>
                 <p className="text-xl font-bold">{formatOfferCurrency(stats.highestOffer)}</p>
               </div>
             </div>
@@ -172,10 +172,8 @@ export default function OfferComparison() {
             <div className="mx-auto w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
               <DollarSign className="h-8 w-8 text-muted-foreground" />
             </div>
-            <h3 className="text-lg font-medium mb-2">No offers yet</h3>
-            <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-              When you receive job offers, they'll appear here for easy comparison and negotiation support.
-            </p>
+            <h3 className="text-lg font-medium mb-2">{t('offerComparison.text9')}</h3>
+            <p className="text-muted-foreground mb-6 max-w-md mx-auto">{t('offerComparison.desc2')}</p>
             <Button asChild>
               <a href="/jobs">
                 Browse Jobs
@@ -282,7 +280,7 @@ export default function OfferComparison() {
                       {selectedOffer.ai_recommendation.negotiation_tips && 
                        selectedOffer.ai_recommendation.negotiation_tips.length > 0 && (
                         <div>
-                          <p className="text-xs font-medium text-muted-foreground mb-2">Negotiation Tips</p>
+                          <p className="text-xs font-medium text-muted-foreground mb-2">{t('offerComparison.text10')}</p>
                           <ul className="text-sm space-y-1">
                             {selectedOffer.ai_recommendation.negotiation_tips.map((tip, i) => (
                               <li key={i} className="flex items-start gap-2">

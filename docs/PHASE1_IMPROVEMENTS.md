@@ -12,7 +12,7 @@ Phase 1 critical fixes have been implemented to improve code quality, testing in
 - **Status**: ✅ RESOLVED
 
 ### 2. TypeScript Strict Mode (Partial)
-- **Issue**: TypeScript config files are read-only in Lovable
+- **Issue**: TypeScript config files are read-only in the project
 - **Workaround**: Enabled stricter ESLint rules as alternative
 - **Changes**:
   - `@typescript-eslint/no-unused-vars`: "warn"
@@ -62,7 +62,7 @@ Phase 1 critical fixes have been implemented to improve code quality, testing in
 - **Status**: ✅ COMPLETE (components created, ready for integration)
 
 ### 6. Test Scripts
-- **Note**: `package.json` is read-only in Lovable
+- **Note**: `package.json` is read-only in the project
 - **Workaround**: Scripts documented in `tests/README.md`
 - **Status**: ⚠️ DOCUMENTED (actual package.json update requires manual config)
 

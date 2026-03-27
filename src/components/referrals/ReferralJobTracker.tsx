@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -50,6 +51,7 @@ const STAGE_COLORS: Record<string, string> = {
 };
 
 export function ReferralJobTracker() {
+  const { t } = useTranslation('common');
   const { data: earnings, isLoading } = useReferralEarnings();
   const [trackedJobs, setTrackedJobs] = useState<TrackedJob[]>([]);
 
@@ -130,7 +132,7 @@ export function ReferralJobTracker() {
           <div className="p-4 rounded-full bg-muted/50 mb-4">
             <Briefcase className="h-8 w-8 text-muted-foreground" />
           </div>
-          <h3 className="text-lg font-semibold mb-2">No Active Referrals</h3>
+          <h3 className="text-lg font-semibold mb-2">{t("no_active_referrals", "No Active Referrals")}</h3>
           <p className="text-muted-foreground max-w-md">
             Start referring candidates to jobs to track your earnings here in real-time.
           </p>
@@ -189,7 +191,7 @@ function TrackedJobCard({ job }: { job: TrackedJob }) {
             <p className="text-xl font-bold text-success">
               {formatCurrency(job.totalWeighted)}
             </p>
-            <p className="text-xs text-muted-foreground">weighted earnings</p>
+            <p className="text-xs text-muted-foreground">{t("weighted_earnings", "weighted earnings")}</p>
           </div>
         </div>
       </CardHeader>
@@ -198,7 +200,7 @@ function TrackedJobCard({ job }: { job: TrackedJob }) {
         {/* Pipeline Visualization */}
         <div className="space-y-2">
           <div className="flex justify-between text-xs text-muted-foreground">
-            <span>Pipeline Progress</span>
+            <span>{t("pipeline_progress", "Pipeline Progress")}</span>
             <span className="font-medium text-foreground">{probability}% probability</span>
           </div>
           <div className="relative">
@@ -230,8 +232,8 @@ function TrackedJobCard({ job }: { job: TrackedJob }) {
             </div>
           </div>
           <div className="flex justify-between text-[10px] text-muted-foreground">
-            <span>Applied</span>
-            <span>Hired</span>
+            <span>{t("applied", "Applied")}</span>
+            <span>{t("hired", "Hired")}</span>
           </div>
         </div>
 
@@ -242,7 +244,7 @@ function TrackedJobCard({ job }: { job: TrackedJob }) {
               <Users className="h-3 w-3" />
             </div>
             <p className="text-lg font-bold">{job.candidates}</p>
-            <p className="text-[10px] text-muted-foreground">Candidates</p>
+            <p className="text-[10px] text-muted-foreground">{t("candidates", "Candidates")}</p>
           </div>
 
           <div className="text-center">
@@ -250,7 +252,7 @@ function TrackedJobCard({ job }: { job: TrackedJob }) {
               <TrendingUp className="h-3 w-3" />
             </div>
             <p className="text-lg font-bold">{probability}%</p>
-            <p className="text-[10px] text-muted-foreground">Probability</p>
+            <p className="text-[10px] text-muted-foreground">{t("probability", "Probability")}</p>
           </div>
 
           <div className="text-center">
@@ -258,7 +260,7 @@ function TrackedJobCard({ job }: { job: TrackedJob }) {
               <Euro className="h-3 w-3" />
             </div>
             <p className="text-lg font-bold">{formatCurrency(job.totalProjected)}</p>
-            <p className="text-[10px] text-muted-foreground">Projected</p>
+            <p className="text-[10px] text-muted-foreground">{t("projected", "Projected")}</p>
           </div>
 
           <div className="text-center">
@@ -266,7 +268,7 @@ function TrackedJobCard({ job }: { job: TrackedJob }) {
               <CheckCircle className="h-3 w-3" />
             </div>
             <p className="text-lg font-bold text-success">{formatCurrency(job.totalWeighted)}</p>
-            <p className="text-[10px] text-muted-foreground">Weighted</p>
+            <p className="text-[10px] text-muted-foreground">{t("weighted", "Weighted")}</p>
           </div>
         </div>
 

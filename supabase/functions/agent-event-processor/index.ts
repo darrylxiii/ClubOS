@@ -1,31 +1,18 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.7";
+import { createHandler } from '../_shared/handler.ts';
+import { SupabaseClient } from "npm:@supabase/supabase-js@2";
 import { sendWhatsAppMessage, sendSMS, sendEmail, getCandidateContact, logAgentCommunication } from "../_shared/communication-utils.ts";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
 
 interface EventProcessorRequest {
   operation: 'process_events' | 'publish_event' | 'check_autonomy' | 'execute_autonomous_action';
   userId?: string;
-  data?: any;
+  data?: Record<string, unknown>;
 }
 
-serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  try {
+Deno.serve(createHandler(async (req, ctx) => {
     const { operation, userId, data } = await req.json() as EventProcessorRequest;
-    
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const supabase = ctx.supabase;
 
-    let result: any;
+    let result: Record<string, unknown>;
 
     switch (operation) {
       case 'process_events':
@@ -45,20 +32,12 @@ serve(async (req) => {
     }
 
     return new Response(JSON.stringify(result), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...ctx.corsHeaders, "Content-Type": "application/json" },
     });
-
-  } catch (error: any) {
-    console.error("Agent Event Processor error:", error);
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  }
-});
+}));
 
 // Process unprocessed events
-async function processEvents(supabase: any) {
+async function processEvents(supabase: SupabaseClient) {
   // Get unprocessed events
   const { data: events, error } = await supabase
     .from('agent_events')
@@ -76,8 +55,8 @@ async function processEvents(supabase: any) {
     try {
       const processingResult = await processEvent(supabase, event);
       results.push({ eventId: event.id, success: true, ...processingResult });
-    } catch (err: any) {
-      results.push({ eventId: event.id, success: false, error: err.message });
+    } catch (err: unknown) {
+      results.push({ eventId: event.id, success: false, error: err instanceof Error ? err.message : String(err) });
     }
   }
 
@@ -85,9 +64,9 @@ async function processEvents(supabase: any) {
 }
 
 // Process a single event
-async function processEvent(supabase: any, event: any) {
+async function processEvent(supabase: SupabaseClient, event: Record<string, unknown>) {
   const respondingAgents: string[] = [];
-  const processingResults: any[] = [];
+  const processingResults: Record<string, unknown>[] = [];
 
   // Determine which agents should respond based on event type
   const agentMappings: Record<string, string[]> = {
@@ -140,7 +119,7 @@ async function processEvent(supabase: any, event: any) {
 }
 
 // Check autonomy level for an agent action
-async function checkAgentAutonomy(supabase: any, userId: string, agentName: string, eventType: string) {
+async function checkAgentAutonomy(supabase: SupabaseClient, userId: string, agentName: string, eventType: string) {
   // Map event types to action types
   const eventToAction: Record<string, string> = {
     'INSERT_applications': 'send_follow_up',
@@ -166,7 +145,7 @@ async function checkAgentAutonomy(supabase: any, userId: string, agentName: stri
 }
 
 // Execute an agent action
-async function executeAgentAction(supabase: any, event: any, agentName: string, autonomy: any) {
+async function executeAgentAction(supabase: SupabaseClient, event: Record<string, unknown>, agentName: string, autonomy: Record<string, unknown>) {
   // Log the decision before execution
   await supabase.from('agent_decision_log').insert({
     agent_name: agentName,
@@ -194,7 +173,7 @@ async function executeAgentAction(supabase: any, event: any, agentName: string, 
 }
 
 // Handle new application event
-async function handleNewApplication(supabase: any, event: any) {
+async function handleNewApplication(supabase: SupabaseClient, event: Record<string, unknown>) {
   const applicationData = event.event_data?.new;
   if (!applicationData) return { action: 'skipped', reason: 'No application data' };
 
@@ -252,7 +231,7 @@ async function handleNewApplication(supabase: any, event: any) {
 }
 
 // Handle deadline approaching event
-async function handleDeadlineApproaching(supabase: any, event: any) {
+async function handleDeadlineApproaching(supabase: SupabaseClient, event: Record<string, unknown>) {
   // Create in-app reminder notification
   await supabase.from('notifications').insert({
     user_id: event.user_id,
@@ -297,7 +276,7 @@ async function handleDeadlineApproaching(supabase: any, event: any) {
 }
 
 // Create a suggestion for the user
-async function createSuggestion(supabase: any, event: any, agentName: string) {
+async function createSuggestion(supabase: SupabaseClient, event: Record<string, unknown>, agentName: string) {
   await supabase.from('ai_suggestions').insert({
     user_id: event.user_id,
     suggestion_type: 'agent_recommendation',
@@ -310,7 +289,7 @@ async function createSuggestion(supabase: any, event: any, agentName: string) {
 }
 
 // Publish a new event
-async function publishEvent(supabase: any, userId: string, data: any) {
+async function publishEvent(supabase: SupabaseClient, userId: string, data: Record<string, unknown>) {
   const { eventType, eventSource, entityType, entityId, eventData, priority = 5 } = data;
 
   const { data: event, error } = await supabase
@@ -333,7 +312,7 @@ async function publishEvent(supabase: any, userId: string, data: any) {
 }
 
 // Check autonomy settings for a user
-async function checkAutonomy(supabase: any, userId: string, data: any) {
+async function checkAutonomy(supabase: SupabaseClient, userId: string, data: Record<string, unknown>) {
   const { actionType } = data;
 
   const { data: settings, error } = await supabase
@@ -352,7 +331,7 @@ async function checkAutonomy(supabase: any, userId: string, data: any) {
 }
 
 // Execute an autonomous action
-async function executeAutonomousAction(supabase: any, userId: string, data: any) {
+async function executeAutonomousAction(supabase: SupabaseClient, userId: string, data: Record<string, unknown>) {
   const { actionType, actionData } = data;
 
   // Verify autonomy is allowed

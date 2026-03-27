@@ -1,13 +1,10 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.0';
+import { verifyResendWebhook } from '../_shared/webhook-verifier.ts';
+import { getCorsHeaders } from '../_shared/cors.ts';
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
 
 /**
  * Resend Webhook Handler
@@ -17,12 +14,28 @@ const corsHeaders = {
  * Webhook events: https://resend.com/docs/dashboard/webhooks/introduction
  */
 const handler = async (req: Request): Promise<Response> => {
+  const corsHeaders = getCorsHeaders(req);
+
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const payload = await req.json();
+    // Verify webhook signature (Svix)
+    const rawBody = await req.text();
+    const webhookSecret = Deno.env.get('RESEND_WEBHOOK_SECRET');
+    if (webhookSecret) {
+      const isValid = await verifyResendWebhook(rawBody, req.headers, webhookSecret);
+      if (!isValid) {
+        console.error('[Resend Webhook] Signature verification failed');
+        return new Response('Invalid signature', { status: 401 });
+      }
+      console.log('[Resend Webhook] Signature verified');
+    } else if (Deno.env.get('DENO_ENV') !== 'development') {
+      console.warn('[Resend Webhook] RESEND_WEBHOOK_SECRET not configured — skipping verification');
+    }
+
+    const payload = JSON.parse(rawBody);
     const { type, data } = payload;
 
     if (!type || !data) {

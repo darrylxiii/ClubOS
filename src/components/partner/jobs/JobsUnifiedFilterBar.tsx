@@ -44,6 +44,7 @@ import { ViewMode } from '../ViewModeSwitcher';
 import { JobFilterState } from '@/types/jobFilters';
 
 export type JobStatusFilter = 'all' | 'draft' | 'published' | 'closed' | 'archived' | 'favorites';
+import { useTranslation } from 'react-i18next';
 export type QuickFilterType = 'all' | 'expiring-soon' | 'recent-activity' | 'high-engagement';
 
 interface JobsUnifiedFilterBarProps {
@@ -121,6 +122,7 @@ export const JobsUnifiedFilterBar = memo(({
   onShowKeyboardShortcuts,
   className,
 }: JobsUnifiedFilterBarProps) => {
+  const { t } = useTranslation('partner');
   const [datePopoverOpen, setDatePopoverOpen] = useState(false);
   const [presetName, setPresetName] = useState('');
 
@@ -266,11 +268,11 @@ export const JobsUnifiedFilterBar = memo(({
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-64 bg-card/95 backdrop-blur-xl">
             <DropdownMenuLabel className="flex items-center justify-between">
-              <span>Advanced Filters</span>
+              <span>{t('jobsUnifiedFilterBar.advancedFilters')}</span>
               {hasActiveFilters && (
                 <Button variant="ghost" size="sm" className="h-6 text-xs" onClick={onResetFilters}>
                   <X className="h-3 w-3 mr-1" />
-                  Clear
+                  {t('common:clear')}
                 </Button>
               )}
             </DropdownMenuLabel>
@@ -279,7 +281,7 @@ export const JobsUnifiedFilterBar = memo(({
             {/* Company Filter */}
             {availableCompanies.length > 1 && (
               <>
-                <DropdownMenuLabel className="text-xs text-muted-foreground">Company</DropdownMenuLabel>
+                <DropdownMenuLabel className="text-xs text-muted-foreground">{t('jobsUnifiedFilterBar.menu.company')}</DropdownMenuLabel>
                 {availableCompanies.slice(0, 5).map((company) => (
                   <DropdownMenuCheckboxItem
                     key={company.id}
@@ -299,7 +301,7 @@ export const JobsUnifiedFilterBar = memo(({
             )}
             
             {/* Date Range */}
-            <DropdownMenuLabel className="text-xs text-muted-foreground">Created Date</DropdownMenuLabel>
+            <DropdownMenuLabel className="text-xs text-muted-foreground">{t('jobsUnifiedFilterBar.menu.createdDate')}</DropdownMenuLabel>
             <div className="px-2 py-1.5">
               <Popover open={datePopoverOpen} onOpenChange={setDatePopoverOpen}>
                 <PopoverTrigger asChild>
@@ -344,12 +346,12 @@ export const JobsUnifiedFilterBar = memo(({
           <DropdownMenuTrigger asChild>
             <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs">
               <CurrentViewIcon className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Views</span>
+              <span className="hidden sm:inline">{t('jobsUnifiedFilterBar.views')}</span>
               <ChevronDown className="h-3 w-3" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48 bg-card/95 backdrop-blur-xl">
-            <DropdownMenuLabel>Layout</DropdownMenuLabel>
+            <DropdownMenuLabel>{t('jobsUnifiedFilterBar.menu.layout')}</DropdownMenuLabel>
             {VIEW_MODES.map(({ mode, icon: Icon, label }) => (
               <DropdownMenuItem
                 key={mode}
@@ -365,7 +367,7 @@ export const JobsUnifiedFilterBar = memo(({
             {savedPresets.length > 0 && (
               <>
                 <DropdownMenuSeparator />
-                <DropdownMenuLabel>Saved Views</DropdownMenuLabel>
+                <DropdownMenuLabel>{t('jobsUnifiedFilterBar.menu.savedViews')}</DropdownMenuLabel>
                 {savedPresets.map((preset) => (
                   <DropdownMenuItem
                     key={preset.id}

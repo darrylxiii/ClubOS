@@ -4,8 +4,10 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Search, TrendingUp, AlertCircle, Clock } from "lucide-react";
 import { DynamicChart } from "@/components/charts/DynamicChart";
+import { useTranslation } from 'react-i18next';
 
 export default function SearchAnalyticsTab() {
+  const { t } = useTranslation('admin');
   const { data: searchData } = useQuery({
     queryKey: ['search-analytics'],
     queryFn: async () => {
@@ -69,40 +71,40 @@ export default function SearchAnalyticsTab() {
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Searches</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('activity.searchAnalyticsTab.totalSearches')}</CardTitle>
             <Search className="h-4 w-4 text-blue-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{searchData?.recentSearches?.length || 0}</div>
-            <p className="text-xs text-muted-foreground">Last 7 days</p>
+            <p className="text-xs text-muted-foreground">{t('activity.searchAnalyticsTab.last7Days')}</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Unique Queries</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('activity.searchAnalyticsTab.uniqueQueries')}</CardTitle>
             <TrendingUp className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{searchData?.topQueries?.length || 0}</div>
-            <p className="text-xs text-muted-foreground">Different searches</p>
+            <p className="text-xs text-muted-foreground">{t('activity.searchAnalyticsTab.differentSearches')}</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Zero Results</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('activity.searchAnalyticsTab.zeroResults')}</CardTitle>
             <AlertCircle className="h-4 w-4 text-destructive" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{searchData?.zeroResultQueries?.length || 0}</div>
-            <p className="text-xs text-muted-foreground">Queries with no results</p>
+            <p className="text-xs text-muted-foreground">{t('activity.searchAnalyticsTab.queriesWithNoResults')}</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Avg Click Time</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('activity.searchAnalyticsTab.avgClickTime')}</CardTitle>
             <Clock className="h-4 w-4 text-purple-500" />
           </CardHeader>
           <CardContent>
@@ -111,15 +113,15 @@ export default function SearchAnalyticsTab() {
                 ? `${Math.round(searchData.topQueries[0].avgTimeToClick / 1000)}s`
                 : '0s'}
             </div>
-            <p className="text-xs text-muted-foreground">Time to first click</p>
+            <p className="text-xs text-muted-foreground">{t('activity.searchAnalyticsTab.timeToFirstClick')}</p>
           </CardContent>
         </Card>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Top Search Queries</CardTitle>
-          <CardDescription>Most frequently searched terms</CardDescription>
+          <CardTitle>{t('activity.searchAnalyticsTab.topSearchQueries')}</CardTitle>
+          <CardDescription>{t('activity.searchAnalyticsTab.mostFrequentlySearchedTerms')}</CardDescription>
         </CardHeader>
         <CardContent>
           <DynamicChart
@@ -137,8 +139,8 @@ export default function SearchAnalyticsTab() {
       <div className="grid gap-6 md:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Search Performance</CardTitle>
-            <CardDescription>Click rates and result counts</CardDescription>
+            <CardTitle>{t('activity.searchAnalyticsTab.searchPerformance')}</CardTitle>
+            <CardDescription>{t('activity.searchAnalyticsTab.clickRatesAndResultCounts')}</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
@@ -162,7 +164,7 @@ export default function SearchAnalyticsTab() {
                   </div>
                 ))
               ) : (
-                <p className="text-sm text-muted-foreground">No search data available</p>
+                <p className="text-sm text-muted-foreground">{t('activity.searchAnalyticsTab.noSearchDataAvailable')}</p>
               )}
             </div>
           </CardContent>
@@ -170,8 +172,8 @@ export default function SearchAnalyticsTab() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Zero Result Queries</CardTitle>
-            <CardDescription>Searches that need attention</CardDescription>
+            <CardTitle>{t('activity.searchAnalyticsTab.zeroResultQueries')}</CardTitle>
+            <CardDescription>{t('activity.searchAnalyticsTab.searchesThatNeedAttention')}</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
@@ -184,11 +186,11 @@ export default function SearchAnalyticsTab() {
                         {query.count} searches • {query.zeroResultRate}% zero results
                       </p>
                     </div>
-                    <Badge variant="destructive">No results</Badge>
+                    <Badge variant="destructive">{t('activity.searchAnalyticsTab.noResults')}</Badge>
                   </div>
                 ))
               ) : (
-                <p className="text-sm text-muted-foreground">All searches returning results 🎉</p>
+                <p className="text-sm text-muted-foreground">{"All searches returning results 🎉"}</p>
               )}
             </div>
           </CardContent>

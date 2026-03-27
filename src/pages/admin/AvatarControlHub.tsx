@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { DashboardHeader } from '@/components/admin/shared/DashboardHeader';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -17,6 +18,7 @@ import { TimeCorrectionDialog } from '@/components/avatar-control/TimeCorrection
 import type { AvatarAccount } from '@/hooks/useAvatarAccounts';
 
 export default function AvatarControlHub() {
+  const { t } = useTranslation('admin');
   const { data: accounts = [], isLoading, refetch, bulkSync } = useAvatarAccounts();
   const { activeSessions, data: allSessions = [] } = useAvatarSessions();
   const { data: jobInsights = [] } = useJobInsights();
@@ -52,10 +54,10 @@ export default function AvatarControlHub() {
   const getAnomalyBadge = (session: any) => {
     const flags = session.anomaly_flags ?? [];
     if (flags.includes('possibly_abandoned')) {
-      return <Badge variant="outline" className="text-amber-400 border-amber-400/30 text-[10px]">Possibly left running</Badge>;
+      return <Badge variant="outline" className="text-amber-400 border-amber-400/30 text-[10px]">{t('avatarControlHub.text2')}</Badge>;
     }
     if (flags.includes('suspiciously_short')) {
-      return <Badge variant="outline" className="text-amber-400 border-amber-400/30 text-[10px]">Very short</Badge>;
+      return <Badge variant="outline" className="text-amber-400 border-amber-400/30 text-[10px]">{t('avatarControlHub.text3')}</Badge>;
     }
     // Also flag dynamically for active sessions
     if (session.status === 'completed') {
@@ -64,7 +66,7 @@ export default function AvatarControlHub() {
         (new Date(session.expected_end_at).getTime() - new Date(session.started_at).getTime()) / 60000
       );
       if (duration > expected * 2) {
-        return <Badge variant="outline" className="text-amber-400 border-amber-400/30 text-[10px]">Over 2x expected</Badge>;
+        return <Badge variant="outline" className="text-amber-400 border-amber-400/30 text-[10px]">{t('avatarControlHub.text4')}</Badge>;
       }
       if (duration < 5) {
         return <Badge variant="outline" className="text-amber-400 border-amber-400/30 text-[10px]">{'< 5 min'}</Badge>;
@@ -78,7 +80,7 @@ export default function AvatarControlHub() {
         <ActiveSessionBanner />
 
         <DashboardHeader
-          title="Account Traffic Control"
+          title={t('avatarControlHub.text5')}
           description="Manage LinkedIn avatar sessions. Prevent double logins and monitor account usage."
           onRefresh={() => refetch()}
           isRefreshing={isLoading}
@@ -110,7 +112,7 @@ export default function AvatarControlHub() {
                 <Users className="h-4 w-4 text-muted-foreground" />
                 <span className="text-2xl font-bold">{accounts.length}</span>
               </div>
-              <p className="text-xs text-muted-foreground mt-1">Total Accounts</p>
+              <p className="text-xs text-muted-foreground mt-1">{t('avatarControlHub.text6')}</p>
             </CardContent>
           </Card>
           <Card>
@@ -119,7 +121,7 @@ export default function AvatarControlHub() {
                 <Radio className="h-4 w-4 text-red-400" />
                 <span className="text-2xl font-bold">{activeSessions.length}</span>
               </div>
-              <p className="text-xs text-muted-foreground mt-1">Active Sessions</p>
+              <p className="text-xs text-muted-foreground mt-1">{t('avatarControlHub.text7')}</p>
             </CardContent>
           </Card>
           <Card>
@@ -130,7 +132,7 @@ export default function AvatarControlHub() {
                   {accounts.filter(a => a.status === 'available').length - activeSessions.length}
                 </span>
               </div>
-              <p className="text-xs text-muted-foreground mt-1">Available</p>
+              <p className="text-xs text-muted-foreground mt-1">{t('avatarControlHub.text8')}</p>
             </CardContent>
           </Card>
           <Card>
@@ -139,7 +141,7 @@ export default function AvatarControlHub() {
                 <Shield className="h-4 w-4 text-amber-400" />
                 <span className="text-2xl font-bold">{atRiskCount}</span>
               </div>
-              <p className="text-xs text-muted-foreground mt-1">At Risk</p>
+              <p className="text-xs text-muted-foreground mt-1">{t('avatarControlHub.text9')}</p>
             </CardContent>
           </Card>
         </div>
@@ -147,8 +149,8 @@ export default function AvatarControlHub() {
         {/* Main content */}
         <Tabs defaultValue="accounts">
           <TabsList>
-            <TabsTrigger value="accounts">Accounts</TabsTrigger>
-            <TabsTrigger value="history">Session History</TabsTrigger>
+            <TabsTrigger value="accounts">{t('avatarControlHub.text10')}</TabsTrigger>
+            <TabsTrigger value="history">{t('avatarControlHub.text11')}</TabsTrigger>
             <TabsTrigger value="job-insights">
               <BarChart3 className="h-3.5 w-3.5 mr-1" />
               Job Insights
@@ -166,7 +168,7 @@ export default function AvatarControlHub() {
           <TabsContent value="history" className="mt-4">
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">Recent Sessions</CardTitle>
+                <CardTitle className="text-base">{t('avatarControlHub.text12')}</CardTitle>
               </CardHeader>
               <CardContent>
                 {accounts.length > 0 ? (
@@ -212,7 +214,7 @@ export default function AvatarControlHub() {
                                 originalMinutes: primarySessionJob.minutes_logged ?? duration,
                                 jobTitle: primarySessionJob.jobs?.title ?? jobTitle,
                               })}
-                              title="Correct time"
+                              title={t('avatarControlHub.text13')}
                             >
                               <Edit3 className="h-3 w-3" />
                             </Button>
@@ -222,7 +224,7 @@ export default function AvatarControlHub() {
                     })}
                   </div>
                 ) : (
-                  <p className="text-sm text-muted-foreground text-center py-8">No sessions yet.</p>
+                  <p className="text-sm text-muted-foreground text-center py-8">{t('avatarControlHub.text14')}</p>
                 )}
               </CardContent>
             </Card>
@@ -240,13 +242,13 @@ export default function AvatarControlHub() {
                 {jobInsights.length > 0 ? (
                   <div className="space-y-1">
                     <div className="flex items-center gap-3 text-[10px] font-medium text-muted-foreground uppercase tracking-wider py-2 border-b border-border">
-                      <span className="w-48">Job</span>
-                      <span className="w-24">Company</span>
-                      <span className="w-20 text-right">Sessions</span>
-                      <span className="w-20 text-right">Total Time</span>
-                      <span className="w-20 text-right">Avg / Session</span>
-                      <span className="w-20 text-right">Accounts</span>
-                      <span className="w-28">Last Activity</span>
+                      <span className="w-48">{t('avatarControlHub.text15')}</span>
+                      <span className="w-24">{t('avatarControlHub.text16')}</span>
+                      <span className="w-20 text-right">{t('avatarControlHub.text17')}</span>
+                      <span className="w-20 text-right">{t('avatarControlHub.text18')}</span>
+                      <span className="w-20 text-right">{t('avatarControlHub.text19')}</span>
+                      <span className="w-20 text-right">{t('avatarControlHub.text20')}</span>
+                      <span className="w-28">{t('avatarControlHub.text21')}</span>
                     </div>
                     {jobInsights.map(insight => (
                       <div key={insight.job_id} className="flex items-center gap-3 text-xs py-2.5 border-b border-border/50">
@@ -269,9 +271,7 @@ export default function AvatarControlHub() {
                     ))}
                   </div>
                 ) : (
-                  <p className="text-sm text-muted-foreground text-center py-8">
-                    No job data yet. Start a session linked to a job to see insights.
-                  </p>
+                  <p className="text-sm text-muted-foreground text-center py-8">{t('avatarControlHub.desc')}</p>
                 )}
               </CardContent>
             </Card>

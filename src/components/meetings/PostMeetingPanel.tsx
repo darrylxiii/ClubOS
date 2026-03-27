@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 /**
  * Post-Meeting Panel Component
  * 
@@ -30,6 +31,7 @@ interface PostMeetingPanelProps {
 }
 
 export function PostMeetingPanel({ meetingId, className }: PostMeetingPanelProps) {
+  const { t } = useTranslation('common');
   const {
     followUp,
     actionItems,
@@ -73,7 +75,7 @@ export function PostMeetingPanel({ meetingId, className }: PostMeetingPanelProps
       {/* Header with Generate Button */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-semibold">Post-Meeting Summary</h2>
+          <h2 className="text-xl font-semibold">{t("postmeeting_summary", "Post-Meeting Summary")}</h2>
           <p className="text-sm text-muted-foreground">
             AI-generated follow-ups and action items
           </p>
@@ -146,15 +148,15 @@ export function PostMeetingPanel({ meetingId, className }: PostMeetingPanelProps
                   </div>
                   <div>
                     <p className="text-2xl font-bold">{roiMetrics.duration_minutes ?? '-'}</p>
-                    <p className="text-sm text-muted-foreground">Minutes</p>
+                    <p className="text-sm text-muted-foreground">{t("minutes", "Minutes")}</p>
                   </div>
                   <div>
                     <p className="text-2xl font-bold">{roiMetrics.decisions_made}</p>
-                    <p className="text-sm text-muted-foreground">Decisions</p>
+                    <p className="text-sm text-muted-foreground">{t("decisions", "Decisions")}</p>
                   </div>
                   <div>
                     <p className="text-2xl font-bold">{roiMetrics.action_items_count}</p>
-                    <p className="text-sm text-muted-foreground">Action Items</p>
+                    <p className="text-sm text-muted-foreground">{t("action_items", "Action Items")}</p>
                   </div>
                 </div>
                 {roiMetrics.could_have_been_email && (
@@ -292,12 +294,12 @@ export function PostMeetingPanel({ meetingId, className }: PostMeetingPanelProps
           {followUp.generated_content?.summary && (
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-base">Meeting Summary</CardTitle>
+                <CardTitle className="text-base">{t("meeting_summary", "Meeting Summary")}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 {followUp.generated_content.summary.key_points?.length > 0 && (
                   <div>
-                    <h4 className="text-sm font-medium mb-2">Key Points</h4>
+                    <h4 className="text-sm font-medium mb-2">{t("key_points", "Key Points")}</h4>
                     <ul className="space-y-1">
                       {followUp.generated_content.summary.key_points.map((point, i) => (
                         <li key={i} className="text-sm text-muted-foreground flex items-start gap-2">
@@ -313,7 +315,7 @@ export function PostMeetingPanel({ meetingId, className }: PostMeetingPanelProps
                   <>
                     <Separator />
                     <div>
-                      <h4 className="text-sm font-medium mb-2">Decisions Made</h4>
+                      <h4 className="text-sm font-medium mb-2">{t("decisions_made", "Decisions Made")}</h4>
                       <ul className="space-y-1">
                         {followUp.generated_content.summary.decisions.map((decision, i) => (
                           <li key={i} className="text-sm text-muted-foreground flex items-start gap-2">
@@ -330,7 +332,7 @@ export function PostMeetingPanel({ meetingId, className }: PostMeetingPanelProps
                   <>
                     <Separator />
                     <div>
-                      <h4 className="text-sm font-medium mb-2">Next Steps</h4>
+                      <h4 className="text-sm font-medium mb-2">{t("next_steps", "Next Steps")}</h4>
                       <ul className="space-y-1">
                         {followUp.generated_content.summary.next_steps.map((step, i) => (
                           <li key={i} className="text-sm text-muted-foreground flex items-start gap-2">

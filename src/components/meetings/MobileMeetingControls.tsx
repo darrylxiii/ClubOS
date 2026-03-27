@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
@@ -58,6 +59,7 @@ export function MobileMeetingControls({
   onOpenBackgrounds,
   onEndCall
 }: MobileMeetingControlsProps) {
+  const { t } = useTranslation('common');
   const [moreOpen, setMoreOpen] = useState(false);
 
   const primaryActions = [
@@ -169,12 +171,12 @@ export function MobileMeetingControls({
           <SheetTrigger asChild>
             <button className="flex flex-col items-center justify-center p-2 rounded-lg min-w-[60px] active:bg-muted transition-colors text-muted-foreground">
               <MoreHorizontal className="w-6 h-6" />
-              <span className="text-[10px] mt-1">More</span>
+              <span className="text-[10px] mt-1">{t("more", "More")}</span>
             </button>
           </SheetTrigger>
           <SheetContent side="bottom" className="pb-safe">
             <SheetHeader className="text-left">
-              <SheetTitle>More Options</SheetTitle>
+              <SheetTitle>{t("more_options", "More Options")}</SheetTitle>
             </SheetHeader>
             <div className="grid grid-cols-3 gap-4 py-6">
               {moreActions.map((action, idx) => (

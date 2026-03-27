@@ -1,9 +1,11 @@
+import { useTranslation } from 'react-i18next';
 import React, { lazy, Suspense, ComponentType, useEffect, useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Loader2 } from 'lucide-react';
 
 // Skeleton loaders for funnel components
 export function FunnelStepSkeleton() {
+  const { t } = useTranslation('common');
   return (
     <div className="space-y-4 animate-pulse">
       <div className="flex flex-col items-center gap-3 mb-6">
@@ -89,7 +91,7 @@ export function LazyComponent({
   if (error) {
     return (
       <div className="p-4 text-center text-destructive">
-        <p>Failed to load component</p>
+        <p>{t("failed_to_load_component", "Failed to load component")}</p>
         <button 
           onClick={() => window.location.reload()} 
           className="text-sm underline mt-2"

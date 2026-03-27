@@ -20,7 +20,7 @@ Your booking system has been upgraded to a future-proof, AI-powered platform wit
 
 **Technical:**
 - Edge Function: `ai-booking-assistant`
-- Uses Lovable AI (no API key required)
+- Uses Google Gemini (no API key required)
 - Real-time streaming responses
 - Context-aware suggestions
 
@@ -330,7 +330,7 @@ Your booking system now features:
 - **Live Scheduling:** [/scheduling](/scheduling)
 - **Test Booking:** [/book/darryl](/book/darryl)
 - **Analytics:** [/scheduling → Analytics tab](/scheduling)
-- **Backend Functions:** Available in Lovable Cloud
+- **Backend Functions:** Available in Supabase
 
 **Questions?** All edge functions are deployed and ready. Database schema is live. Features are production-ready.
 

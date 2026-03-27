@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -25,6 +26,7 @@ const categoryConfig: Record<string, { label: string; icon: typeof Code; color: 
 };
 
 export function ScalingReadinessPanel() {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
@@ -57,7 +59,7 @@ export function ScalingReadinessPanel() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['scaling-readiness-checklist'] });
     },
-    onError: (error) => toast.error('Failed to update: ' + error.message),
+    onError: (error) => toast.error(t("failed_to_update", "Failed to update:") + error.message),
   });
 
   const getStatusIcon = (isComplete: boolean) => {
@@ -96,8 +98,8 @@ export function ScalingReadinessPanel() {
             <div className="flex items-center gap-3">
               <Rocket className="h-8 w-8 text-primary" />
               <div>
-                <h2 className="text-2xl font-bold">Scale Readiness Score</h2>
-                <p className="text-muted-foreground">Overall preparation for 10x growth</p>
+                <h2 className="text-2xl font-bold">{t("scale_readiness_score", "Scale Readiness Score")}</h2>
+                <p className="text-muted-foreground">{t("overall_preparation_for_10x", "Overall preparation for 10x growth")}</p>
               </div>
             </div>
             <div className="text-right">

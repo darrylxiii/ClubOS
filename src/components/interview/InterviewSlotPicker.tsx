@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -30,6 +31,7 @@ export function InterviewSlotPicker({
   onSlotSelect,
   selectedSlot,
 }: InterviewSlotPickerProps) {
+  const { t } = useTranslation('common');
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [slots, setSlots] = useState<TimeSlot[]>([]);
   const [loading, setLoading] = useState(false);
@@ -150,7 +152,7 @@ export function InterviewSlotPicker({
       <div className="space-y-4">
         <div className="flex items-center gap-2">
           <CalendarIcon className="h-5 w-5 text-muted-foreground" />
-          <h4 className="font-semibold">Select a Date</h4>
+          <h4 className="font-semibold">{t("select_a_date", "Select a Date")}</h4>
         </div>
         
         {calendarLoading && (
@@ -191,11 +193,11 @@ export function InterviewSlotPicker({
         <div className="flex items-center gap-4 text-xs text-muted-foreground">
           <div className="flex items-center gap-1.5">
             <div className="w-2 h-2 rounded-full bg-warning" />
-            <span>Limited</span>
+            <span>{t("limited", "Limited")}</span>
           </div>
           <div className="flex items-center gap-1.5">
             <div className="w-2 h-2 rounded-full bg-success" />
-            <span>Available</span>
+            <span>{t("available", "Available")}</span>
           </div>
         </div>
       </div>
@@ -232,13 +234,13 @@ export function InterviewSlotPicker({
         ) : loading ? (
           <div className="flex flex-col items-center justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-            <p className="text-sm text-muted-foreground mt-2">Loading times...</p>
+            <p className="text-sm text-muted-foreground mt-2">{t("loading_times", "Loading times...")}</p>
           </div>
         ) : slots.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <Clock className="h-12 w-12 text-muted-foreground/50 mb-4" />
-            <p className="text-muted-foreground">No available times for this date</p>
-            <p className="text-sm text-muted-foreground">Try another date</p>
+            <p className="text-muted-foreground">{t("no_available_times_for", "No available times for this date")}</p>
+            <p className="text-sm text-muted-foreground">{t("try_another_date", "Try another date")}</p>
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-2 max-h-[320px] overflow-y-auto pr-1">

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { lazy, Suspense } from "react";
 
 import { RoleGate } from "@/components/RoleGate";
@@ -21,6 +22,7 @@ const TAB_MAP: Record<string, string> = {
 };
 
 export default function ComplianceHub() {
+  const { t } = useTranslation('common');
   const [searchParams, setSearchParams] = useSearchParams();
   const activeTab = TAB_MAP[searchParams.get("tab") || ""] || "dashboard";
 
@@ -35,7 +37,7 @@ export default function ComplianceHub() {
           <div className="space-y-1">
             <div className="flex items-center gap-3">
               <Shield className="h-8 w-8 text-primary" />
-              <h1 className="text-3xl font-bold tracking-tight">COMPLIANCE CENTER</h1>
+              <h1 className="text-3xl font-bold tracking-tight">{t("compliance_center", "COMPLIANCE CENTER")}</h1>
             </div>
             <p className="text-muted-foreground">
               Legal agreements, data processing, subprocessors, and audit management
@@ -44,11 +46,11 @@ export default function ComplianceHub() {
 
           <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
             <TabsList className="h-auto flex-wrap bg-card/50 backdrop-blur-sm rounded-lg p-1">
-              <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-              <TabsTrigger value="legal">Legal</TabsTrigger>
-              <TabsTrigger value="subprocessors">Subprocessors</TabsTrigger>
-              <TabsTrigger value="classification">Classification</TabsTrigger>
-              <TabsTrigger value="audits">Audits</TabsTrigger>
+              <TabsTrigger value="dashboard">{t("dashboard", "Dashboard")}</TabsTrigger>
+              <TabsTrigger value="legal">{t("legal", "Legal")}</TabsTrigger>
+              <TabsTrigger value="subprocessors">{t("subprocessors", "Subprocessors")}</TabsTrigger>
+              <TabsTrigger value="classification">{t("classification", "Classification")}</TabsTrigger>
+              <TabsTrigger value="audits">{t("audits", "Audits")}</TabsTrigger>
             </TabsList>
 
             <Suspense fallback={<PageLoader />}>

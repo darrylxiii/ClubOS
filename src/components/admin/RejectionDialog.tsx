@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -29,6 +30,7 @@ export function RejectionDialog({
   candidateName,
   onConfirm 
 }: RejectionDialogProps) {
+  const { t } = useTranslation('common');
   const [isLoading, setIsLoading] = useState(false);
   const [reasonTemplate, setReasonTemplate] = useState("");
   const [customReason, setCustomReason] = useState("");
@@ -66,7 +68,7 @@ export function RejectionDialog({
             <div className="p-2 rounded-full bg-red-100 dark:bg-red-900/30">
               <XCircle className="w-6 h-6 text-red-600 dark:text-red-400" />
             </div>
-            <DialogTitle>Reject Application</DialogTitle>
+            <DialogTitle>{t("reject_application", "Reject Application")}</DialogTitle>
           </div>
           <DialogDescription>
             You're about to reject <span className="font-semibold text-foreground">{candidateName}</span>'s application.
@@ -75,10 +77,10 @@ export function RejectionDialog({
 
         <div className="space-y-4 py-4">
           <div className="space-y-2">
-            <Label htmlFor="reason">Reason for rejection *</Label>
+            <Label htmlFor="reason">{t("reason_for_rejection", "Reason for rejection *")}</Label>
             <Select value={reasonTemplate} onValueChange={setReasonTemplate}>
               <SelectTrigger>
-                <SelectValue placeholder="Select a reason" />
+                <SelectValue placeholder={t("select_a_reason", "Select a reason")} />
               </SelectTrigger>
               <SelectContent>
                 {REJECTION_REASONS.map((reason) => (
@@ -92,10 +94,10 @@ export function RejectionDialog({
 
           {reasonTemplate === "custom" && (
             <div className="space-y-2">
-              <Label htmlFor="custom-reason">Custom reason *</Label>
+              <Label htmlFor="custom-reason">{t("custom_reason", "Custom reason *")}</Label>
               <Textarea
                 id="custom-reason"
-                placeholder="Explain why this application is being rejected..."
+                placeholder={t("explain_why_this_application", "Explain why this application is being rejected...")}
                 value={customReason}
                 onChange={(e) => setCustomReason(e.target.value)}
                 rows={4}

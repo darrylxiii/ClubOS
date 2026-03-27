@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
@@ -19,6 +20,7 @@ interface GenerateCourseDialogProps {
 }
 
 export function GenerateCourseDialog({ open, onOpenChange, academyId, onSuccess }: GenerateCourseDialogProps) {
+  const { t } = useTranslation('common');
     const navigate = useNavigate();
     const { user } = useAuth();
 
@@ -134,7 +136,7 @@ export function GenerateCourseDialog({ open, onOpenChange, academyId, onSuccess 
                     {step === 'input' ? (
                         <div className="space-y-4">
                             <div className="space-y-2">
-                                <Label htmlFor="prompt">What is the topic of your course?</Label>
+                                <Label htmlFor="prompt">{t("what_is_the_topic", "What is the topic of your course?")}</Label>
                                 <Textarea
                                     id="prompt"
                                     placeholder="e.g., A comprehensive guide to digital marketing for beginners, covering SEO, social media, and email marketing."
@@ -145,11 +147,11 @@ export function GenerateCourseDialog({ open, onOpenChange, academyId, onSuccess 
                                 />
                             </div>
                             <div className="bg-muted/50 p-4 rounded-lg text-sm text-muted-foreground">
-                                <p className="font-medium mb-2">Tips for best results:</p>
+                                <p className="font-medium mb-2">{t("tips_for_best_results", "Tips for best results:")}</p>
                                 <ul className="list-disc pl-4 space-y-1">
-                                    <li>Be specific about the target audience (e.g., "for beginners")</li>
-                                    <li>Mention key topics you want to cover</li>
-                                    <li>Specify the desired tone (e.g., "professional", "casual")</li>
+                                    <li>{t("be_specific_about_the", "Be specific about the target audience (e.g., ')for beginners')")}</li>
+                                    <li>{t("mention_key_topics_you", "Mention key topics you want to cover")}</li>
+                                    <li>{t("specify_the_desired_tone", "Specify the desired tone (e.g., ')professional\", \"casual')")}</li>
                                 </ul>
                             </div>
                         </div>
@@ -169,7 +171,7 @@ export function GenerateCourseDialog({ open, onOpenChange, academyId, onSuccess 
                             </div>
 
                             <div className="space-y-3">
-                                <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wider">Modules</h4>
+                                <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wider">{t("modules", "Modules")}</h4>
                                 {generatedCourse.modules.map((mod: any, i: number) => (
                                     <div key={i} className="p-3 border rounded-lg bg-card">
                                         <div className="flex items-center gap-3 mb-1">
@@ -189,7 +191,7 @@ export function GenerateCourseDialog({ open, onOpenChange, academyId, onSuccess 
                 <DialogFooter className="gap-2 sm:gap-0">
                     {step === 'input' ? (
                         <>
-                            <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+                            <Button variant="outline" onClick={() => onOpenChange(false)}>{t("cancel", "Cancel")}</Button>
                             <Button onClick={handleGenerate} disabled={loading || !prompt.trim()}>
                                 {loading ? (
                                     <>

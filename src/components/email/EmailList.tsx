@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Email } from "@/hooks/useEmails";
 import { EmailRowSkeleton } from "./EmailRowSkeleton";
@@ -36,6 +37,7 @@ export function EmailList({
   onLoadMore,
   loadingMore
 }: EmailListProps) {
+  const { t } = useTranslation('common');
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   const toggleSelection = (emailId: string) => {
@@ -100,7 +102,7 @@ export function EmailList({
       <div className="flex-1 flex items-center justify-center text-center p-8">
         <div>
           <Mail className="h-16 w-16 mx-auto mb-4 text-muted-foreground opacity-50" />
-          <h3 className="text-lg font-semibold mb-2">No emails</h3>
+          <h3 className="text-lg font-semibold mb-2">{t("no_emails", "No emails")}</h3>
           <p className="text-sm text-muted-foreground">
             Your inbox is empty or syncing for the first time
           </p>

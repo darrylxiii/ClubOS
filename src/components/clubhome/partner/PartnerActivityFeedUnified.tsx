@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,6 +25,7 @@ interface PartnerActivityFeedUnifiedProps {
 }
 
 export function PartnerActivityFeedUnified({ companyId }: PartnerActivityFeedUnifiedProps) {
+  const { t } = useTranslation('common');
   const [activities, setActivities] = useState<ActivityEvent[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -165,17 +167,15 @@ export function PartnerActivityFeedUnified({ companyId }: PartnerActivityFeedUni
             <Activity className="h-4 w-4 text-primary" />
             Recent Activity
           </CardTitle>
-          <Badge variant="outline" className="text-xs">Last 7 days</Badge>
+          <Badge variant="outline" className="text-xs">{t("last_7_days", "Last 7 days")}</Badge>
         </div>
       </CardHeader>
       <CardContent>
         {activities.length === 0 ? (
           <div className="text-center py-6">
             <Activity className="h-10 w-10 mx-auto text-muted-foreground/40 mb-2" />
-            <p className="text-sm font-medium mb-1">No recent activity</p>
-            <p className="text-xs text-muted-foreground mb-4">
-              Post a role to see applications, interviews, and updates here
-            </p>
+            <p className="text-sm font-medium mb-1">{t("no_recent_activity", "No recent activity")}</p>
+            <p className="text-xs text-muted-foreground mb-4">{t('partnerActivityFeedUnified.postARoleToSeeApplicationsInterviewsAndU')}</p>
             <Button size="sm" variant="outline" asChild>
               <Link to="/company-jobs/new">
                 <Plus className="h-3.5 w-3.5 mr-1.5" />

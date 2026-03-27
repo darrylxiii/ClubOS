@@ -11,10 +11,10 @@ export interface DetectedInterview {
   location?: string;
   detection_confidence?: string;
   interview_type?: string;
-  detected_candidates: any;
-  detected_partners: any;
-  detected_tqc_members: any;
-  unknown_attendees: any;
+  detected_candidates: Record<string, unknown>[] | null;
+  detected_partners: Record<string, unknown>[] | null;
+  detected_tqc_members: Record<string, unknown>[] | null;
+  unknown_attendees: string[] | null;
   status: string;
   job_id?: string;
   application_id?: string;

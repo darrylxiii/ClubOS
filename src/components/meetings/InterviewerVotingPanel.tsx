@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -33,6 +34,7 @@ export function InterviewerVotingPanel({
   currentUserId,
   candidateId,
 }: InterviewerVotingPanelProps) {
+  const { t } = useTranslation('common');
   const [votes, setVotes] = useState<Vote[]>([]);
   const [myVote, setMyVote] = useState<string | null>(null);
   const [voting, setVoting] = useState(false);
@@ -141,7 +143,7 @@ export function InterviewerVotingPanel({
       {/* Vote Summary */}
       {totalVotes > 0 && (
         <div className="p-3 bg-card/50 rounded-lg border border-border/50">
-          <h4 className="text-xs font-semibold text-muted-foreground mb-2">Team Assessment</h4>
+          <h4 className="text-xs font-semibold text-muted-foreground mb-2">{t("team_assessment", "Team Assessment")}</h4>
           <div className="space-y-1">
             {VOTE_TYPES.map(({ type, label }) => {
               const count = getVoteCount(type);

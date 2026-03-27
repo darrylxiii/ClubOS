@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import {
   Dialog,
   DialogContent,
@@ -23,6 +24,7 @@ export function IdleDetectionModal({
   onKeepTime,
   onDiscardTime,
 }: IdleDetectionModalProps) {
+  const { t } = useTranslation('common');
   return (
     <Dialog open={open} onOpenChange={() => {}}>
       <DialogContent className="sm:max-w-md">
@@ -32,7 +34,7 @@ export function IdleDetectionModal({
               <AlertTriangle className="h-6 w-6 text-amber-600 dark:text-amber-400" />
             </div>
             <div>
-              <DialogTitle className="text-xl">You've been idle</DialogTitle>
+              <DialogTitle className="text-xl">{t("youve_been_idle", "You've been idle")}</DialogTitle>
               <DialogDescription className="mt-1">
                 No activity detected for {formatDuration(idleSeconds)}
               </DialogDescription>
@@ -47,7 +49,7 @@ export function IdleDetectionModal({
               <p className="text-3xl font-mono font-bold text-foreground">
                 {formatDuration(idleSeconds)}
               </p>
-              <p className="text-sm text-muted-foreground">idle time detected</p>
+              <p className="text-sm text-muted-foreground">{t("idle_time_detected", "idle time detected")}</p>
             </div>
           </div>
         </div>

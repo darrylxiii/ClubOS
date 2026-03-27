@@ -1,10 +1,11 @@
+import { useTranslation } from 'react-i18next';
 import { Button } from "@/components/ui/button";
-import { 
-  Archive, 
-  Trash2, 
-  Clock, 
-  Tag, 
-  MailCheck, 
+import {
+  Archive,
+  Trash2,
+  Clock,
+  Tag,
+  MailCheck,
   MailOpen,
   X,
   ChevronDown
@@ -35,13 +36,14 @@ export function QuickActionsBar({
   onMarkAsUnread,
   onClearSelection,
 }: QuickActionsBarProps) {
+  const { t } = useTranslation('messages');
   if (selectedCount === 0) return null;
 
   return (
     <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-in fade-in slide-in-from-bottom-2 duration-200">
       <div className="bg-card border border-border rounded-lg shadow-lg px-4 py-3 flex items-center gap-2">
         <div className="text-sm font-medium mr-2">
-          {selectedCount} selected
+          {t('selectedCount', { count: selectedCount })}
         </div>
         
         <div className="h-6 w-px bg-border" />
@@ -53,7 +55,7 @@ export function QuickActionsBar({
           className="gap-2"
         >
           <Archive className="h-4 w-4" />
-          Archive
+          {t('actions.archive')}
         </Button>
 
         <Button
@@ -63,7 +65,7 @@ export function QuickActionsBar({
           className="gap-2 text-destructive hover:text-destructive"
         >
           <Trash2 className="h-4 w-4" />
-          Delete
+          {t('common:actions.delete')}
         </Button>
 
         <Button
@@ -73,25 +75,25 @@ export function QuickActionsBar({
           className="gap-2"
         >
           <Clock className="h-4 w-4" />
-          Snooze
+          {t('actions.snooze')}
         </Button>
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button size="sm" variant="ghost" className="gap-1">
               <Tag className="h-4 w-4" />
-              More
+              {t('actions.more')}
               <ChevronDown className="h-3 w-3" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={onMarkAsRead}>
               <MailCheck className="h-4 w-4 mr-2" />
-              Mark as read
+              {t('actions.markAsRead')}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={onMarkAsUnread}>
               <MailOpen className="h-4 w-4 mr-2" />
-              Mark as unread
+              {t('actions.markAsUnread')}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

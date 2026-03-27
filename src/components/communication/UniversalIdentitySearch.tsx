@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 
 import { useState, useEffect } from 'react';
 import { Search, User, Briefcase, Target, Plus, Loader2 } from 'lucide-react';
@@ -19,6 +20,7 @@ interface UniversalIdentitySearchProps {
 }
 
 export function UniversalIdentitySearch({ onSelect, defaultValue, defaultEntityType }: UniversalIdentitySearchProps) {
+  const { t } = useTranslation('common');
     const [query, setQuery] = useState('');
     const [results, setResults] = useState<IdentityResult[]>([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -78,7 +80,7 @@ export function UniversalIdentitySearch({ onSelect, defaultValue, defaultEntityT
             <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                    placeholder="Search by name or email..."
+                    placeholder={t("search_by_name_or", "Search by name or email...")}
                     className="pl-10"
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
@@ -99,7 +101,7 @@ export function UniversalIdentitySearch({ onSelect, defaultValue, defaultEntityT
                             <p className="text-xs text-muted-foreground">{selected.email} ({selected.type})</p>
                         </div>
                     </div>
-                    <button onClick={clearSelection} className="text-xs hover:underline text-muted-foreground">Clear</button>
+                    <button onClick={clearSelection} className="text-xs hover:underline text-muted-foreground">{t("clear", "Clear")}</button>
                 </div>
             )}
 

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 /**
  * Scheduling AI Intelligence Tab
  * 
@@ -32,6 +33,7 @@ interface SchedulingAITabProps {
 }
 
 export function SchedulingAITab({ bookingIds = [], className }: SchedulingAITabProps) {
+  const { t } = useTranslation('common');
   const [activeTab, setActiveTab] = useState('focus');
   const { conflicts, fetchConflicts, isResolving } = useConflictResolution();
   const { data: predictions = {}, refetch: refetchPredictions, isLoading: loadingPredictions } = useNoShowPredictions(bookingIds);
@@ -56,8 +58,8 @@ export function SchedulingAITab({ bookingIds = [], className }: SchedulingAITabP
           <CardContent className="pt-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Focus Defender</p>
-                <p className="text-xl font-bold">Active</p>
+                <p className="text-sm text-muted-foreground">{t("focus_defender", "Focus Defender")}</p>
+                <p className="text-xl font-bold">{t("active", "Active")}</p>
               </div>
               <Shield className="h-8 w-8 text-primary/50" />
             </div>
@@ -68,7 +70,7 @@ export function SchedulingAITab({ bookingIds = [], className }: SchedulingAITabP
           <CardContent className="pt-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">High Risk Bookings</p>
+                <p className="text-sm text-muted-foreground">{t("high_risk_bookings", "High Risk Bookings")}</p>
                 <p className="text-xl font-bold text-destructive">{highRiskCount}</p>
               </div>
               <AlertTriangle className="h-8 w-8 text-destructive/50" />
@@ -80,7 +82,7 @@ export function SchedulingAITab({ bookingIds = [], className }: SchedulingAITabP
           <CardContent className="pt-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Conflicts</p>
+                <p className="text-sm text-muted-foreground">{t("conflicts", "Conflicts")}</p>
                 <p className="text-xl font-bold">{conflictCount}</p>
               </div>
               <Zap className={`h-8 w-8 ${conflictCount > 0 ? 'text-orange-500/50' : 'text-green-500/50'}`} />
@@ -141,7 +143,7 @@ export function SchedulingAITab({ bookingIds = [], className }: SchedulingAITabP
                     <Zap className="h-4 w-4 text-primary" />
                   </div>
                   <div>
-                    <p className="font-medium text-sm">Optimize your meeting schedule</p>
+                    <p className="font-medium text-sm">{t("optimize_your_meeting_schedule", "Optimize your meeting schedule")}</p>
                     <p className="text-sm text-muted-foreground mt-1">
                       Based on your patterns, consider blocking 9-11am for deep work. 
                       You're most productive during morning hours.
@@ -156,7 +158,7 @@ export function SchedulingAITab({ bookingIds = [], className }: SchedulingAITabP
                     <TrendingUp className="h-4 w-4 text-accent-foreground" />
                   </div>
                   <div>
-                    <p className="font-medium text-sm">Meeting efficiency improving</p>
+                    <p className="font-medium text-sm">{t("meeting_efficiency_improving", "Meeting efficiency improving")}</p>
                     <p className="text-sm text-muted-foreground mt-1">
                       Your average meeting duration decreased by 15% this week. 
                       Keep using the agenda feature to maintain this trend.
@@ -171,7 +173,7 @@ export function SchedulingAITab({ bookingIds = [], className }: SchedulingAITabP
                     <AlertTriangle className="h-4 w-4 text-destructive" />
                   </div>
                   <div>
-                    <p className="font-medium text-sm">High meeting load detected</p>
+                    <p className="font-medium text-sm">{t("high_meeting_load_detected", "High meeting load detected")}</p>
                     <p className="text-sm text-muted-foreground mt-1">
                       You have 8 meetings scheduled tomorrow. Consider delegating 
                       or rescheduling to maintain productivity.

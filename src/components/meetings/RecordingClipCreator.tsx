@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -30,6 +31,7 @@ export function RecordingClipCreator({
   transcript,
   recordingUrl
 }: RecordingClipCreatorProps) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState(transcript.slice(0, 200));
@@ -50,7 +52,7 @@ export function RecordingClipCreator({
 
   const handleCreate = async () => {
     if (!user || !title.trim()) {
-      toast.error('Please enter a title for the clip');
+      toast.error(t("please_enter_a_title", "Please enter a title for the clip"));
       return;
     }
 
@@ -85,10 +87,10 @@ export function RecordingClipCreator({
       const shareUrl = `${window.location.origin}/clip/${clipId}`;
       setClipUrl(shareUrl);
       
-      toast.success('Clip created successfully!');
+      toast.success(t("clip_created_successfully", "Clip created successfully!"));
     } catch (error) {
       console.error('Error creating clip:', error);
-      toast.error('Failed to create clip');
+      toast.error(t("failed_to_create_clip", "Failed to create clip"));
     } finally {
       setCreating(false);
     }
@@ -97,7 +99,7 @@ export function RecordingClipCreator({
   const copyToClipboard = async () => {
     if (clipUrl) {
       await navigator.clipboard.writeText(clipUrl);
-      toast.success('Link copied to clipboard');
+      toast.success(t("link_copied_to_clipboard", "Link copied to clipboard"));
     }
   };
 
@@ -167,29 +169,29 @@ export function RecordingClipCreator({
             {/* Form */}
             <div className="space-y-4">
               <div>
-                <Label htmlFor="title">Clip Title *</Label>
+                <Label htmlFor="title">{t("clip_title", "Clip Title *")}</Label>
                 <Input
                   id="title"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  placeholder="e.g., Great answer about leadership"
+                  placeholder={t("eg_great_answer_about", "e.g., Great answer about leadership")}
                 />
               </div>
 
               <div>
-                <Label htmlFor="description">Description</Label>
+                <Label htmlFor="description">{t("description", "Description")}</Label>
                 <Textarea
                   id="description"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Optional context for viewers"
+                  placeholder={t("optional_context_for_viewers", "Optional context for viewers")}
                   rows={2}
                 />
               </div>
 
               <div className="flex items-center justify-between">
                 <div>
-                  <Label>Public Access</Label>
+                  <Label>{t("public_access", "Public Access")}</Label>
                   <p className="text-xs text-muted-foreground">
                     Anyone with the link can view
                   </p>
@@ -201,18 +203,18 @@ export function RecordingClipCreator({
               </div>
 
               <div>
-                <Label htmlFor="expires">Link Expires In</Label>
+                <Label htmlFor="expires">{t("link_expires_in", "Link Expires In")}</Label>
                 <select
                   id="expires"
                   value={expiresIn}
                   onChange={(e) => setExpiresIn(Number(e.target.value))}
                   className="w-full h-10 px-3 rounded-md border border-input bg-background"
                 >
-                  <option value={24}>24 hours</option>
-                  <option value={72}>3 days</option>
-                  <option value={168}>1 week</option>
-                  <option value={720}>30 days</option>
-                  <option value={0}>Never</option>
+                  <option value={24}>{t("24_hours", "24 hours")}</option>
+                  <option value={72}>{t("3_days", "3 days")}</option>
+                  <option value={168}>{t("1_week", "1 week")}</option>
+                  <option value={720}>{t("30_days", "30 days")}</option>
+                  <option value={0}>{t("never", "Never")}</option>
                 </select>
               </div>
             </div>

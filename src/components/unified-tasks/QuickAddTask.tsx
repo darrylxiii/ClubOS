@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect, useCallback } from "react";
 import {
   CommandDialog,
@@ -19,6 +20,7 @@ interface QuickAddTaskProps {
 }
 
 export function QuickAddTask({ objectiveId, onTaskCreated }: QuickAddTaskProps) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
@@ -138,7 +140,7 @@ export function QuickAddTask({ objectiveId, onTaskCreated }: QuickAddTaskProps) 
       onTaskCreated();
     } catch (error) {
       console.error("Error creating task:", error);
-      toast.error("Failed to create task");
+      toast.error(t("failed_to_create_task", "Failed to create task"));
     } finally {
       setCreating(false);
     }
@@ -147,7 +149,7 @@ export function QuickAddTask({ objectiveId, onTaskCreated }: QuickAddTaskProps) 
   return (
     <CommandDialog open={open} onOpenChange={setOpen}>
       <CommandInput
-        placeholder="Type a task... (use !high, !! for priority, @today for due date)"
+        placeholder={t("type_a_task_use", "Type a task... (use !high, !! for priority, @today for due date)")}
         value={title}
         onValueChange={setTitle}
       />
@@ -218,11 +220,11 @@ export function QuickAddTask({ objectiveId, onTaskCreated }: QuickAddTaskProps) 
           <CommandGroup heading="Tips">
             <CommandItem disabled className="opacity-70">
               <Zap className="h-4 w-4 mr-2" />
-              <span>Use <code className="bg-muted px-1 rounded">!high</code> or <code className="bg-muted px-1 rounded">!!</code> for priority</span>
+              <span>Use <code className="bg-muted px-1 rounded">{t("high", "!high")}</code> or <code className="bg-muted px-1 rounded">!!</code>{t("for_priority", "for priority")}</span>
             </CommandItem>
             <CommandItem disabled className="opacity-70">
               <CalendarDays className="h-4 w-4 mr-2" />
-              <span>Use <code className="bg-muted px-1 rounded">@today</code> or <code className="bg-muted px-1 rounded">@tomorrow</code> for due dates</span>
+              <span>Use <code className="bg-muted px-1 rounded">{t("today", "@today")}</code> or <code className="bg-muted px-1 rounded">{t("tomorrow", "@tomorrow")}</code>{t("for_due_dates", "for due dates")}</span>
             </CommandItem>
           </CommandGroup>
         )}

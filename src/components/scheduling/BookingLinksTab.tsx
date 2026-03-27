@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -11,13 +12,14 @@ interface BookingLinksTabProps {
 }
 
 export function BookingLinksTab({ bookingLinks }: BookingLinksTabProps) {
+  const { t } = useTranslation('common');
   const toggleLink = useToggleBookingLink();
   const deleteLink = useDeleteBookingLink();
 
   const copyBookingUrl = (slug: string) => {
     const url = `${window.location.origin}/book/${slug}`;
     navigator.clipboard.writeText(url);
-    toast.success('Booking URL copied to clipboard');
+    toast.success(t("booking_url_copied_to", "Booking URL copied to clipboard"));
   };
 
   if (bookingLinks.length === 0) {
@@ -25,8 +27,8 @@ export function BookingLinksTab({ bookingLinks }: BookingLinksTabProps) {
       <Card>
         <CardContent className="flex flex-col items-center justify-center py-12">
           <Calendar className="h-12 w-12 text-muted-foreground mb-4" />
-          <p className="text-lg font-medium">No booking links yet</p>
-          <p className="text-muted-foreground">Create your first link to start accepting bookings</p>
+          <p className="text-lg font-medium">{t("no_booking_links_yet", "No booking links yet")}</p>
+          <p className="text-muted-foreground">{t("create_your_first_link", "Create your first link to start accepting bookings")}</p>
         </CardContent>
       </Card>
     );

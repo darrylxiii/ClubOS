@@ -13,8 +13,10 @@ import { AuthTimelineChart } from "./AuthTimelineChart";
 import { SuspiciousActivityTable } from "./SuspiciousActivityTable";
 import { useQueryClient } from "@tanstack/react-query";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
+import { useTranslation } from 'react-i18next';
 
 export const SecurityDashboard = () => {
+  const { t } = useTranslation('admin');
   const queryClient = useQueryClient();
   const { isLoading } = useSecurityMetrics();
 
@@ -27,7 +29,7 @@ export const SecurityDashboard = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold">Security Dashboard</h2>
+          <h2 className="text-3xl font-bold">{t('security.securityDashboard.securityDashboard')}</h2>
           <p className="text-muted-foreground">
             Real-time security monitoring and threat detection
           </p>
@@ -53,9 +55,9 @@ export const SecurityDashboard = () => {
       {/* Detailed Views */}
       <Tabs defaultValue="trends" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="trends">Trends</TabsTrigger>
-          <TabsTrigger value="auth">Auth Timeline</TabsTrigger>
-          <TabsTrigger value="suspicious">Suspicious Activity</TabsTrigger>
+          <TabsTrigger value="trends">{t('security.securityDashboard.trends')}</TabsTrigger>
+          <TabsTrigger value="auth">{t('security.securityDashboard.authTimeline')}</TabsTrigger>
+          <TabsTrigger value="suspicious">{t('security.securityDashboard.suspiciousActivity')}</TabsTrigger>
         </TabsList>
         
         <TabsContent value="trends" className="space-y-4">

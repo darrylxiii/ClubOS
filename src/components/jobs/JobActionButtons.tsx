@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Button } from "@/components/ui/button";
 import { Bookmark, Send } from "lucide-react";
 
@@ -16,6 +17,7 @@ export function JobActionButtons({
   onSave,
   onShare
 }: JobActionButtonsProps) {
+  const { t } = useTranslation('jobs');
   return (
     <>
       <Button
@@ -25,7 +27,7 @@ export function JobActionButtons({
         className="gap-2"
       >
         <Send className="w-4 h-4" />
-        {isApplied ? 'Applied' : 'Apply'}
+        {isApplied ? t('apply.alreadyApplied', 'Applied') : t('apply.title', 'Apply')}
       </Button>
       
       <Button
@@ -35,7 +37,7 @@ export function JobActionButtons({
         className="gap-2"
       >
         <Bookmark className={`w-4 h-4 ${isSaved ? 'fill-current' : ''}`} />
-        {isSaved ? 'Saved' : 'Save'}
+        {isSaved ? t('common:saved', 'Saved') : t('common:save', 'Save')}
       </Button>
     </>
   );

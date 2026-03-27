@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { MetricCard } from "@/components/admin/shared/MetricCard";
 import { MetricCardSkeleton } from "@/components/admin/shared/MetricCardSkeleton";
 import { Users, Briefcase, Calendar, MessageSquare, Target, TrendingUp, Building2, AlertCircle, Plus } from "lucide-react";
@@ -38,6 +39,7 @@ interface UnifiedStatsBarProps {
 
 // Animated counter component
 function AnimatedNumber({ value, duration = 1000 }: { value: number; duration?: number }) {
+  const { t } = useTranslation('common');
   const [displayValue, setDisplayValue] = useState(0);
   
   useEffect(() => {
@@ -252,7 +254,7 @@ export const UnifiedStatsBar = ({ role, stats, loading = false }: UnifiedStatsBa
 
   if (loading) {
     return (
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6" role="status" aria-label="Loading statistics">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6" role="status" aria-label={t("loading_statistics", "Loading statistics")}>
         {[...Array(4)].map((_, i) => (
           <MetricCardSkeleton key={i} />
         ))}
@@ -266,7 +268,7 @@ export const UnifiedStatsBar = ({ role, stats, loading = false }: UnifiedStatsBa
     <motion.div
       className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6"
       role="region"
-      aria-label="Dashboard statistics"
+      aria-label={t("dashboard_statistics", "Dashboard statistics")}
       initial="hidden"
       animate="visible"
       variants={{

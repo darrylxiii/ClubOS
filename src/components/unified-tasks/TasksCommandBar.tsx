@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -79,6 +80,7 @@ export function TasksCommandBar({
   activeView,
   onViewChange,
 }: TasksCommandBarProps) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const { boards, currentBoard, switchBoard } = useTaskBoard();
   const {
@@ -186,7 +188,7 @@ export function TasksCommandBar({
         )}>
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
           <Input
-            placeholder="Search tasks…"
+            placeholder={t("search_tasks", "Search tasks…")}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onFocus={() => setSearchFocused(true)}
@@ -240,7 +242,7 @@ export function TasksCommandBar({
                 <UserCircle className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent side="bottom" className="text-xs">My Tasks</TooltipContent>
+            <TooltipContent side="bottom" className="text-xs">{t("my_tasks", "My Tasks")}</TooltipContent>
           </Tooltip>
         </TooltipProvider>
 
@@ -260,7 +262,7 @@ export function TasksCommandBar({
                 )}
               </Button>
             </TooltipTrigger>
-            <TooltipContent side="bottom" className="text-xs">Filters</TooltipContent>
+            <TooltipContent side="bottom" className="text-xs">{t("filters", "Filters")}</TooltipContent>
           </Tooltip>
         </TooltipProvider>
 
@@ -283,7 +285,7 @@ export function TasksCommandBar({
                 <RefreshCw className={cn("h-3.5 w-3.5", loading && "animate-spin")} />
               </Button>
             </TooltipTrigger>
-            <TooltipContent side="bottom" className="text-xs">Refresh</TooltipContent>
+            <TooltipContent side="bottom" className="text-xs">{t("refresh", "Refresh")}</TooltipContent>
           </Tooltip>
         </TooltipProvider>
 
@@ -349,7 +351,7 @@ export function TasksCommandBar({
       {showMembers && currentBoard && (
         <Dialog open={showMembers} onOpenChange={setShowMembers}>
           <DialogContent className="sm:max-w-[600px]">
-            <DialogHeader><DialogTitle>Board Members</DialogTitle></DialogHeader>
+            <DialogHeader><DialogTitle>{t("board_members", "Board Members")}</DialogTitle></DialogHeader>
             <BoardMembersView boardId={currentBoard.id} canManage={canManageBoard} />
           </DialogContent>
         </Dialog>

@@ -1,9 +1,11 @@
+import { useTranslation } from 'react-i18next';
 import { Card } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Activity, TrendingUp, AlertCircle } from "lucide-react";
 
 export function ModelHealthMonitor() {
+  const { t } = useTranslation('common');
   const { data: modelHealth } = useQuery({
     queryKey: ['model-health'],
     queryFn: async () => {
@@ -48,7 +50,7 @@ export function ModelHealthMonitor() {
       <Card className="p-6">
         <div className="flex items-center gap-3 text-muted-foreground">
           <AlertCircle className="w-5 h-5" />
-          <p>No active ML model. Train a model to see health metrics.</p>
+          <p>{t("no_active_ml_model", "No active ML model. Train a model to see health metrics.")}</p>
         </div>
       </Card>
     );
@@ -56,17 +58,17 @@ export function ModelHealthMonitor() {
 
   return (
     <Card className="p-6">
-      <h3 className="text-lg font-semibold mb-4">Model Health</h3>
+      <h3 className="text-lg font-semibold mb-4">{t("model_health", "Model Health")}</h3>
       
       <div className="space-y-4">
         <div>
-          <p className="text-sm text-muted-foreground">Active Model</p>
+          <p className="text-sm text-muted-foreground">{t("active_model", "Active Model")}</p>
           <p className="text-xl font-bold">v{modelHealth.model.version} ({modelHealth.model.model_type})</p>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <p className="text-sm text-muted-foreground">AUC-ROC</p>
+            <p className="text-sm text-muted-foreground">{t("aucroc", "AUC-ROC")}</p>
             <div className="flex items-center gap-2">
               <Activity className="w-4 h-4 text-blue-500" />
               <p className="text-lg font-semibold">
@@ -76,7 +78,7 @@ export function ModelHealthMonitor() {
           </div>
 
           <div>
-            <p className="text-sm text-muted-foreground">Precision@10</p>
+            <p className="text-sm text-muted-foreground">{t("precision10", "Precision@10")}</p>
             <div className="flex items-center gap-2">
               <TrendingUp className="w-4 h-4 text-green-500" />
               <p className="text-lg font-semibold">
@@ -86,12 +88,12 @@ export function ModelHealthMonitor() {
           </div>
 
           <div>
-            <p className="text-sm text-muted-foreground">Recent Predictions</p>
+            <p className="text-sm text-muted-foreground">{t("recent_predictions", "Recent Predictions")}</p>
             <p className="text-lg font-semibold">{modelHealth.total_predictions}</p>
           </div>
 
           <div>
-            <p className="text-sm text-muted-foreground">Hire Rate</p>
+            <p className="text-sm text-muted-foreground">{t("hire_rate", "Hire Rate")}</p>
             <p className="text-lg font-semibold">
               {(modelHealth.hire_rate * 100).toFixed(1)}%
             </p>

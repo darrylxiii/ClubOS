@@ -1,6 +1,7 @@
 import { memo } from "react";
 import { Target, Users, CheckCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslation } from 'react-i18next';
 
 interface HiringProgressBarProps {
   /** Number of candidates hired */
@@ -19,6 +20,7 @@ export const HiringProgressBar = memo(({
   compact = false,
   className,
 }: HiringProgressBarProps) => {
+  const { t } = useTranslation('jobs');
   const hasTarget = targetCount !== null && targetCount > 0;
   const progressPercent = hasTarget ? Math.min(100, (hiredCount / targetCount) * 100) : 0;
   const isComplete = hasTarget && hiredCount >= targetCount;
@@ -27,7 +29,7 @@ export const HiringProgressBar = memo(({
     if (!hasTarget) {
       return (
         <span className={cn("text-xs text-muted-foreground", className)}>
-          {hiredCount} hired
+          {t('hiringProgress.hired', '{{count}} hired', { count: hiredCount })}
         </span>
       );
     }
@@ -60,8 +62,8 @@ export const HiringProgressBar = memo(({
           <Users className="w-4 h-4 text-primary" />
         </div>
         <div>
-          <p className="text-sm font-medium text-foreground">{hiredCount} Hired</p>
-          <p className="text-xs text-muted-foreground">Continuous pipeline</p>
+          <p className="text-sm font-medium text-foreground">{t('hiringProgress.hiredCount', '{{count}} Hired', { count: hiredCount })}</p>
+          <p className="text-xs text-muted-foreground">{t('hiringProgress.continuousPipeline', 'Continuous pipeline')}</p>
         </div>
       </div>
     );
@@ -81,7 +83,7 @@ export const HiringProgressBar = memo(({
             <Target className="w-4 h-4 text-muted-foreground" />
           )}
           <span className="text-sm font-medium text-foreground">
-            {isComplete ? "Target Reached" : "Hiring Progress"}
+            {isComplete ? t('hiringProgress.targetReached', 'Target Reached') : t('hiringProgress.title', 'Hiring Progress')}
           </span>
         </div>
         <span className={cn(
@@ -103,9 +105,9 @@ export const HiringProgressBar = memo(({
       </div>
       
       <p className="text-xs text-muted-foreground mt-2">
-        {isComplete 
-          ? "All positions filled" 
-          : `${targetCount - hiredCount} more to go`
+        {isComplete
+          ? t('hiringProgress.allFilled', 'All positions filled')
+          : t('hiringProgress.moreToGo', '{{count}} more to go', { count: targetCount - hiredCount })
         }
       </p>
     </div>

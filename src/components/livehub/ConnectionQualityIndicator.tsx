@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React from 'react';
 import { ConnectionQuality, ConnectionStats } from '@/hooks/useConnectionQuality';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -53,8 +54,7 @@ const QUALITY_BARS: Record<ConnectionQuality, number> = {
   disconnected: 0
 };
 
-export function ConnectionQualityIndicator({
-  quality,
+export function ConnectionQualityIndicator({  quality,
   stats,
   showDetails = false,
   onReconnect,
@@ -62,6 +62,7 @@ export function ConnectionQualityIndicator({
   audioBitrate,
   className
 }: ConnectionQualityIndicatorProps) {
+const { t } = useTranslation('common');
   const colors = QUALITY_COLORS[quality];
   const activeBars = QUALITY_BARS[quality];
 
@@ -150,7 +151,7 @@ export function ConnectionQualityIndicator({
         <TooltipContent side="bottom" className="w-64">
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <span className="font-semibold">Connection Quality</span>
+              <span className="font-semibold">{t("connection_quality", "Connection Quality")}</span>
               <span className={cn('text-sm font-medium', colors.text)}>
                 {getQualityLabel()}
               </span>
@@ -158,7 +159,7 @@ export function ConnectionQualityIndicator({
             
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Latency</span>
+                <span className="text-muted-foreground">{t("latency", "Latency")}</span>
                 <span className={cn(
                   stats.latency > 200 ? 'text-red-500' : 
                   stats.latency > 100 ? 'text-yellow-500' : 'text-foreground'
@@ -168,7 +169,7 @@ export function ConnectionQualityIndicator({
               </div>
               
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Packet Loss</span>
+                <span className="text-muted-foreground">{t("packet_loss", "Packet Loss")}</span>
                 <span className={cn(
                   stats.packetLoss > 5 ? 'text-red-500' : 
                   stats.packetLoss > 2 ? 'text-yellow-500' : 'text-foreground'
@@ -178,7 +179,7 @@ export function ConnectionQualityIndicator({
               </div>
               
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Jitter</span>
+                <span className="text-muted-foreground">{t("jitter", "Jitter")}</span>
                 <span className={cn(
                   stats.jitter > 50 ? 'text-red-500' : 
                   stats.jitter > 30 ? 'text-yellow-500' : 'text-foreground'
@@ -189,14 +190,14 @@ export function ConnectionQualityIndicator({
               
               {stats.bitrate > 0 && (
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Network Bitrate</span>
+                  <span className="text-muted-foreground">{t("network_bitrate", "Network Bitrate")}</span>
                   <span>{Math.round(stats.bitrate)} kbps</span>
                 </div>
               )}
               
               {audioBitrate && audioBitrate > 0 && (
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Audio Quality</span>
+                  <span className="text-muted-foreground">{t("audio_quality", "Audio Quality")}</span>
                   <span className={cn(
                     audioBitrate >= 64000 ? 'text-emerald-500' :
                     audioBitrate >= 48000 ? 'text-green-500' :

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,6 +18,7 @@ interface SkillTrend {
 }
 
 export function SkillDemandWidget() {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const navigate = useNavigate();
   const [skills, setSkills] = useState<SkillTrend[]>([]);
@@ -108,9 +110,7 @@ export function SkillDemandWidget() {
         );
       case 'stable':
         return (
-          <Badge variant="outline" className="text-xs">
-            Stable
-          </Badge>
+          <Badge variant="outline" className="text-xs">{t('skillDemandWidget.badge.stable')}</Badge>
         );
       case 'declining':
         return (
@@ -148,9 +148,7 @@ export function SkillDemandWidget() {
       <CardContent className="pt-2 space-y-3">
         {skills.length === 0 ? (
           <div className="text-center py-4">
-            <p className="text-sm text-muted-foreground">
-              No skill data available yet
-            </p>
+            <p className="text-sm text-muted-foreground">{t('skillDemandWidget.noSkillDataAvailableYet')}</p>
           </div>
         ) : (
           <>
@@ -169,9 +167,7 @@ export function SkillDemandWidget() {
                 <div className="flex items-center gap-2 min-w-0">
                   <span className="font-medium truncate">{skill.skill}</span>
                   {skill.matchesYou && (
-                    <Badge variant="outline" className="text-xs shrink-0 bg-primary/10 text-primary border-primary/30">
-                      You have this
-                    </Badge>
+                    <Badge variant="outline" className="text-xs shrink-0 bg-primary/10 text-primary border-primary/30">{t('skillDemandWidget.badge.youHaveThis')}</Badge>
                   )}
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
@@ -194,7 +190,7 @@ export function SkillDemandWidget() {
               className="w-full justify-between text-primary hover:text-primary"
               onClick={() => navigate('/skills')}
             >
-              <span>See All Skill Trends</span>
+              <span>{t("see_all_skill_trends", "See All Skill Trends")}</span>
               <ArrowRight className="w-4 h-4" />
             </Button>
           </>

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Calendar, Clock, TrendingUp } from "lucide-react";
 import { formatDateTime, formatRelativeTime } from "@/lib/format";
@@ -26,6 +27,7 @@ export function ResumeFunnelDialog({
     onContinue,
     onStartFresh
 }: ResumeFunnelDialogProps) {
+  const { t } = useTranslation('common');
     if (!savedData) return null;
 
     const progressPercentage = Math.round(((savedData.currentStep + 1) / totalSteps) * 100);
@@ -55,7 +57,7 @@ export function ResumeFunnelDialog({
                             </div>
                             <div className="flex items-center gap-2 text-sm">
                                 <Clock className="w-4 h-4 text-primary" />
-                                <span>Less than a minute to finish</span>
+                                <span>{t("less_than_a_minute", "Less than a minute to finish")}</span>
                             </div>
                         </div>
 

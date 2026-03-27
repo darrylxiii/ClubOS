@@ -6,8 +6,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { formatDistanceToNow } from 'date-fns';
 import { Search, Filter } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export const AuditLogsTable = () => {
+  const { t } = useTranslation('admin');
   const [searchTerm, setSearchTerm] = useState('');
   const [eventTypeFilter, setEventTypeFilter] = useState<string>('all');
   const [page, setPage] = useState(0);
@@ -58,7 +60,7 @@ export const AuditLogsTable = () => {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search audit logs..."
+            placeholder={t('compliance.auditLogsTable.searchAuditLogs')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"
@@ -70,14 +72,14 @@ export const AuditLogsTable = () => {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Events</SelectItem>
-            <SelectItem value="authentication">Authentication</SelectItem>
-            <SelectItem value="data_access">Data Access</SelectItem>
-            <SelectItem value="data_modification">Data Modification</SelectItem>
-            <SelectItem value="authorization">Authorization</SelectItem>
-            <SelectItem value="configuration_change">Configuration</SelectItem>
-            <SelectItem value="export">Export</SelectItem>
-            <SelectItem value="delete">Delete</SelectItem>
+            <SelectItem value="all">{t('compliance.auditlogstable.allEvents', 'All Events')}</SelectItem>
+            <SelectItem value="authentication">{t('compliance.auditlogstable.authentication', 'Authentication')}</SelectItem>
+            <SelectItem value="data_access">{t('compliance.auditlogstable.dataAccess', 'Data Access')}</SelectItem>
+            <SelectItem value="data_modification">{t('compliance.auditlogstable.dataModification', 'Data Modification')}</SelectItem>
+            <SelectItem value="authorization">{t('compliance.auditlogstable.authorization', 'Authorization')}</SelectItem>
+            <SelectItem value="configuration_change">{t('compliance.auditlogstable.configuration', 'Configuration')}</SelectItem>
+            <SelectItem value="export">{t('compliance.auditlogstable.export', 'Export')}</SelectItem>
+            <SelectItem value="delete">{t('compliance.auditlogstable.delete', 'Delete')}</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -87,35 +89,19 @@ export const AuditLogsTable = () => {
           <table className="w-full">
             <thead className="bg-muted/50">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Timestamp
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Event Type
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Actor
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Action
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Resource
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Description
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Status
-                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">{t('compliance.auditlogstable.timestamp', 'Timestamp')}</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">{t('compliance.auditlogstable.eventType', 'Event Type')}</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">{t('compliance.auditlogstable.actor', 'Actor')}</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">{t('compliance.auditlogstable.action', 'Action')}</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">{t('compliance.auditlogstable.resource', 'Resource')}</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">{t('compliance.auditlogstable.description', 'Description')}</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">{t('compliance.auditlogstable.status', 'Status')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {isLoading ? (
                 <tr>
-                  <td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">
-                    Loading audit logs...
-                  </td>
+                  <td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">{t('compliance.auditlogstable.loadingAuditLogs', 'Loading audit logs...')}</td>
                 </tr>
               ) : auditLogs && auditLogs.length > 0 ? (
                 auditLogs.map((log: any) => (
@@ -154,16 +140,14 @@ export const AuditLogsTable = () => {
                     </td>
                     <td className="px-4 py-3 text-sm">
                       <Badge variant={log.success ? 'default' : 'destructive'}>
-                        {log.success ? 'Success' : 'Failed'}
+                        {log.success ? t('compliance.auditlogstable.success', 'Success') : t('compliance.auditlogstable.failed', 'Failed')}
                       </Badge>
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">
-                    No audit logs found
-                  </td>
+                  <td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">{t('compliance.auditlogstable.noAuditLogsFound', 'No audit logs found')}</td>
                 </tr>
               )}
             </tbody>
@@ -181,14 +165,14 @@ export const AuditLogsTable = () => {
             disabled={page === 0}
             className="px-4 py-2 text-sm border rounded-md hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Previous
+            {t('compliance.auditlogstable.previous', 'Previous')}
           </button>
           <button
             onClick={() => setPage(page + 1)}
             disabled={!auditLogs || auditLogs.length < pageSize}
             className="px-4 py-2 text-sm border rounded-md hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Next
+            {t('compliance.auditlogstable.next', 'Next')}
           </button>
         </div>
       </div>

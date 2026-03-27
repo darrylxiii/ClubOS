@@ -1,9 +1,4 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { createHandler } from '../_shared/handler.ts';
 
 interface TimeSlot {
   day: number;
@@ -13,20 +8,11 @@ interface TimeSlot {
   sampleSize: number;
 }
 
-Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
+Deno.serve(createHandler(async (req, ctx) => {
     const { campaign_id, analyze_all } = await req.json();
 
     // Get all replies with timestamps
-    const query = supabase
+    const query = ctx.supabase
       .from('crm_email_replies')
       .select('*, crm_prospects!inner(campaign_id)')
       .order('created_at', { ascending: false });
@@ -38,12 +24,12 @@ Deno.serve(async (req) => {
     const { data: replies } = await query;
 
     if (!replies || replies.length === 0) {
-      return new Response(JSON.stringify({ 
-        success: true, 
+      return new Response(JSON.stringify({
+        success: true,
         message: 'No reply data available for analysis',
         heatmap: generateDefaultHeatmap(),
       }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
@@ -84,7 +70,7 @@ Deno.serve(async (req) => {
     // Store analytics per campaign if specified
     if (campaign_id) {
       for (const slot of heatmapData) {
-        await supabase.from('instantly_send_time_analytics').upsert({
+        await ctx.supabase.from('instantly_send_time_analytics').upsert({
           campaign_id,
           day_of_week: slot.day,
           hour_of_day: slot.hour,
@@ -102,24 +88,16 @@ Deno.serve(async (req) => {
     // Generate recommendations
     const recommendations = generateRecommendations(topSlots);
 
-    return new Response(JSON.stringify({ 
+    return new Response(JSON.stringify({
       success: true,
       heatmap: generateFullHeatmap(timeSlots),
       topSlots,
       recommendations,
       totalRepliesAnalyzed: replies.length,
     }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' },
     });
-  } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    console.error('Send time optimization error:', error);
-    return new Response(JSON.stringify({ error: errorMessage }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-  }
-});
+}));
 
 function generateDefaultHeatmap(): number[][] {
   // 7 days x 24 hours, default distribution

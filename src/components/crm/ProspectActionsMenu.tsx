@@ -32,6 +32,7 @@ import { SnoozeDialog } from './SnoozeDialog';
 import { ActivityQuickAdd } from './ActivityQuickAdd';
 import { ScheduleMeetingDialog } from './ScheduleMeetingDialog';
 import type { CRMProspect, ProspectStage } from '@/types/crm-enterprise';
+import { useTranslation } from 'react-i18next';
 
 interface ProspectActionsMenuProps {
   prospect: CRMProspect;
@@ -62,6 +63,7 @@ export function ProspectActionsMenu({
   onEdit,
   trigger,
 }: ProspectActionsMenuProps) {
+  const { t } = useTranslation('common');
   const [showWonDialog, setShowWonDialog] = useState(false);
   const [showLostDialog, setShowLostDialog] = useState(false);
   const [showConvertDialog, setShowConvertDialog] = useState(false);

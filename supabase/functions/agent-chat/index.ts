@@ -1,36 +1,13 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.58.0";
+import { createAuthenticatedHandler } from '../_shared/handler.ts';
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
-
-serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  try {
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
-    // Verify auth
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const { data: { user }, error: authError } = await supabase.auth.getUser(
-      authHeader.replace("Bearer ", "")
-    );
-    if (authError || !user) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
+Deno.serve(createAuthenticatedHandler(async (req, ctx) => {
+    const supabase = ctx.supabase;
+    const user = ctx.user;
+    const corsHeaders = ctx.corsHeaders;
+    const googleApiKey = Deno.env.get("GOOGLE_API_KEY");
+    if (!googleApiKey) {
+      return new Response(JSON.stringify({ error: "GOOGLE_API_KEY not configured" }), {
+        status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -150,16 +127,15 @@ serve(async (req) => {
       { role: "user", content: message },
     ];
 
-    // Call Lovable AI
-    const aiResponse = await fetch("https://api.lovable.dev/v1/chat/completions", {
+    // Call Google Gemini
+    const aiResponse = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${supabaseServiceKey}`,
-        "x-supabase-project-ref": supabaseUrl.split("//")[1]?.split(".")[0] || "",
+        Authorization: `Bearer ${googleApiKey}`,
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash-lite",
+        model: "gemini-2.5-flash-lite",
         messages: [
           { role: "system", content: systemParts.join("\n") },
           ...conversationMessages,
@@ -219,12 +195,4 @@ serve(async (req) => {
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Unknown error";
-    console.error("[agent-chat] Error:", message);
-    return new Response(
-      JSON.stringify({ error: message }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
-  }
-});
+}));

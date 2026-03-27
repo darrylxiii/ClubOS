@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,6 +16,7 @@ interface CohortData {
 }
 
 export function CohortAnalysis() {
+  const { t } = useTranslation('common');
   const { data: cohortData, isLoading } = useQuery({
     queryKey: ['cohort-retention'],
     queryFn: async () => {
@@ -97,7 +99,7 @@ export function CohortAnalysis() {
           <Users className="w-5 h-5" />
           Cohort Retention
         </CardTitle>
-        <CardDescription>Customer retention by signup month</CardDescription>
+        <CardDescription>{t("customer_retention_by_signup", "Customer retention by signup month")}</CardDescription>
       </CardHeader>
       <CardContent>
         {isLoading ? (
@@ -113,7 +115,7 @@ export function CohortAnalysis() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b">
-                  <th className="text-left py-2 px-2 font-medium">Cohort</th>
+                  <th className="text-left py-2 px-2 font-medium">{t("cohort", "Cohort")}</th>
                   <th className="text-center py-2 px-2 font-medium">M0</th>
                   <th className="text-center py-2 px-2 font-medium">M1</th>
                   <th className="text-center py-2 px-2 font-medium">M2</th>

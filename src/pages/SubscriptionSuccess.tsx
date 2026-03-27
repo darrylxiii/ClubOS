@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,6 +8,7 @@ import { SectionLoader } from "@/components/ui/unified-loader";
 import { useSubscription } from "@/hooks/useSubscription";
 
 export default function SubscriptionSuccess() {
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const sessionId = searchParams.get("session_id");
@@ -31,25 +33,21 @@ export default function SubscriptionSuccess() {
               <CheckCircle className="w-8 h-8 text-primary" />
             )}
           </div>
-          <CardTitle className="text-2xl">Subscription Activated!</CardTitle>
+          <CardTitle className="text-2xl">{t('subscriptionSuccess.text3')}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6 text-center">
-          <p className="text-muted-foreground">
-            Thank you for subscribing to The Quantum Club. Your subscription is now active.
-          </p>
+          <p className="text-muted-foreground">{t('subscriptionSuccess.desc')}</p>
 
           {loading ? (
-            <p className="text-sm text-muted-foreground">
-              Activating your subscription...
-            </p>
+            <p className="text-sm text-muted-foreground">{t('subscriptionSuccess.desc2')}</p>
           ) : (
             <div className="bg-muted/50 rounded-lg p-4">
-              <p className="text-sm font-medium mb-2">What's next?</p>
+              <p className="text-sm font-medium mb-2">{t('subscriptionSuccess.text4')}</p>
               <ul className="text-sm text-muted-foreground space-y-1">
-                <li>✓ Access premium features</li>
-                <li>✓ Priority matching & support</li>
-                <li>✓ Advanced analytics</li>
-                <li>✓ Exclusive community access</li>
+                <li>{"✓ Access premium features"}</li>
+                <li>{"✓ Priority matching & support"}</li>
+                <li>{"✓ Advanced analytics"}</li>
+                <li>{"✓ Exclusive community access"}</li>
               </ul>
             </div>
           )}

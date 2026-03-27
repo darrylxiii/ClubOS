@@ -3,12 +3,7 @@
  * Creates access tokens for SFU-based video meetings (10+ participants)
  * With granular error handling to prevent crashes
  */
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { createHandler } from '../_shared/handler.ts';
 
 interface TokenRequest {
   roomName: string;
@@ -30,35 +25,18 @@ interface LiveKitGrant {
   recorder?: boolean;
 }
 
-serve(async (req) => {
-  // Log immediately to confirm function is receiving requests
-  console.log('[LiveKit] 📥 Request received:', req.method, new Date().toISOString());
-  
-  // Handle CORS preflight
-  if (req.method === 'OPTIONS') {
-    console.log('[LiveKit] ✅ CORS preflight handled');
-    return new Response(null, { headers: corsHeaders });
-  }
+Deno.serve(createHandler(async (req, ctx) => {
+    const { corsHeaders } = ctx;
 
-  try {
     // Step 1: Load and validate environment variables
-    console.log('[LiveKit] 🔧 Step 1: Loading secrets...');
+    console.log('[LiveKit] Step 1: Loading secrets...');
     const apiKey = Deno.env.get('LIVEKIT_API_KEY');
     const apiSecret = Deno.env.get('LIVEKIT_API_SECRET');
     const livekitUrl = Deno.env.get('LIVEKIT_URL');
 
-    console.log('[LiveKit] 🔧 Secrets status:', {
-      hasApiKey: !!apiKey,
-      apiKeyLength: apiKey?.length || 0,
-      hasApiSecret: !!apiSecret,
-      apiSecretLength: apiSecret?.length || 0,
-      hasUrl: !!livekitUrl,
-      urlValue: livekitUrl ? livekitUrl.slice(0, 40) + '...' : 'missing'
-    });
-
     if (!apiKey || !apiSecret || !livekitUrl) {
-      console.error('[LiveKit] ❌ Missing required environment variables');
-      return new Response(JSON.stringify({ 
+      console.error('[LiveKit] Missing required environment variables');
+      return new Response(JSON.stringify({
         error: 'LiveKit not configured - missing API credentials',
         configured: false,
         missing: {
@@ -73,16 +51,13 @@ serve(async (req) => {
     }
 
     // Step 2: Parse request body with explicit error handling
-    console.log('[LiveKit] 📄 Step 2: Parsing request body...');
     let body: TokenRequest;
     try {
       const rawBody = await req.text();
-      console.log('[LiveKit] 📄 Raw body length:', rawBody.length);
       body = JSON.parse(rawBody);
-      console.log('[LiveKit] 📄 Body parsed successfully:', Object.keys(body));
     } catch (parseError) {
-      console.error('[LiveKit] ❌ Body parse failed:', parseError);
-      return new Response(JSON.stringify({ 
+      console.error('[LiveKit] Body parse failed:', parseError);
+      return new Response(JSON.stringify({
         error: 'Invalid request body - must be valid JSON',
         details: parseError instanceof Error ? parseError.message : 'Parse error'
       }), {
@@ -92,25 +67,19 @@ serve(async (req) => {
     }
 
     // Step 3: Validate required fields
-    console.log('[LiveKit] ✓ Step 3: Validating fields...');
-    const { 
-      roomName, 
-      participantName, 
+    const {
+      roomName,
+      participantName,
       participantId,
       isHost = false,
-      canPublish = true, 
+      canPublish = true,
       canSubscribe = true,
       metadata = {}
     } = body;
 
     if (!roomName || !participantName || !participantId) {
-      console.error('[LiveKit] ❌ Missing required fields:', { 
-        hasRoomName: !!roomName, 
-        hasParticipantName: !!participantName, 
-        hasParticipantId: !!participantId 
-      });
-      return new Response(JSON.stringify({ 
-        error: 'Missing required fields: roomName, participantName, participantId' 
+      return new Response(JSON.stringify({
+        error: 'Missing required fields: roomName, participantName, participantId'
       }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -118,7 +87,7 @@ serve(async (req) => {
     }
 
     // Step 4: Build JWT claims
-    console.log('[LiveKit] 🔑 Step 4: Building JWT for:', participantName, 'in room:', roomName);
+    console.log('[LiveKit] Building JWT for:', participantName, 'in room:', roomName);
     const now = Math.floor(Date.now() / 1000);
     const exp = now + 6 * 60 * 60; // 6 hour expiry
 
@@ -145,14 +114,13 @@ serve(async (req) => {
     };
 
     // Step 5: Create JWT with explicit error handling
-    console.log('[LiveKit] 🔐 Step 5: Creating JWT...');
     let token: string;
     try {
       token = await createJWT(claims, apiSecret);
-      console.log('[LiveKit] ✅ JWT created successfully, length:', token.length);
+      console.log('[LiveKit] JWT created successfully, length:', token.length);
     } catch (jwtError) {
-      console.error('[LiveKit] ❌ JWT creation failed:', jwtError);
-      return new Response(JSON.stringify({ 
+      console.error('[LiveKit] JWT creation failed:', jwtError);
+      return new Response(JSON.stringify({
         error: 'Token generation failed',
         details: jwtError instanceof Error ? jwtError.message : 'JWT error'
       }), {
@@ -162,7 +130,6 @@ serve(async (req) => {
     }
 
     // Step 6: Return successful response
-    console.log('[LiveKit] 🎉 Step 6: Returning token for:', participantName);
     return new Response(JSON.stringify({
       token,
       url: livekitUrl,
@@ -172,19 +139,7 @@ serve(async (req) => {
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
-
-  } catch (error) {
-    // Catch-all for any unhandled errors
-    console.error('[LiveKit] ❌ Unhandled error:', error);
-    return new Response(JSON.stringify({ 
-      error: error instanceof Error ? error.message : 'Unknown server error',
-      type: 'unhandled'
-    }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-  }
-});
+}));
 
 // JWT creation using Web Crypto API (Deno compatible)
 async function createJWT(payload: Record<string, any>, secret: string): Promise<string> {

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -23,6 +24,7 @@ import { useStrategistLeaderboard, StrategistRanking } from '@/hooks/useStrategi
 import { formatCurrencyCompact } from '@/hooks/useMultiHirePipelineMetrics';
 
 export function StrategistLeaderboard() {
+  const { t } = useTranslation('common');
   const [period, setPeriod] = useState<'weekly' | 'monthly' | 'quarterly'>('monthly');
   const { data: rankings, isLoading } = useStrategistLeaderboard(period);
 
@@ -97,11 +99,11 @@ export function StrategistLeaderboard() {
               <div className="grid grid-cols-2 gap-4 text-center">
                 <div className="p-3 rounded-lg bg-background/50">
                   <p className="text-2xl font-bold text-primary">{topPerformer.ranking_score.toFixed(1)}</p>
-                  <p className="text-xs text-muted-foreground">Score</p>
+                  <p className="text-xs text-muted-foreground">{t("score", "Score")}</p>
                 </div>
                 <div className="p-3 rounded-lg bg-background/50">
                   <p className="text-2xl font-bold">{topPerformer.conversion_rate.toFixed(1)}%</p>
-                  <p className="text-xs text-muted-foreground">Conversion</p>
+                  <p className="text-xs text-muted-foreground">{t("conversion", "Conversion")}</p>
                 </div>
               </div>
             </div>
@@ -125,9 +127,9 @@ export function StrategistLeaderboard() {
             
             <Tabs value={period} onValueChange={(v: any) => setPeriod(v)}>
               <TabsList>
-                <TabsTrigger value="weekly">Weekly</TabsTrigger>
-                <TabsTrigger value="monthly">Monthly</TabsTrigger>
-                <TabsTrigger value="quarterly">Quarterly</TabsTrigger>
+                <TabsTrigger value="weekly">{t("weekly", "Weekly")}</TabsTrigger>
+                <TabsTrigger value="monthly">{t("monthly", "Monthly")}</TabsTrigger>
+                <TabsTrigger value="quarterly">{t("quarterly", "Quarterly")}</TabsTrigger>
               </TabsList>
             </Tabs>
           </div>
@@ -136,8 +138,8 @@ export function StrategistLeaderboard() {
           {!rankings?.length ? (
             <div className="text-center py-8 text-muted-foreground">
               <Users className="h-12 w-12 mx-auto mb-4" />
-              <p>No performance data available</p>
-              <p className="text-sm">Rankings will appear as strategists make placements</p>
+              <p>{t("no_performance_data_available", "No performance data available")}</p>
+              <p className="text-sm">{t("rankings_will_appear_as", "Rankings will appear as strategists make placements")}</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -185,15 +187,15 @@ export function StrategistLeaderboard() {
                   <div className="hidden md:flex items-center gap-6 text-sm">
                     <div className="text-center">
                       <p className="font-medium">{strategist.conversion_rate.toFixed(1)}%</p>
-                      <p className="text-xs text-muted-foreground">Conversion</p>
+                      <p className="text-xs text-muted-foreground">{t("conversion", "Conversion")}</p>
                     </div>
                     <div className="text-center">
                       <p className="font-medium">{strategist.deals_closed}</p>
-                      <p className="text-xs text-muted-foreground">Deals</p>
+                      <p className="text-xs text-muted-foreground">{t("deals", "Deals")}</p>
                     </div>
                     <div className="text-center">
                       <p className="font-medium">{strategist.applications_sourced}</p>
-                      <p className="text-xs text-muted-foreground">Sourced</p>
+                      <p className="text-xs text-muted-foreground">{t("sourced", "Sourced")}</p>
                     </div>
                   </div>
 
@@ -202,7 +204,7 @@ export function StrategistLeaderboard() {
                     <p className="text-lg font-bold text-primary">
                       {strategist.ranking_score.toFixed(1)}
                     </p>
-                    <p className="text-xs text-muted-foreground">Score</p>
+                    <p className="text-xs text-muted-foreground">{t("score", "Score")}</p>
                   </div>
                 </div>
               ))}
@@ -214,29 +216,29 @@ export function StrategistLeaderboard() {
       {/* Scoring Methodology */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm">Scoring Methodology</CardTitle>
+          <CardTitle className="text-sm">{t("scoring_methodology", "Scoring Methodology")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm">
             <div className="flex items-center gap-2">
               <DollarSign className="h-4 w-4 text-primary" />
-              <span>Revenue 30%</span>
+              <span>{t("revenue_30", "Revenue 30%")}</span>
             </div>
             <div className="flex items-center gap-2">
               <Users className="h-4 w-4 text-primary" />
-              <span>Placements 25%</span>
+              <span>{t("placements_25", "Placements 25%")}</span>
             </div>
             <div className="flex items-center gap-2">
               <Target className="h-4 w-4 text-primary" />
-              <span>Conversion 20%</span>
+              <span>{t("conversion_20", "Conversion 20%")}</span>
             </div>
             <div className="flex items-center gap-2">
               <Clock className="h-4 w-4 text-primary" />
-              <span>Speed 15%</span>
+              <span>{t("speed_15", "Speed 15%")}</span>
             </div>
             <div className="flex items-center gap-2">
               <Star className="h-4 w-4 text-primary" />
-              <span>NPS 10%</span>
+              <span>{t("nps_10", "NPS 10%")}</span>
             </div>
           </div>
         </CardContent>

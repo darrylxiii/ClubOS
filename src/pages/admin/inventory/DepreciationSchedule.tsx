@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -19,6 +20,7 @@ type SortField = 'asset_name' | 'category' | 'depreciation_amount' | 'accumulate
 type SortDirection = 'asc' | 'desc';
 
 const DepreciationSchedule = () => {
+  const { t } = useTranslation('admin');
   const currentDate = new Date();
   const [year, setYear] = useState(currentDate.getFullYear());
   const [month, setMonth] = useState(currentDate.getMonth() + 1);
@@ -97,15 +99,15 @@ const DepreciationSchedule = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-semibold">Depreciation Schedule</h2>
-          <p className="text-muted-foreground text-sm">Monthly depreciation ledger</p>
+          <h2 className="text-xl font-semibold">{t('depreciation.title', 'Depreciation Schedule')}</h2>
+          <p className="text-muted-foreground text-sm">{t('depreciation.subtitle', 'Monthly depreciation ledger')}</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={() => setGenerateDialogOpen(true)}>
-            <Play className="h-4 w-4 mr-2" />Generate Entries
+            <Play className="h-4 w-4 mr-2" />{t('depreciation.generateEntries', 'Generate Entries')}
           </Button>
           <Button onClick={() => bulkPost(year, month)} disabled={totals.unpostedCount === 0}>
-            <CheckCircle className="h-4 w-4 mr-2" />Post All ({totals.unpostedCount})
+            <CheckCircle className="h-4 w-4 mr-2" />{t('depreciation.postAll', 'Post All')} ({totals.unpostedCount})
           </Button>
         </div>
       </div>
@@ -131,10 +133,10 @@ const DepreciationSchedule = () => {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card><CardContent className="pt-4"><div className="text-2xl font-bold">{totals.totalEntries}</div><p className="text-muted-foreground text-sm">Total Entries</p></CardContent></Card>
-        <Card><CardContent className="pt-4"><div className="text-2xl font-bold">{formatCurrency(totals.totalDepreciation)}</div><p className="text-muted-foreground text-sm">Total Depreciation</p></CardContent></Card>
-        <Card><CardContent className="pt-4"><div className="text-2xl font-bold text-green-600">{totals.postedCount}</div><p className="text-muted-foreground text-sm">Posted</p></CardContent></Card>
-        <Card><CardContent className="pt-4"><div className="text-2xl font-bold text-yellow-600">{totals.unpostedCount}</div><p className="text-muted-foreground text-sm">Pending</p></CardContent></Card>
+        <Card><CardContent className="pt-4"><div className="text-2xl font-bold">{totals.totalEntries}</div><p className="text-muted-foreground text-sm">{t('depreciation.totalEntries', 'Total Entries')}</p></CardContent></Card>
+        <Card><CardContent className="pt-4"><div className="text-2xl font-bold">{formatCurrency(totals.totalDepreciation)}</div><p className="text-muted-foreground text-sm">{t('depreciation.totalDepreciation', 'Total Depreciation')}</p></CardContent></Card>
+        <Card><CardContent className="pt-4"><div className="text-2xl font-bold text-green-600">{totals.postedCount}</div><p className="text-muted-foreground text-sm">{t('depreciation.posted', 'Posted')}</p></CardContent></Card>
+        <Card><CardContent className="pt-4"><div className="text-2xl font-bold text-yellow-600">{totals.unpostedCount}</div><p className="text-muted-foreground text-sm">{t('depreciation.pending', 'Pending')}</p></CardContent></Card>
       </div>
 
       <Card>
@@ -154,20 +156,20 @@ const DepreciationSchedule = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <SortableHeader field="asset_name">Asset</SortableHeader>
-                    <SortableHeader field="category">Category</SortableHeader>
-                    <SortableHeader field="depreciation_amount" className="text-right">Depreciation</SortableHeader>
-                    <SortableHeader field="accumulated_depreciation" className="text-right">Accumulated</SortableHeader>
-                    <SortableHeader field="book_value_after" className="text-right">Book Value</SortableHeader>
-                    <SortableHeader field="is_posted">Status</SortableHeader>
-                    <TableHead>Action</TableHead>
+                    <SortableHeader field="asset_name">{t('depreciation.asset', 'Asset')}</SortableHeader>
+                    <SortableHeader field="category">{t('depreciation.category', 'Category')}</SortableHeader>
+                    <SortableHeader field="depreciation_amount" className="text-right">{t('depreciation.depreciation', 'Depreciation')}</SortableHeader>
+                    <SortableHeader field="accumulated_depreciation" className="text-right">{t('depreciation.accumulated', 'Accumulated')}</SortableHeader>
+                    <SortableHeader field="book_value_after" className="text-right">{t('depreciation.bookValue', 'Book Value')}</SortableHeader>
+                    <SortableHeader field="is_posted">{t('depreciation.status', 'Status')}</SortableHeader>
+                    <TableHead>{t('depreciation.action', 'Action')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {sortedEntries.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
-                        No entries for this period. Click "Generate Entries" to create.
+                        {t('depreciation.noEntries', 'No entries for this period. Click "Generate Entries" to create.')}
                       </TableCell>
                     </TableRow>
                   ) : sortedEntries.map(entry => (
@@ -182,13 +184,13 @@ const DepreciationSchedule = () => {
                       <TableCell className="text-right">{formatCurrency(entry.book_value_after)}</TableCell>
                       <TableCell>
                         <Badge variant={entry.is_posted ? "default" : "secondary"}>
-                          {entry.is_posted ? "Posted" : "Pending"}
+                          {entry.is_posted ? t('depreciation.posted', 'Posted') : t('depreciation.pending', 'Pending')}
                         </Badge>
                       </TableCell>
                       <TableCell>
                         {!entry.is_posted && (
                           <Button size="sm" variant="outline" onClick={() => postEntry(entry.id)}>
-                            Post
+                            {t('depreciation.post', 'Post')}
                           </Button>
                         )}
                       </TableCell>
@@ -206,7 +208,7 @@ const DepreciationSchedule = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <History className="h-5 w-5" />
-            Depreciation Run History - {year}
+            {t('depreciation.runHistory', 'Depreciation Run History')} - {year}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -215,17 +217,17 @@ const DepreciationSchedule = () => {
               {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-10 w-full" />)}
             </div>
           ) : runs.length === 0 ? (
-            <p className="text-muted-foreground text-center py-4">No depreciation runs recorded for {year}.</p>
+            <p className="text-muted-foreground text-center py-4">{t('depreciation.noRuns', 'No depreciation runs recorded for {{year}}.', { year })}</p>
           ) : (
             <div className="rounded-md border">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Period</TableHead>
-                    <TableHead>Run Type</TableHead>
-                    <TableHead className="text-right">Entries</TableHead>
-                    <TableHead className="text-right">Total Depreciation</TableHead>
-                    <TableHead>Run Date</TableHead>
+                    <TableHead>{t('depreciation.period', 'Period')}</TableHead>
+                    <TableHead>{t('depreciation.runType', 'Run Type')}</TableHead>
+                    <TableHead className="text-right">{t('depreciation.entries', 'Entries')}</TableHead>
+                    <TableHead className="text-right">{t('depreciation.totalDepreciation', 'Total Depreciation')}</TableHead>
+                    <TableHead>{t('depreciation.runDate', 'Run Date')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>

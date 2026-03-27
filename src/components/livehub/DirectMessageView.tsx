@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect, useRef } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -13,6 +14,7 @@ interface DirectMessageViewProps {
 }
 
 export function DirectMessageView({ conversationId }: DirectMessageViewProps) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const { messages, loadMessages, sendMessage } = useDirectMessages();
   const [newMessage, setNewMessage] = useState('');
@@ -100,7 +102,7 @@ export function DirectMessageView({ conversationId }: DirectMessageViewProps) {
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             onKeyPress={handleKeyPress}
-            placeholder="Type a message..."
+            placeholder={t("type_a_message", "Type a message...")}
             className="min-h-[60px] max-h-[120px] resize-none"
           />
           <Button

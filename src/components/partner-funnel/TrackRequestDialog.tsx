@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -15,6 +16,7 @@ interface TrackRequestDialogProps {
 }
 
 export function TrackRequestDialog({ open, onOpenChange }: TrackRequestDialogProps) {
+  const { t } = useTranslation('common');
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [request, setRequest] = useState<any>(null);
@@ -74,7 +76,7 @@ export function TrackRequestDialog({ open, onOpenChange }: TrackRequestDialogPro
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Track Your Partnership Request</DialogTitle>
+          <DialogTitle>{t("track_your_partnership_request", "Track Your Partnership Request")}</DialogTitle>
           <DialogDescription>
             Enter your email to view your request status
           </DialogDescription>
@@ -83,10 +85,10 @@ export function TrackRequestDialog({ open, onOpenChange }: TrackRequestDialogPro
         <div className="space-y-4">
           <div className="flex gap-2">
             <div className="flex-1">
-              <Label>Email Address</Label>
+              <Label>{t("email_address", "Email Address")}</Label>
               <Input
                 type="email"
-                placeholder="john@company.com"
+                placeholder={t("johncompanycom", "john@company.com")}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSearch()}
@@ -117,23 +119,23 @@ export function TrackRequestDialog({ open, onOpenChange }: TrackRequestDialogPro
 
               <div className="grid grid-cols-2 gap-4 pt-4 border-t">
                 <div>
-                  <p className="text-sm text-muted-foreground">Partnership Type</p>
+                  <p className="text-sm text-muted-foreground">{t("partnership_type", "Partnership Type")}</p>
                   <p className="font-medium capitalize">
                     {request.partnership_type?.replace(/_/g, " ")}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Industry</p>
+                  <p className="text-sm text-muted-foreground">{t("industry", "Industry")}</p>
                   <p className="font-medium capitalize">{request.industry}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Submitted</p>
+                  <p className="text-sm text-muted-foreground">{t("submitted", "Submitted")}</p>
                   <p className="font-medium">
                     {new Date(request.created_at).toLocaleDateString()}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Timeline</p>
+                  <p className="text-sm text-muted-foreground">{t("timeline", "Timeline")}</p>
                   <p className="font-medium capitalize">
                     {request.timeline?.replace(/_/g, " ")}
                   </p>
@@ -142,7 +144,7 @@ export function TrackRequestDialog({ open, onOpenChange }: TrackRequestDialogPro
 
               {request.admin_notes && (
                 <div className="pt-4 border-t">
-                  <p className="text-sm text-muted-foreground mb-2">Notes from Our Team</p>
+                  <p className="text-sm text-muted-foreground mb-2">{t("notes_from_our_team", "Notes from Our Team")}</p>
                   <p className="text-sm">{request.admin_notes}</p>
                 </div>
               )}

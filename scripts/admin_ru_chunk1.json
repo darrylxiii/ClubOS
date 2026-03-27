@@ -1,0 +1,231 @@
+{
+  "activitySettingsDialog": {
+    "activeThresholdMustBeLessThan": "Порог активности должен быть меньше порога предупреждения"
+  },
+  "adminMemberRequests": {
+    "reasonForDeclineWillBeSent": "Причина отклонения (будет отправлена заявителю)",
+    "partnerDeclinedButTheNotificationEmail": "Партнёр отклонён, но уведомление по email не удалось отправить."
+  },
+  "blogArticleManager": {
+    "theseWereGeneratedWithTheOld": "Они были сгенерированы по старой схеме и отображаются как пустые."
+  },
+  "blogEngineControlModal": {
+    "publishArticlesAutomaticallyWhenQualityPasses": "Публиковать статьи автоматически при прохождении проверки качества.",
+    "holdArticlesForManualReviewBefore": "Удерживать статьи для ручной проверки перед публикацией."
+  },
+  "blogLearningsPanel": {
+    "noLearningsYetTheEngineDiscovers": "Пока нет наработок. Движок обнаруживает закономерности по мере генерации и анализа контента."
+  },
+  "blogQueueTable": {
+    "addATopicWithCategoryKeywords": "Добавьте тему с категорией, ключевыми словами и форматом для генерации ИИ.",
+    "queueIsEmptyAddATopic": "Очередь пуста. Добавьте тему выше или сгенерируйте предложения ИИ."
+  },
+  "complianceDashboard": {
+    "soc2AuditReportLast90": "Отчёт аудита SOC 2 (последние 90 дней)"
+  },
+  "disasterRecoveryDashboard": {
+    "clickTestPitrToRunYour": "Нажмите \"Тест PITR\", чтобы запустить Ваш первый тест"
+  },
+  "partnerProvisioningModal": {
+    "passwordMustBeAtLeast12": "Пароль должен содержать не менее 12 символов"
+  },
+  "activity": {
+    "realTimeActivityTab": {
+      "eventsByDeviceTypeLast5": "События по типу устройства (последние 5 минут)"
+    },
+    "roleIntelligenceTab": {
+      "online2": "Онлайн",
+      "logins2": "Входы",
+      "sourced2": "Найдено",
+      "clickAnyRowToSeeFull": "Нажмите на строку для просмотра полных данных. Нажмите на заголовок столбца для сортировки."
+    },
+    "userDetailModal": {
+      "comprehensiveActivityPerformanceAndEarningsData": "Комплексные данные об активности, производительности и доходах"
+    }
+  },
+  "agentic": {
+    "missionControlView": {
+      "noHeartbeatRunsYetTheSystem": "Ещё нет запусков heartbeat. Система скоро начнёт работу."
+    },
+    "sourcingCommandPanel": {
+      "noSourcingMissionsYetForThis": "Пока нет миссий по поиску для этой роли."
+    }
+  },
+  "approval": {
+    "approvalConfirmationStep": {
+      "createNewCandidateProfileAndLink": "Создать новый профиль кандидата и привязать к учётной записи",
+      "willBeAddedToCompanyAs": "Будет добавлен в компанию как партнёр",
+      "approveMemberRequestAndGrantPlatform": "Одобрить заявку участника и предоставить доступ к платформе"
+    },
+    "memberApprovalWorkflowDialog": {
+      "adminIdIsMissingPleaseRefresh": "Отсутствует ID администратора. Обновите страницу и попробуйте снова."
+    }
+  },
+  "assessments": {
+    "sendAssessmentsTab": {
+      "egCompleteThisForTheProduct": "Напр., \"Выполните это для роли продакт-менеджера\""
+    },
+    "assessmentsDashboard": {
+      "assessments": "Оценки",
+      "assessmentResults": "Результаты оценок",
+      "totalCompleted": "Всего завершено",
+      "averageScore": "Средний балл",
+      "passRate": "Процент сдачи"
+    }
+  },
+  "bulk-ops": {
+    "bulkInvitationTab": {
+      "addAPersonalizedMessageToThe": "Добавьте персонализированное сообщение к приглашению..."
+    }
+  },
+  "compliance": {
+    "securityIncidentsPanel": {
+      "documentANewSecurityIncidentFor": "Зафиксируйте новый инцидент безопасности для отслеживания и решения."
+    }
+  },
+  "enterprise": {
+    "sLADashboard": {
+      "currentPerformanceAgainstServiceLevelTargets": "Текущая производительность по сравнению с целевыми показателями SLA",
+      "slaBreachesInTheLast30": "Нарушения SLA за последние 30 дней",
+      "serviceLevelAgreementMonitoringAndCompliance": "Мониторинг и соблюдение соглашений об уровне обслуживания",
+      "noViolationsInTheLast30": "Нет нарушений за последние 30 дней"
+    },
+    "whiteLabelManager": {
+      "brandColors": "Цвета бренда",
+      "brandAssets": "Активы бренда",
+      "customDomain": "Пользовательский домен",
+      "advancedCustomization": "Расширенная настройка",
+      "defineTheColorPaletteForThis": "Определите цветовую палитру для этого арендатора",
+      "uploadLogosAndFavicons": "Загрузите логотипы и фавиконы",
+      "configureACustomDomainForThis": "Настройте пользовательский домен для этого арендатора",
+      "customCssAndEmailTemplates": "Пользовательский CSS и шаблоны email",
+      "primaryColor": "Основной цвет",
+      "secondaryColor": "Дополнительный цвет",
+      "accentColor": "Акцентный цвет",
+      "logoUrl": "URL логотипа",
+      "faviconUrl": "URL фавикона",
+      "customCss": "Пользовательский CSS",
+      "emailFooter": "Подпись email",
+      "customizeBrandingForEnterpriseTenants": "Настройте брендинг для корпоративных арендаторов",
+      "whiteLabelMode": "Режим White Label",
+      "enableCustomBrandingForThisCompany": "Включить пользовательский брендинг для этой компании",
+      "dnsConfiguration": "Настройка DNS",
+      "whiteLabelConfiguration": "Настройка White Label",
+      "previewText": "Предпросмотр текста",
+      "chooseACompanyToConfigure": "Выберите компанию для настройки",
+      "brandingSettingsSaved": "Настройки брендинга сохранены",
+      "failedToSaveBranding": "Не удалось сохранить настройки брендинга"
+    }
+  },
+  "kpi": {
+    "sLAStatusPanel": {
+      "sla": "SLA",
+      "functionsWithOpenCircuitBreakersTemporarily": "Функции с активными автоматическими выключателями (временно отключены)"
+    },
+    "costOverview": {
+      "noAiFunctionCallsInThe": "Нет вызовов ИИ-функций за последние 24 часа",
+      "cacheAiResponsesForRepeatedQueries": "Кэшируйте ответы ИИ на повторяющиеся запросы для снижения числа вызовов API",
+      "reviewMeetingRecordingsConsiderAutocleanupAfter": "Проверьте записи встреч — рассмотрите автоочистку через 90 дней"
+    }
+  },
+  "scim": {
+    "scimConfigurationPanel": {
+      "configureTheseUrlsInYourIdentity": "Настройте эти URL в Вашем поставщике удостоверений",
+      "groupsProvisionedFromYourIdentityProvider": "Группы, предоставленные Вашим поставщиком удостоверений",
+      "configureAutomatedUserProvisioningFromYour": "Настройте автоматическое обеспечение пользователей от Вашего поставщика удостоверений"
+    }
+  },
+  "system": {
+    "systemHealthDashboard": {
+      "system": "Система"
+    }
+  },
+  "webhooks": {
+    "webhookReliabilityDashboard": {
+      "monitorWebhookDeliveryHealthAndManage": "Отслеживайте состояние доставки вебхуков и управляйте неудачными доставками"
+    }
+  },
+  "aIConfiguration": {
+    "title": "Дополнительные параметры",
+    "desc": "Настройте алгоритм подбора для оптимизации соответствия кандидат-вакансия",
+    "desc2": "Общая оценка соответствия",
+    "tabHypotheticaltest": "Гипотетический тест",
+    "tabRealdatatest": "Тест на реальных данных"
+  },
+  "activationFunnelDashboard": {
+    "text1": "Воронка активации",
+    "text2": "Отслеживайте продвижение пользователей через ключевые этапы",
+    "text3": "Последние 7 дней",
+    "text4": "Последние 30 дней",
+    "text5": "Последние 90 дней",
+    "text6": "Продвижение пользователей через этапы активации",
+    "text7": "Среднее время достижения каждого этапа"
+  },
+  "adminAuditLog": {
+    "text1": "Успешно",
+    "text2": "Неудача",
+    "text3": "Заблокировано",
+    "text4": "Поиск по действию, email или ресурсу...",
+    "text5": "Фильтр по типу",
+    "text6": "Все события",
+    "text7": "Аутентификация",
+    "text8": "Действия пользователей",
+    "text9": "Настройки",
+    "text10": "Документы",
+    "text11": "Безопасность",
+    "text12": "Последние события",
+    "text13": "Показаны последние 100 событий",
+    "text14": "События аудита не найдены",
+    "text15": "События появятся здесь по мере выполнения действий"
+  },
+  "adminExports": {
+    "desc": "Разовый административный экспорт. Загрузки формируются по запросу и требуют авторизованной сессии.",
+    "btn2": "Скачать все SQL-части",
+    "text3": "Экспорт базы данных",
+    "text4": "Предупреждения"
+  },
+  "adminUserProfile": {
+    "desc": "Это публичный профиль пользователя. Возможности редактирования отключены в режиме администратора.",
+    "text2": "Профиль пользователя не найден.",
+    "text3": "Email подтверждён",
+    "text4": "Есть профиль кандидата",
+    "text5": "Обзор профиля",
+    "text6": "Полные настройки",
+    "text7": "Документы",
+    "text8": "Верификация",
+    "text9": "Резюме",
+    "text10": "Основной документ резюме",
+    "text11": "Статус верификации аккаунта",
+    "text12": "Верификация email",
+    "text13": "Верификация телефона",
+    "text14": "Активность аккаунта",
+    "text15": "Создан:",
+    "text16": "Последнее обновление:",
+    "text17": "Последний вход:"
+  },
+  "announcementsPage": {
+    "title": "ОБЪЯВЛЕНИЯ",
+    "text1": "Заголовок",
+    "text2": "Сообщение",
+    "text3": "Баннер",
+    "text4": "Модальное окно",
+    "text5": "Уведомление",
+    "text6": "Приоритет",
+    "text7": "Низкий",
+    "text8": "Обычный",
+    "text9": "Высокий",
+    "text10": "Критический",
+    "text11": "Истекает (необязательно)",
+    "text12": "Можно закрыть",
+    "text13": "Опубликовать",
+    "text14": "Активно",
+    "text15": "Критический",
+    "text16": "Заголовок",
+    "text17": "Тип",
+    "text18": "Приоритет",
+    "text19": "Целевая аудитория",
+    "text20": "Статус",
+    "text21": "Создано",
+    "text22": "Действия"
+  }
+}

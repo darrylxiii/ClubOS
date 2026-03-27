@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { 
@@ -54,14 +55,15 @@ const infrastructureMetrics = [
 ];
 
 export function TechStackDocumentation() {
+  const { t } = useTranslation('common');
   const getMaturityBadge = (maturity: TechItem['maturity']) => {
     switch (maturity) {
       case 'production':
-        return <Badge className="bg-green-500">Production</Badge>;
+        return <Badge className="bg-green-500">{t("production", "Production")}</Badge>;
       case 'beta':
-        return <Badge className="bg-yellow-500">Beta</Badge>;
+        return <Badge className="bg-yellow-500">{t("beta", "Beta")}</Badge>;
       case 'planned':
-        return <Badge variant="outline">Planned</Badge>;
+        return <Badge variant="outline">{t("planned", "Planned")}</Badge>;
     }
   };
 
@@ -74,7 +76,7 @@ export function TechStackDocumentation() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold">Technology Stack</h2>
+        <h2 className="text-2xl font-bold">{t("technology_stack", "Technology Stack")}</h2>
         <p className="text-muted-foreground">
           Complete technical architecture documentation
         </p>
@@ -153,16 +155,16 @@ export function TechStackDocumentation() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Architecture Highlights</CardTitle>
+          <CardTitle>{t("architecture_highlights", "Architecture Highlights")}</CardTitle>
         </CardHeader>
         <CardContent className="prose prose-sm dark:prose-invert max-w-none">
           <ul className="space-y-2 list-disc list-inside text-muted-foreground">
-            <li><strong>Scalable Serverless Architecture:</strong> Edge functions auto-scale to handle traffic spikes without infrastructure management</li>
-            <li><strong>Real-time Capabilities:</strong> WebSocket-based real-time updates for live collaboration features</li>
-            <li><strong>AI-First Design:</strong> QUIN AI engine integrated at core for intelligent matching and recommendations</li>
-            <li><strong>Multi-tenant Security:</strong> Row Level Security ensures complete data isolation between organizations</li>
-            <li><strong>Mobile-Ready:</strong> Progressive Web App with native mobile capabilities via Capacitor</li>
-            <li><strong>Observability Stack:</strong> Full error tracking, analytics, and performance monitoring</li>
+            <li><strong>{t("scalable_serverless_architecture", "Scalable Serverless Architecture:")}</strong> Edge functions auto-scale to handle traffic spikes without infrastructure management</li>
+            <li><strong>{t("realtime_capabilities", "Real-time Capabilities:")}</strong>{t("websocketbased_realtime_updates_for", "WebSocket-based real-time updates for live collaboration features")}</li>
+            <li><strong>{t("aifirst_design", "AI-First Design:")}</strong>{t("quin_ai_engine_integrated", "QUIN AI engine integrated at core for intelligent matching and recommendations")}</li>
+            <li><strong>{t("multitenant_security", "Multi-tenant Security:")}</strong>{t("row_level_security_ensures", "Row Level Security ensures complete data isolation between organizations")}</li>
+            <li><strong>{t("mobileready", "Mobile-Ready:")}</strong>{t("progressive_web_app_with", "Progressive Web App with native mobile capabilities via Capacitor")}</li>
+            <li><strong>{t("observability_stack", "Observability Stack:")}</strong>{t("full_error_tracking_analytics", "Full error tracking, analytics, and performance monitoring")}</li>
           </ul>
         </CardContent>
       </Card>

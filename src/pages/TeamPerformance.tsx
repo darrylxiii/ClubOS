@@ -1,4 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useTranslation } from 'react-i18next';
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -17,6 +18,7 @@ import { AlertCircle, Users, RefreshCw, BarChart3, ClipboardCheck } from "lucide
 import { motion } from "framer-motion";
 
 export default function TeamPerformance() {
+  const { t } = useTranslation('analytics');
   const { data: employee, isLoading: employeeLoading, refetch } = useEmployeeProfile();
   const { data: directReports, isLoading: reportsLoading } = useDirectReports(employee?.id);
 
@@ -116,10 +118,8 @@ export default function TeamPerformance() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold">Team Performance</h2>
-          <p className="text-muted-foreground">
-            Manage and track your team's performance and commissions
-          </p>
+          <h2 className="text-2xl font-bold">{t('teamPerformance.text2')}</h2>
+          <p className="text-muted-foreground">{t('teamPerformance.desc')}</p>
         </div>
         <Button 
           variant="outline" 

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -18,6 +19,7 @@ interface WeekAvailability {
 }
 
 export function AvailabilityIndicator({ bookingLinkSlug, selectedDate = new Date() }: AvailabilityIndicatorProps) {
+  const { t } = useTranslation('common');
   const [availability, setAvailability] = useState<WeekAvailability[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -88,7 +90,7 @@ export function AvailabilityIndicator({ bookingLinkSlug, selectedDate = new Date
       <Alert className="mb-4">
         <div className="flex items-center gap-2">
           <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-          <span className="text-sm">Checking availability...</span>
+          <span className="text-sm">{t("checking_availability", "Checking availability...")}</span>
         </div>
       </Alert>
     );
@@ -102,7 +104,7 @@ export function AvailabilityIndicator({ bookingLinkSlug, selectedDate = new Date
     <Alert className="mb-4">
       <AlertDescription>
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-          <span className="text-sm font-medium">Availability:</span>
+          <span className="text-sm font-medium">{t("availability", "Availability:")}</span>
           <div className="flex flex-wrap gap-3">
             {availability.map(({ week, count, label, color, icon }) => (
               <div key={week} className={`flex items-center gap-1.5 ${color}`}>

@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 
 interface AudioLevelIndicatorProps {
   level: number; // 0-1 normalized
@@ -134,8 +135,9 @@ interface SpeakingBadgeProps {
 }
 
 export function SpeakingBadge({ isSpeaking, level = 0, className }: SpeakingBadgeProps) {
+  const { t } = useTranslation('common');
   if (!isSpeaking) return null;
-  
+
   return (
     <div className={cn(
       'flex items-center gap-1.5 px-2 py-1 rounded-full',
@@ -153,7 +155,7 @@ export function SpeakingBadge({ isSpeaking, level = 0, className }: SpeakingBadg
         />
       </div>
       <span className="text-[10px] font-semibold text-emerald-400 uppercase tracking-wider">
-        Speaking
+        {t('shared.speaking', 'Speaking')}
       </span>
     </div>
   );

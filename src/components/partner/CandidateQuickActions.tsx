@@ -16,6 +16,7 @@ import { Linkedin, Mail, Download, UserPlus, Briefcase } from "lucide-react";
 import { CandidateInvitationDialog } from "./CandidateInvitationDialog";
 import { AddToJobDialog } from "./AddToJobDialog";
 import { useRole } from "@/contexts/RoleContext";
+import { useTranslation } from 'react-i18next';
 
 interface CandidateQuickActionsProps {
   candidateId: string;
@@ -30,6 +31,7 @@ export const CandidateQuickActions = ({
   candidateName,
   onRefresh 
 }: CandidateQuickActionsProps) => {
+  const { t } = useTranslation('partner');
   const { currentRole } = useRole();
   const isAdmin = currentRole === 'admin' || currentRole === 'strategist';
 
@@ -41,7 +43,7 @@ export const CandidateQuickActions = ({
 
   const handleLinkedInScrape = async () => {
     if (!linkedinUrl.trim()) {
-      toast.error("Please enter a LinkedIn URL");
+      toast.error(t('candidateQuickActions.toast.pleaseEnterALinkedinUrl'));
       return;
     }
 
@@ -78,7 +80,7 @@ export const CandidateQuickActions = ({
 
         if (updateError) throw updateError;
 
-        toast.success("LinkedIn profile imported successfully.");
+        toast.success(t('candidateQuickActions.toast.linkedinProfileImportedSuccessfully'));
         setLinkedinDialogOpen(false);
         setLinkedinUrl("");
         onRefresh();
@@ -104,7 +106,7 @@ export const CandidateQuickActions = ({
       }
     } catch (error) {
       console.error("Error scraping LinkedIn:", error);
-      toast.error("Failed to import LinkedIn profile");
+      toast.error(t('candidateQuickActions.toast.failedToImportLinkedinProfile'));
     } finally {
       setScraping(false);
     }
@@ -134,10 +136,10 @@ export const CandidateQuickActions = ({
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
 
-      toast.success("Profile exported successfully");
+      toast.success(t('candidateQuickActions.toast.profileExportedSuccessfully'));
     } catch (error) {
       console.error("Error exporting profile:", error);
-      toast.error("Failed to export profile");
+      toast.error(t('candidateQuickActions.toast.failedToExportProfile'));
     }
   };
 
@@ -152,14 +154,12 @@ export const CandidateQuickActions = ({
         </DialogTrigger>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Import from LinkedIn</DialogTitle>
-            <DialogDescription>
-              Enter a LinkedIn profile URL to automatically enrich this candidate's profile
-            </DialogDescription>
+            <DialogTitle>{t('candidateQuickActions.dialogTitle')}</DialogTitle>
+            <DialogDescription>{t('candidateQuickActions.dialogDescription')}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label htmlFor="linkedin-url">LinkedIn Profile URL</Label>
+              <Label htmlFor="linkedin-url">{t('candidateQuickActions.label.linkedinProfileUrl')}</Label>
               <Input
                 id="linkedin-url"
                 placeholder="https://linkedin.com/in/username"
@@ -185,7 +185,7 @@ export const CandidateQuickActions = ({
 
       <Button variant="outline" size="sm" onClick={handleExportProfile}>
         <Download className="w-4 h-4 mr-2" />
-        Export
+        {t('common:export')}
       </Button>
 
       <Button variant="outline" size="sm" onClick={() => setInviteDialogOpen(true)}>

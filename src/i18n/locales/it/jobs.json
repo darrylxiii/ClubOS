@@ -1,0 +1,192 @@
+{
+  "create": {
+    "title": "Crea posizione",
+    "subtitle": "Pubblichi una nuova opportunita di lavoro",
+    "template": "Usa modello",
+    "draft": "Salva come bozza",
+    "publish": "Pubblica posizione"
+  },
+  "edit": {
+    "title": "Modifica posizione",
+    "save": "Salva modifiche",
+    "preview": "Anteprima annuncio"
+  },
+  "apply": {
+    "title": "Candidati",
+    "submit": "Invia candidatura",
+    "coverLetter": "Lettera di presentazione",
+    "resume": "Alleghi il Suo curriculum",
+    "questions": "Domande aggiuntive",
+    "submitted": "Candidatura inviata!",
+    "alreadyApplied": "Si e gia candidato"
+  },
+  "details": {
+    "title": "Dettagli della posizione",
+    "description": "Descrizione della posizione",
+    "requirements": "Requisiti",
+    "responsibilities": "Responsabilita",
+    "benefits": "Vantaggi e benefit",
+    "salary": "Fascia retributiva",
+    "location": "Sede",
+    "department": "Reparto",
+    "reportingTo": "Risponde a",
+    "startDate": "Data di inizio",
+    "deadline": "Scadenza candidature"
+  },
+  "status": {
+    "draft": "Bozza",
+    "published": "Pubblicato",
+    "closed": "Chiuso",
+    "paused": "In pausa",
+    "archived": "Archiviato",
+    "filled": "Posizione coperta"
+  },
+  "types": {
+    "fullTime": "Tempo pieno",
+    "partTime": "Part-time",
+    "contract": "Contratto",
+    "freelance": "Freelance",
+    "internship": "Stage",
+    "temporary": "Temporaneo"
+  },
+  "workMode": {
+    "remote": "Remoto",
+    "hybrid": "Ibrido",
+    "onsite": "In sede",
+    "flexible": "Flessibile"
+  },
+  "experience": {
+    "entry": "Livello base",
+    "junior": "Junior (1-3 anni)",
+    "mid": "Intermedio (3-5 anni)",
+    "senior": "Senior (5-10 anni)",
+    "lead": "Lead (10+ anni)",
+    "executive": "Dirigente"
+  },
+  "pipeline": {
+    "title": "Pipeline di assunzione",
+    "stages": "Fasi della pipeline",
+    "applied": "Candidato",
+    "screening": "Screening",
+    "interview": "Colloquio",
+    "assessment": "Valutazione",
+    "offer": "Offerta",
+    "hired": "Assunto",
+    "rejected": "Rifiutato"
+  },
+  "filters": {
+    "title": "Filtra posizioni",
+    "department": "Reparto",
+    "location": "Sede",
+    "type": "Tipo di impiego",
+    "experience": "Livello di esperienza",
+    "salary": "Fascia retributiva",
+    "remote": "Solo remoto",
+    "clearAll": "Cancella tutti i filtri"
+  },
+  "search": {
+    "placeholder": "Cerca posizioni...",
+    "noResults": "Nessuna posizione trovata",
+    "results": "{{count}} posizioni trovate"
+  },
+  "actions": {
+    "view": "Visualizza posizione",
+    "edit": "Modifica posizione",
+    "duplicate": "Duplica posizione",
+    "close": "Chiudi posizione",
+    "reopen": "Riapri posizione",
+    "archive": "Archivia posizione",
+    "delete": "Elimina posizione",
+    "share": "Condividi posizione"
+  },
+  "applicants": {
+    "title": "Candidati",
+    "total": "Candidati totali",
+    "new": "Nuovi candidati",
+    "shortlisted": "Lista ristretta",
+    "interviewed": "Intervistati",
+    "offered": "Con offerta",
+    "hired": "Assunti"
+  },
+  "posting": {
+    "title": "Annuncio di lavoro",
+    "internal": "Interno",
+    "external": "Esterno",
+    "confidential": "Riservato",
+    "featured": "In evidenza"
+  },
+  "analytics": {
+    "title": "Analytics della posizione",
+    "views": "Visualizzazioni",
+    "applications": "Candidature",
+    "conversionRate": "Tasso di conversione",
+    "timeToFill": "Tempo per copertura"
+  },
+  "recommendations": {
+    "title": "Posizioni consigliate",
+    "forYou": "Per Lei",
+    "trending": "Di tendenza",
+    "similar": "Posizioni simili",
+    "savedJobs": "Posizioni salvate"
+  },
+  "alerts": {
+    "title": "Avvisi di lavoro",
+    "create": "Crea avviso",
+    "manage": "Gestisci avvisi",
+    "frequency": "Frequenza",
+    "criteria": "Criteri di avviso"
+  },
+  "company": {
+    "title": "Informazioni azienda",
+    "about": "Informazioni sull'azienda",
+    "culture": "Cultura aziendale",
+    "benefits": "Benefit",
+    "reviews": "Recensioni",
+    "otherJobs": "Altre posizioni"
+  },
+  "application": {
+    "status": "Stato della candidatura",
+    "submitted": "Candidatura inviata",
+    "underReview": "In revisione",
+    "interviewScheduled": "Colloquio pianificato",
+    "offerMade": "Offerta presentata",
+    "withdrawn": "Candidatura ritirata"
+  },
+  "empty": {
+    "noJobs": "Nessuna posizione disponibile",
+    "noApplications": "Ancora nessuna candidatura",
+    "createFirst": "Pubblichi la Sua prima posizione"
+  },
+  "notifications": {
+    "jobCreated": "Posizione creata con successo",
+    "jobUpdated": "Posizione aggiornata con successo",
+    "applicationReceived": "Nuova candidatura ricevuta",
+    "statusChanged": "Stato della candidatura aggiornato"
+  },
+  "companyJobsDashboard": {
+    "desc": "Gestisca i ruoli attivi, la pipeline e le analytics di assunzione del Suo team",
+    "text2": "Gestione assunzioni",
+    "text3": "Ruoli aperti",
+    "text4": "Candidature totali",
+    "text5": "In fase di colloquio",
+    "text6": "Tasso di assunzione"
+  },
+  "jobDetail": {
+    "desc": "Condivida questo link con i candidati. Viene automaticamente tracciato dalle analytics di sourcing.",
+    "text2": "Condivida questo link con potenziali candidati",
+    "text3": "Cronologia attivita",
+    "text4": "Nessuna attivita registrata per questa posizione."
+  },
+  "jobs": {
+    "text1": "Nessuna posizione trovata",
+    "text2": "Provi a modificare i filtri di ricerca",
+    "text3": "Posizioni aperte",
+    "text4": "Scopra le Sue prossime opportunita di carriera",
+    "text5": "Cerca per titolo, azienda o competenze...",
+    "text6": "Tipo di lavoro"
+  },
+  "sharedPipelineView": {
+    "text1": "Pipeline condivisa",
+    "text2": "Candidato"
+  }
+}

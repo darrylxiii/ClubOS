@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { TrendingDown, Brain, AlertCircle, Target } from "lucide-react";
@@ -19,6 +20,7 @@ const REJECTION_LABELS: { [key: string]: string } = {
 };
 
 export function RejectionInsights({ candidates, stages }: Props) {
+  const { t } = useTranslation('common');
   if (candidates.length === 0) {
     return null;
   }
@@ -106,13 +108,13 @@ export function RejectionInsights({ candidates, stages }: Props) {
           {/* Key Metrics */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-1">
-              <p className="text-xs text-muted-foreground uppercase">Average Rejection Stage</p>
+              <p className="text-xs text-muted-foreground uppercase">{t("average_rejection_stage", "Average Rejection Stage")}</p>
               <p className="text-2xl font-bold">{avgStageName}</p>
               <p className="text-xs text-muted-foreground">Stage {Math.round(avgStage) + 1} of {stages.length}</p>
             </div>
 
             <div className="space-y-1">
-              <p className="text-xs text-muted-foreground uppercase">Late-Stage Rejections</p>
+              <p className="text-xs text-muted-foreground uppercase">{t("latestage_rejections", "Late-Stage Rejections")}</p>
               <p className="text-2xl font-bold">{lateStageRejections}</p>
               <p className="text-xs text-muted-foreground">
                 {Math.round((lateStageRejections / candidates.length) * 100)}% rejected in final stages
@@ -120,9 +122,9 @@ export function RejectionInsights({ candidates, stages }: Props) {
             </div>
 
             <div className="space-y-1">
-              <p className="text-xs text-muted-foreground uppercase">Total Rejections</p>
+              <p className="text-xs text-muted-foreground uppercase">{t("total_rejections", "Total Rejections")}</p>
               <p className="text-2xl font-bold">{candidates.length}</p>
-              <p className="text-xs text-muted-foreground">Across all pipeline stages</p>
+              <p className="text-xs text-muted-foreground">{t("across_all_pipeline_stages", "Across all pipeline stages")}</p>
             </div>
           </div>
 
@@ -148,7 +150,7 @@ export function RejectionInsights({ candidates, stages }: Props) {
             <div className="flex items-start gap-2">
               <AlertCircle className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
               <div className="text-sm space-y-1">
-                <p className="font-semibold">Partner Preference Pattern</p>
+                <p className="font-semibold">{t("partner_preference_pattern", "Partner Preference Pattern")}</p>
                 <p className="text-muted-foreground">
                   This partner typically focuses on{' '}
                   <span className="font-medium text-foreground">

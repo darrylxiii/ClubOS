@@ -18,7 +18,7 @@ Phase 1 of the AI-first transformation is complete. The platform now has semanti
 ### Edge Functions
 1. **generate-embeddings**: Generate embeddings for individual entities
    - Input: `{ text, entity_type, entity_id }`
-   - Uses Lovable AI (no API key needed)
+   - Uses Google Gemini (no API key needed)
    - Auto-updates database if entity_id provided
 
 2. **semantic-search**: Find similar entities using vector search
@@ -142,7 +142,7 @@ interactions        | 500           | 300             | 60.00
 
 - All edge functions use CORS for web access
 - Database functions use SECURITY DEFINER with search_path set
-- Embeddings use Lovable AI (no exposed API keys)
+- Embeddings use Google Gemini (no exposed API keys)
 - RLS policies apply to all semantic search results
 
 ## Cost Considerations

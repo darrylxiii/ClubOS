@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -69,6 +70,7 @@ function useRevenueCohorts() {
 }
 
 export function RevenueCohortAnalysis() {
+  const { t } = useTranslation('common');
   const { data: cohorts, isLoading } = useRevenueCohorts();
 
   if (isLoading) {
@@ -89,12 +91,12 @@ export function RevenueCohortAnalysis() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Revenue Cohorts</CardTitle>
-          <CardDescription>Customer cohort analysis by first placement quarter</CardDescription>
+          <CardTitle>{t('financial.revenueCohorts')}</CardTitle>
+          <CardDescription>{t('financial.cohortAnalysisDesc')}</CardDescription>
         </CardHeader>
         <CardContent>
           <p className="text-muted-foreground text-center py-8">
-            No placement data yet. Cohort analysis will appear after the first recorded placement fee.
+            {t('financial.noPlacementData')}
           </p>
         </CardContent>
       </Card>
@@ -109,8 +111,8 @@ export function RevenueCohortAnalysis() {
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle>Revenue Cohorts</CardTitle>
-            <CardDescription>Customer cohort analysis by first placement quarter</CardDescription>
+            <CardTitle>{t('financial.revenueCohorts')}</CardTitle>
+            <CardDescription>{t('financial.cohortAnalysisDesc')}</CardDescription>
           </div>
           <div className="flex gap-2">
             <Badge variant="outline">{totalClients} clients</Badge>
@@ -129,7 +131,7 @@ export function RevenueCohortAnalysis() {
               {
                 dataKey: 'revenue',
                 fill: 'hsl(var(--chart-1))',
-                name: 'Total Revenue',
+                name: t('financial.totalRevenue'),
                 radius: [4, 4, 0, 0],
               },
             ],
@@ -143,11 +145,11 @@ export function RevenueCohortAnalysis() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b text-muted-foreground">
-                <th className="text-left py-2 font-medium">Cohort</th>
-                <th className="text-right py-2 font-medium">Clients</th>
-                <th className="text-right py-2 font-medium">Placements</th>
-                <th className="text-right py-2 font-medium">Revenue</th>
-                <th className="text-right py-2 font-medium">Avg Deal</th>
+                <th className="text-left py-2 font-medium">{t('financial.cohort')}</th>
+                <th className="text-right py-2 font-medium">{t('financial.clients')}</th>
+                <th className="text-right py-2 font-medium">{t('financial.placements')}</th>
+                <th className="text-right py-2 font-medium">{t('financial.revenue')}</th>
+                <th className="text-right py-2 font-medium">{t('financial.avgDeal')}</th>
               </tr>
             </thead>
             <tbody>

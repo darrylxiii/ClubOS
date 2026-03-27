@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { 
@@ -121,6 +122,7 @@ interface MessageTemplatesPanelProps {
 }
 
 export function MessageTemplatesPanel({ onSelectTemplate }: MessageTemplatesPanelProps) {
+  const { t } = useTranslation('common');
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
 
@@ -151,7 +153,7 @@ export function MessageTemplatesPanel({ onSelectTemplate }: MessageTemplatesPane
           variant="ghost"
           size="icon"
           className="h-9 w-9"
-          title="Quick replies"
+          title={t("quick_replies", "Quick replies")}
         >
           <Bookmark className="h-4 w-4" />
         </Button>
@@ -166,7 +168,7 @@ export function MessageTemplatesPanel({ onSelectTemplate }: MessageTemplatesPane
           <div className="relative">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search templates..."
+              placeholder={t("search_templates", "Search templates...")}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="pl-8 h-9"

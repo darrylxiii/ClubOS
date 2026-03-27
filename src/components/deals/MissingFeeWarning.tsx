@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { AlertCircle } from "lucide-react";
@@ -5,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { useDealPipeline } from "@/hooks/useDealPipeline";
 
 export function MissingFeeWarning() {
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
   const { data: deals } = useDealPipeline();
 
@@ -27,7 +29,7 @@ export function MissingFeeWarning() {
   return (
     <Alert variant="destructive" className="mb-6">
       <AlertCircle className="h-4 w-4" />
-      <AlertTitle>Missing Fee Configuration</AlertTitle>
+      <AlertTitle>{t("missing_fee_configuration", "Missing Fee Configuration")}</AlertTitle>
       <AlertDescription className="mt-2 flex flex-col gap-2">
         <p>
           {companiesWithoutFee.length} {companiesWithoutFee.length === 1 ? 'company has' : 'companies have'} no placement fee percentage configured. 

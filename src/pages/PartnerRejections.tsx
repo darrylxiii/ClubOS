@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useTranslation } from 'react-i18next';
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -52,6 +53,7 @@ const REJECTION_COLORS: { [key: string]: string } = {
 };
 
 export default function PartnerRejections() {
+  const { t } = useTranslation('partner');
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [rejectedCandidates, setRejectedCandidates] = useState<any[]>([]);
@@ -211,7 +213,7 @@ export default function PartnerRejections() {
       <div className="flex items-start gap-3 p-4 rounded-lg bg-primary/5 border border-primary/20">
         <Lightbulb className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
         <div>
-          <p className="text-sm font-medium">Talent Pool Opportunity</p>
+          <p className="text-sm font-medium">{t('partnerRejections.text1')}</p>
           <p className="text-xs text-muted-foreground mt-1">
             Candidates rejected for seniority mismatches might be perfect for other roles. 
             Review your talent pool regularly for cross-role opportunities.
@@ -225,7 +227,7 @@ export default function PartnerRejections() {
           <div className="relative">
             <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search candidates..."
+              placeholder={t('partnerRejections.text2')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-9 bg-card/50 border-border/30"
@@ -233,10 +235,10 @@ export default function PartnerRejections() {
           </div>
           <Select value={filterJob} onValueChange={setFilterJob}>
             <SelectTrigger className="bg-card/50 border-border/30">
-              <SelectValue placeholder="All Jobs" />
+              <SelectValue placeholder={t('partnerRejections.text3')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Jobs</SelectItem>
+              <SelectItem value="all">{t('partnerRejections.text4')}</SelectItem>
               {jobs.map(job => (
                 <SelectItem key={job.id} value={job.id}>{job.title}</SelectItem>
               ))}
@@ -244,10 +246,10 @@ export default function PartnerRejections() {
           </Select>
           <Select value={filterReason} onValueChange={setFilterReason}>
             <SelectTrigger className="bg-card/50 border-border/30">
-              <SelectValue placeholder="All Reasons" />
+              <SelectValue placeholder={t('partnerRejections.text5')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Reasons</SelectItem>
+              <SelectItem value="all">{t('partnerRejections.text6')}</SelectItem>
               {Object.entries(REJECTION_LABELS).map(([key, label]) => (
                 <SelectItem key={key} value={key}>{label}</SelectItem>
               ))}

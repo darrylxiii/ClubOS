@@ -5,6 +5,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { format } from 'date-fns';
 import { MediaItem } from '@/hooks/useConversationMedia';
 import { supabase } from '@/integrations/supabase/client';
+import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
@@ -14,6 +15,7 @@ interface SharedMediaGalleryProps {
 }
 
 export const SharedMediaGallery = ({ media, loading }: SharedMediaGalleryProps) => {
+  const { t } = useTranslation('messages');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
   const getFileIcon = (fileType: string) => {
@@ -39,17 +41,17 @@ export const SharedMediaGallery = ({ media, loading }: SharedMediaGalleryProps) 
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
 
-      toast.success('File downloaded');
+      toast.success(t('sharedMedia.fileDownloaded'));
     } catch (error) {
       console.error('Download error:', error);
-      toast.error('Failed to download file');
+      toast.error(t('sharedMedia.downloadFailed'));
     }
   };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center py-8">
-        <p className="text-sm text-muted-foreground">Loading media...</p>
+        <p className="text-sm text-muted-foreground">{t('sharedMedia.loading')}</p>
       </div>
     );
   }
@@ -57,7 +59,7 @@ export const SharedMediaGallery = ({ media, loading }: SharedMediaGalleryProps) 
   if (media.length === 0) {
     return (
       <div className="text-center py-8">
-        <p className="text-sm text-muted-foreground">No files shared yet</p>
+        <p className="text-sm text-muted-foreground">{t('sharedMedia.noFiles')}</p>
       </div>
     );
   }
@@ -71,7 +73,7 @@ export const SharedMediaGallery = ({ media, loading }: SharedMediaGalleryProps) 
       {/* Images */}
       {images.length > 0 && (
         <div>
-          <h4 className="text-sm font-medium mb-2">Images ({images.length})</h4>
+          <h4 className="text-sm font-medium mb-2">{t('sharedMedia.images')} ({images.length})</h4>
           <div className="grid grid-cols-3 gap-2">
             {images.map((item) => (
               <div key={item.id} className="relative group aspect-square rounded-lg overflow-hidden bg-muted">
@@ -96,7 +98,7 @@ export const SharedMediaGallery = ({ media, loading }: SharedMediaGalleryProps) 
       {/* Videos */}
       {videos.length > 0 && (
         <div>
-          <h4 className="text-sm font-medium mb-2">Videos ({videos.length})</h4>
+          <h4 className="text-sm font-medium mb-2">{t('sharedMedia.videos')} ({videos.length})</h4>
           <div className="grid grid-cols-3 gap-2">
             {videos.map((item) => (
               <div key={item.id} className="relative group aspect-square rounded-lg overflow-hidden bg-muted">
@@ -121,7 +123,7 @@ export const SharedMediaGallery = ({ media, loading }: SharedMediaGalleryProps) 
       {/* Documents */}
       {documents.length > 0 && (
         <div>
-          <h4 className="text-sm font-medium mb-2">Documents ({documents.length})</h4>
+          <h4 className="text-sm font-medium mb-2">{t('sharedMedia.documents')} ({documents.length})</h4>
           <div className="space-y-2">
             {documents.map((item) => (
               <div

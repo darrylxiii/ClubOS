@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useAuth } from "@/contexts/AuthContext";
 import { useApplications } from "@/hooks/useApplications";
 import { useNavigate } from "react-router-dom";
@@ -6,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export function PipelineSnapshot() {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const navigate = useNavigate();
   const { data: applications, isLoading } = useApplications(user?.id, false);
@@ -46,7 +48,7 @@ export function PipelineSnapshot() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Briefcase className="h-5 w-5 text-muted-foreground" />
-            <span className="text-sm text-muted-foreground">No active applications</span>
+            <span className="text-sm text-muted-foreground">{t("no_active_applications", "No active applications")}</span>
           </div>
           <Button variant="outline" size="sm" onClick={() => navigate('/jobs')}>
             Browse roles

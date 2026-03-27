@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { RoleGate } from '@/components/RoleGate';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -12,6 +13,7 @@ import { DynamicChart } from '@/components/charts/DynamicChart';
 import { format, subDays } from 'date-fns';
 
 export default function WhatsAppAnalytics() {
+  const { t } = useTranslation('admin');
   const [period, setPeriod] = useState('7d');
 
   const { data: analytics } = useQuery({
@@ -72,17 +74,17 @@ export default function WhatsAppAnalytics() {
       <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold">WhatsApp Analytics</h1>
-              <p className="text-muted-foreground">Monitor messaging performance and engagement</p>
+              <h1 className="text-2xl font-bold">{"WhatsApp Analytics"}</h1>
+              <p className="text-muted-foreground">{"Monitor messaging performance and engagement"}</p>
             </div>
             <Select value={period} onValueChange={setPeriod}>
               <SelectTrigger className="w-32">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="7d">Last 7 days</SelectItem>
-                <SelectItem value="30d">Last 30 days</SelectItem>
-                <SelectItem value="90d">Last 90 days</SelectItem>
+                <SelectItem value="7d">{"Last 7 days"}</SelectItem>
+                <SelectItem value="30d">{"Last 30 days"}</SelectItem>
+                <SelectItem value="90d">{"Last 90 days"}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -97,7 +99,7 @@ export default function WhatsAppAnalytics() {
                   </div>
                   <div>
                     <p className="text-2xl font-bold">{sentMessages}</p>
-                    <p className="text-xs text-muted-foreground">Messages Sent</p>
+                    <p className="text-xs text-muted-foreground">{"Messages Sent"}</p>
                   </div>
                 </div>
               </CardContent>
@@ -111,7 +113,7 @@ export default function WhatsAppAnalytics() {
                   </div>
                   <div>
                     <p className="text-2xl font-bold">{receivedMessages}</p>
-                    <p className="text-xs text-muted-foreground">Replies Received</p>
+                    <p className="text-xs text-muted-foreground">{"Replies Received"}</p>
                   </div>
                 </div>
               </CardContent>
@@ -125,7 +127,7 @@ export default function WhatsAppAnalytics() {
                   </div>
                   <div>
                     <p className="text-2xl font-bold">{deliveryRate}%</p>
-                    <p className="text-xs text-muted-foreground">Delivery Rate</p>
+                    <p className="text-xs text-muted-foreground">{"Delivery Rate"}</p>
                   </div>
                 </div>
               </CardContent>
@@ -139,7 +141,7 @@ export default function WhatsAppAnalytics() {
                   </div>
                   <div>
                     <p className="text-2xl font-bold">{readRate}%</p>
-                    <p className="text-xs text-muted-foreground">Read Rate</p>
+                    <p className="text-xs text-muted-foreground">{"Read Rate"}</p>
                   </div>
                 </div>
               </CardContent>
@@ -148,16 +150,16 @@ export default function WhatsAppAnalytics() {
 
           <Tabs defaultValue="overview" className="space-y-4">
             <TabsList>
-              <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="templates">Templates</TabsTrigger>
-              <TabsTrigger value="conversations">Conversations</TabsTrigger>
+              <TabsTrigger value="overview">{"Overview"}</TabsTrigger>
+              <TabsTrigger value="templates">{"Templates"}</TabsTrigger>
+              <TabsTrigger value="conversations">{"Conversations"}</TabsTrigger>
             </TabsList>
 
             <TabsContent value="overview" className="space-y-4">
               <div className="grid md:grid-cols-2 gap-4">
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-base">Message Volume</CardTitle>
+                    <CardTitle className="text-base">{"Message Volume"}</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <DynamicChart
@@ -178,7 +180,7 @@ export default function WhatsAppAnalytics() {
 
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-base">Intent Distribution</CardTitle>
+                    <CardTitle className="text-base">{"Intent Distribution"}</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <DynamicChart
@@ -210,13 +212,13 @@ export default function WhatsAppAnalytics() {
 
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base">Active Conversations</CardTitle>
+                  <CardTitle className="text-base">{"Active Conversations"}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="flex items-center gap-4">
                     <div className="flex-1">
                       <div className="flex justify-between mb-2">
-                        <span className="text-sm">Active</span>
+                        <span className="text-sm">{"Active"}</span>
                         <span className="text-sm font-medium">{activeConversations}</span>
                       </div>
                       <Progress value={(activeConversations / (analytics?.conversations.length || 1)) * 100} className="h-2" />
@@ -232,7 +234,7 @@ export default function WhatsAppAnalytics() {
             <TabsContent value="templates" className="space-y-4">
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base">Template Performance</CardTitle>
+                  <CardTitle className="text-base">{"Template Performance"}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
@@ -256,7 +258,7 @@ export default function WhatsAppAnalytics() {
                       );
                     })}
                     {(!analytics?.templates || analytics.templates.length === 0) && (
-                      <p className="text-center text-muted-foreground py-8">No templates yet</p>
+                      <p className="text-center text-muted-foreground py-8">{"No templates yet"}</p>
                     )}
                   </div>
                 </CardContent>
@@ -266,31 +268,31 @@ export default function WhatsAppAnalytics() {
             <TabsContent value="conversations" className="space-y-4">
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base">Conversation Stats</CardTitle>
+                  <CardTitle className="text-base">{"Conversation Stats"}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div className="text-center p-4 rounded-lg bg-muted/50">
                       <Users className="h-6 w-6 mx-auto mb-2 text-muted-foreground" />
                       <p className="text-2xl font-bold">{analytics?.conversations.length || 0}</p>
-                      <p className="text-xs text-muted-foreground">Total Conversations</p>
+                      <p className="text-xs text-muted-foreground">{"Total Conversations"}</p>
                     </div>
                     <div className="text-center p-4 rounded-lg bg-muted/50">
                       <Zap className="h-6 w-6 mx-auto mb-2 text-green-500" />
                       <p className="text-2xl font-bold">{activeConversations}</p>
-                      <p className="text-xs text-muted-foreground">Active (24h window)</p>
+                      <p className="text-xs text-muted-foreground">{"Active (24h window)"}</p>
                     </div>
                     <div className="text-center p-4 rounded-lg bg-muted/50">
                       <Clock className="h-6 w-6 mx-auto mb-2 text-amber-500" />
                       <p className="text-2xl font-bold">
                         {analytics?.conversations.filter(c => (c.unread_count || 0) > 0).length || 0}
                       </p>
-                      <p className="text-xs text-muted-foreground">Needs Response</p>
+                      <p className="text-xs text-muted-foreground">{"Needs Response"}</p>
                     </div>
                     <div className="text-center p-4 rounded-lg bg-muted/50">
                       <TrendingUp className="h-6 w-6 mx-auto mb-2 text-blue-500" />
                       <p className="text-2xl font-bold">{totalMessages}</p>
-                      <p className="text-xs text-muted-foreground">Total Messages</p>
+                      <p className="text-xs text-muted-foreground">{"Total Messages"}</p>
                     </div>
                   </div>
                 </CardContent>

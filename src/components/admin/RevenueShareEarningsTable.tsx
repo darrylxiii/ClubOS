@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -30,6 +31,7 @@ interface RevenueShareEarningsTableProps {
 }
 
 export function RevenueShareEarningsTable({ revenueShares }: RevenueShareEarningsTableProps) {
+  const { t } = useTranslation('common');
   const activeShares = revenueShares.filter(s => s.is_active);
 
   // Fetch Moneybird invoices for calculation — include net_amount
@@ -117,13 +119,13 @@ export function RevenueShareEarningsTable({ revenueShares }: RevenueShareEarning
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>User</TableHead>
-              <TableHead>Share Type</TableHead>
-              <TableHead>Rate</TableHead>
-              <TableHead>Scope</TableHead>
-              <TableHead className="text-right">Projected</TableHead>
-              <TableHead className="text-right">Realized</TableHead>
-              <TableHead className="text-right">Pending</TableHead>
+              <TableHead>{t("user", "User")}</TableHead>
+              <TableHead>{t("share_type", "Share Type")}</TableHead>
+              <TableHead>{t("rate", "Rate")}</TableHead>
+              <TableHead>{t("scope", "Scope")}</TableHead>
+              <TableHead className="text-right">{t("projected", "Projected")}</TableHead>
+              <TableHead className="text-right">{t("realized", "Realized")}</TableHead>
+              <TableHead className="text-right">{t("pending", "Pending")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

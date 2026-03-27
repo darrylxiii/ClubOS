@@ -1,4 +1,5 @@
 import { useRef, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Monitor, X, Maximize2, Minimize2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -20,6 +21,7 @@ const ScreenShareSpotlight = ({
   isLocal = false,
   onStop 
 }: ScreenShareSpotlightProps) => {
+  const { t } = useTranslation('meetings');
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
@@ -70,7 +72,7 @@ const ScreenShareSpotlight = ({
               </Avatar>
               <div>
                 <p className="text-sm font-medium">{userName}</p>
-                <p className="text-xs text-muted-foreground">is sharing their screen</p>
+                <p className="text-xs text-muted-foreground">{t('livehub.isSharingScreen')}</p>
               </div>
             </div>
           </div>
@@ -83,7 +85,7 @@ const ScreenShareSpotlight = ({
               className="bg-red-500/90 hover:bg-red-500 text-white gap-2"
             >
               <X className="w-4 h-4" />
-              Stop Sharing
+              {t('livehub.stopSharing')}
             </Button>
           )}
         </div>
@@ -93,7 +95,7 @@ const ScreenShareSpotlight = ({
           <div className="flex items-center justify-between">
             <div className="bg-background/90 backdrop-blur-sm rounded-lg px-3 py-2">
               <p className="text-xs text-muted-foreground">
-                Screen Share • HD Quality
+                {t('livehub.screenShareHDQuality')}
               </p>
             </div>
           </div>

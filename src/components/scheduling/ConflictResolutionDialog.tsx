@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -49,6 +50,7 @@ export function ConflictResolutionDialog({
   onOpenChange,
   onResolved
 }: ConflictResolutionDialogProps) {
+  const { t } = useTranslation('common');
   const { proposeResolutions, resolveConflict, ignoreConflict, isResolving } = useConflictResolution();
   const [solutions, setSolutions] = useState<ResolutionOption[]>([]);
   const [isLoadingSolutions, setIsLoadingSolutions] = useState(false);
@@ -198,7 +200,7 @@ export function ConflictResolutionDialog({
               <Card>
                 <CardContent className="p-6 text-center text-muted-foreground">
                   <AlertTriangle className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                  <p>No resolution options available</p>
+                  <p>{t("no_resolution_options_available", "No resolution options available")}</p>
                   <Button variant="outline" size="sm" className="mt-2" onClick={loadSolutions}>
                     Generate Options
                   </Button>
@@ -241,7 +243,7 @@ export function ConflictResolutionDialog({
                       <div className="flex items-center gap-6 text-sm">
                         <div className="flex-1">
                           <div className="flex items-center justify-between text-muted-foreground mb-1">
-                            <span>Disruption</span>
+                            <span>{t("disruption", "Disruption")}</span>
                             <span>{solution.disruption_score}%</span>
                           </div>
                           <Progress 
@@ -251,7 +253,7 @@ export function ConflictResolutionDialog({
                         </div>
                         <div className="flex-1">
                           <div className="flex items-center justify-between text-muted-foreground mb-1">
-                            <span>Acceptance</span>
+                            <span>{t("acceptance", "Acceptance")}</span>
                             <span>{solution.acceptance_probability}%</span>
                           </div>
                           <Progress 

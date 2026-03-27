@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useRef, useEffect } from "react";
 import { useProjectMessages, ProjectMessage } from "@/hooks/useProjectMessages";
 import { useAuth } from "@/contexts/AuthContext";
@@ -31,6 +32,7 @@ export function ProjectChat({
   recipientAvatar,
   className,
 }: ProjectChatProps) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [message, setMessage] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -133,8 +135,8 @@ export function ProjectChat({
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground">
             <MessageSquare className="h-12 w-12 mb-4 opacity-50" />
-            <p className="font-medium">No messages yet</p>
-            <p className="text-sm">Start the conversation below</p>
+            <p className="font-medium">{t("no_messages_yet", "No messages yet")}</p>
+            <p className="text-sm">{t("start_the_conversation_below", "Start the conversation below")}</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -226,7 +228,7 @@ export function ProjectChat({
           </Button>
           <Input
             ref={inputRef}
-            placeholder="Type a message..."
+            placeholder={t("type_a_message", "Type a message...")}
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             className="flex-1"

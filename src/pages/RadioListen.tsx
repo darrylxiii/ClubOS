@@ -1,4 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
+import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useRef, useState } from "react";
@@ -12,6 +13,7 @@ import { useAudioManager } from "@/hooks/useAudioManager";
 import { SpotifyEmbed } from "@/components/feed/SpotifyEmbed";
 
 export default function RadioListen() {
+  const { t } = useTranslation('common');
   const { sessionId } = useParams();
   const navigate = useNavigate();
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -165,7 +167,7 @@ export default function RadioListen() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['radio-session', sessionId] });
-      toast.success('Liked playlist!');
+      toast.success("Liked playlist!");
     },
   });
 
@@ -179,7 +181,7 @@ export default function RadioListen() {
         audioRef.current.load();
         managedPlay(audioRef.current).catch((err) => {
           console.error('Play error:', err);
-          toast.error('Failed to play track');
+          toast.error("Failed to play track");
         });
       }
     }
@@ -188,7 +190,7 @@ export default function RadioListen() {
   // Check if live session is still active
   useEffect(() => {
     if (session?.type === 'live' && !session.data.is_active) {
-      toast.error('This broadcast has ended');
+      toast.error("This broadcast has ended");
       navigate('/radio');
     }
   }, [session, navigate]);
@@ -198,7 +200,7 @@ export default function RadioListen() {
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <Radio className="h-16 w-16 mx-auto mb-4 text-muted-foreground animate-pulse" />
-          <p className="text-muted-foreground">Loading broadcast...</p>
+          <p className="text-muted-foreground">{t('radioListen.text1')}</p>
         </div>
       </div>
     );
@@ -272,7 +274,7 @@ export default function RadioListen() {
             {/* Live Indicator */}
             <div className="flex items-center justify-center gap-2">
               <div className="h-3 w-3 rounded-full bg-red-500 animate-pulse" />
-              <span className="text-sm font-bold text-red-500 uppercase">Live Broadcast</span>
+              <span className="text-sm font-bold text-red-500 uppercase">{t('radioListen.text2')}</span>
             </div>
 
             {/* Track Cover */}
@@ -298,7 +300,7 @@ export default function RadioListen() {
                   )}
                 </>
               ) : (
-                <p className="text-muted-foreground">Waiting for track...</p>
+                <p className="text-muted-foreground">{t('radioListen.text3')}</p>
               )}
             </div>
 
@@ -312,14 +314,14 @@ export default function RadioListen() {
                   </AvatarFallback>
                 </Avatar>
                 <div>
-                  <p className="text-sm text-muted-foreground">Hosted by</p>
+                  <p className="text-sm text-muted-foreground">{t('radioListen.text4')}</p>
                   <p className="font-medium">{session?.data?.profile?.full_name || 'Anonymous DJ'}</p>
                 </div>
               </div>
               {session?.data?.listener_count !== undefined && (
                 <div className="text-center">
                   <p className="text-2xl font-bold text-primary">{session.data.listener_count}</p>
-                  <p className="text-xs text-muted-foreground">Listening Now</p>
+                  <p className="text-xs text-muted-foreground">{t('radioListen.text5')}</p>
                 </div>
               )}
             </div>

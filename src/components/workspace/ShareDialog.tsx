@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import {
   Dialog,
@@ -31,6 +32,7 @@ interface ShareDialogProps {
 }
 
 export function ShareDialog({ open, onOpenChange, page, onUpdate }: ShareDialogProps) {
+  const { t } = useTranslation('common');
   const [copied, setCopied] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
   
@@ -39,7 +41,7 @@ export function ShareDialog({ open, onOpenChange, page, onUpdate }: ShareDialogP
   const handleCopyLink = async () => {
     await navigator.clipboard.writeText(pageUrl);
     setCopied(true);
-    toast.success('Link copied to clipboard');
+    toast.success(t("link_copied_to_clipboard", "Link copied to clipboard"));
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -98,7 +100,7 @@ export function ShareDialog({ open, onOpenChange, page, onUpdate }: ShareDialogP
         <div className="space-y-6 py-4">
           {/* Visibility Setting */}
           <div className="space-y-3">
-            <Label className="text-sm font-medium">Page Access</Label>
+            <Label className="text-sm font-medium">{t("page_access", "Page Access")}</Label>
             <div className="grid gap-2">
               {(['private', 'shared', 'public'] as const).map((visibility) => {
                 const config = visibilityConfig[visibility];
@@ -151,7 +153,7 @@ export function ShareDialog({ open, onOpenChange, page, onUpdate }: ShareDialogP
                 <Input
                   id="invite-email"
                   type="email"
-                  placeholder="email@example.com"
+                  placeholder={t("emailexamplecom", "email@example.com")}
                   value={inviteEmail}
                   onChange={(e) => setInviteEmail(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleInvite()}
@@ -165,7 +167,7 @@ export function ShareDialog({ open, onOpenChange, page, onUpdate }: ShareDialogP
 
           {/* Copy Link */}
           <div className="space-y-3">
-            <Label className="text-sm font-medium">Page Link</Label>
+            <Label className="text-sm font-medium">{t("page_link", "Page Link")}</Label>
             <div className="flex items-center gap-2">
               <Input
                 value={pageUrl}

@@ -6,12 +6,14 @@ import { Activity, Eye, FileText, Send, Calendar, UserCheck } from "lucide-react
 import { supabase } from "@/integrations/supabase/client";
 import { candidateProfileTokens } from "@/config/candidate-profile-tokens";
 import { formatDistanceToNow } from "date-fns";
+import { useTranslation } from 'react-i18next';
 
 interface Props {
   candidateId: string;
 }
 
 export const ActivityFeedCard = ({ candidateId }: Props) => {
+  const { t } = useTranslation('candidates');
   const [activities, setActivities] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { DynamicChart } from '@/components/charts/DynamicChart';
 import { PipelineHealth } from "@/hooks/useAnalytics";
 
@@ -25,10 +26,11 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 export function PipelineHealthChart({ data, isLoading }: PipelineHealthChartProps) {
+  const { t } = useTranslation('common');
   if (isLoading) {
     return (
       <div className="h-[400px] w-full flex items-center justify-center">
-        <div className="text-muted-foreground">Loading chart data...</div>
+        <div className="text-muted-foreground">{t("loading_chart_data", "Loading chart data...")}</div>
       </div>
     );
   }
@@ -36,7 +38,7 @@ export function PipelineHealthChart({ data, isLoading }: PipelineHealthChartProp
   if (!data || data.length === 0) {
     return (
       <div className="h-[400px] w-full flex items-center justify-center">
-        <div className="text-muted-foreground">No pipeline data available</div>
+        <div className="text-muted-foreground">{t("no_pipeline_data_available", "No pipeline data available")}</div>
       </div>
     );
   }
@@ -66,7 +68,7 @@ export function PipelineHealthChart({ data, isLoading }: PipelineHealthChartProp
     <div className="space-y-8">
       {/* Candidates by Stage */}
       <div>
-        <h4 className="text-sm font-medium mb-4">Candidates by Pipeline Stage</h4>
+        <h4 className="text-sm font-medium mb-4">{t("candidates_by_pipeline_stage", "Candidates by Pipeline Stage")}</h4>
         <DynamicChart
           type="bar"
           data={chartData}

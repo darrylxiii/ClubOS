@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ErrorState } from '@/components/ui/error-state';
 // AppLayout removed - rendered within ProtectedLayout
 
@@ -40,6 +41,7 @@ interface MeetingTemplate {
 }
 
 export default function MeetingTemplates() {
+  const { t } = useTranslation('meetings');
   const { user } = useAuth();
   const [templates, setTemplates] = useState<MeetingTemplate[]>([]);
   const [loading, setLoading] = useState(true);
@@ -81,7 +83,7 @@ export default function MeetingTemplates() {
     } catch (error) {
       console.error('Error loading templates:', error);
       setFetchError('Failed to load meeting templates');
-      toast.error('Failed to load templates');
+      toast.error(t('text.meetingtemplates.failedToLoadTemplates', 'Failed to load templates'));
       setTemplates([]);
     } finally {
       setLoading(false);
@@ -95,7 +97,7 @@ export default function MeetingTemplates() {
   const handleSaveTemplate = async () => {
     try {
       if (!formData.name || !formData.default_title) {
-        toast.error('Please fill in required fields');
+        toast.error(t('text.meetingtemplates.pleaseFillInRequiredFields', 'Please fill in required fields'));
         return;
       }
 
@@ -112,14 +114,14 @@ export default function MeetingTemplates() {
           .eq('id', editingTemplate.id);
 
         if (error) throw error;
-        toast.success('Template updated successfully');
+        toast.success(t('text.meetingtemplates.templateUpdatedSuccessfully', 'Template updated successfully'));
       } else {
         const { error } = await supabase
           .from('meeting_templates')
           .insert([templateData]);
 
         if (error) throw error;
-        toast.success('Template created successfully');
+        toast.success(t('text.meetingtemplates.templateCreatedSuccessfully', 'Template created successfully'));
       }
 
       setDialogOpen(false);
@@ -128,7 +130,7 @@ export default function MeetingTemplates() {
       loadTemplates();
     } catch (error) {
       console.error('Error saving template:', error);
-      toast.error('Failed to save template');
+      toast.error(t('text.meetingtemplates.failedToSaveTemplate', 'Failed to save template'));
     }
   };
 
@@ -142,11 +144,11 @@ export default function MeetingTemplates() {
         .eq('id', id);
 
       if (error) throw error;
-      toast.success('Template deleted');
+      toast.success(t('text.meetingtemplates.templateDeleted', 'Template deleted'));
       loadTemplates();
     } catch (error) {
       console.error('Error deleting template:', error);
-      toast.error('Failed to delete template');
+      toast.error(t('text.meetingtemplates.failedToDeleteTemplate', 'Failed to delete template'));
     }
   };
 
@@ -164,11 +166,11 @@ export default function MeetingTemplates() {
         }]);
 
       if (error) throw error;
-      toast.success('Template duplicated');
+      toast.success(t('text.meetingtemplates.templateDuplicated', 'Template duplicated'));
       loadTemplates();
     } catch (error) {
       console.error('Error duplicating template:', error);
-      toast.error('Failed to duplicate template');
+      toast.error(t('text.meetingtemplates.failedToDuplicateTemplate', 'Failed to duplicate template'));
     }
   };
 
@@ -213,7 +215,7 @@ export default function MeetingTemplates() {
   if (fetchError && templates.length === 0) {
     return (
       <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
-        <ErrorState variant="page" title="Templates Unavailable" message={fetchError} onRetry={loadTemplates} />
+        <ErrorState variant="page" title={t('meetingTemplates.text3')} message={fetchError} onRetry={loadTemplates} />
       </div>
     );
   }
@@ -222,10 +224,8 @@ export default function MeetingTemplates() {
       <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold">Meeting Templates</h1>
-            <p className="text-muted-foreground mt-1">
-              Create reusable templates for common meeting types
-            </p>
+            <h1 className="text-3xl font-bold">{t('meetingTemplates.text4')}</h1>
+            <p className="text-muted-foreground mt-1">{t('meetingTemplates.desc')}</p>
           </div>
           <Dialog open={dialogOpen} onOpenChange={(open) => {
             setDialogOpen(open);
@@ -242,24 +242,22 @@ export default function MeetingTemplates() {
             </DialogTrigger>
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>{editingTemplate ? 'Edit Template' : 'Create Template'}</DialogTitle>
-                <DialogDescription>
-                  Define settings for quick meeting creation
-                </DialogDescription>
+                <DialogTitle>{editingTemplate ? t('text.meetingtemplates.editTemplate', 'Edit Template') : t('text.meetingtemplates.createTemplate', 'Create Template')}</DialogTitle>
+                <DialogDescription>{t('text.meetingtemplates.defineSettingsForQuickMeetingCreation', 'Define settings for quick meeting creation')}</DialogDescription>
               </DialogHeader>
               <div className="space-y-4 py-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="name">Template Name *</Label>
+                    <Label htmlFor="name">{"Template Name *"}</Label>
                     <Input
                       id="name"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      placeholder="Quick Interview"
+                      placeholder={t('meetingTemplates.text5')}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="icon">Icon</Label>
+                    <Label htmlFor="icon">{t('meetingTemplates.text6')}</Label>
                     <Select value={formData.icon} onValueChange={(value) => setFormData({ ...formData, icon: value })}>
                       <SelectTrigger>
                         <SelectValue />
@@ -276,27 +274,27 @@ export default function MeetingTemplates() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="description">Description</Label>
+                  <Label htmlFor="description">{t('meetingTemplates.text7')}</Label>
                   <Textarea
                     id="description"
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    placeholder="For candidate interviews with standardized settings"
+                    placeholder={t('meetingTemplates.text8')}
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="default_title">Default Title *</Label>
+                    <Label htmlFor="default_title">{"Default Title *"}</Label>
                     <Input
                       id="default_title"
                       value={formData.default_title}
                       onChange={(e) => setFormData({ ...formData, default_title: e.target.value })}
-                      placeholder="Interview with {candidate}"
+                      placeholder={t('text.meetingtemplates.interviewWithCandidate', 'Interview with {candidate}')}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="duration">Duration (minutes)</Label>
+                    <Label htmlFor="duration">{t('meetingTemplates.text9')}</Label>
                     <Input
                       id="duration"
                       type="number"
@@ -308,29 +306,29 @@ export default function MeetingTemplates() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="access_type">Access Type</Label>
+                    <Label htmlFor="access_type">{t('meetingTemplates.text10')}</Label>
                     <Select value={formData.access_type} onValueChange={(value: 'public' | 'private' | 'restricted') => setFormData({ ...formData, access_type: value })}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="public">Public</SelectItem>
-                        <SelectItem value="private">Private</SelectItem>
-                        <SelectItem value="restricted">Restricted</SelectItem>
+                        <SelectItem value="public">{t('meetingTemplates.text11')}</SelectItem>
+                        <SelectItem value="private">{t('meetingTemplates.text12')}</SelectItem>
+                        <SelectItem value="restricted">{t('meetingTemplates.text13')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="compliance">Compliance Mode</Label>
+                    <Label htmlFor="compliance">{t('meetingTemplates.text14')}</Label>
                     <Select value={formData.compliance_mode || 'none'} onValueChange={(value) => setFormData({ ...formData, compliance_mode: value === 'none' ? null : value })}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="none">None</SelectItem>
-                        <SelectItem value="gdpr">GDPR</SelectItem>
-                        <SelectItem value="hipaa">HIPAA</SelectItem>
-                        <SelectItem value="sox">SOX</SelectItem>
+                        <SelectItem value="none">{t('meetingTemplates.text15')}</SelectItem>
+                        <SelectItem value="gdpr">{t('text.meetingtemplates.gdpr', 'GDPR')}</SelectItem>
+                        <SelectItem value="hipaa">{t('text.meetingtemplates.hipaa', 'HIPAA')}</SelectItem>
+                        <SelectItem value="sox">{t('text.meetingtemplates.sox', 'SOX')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -338,7 +336,7 @@ export default function MeetingTemplates() {
 
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="allow_guests">Allow Guests</Label>
+                    <Label htmlFor="allow_guests">{t('meetingTemplates.text16')}</Label>
                     <Switch
                       id="allow_guests"
                       checked={formData.allow_guests}
@@ -346,7 +344,7 @@ export default function MeetingTemplates() {
                     />
                   </div>
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="require_approval">Require Approval</Label>
+                    <Label htmlFor="require_approval">{t('meetingTemplates.text17')}</Label>
                     <Switch
                       id="require_approval"
                       checked={formData.require_approval}
@@ -354,7 +352,7 @@ export default function MeetingTemplates() {
                     />
                   </div>
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="enable_notetaker">Enable AI Notetaker</Label>
+                    <Label htmlFor="enable_notetaker">{t('meetingTemplates.text18')}</Label>
                     <Switch
                       id="enable_notetaker"
                       checked={formData.enable_notetaker}
@@ -362,7 +360,7 @@ export default function MeetingTemplates() {
                     />
                   </div>
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="enable_recording">Enable Recording</Label>
+                    <Label htmlFor="enable_recording">{t('meetingTemplates.text19')}</Label>
                     <Switch
                       id="enable_recording"
                       checked={formData.enable_recording}
@@ -370,7 +368,7 @@ export default function MeetingTemplates() {
                     />
                   </div>
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="is_public">Make Public Template</Label>
+                    <Label htmlFor="is_public">{t('meetingTemplates.text20')}</Label>
                     <Switch
                       id="is_public"
                       checked={formData.is_public}
@@ -380,9 +378,9 @@ export default function MeetingTemplates() {
                 </div>
               </div>
               <DialogFooter>
-                <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
+                <Button variant="outline" onClick={() => setDialogOpen(false)}>{t('meetingTemplates.text21')}</Button>
                 <Button onClick={handleSaveTemplate}>
-                  {editingTemplate ? 'Update' : 'Create'} Template
+                  {editingTemplate ? t('text.meetingtemplates.update', 'Update') : t('text.meetingtemplates.create', 'Create')} Template
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -407,10 +405,8 @@ export default function MeetingTemplates() {
           <Card className="text-center py-12">
             <CardContent>
               <Calendar className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No templates yet</h3>
-              <p className="text-muted-foreground mb-4">
-                Create your first meeting template for quick scheduling
-              </p>
+              <h3 className="text-lg font-semibold mb-2">{t('meetingTemplates.text22')}</h3>
+              <p className="text-muted-foreground mb-4">{t('meetingTemplates.desc2')}</p>
               <Button onClick={() => setDialogOpen(true)}>
                 <Plus className="h-4 w-4 mr-2" />
                 Create Template
@@ -428,7 +424,7 @@ export default function MeetingTemplates() {
                       <div>
                         <CardTitle className="text-lg">{template.name}</CardTitle>
                         {template.is_public && (
-                          <Badge variant="secondary" className="mt-1">Public</Badge>
+                          <Badge variant="secondary" className="mt-1">{t('meetingTemplates.text23')}</Badge>
                         )}
                       </div>
                     </div>
@@ -461,13 +457,13 @@ export default function MeetingTemplates() {
                   </div>
                   <div className="flex flex-wrap gap-1">
                     {template.allow_guests && (
-                      <Badge variant="outline" className="text-xs">Guests</Badge>
+                      <Badge variant="outline" className="text-xs">{t('meetingTemplates.text24')}</Badge>
                     )}
                     {template.enable_notetaker && (
-                      <Badge variant="outline" className="text-xs">AI Notes</Badge>
+                      <Badge variant="outline" className="text-xs">{t('meetingTemplates.text25')}</Badge>
                     )}
                     {template.enable_recording && (
-                      <Badge variant="outline" className="text-xs">Recording</Badge>
+                      <Badge variant="outline" className="text-xs">{t('meetingTemplates.text26')}</Badge>
                     )}
                     {template.compliance_mode && (
                       <Badge variant="outline" className="text-xs flex items-center gap-1">

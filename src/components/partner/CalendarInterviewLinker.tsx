@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -39,6 +40,7 @@ export function CalendarInterviewLinker({
   applications,
   onInterviewLinked
 }: CalendarInterviewLinkerProps) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<'auto-detected' | 'my-calendar' | 'linked'>('auto-detected');
   const [loading, setLoading] = useState(false);
@@ -120,7 +122,7 @@ export function CalendarInterviewLinker({
       setCalendarEvents(enrichedEvents);
     } catch (error: unknown) {
       console.error('Failed to load calendar data:', error);
-      toast.error('Failed to load calendar events');
+      toast.error(t("failed_to_load_calendar", "Failed to load calendar events"));
     } finally {
       setLoading(false);
     }
@@ -271,12 +273,12 @@ export function CalendarInterviewLinker({
       if (detectedCount > 0) {
         toast.success(`Found ${detectedCount} new interview${detectedCount !== 1 ? 's' : ''}!`);
       } else {
-        toast.info('No new interviews detected');
+        toast.info(t("no_new_interviews_detected", "No new interviews detected"));
       }
       await loadData(); // Reload data to show new detections
     } catch (error: unknown) {
       console.error('Calendar scan failed:', error);
-      toast.error('Failed to scan calendar');
+      toast.error(t("failed_to_scan_calendar", "Failed to scan calendar"));
     } finally {
       setScanning(false);
     }
@@ -340,7 +342,7 @@ export function CalendarInterviewLinker({
 
       if (error) throw error;
 
-      toast.success('Interview linked successfully!');
+      toast.success(t("interview_linked_successfully", "Interview linked successfully!"));
       setSelectedEvent(null);
       setSelectedApplicationId("");
       setSelectedInterviewers([]);
@@ -349,7 +351,7 @@ export function CalendarInterviewLinker({
       onInterviewLinked?.();
     } catch (error: unknown) {
       console.error('Failed to link interview:', error);
-      toast.error('Failed to link interview');
+      toast.error(t("failed_to_link_interview", "Failed to link interview"));
     } finally {
       setLinkingEvent(false);
     }
@@ -364,12 +366,12 @@ export function CalendarInterviewLinker({
 
       if (error) throw error;
 
-      toast.success('Interview confirmed!');
+      toast.success(t("interview_confirmed", "Interview confirmed!"));
       await loadData();
       onInterviewLinked?.();
     } catch (error: unknown) {
       console.error('Failed to confirm interview:', error);
-      toast.error('Failed to confirm interview');
+      toast.error(t("failed_to_confirm_interview", "Failed to confirm interview"));
     }
   };
 
@@ -382,11 +384,11 @@ export function CalendarInterviewLinker({
 
       if (error) throw error;
 
-      toast.success('Interview dismissed');
+      toast.success(t("interview_dismissed", "Interview dismissed"));
       await loadData();
     } catch (error: unknown) {
       console.error('Failed to dismiss interview:', error);
-      toast.error('Failed to dismiss interview');
+      toast.error(t("failed_to_dismiss_interview", "Failed to dismiss interview"));
     }
   };
 
@@ -402,7 +404,7 @@ export function CalendarInterviewLinker({
               <div className="flex items-center gap-2 mb-2">
                 <h4 className="font-medium truncate">{event.title}</h4>
                 {event.isLinked && (
-                  <Badge variant="default" className="shrink-0">Linked</Badge>
+                  <Badge variant="default" className="shrink-0">{t("linked", "Linked")}</Badge>
                 )}
                 {event.hasVideoLink && (
                   <Video className="w-4 h-4 shrink-0 text-primary" />
@@ -463,7 +465,7 @@ export function CalendarInterviewLinker({
               }}
               disabled={event.isLinked}
             >
-              {event.isLinked ? 'Linked' : 'Link'}
+              {event.isLinked ? t('partner.calendarinterviewlinker.linked', 'Linked') : t('partner.calendarinterviewlinker.link', 'Link')}
             </Button>
           </div>
         </CardContent>
@@ -499,7 +501,7 @@ export function CalendarInterviewLinker({
 
               {Array.isArray(interview.detected_candidates) && interview.detected_candidates.length > 0 && (
                 <div className="text-sm text-muted-foreground">
-                  <strong>Candidate:</strong> {interview.detected_candidates[0]?.name || 'Unknown'}
+                  <strong>{t("candidate", "Candidate:")}</strong> {interview.detected_candidates[0]?.name || 'Unknown'}
                 </div>
               )}
             </div>
@@ -524,7 +526,7 @@ export function CalendarInterviewLinker({
                 </>
               )}
               {interview.status === 'confirmed' && (
-                <Badge variant="default">Confirmed</Badge>
+                <Badge variant="default">{t("confirmed", "Confirmed")}</Badge>
               )}
             </div>
           </div>
@@ -542,10 +544,8 @@ export function CalendarInterviewLinker({
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Add Interview from Calendar</DialogTitle>
-            <DialogDescription>
-              Browse your calendar events or view automatically detected interviews
-            </DialogDescription>
+            <DialogTitle>{t("add_interview_from_calendar", "Add Interview from Calendar")}</DialogTitle>
+            <DialogDescription>{t('calendarInterviewLinker.dialogDescription')}</DialogDescription>
           </DialogHeader>
 
           <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="w-full">
@@ -558,15 +558,13 @@ export function CalendarInterviewLinker({
                   </Badge>
                 )}
               </TabsTrigger>
-              <TabsTrigger value="my-calendar">My Calendar</TabsTrigger>
+              <TabsTrigger value="my-calendar">{t("my_calendar", "My Calendar")}</TabsTrigger>
               <TabsTrigger value="linked">Linked ({confirmedDetected.length})</TabsTrigger>
             </TabsList>
 
             <TabsContent value="auto-detected" className="space-y-4">
               <div className="flex items-center justify-between">
-                <p className="text-sm text-muted-foreground">
-                  Automatically detected interviews from your calendar
-                </p>
+                <p className="text-sm text-muted-foreground">{t('calendarInterviewLinker.automaticallyDetectedInterviewsFromYourC')}</p>
                 <Button
                   onClick={handleScanCalendar}
                   disabled={scanning}
@@ -585,8 +583,8 @@ export function CalendarInterviewLinker({
               ) : pendingDetected.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
                   <AlertCircle className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                  <p>No pending interviews detected</p>
-                  <p className="text-sm mt-1">Click "Scan Calendar" to detect interviews</p>
+                  <p>{t("no_pending_interviews_detected", "No pending interviews detected")}</p>
+                  <p className="text-sm mt-1">{t("click_scan_calendar_to", "Click ')Scan Calendar' to detect interviews")}</p>
                 </div>
               ) : (
                 <div className="space-y-2">
@@ -596,9 +594,7 @@ export function CalendarInterviewLinker({
             </TabsContent>
 
             <TabsContent value="my-calendar" className="space-y-4">
-              <p className="text-sm text-muted-foreground">
-                Select a calendar event to link as an interview
-              </p>
+              <p className="text-sm text-muted-foreground">{t('calendarInterviewLinker.selectACalendarEventToLinkAsAnInterview')}</p>
 
               {loading ? (
                 <div className="flex items-center justify-center py-8">
@@ -607,7 +603,7 @@ export function CalendarInterviewLinker({
               ) : upcomingEvents.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
                   <Calendar className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                  <p>No upcoming calendar events found</p>
+                  <p>{t("no_upcoming_calendar_events", "No upcoming calendar events found")}</p>
                 </div>
               ) : (
                 <div className="space-y-2">
@@ -617,9 +613,7 @@ export function CalendarInterviewLinker({
             </TabsContent>
 
             <TabsContent value="linked" className="space-y-4">
-              <p className="text-sm text-muted-foreground">
-                Interviews that have been confirmed and linked to this job
-              </p>
+              <p className="text-sm text-muted-foreground">{t('calendarInterviewLinker.interviewsThatHaveBeenConfirmedAndLinked')}</p>
 
               {loading ? (
                 <div className="flex items-center justify-center py-8">
@@ -628,7 +622,7 @@ export function CalendarInterviewLinker({
               ) : confirmedDetected.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
                   <CheckCircle className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                  <p>No linked interviews yet</p>
+                  <p>{t("no_linked_interviews_yet", "No linked interviews yet")}</p>
                 </div>
               ) : (
                 <div className="space-y-2">
@@ -644,15 +638,13 @@ export function CalendarInterviewLinker({
       <Dialog open={!!selectedEvent} onOpenChange={(open) => !open && setSelectedEvent(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Link Interview to Job</DialogTitle>
-            <DialogDescription>
-              Connect this calendar event to an application
-            </DialogDescription>
+            <DialogTitle>{t("link_interview_to_job", "Link Interview to Job")}</DialogTitle>
+            <DialogDescription>{t('calendarInterviewLinker.dialogDescription')}</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
             <div>
-              <Label className="text-sm font-medium mb-2 block">Calendar Event</Label>
+              <Label className="text-sm font-medium mb-2 block">{t("calendar_event", "Calendar Event")}</Label>
               <Card>
                 <CardContent className="p-3">
                   <p className="font-medium">{selectedEvent?.title}</p>
@@ -664,10 +656,10 @@ export function CalendarInterviewLinker({
             </div>
 
             <div>
-              <Label htmlFor="application">Select Candidate *</Label>
+              <Label htmlFor="application">{t("select_candidate", "Select Candidate *")}</Label>
               <Select value={selectedApplicationId} onValueChange={setSelectedApplicationId}>
                 <SelectTrigger id="application">
-                  <SelectValue placeholder="Choose a candidate" />
+                  <SelectValue placeholder={t("choose_a_candidate", "Choose a candidate")} />
                 </SelectTrigger>
                 <SelectContent>
                   {applications.map((app) => (
@@ -680,10 +672,10 @@ export function CalendarInterviewLinker({
             </div>
 
             <div>
-              <Label htmlFor="interviewers">Interviewers *</Label>
+              <Label htmlFor="interviewers">{t("interviewers", "Interviewers *")}</Label>
               <div className="space-y-2 mt-2 max-h-48 overflow-y-auto border rounded-md p-3">
                 {teamMembers.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No team members available</p>
+                  <p className="text-sm text-muted-foreground">{t("no_team_members_available", "No team members available")}</p>
                 ) : (
                   teamMembers.map((tm) => (
                     <label
@@ -707,7 +699,7 @@ export function CalendarInterviewLinker({
                         <p className="text-xs text-muted-foreground">{tm.jobRole || tm.email}</p>
                       </div>
                       {tm.assignmentType === 'external_user' && (
-                        <Badge variant="outline" className="text-xs">TQC</Badge>
+                        <Badge variant="outline" className="text-xs">{t('calendarInterviewLinker.badge.tqc')}</Badge>
                       )}
                     </label>
                   ))
@@ -721,33 +713,33 @@ export function CalendarInterviewLinker({
             </div>
 
             <div>
-              <Label htmlFor="interview-type">Interview Type *</Label>
+              <Label htmlFor="interview-type">{t("interview_type", "Interview Type *")}</Label>
               <Select value={interviewType} onValueChange={setInterviewType}>
                 <SelectTrigger id="interview-type">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="tqc_intro">TQC Introduction</SelectItem>
-                  <SelectItem value="partner_interview">Partner Interview</SelectItem>
-                  <SelectItem value="panel_interview">Panel Interview</SelectItem>
+                  <SelectItem value="tqc_intro">{t("tqc_introduction", "TQC Introduction")}</SelectItem>
+                  <SelectItem value="partner_interview">{t("partner_interview", "Partner Interview")}</SelectItem>
+                  <SelectItem value="panel_interview">{t("panel_interview", "Panel Interview")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div>
-              <Label htmlFor="notes">Notes (Optional)</Label>
+              <Label htmlFor="notes">{t("notes_optional", "Notes (Optional)")}</Label>
               <Textarea
                 id="notes"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder="Add any additional notes about this interview..."
+                placeholder={t("add_any_additional_notes", "Add any additional notes about this interview...")}
                 rows={3}
               />
             </div>
 
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => setSelectedEvent(null)}>
-                Cancel
+                {t('common:cancel')}
               </Button>
               <Button
                 onClick={handleLinkEvent}

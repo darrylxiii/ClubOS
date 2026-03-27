@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import {
   Dialog,
@@ -59,6 +60,7 @@ export function UserAccountActionsDialog({
   targetIsSuperAdmin = false,
   onActionComplete,
 }: UserAccountActionsDialogProps) {
+  const { t } = useTranslation('common');
   const [reason, setReason] = useState('');
   const [activeTab, setActiveTab] = useState('status');
   const {
@@ -110,7 +112,7 @@ export function UserAccountActionsDialog({
         <div className="space-y-4">
           {/* Current Status */}
           <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50 border border-border">
-            <span className="text-sm text-muted-foreground">Current Status</span>
+            <span className="text-sm text-muted-foreground">{t("current_status", "Current Status")}</span>
             <Badge variant="outline" className={cn('gap-1', statusInfo.color)}>
               {statusInfo.icon}
               {statusInfo.label}
@@ -121,23 +123,23 @@ export function UserAccountActionsDialog({
           {targetIsSuperAdmin && (
             <div className="flex items-center gap-2 p-3 rounded-lg bg-primary/10 border border-primary/20">
               <Crown className="h-4 w-4 text-primary" />
-              <span className="text-sm font-medium text-primary">Super Admin</span>
+              <span className="text-sm font-medium text-primary">{t("super_admin", "Super Admin")}</span>
             </div>
           )}
 
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="status">Status</TabsTrigger>
-              <TabsTrigger value="security">Security</TabsTrigger>
-              {isSuperAdmin && <TabsTrigger value="admin">Admin</TabsTrigger>}
+              <TabsTrigger value="status">{t("status", "Status")}</TabsTrigger>
+              <TabsTrigger value="security">{t("security", "Security")}</TabsTrigger>
+              {isSuperAdmin && <TabsTrigger value="admin">{t("admin", "Admin")}</TabsTrigger>}
             </TabsList>
 
             {/* Status Actions */}
             <TabsContent value="status" className="space-y-4">
               <div className="space-y-2">
-                <Label>Reason (optional)</Label>
+                <Label>{t("reason_optional", "Reason (optional)")}</Label>
                 <Textarea
-                  placeholder="Enter reason for action..."
+                  placeholder={t("enter_reason_for_action", "Enter reason for action...")}
                   value={reason}
                   onChange={(e) => setReason(e.target.value)}
                   className="min-h-[80px]"
@@ -218,9 +220,9 @@ export function UserAccountActionsDialog({
             {/* Security Actions */}
             <TabsContent value="security" className="space-y-4">
               <div className="space-y-2">
-                <Label>Password Reset Reason (optional)</Label>
+                <Label>{t("password_reset_reason_optional", "Password Reset Reason (optional)")}</Label>
                 <Textarea
-                  placeholder="Enter reason for forcing password reset..."
+                  placeholder={t("enter_reason_for_forcing", "Enter reason for forcing password reset...")}
                   value={reason}
                   onChange={(e) => setReason(e.target.value)}
                   className="min-h-[80px]"
@@ -255,7 +257,7 @@ export function UserAccountActionsDialog({
                 <div className="p-3 rounded-lg bg-orange-500/10 border border-orange-500/20">
                   <div className="flex items-center gap-2 text-orange-600 mb-1">
                     <KeyRound className="h-4 w-4" />
-                    <span className="text-sm font-medium">Password Reset Required</span>
+                    <span className="text-sm font-medium">{t("password_reset_required", "Password Reset Required")}</span>
                   </div>
                   {user.force_password_reset_reason && (
                     <p className="text-sm text-muted-foreground">{user.force_password_reset_reason}</p>

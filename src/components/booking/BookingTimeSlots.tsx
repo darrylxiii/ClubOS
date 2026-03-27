@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -35,6 +36,7 @@ export function BookingTimeSlots({
   selectedDate,
   onTimeSelect,
 }: BookingTimeSlotsProps) {
+  const { t } = useTranslation('common');
   const [slots, setSlots] = useState<TimeSlot[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingStage, setLoadingStage] = useState<string>("Connecting...");
@@ -47,11 +49,11 @@ export function BookingTimeSlots({
     bookingLinkId: bookingLink.id,
     selectedDate,
     onSlotBooked: () => {
-      toast.info("A slot was just booked. Refreshing availability...");
+      toast.info(t("a_slot_was_just", "A slot was just booked. Refreshing availability..."));
       loadAvailableSlots();
     },
     onSlotCancelled: () => {
-      toast.success("A slot just became available!");
+      toast.success(t("a_slot_just_became", "A slot just became available!"));
       loadAvailableSlots();
     },
   });
@@ -163,7 +165,7 @@ export function BookingTimeSlots({
         <div className="text-center py-12 space-y-6">
           <Clock className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
           <div className="space-y-2">
-            <h3 className="text-lg font-semibold">No times available</h3>
+            <h3 className="text-lg font-semibold">{t("no_times_available", "No times available")}</h3>
             <p className="text-muted-foreground text-sm max-w-md mx-auto">
               All slots are booked for this date.
             </p>
@@ -225,7 +227,7 @@ export function BookingTimeSlots({
 
       <div className="text-center">
         <div className="flex items-center justify-center gap-2 mb-2">
-          <h3 className="text-lg font-semibold">Select a Time</h3>
+          <h3 className="text-lg font-semibold">{t("select_a_time", "Select a Time")}</h3>
           {liveBookingsCount > 0 && (
             <span className="flex items-center gap-1 text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">
               <Users className="h-3 w-3" />

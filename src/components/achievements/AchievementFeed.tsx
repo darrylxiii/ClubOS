@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -24,6 +25,7 @@ interface FeedItem {
 }
 
 export const AchievementFeed = () => {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [feed, setFeed] = useState<FeedItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -129,19 +131,19 @@ export const AchievementFeed = () => {
           .delete()
           .eq("user_achievement_id", achievementId)
           .eq("reactor_id", user?.id);
-        toast.success("Reaction removed");
+        toast.success(t('achievements.reactionRemoved'));
       } else {
         await supabase.from("achievement_reactions").insert({
           user_achievement_id: achievementId,
           reactor_id: user?.id,
           reaction_type: "applause",
         });
-        toast.success("Quantum applause sent! 👏");
+        toast.success(t('achievements.applauseSent'));
       }
       fetchFeed();
     } catch (error) {
       console.error("Error reacting:", error);
-      toast.error("Failed to react");
+      toast.error(t('achievements.failedToReact'));
     }
   };
 
@@ -174,7 +176,7 @@ export const AchievementFeed = () => {
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-2">
                 <span className="font-semibold">{item.user_name}</span>
-                <span className="text-muted-foreground text-sm">unlocked</span>
+                <span className="text-muted-foreground text-sm">{t('achievements.unlocked')}</span>
                 <div
                   className={`flex items-center gap-2 px-3 py-1 rounded-full border-2 ${
                     rarityColors[item.achievement_rarity]
@@ -219,9 +221,9 @@ export const AchievementFeed = () => {
       {feed.length === 0 && (
         <Card className="glass p-12 text-center">
           <Trophy className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-          <h3 className="text-lg font-semibold mb-2">No Recent Achievements</h3>
+          <h3 className="text-lg font-semibold mb-2">{t('achievements.noRecentAchievements')}</h3>
           <p className="text-muted-foreground">
-            Be the first to unlock and showcase an achievement!
+            {t('achievements.beFirstToUnlock')}
           </p>
         </Card>
       )}

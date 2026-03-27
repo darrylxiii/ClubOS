@@ -2,12 +2,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Github, Star, GitFork, Code, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useTranslation } from 'react-i18next';
 
 interface Props {
   githubData: any;
 }
 
 export const TechnicalFootprintCard = ({ githubData }: Props) => {
+  const { t } = useTranslation('candidates');
   if (!githubData || !githubData.found) {
     return (
       <Card className="bg-card/90 backdrop-blur-xl border border-border/50">

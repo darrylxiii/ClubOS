@@ -1,6 +1,7 @@
 import { cn } from "@/lib/utils";
 import { Check } from "lucide-react";
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 
 export type BookingStep = "datetime" | "details" | "payment" | "confirmation";
 
@@ -27,11 +28,23 @@ function getStepIndex(step: BookingStep, steps: typeof STEPS_WITH_PAYMENT): numb
 }
 
 export function BookingProgressStepper({ currentStep, showPayment = false }: BookingProgressStepperProps) {
-  const STEPS = showPayment ? STEPS_WITH_PAYMENT : STEPS_WITHOUT_PAYMENT;
+  const { t } = useTranslation('common');
+  const stepsWithPayment = [
+    { key: "datetime" as BookingStep, label: t('booking.steps.selectTime', 'Select Time'), number: 1 },
+    { key: "details" as BookingStep, label: t('booking.steps.yourDetails', 'Your Details'), number: 2 },
+    { key: "payment" as BookingStep, label: t('booking.steps.payment', 'Payment'), number: 3 },
+    { key: "confirmation" as BookingStep, label: t('booking.steps.confirmed', 'Confirmed'), number: 4 },
+  ];
+  const stepsWithoutPayment = [
+    { key: "datetime" as BookingStep, label: t('booking.steps.selectTime', 'Select Time'), number: 1 },
+    { key: "details" as BookingStep, label: t('booking.steps.yourDetails', 'Your Details'), number: 2 },
+    { key: "confirmation" as BookingStep, label: t('booking.steps.confirmed', 'Confirmed'), number: 3 },
+  ];
+  const STEPS = showPayment ? stepsWithPayment : stepsWithoutPayment;
   const currentIndex = getStepIndex(currentStep, STEPS);
 
   return (
-    <div className="flex items-center justify-center gap-2 sm:gap-4 mb-6" role="navigation" aria-label="Booking progress">
+    <div className="flex items-center justify-center gap-2 sm:gap-4 mb-6" role="navigation" aria-label={t('booking.progress', 'Booking progress')}>
       {STEPS.map((step, i) => {
         const isCompleted = i < currentIndex;
         const isCurrent = i === currentIndex;

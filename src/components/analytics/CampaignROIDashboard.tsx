@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useCampaignPerformance } from '@/hooks/useCampaignPerformance';
 import { useRecharts } from '@/hooks/useRecharts';
@@ -8,6 +9,7 @@ import { DollarSign, Trophy, Users } from 'lucide-react';
 import { formatCurrency } from '@/lib/revenueCalculations';
 
 export function CampaignROIDashboard() {
+  const { t } = useTranslation('common');
     const { recharts, isLoading: chartsLoading } = useRecharts();
     const { data: campaigns, isLoading } = useCampaignPerformance();
 
@@ -29,7 +31,7 @@ export function CampaignROIDashboard() {
                             <DollarSign className="w-5 h-5 text-green-500" />
                             Revenue Attribution
                         </CardTitle>
-                        <CardDescription>Top revenue generating campaigns</CardDescription>
+                        <CardDescription>{t("top_revenue_generating_campaigns", "Top revenue generating campaigns")}</CardDescription>
                     </CardHeader>
                     <CardContent className="h-[300px]">
                         <ResponsiveContainer width="100%" height="100%">
@@ -65,7 +67,7 @@ export function CampaignROIDashboard() {
                             <Users className="w-5 h-5 text-blue-500" />
                             Lead Quality
                         </CardTitle>
-                        <CardDescription>Total Leads vs Qualified Leads</CardDescription>
+                        <CardDescription>{t("total_leads_vs_qualified", "Total Leads vs Qualified Leads")}</CardDescription>
                     </CardHeader>
                     <CardContent className="h-[300px]">
                         <ResponsiveContainer width="100%" height="100%">
@@ -102,12 +104,12 @@ export function CampaignROIDashboard() {
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>Campaign</TableHead>
-                                <TableHead className="text-right">Leads</TableHead>
-                                <TableHead className="text-right">Qualified</TableHead>
-                                <TableHead className="text-right">Won Deals</TableHead>
-                                <TableHead className="text-right">Revenue</TableHead>
-                                <TableHead className="text-right">Pipeline</TableHead>
+                                <TableHead>{t("campaign", "Campaign")}</TableHead>
+                                <TableHead className="text-right">{t("leads", "Leads")}</TableHead>
+                                <TableHead className="text-right">{t("qualified", "Qualified")}</TableHead>
+                                <TableHead className="text-right">{t("won_deals", "Won Deals")}</TableHead>
+                                <TableHead className="text-right">{t("revenue", "Revenue")}</TableHead>
+                                <TableHead className="text-right">{t("pipeline", "Pipeline")}</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>

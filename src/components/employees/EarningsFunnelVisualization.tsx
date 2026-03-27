@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TrendingDown } from 'lucide-react';
 import { motion } from '@/lib/motion';
@@ -17,6 +18,7 @@ const stageColors = [
 ];
 
 export function EarningsFunnelVisualization({ stageBreakdown, isLoading }: EarningsFunnelVisualizationProps) {
+  const { t } = useTranslation('common');
   if (isLoading) {
     return (
       <Card>
@@ -38,7 +40,7 @@ export function EarningsFunnelVisualization({ stageBreakdown, isLoading }: Earni
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
           <TrendingDown className="h-4 w-4" />
-          Pipeline Funnel
+          {t('employees.pipelineFunnel')}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-2">

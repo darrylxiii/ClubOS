@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Target, Calendar, MessageSquare, Users, Heart, Clock, CheckCircle } from "lucide-react";
@@ -15,6 +16,7 @@ interface HiringManagerDashboardProps {
 }
 
 export function HiringManagerDashboard({ jobId }: HiringManagerDashboardProps) {
+  const { t } = useTranslation('common');
   // Fetch real interview stats for this week
   const { data: weeklyStats, isLoading: statsLoading } = useQuery({
     queryKey: ['hiring-manager-stats', jobId],
@@ -85,9 +87,9 @@ export function HiringManagerDashboard({ jobId }: HiringManagerDashboardProps) {
         <CardContent>
           <Tabs defaultValue="overview">
             <TabsList>
-              <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="scheduling">Scheduling</TabsTrigger>
-              <TabsTrigger value="feedback">Feedback</TabsTrigger>
+              <TabsTrigger value="overview">{t("overview", "Overview")}</TabsTrigger>
+              <TabsTrigger value="scheduling">{t("scheduling", "Scheduling")}</TabsTrigger>
+              <TabsTrigger value="feedback">{t("feedback", "Feedback")}</TabsTrigger>
             </TabsList>
             
             <TabsContent value="overview">
@@ -97,7 +99,7 @@ export function HiringManagerDashboard({ jobId }: HiringManagerDashboardProps) {
                   <CardContent className="pt-4">
                     <div className="flex items-center gap-2 mb-1">
                       <Calendar className="h-4 w-4 text-muted-foreground" />
-                      <p className="text-xs text-muted-foreground">Interviews This Week</p>
+                      <p className="text-xs text-muted-foreground">{t("interviews_this_week", "Interviews This Week")}</p>
                     </div>
                     {statsLoading ? (
                       <Skeleton className="h-8 w-12" />
@@ -110,7 +112,7 @@ export function HiringManagerDashboard({ jobId }: HiringManagerDashboardProps) {
                   <CardContent className="pt-4">
                     <div className="flex items-center gap-2 mb-1">
                       <CheckCircle className="h-4 w-4 text-muted-foreground" />
-                      <p className="text-xs text-muted-foreground">Pending Actions</p>
+                      <p className="text-xs text-muted-foreground">{t("pending_actions", "Pending Actions")}</p>
                     </div>
                     {statsLoading ? (
                       <Skeleton className="h-8 w-12" />
@@ -123,7 +125,7 @@ export function HiringManagerDashboard({ jobId }: HiringManagerDashboardProps) {
                   <CardContent className="pt-4">
                     <div className="flex items-center gap-2 mb-1">
                       <Users className="h-4 w-4 text-muted-foreground" />
-                      <p className="text-xs text-muted-foreground">Active Candidates</p>
+                      <p className="text-xs text-muted-foreground">{t("active_candidates", "Active Candidates")}</p>
                     </div>
                     {statsLoading ? (
                       <Skeleton className="h-8 w-12" />
@@ -136,7 +138,7 @@ export function HiringManagerDashboard({ jobId }: HiringManagerDashboardProps) {
                   <CardContent className="pt-4">
                     <div className="flex items-center gap-2 mb-1">
                       <Clock className="h-4 w-4 text-muted-foreground" />
-                      <p className="text-xs text-muted-foreground">Avg Time in Stage</p>
+                      <p className="text-xs text-muted-foreground">{t("avg_time_in_stage", "Avg Time in Stage")}</p>
                     </div>
                     {statsLoading ? (
                       <Skeleton className="h-8 w-12" />
@@ -155,9 +157,7 @@ export function HiringManagerDashboard({ jobId }: HiringManagerDashboardProps) {
             </TabsContent>
             
             <TabsContent value="feedback">
-              <p className="text-sm text-muted-foreground mt-4">
-                Feedback management coming soon
-              </p>
+              <p className="text-sm text-muted-foreground mt-4">{t('hiringManagerDashboard.feedbackManagementComingSoon')}</p>
             </TabsContent>
           </Tabs>
         </CardContent>

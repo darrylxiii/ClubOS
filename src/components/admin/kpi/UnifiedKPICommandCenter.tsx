@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React, { useState, useMemo, useCallback, useEffect, lazy, Suspense } from 'react';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -56,6 +57,7 @@ const LazyFallback = () => <Skeleton className="h-64 w-full" />;
 type ViewMode = 'overview' | 'executive' | 'audit' | 'department' | 'okr' | 'lineage' | 'goals' | 'governance';
 
 export function UnifiedKPICommandCenter() {
+  const { t } = useTranslation('common');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [period, setPeriod] = useState<'weekly' | 'monthly'>('weekly');
@@ -198,9 +200,9 @@ export function UnifiedKPICommandCenter() {
     persistentTogglePin(kpiId, kpiDomain);
     
     if (isPinned(kpiId)) {
-      toast.success('KPI unpinned');
+      toast.success(t("kpi_unpinned", "KPI unpinned"));
     } else {
-      toast.success('KPI pinned to dashboard');
+      toast.success(t("kpi_pinned_to_dashboard", "KPI pinned to dashboard"));
     }
   }, [allKPIs, persistentTogglePin, isPinned]);
 
@@ -211,7 +213,7 @@ export function UnifiedKPICommandCenter() {
       await recalculateAll();
       await refreshAll();
     } catch (error) {
-      toast.error('Failed to refresh KPIs');
+      toast.error(t("failed_to_refresh_kpis", "Failed to refresh KPIs"));
     } finally {
       setIsRefreshing(false);
     }
@@ -331,10 +333,8 @@ export function UnifiedKPICommandCenter() {
                 <div className="mb-6 space-y-4">
                   <div className="flex items-center justify-between flex-wrap gap-4">
                     <div>
-                      <h1 className="text-2xl font-bold tracking-tight">KPI Command Center</h1>
-                      <p className="text-muted-foreground">
-                        Unified view across Operations, Website, Sales, Platform, Intelligence, Growth, and Costs
-                      </p>
+                      <h1 className="text-2xl font-bold tracking-tight">{t("kpi_command_center", "KPI Command Center")}</h1>
+                      <p className="text-muted-foreground">{t('kpi.unifiedkpicommandcenter.unifiedViewAcrossOperationsWebsiteSales', 'Unified view across Operations, Website, Sales, Platform, Intelligence, Growth, and Costs')}</p>
                     </div>
                     <div className="flex items-center gap-2 flex-wrap">
                       {/* View Mode Tabs */}
@@ -403,7 +403,7 @@ export function UnifiedKPICommandCenter() {
                         disabled={isRefreshing}
                       >
                         <RefreshCw className={cn("h-4 w-4 mr-2", isRefreshing && "animate-spin")} />
-                        {isRefreshing ? 'Calculating...' : 'Recalculate'}
+                        {isRefreshing ? t('kpi.unifiedkpicommandcenter.calculating', 'Calculating...') : t('kpi.unifiedkpicommandcenter.recalculate', 'Recalculate')}
                       </Button>
                       <ComparisonToggle 
                         isComparing={isComparing} 
@@ -421,7 +421,7 @@ export function UnifiedKPICommandCenter() {
                           <DropdownMenuItem onClick={() => { 
                             exportToCSV(allKPIs, 'all-kpis'); 
                             logAction('export', undefined, undefined, { format: 'csv' });
-                            toast.success('Exported to CSV'); 
+                            toast.success(t("exported_to_csv", "Exported to CSV")); 
                           }}>
                             <FileText className="h-4 w-4 mr-2" />
                             Export CSV
@@ -429,7 +429,7 @@ export function UnifiedKPICommandCenter() {
                           <DropdownMenuItem onClick={() => { 
                             exportToPDF(allKPIs, 'all-kpis'); 
                             logAction('export', undefined, undefined, { format: 'pdf' });
-                            toast.success('Opening PDF...'); 
+                            toast.success(t("opening_pdf", "Opening PDF...")); 
                           }}>
                             <FileText className="h-4 w-4 mr-2" />
                             Export PDF
@@ -571,7 +571,7 @@ export function UnifiedKPICommandCenter() {
           onSelectKPI={(kpi) => { setSelectedKPI(kpi); setCommandPaletteOpen(false); }}
           onTogglePin={(id) => togglePin(id)}
           onConfigureAlert={(kpi) => { setAlertKPI(kpi); setCommandPaletteOpen(false); }}
-          onExport={() => { exportToCSV(allKPIs, 'all-kpis'); toast.success('Exported to CSV'); }}
+          onExport={() => { exportToCSV(allKPIs, 'all-kpis'); toast.success(t("exported_to_csv", "Exported to CSV")); }}
           onRefresh={handleRefresh}
         />
 

@@ -1,10 +1,5 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { createHandler } from '../_shared/handler.ts';
+import { SupabaseClient } from 'npm:@supabase/supabase-js@2';
 
 interface TeamMember {
   id: string;
@@ -27,15 +22,9 @@ interface BalanceRequest {
   requiredSkills?: string[];
 }
 
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+Deno.serve(createHandler(async (req, ctx) => {
+    const corsHeaders = ctx.corsHeaders;
+    const supabase = ctx.supabase;
 
     const body: BalanceRequest = await req.json();
     const { action, bookingLinkId, proposedTime, duration = 30, meetingType, requiredSkills } = body;
@@ -68,19 +57,10 @@ serve(async (req) => {
       status: 400,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
-
-  } catch (error: unknown) {
-    console.error('Team balancing error:', error);
-    const message = error instanceof Error ? error.message : 'Unknown error';
-    return new Response(JSON.stringify({ error: message }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-  }
-});
+}));
 
 async function selectOptimalHost(
-  supabase: any,
+  supabase: SupabaseClient,
   bookingLinkId: string,
   proposedTime: string,
   duration: number,
@@ -187,7 +167,7 @@ async function selectOptimalHost(
 
   // Score each available team member
   const availableMembers = teamMembers.filter(m => m.available_slots > 0);
-  
+
   if (availableMembers.length === 0) {
     return {
       selectedHost: null,
@@ -240,7 +220,7 @@ async function selectOptimalHost(
   };
 }
 
-async function getTeamLoadDistribution(supabase: any, bookingLinkId: string) {
+async function getTeamLoadDistribution(supabase: SupabaseClient, bookingLinkId: string) {
   // Get booking link with team members
   const { data: bookingLink } = await supabase
     .from('booking_links')
@@ -262,7 +242,7 @@ async function getTeamLoadDistribution(supabase: any, bookingLinkId: string) {
   const today = new Date().toISOString().split('T')[0];
   const weekStart = getWeekStart(new Date());
 
-  const teamLoad: any[] = [];
+  const teamLoad: Array<{ userId: string; email: string; fullName: string; todayLoad: number; burnoutRisk: string; weekHistory: Record<string, unknown>[]; recommendations: unknown[] }> = [];
 
   for (const member of (bookingLink.team_members || [])) {
     if (!member.is_active || !member.profile) continue;
@@ -313,18 +293,18 @@ async function getTeamLoadDistribution(supabase: any, bookingLinkId: string) {
   };
 }
 
-async function suggestRebalancing(supabase: any, bookingLinkId: string) {
+async function suggestRebalancing(supabase: SupabaseClient, bookingLinkId: string) {
   const teamLoad = await getTeamLoadDistribution(supabase, bookingLinkId);
-  
+
   if ('error' in teamLoad) {
     return teamLoad;
   }
 
-  const suggestions: any[] = [];
+  const suggestions: Array<{ type: string; from?: string; to?: string; member?: string; reason: string; priority: string }> = [];
 
   // Find overloaded and underloaded members
-  const overloaded = teamLoad.teamMembers.filter((m: any) => m.todayLoad > 70);
-  const underloaded = teamLoad.teamMembers.filter((m: any) => m.todayLoad < 30);
+  const overloaded = teamLoad.teamMembers.filter((m) => m.todayLoad > 70);
+  const underloaded = teamLoad.teamMembers.filter((m) => m.todayLoad < 30);
 
   // Suggest redistributing meetings
   for (const member of overloaded) {
@@ -340,7 +320,7 @@ async function suggestRebalancing(supabase: any, bookingLinkId: string) {
   }
 
   // Suggest focus time for high-load members
-  for (const member of teamLoad.teamMembers.filter((m: any) => m.burnoutRisk === 'high' || m.burnoutRisk === 'critical')) {
+  for (const member of teamLoad.teamMembers.filter((m) => m.burnoutRisk === 'high' || m.burnoutRisk === 'critical')) {
     suggestions.push({
       type: 'add_focus_time',
       member: member.fullName,

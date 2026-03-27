@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -29,17 +30,18 @@ function normalizeToMonthly(amount: number, frequency: string | null): number {
   }
 }
 
-function frequencyLabel(f: string | null): string {
-  switch (f) {
-    case "monthly": return "Monthly";
-    case "quarterly": return "Quarterly";
-    case "semi-annual": return "Semi-Annual";
-    case "annual": return "Annual";
-    default: return "Monthly";
-  }
-}
-
 export default function RecurringExpensesPanel({ recurringExpenses }: RecurringExpensesPanelProps) {
+  const { t } = useTranslation('common');
+
+  function frequencyLabel(f: string | null): string {
+    switch (f) {
+      case "monthly": return t('financial.monthly');
+      case "quarterly": return t('financial.quarterly');
+      case "semi-annual": return t('financial.semiAnnual');
+      case "annual": return t('financial.annual');
+      default: return t('financial.monthly');
+    }
+  }
   const { data: subscriptions } = useVendorSubscriptions("active");
 
   const totalRecurringMonthly = recurringExpenses.reduce(
@@ -63,7 +65,7 @@ export default function RecurringExpensesPanel({ recurringExpenses }: RecurringE
         <div className="flex items-center justify-between">
           <CardTitle className="text-base flex items-center gap-2">
             <RefreshCw className="h-4 w-4" />
-            Recurring Costs
+            {t('financial.recurringCosts')}
           </CardTitle>
           <span className="text-lg font-bold text-destructive">
             {formatCurrency(totalMonthlyBurn)} /mo
@@ -109,7 +111,7 @@ export default function RecurringExpensesPanel({ recurringExpenses }: RecurringE
             <Separator />
             <div>
               <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1">
-                SaaS Subscriptions
+                {t('financial.saasSubscriptions')}
                 <ExternalLink className="h-3 w-3" />
               </p>
               <div className="space-y-2">
@@ -129,7 +131,7 @@ export default function RecurringExpensesPanel({ recurringExpenses }: RecurringE
 
         {recurringExpenses.length === 0 && (!subscriptions || subscriptions.length === 0) && (
           <p className="text-sm text-muted-foreground text-center py-4">
-            No recurring expenses yet. Mark an expense as recurring when adding it.
+            {t('financial.noRecurringExpenses')}
           </p>
         )}
       </CardContent>

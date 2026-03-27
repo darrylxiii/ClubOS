@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useMemo } from 'react';
 import { useModuleFlags } from '@/hooks/useModuleFlags';
 import { ModuleSummaryCards } from '@/components/admin/feature-control/ModuleSummaryCards';
@@ -10,6 +11,7 @@ import { Loader2, Power, ShieldOff } from 'lucide-react';
 const CORE_FLAG_KEYS = new Set<string>([]);
 
 export default function FeatureControlCenter() {
+  const { t } = useTranslation('common');
   const {
     modules,
     isLoading,
@@ -71,7 +73,7 @@ export default function FeatureControlCenter() {
   return (
     <div className="container mx-auto py-6 space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Feature Control Center</h1>
+        <h1 className="text-2xl font-bold tracking-tight">{t("feature_control_center", "Feature Control Center")}</h1>
         <p className="text-muted-foreground mt-1">
           Toggle platform modules on and off. Disabled modules hide from navigation and stop background queries.
         </p>

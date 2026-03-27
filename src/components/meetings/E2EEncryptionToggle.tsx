@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 /**
  * E2E Encryption Toggle Component
  * Shows encryption status and allows toggling E2EE for meetings
@@ -43,6 +44,7 @@ export function E2EEncryptionToggle({
   peerName = 'Peer',
   peerId = '',
 }: E2EEncryptionToggleProps) {
+  const { t } = useTranslation('common');
   const [safetyOpen, setSafetyOpen] = useState(false);
   const browserSupported = supportsE2EEncryption();
   
@@ -138,7 +140,7 @@ export function E2EEncryptionToggle({
             </Button>
           </TooltipTrigger>
           <TooltipContent side="top">
-            <p className="text-sm">Verify safety number with peer</p>
+            <p className="text-sm">{t("verify_safety_number_with", "Verify safety number with peer")}</p>
           </TooltipContent>
         </Tooltip>
       )}

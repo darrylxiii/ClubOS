@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -33,6 +34,7 @@ export function SendToPilotButton({
   variant = "outline",
   size = "sm"
 }: SendToPilotButtonProps) {
+  const { t } = useTranslation('common');
   const [open, setOpen] = useState(false);
   const [selectedItems, setSelectedItems] = useState<Set<number>>(new Set());
   const [sending, setSending] = useState(false);
@@ -60,7 +62,7 @@ export function SendToPilotButton({
 
   const handleSend = async () => {
     if (selectedItems.size === 0) {
-      toast.error('Please select at least one action item');
+      toast.error(t("please_select_at_least", "Please select at least one action item"));
       return;
     }
 
@@ -83,7 +85,7 @@ export function SendToPilotButton({
       setOpen(false);
     } catch (error) {
       console.error('Error sending to Pilot:', error);
-      toast.error('Failed to send action items to Club Pilot');
+      toast.error(t("failed_to_send_action", "Failed to send action items to Club Pilot"));
     } finally {
       setSending(false);
     }

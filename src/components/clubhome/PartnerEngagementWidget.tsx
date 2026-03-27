@@ -7,8 +7,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { motion } from "framer-motion";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
+import { useTranslation } from 'react-i18next';
 
 export const PartnerEngagementWidget = () => {
+  const { t } = useTranslation('common');
   const { data: engagement, isLoading } = usePartnerEngagement();
 
   if (isLoading) {
@@ -41,11 +43,11 @@ export const PartnerEngagementWidget = () => {
           <CardTitle className="flex items-center justify-between text-base">
             <div className="flex items-center gap-2">
               <Building2 className="h-4 w-4 text-premium" />
-              <span>Partner Engagement</span>
+              <span>{t('partnerEngagementWidget.partnerEngagement')}</span>
             </div>
             <Button variant="ghost" size="sm" asChild className="text-xs">
               <Link to="/admin?tab=companies">
-                View All
+                {t('common:viewAll')}
                 <ArrowRight className="h-3 w-3 ml-1" />
               </Link>
             </Button>
@@ -55,15 +57,15 @@ export const PartnerEngagementWidget = () => {
           {/* Partner Counts */}
           <div className="grid grid-cols-3 gap-2 text-center">
             <div className="p-2 rounded-lg bg-muted/30">
-              <p className="text-xs text-muted-foreground">Total</p>
+              <p className="text-xs text-muted-foreground">{t('partnerEngagementWidget.total')}</p>
               <p className="text-xl font-bold">{engagement?.totalPartners || 0}</p>
             </div>
             <div className="p-2 rounded-lg bg-green-500/10 border border-green-500/20">
-              <p className="text-xs text-muted-foreground">Active</p>
+              <p className="text-xs text-muted-foreground">{t('partnerEngagementWidget.active')}</p>
               <p className="text-xl font-bold text-green-500">{engagement?.activePartners || 0}</p>
             </div>
             <div className="p-2 rounded-lg bg-red-500/10 border border-red-500/20">
-              <p className="text-xs text-muted-foreground">At Risk</p>
+              <p className="text-xs text-muted-foreground">{t('partnerEngagementWidget.atRisk')}</p>
               <p className="text-xl font-bold text-red-500">{engagement?.atRiskPartners || 0}</p>
             </div>
           </div>
@@ -81,7 +83,7 @@ export const PartnerEngagementWidget = () => {
           <div className="flex items-center justify-between p-2 rounded-lg bg-muted/30">
             <div className="flex items-center gap-2">
               <CheckCircle className="h-4 w-4 text-green-500" />
-              <span className="text-xs">Placement Success Rate</span>
+              <span className="text-xs">{t('partnerEngagementWidget.placementSuccessRate')}</span>
             </div>
             <span className="font-semibold">{engagement?.placementSuccessRate || 0}%</span>
           </div>
@@ -92,7 +94,7 @@ export const PartnerEngagementWidget = () => {
               <AlertTriangle className="h-4 w-4 text-red-500 shrink-0" />
               <div className="text-xs">
                 <span className="font-medium">{engagement.atRiskPartners} partners</span>
-                <span className="text-muted-foreground"> inactive 14+ days</span>
+                <span className="text-muted-foreground">inactive 14+ days</span>
               </div>
             </div>
           )}

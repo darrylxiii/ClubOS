@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React, { useState, useMemo } from 'react';
 import { useWorkspaceDatabase, ViewType } from '@/hooks/useWorkspaceDatabase';
 import { DatabaseTableView } from './views/DatabaseTableView';
@@ -21,6 +22,7 @@ interface DatabaseBlockProps {
 }
 
 export function DatabaseBlock({ databaseId, pageId, onDatabaseCreated, className }: DatabaseBlockProps) {
+  const { t } = useTranslation('common');
   const [localDbId, setLocalDbId] = useState(databaseId);
   const [filters, setFilters] = useState<FilterCondition[]>([]);
   const [sorts, setSorts] = useState<SortCondition[]>([]);
@@ -71,10 +73,10 @@ export function DatabaseBlock({ databaseId, pageId, onDatabaseCreated, className
       <div className={cn("border border-dashed border-border rounded-lg p-6 bg-muted/30", className)}>
         <div className="flex flex-col items-center gap-4">
           <Database className="h-10 w-10 text-muted-foreground" />
-          <p className="text-sm text-muted-foreground">Create an inline database</p>
+          <p className="text-sm text-muted-foreground">{t("create_an_inline_database", "Create an inline database")}</p>
           <div className="flex gap-2 w-full max-w-xs">
             <Input
-              placeholder="Database name..."
+              placeholder={t("database_name", "Database name...")}
               value={dbName}
               onChange={(e) => setDbName(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleCreateDatabase()}

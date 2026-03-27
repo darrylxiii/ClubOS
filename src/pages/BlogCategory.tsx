@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { useParams, Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { ChevronRight, ArrowLeft } from 'lucide-react';
@@ -9,6 +10,7 @@ import { getCategoryBySlug } from '@/data/blog';
 import { useDynamicBlogPostsByCategory } from '@/hooks/useDynamicBlogPosts';
 
 const BlogCategory: React.FC = () => {
+  const { t } = useTranslation('common');
   const { category } = useParams<{ category: string }>();
   const categoryData = category ? getCategoryBySlug(category) : undefined;
   const { data: posts, isLoading } = useDynamicBlogPostsByCategory(category || '');
@@ -22,8 +24,8 @@ const BlogCategory: React.FC = () => {
         </Helmet>
         <main className="flex-1 flex items-center justify-center pt-32">
           <div className="text-center">
-            <h1 className="text-2xl font-semibold text-foreground mb-4">Category Not Found</h1>
-            <p className="text-muted-foreground mb-6">The category you're looking for doesn't exist.</p>
+            <h1 className="text-2xl font-semibold text-foreground mb-4">{t('blogCategory.title')}</h1>
+            <p className="text-muted-foreground mb-6">{t('blogCategory.desc')}</p>
             <Link to="/blog">
               <Button className="rounded-full">
                 <ArrowLeft className="h-4 w-4 mr-2" />

@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { format, formatDistanceToNow, differenceInHours, differenceInMinutes } from "date-fns";
 import { motion } from "framer-motion";
+import { useTranslation } from 'react-i18next';
 
 interface UpcomingInterview {
   id: string;
@@ -31,6 +32,7 @@ interface UpcomingInterview {
 }
 
 export function InterviewCountdownWidget() {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const navigate = useNavigate();
   const [interview, setInterview] = useState<UpcomingInterview | null>(null);
@@ -178,9 +180,7 @@ export function InterviewCountdownWidget() {
         <CardContent>
           <div className="text-center py-6 space-y-3">
             <Calendar className="w-10 h-10 mx-auto text-muted-foreground opacity-50" />
-            <p className="text-muted-foreground text-sm">
-              No upcoming interviews scheduled
-            </p>
+            <p className="text-muted-foreground text-sm">{t('interviewCountdownWidget.noUpcomingInterviewsScheduled')}</p>
             <Button 
               variant="outline" 
               size="sm"

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,6 +7,7 @@ import { useRecharts } from '@/hooks/useRecharts';
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 
 export function FeatureAnalyticsTab() {
+  const { t } = useTranslation('common');
   const { recharts, isLoading: chartsLoading } = useRecharts();
   const { data: featureUsage, isLoading } = useQuery({
     queryKey: ['feature-usage-analytics'],
@@ -91,7 +93,7 @@ export function FeatureAnalyticsTab() {
       {/* Top Features by Usage */}
       <Card className="bg-card/30 backdrop-blur-[var(--blur-glass)] border-border/20">
         <CardHeader>
-          <CardTitle>Top Features (Last 7 Days)</CardTitle>
+          <CardTitle>{t("top_features_last_7", "Top Features (Last 7 Days)")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -129,7 +131,7 @@ export function FeatureAnalyticsTab() {
       {/* Feature Usage by Category */}
       <Card className="bg-card/30 backdrop-blur-[var(--blur-glass)] border-border/20">
         <CardHeader>
-          <CardTitle>Usage by Feature Category</CardTitle>
+          <CardTitle>{t("usage_by_feature_category", "Usage by Feature Category")}</CardTitle>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
@@ -150,22 +152,22 @@ export function FeatureAnalyticsTab() {
       {/* Feature Discovery Funnel */}
       <Card className="bg-card/30 backdrop-blur-[var(--blur-glass)] border-border/20">
         <CardHeader>
-          <CardTitle>Feature Discovery Health</CardTitle>
+          <CardTitle>{t("feature_discovery_health", "Feature Discovery Health")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="p-4 rounded-lg bg-muted/20 border border-border/10">
-              <div className="text-sm text-muted-foreground">Features Used</div>
+              <div className="text-sm text-muted-foreground">{t("features_used", "Features Used")}</div>
               <div className="text-2xl font-bold mt-1">{Object.keys(featureStats || {}).length}</div>
             </div>
             <div className="p-4 rounded-lg bg-muted/20 border border-border/10">
-              <div className="text-sm text-muted-foreground">Avg Completion Rate</div>
+              <div className="text-sm text-muted-foreground">{t("avg_completion_rate", "Avg Completion Rate")}</div>
               <div className="text-2xl font-bold mt-1">
                 {(topFeatures.reduce((sum, f) => sum + f.completionRate, 0) / (topFeatures.length || 1)).toFixed(0)}%
               </div>
             </div>
             <div className="p-4 rounded-lg bg-muted/20 border border-border/10">
-              <div className="text-sm text-muted-foreground">Total Interactions</div>
+              <div className="text-sm text-muted-foreground">{t("total_interactions", "Total Interactions")}</div>
               <div className="text-2xl font-bold mt-1">{featureUsage?.length || 0}</div>
             </div>
           </div>

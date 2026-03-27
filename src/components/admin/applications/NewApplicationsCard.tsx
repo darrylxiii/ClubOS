@@ -3,8 +3,10 @@ import { MetricCardSkeleton } from "../shared/MetricCardSkeleton";
 import { AnimatedCard, CardVisual, CardBody, CardTitle, CardDescription } from "@/components/ui/animated-card";
 import { Visual1 } from "@/components/ui/visual-1";
 import { TrendingUp } from "lucide-react";
+import { useTranslation } from 'react-i18next';
 
 export const NewApplicationsCard = () => {
+  const { t } = useTranslation('admin');
   const { metrics, isLoading } = useApplicationMetrics();
 
   if (isLoading || !metrics) {
@@ -22,7 +24,7 @@ export const NewApplicationsCard = () => {
       <CardBody>
         <div className="flex items-start justify-between">
           <div className="space-y-1">
-            <CardDescription>New Today</CardDescription>
+            <CardDescription>{t('applications.newApplicationsCard.newToday')}</CardDescription>
             <CardTitle>{metrics.new_today}</CardTitle>
           </div>
           <div className="flex items-center gap-1 text-green-500 text-sm font-medium">
@@ -34,7 +36,7 @@ export const NewApplicationsCard = () => {
           Applications received today
         </p>
         <div className="mt-3 inline-flex items-center px-2 py-1 rounded-full bg-blue-500/10 border border-blue-500/20">
-          <span className="text-xs font-medium text-blue-600 dark:text-blue-400">Active Pipeline</span>
+          <span className="text-xs font-medium text-blue-600 dark:text-blue-400">{t('applications.newApplicationsCard.activePipeline')}</span>
         </div>
       </CardBody>
     </AnimatedCard>

@@ -8,6 +8,7 @@ import {
 } from '@/components/ui/tooltip';
 import { LayoutGrid, List, Columns, Table } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 
 export type ViewMode = 'grid' | 'list' | 'kanban' | 'table';
 
@@ -17,11 +18,11 @@ interface ViewModeSwitcherProps {
   className?: string;
 }
 
-const VIEW_MODES: { mode: ViewMode; icon: React.ComponentType<{ className?: string }>; label: string }[] = [
-  { mode: 'grid', icon: LayoutGrid, label: 'Grid View' },
-  { mode: 'list', icon: List, label: 'List View' },
-  { mode: 'kanban', icon: Columns, label: 'Kanban Board' },
-  { mode: 'table', icon: Table, label: 'Table View' },
+const VIEW_MODES: { mode: ViewMode; icon: React.ComponentType<{ className?: string }>; labelKey: string; labelFallback: string }[] = [
+  { mode: 'grid', icon: LayoutGrid, labelKey: 'partner.gridView', labelFallback: 'Grid View' },
+  { mode: 'list', icon: List, labelKey: 'partner.listView', labelFallback: 'List View' },
+  { mode: 'kanban', icon: Columns, labelKey: 'partner.kanbanBoard', labelFallback: 'Kanban Board' },
+  { mode: 'table', icon: Table, labelKey: 'partner.tableView', labelFallback: 'Table View' },
 ];
 
 export const ViewModeSwitcher = memo(({
@@ -29,13 +30,14 @@ export const ViewModeSwitcher = memo(({
   onModeChange,
   className,
 }: ViewModeSwitcherProps) => {
+  const { t } = useTranslation('common');
   return (
     <TooltipProvider>
       <div className={cn(
         'flex items-center gap-1 p-1 rounded-lg bg-card/30 backdrop-blur-sm border border-border/20',
         className
       )}>
-        {VIEW_MODES.map(({ mode, icon: Icon, label }) => (
+        {VIEW_MODES.map(({ mode, icon: Icon, labelKey, labelFallback }) => (
           <Tooltip key={mode}>
             <TooltipTrigger asChild>
               <Button
@@ -51,7 +53,7 @@ export const ViewModeSwitcher = memo(({
               </Button>
             </TooltipTrigger>
             <TooltipContent side="bottom">
-              <p>{label}</p>
+              <p>{t(labelKey, labelFallback)}</p>
             </TooltipContent>
           </Tooltip>
         ))}

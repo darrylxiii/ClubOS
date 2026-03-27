@@ -1,22 +1,10 @@
-import { createClient } from "npm:@supabase/supabase-js@2";
+import { createHandler } from '../_shared/handler.ts';
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+Deno.serve(createHandler(async (req, ctx) => {
+    const googleApiKey = Deno.env.get('GOOGLE_API_KEY');
 
-Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
-  }
-
-  try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
-
-    if (!lovableApiKey) {
-      console.warn('[Headhunter] LOVABLE_API_KEY missing. Returning MOCK response for testing.');
+    if (!googleApiKey) {
+      console.warn('[Headhunter] GOOGLE_API_KEY missing. Returning MOCK response for testing.');
       return new Response(
         JSON.stringify({
           success: true,
@@ -25,13 +13,13 @@ Deno.serve(async (req) => {
           matches_found: 1,
           matches_saved: 0,
           saved_matches: [],
-          note: "Running in MOCK mode because LOVABLE_API_KEY is not set."
+          note: "Running in MOCK mode because GOOGLE_API_KEY is not set."
         }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { headers: { ...ctx.ctx.corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const supabase = ctx.supabase;
 
     // 1. Fetch Open Jobs (Limit to 1 for MVP/Demo)
     const { data: jobs, error: jobsError } = await supabase
@@ -42,7 +30,7 @@ Deno.serve(async (req) => {
 
     if (jobsError) throw new Error(`Failed to fetch jobs: ${jobsError.message}`);
     if (!jobs || jobs.length === 0) {
-      return new Response(JSON.stringify({ message: "No open jobs found." }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      return new Response(JSON.stringify({ message: "No open jobs found." }), { headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } });
     }
 
     const job = jobs[0];
@@ -58,14 +46,14 @@ Description: ${job.description || "N/A"}`;
 
     let searchPersona = `${job.title} with relevant experience`;
     try {
-      const personaResp = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      const personaResp = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${lovableApiKey}`,
+          'Authorization': `Bearer ${googleApiKey}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          model: 'google/gemini-2.5-flash-lite',
+          model: 'gemini-2.5-flash-lite',
           messages: [{ role: 'user', content: personaPrompt }],
           max_tokens: 100,
         })
@@ -150,14 +138,6 @@ Description: ${job.description || "N/A"}`;
         saved_matches: agentMatches,
         sourcing_mission_created: agentMatches.length < 5,
       }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } }
     );
-
-  } catch (error) {
-    console.error('[Headhunter] Error:', error);
-    return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-  }
-});
+}));

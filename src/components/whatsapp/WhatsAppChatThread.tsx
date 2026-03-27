@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useRef, useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -63,6 +64,7 @@ export function WhatsAppChatThread({
   onLoadMore,
   loadingMore
 }: WhatsAppChatThreadProps) {
+  const { t } = useTranslation('common');
   const scrollRef = useRef<HTMLDivElement>(null);
   const [showScrollButton, setShowScrollButton] = useState(false);
   const [autoScroll, setAutoScroll] = useState(true);
@@ -116,22 +118,22 @@ export function WhatsAppChatThread({
         <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-[#25d366]/20 to-[#128c7e]/20 flex items-center justify-center mb-6 ring-1 ring-[#25d366]/20">
           <MessageSquare className="w-10 h-10 text-[#25d366]" />
         </div>
-        <h2 className="text-xl font-bold text-foreground mb-2">Select a Conversation</h2>
+        <h2 className="text-xl font-bold text-foreground mb-2">{t("select_a_conversation", "Select a Conversation")}</h2>
         <p className="text-muted-foreground text-center max-w-sm mb-6">
           Choose a conversation from the list to view messages and connect with candidates.
         </p>
         <div className="flex flex-col gap-2 text-sm text-muted-foreground">
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-[#25d366]" />
-            <span>Real-time messaging with WhatsApp Business API</span>
+            <span>{t("realtime_messaging_with_whatsapp", "Real-time messaging with WhatsApp Business API")}</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-[#25d366]" />
-            <span>AI-powered insights and smart replies</span>
+            <span>{t("aipowered_insights_and_smart", "AI-powered insights and smart replies")}</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-[#25d366]" />
-            <span>Template messages for consistent outreach</span>
+            <span>{t("template_messages_for_consistent", "Template messages for consistent outreach")}</span>
           </div>
         </div>
       </div>
@@ -289,8 +291,8 @@ export function WhatsAppChatThread({
           {messages.length === 0 && (
             <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
               <MessageSquare className="w-12 h-12 mb-4 opacity-30" />
-              <p>No messages yet</p>
-              <p className="text-sm">Start the conversation!</p>
+              <p>{t("no_messages_yet", "No messages yet")}</p>
+              <p className="text-sm">{t("start_the_conversation", "Start the conversation!")}</p>
             </div>
           )}
 

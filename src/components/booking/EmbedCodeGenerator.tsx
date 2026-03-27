@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,6 +14,7 @@ interface EmbedCodeGeneratorProps {
 }
 
 export function EmbedCodeGenerator({ bookingLinks }: EmbedCodeGeneratorProps) {
+  const { t } = useTranslation('common');
   const [selectedSlug, setSelectedSlug] = useState(bookingLinks[0]?.slug || "");
   const [buttonText, setButtonText] = useState("Book a Meeting");
   const [buttonColor, setButtonColor] = useState("#6366f1");
@@ -24,7 +26,7 @@ export function EmbedCodeGenerator({ bookingLinks }: EmbedCodeGeneratorProps) {
 <iframe
   src="${bookingUrl}?embed=true"
   style="width:100%;min-height:700px;border:none;border-radius:12px;"
-  title="Book a meeting"
+  title={t("book_a_meeting", "Book a meeting")}
   loading="lazy"
 ></iframe>`;
 
@@ -66,7 +68,7 @@ export function EmbedCodeGenerator({ bookingLinks }: EmbedCodeGeneratorProps) {
       <Card>
         <CardContent className="py-12 text-center">
           <Code className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-          <p className="text-muted-foreground">Create a booking link first to generate embed codes.</p>
+          <p className="text-muted-foreground">{t("create_a_booking_link", "Create a booking link first to generate embed codes.")}</p>
         </CardContent>
       </Card>
     );
@@ -86,7 +88,7 @@ export function EmbedCodeGenerator({ bookingLinks }: EmbedCodeGeneratorProps) {
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <Label>Booking Link</Label>
+            <Label>{t("booking_link", "Booking Link")}</Label>
             <Select value={selectedSlug} onValueChange={setSelectedSlug}>
               <SelectTrigger>
                 <SelectValue />
@@ -103,15 +105,15 @@ export function EmbedCodeGenerator({ bookingLinks }: EmbedCodeGeneratorProps) {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label>Button Text</Label>
+              <Label>{t("button_text", "Button Text")}</Label>
               <Input
                 value={buttonText}
                 onChange={(e) => setButtonText(e.target.value)}
-                placeholder="Book a Meeting"
+                placeholder={t("book_a_meeting", "Book a Meeting")}
               />
             </div>
             <div>
-              <Label>Button Color</Label>
+              <Label>{t("button_color", "Button Color")}</Label>
               <Input
                 type="color"
                 value={buttonColor}

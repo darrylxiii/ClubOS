@@ -6,6 +6,7 @@ import { useNotifications } from "@/hooks/useNotifications";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { T } from "@/components/T";
+import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { formatDistanceToNow } from "date-fns";
 
@@ -24,6 +25,7 @@ const getNotificationIcon = (type: string) => {
 };
 
 export const NotificationsPreviewWidget = () => {
+  const { t } = useTranslation('common');
   const { notifications, unreadCount, loading, markAsRead, markAllAsRead } = useNotifications();
 
   const recentNotifications = notifications.slice(0, 3);
@@ -72,9 +74,9 @@ export const NotificationsPreviewWidget = () => {
           )}
         </div>
         <CardDescription className="text-xs sm:text-sm">
-          {unreadCount > 0 
-            ? `${unreadCount} unread notification${unreadCount > 1 ? 's' : ''}`
-            : 'You\'re all caught up!'
+          {unreadCount > 0
+            ? t('notifications.unreadCount', '{{count}} unread notification', { count: unreadCount })
+            : t('notifications.allCaughtUp', "You're all caught up!")
           }
         </CardDescription>
       </CardHeader>

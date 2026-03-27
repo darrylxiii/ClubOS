@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -27,6 +28,7 @@ const DURATION_OPTIONS = [
 ];
 
 export function StartSessionModal({ account, open, onOpenChange }: StartSessionModalProps) {
+  const { t } = useTranslation('common');
   const [duration, setDuration] = useState('60');
   const [purpose, setPurpose] = useState('');
   const [selectedJobId, setSelectedJobId] = useState('');
@@ -102,7 +104,7 @@ export function StartSessionModal({ account, open, onOpenChange }: StartSessionM
           </div>
 
           <div className="space-y-2">
-            <Label>Duration</Label>
+            <Label>{t("duration", "Duration")}</Label>
             <Select value={duration} onValueChange={setDuration}>
               <SelectTrigger>
                 <SelectValue />
@@ -121,9 +123,9 @@ export function StartSessionModal({ account, open, onOpenChange }: StartSessionM
           </div>
 
           <div className="space-y-2">
-            <Label>Purpose</Label>
+            <Label>{t("purpose", "Purpose")}</Label>
             <Input
-              placeholder="e.g. DM outreach NL founders"
+              placeholder={t("eg_dm_outreach_nl", "e.g. DM outreach NL founders")}
               value={purpose}
               onChange={e => setPurpose(e.target.value)}
             />
@@ -131,14 +133,14 @@ export function StartSessionModal({ account, open, onOpenChange }: StartSessionM
 
           {account.playbook && (
             <div className="rounded-md bg-muted/50 p-3 text-xs space-y-1">
-              <p className="font-medium text-foreground">Playbook</p>
+              <p className="font-medium text-foreground">{t("playbook", "Playbook")}</p>
               <p className="text-muted-foreground whitespace-pre-wrap">{account.playbook}</p>
             </div>
           )}
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>{t("cancel", "Cancel")}</Button>
           <Button
             onClick={handleStart}
             disabled={!purpose.trim() || !selectedJobId || startSession.isPending}

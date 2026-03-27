@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
 import { useAuth } from './AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -16,6 +17,7 @@ interface TaskBoardContextValue {
 const TaskBoardContext = createContext<TaskBoardContextValue | undefined>(undefined);
 
 export function TaskBoardProvider({ children }: { children: ReactNode }) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [boards, setBoards] = useState<TaskBoard[]>([]);
   const [currentBoard, setCurrentBoard] = useState<TaskBoard | null>(null);
@@ -51,7 +53,7 @@ export function TaskBoardProvider({ children }: { children: ReactNode }) {
       }
     } catch (error) {
       console.error('Failed to load boards:', error);
-      toast.error('Failed to load task boards');
+      toast.error(t("failed_to_load_task", "Failed to load task boards"));
     } finally {
       setLoading(false);
     }
@@ -85,7 +87,7 @@ export function TaskBoardProvider({ children }: { children: ReactNode }) {
 
       if (error) throw error;
 
-      toast.success('Board created successfully');
+      toast.success(t("board_created_successfully", "Board created successfully"));
       await loadBoards();
 
       if (data) {
@@ -95,7 +97,7 @@ export function TaskBoardProvider({ children }: { children: ReactNode }) {
       return data;
     } catch (error) {
       console.error('Failed to create board:', error);
-      toast.error('Failed to create board');
+      toast.error(t("failed_to_create_board", "Failed to create board"));
       return null;
     }
   };

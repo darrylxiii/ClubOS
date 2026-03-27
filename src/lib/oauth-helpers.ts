@@ -2,7 +2,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 /**
  * OAuth helper — LinkedIn only.
- * Google and Apple now use Lovable Cloud managed auth via lovable.auth.signInWithOAuth().
+ * Google and Apple use native Supabase Auth via supabase.auth.signInWithOAuth().
  */
 
 const ALLOWED_OAUTH_HOSTS = [
@@ -13,7 +13,7 @@ const ALLOWED_OAUTH_HOSTS = [
 const validateOAuthUrl = (url: string): boolean => {
   try {
     const parsed = new URL(url);
-    return ALLOWED_OAUTH_HOSTS.some(host => parsed.hostname.includes(host)) ||
+    return ALLOWED_OAUTH_HOSTS.includes(parsed.hostname) ||
       parsed.hostname.endsWith('.supabase.co');
   } catch {
     return false;
@@ -24,22 +24,21 @@ const validateOAuthUrl = (url: string): boolean => {
  * Detects whether the app is running on a custom domain.
  */
 export const isCustomDomain = (): boolean =>
-  !window.location.hostname.includes('lovable.app') &&
-  !window.location.hostname.includes('lovableproject.com') &&
   !window.location.hostname.includes('localhost');
 
-interface LinkedInOAuthOptions {
-  provider: 'linkedin_oidc';
+interface OAuthOptions {
+  provider: 'linkedin_oidc' | 'google' | 'apple';
   redirectTo: string;
   scopes?: string;
+  queryParams?: Record<string, string>;
 }
 
 /**
- * Initiates LinkedIn OAuth with custom-domain awareness.
+ * Initiates OAuth with custom-domain awareness.
  * On custom domains, uses skipBrowserRedirect to bypass the auth-bridge.
  */
-export const signInWithOAuthCustomDomain = async (options: LinkedInOAuthOptions) => {
-  const { provider, redirectTo, scopes } = options;
+export const signInWithOAuthCustomDomain = async (options: OAuthOptions) => {
+  const { provider, redirectTo, scopes, queryParams } = options;
 
   if (isCustomDomain()) {
     const { data, error } = await supabase.auth.signInWithOAuth({

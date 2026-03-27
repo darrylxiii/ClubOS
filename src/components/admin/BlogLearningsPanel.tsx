@@ -13,6 +13,7 @@ import {
   Loader2,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 
 const LEARNING_TYPE_CONFIG: Record<string, { icon: React.ReactNode; label: string; color: string }> = {
   content: { icon: <Brain className="h-4 w-4" />, label: 'Content', color: 'text-blue-400' },
@@ -22,6 +23,7 @@ const LEARNING_TYPE_CONFIG: Record<string, { icon: React.ReactNode; label: strin
 };
 
 const BlogLearningsPanel: React.FC = () => {
+  const { t } = useTranslation('admin');
   const queryClient = useQueryClient();
 
   const { data: learnings, isLoading } = useQuery({

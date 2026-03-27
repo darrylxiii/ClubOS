@@ -1,6 +1,7 @@
 import { ApprovalStep } from "@/types/approval";
 import { CheckCircle2, Circle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslation } from 'react-i18next';
 
 interface ApprovalStepIndicatorProps {
   currentStep: ApprovalStep;
@@ -21,6 +22,7 @@ const partnerSteps: { key: ApprovalStep; label: string }[] = [
 ];
 
 export const ApprovalStepIndicator = ({ currentStep, completedSteps, requestType = 'candidate' }: ApprovalStepIndicatorProps) => {
+  const { t } = useTranslation('admin');
   const steps = requestType === 'partner' ? partnerSteps : candidateSteps;
   const currentStepIndex = steps.findIndex(s => s.key === currentStep);
 

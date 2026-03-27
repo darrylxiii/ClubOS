@@ -1,4 +1,5 @@
 import { memo, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
 import { Award, Calendar, CheckCircle } from 'lucide-react';
@@ -16,6 +17,7 @@ interface CertificatePreviewProps {
 }
 
 export const CertificatePreview = memo<CertificatePreviewProps>(({ certificateId }) => {
+  const { t } = useTranslation('common');
   const [certificate, setCertificate] = useState<Certificate | null>(null);
 
   useEffect(() => {
@@ -44,9 +46,7 @@ export const CertificatePreview = memo<CertificatePreviewProps>(({ certificateId
         </div>
         
         <div>
-          <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
-            Certificate of Completion
-          </h3>
+          <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">{t('academy.certificateOfCompletion')}</h3>
           <p className="text-2xl font-bold text-foreground mt-2">
             {certificate.metadata?.courseName || 'Course'}
           </p>
@@ -59,16 +59,16 @@ export const CertificatePreview = memo<CertificatePreviewProps>(({ certificateId
           </div>
           <div className="flex items-center gap-2">
             <CheckCircle className="w-4 h-4 text-primary" />
-            Verified
+            {t('academy.verified')}
           </div>
         </div>
 
         <div className="pt-4 border-t border-border">
           <p className="text-xs text-muted-foreground">
-            Certificate ID: {certificate.certificate_number}
+            {t('academy.certificateId')}: {certificate.certificate_number}
           </p>
           <p className="text-xs text-muted-foreground mt-1">
-            Verify at: /certificates/verify/{certificate.verification_code}
+            {t('academy.verifyAt')}: /certificates/verify/{certificate.verification_code}
           </p>
         </div>
       </div>

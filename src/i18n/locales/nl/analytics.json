@@ -1,0 +1,227 @@
+{
+  "title": "Analyse",
+  "subtitle": "Inzichten en prestatiecijfers",
+  "overview": {
+    "title": "Overzicht",
+    "summary": "Prestatieoverzicht",
+    "keyMetrics": "Kerncijfers",
+    "trends": "Trends"
+  },
+  "metrics": {
+    "title": "Kerncijfers",
+    "views": "Weergaven",
+    "clicks": "Klikken",
+    "conversions": "Conversies",
+    "engagement": "Betrokkenheidspercentage",
+    "bounceRate": "Bouncepercentage",
+    "avgSessionDuration": "Gem. sessieduur",
+    "pageViews": "Paginaweergaven",
+    "uniqueVisitors": "Unieke bezoekers",
+    "returningVisitors": "Terugkerende bezoekers"
+  },
+  "dashboard": {
+    "title": "Analysedashboard",
+    "filters": "Filters",
+    "dateRange": "Datumbereik",
+    "comparison": "Vergelijken met",
+    "export": "Gegevens exporteren",
+    "refresh": "Vernieuwen"
+  },
+  "charts": {
+    "lineChart": "Lijngrafiek",
+    "barChart": "Staafdiagram",
+    "pieChart": "Cirkeldiagram",
+    "areaChart": "Vlakdiagram",
+    "noData": "Geen gegevens beschikbaar"
+  },
+  "periods": {
+    "today": "Vandaag",
+    "yesterday": "Gisteren",
+    "last7Days": "Laatste 7 dagen",
+    "last30Days": "Laatste 30 dagen",
+    "lastMonth": "Vorige maand",
+    "lastQuarter": "Vorig kwartaal",
+    "lastYear": "Vorig jaar",
+    "custom": "Aangepast bereik"
+  },
+  "hiring": {
+    "title": "Wervingsanalyse",
+    "applicationsReceived": "Ontvangen sollicitaties",
+    "candidatesScreened": "Gescreende kandidaten",
+    "interviewsConducted": "Afgenomen interviews",
+    "offersExtended": "Uitgebrachte aanbiedingen",
+    "offerAcceptanceRate": "Acceptatieratio aanbiedingen",
+    "timeToHire": "Tijd tot aanname",
+    "costPerHire": "Kosten per aanname",
+    "sourceEffectiveness": "Broneffectiviteit"
+  },
+  "pipeline": {
+    "title": "Pijplijnanalyse",
+    "stageConversion": "Conversieratio per fase",
+    "bottlenecks": "Knelpunten",
+    "velocity": "Pijplijnsnelheid",
+    "dropoffPoints": "Uitvalpunten"
+  },
+  "engagement": {
+    "title": "Betrokkenheidsanalyse",
+    "activeUsers": "Actieve gebruikers",
+    "sessionCount": "Aantal sessies",
+    "averageTime": "Gemiddelde tijd op platform",
+    "featureUsage": "Functiegebruik"
+  },
+  "revenue": {
+    "title": "Omzetanalyse",
+    "totalRevenue": "Totale omzet",
+    "monthlyRecurring": "Maandelijks terugkerend",
+    "growthRate": "Groeipercentage",
+    "projections": "Prognoses",
+    "bySource": "Omzet per bron"
+  },
+  "reports": {
+    "title": "Rapportages",
+    "generate": "Rapport genereren",
+    "schedule": "Rapport plannen",
+    "download": "Rapport downloaden",
+    "share": "Rapport delen",
+    "templates": "Rapportsjablonen"
+  },
+  "insights": {
+    "title": "AI-inzichten",
+    "recommendations": "Aanbevelingen",
+    "anomalies": "Gedetecteerde afwijkingen",
+    "opportunities": "Kansen",
+    "risks": "Risico's"
+  },
+  "comparison": {
+    "vsLastPeriod": "t.o.v. vorige periode",
+    "vsTarget": "t.o.v. doelstelling",
+    "vsIndustry": "t.o.v. sectorgemiddelde",
+    "increase": "Stijging",
+    "decrease": "Daling",
+    "noChange": "Geen verandering"
+  },
+  "export": {
+    "csv": "Exporteren als CSV",
+    "pdf": "Exporteren als PDF",
+    "excel": "Exporteren als Excel",
+    "scheduled": "Export plannen"
+  },
+  "empty": {
+    "noData": "Geen gegevens beschikbaar voor deze periode",
+    "noMetrics": "Geen statistieken om weer te geven",
+    "selectPeriod": "Selecteer een datumbereik om analyses te bekijken"
+  },
+  "agentDashboard": {
+    "desc": "Uw AI-agents beheren, doelen bijhouden en autonomieniveaus instellen"
+  },
+  "careerInsightsDashboard": {
+    "text1": "AI-gestuurde carrièreanalyse en aanbevelingen",
+    "text2": "Vaardigheidskloof-analyse",
+    "text3": "Uw vaardigheden vs. marktvereisten",
+    "text4": "Marktpositie",
+    "text5": "Hoe u zich verhoudt tot de markt",
+    "text6": "Percentiel in uw vakgebied",
+    "text7": "Salarisbereik",
+    "text8": "Vraaglevel",
+    "text9": "Carrièretrends",
+    "text10": "Industrietrends die uw carrière beïnvloeden",
+    "text11": "Aanbevolen acties",
+    "text12": "Gepersonaliseerde aanbevelingen van Club AI",
+    "text13": "Nog geen inzichten gegenereerd",
+    "text14": "Klik op 'Inzichten genereren' voor AI-gestuurde carrière-aanbevelingen"
+  },
+  "clientAnalyticsPage": {
+    "title": "Klant Analyse",
+    "desc": "Uw wervings- en projectstatistieken bewaken",
+    "desc2": "Nog geen projecten"
+  },
+  "enhancedMLDashboard": {
+    "desc": "ML-prestaties en bedrijfsintelligentie bewaken op het platform",
+    "desc2": "Met intelligentiegegevens",
+    "desc3": "Gegevenspunten",
+    "desc4": "AUC-ROC-score",
+    "desc5": "Nog geen intelligentiegegevens. Genereer rapporten voor bedrijven om inzichten te zien.",
+    "desc6": "Geen recente inzichten. Registreer interacties om intelligentie te genereren.",
+    "text7": "Filteren op vacature",
+    "text8": "Alle vacatures",
+    "text9": "Actief model",
+    "text10": "Bijgehouden bedrijven",
+    "text11": "Interacties (30d)",
+    "text12": "Trainingsrecords",
+    "text13": "Modelnauwkeurigheid",
+    "text14": "Bedrijfsintelligentie-ranglijst",
+    "text15": "Gezondheid",
+    "text16": "Urgentie",
+    "text17": "Sentiment",
+    "text18": "Recente intelligentiesignalen",
+    "text19": "Interactiedekking",
+    "text20": "Totaal interacties (30d)",
+    "text21": "Bedrijven met gegevens",
+    "text22": "Intelligentiekwaliteit",
+    "text23": "Gegenereerde AI-rapporten",
+    "text24": "Geëxtraheerde inzichten",
+    "text25": "Gemiddelde gezondheidsscore",
+    "text26": "Modelregister",
+    "text27": "modellen laden...",
+    "text28": "Actief",
+    "text29": "AUC-ROC",
+    "text30": "Interviewpercentage",
+    "text31": "Aannemingspercentage",
+    "text32": "A/B-tests",
+    "text33": "tests laden...",
+    "text34": "Verkeersplitsing",
+    "text35": "Model A-steekproeven",
+    "text36": "Model B-steekproeven"
+  },
+  "freelancerAnalyticsPage": {
+    "title": "Freelancer Analyse",
+    "desc": "Uw prestaties en groei bijhouden",
+    "desc2": "Gewerkte projecten"
+  },
+  "messagingAnalytics": {
+    "text1": "Laden van analyse mislukt",
+    "text2": "Berichtenanalyse",
+    "text3": "Inzichten in uw communicatiepatronen",
+    "text4": "Laatste 30 dagen",
+    "text5": "Laatste 30 dagen",
+    "text6": "Reactietijd",
+    "text7": "Gesprekken",
+    "text8": "Bestanden gedeeld",
+    "text9": "Activiteit",
+    "text10": "Patronen",
+    "text11": "Media",
+    "text12": "Dagelijkse activiteit (laatste 7 dagen)",
+    "text13": "Berichten verzonden en ontvangen per dag",
+    "text14": "Verdeling per uur",
+    "text15": "Wanneer u gedurende de dag berichten verstuurt",
+    "text16": "Mediaoverzicht",
+    "text17": "Typen gedeelde bestanden"
+  },
+  "myPerformance": {
+    "desc": "Uw commissies, doelen en plaatsingen bijhouden",
+    "text2": "Mijn prestaties",
+    "text3": "Uren deze maand",
+    "text4": "Omzet per uur"
+  },
+  "salaryInsights": {
+    "desc": "Echte marktinzichten aangedreven door platformgegevens",
+    "desc2": "Onderhandel na ontvangst van een aanbod, niet tijdens de eerste interviews.",
+    "text3": "Salaris Intelligentie",
+    "text4": "Startersniveau",
+    "text5": "Midden-senior",
+    "text6": "Executive",
+    "text7": "Marktgegevens ophalen...",
+    "text8": "Mediaan",
+    "text9": "Startbereik",
+    "text10": "Marktgemiddelde",
+    "text11": "Competitief",
+    "text12": "Uw marktpositie",
+    "text13": "Ken uw waarde",
+    "text14": "Overweeg totale compensatie",
+    "text15": "Timing is belangrijk"
+  },
+  "teamPerformance": {
+    "desc": "De prestaties en commissies van uw team beheren en bijhouden",
+    "text2": "Team Prestaties"
+  }
+}

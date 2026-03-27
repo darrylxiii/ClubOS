@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { motion } from '@/lib/motion';
 import {
@@ -23,6 +24,7 @@ import { RewardDecisionPanel } from './RewardDecisionPanel';
 type FilterStatus = 'all' | 'pending' | 'approved' | 'rejected' | 'deferred';
 
 export function AdminDecisionsTab() {
+  const { t } = useTranslation('common');
   const [filter, setFilter] = useState<FilterStatus>('pending');
   const [search, setSearch] = useState('');
   const [selectedProposal, setSelectedProposal] = useState<RewardProposal | null>(null);
@@ -64,7 +66,7 @@ export function AdminDecisionsTab() {
           <Card className="p-4 space-y-2">
             <div className="flex items-center gap-2 text-muted-foreground">
               <Clock className="h-4 w-4" />
-              <span className="text-label-sm">Pending</span>
+              <span className="text-label-sm">{t("pending", "Pending")}</span>
             </div>
             <p className="text-heading-md font-bold text-warning">{pendingCount}</p>
           </Card>
@@ -77,7 +79,7 @@ export function AdminDecisionsTab() {
           <Card className="p-4 space-y-2">
             <div className="flex items-center gap-2 text-muted-foreground">
               <CheckCircle2 className="h-4 w-4" />
-              <span className="text-label-sm">Approved</span>
+              <span className="text-label-sm">{t("approved", "Approved")}</span>
             </div>
             <p className="text-heading-md font-bold text-success">
               {proposals?.filter((p) => p.status === 'approved').length || 0}
@@ -92,7 +94,7 @@ export function AdminDecisionsTab() {
           <Card className="p-4 space-y-2">
             <div className="flex items-center gap-2 text-muted-foreground">
               <XCircle className="h-4 w-4" />
-              <span className="text-label-sm">Rejected</span>
+              <span className="text-label-sm">{t("rejected", "Rejected")}</span>
             </div>
             <p className="text-heading-md font-bold text-destructive">
               {proposals?.filter((p) => p.status === 'rejected').length || 0}
@@ -107,7 +109,7 @@ export function AdminDecisionsTab() {
           <Card className="p-4 space-y-2">
             <div className="flex items-center gap-2 text-muted-foreground">
               <Shield className="h-4 w-4" />
-              <span className="text-label-sm">Total Value</span>
+              <span className="text-label-sm">{t("total_value", "Total Value")}</span>
             </div>
             <p className="text-heading-md font-bold">
               {formatCurrency(
@@ -126,7 +128,7 @@ export function AdminDecisionsTab() {
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search proposals..."
+            placeholder={t("search_proposals", "Search proposals...")}
             className="pl-10"
           />
         </div>
@@ -186,7 +188,7 @@ export function AdminDecisionsTab() {
             <Gavel className="h-8 w-8 text-muted-foreground" />
           </div>
           <div className="space-y-2">
-            <p className="text-heading-sm font-medium">No proposals found</p>
+            <p className="text-heading-sm font-medium">{t("no_proposals_found", "No proposals found")}</p>
             <p className="text-body-sm text-muted-foreground">
               {filter === 'pending'
                 ? 'All proposals have been reviewed. Great work!'
@@ -308,7 +310,7 @@ function DecisionCard({ proposal, index, onDecide }: DecisionCardProps) {
             </p>
           </div>
           <div className="text-right shrink-0">
-            <p className="text-label-sm text-muted-foreground">Requested</p>
+            <p className="text-label-sm text-muted-foreground">{t("requested", "Requested")}</p>
             <p className="text-heading-md font-bold">
               {formatCurrency(proposal.estimated_cost)}
             </p>

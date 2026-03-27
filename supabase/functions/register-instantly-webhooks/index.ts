@@ -1,50 +1,20 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { 
-  listWebhooks, 
-  createWebhook, 
-  deleteWebhook, 
+import { createAuthenticatedHandler } from '../_shared/handler.ts';
+import {
+  listWebhooks,
+  createWebhook,
+  deleteWebhook,
   INSTANTLY_WEBHOOK_EVENTS,
-  type InstantlyWebhookEvent 
+  type InstantlyWebhookEvent
 } from "../_shared/instantly-client.ts";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
-
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  try {
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      return new Response(
-        JSON.stringify({ error: 'Authorization required' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
-    // Verify user
-    const token = authHeader.replace('Bearer ', '');
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    if (authError || !user) {
-      return new Response(
-        JSON.stringify({ error: 'Invalid token' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
+Deno.serve(createAuthenticatedHandler(async (req, ctx) => {
+    const supabase = ctx.supabase;
 
     const body = await req.json().catch(() => ({}));
     const { action = 'register', campaign_id, event_types } = body;
 
     // Build webhook URL - use the Supabase project URL
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const projectRef = supabaseUrl.match(/https:\/\/([^.]+)/)?.[1];
     const webhookUrl = `https://${projectRef}.supabase.co/functions/v1/instantly-webhook-receiver`;
 
@@ -57,13 +27,13 @@ serve(async (req) => {
       if (response.error) {
         return new Response(
           JSON.stringify({ error: 'Failed to list webhooks', details: response.error }),
-          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          { status: 500, headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
 
       return new Response(
         JSON.stringify({ webhooks: response.data?.items || [] }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -82,7 +52,7 @@ serve(async (req) => {
 
       return new Response(
         JSON.stringify({ success: true, deleted }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -124,7 +94,7 @@ serve(async (req) => {
       if (response.error) {
         return new Response(
           JSON.stringify({ error: 'Failed to register webhook', details: response.error }),
-          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          { status: 500, headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
 
@@ -152,20 +122,12 @@ serve(async (req) => {
           webhook: response.data,
           events_registered: eventsToRegister,
         }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     return new Response(
       JSON.stringify({ error: 'Invalid action. Use: register, unregister, or list' }),
-      { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { status: 400, headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } }
     );
-
-  } catch (error) {
-    console.error('[register-instantly-webhooks] Error:', error);
-    return new Response(
-      JSON.stringify({ error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown error' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-  }
-});
+}));

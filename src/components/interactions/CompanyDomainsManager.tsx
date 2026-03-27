@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,6 +16,7 @@ interface CompanyDomainsManagerProps {
 export function CompanyDomainsManager({
   companyId,
 }: CompanyDomainsManagerProps) {
+  const { t } = useTranslation('common');
   const [newDomain, setNewDomain] = useState("");
   const [newNotes, setNewNotes] = useState("");
   const queryClient = useQueryClient();
@@ -74,7 +76,7 @@ export function CompanyDomainsManager({
       queryClient.invalidateQueries({ queryKey: ["company-domains", companyId] });
       setNewDomain("");
       setNewNotes("");
-      toast.success("Domain added successfully");
+      toast.success(t("domain_added_successfully", "Domain added successfully"));
     },
     onError: (error: Error) => {
       toast.error(error.message || "Failed to add domain");
@@ -95,7 +97,7 @@ export function CompanyDomainsManager({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["company-domains", companyId] });
-      toast.success("Domain status updated");
+      toast.success(t("domain_status_updated", "Domain status updated"));
     },
     onError: (error: Error) => {
       toast.error(error.message || "Failed to update domain status");
@@ -116,7 +118,7 @@ export function CompanyDomainsManager({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["company-domains", companyId] });
-      toast.success("Domain deleted");
+      toast.success(t("domain_deleted", "Domain deleted"));
     },
     onError: (error: Error) => {
       toast.error(error.message || "Failed to delete domain");
@@ -171,13 +173,13 @@ export function CompanyDomainsManager({
         {/* Add new domain */}
         <div className="flex gap-2">
           <Input
-            placeholder="@example.com or example.com"
+            placeholder={t("examplecom_or_examplecom", "@example.com or example.com")}
             value={newDomain}
             onChange={(e) => setNewDomain(e.target.value)}
             className="flex-1"
           />
           <Input
-            placeholder="Notes (optional)"
+            placeholder={t("notes_optional", "Notes (optional)")}
             value={newNotes}
             onChange={(e) => setNewNotes(e.target.value)}
             className="flex-1"
@@ -194,11 +196,11 @@ export function CompanyDomainsManager({
         {/* Domain list */}
         {domainsError ? (
           <div className="p-4 bg-destructive/10 text-destructive rounded-lg">
-            <p className="text-sm font-medium">Error loading domains</p>
+            <p className="text-sm font-medium">{t("error_loading_domains", "Error loading domains")}</p>
             <p className="text-xs mt-1">{domainsError.message}</p>
           </div>
         ) : isLoading ? (
-          <p className="text-sm text-muted-foreground">Loading domains...</p>
+          <p className="text-sm text-muted-foreground">{t("loading_domains", "Loading domains...")}</p>
         ) : domains && domains.length > 0 ? (
           <div className="space-y-2">
             {domains.map((domain: any) => (
@@ -251,9 +253,9 @@ export function CompanyDomainsManager({
 
         {/* Forwarding email info */}
         <div className="border-t pt-4 mt-4">
-          <h4 className="font-medium text-sm mb-2">Email Forwarding Address</h4>
+          <h4 className="font-medium text-sm mb-2">{t("email_forwarding_address", "Email Forwarding Address")}</h4>
           <div className="bg-muted/50 p-3 rounded-lg">
-            <code className="text-sm">learn@thequantumclub.com</code>
+            <code className="text-sm">{t("learnthequantumclubcom", "learn@thequantumclub.com")}</code>
             <p className="text-xs text-muted-foreground mt-2">
               Forward any company emails to this address to add them to the ML learning system.
               They'll be automatically matched to companies based on the configured domains above.

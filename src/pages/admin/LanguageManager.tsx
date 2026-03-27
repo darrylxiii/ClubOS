@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -26,6 +27,7 @@ const popularLanguages = [
 ];
 
 export default function LanguageManager() {
+  const { t } = useTranslation('admin');
   const queryClient = useQueryClient();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [newLanguage, setNewLanguage] = useState({ code: '', name: '', nativeName: '', flagEmoji: '', isRtl: false, fontFamily: '' });
@@ -72,7 +74,7 @@ export default function LanguageManager() {
       queryClient.invalidateQueries({ queryKey: ['languages'] }); queryClient.invalidateQueries({ queryKey: ['translation-coverage-detailed'] });
       setIsAddDialogOpen(false); setIsGenerating(false);
       setNewLanguage({ code: '', name: '', nativeName: '', flagEmoji: '', isRtl: false, fontFamily: '' });
-      toast.success('Language added successfully');
+      toast.success(t('languageManager.languageAdded'));
     },
     onError: (error) => { setIsGenerating(false); toast.error(error instanceof Error ? error.message : 'Failed to add language'); },
   });
@@ -83,7 +85,7 @@ export default function LanguageManager() {
 
   const handleRetranslateLowQuality = async (langCode: string) => {
     setRetranslatingLang(langCode);
-    try { const { error } = await supabase.functions.invoke('generate-all-translations', { body: { generateAll: true } }); if (error) throw error; toast.success(`Retranslation started for ${langCode}`); queryClient.invalidateQueries({ queryKey: ['translation-coverage-detailed'] }); } catch { toast.error('Failed to start retranslation'); } finally { setRetranslatingLang(null); }
+    try { const { error } = await supabase.functions.invoke('generate-all-translations', { body: { generateAll: true } }); if (error) throw error; toast.success(`Retranslation started for ${langCode}`); queryClient.invalidateQueries({ queryKey: ['translation-coverage-detailed'] }); } catch { toast.error("Failed to start retranslation"); } finally { setRetranslatingLang(null); }
   };
 
   const getCoverage = (langCode: string) => {
@@ -102,24 +104,24 @@ export default function LanguageManager() {
         <div className="flex items-center justify-between">
           <p className="text-muted-foreground">{languages?.length || 0} languages • {totalNamespaces} namespaces</p>
           <div className="flex gap-2">
-            <Button variant="outline" onClick={() => refetchCoverage()}><RefreshCw className="mr-2 h-4 w-4" /> Refresh</Button>
+            <Button variant="outline" onClick={() => refetchCoverage()}><RefreshCw className="mr-2 h-4 w-4" />{"Refresh"}</Button>
             <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-              <DialogTrigger asChild><Button><Plus className="mr-2 h-4 w-4" />Add Language</Button></DialogTrigger>
+              <DialogTrigger asChild><Button><Plus className="mr-2 h-4 w-4" />{"Add Language"}</Button></DialogTrigger>
               <DialogContent className="sm:max-w-[500px]">
-                <DialogHeader><DialogTitle>Add New Language</DialogTitle><DialogDescription>Add a new language and optionally auto-generate translations</DialogDescription></DialogHeader>
+                <DialogHeader><DialogTitle>{"Add New Language"}</DialogTitle><DialogDescription>{"Add a new language and optionally auto-generate translations"}</DialogDescription></DialogHeader>
                 <div className="space-y-4 py-4">
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2"><Label htmlFor="code">Language Code</Label><Input id="code" placeholder="e.g., it, pt" value={newLanguage.code} onChange={(e) => setNewLanguage({ ...newLanguage, code: e.target.value })} /></div>
-                    <div className="space-y-2"><Label htmlFor="flag">Flag Emoji</Label><Input id="flag" placeholder="🇮🇹" value={newLanguage.flagEmoji} onChange={(e) => setNewLanguage({ ...newLanguage, flagEmoji: e.target.value })} /></div>
+                    <div className="space-y-2"><Label htmlFor="code">{"Language Code"}</Label><Input id="code" placeholder={"e.g., it, pt"} value={newLanguage.code} onChange={(e) => setNewLanguage({ ...newLanguage, code: e.target.value })} /></div>
+                    <div className="space-y-2"><Label htmlFor="flag">{"Flag Emoji"}</Label><Input id="flag" placeholder="🇮🇹" value={newLanguage.flagEmoji} onChange={(e) => setNewLanguage({ ...newLanguage, flagEmoji: e.target.value })} /></div>
                   </div>
-                  <div className="space-y-2"><Label htmlFor="name">English Name</Label><Input id="name" placeholder="Italian" value={newLanguage.name} onChange={(e) => setNewLanguage({ ...newLanguage, name: e.target.value })} /></div>
-                  <div className="space-y-2"><Label htmlFor="nativeName">Native Name</Label><Input id="nativeName" placeholder="Italiano" value={newLanguage.nativeName} onChange={(e) => setNewLanguage({ ...newLanguage, nativeName: e.target.value })} /></div>
-                  <div className="flex items-center space-x-2"><Switch id="rtl" checked={newLanguage.isRtl} onCheckedChange={(checked) => setNewLanguage({ ...newLanguage, isRtl: checked })} /><Label htmlFor="rtl">Right-to-Left (RTL)</Label></div>
+                  <div className="space-y-2"><Label htmlFor="name">{"English Name"}</Label><Input id="name" placeholder={"Italian"} value={newLanguage.name} onChange={(e) => setNewLanguage({ ...newLanguage, name: e.target.value })} /></div>
+                  <div className="space-y-2"><Label htmlFor="nativeName">{"Native Name"}</Label><Input id="nativeName" placeholder={"Italiano"} value={newLanguage.nativeName} onChange={(e) => setNewLanguage({ ...newLanguage, nativeName: e.target.value })} /></div>
+                  <div className="flex items-center space-x-2"><Switch id="rtl" checked={newLanguage.isRtl} onCheckedChange={(checked) => setNewLanguage({ ...newLanguage, isRtl: checked })} /><Label htmlFor="rtl">{"Right-to-Left (RTL)"}</Label></div>
                 </div>
                 <DialogFooter>
-                  <Button variant="outline" onClick={() => addLanguageMutation.mutate({ ...newLanguage, autoGenerate: false })} disabled={!newLanguage.code || !newLanguage.name || isGenerating}>Add Only</Button>
+                  <Button variant="outline" onClick={() => addLanguageMutation.mutate({ ...newLanguage, autoGenerate: false })} disabled={!newLanguage.code || !newLanguage.name || isGenerating}>{"Add Only"}</Button>
                   <Button onClick={() => addLanguageMutation.mutate({ ...newLanguage, autoGenerate: true })} disabled={!newLanguage.code || !newLanguage.name || isGenerating}>
-                    {isGenerating ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Generating...</> : 'Add + Generate'}
+                    {isGenerating ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />{"Generating..."}</> : 'Add + Generate'}
                   </Button>
                 </DialogFooter>
               </DialogContent>
@@ -128,7 +130,7 @@ export default function LanguageManager() {
         </div>
 
         <Card>
-          <CardHeader><CardTitle className="flex items-center gap-2"><Languages className="h-5 w-5" />Quick Add Popular Languages</CardTitle><CardDescription>One-click addition with automatic AI translation</CardDescription></CardHeader>
+          <CardHeader><CardTitle className="flex items-center gap-2"><Languages className="h-5 w-5" />{"Quick Add Popular Languages"}</CardTitle><CardDescription>{"One-click addition with automatic AI translation"}</CardDescription></CardHeader>
           <CardContent>
             <div className="flex flex-wrap gap-2">
               {popularLanguages.map(lang => {
@@ -140,7 +142,7 @@ export default function LanguageManager() {
         </Card>
 
         <Card>
-          <CardHeader><CardTitle className="flex items-center gap-2"><Globe className="h-5 w-5" />Active Languages</CardTitle><CardDescription>Translation coverage and quality across {totalNamespaces} namespaces</CardDescription></CardHeader>
+          <CardHeader><CardTitle className="flex items-center gap-2"><Globe className="h-5 w-5" />{"Active Languages"}</CardTitle><CardDescription>Translation coverage and quality across {totalNamespaces} namespaces</CardDescription></CardHeader>
           <CardContent>
             {isLoading ? <div className="text-center py-8"><Loader2 className="h-8 w-8 animate-spin mx-auto text-muted-foreground" /></div> : (
               <div className="space-y-4">
@@ -156,14 +158,14 @@ export default function LanguageManager() {
                           <div className="flex items-center gap-2">
                             <span className="font-semibold">{lang.name}</span>
                             <span className="text-sm text-muted-foreground">({lang.native_name})</span>
-                            {lang.code === 'en' && <Badge variant="secondary">Source</Badge>}
+                            {lang.code === 'en' && <Badge variant="secondary">{"Source"}</Badge>}
                             {provider && lang.code !== 'en' && (
-                              <Tooltip><TooltipTrigger asChild><Badge variant="outline" className="text-xs cursor-help">{provider === 'google' ? <><Globe className="h-3 w-3 mr-1" />Google</> : <><Bot className="h-3 w-3 mr-1" />AI</>}</Badge></TooltipTrigger><TooltipContent><p>Translated with {provider === 'google' ? 'Google Cloud Translation' : 'Lovable AI'}</p></TooltipContent></Tooltip>
+                              <Tooltip><TooltipTrigger asChild><Badge variant="outline" className="text-xs cursor-help">{provider === 'google' ? <><Globe className="h-3 w-3 mr-1" />{"Google"}</> : <><Bot className="h-3 w-3 mr-1" />AI</>}</Badge></TooltipTrigger><TooltipContent><p>Translated with {provider === 'google' ? 'Google Cloud Translation' : 'Lovable AI'}</p></TooltipContent></Tooltip>
                             )}
                           </div>
                           <div className="flex items-center gap-3 text-sm text-muted-foreground mt-1">
                             <span>{lang.code.toUpperCase()}</span>
-                            {lang.is_rtl && <span>• RTL</span>}
+                            {lang.is_rtl && <span>{"• RTL"}</span>}
                             {quality !== null && lang.code !== 'en' && <span className={`flex items-center gap-1 ${getQualityColor(quality)}`}><Star className="h-3 w-3" />Quality: {quality}</span>}
                             {needsReview > 0 && <span className="flex items-center gap-1 text-yellow-500"><AlertTriangle className="h-3 w-3" />{needsReview} need review</span>}
                           </div>
@@ -174,7 +176,7 @@ export default function LanguageManager() {
                           <Progress value={percentage} className="h-2" />
                           <p className="text-xs text-muted-foreground mt-1">{count}/{total} namespaces</p>
                         </div>
-                        {complete ? <Badge variant="default" className="bg-green-500">Complete</Badge> : <Badge variant="outline">{percentage}%</Badge>}
+                        {complete ? <Badge variant="default" className="bg-green-500">{"Complete"}</Badge> : <Badge variant="outline">{percentage}%</Badge>}
                         {showRetranslate && (
                           <Button size="sm" variant="outline" onClick={() => handleRetranslateLowQuality(lang.code)} disabled={retranslatingLang === lang.code}>
                             {retranslatingLang === lang.code ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Retranslate'}

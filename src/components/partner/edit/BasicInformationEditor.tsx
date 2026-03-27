@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,6 +10,7 @@ interface BasicInformationEditorProps {
 }
 
 export function BasicInformationEditor({ candidate, onChange }: BasicInformationEditorProps) {
+  const { t } = useTranslation('common');
   const [fullName, setFullName] = useState(candidate.full_name || '');
   const [email, setEmail] = useState(candidate.email || '');
   const [phone, setPhone] = useState(candidate.phone || '');
@@ -44,7 +46,7 @@ export function BasicInformationEditor({ candidate, onChange }: BasicInformation
             id="full_name"
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
-            placeholder="e.g., Lena Jude"
+            placeholder={t("eg_lena_jude", "e.g., Lena Jude")}
           />
         </div>
 
@@ -59,7 +61,7 @@ export function BasicInformationEditor({ candidate, onChange }: BasicInformation
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="e.g., lena@example.com"
+            placeholder={t("eg_lenaexamplecom", "e.g., lena@example.com")}
           />
         </div>
 
@@ -74,7 +76,7 @@ export function BasicInformationEditor({ candidate, onChange }: BasicInformation
             type="tel"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
-            placeholder="e.g., +1 234 567 8900"
+            placeholder={t("eg_1_234_567", "e.g., +1 234 567 8900")}
           />
         </div>
 
@@ -88,7 +90,7 @@ export function BasicInformationEditor({ candidate, onChange }: BasicInformation
             id="current_title"
             value={currentTitle}
             onChange={(e) => setCurrentTitle(e.target.value)}
-            placeholder="e.g., Senior Product Manager"
+            placeholder={t("eg_senior_product_manager", "e.g., Senior Product Manager")}
           />
         </div>
 
@@ -102,7 +104,7 @@ export function BasicInformationEditor({ candidate, onChange }: BasicInformation
             id="current_company"
             value={currentCompany}
             onChange={(e) => setCurrentCompany(e.target.value)}
-            placeholder="e.g., Acme Corp"
+            placeholder={t("eg_acme_corp", "e.g., Acme Corp")}
           />
         </div>
 

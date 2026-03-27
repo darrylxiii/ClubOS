@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,6 +17,7 @@ import { validateOnboardingForm } from "@/types/onboarding";
 import { validateFile } from "@/lib/validation";
 
 const Onboarding = () => {
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
   const { user } = useAuth();
   const { profile, loading: profileLoading } = useProfile({ userId: user?.id });
@@ -86,7 +88,7 @@ const Onboarding = () => {
           }));
 
           toast.success(`Welcome! ${referrerName} referred you for ${metadata.job_title} at ${metadata.company_name}`, {
-            description: "We've pre-filled some information to get you started faster."
+            description: t('text.onboarding.wevePrefilledSomeInformationToGet', 'We\'ve pre-filled some information to get you started faster.')
           });
         }
       }
@@ -117,7 +119,7 @@ const Onboarding = () => {
       }
 
       setResume(file);
-      toast.success("Resume uploaded successfully");
+      toast.success(t('text.onboarding.resumeUploadedSuccessfully', 'Resume uploaded successfully'));
     }
   };
 
@@ -125,7 +127,7 @@ const Onboarding = () => {
     e.preventDefault();
     
     if (!avatarUrl) {
-      toast.error("Please upload a profile picture to continue");
+      toast.error(t('text.onboarding.pleaseUploadAProfilePictureTo', 'Please upload a profile picture to continue'));
       return;
     }
     
@@ -143,7 +145,7 @@ const Onboarding = () => {
 
     setErrors({});
     
-    toast.success("Profile created successfully!");
+    toast.success(t('text.onboarding.profileCreatedSuccessfully', 'Profile created successfully!'));
     navigate("/");
   };
 
@@ -151,12 +153,8 @@ const Onboarding = () => {
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-background/80">
       <div className="container max-w-4xl mx-auto px-4 py-12">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold mb-2 text-foreground">
-            Welcome to The Quantum Club
-          </h1>
-          <p className="text-muted-foreground">
-            Complete your profile to access exclusive executive opportunities
-          </p>
+          <h1 className="text-4xl font-bold mb-2 text-foreground">{t('onboarding.title')}</h1>
+          <p className="text-muted-foreground">{t('onboarding.desc')}</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -167,7 +165,7 @@ const Onboarding = () => {
                 <User className="w-5 h-5 text-primary" />
                 Personal Information
               </CardTitle>
-              <CardDescription>Tell us about yourself</CardDescription>
+              <CardDescription>{t('text.onboarding.tellUsAboutYourself', 'Tell us about yourself')}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               {user && (
@@ -184,7 +182,7 @@ const Onboarding = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <div className="flex items-center gap-2">
-                    <Label htmlFor="firstName">First Name *</Label>
+                    <Label htmlFor="firstName">{t('text.onboarding.firstName', 'First Name *')}</Label>
                     {referralMetadata && formData.firstName && (
                       <span className="text-xs text-primary bg-primary/10 px-2 py-0.5 rounded">
                         Provided by {referrerName}
@@ -202,7 +200,7 @@ const Onboarding = () => {
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <Label htmlFor="lastName">Last Name *</Label>
+                    <Label htmlFor="lastName">{t('text.onboarding.lastName', 'Last Name *')}</Label>
                     {referralMetadata && formData.lastName && (
                       <span className="text-xs text-primary bg-primary/10 px-2 py-0.5 rounded">
                         Provided by {referrerName}
@@ -222,7 +220,7 @@ const Onboarding = () => {
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="email">Email *</Label>
+                  <Label htmlFor="email">{t('text.onboarding.email', 'Email *')}</Label>
                   <Input
                     id="email"
                     name="email"
@@ -234,7 +232,7 @@ const Onboarding = () => {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="phone">Phone</Label>
+                  <Label htmlFor="phone">{t('text.onboarding.phone', 'Phone')}</Label>
                   <Input
                     id="phone"
                     name="phone"
@@ -248,20 +246,20 @@ const Onboarding = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="location">Location *</Label>
+                  <Label htmlFor="location">{t('text.onboarding.location', 'Location *')}</Label>
                   <Input
                     id="location"
                     name="location"
                     value={formData.location}
                     onChange={handleInputChange}
-                    placeholder="City, Country"
+                    placeholder={t('text.onboarding.city', 'City,')} Country
                     required
                     className="bg-background/50"
                   />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <Label htmlFor="currentTitle">Current Title *</Label>
+                    <Label htmlFor="currentTitle">{t('text.onboarding.currentTitle', 'Current Title *')}</Label>
                     {referralMetadata && formData.currentTitle && (
                       <span className="text-xs text-primary bg-primary/10 px-2 py-0.5 rounded">
                         Provided by {referrerName}
@@ -281,7 +279,7 @@ const Onboarding = () => {
 
               <div>
                 <div className="flex items-center gap-2">
-                  <Label htmlFor="linkedin">LinkedIn Profile</Label>
+                  <Label htmlFor="linkedin">{t('text.onboarding.linkedinProfile', 'LinkedIn Profile')}</Label>
                   {referralMetadata && formData.linkedin && (
                     <span className="text-xs text-primary bg-primary/10 px-2 py-0.5 rounded">
                       Provided by {referrerName}
@@ -308,7 +306,7 @@ const Onboarding = () => {
                 <Upload className="w-5 h-5 text-primary" />
                 Resume/CV
               </CardTitle>
-              <CardDescription>Upload your resume for automatic profile enhancement</CardDescription>
+              <CardDescription>{t('text.onboarding.uploadYourResumeForAutomaticProfile', 'Upload your resume for automatic profile enhancement')}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="border-2 border-dashed border-primary/30 rounded-lg p-8 text-center hover:border-primary/50 transition-colors">
@@ -322,11 +320,9 @@ const Onboarding = () => {
                 <label htmlFor="resume" className="cursor-pointer">
                   <Upload className="w-12 h-12 mx-auto mb-4 text-primary" />
                   <p className="text-sm font-medium mb-1">
-                    {resume ? resume.name : "Click to upload your resume"}
+                    {resume ? resume.name : t('text.onboarding.clickToUploadYourResume', 'Click to upload your resume')}
                   </p>
-                  <p className="text-xs text-muted-foreground">
-                    PDF, DOC, or DOCX (Max 10MB)
-                  </p>
+                  <p className="text-xs text-muted-foreground">{t('onboarding.desc2')}</p>
                 </label>
               </div>
             </CardContent>
@@ -339,14 +335,12 @@ const Onboarding = () => {
                 <DollarSign className="w-5 h-5 text-primary" />
                 Compensation & Availability
               </CardTitle>
-              <CardDescription>Help us match you with the right opportunities</CardDescription>
+              <CardDescription>{t('text.onboarding.helpUsMatchYouWithThe', 'Help us match you with the right opportunities')}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="currentSalary">
-                    Current Salary Range (Optional)
-                  </Label>
+                  <Label htmlFor="currentSalary">{t('text.onboarding.currentSalaryRangeOptional', 'Current Salary Range (Optional)')}</Label>
                   <Input
                     id="currentSalary"
                     name="currentSalary"
@@ -355,28 +349,23 @@ const Onboarding = () => {
                     placeholder="e.g., $150,000 - $200,000"
                     className="bg-background/50"
                   />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    This information is confidential and helps us better match opportunities
-                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">{t('onboarding.desc3')}</p>
                 </div>
                 <div>
-                  <Label htmlFor="desiredSalary">
-                    Desired Salary Range *
-                  </Label>
+                  <Label htmlFor="desiredSalary">{t('text.onboarding.desiredSalaryRange', 'Desired Salary Range *')}</Label>
                   <Input
                     id="desiredSalary"
                     name="desiredSalary"
                     value={formData.desiredSalary}
                     onChange={handleInputChange}
-                    placeholder="e.g., $180,000 - $250,000"
-                    required
+                    placeholder="e.g., $180,000 - $250,000 required"
                     className="bg-background/50"
                   />
                 </div>
               </div>
 
               <div>
-                <Label htmlFor="noticePeriod">Notice Period</Label>
+                <Label htmlFor="noticePeriod">{t('text.onboarding.noticePeriod', 'Notice Period')}</Label>
                 <Input
                   id="noticePeriod"
                   name="noticePeriod"
@@ -396,11 +385,11 @@ const Onboarding = () => {
                 <Target className="w-5 h-5 text-primary" />
                 Job Preferences
               </CardTitle>
-              <CardDescription>What are you looking for in your next role?</CardDescription>
+              <CardDescription>{t('text.onboarding.whatAreYouLookingForIn', 'What are you looking for in your next role?')}</CardDescription>
             </CardHeader>
             <CardContent>
               <div>
-                <Label htmlFor="preferences">Preferences & Requirements</Label>
+                <Label htmlFor="preferences">{t('text.onboarding.preferencesRequirements', 'Preferences & Requirements')}</Label>
                 <Textarea
                   id="preferences"
                   name="preferences"
@@ -410,9 +399,7 @@ const Onboarding = () => {
                   rows={6}
                   className="bg-background/50 resize-none"
                 />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Share any specific requirements or preferences to help us find your perfect match
-                </p>
+                <p className="text-xs text-muted-foreground mt-1">{t('onboarding.desc4')}</p>
               </div>
             </CardContent>
           </Card>
@@ -424,14 +411,12 @@ const Onboarding = () => {
               variant="outline"
               onClick={() => navigate("/")}
             >
-              Skip for Now
+              {t('text.onboarding.skipForNow', 'Skip for Now')}
             </Button>
             <Button
               type="submit"
               className="bg-gradient-accent text-background font-semibold px-8 shadow-glow hover:opacity-90 transition-opacity"
-            >
-              Complete Profile
-            </Button>
+            >{t('onboarding.btn5')}</Button>
           </div>
         </form>
       </div>

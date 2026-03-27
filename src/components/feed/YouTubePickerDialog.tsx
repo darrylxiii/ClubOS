@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,6 +12,7 @@ interface YouTubePickerDialogProps {
 }
 
 export function YouTubePickerDialog({ onSelect, onClose }: YouTubePickerDialogProps) {
+  const { t } = useTranslation('common');
   const [url, setUrl] = useState('');
   const [previewVideoId, setPreviewVideoId] = useState<string | null>(null);
 
@@ -22,7 +24,7 @@ export function YouTubePickerDialog({ onSelect, onClose }: YouTubePickerDialogPr
 
   const handleAdd = () => {
     if (!previewVideoId) {
-      toast.error('Invalid YouTube URL', {
+      toast.error(t("invalid_youtube_url", "Invalid YouTube URL"), {
         description: 'Please paste a valid YouTube video link',
       });
       return;
@@ -32,13 +34,13 @@ export function YouTubePickerDialog({ onSelect, onClose }: YouTubePickerDialogPr
     setUrl('');
     setPreviewVideoId(null);
     onClose();
-    toast.success('YouTube video added');
+    toast.success(t("youtube_video_added", "YouTube video added"));
   };
 
   return (
     <div className="space-y-4 p-4">
       <div>
-        <h3 className="font-semibold text-sm mb-2">Share YouTube Video</h3>
+        <h3 className="font-semibold text-sm mb-2">{t("share_youtube_video", "Share YouTube Video")}</h3>
         <p className="text-xs text-muted-foreground mb-3">
           Paste a YouTube video URL to share
         </p>
@@ -52,11 +54,11 @@ export function YouTubePickerDialog({ onSelect, onClose }: YouTubePickerDialogPr
 
       {previewVideoId && (
         <div className="space-y-2">
-          <div className="text-xs font-medium text-muted-foreground">Preview</div>
+          <div className="text-xs font-medium text-muted-foreground">{t("preview", "Preview")}</div>
           <div className="relative rounded-lg overflow-hidden">
             <img
               src={getYouTubeThumbnail(previewVideoId, 'hq')}
-              alt="Video preview"
+              alt={t("video_preview", "Video preview")}
               className="w-full aspect-video object-cover"
             />
             <div className="absolute inset-0 flex items-center justify-center bg-black/20">

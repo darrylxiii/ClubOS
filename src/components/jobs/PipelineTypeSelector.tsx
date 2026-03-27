@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Input } from "@/components/ui/input";
@@ -24,9 +25,10 @@ export function PipelineTypeSelector({
   onIsUnlimitedChange,
   className,
 }: PipelineTypeSelectorProps) {
+  const { t } = useTranslation('common');
   return (
     <div className={cn("space-y-4", className)}>
-      <Label className="text-sm font-medium">Pipeline Type</Label>
+      <Label className="text-sm font-medium">{t("pipeline_type", "Pipeline Type")}</Label>
       
       <RadioGroup
         value={pipelineType}
@@ -49,7 +51,7 @@ export function PipelineTypeSelector({
           <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-muted">
             <User className="h-5 w-5 text-muted-foreground" />
           </div>
-          <span className="font-medium">Standard</span>
+          <span className="font-medium">{t("standard", "Standard")}</span>
           <span className="text-xs text-muted-foreground mt-1">
             Single hire, job closes when filled
           </span>
@@ -71,7 +73,7 @@ export function PipelineTypeSelector({
           <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
             <Users className="h-5 w-5 text-primary" />
           </div>
-          <span className="font-medium">Continuous</span>
+          <span className="font-medium">{t("continuous", "Continuous")}</span>
           <span className="text-xs text-muted-foreground mt-1">
             Multiple hires, stays open
           </span>
@@ -110,7 +112,7 @@ export function PipelineTypeSelector({
                 id="targetCount"
                 type="number"
                 min={2}
-                placeholder="e.g., 5"
+                placeholder={t("eg_5", "e.g., 5")}
                 value={targetHireCount || ""}
                 onChange={(e) => {
                   const val = parseInt(e.target.value);

@@ -5,8 +5,10 @@ import { DynamicChart } from "@/components/charts/DynamicChart";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
 import type { SecurityMetricsHistory } from "@/types/security";
+import { useTranslation } from 'react-i18next';
 
 export const SecurityTrendsChart = () => {
+  const { t } = useTranslation('admin');
   const { data: trendsData, isLoading } = useQuery({
     queryKey: ['security-trends'],
     queryFn: async () => {
@@ -41,7 +43,7 @@ export const SecurityTrendsChart = () => {
       <Card>
         <CardHeader>
           <CardTitle>30-Day Security Trends</CardTitle>
-          <CardDescription>Historical security metrics over time</CardDescription>
+          <CardDescription>{t('security.securityTrendsChart.historicalSecurityMetricsOverTime')}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="h-[400px] flex items-center justify-center text-muted-foreground">
@@ -66,7 +68,7 @@ export const SecurityTrendsChart = () => {
     <Card>
       <CardHeader>
         <CardTitle>30-Day Security Trends</CardTitle>
-        <CardDescription>Historical security metrics and patterns</CardDescription>
+        <CardDescription>{t('security.securityTrendsChart.historicalSecurityMetricsAndPatterns')}</CardDescription>
       </CardHeader>
       <CardContent>
         <DynamicChart

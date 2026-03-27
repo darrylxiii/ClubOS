@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { RoleGate } from '@/components/RoleGate';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -13,6 +14,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { MessageSquare, Settings, Shield, Zap, RefreshCw, ExternalLink, Copy, CheckCircle, AlertCircle } from 'lucide-react';
 
 export default function WhatsAppSettings() {
+  const { t } = useTranslation('admin');
   const queryClient = useQueryClient();
   const [isSyncing, setIsSyncing] = useState(false);
 
@@ -88,16 +90,16 @@ export default function WhatsAppSettings() {
       <RoleGate allowedRoles={['admin']}>
         <div className="w-full px-4 sm:px-6 lg:px-8 py-6 max-w-4xl space-y-6">
           <div>
-            <h1 className="text-2xl font-bold">WhatsApp Settings</h1>
-            <p className="text-muted-foreground">Configure your WhatsApp Business integration</p>
+            <h1 className="text-2xl font-bold">{t('whatsAppSettings.text3')}</h1>
+            <p className="text-muted-foreground">{t('whatsAppSettings.text4')}</p>
           </div>
 
           <Tabs defaultValue="connection" className="space-y-4">
             <TabsList>
-              <TabsTrigger value="connection">Connection</TabsTrigger>
-              <TabsTrigger value="templates">Templates</TabsTrigger>
-              <TabsTrigger value="automation">Automation</TabsTrigger>
-              <TabsTrigger value="webhook">Webhook</TabsTrigger>
+              <TabsTrigger value="connection">{t('whatsAppSettings.text5')}</TabsTrigger>
+              <TabsTrigger value="templates">{t('whatsAppSettings.text6')}</TabsTrigger>
+              <TabsTrigger value="automation">{t('whatsAppSettings.text7')}</TabsTrigger>
+              <TabsTrigger value="webhook">{t('whatsAppSettings.text8')}</TabsTrigger>
             </TabsList>
 
             <TabsContent value="connection" className="space-y-4">
@@ -118,20 +120,20 @@ export default function WhatsAppSettings() {
                         <div className="flex items-center gap-3">
                           <CheckCircle className="h-5 w-5 text-green-500" />
                           <div>
-                            <p className="font-medium">Connected</p>
+                            <p className="font-medium">{t('whatsAppSettings.text9')}</p>
                             <p className="text-sm text-muted-foreground">{accounts.verified_name || 'WhatsApp Business'}</p>
                           </div>
                         </div>
-                        <Badge variant="outline" className="bg-green-500/10 text-green-500">Active</Badge>
+                        <Badge variant="outline" className="bg-green-500/10 text-green-500">{t('whatsAppSettings.text10')}</Badge>
                       </div>
 
                       <div className="grid gap-4">
                         <div>
-                          <Label>Phone Number ID</Label>
+                          <Label>{t('whatsAppSettings.text11')}</Label>
                           <Input value={accounts.phone_number_id || '***'} disabled className="font-mono" />
                         </div>
                         <div>
-                          <Label>Display Phone Number</Label>
+                          <Label>{t('whatsAppSettings.text12')}</Label>
                           <Input value={accounts.display_phone_number || 'Not set'} disabled />
                         </div>
                       </div>
@@ -139,10 +141,8 @@ export default function WhatsAppSettings() {
                   ) : (
                     <div className="text-center py-8">
                       <AlertCircle className="h-12 w-12 mx-auto mb-4 text-amber-500" />
-                      <h3 className="font-medium mb-2">Not Connected</h3>
-                      <p className="text-sm text-muted-foreground mb-4">
-                        Connect your WhatsApp Business account to start messaging
-                      </p>
+                      <h3 className="font-medium mb-2">{t('whatsAppSettings.text13')}</h3>
+                      <p className="text-sm text-muted-foreground mb-4">{t('whatsAppSettings.desc')}</p>
                       <Button>
                         <ExternalLink className="h-4 w-4 mr-2" />
                         Connect WhatsApp
@@ -158,8 +158,8 @@ export default function WhatsAppSettings() {
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <div>
-                      <CardTitle>Message Templates</CardTitle>
-                      <CardDescription>Pre-approved templates for outbound messaging</CardDescription>
+                      <CardTitle>{t('whatsAppSettings.text14')}</CardTitle>
+                      <CardDescription>{t('whatsAppSettings.text15')}</CardDescription>
                     </div>
                     <Button onClick={syncTemplates} disabled={isSyncing} variant="outline" size="sm">
                       <RefreshCw className={`h-4 w-4 mr-2 ${isSyncing ? 'animate-spin' : ''}`} />
@@ -218,9 +218,7 @@ export default function WhatsAppSettings() {
                       </div>
                     ))}
                     {(!automationRules || automationRules.length === 0) && (
-                      <p className="text-center text-muted-foreground py-8">
-                        No automation rules configured yet.
-                      </p>
+                      <p className="text-center text-muted-foreground py-8">{t('whatsAppSettings.desc2')}</p>
                     )}
                   </div>
                 </CardContent>
@@ -240,7 +238,7 @@ export default function WhatsAppSettings() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                    <Label>Webhook URL</Label>
+                    <Label>{t('whatsAppSettings.text16')}</Label>
                     <div className="flex gap-2">
                       <Input 
                         value={`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/whatsapp-webhook-receiver`}
@@ -254,7 +252,7 @@ export default function WhatsAppSettings() {
                   </div>
 
                   <div>
-                    <Label>Verify Token</Label>
+                    <Label>{t('whatsAppSettings.text17')}</Label>
                     <p className="text-sm text-muted-foreground mb-2">
                       Set this in your environment as WHATSAPP_WEBHOOK_VERIFY_TOKEN
                     </p>
@@ -262,11 +260,11 @@ export default function WhatsAppSettings() {
                   </div>
 
                   <div className="p-4 rounded-lg bg-muted/50">
-                    <h4 className="font-medium mb-2">Webhook Fields to Subscribe</h4>
+                    <h4 className="font-medium mb-2">{t('whatsAppSettings.text18')}</h4>
                     <ul className="text-sm text-muted-foreground space-y-1">
-                      <li>• messages - Receive incoming messages</li>
-                      <li>• message_deliveries - Delivery status updates</li>
-                      <li>• message_reads - Read receipts</li>
+                      <li>{"• messages - Receive incoming messages"}</li>
+                      <li>{"• message_deliveries - Delivery status updates"}</li>
+                      <li>{"• message_reads - Read receipts"}</li>
                     </ul>
                   </div>
                 </CardContent>

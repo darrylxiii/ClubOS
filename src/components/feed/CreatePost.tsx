@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useRef, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -29,6 +30,7 @@ interface CreatePostProps {
 }
 
 export function CreatePost({ onPostCreated }: CreatePostProps) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [content, setContent] = useState("");
   const [loading, setLoading] = useState(false);
@@ -240,15 +242,15 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
   const getAudienceLabel = () => {
     switch (audienceSelection.type) {
       case 'best_friends':
-        return { icon: Heart, label: 'Best Friends' };
+        return { icon: Heart, label: t('feed.createpost.bestFriends', 'Best Friends') };
       case 'company_internal':
         return { icon: Building, label: companyName || 'Company' };
       case 'connections':
-        return { icon: UserCircle, label: 'Connections' };
+        return { icon: UserCircle, label: t('feed.createpost.connections', 'Connections') };
       case 'public':
-        return { icon: Globe, label: 'Public' };
+        return { icon: Globe, label: t('feed.createpost.public', 'Public') };
       default:
-        return { icon: Heart, label: 'Best Friends' };
+        return { icon: Heart, label: t('feed.createpost.bestFriends', 'Best Friends') };
     }
   };
 
@@ -290,7 +292,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
       setContent(updatedText);
       setShowSocialPrompt(false);
       setDetectedSocialEmbeds([]);
-      notify.success("Social posts embedded", { description: "URLs removed from post content" });
+      notify.success("Social posts embedded", { description: t('feed.createpost.urlsRemovedFromPostContent', 'URLs removed from post content') });
     }
   };
 
@@ -313,7 +315,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
       setContent(updatedText);
       setShowSpotifyPrompt(false);
       setDetectedSpotifyEmbeds([]);
-      notify.success("Spotify content embedded", { description: "URLs removed from post content" });
+      notify.success("Spotify content embedded", { description: t('feed.createpost.urlsRemovedFromPostContent', 'URLs removed from post content') });
     }
   };
 
@@ -342,17 +344,17 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
         if (plainText.includes(url)) {
           const updatedText = removeSocialMediaUrls(plainText);
           setContent(updatedText);
-          notify.success("LinkedIn post added", { description: "URL removed from post content" });
+          notify.success("LinkedIn post added", { description: t('feed.createpost.urlRemovedFromPostContent', 'URL removed from post content') });
         } else {
-          notify.success("LinkedIn post added", { description: "The post will be embedded" });
+          notify.success("LinkedIn post added", { description: t('feed.createpost.thePostWillBeEmbedded', 'The post will be embedded') });
         }
       } else {
         notify.error("Invalid LinkedIn URL", { 
-          description: "Please paste a valid LinkedIn post URL (must include /posts/ or /feed/update/)" 
+          description: t('feed.createpost.pleasePasteAValidLinkedinPost', 'Please paste a valid LinkedIn post URL (must include /posts/ or /feed/update/)') 
         });
       }
     } else {
-      notify.error("Not a LinkedIn URL", { description: "Please paste a LinkedIn post URL" });
+      notify.error("Not a LinkedIn URL", { description: t('feed.createpost.pleasePasteALinkedinPostUrl', 'Please paste a LinkedIn post URL') });
     }
   };
 
@@ -372,17 +374,17 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
         if (plainText.includes(url)) {
           const updatedText = removeSocialMediaUrls(plainText);
           setContent(updatedText);
-          notify.success("X post added", { description: "URL removed from post content" });
+          notify.success("X post added", { description: t('feed.createpost.urlRemovedFromPostContent', 'URL removed from post content') });
         } else {
-          notify.success("X post added", { description: "The post will be embedded" });
+          notify.success("X post added", { description: t('feed.createpost.thePostWillBeEmbedded', 'The post will be embedded') });
         }
       } else {
         notify.error("Invalid X URL", { 
-          description: "Please paste a valid X/Twitter post URL (must include /status/)" 
+          description: t('feed.createpost.pleasePasteAValidXtwitterPost', 'Please paste a valid X/Twitter post URL (must include /status/)') 
         });
       }
     } else {
-      notify.error("Not an X/Twitter URL", { description: "Please paste an X or Twitter post URL" });
+      notify.error("Not an X/Twitter URL", { description: t('feed.createpost.pleasePasteAnXOrTwitter', 'Please paste an X or Twitter post URL') });
     }
   };
 
@@ -402,17 +404,17 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
         if (plainText.includes(url)) {
           const updatedText = removeSocialMediaUrls(plainText);
           setContent(updatedText);
-          notify.success("Instagram post added", { description: "URL removed from post content" });
+          notify.success("Instagram post added", { description: t('feed.createpost.urlRemovedFromPostContent', 'URL removed from post content') });
         } else {
-          notify.success("Instagram post added", { description: "The post will be embedded" });
+          notify.success("Instagram post added", { description: t('feed.createpost.thePostWillBeEmbedded', 'The post will be embedded') });
         }
       } else {
         notify.error("Invalid Instagram URL", { 
-          description: "Please paste a valid Instagram post URL (must include /p/, /reel/, or /tv/)" 
+          description: t('feed.createpost.pleasePasteAValidInstagramPost', 'Please paste a valid Instagram post URL (must include /p/, /reel/, or /tv/)') 
         });
       }
     } else {
-      notify.error("Not an Instagram URL", { description: "Please paste an Instagram post URL" });
+      notify.error("Not an Instagram URL", { description: t('feed.createpost.pleasePasteAnInstagramPostUrl', 'Please paste an Instagram post URL') });
     }
   };
 
@@ -498,11 +500,11 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
       setYoutubeUrl(null);
       setSocialEmbeds([]);
       setSpotifyEmbeds([]);
-      notify.success("Posted successfully", { description: "Your post is now live on the feed." });
+      notify.success("Posted successfully", { description: t('feed.createpost.yourPostIsNowLiveOn', 'Your post is now live on the feed.') });
       onPostCreated();
     } catch (error) {
       console.error('Error creating post:', error);
-      notify.error("Failed to post", { description: "Please try again." });
+      notify.error("Failed to post", { description: t('feed.createpost.pleaseTryAgain', 'Please try again.') });
     } finally {
       setLoading(false);
     }
@@ -522,7 +524,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
           <RichTextEditor
             value={content}
             onChange={setContent}
-            placeholder="What do you want to talk about?"
+            placeholder={t("what_do_you_want", "What do you want to talk about?")}
             className="border-none"
             onYouTubeClick={() => setShowYoutubePicker(true)}
             onLinkedInClick={handleLinkedInClick}
@@ -568,7 +570,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
                   <div className="relative rounded-lg overflow-hidden bg-muted">
                     <img
                       src={`https://img.youtube.com/vi/${youtubeVideoId}/hqdefault.jpg`}
-                      alt="YouTube video"
+                      alt={t("youtube_video", "YouTube video")}
                       className="w-full aspect-video object-cover"
                     />
                     <div className="absolute inset-0 flex items-center justify-center bg-black/20">
@@ -689,10 +691,8 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
                   <Youtube className="w-5 h-5 text-white" />
                 </div>
                 <div className="flex-1">
-                  <p className="font-medium text-sm">YouTube link detected</p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Would you like to embed this video in your post?
-                  </p>
+                  <p className="font-medium text-sm">{t("youtube_link_detected", "YouTube link detected")}</p>
+                  <p className="text-xs text-muted-foreground mt-1">{t('feed.createpost.wouldYouLikeToEmbedThis', 'Would you like to embed this video in your post?')}</p>
                   <div className="flex gap-2 mt-3">
                     <Button
                       size="sm"
@@ -706,9 +706,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
                       size="sm"
                       variant="ghost"
                       onClick={handleDismissYoutubePrompt}
-                    >
-                      Keep as Link
-                    </Button>
+                    >{t('feed.createpost.keepAsLink', 'Keep as Link')}</Button>
                   </div>
                 </div>
               </div>
@@ -742,9 +740,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
                       size="sm"
                       variant="ghost"
                       onClick={handleDismissSocialPrompt}
-                    >
-                      Keep as Links
-                    </Button>
+                    >{t('feed.createpost.keepAsLinks', 'Keep as Links')}</Button>
                   </div>
                 </div>
               </div>
@@ -772,15 +768,13 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
                       className="gap-2 bg-green-600 hover:bg-green-700"
                     >
                       <Sparkles className="w-4 h-4" />
-                      Embed {detectedSpotifyEmbeds.length} {detectedSpotifyEmbeds.length > 1 ? 'Items' : 'Item'}
+                      Embed {detectedSpotifyEmbeds.length} {detectedSpotifyEmbeds.length > 1 ? t('feed.createpost.items', 'Items') : t('feed.createpost.item', 'Item')}
                     </Button>
                     <Button
                       size="sm"
                       variant="ghost"
                       onClick={handleDismissSpotifyPrompt}
-                    >
-                      Keep as Links
-                    </Button>
+                    >{t('feed.createpost.keepAsLinks', 'Keep as Links')}</Button>
                   </div>
                 </div>
               </div>
@@ -802,7 +796,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
                   size="sm"
                   className="h-9 w-9 p-0 hover:bg-white/5 transition-all"
                   onClick={() => setContentMenuOpen(!contentMenuOpen)}
-                  title="Add content"
+                  title={t("add_content", "Add content")}
                 >
                   <Plus className="w-4 h-4 text-muted-foreground hover:text-foreground transition-colors" />
                 </Button>
@@ -903,7 +897,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
                   size="sm"
                   className="h-9 w-9 p-0 hover:bg-white/5 transition-all flex-shrink-0"
                   onClick={() => setAudienceMenuOpen(!audienceMenuOpen)}
-                  title="Audience"
+                  title={t("audience", "Audience")}
                 >
                   <Users className="w-4 h-4 text-muted-foreground hover:text-foreground transition-colors" />
                 </Button>
@@ -913,12 +907,10 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
                 onClick={handlePost}
                 disabled={!content.trim() || loading}
                 className="h-9 w-9 p-0 transition-all hover:w-auto hover:px-4 overflow-hidden group/post flex-shrink-0"
-                title="Post"
+                title={t("post", "Post")}
               >
                 <Send className="w-4 h-4 flex-shrink-0" />
-                <span className="max-w-0 overflow-hidden group-hover/post:max-w-xs group-hover/post:ml-2 transition-all duration-300 whitespace-nowrap">
-                  Post
-                </span>
+                <span className="max-w-0 overflow-hidden group-hover/post:max-w-xs group-hover/post:ml-2 transition-all duration-300 whitespace-nowrap">{t('feed.createpost.post', 'Post')}</span>
               </Button>
             </div>
           </div>

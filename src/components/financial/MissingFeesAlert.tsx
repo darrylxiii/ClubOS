@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -23,6 +24,7 @@ interface MissingFee {
 }
 
 export function MissingFeesAlert() {
+  const { t } = useTranslation('common');
   const queryClient = useQueryClient();
   const [isGenerating, setIsGenerating] = useState(false);
 
@@ -126,7 +128,7 @@ export function MissingFeesAlert() {
       queryClient.invalidateQueries({ queryKey: ['placement-fee-health'] });
     } catch (error) {
       console.error('Error generating fees:', error);
-      toast.error('Failed to generate placement fees');
+      toast.error(t("failed_to_generate_placement", "Failed to generate placement fees"));
     } finally {
       setIsGenerating(false);
     }
@@ -137,7 +139,7 @@ export function MissingFeesAlert() {
   return (
     <Alert variant="destructive" className="mb-6">
       <AlertTriangle className="h-4 w-4" />
-      <AlertTitle>Missing Placement Fees Detected</AlertTitle>
+      <AlertTitle>{t("missing_placement_fees_detected", "Missing Placement Fees Detected")}</AlertTitle>
       <AlertDescription className="flex items-center justify-between">
         <span>
           {missingFees.length} job(s) were closed as "hired" but don't have placement fee records:{' '}

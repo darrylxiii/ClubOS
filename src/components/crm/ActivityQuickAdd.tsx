@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { motion, AnimatePresence } from '@/lib/motion';
 import { Button } from '@/components/ui/button';
@@ -62,6 +63,7 @@ interface ActivityQuickAddProps {
 }
 
 export function ActivityQuickAdd({ prospectId, prospectName, onSuccess, trigger }: ActivityQuickAddProps) {
+  const { t } = useTranslation('common');
   const [open, setOpen] = useState(false);
   const [showTypeSelect, setShowTypeSelect] = useState(false);
   const [selectedType, setSelectedType] = useState<ActivityType>('call');
@@ -148,13 +150,13 @@ export function ActivityQuickAdd({ prospectId, prospectName, onSuccess, trigger 
       <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) resetForm(); }}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>Schedule Activity</DialogTitle>
+            <DialogTitle>{t("schedule_activity", "Schedule Activity")}</DialogTitle>
           </DialogHeader>
 
           <div className="space-y-4 pt-4">
             {/* Activity Type Selector */}
             <div>
-              <Label className="text-xs text-muted-foreground mb-2 block">Activity Type</Label>
+              <Label className="text-xs text-muted-foreground mb-2 block">{t("activity_type", "Activity Type")}</Label>
               <div className="grid grid-cols-5 gap-2">
                 {ACTIVITY_TYPES.slice(0, 5).map((type) => (
                   <motion.button
@@ -197,7 +199,7 @@ export function ActivityQuickAdd({ prospectId, prospectName, onSuccess, trigger 
 
             {/* Subject */}
             <div>
-              <Label htmlFor="subject">Subject</Label>
+              <Label htmlFor="subject">{t("subject", "Subject")}</Label>
               <Input
                 id="subject"
                 value={subject}
@@ -210,7 +212,7 @@ export function ActivityQuickAdd({ prospectId, prospectName, onSuccess, trigger 
             {/* Due Date & Time */}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label>Due Date</Label>
+                <Label>{t("due_date", "Due Date")}</Label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
@@ -236,7 +238,7 @@ export function ActivityQuickAdd({ prospectId, prospectName, onSuccess, trigger 
               </div>
 
               <div>
-                <Label htmlFor="time">Time</Label>
+                <Label htmlFor="time">{t("time", "Time")}</Label>
                 <Input
                   id="time"
                   type="time"
@@ -249,7 +251,7 @@ export function ActivityQuickAdd({ prospectId, prospectName, onSuccess, trigger 
 
             {/* Priority */}
             <div>
-              <Label>Priority</Label>
+              <Label>{t("priority", "Priority")}</Label>
               <div className="flex gap-2 mt-1">
                 {[
                   { value: 0, label: 'Normal' },
@@ -273,29 +275,29 @@ export function ActivityQuickAdd({ prospectId, prospectName, onSuccess, trigger 
 
             {/* Recurrence */}
             <div>
-              <Label>Repeat</Label>
+              <Label>{t("repeat", "Repeat")}</Label>
               <Select value={recurrence} onValueChange={(v: any) => setRecurrence(v)}>
                 <SelectTrigger className="mt-1">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">No Repeat</SelectItem>
-                  <SelectItem value="daily">Daily</SelectItem>
-                  <SelectItem value="weekly">Weekly</SelectItem>
-                  <SelectItem value="biweekly">Every 2 Weeks</SelectItem>
-                  <SelectItem value="monthly">Monthly</SelectItem>
+                  <SelectItem value="none">{t("no_repeat", "No Repeat")}</SelectItem>
+                  <SelectItem value="daily">{t("daily", "Daily")}</SelectItem>
+                  <SelectItem value="weekly">{t("weekly", "Weekly")}</SelectItem>
+                  <SelectItem value="biweekly">{t("every_2_weeks", "Every 2 Weeks")}</SelectItem>
+                  <SelectItem value="monthly">{t("monthly", "Monthly")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             {/* Description */}
             <div>
-              <Label htmlFor="description">Notes (optional)</Label>
+              <Label htmlFor="description">{t("notes_optional", "Notes (optional)")}</Label>
               <Textarea
                 id="description"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="Add any notes..."
+                placeholder={t("add_any_notes", "Add any notes...")}
                 className="mt-1 min-h-[80px]"
               />
             </div>

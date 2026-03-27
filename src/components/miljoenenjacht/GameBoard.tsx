@@ -1,4 +1,5 @@
 import { memo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from '@/lib/motion';
 import { Card, CardContent } from '@/components/ui/card';
 import { BriefCase } from '@/types/miljoenenjacht';
@@ -12,13 +13,14 @@ interface GameBoardProps {
 }
 
 export const GameBoard = memo(({ cases, playerCase, onSelectCase, selectableCases }: GameBoardProps) => {
+  const { t } = useTranslation('common');
   const sortedCases = [...cases].sort((a, b) => a.amount - b.amount);
   
   return (
     <div 
       className="grid grid-cols-2 gap-2 md:gap-3"
       role="list"
-      aria-label="Prize amounts board"
+      aria-label={t('miljoenenjacht.prizeAmountsBoard')}
     >
       <AnimatePresence>
         {sortedCases.map((briefCase) => (

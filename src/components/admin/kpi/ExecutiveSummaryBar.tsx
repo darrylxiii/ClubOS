@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { RefreshCw, AlertTriangle, AlertCircle, CheckCircle2, TrendingUp, Calendar, Clock } from 'lucide-react';
@@ -30,6 +31,7 @@ export function ExecutiveSummaryBar({
   onPeriodChange,
   lastUpdated,
 }: ExecutiveSummaryBarProps) {
+  const { t } = useTranslation('common');
   const getHealthColor = (score: number) => {
     if (score >= 80) return 'text-emerald-500';
     if (score >= 60) return 'text-amber-500';
@@ -110,7 +112,7 @@ export function ExecutiveSummaryBar({
               )}>
                 {criticalCount}
               </span>
-              <span className="text-xs text-muted-foreground hidden sm:inline">Critical</span>
+              <span className="text-xs text-muted-foreground hidden sm:inline">{t("critical", "Critical")}</span>
             </div>
 
             {/* Warnings */}
@@ -128,7 +130,7 @@ export function ExecutiveSummaryBar({
               )}>
                 {warningCount}
               </span>
-              <span className="text-xs text-muted-foreground hidden sm:inline">Warning</span>
+              <span className="text-xs text-muted-foreground hidden sm:inline">{t("warning", "Warning")}</span>
             </div>
 
             {/* On Target */}
@@ -146,7 +148,7 @@ export function ExecutiveSummaryBar({
             {/* Last Updated */}
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <Clock className="h-3.5 w-3.5" />
-              <span className="hidden md:inline">Updated</span>
+              <span className="hidden md:inline">{t("updated", "Updated")}</span>
               {format(lastUpdated, 'HH:mm')}
             </div>
 
@@ -159,7 +161,7 @@ export function ExecutiveSummaryBar({
               className="gap-2"
             >
               <RefreshCw className={cn("h-4 w-4", isRefreshing && "animate-spin")} />
-              <span className="hidden sm:inline">Refresh</span>
+              <span className="hidden sm:inline">{t("refresh", "Refresh")}</span>
             </Button>
           </div>
         </div>

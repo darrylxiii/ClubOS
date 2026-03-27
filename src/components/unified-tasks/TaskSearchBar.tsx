@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -60,6 +61,7 @@ export function TaskSearchBar({
   resultCount,
   loading,
 }: TaskSearchBarProps) {
+  const { t } = useTranslation('common');
   const [filterOpen, setFilterOpen] = useState(false);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
 
@@ -81,7 +83,7 @@ export function TaskSearchBar({
       <div className="relative flex-1">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="Search tasks by title, description, or ID..."
+          placeholder={t("search_tasks_by_title", "Search tasks by title, description, or ID...")}
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
           className="pl-10 pr-10"
@@ -113,7 +115,7 @@ export function TaskSearchBar({
         <PopoverContent className="w-80" align="end">
           <div className="space-y-4">
             <div>
-              <h4 className="font-medium text-sm mb-2">Status</h4>
+              <h4 className="font-medium text-sm mb-2">{t("status", "Status")}</h4>
               <div className="flex flex-wrap gap-2">
                 {STATUS_OPTIONS.map((option) => (
                   <label
@@ -131,7 +133,7 @@ export function TaskSearchBar({
             </div>
 
             <div>
-              <h4 className="font-medium text-sm mb-2">Priority</h4>
+              <h4 className="font-medium text-sm mb-2">{t("priority", "Priority")}</h4>
               <div className="flex flex-wrap gap-2">
                 {PRIORITY_OPTIONS.map((option) => (
                   <label
@@ -149,7 +151,7 @@ export function TaskSearchBar({
             </div>
 
             <div>
-              <h4 className="font-medium text-sm mb-2">Due Date Range</h4>
+              <h4 className="font-medium text-sm mb-2">{t("due_date_range", "Due Date Range")}</h4>
               <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
                 <PopoverTrigger asChild>
                   <Button variant="outline" className="w-full justify-start text-left font-normal">

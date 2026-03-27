@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, Euro, Award, TrendingUp } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface ReferralStatsProps {
   totalReferrals: number;
@@ -16,37 +17,38 @@ export const ReferralStats = ({
   totalEarnings,
   potentialEarnings,
 }: ReferralStatsProps) => {
-  const successRate = totalReferrals > 0 
-    ? Math.round((successfulHires / totalReferrals) * 100) 
+  const { t } = useTranslation('common');
+  const successRate = totalReferrals > 0
+    ? Math.round((successfulHires / totalReferrals) * 100)
     : 0;
 
   const stats = [
     {
-      title: "Total Referrals",
+      title: t('referrals.totalReferrals', 'Total Referrals'),
       value: totalReferrals.toString(),
       icon: Users,
-      description: `${activeReferrals} active pipelines`,
+      description: t('referrals.activePipelinesCount', '{{count}} active pipelines', { count: activeReferrals }),
       trend: activeReferrals > 0 ? '+' : '',
     },
     {
-      title: "Earnings",
+      title: t('referrals.earnings', 'Earnings'),
       value: `€${totalEarnings.toLocaleString()}`,
       icon: Euro,
-      description: `€${potentialEarnings.toLocaleString()} potential`,
+      description: t('referrals.potentialEarnings', '€{{amount}} potential', { amount: potentialEarnings.toLocaleString() }),
       trend: potentialEarnings > 0 ? '+' : '',
     },
     {
-      title: "Success Rate",
+      title: t('referrals.successRate', 'Success Rate'),
       value: `${successRate}%`,
       icon: Award,
-      description: `${successfulHires} successful hires`,
+      description: t('referrals.successfulHires', '{{count}} successful hires', { count: successfulHires }),
       trend: successfulHires > 0 ? '+' : '',
     },
     {
-      title: "Impact",
+      title: t('referrals.impact', 'Impact'),
       value: `${successfulHires * 2}`,
       icon: TrendingUp,
-      description: "Lives impacted",
+      description: t('referrals.livesImpacted', 'Lives impacted'),
       trend: successfulHires > 0 ? '+' : '',
     },
   ];

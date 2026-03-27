@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import {
   Dialog,
@@ -37,6 +38,7 @@ export function ScanProgressDialog({
   onPause,
   onResume,
 }: Props) {
+  const { t } = useTranslation('common');
   const [estimate, setEstimate] = useState<ScanEstimate | null>(null);
   const [loadingEstimate, setLoadingEstimate] = useState(false);
 
@@ -78,7 +80,7 @@ export function ScanProgressDialog({
           <div className="space-y-4 py-2">
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span>Profiles enriched</span>
+                <span>{t("profiles_enriched", "Profiles enriched")}</span>
                 <span className="font-mono">
                   {activeScanJob.profiles_enriched} / {activeScanJob.total_employees_found}
                 </span>

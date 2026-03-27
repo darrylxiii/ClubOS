@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { CheckCircle2, AlertCircle, Calendar, Video, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -17,6 +18,7 @@ export function BookingSyncStatus({
   clubAIEnabled,
   className = ""
 }: BookingSyncStatusProps) {
+  const { t } = useTranslation('common');
   return (
     <TooltipProvider>
       <div className={`flex items-center gap-2 ${className}`}>
@@ -42,7 +44,7 @@ export function BookingSyncStatus({
               </Badge>
             </TooltipTrigger>
             <TooltipContent>
-              <p>No calendar sync configured for this booking link</p>
+              <p>{t("no_calendar_sync_configured", "No calendar sync configured for this booking link")}</p>
             </TooltipContent>
           </Tooltip>
         ) : (
@@ -54,7 +56,7 @@ export function BookingSyncStatus({
               </Badge>
             </TooltipTrigger>
             <TooltipContent>
-              <p>Calendar sync failed or pending</p>
+              <p>{t("calendar_sync_failed_or", "Calendar sync failed or pending")}</p>
             </TooltipContent>
           </Tooltip>
         )}

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,6 +12,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
 export const LinkedInImport = () => {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [importing, setImporting] = useState(false);
@@ -18,7 +20,7 @@ export const LinkedInImport = () => {
 
   const handleImport = async () => {
     if (!user || !linkedinUrl) {
-      toast.error('Please enter a LinkedIn profile URL');
+      toast.error("Please enter a LinkedIn profile URL");
       return;
     }
     
@@ -96,11 +98,11 @@ export const LinkedInImport = () => {
         import_status: 'success'
       });
 
-      toast.success('LinkedIn profile imported successfully!');
+      toast.success("LinkedIn profile imported successfully!");
       setIsDialogOpen(false);
     } catch (error) {
       console.error('Import error:', error);
-      toast.error('Failed to import LinkedIn data');
+      toast.error("Failed to import LinkedIn data");
     } finally {
       setImporting(false);
     }
@@ -111,14 +113,14 @@ export const LinkedInImport = () => {
       <DialogTrigger asChild>
         <Button variant="outline" className="w-full">
           <LinkedinIcon className="w-4 h-4 mr-2" />
-          Import from LinkedIn
+          {t('profile.importFromLinkedIn')}
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <LinkedinIcon className="w-5 h-5" />
-            Import LinkedIn Profile
+            {t('profile.importLinkedInProfile')}
           </DialogTitle>
         </DialogHeader>
         
@@ -126,13 +128,12 @@ export const LinkedInImport = () => {
           <Alert>
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
-              Enter your LinkedIn profile URL to automatically import your professional information. 
-              We'll import publicly available data from your profile.
+              {t('profile.linkedInImportDesc')}
             </AlertDescription>
           </Alert>
 
           <div className="space-y-2">
-            <Label htmlFor="linkedin-url">LinkedIn Profile URL</Label>
+            <Label htmlFor="linkedin-url">{t('profile.linkedInProfileUrl')}</Label>
             <Input
               id="linkedin-url"
               type="url"
@@ -151,18 +152,18 @@ export const LinkedInImport = () => {
             {importing ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Importing from LinkedIn...
+                {t('profile.importingFromLinkedIn')}
               </>
             ) : (
               <>
                 <LinkedinIcon className="w-4 h-4 mr-2" />
-                Import Profile
+                {t('profile.importProfile')}
               </>
             )}
           </Button>
 
           <p className="text-xs text-muted-foreground text-center">
-            This will import your experience, education, skills, and profile information.
+            {t('profile.importWillInclude')}
           </p>
         </div>
       </DialogContent>

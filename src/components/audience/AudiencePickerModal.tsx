@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from 'react-i18next';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -19,6 +20,7 @@ interface AudiencePickerModalProps {
 }
 
 export const AudiencePickerModal = ({ isOpen, onClose, value, onChange }: AudiencePickerModalProps) => {
+  const { t } = useTranslation('common');
   const [showMore, setShowMore] = useState(false);
   
   // Load last used preference from localStorage, default to best_friends
@@ -148,10 +150,8 @@ export const AudiencePickerModal = ({ isOpen, onClose, value, onChange }: Audien
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto bg-background/95 backdrop-blur-xl border-white/10">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold">Choose Your Audience</DialogTitle>
-          <DialogDescription>
-            Select who can see this post. You can combine multiple audiences for more control.
-          </DialogDescription>
+          <DialogTitle className="text-2xl font-bold">{t('audience.chooseYourAudience')}</DialogTitle>
+          <DialogDescription>{t('audience.selectWhoCanSeeThisPostYouCanCombineMult')}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6 py-4">
@@ -206,7 +206,7 @@ export const AudiencePickerModal = ({ isOpen, onClose, value, onChange }: Audien
           <Separator />
 
           <div className="space-y-4">
-            <h4 className="font-semibold text-sm">Multi-Select Options (Optional)</h4>
+            <h4 className="font-semibold text-sm">{t('audience.multiSelectOptionsOptional')}</h4>
             <div className="space-y-3">
               <div className="flex items-center space-x-3 p-3 rounded-lg hover:bg-accent/30">
                 <Checkbox
@@ -218,7 +218,7 @@ export const AudiencePickerModal = ({ isOpen, onClose, value, onChange }: Audien
                 />
                 <Label htmlFor="multi-company" className="flex-1 cursor-pointer">
                   <span className="font-medium">+ Company</span>
-                  <p className="text-sm text-muted-foreground">Also share with company members</p>
+                  <p className="text-sm text-muted-foreground">{t('audience.alsoShareWithCompanyMembers')}</p>
                 </Label>
               </div>
 
@@ -232,7 +232,7 @@ export const AudiencePickerModal = ({ isOpen, onClose, value, onChange }: Audien
                 />
                 <Label htmlFor="multi-connections" className="flex-1 cursor-pointer">
                   <span className="font-medium">+ Connections</span>
-                  <p className="text-sm text-muted-foreground">Include all your connections</p>
+                  <p className="text-sm text-muted-foreground">{t('audience.includeAllYourConnections')}</p>
                 </Label>
               </div>
 
@@ -246,7 +246,7 @@ export const AudiencePickerModal = ({ isOpen, onClose, value, onChange }: Audien
                 />
                 <Label htmlFor="multi-best-friends" className="flex-1 cursor-pointer">
                   <span className="font-medium">+ Best Friends</span>
-                  <p className="text-sm text-muted-foreground">Include your best friends</p>
+                  <p className="text-sm text-muted-foreground">{t('audience.includeYourBestFriends')}</p>
                 </Label>
               </div>
             </div>
@@ -261,12 +261,8 @@ export const AudiencePickerModal = ({ isOpen, onClose, value, onChange }: Audien
         </div>
 
         <div className="flex gap-3 pt-4">
-          <Button variant="outline" onClick={onClose} className="flex-1">
-            Cancel
-          </Button>
-          <Button onClick={handleSave} className="flex-1">
-            Confirm Audience
-          </Button>
+          <Button variant="outline" onClick={onClose} className="flex-1">{t('audience.cancel')}</Button>
+          <Button onClick={handleSave} className="flex-1">{t('audience.confirmAudience')}</Button>
         </div>
       </DialogContent>
     </Dialog>

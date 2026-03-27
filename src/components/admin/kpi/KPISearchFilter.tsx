@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React from 'react';
 import { Search, AlertTriangle, AlertCircle, CheckCircle2, LayoutGrid } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -27,6 +28,7 @@ export function KPISearchFilter({
   onStatusFilterChange,
   counts,
 }: KPISearchFilterProps) {
+  const { t } = useTranslation('common');
   const filterButtons: { key: StatusFilter; label: string; icon: React.ReactNode; count: number; color: string }[] = [
     { 
       key: 'all', 
@@ -64,7 +66,7 @@ export function KPISearchFilter({
       <div className="relative flex-1 min-w-[200px] max-w-sm">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="Search KPIs..."
+          placeholder={t("search_kpis", "Search KPIs...")}
           value={searchTerm}
           onChange={(e) => onSearchChange(e.target.value)}
           className="pl-9 h-9 bg-background/50"

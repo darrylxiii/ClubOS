@@ -9,6 +9,7 @@ import {
   CheckCircle, XCircle, File, AlertTriangle
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
+import { useTranslation } from 'react-i18next';
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -41,6 +42,7 @@ interface Document {
 }
 
 const DocumentManagement = () => {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
@@ -63,7 +65,7 @@ const DocumentManagement = () => {
       .order('uploaded_at', { ascending: false });
 
     if (error) {
-      toast.error('Failed to load documents');
+      toast.error(t('text.documentmanagement.failedToLoadDocuments', 'Failed to load documents'));
       return;
     }
 
@@ -84,13 +86,13 @@ const DocumentManagement = () => {
     ];
 
     if (!allowedTypes.includes(file.type)) {
-      toast.error('Invalid file type. Please upload PDF, DOC, DOCX, or TXT files.');
+      toast.error(t('text.documentmanagement.invalidFileTypePleaseUploadPdf', 'Invalid file type. Please upload PDF, DOC, DOCX, or TXT files.'));
       return;
     }
 
     // Validate file size (10MB max)
     if (file.size > 10 * 1024 * 1024) {
-      toast.error('File size must be less than 10MB');
+      toast.error(t('text.documentmanagement.fileSizeMustBeLessThan', 'File size must be less than 10MB'));
       return;
     }
 
@@ -122,11 +124,11 @@ const DocumentManagement = () => {
 
       if (dbError) throw dbError;
 
-      toast.success('Document uploaded successfully');
+      toast.success(t('text.documentmanagement.documentUploadedSuccessfully', 'Document uploaded successfully'));
       loadDocuments();
     } catch (error) {
       logger.error('Upload error:', { error });
-      toast.error('Failed to upload document');
+      toast.error(t('text.documentmanagement.failedToUploadDocument', 'Failed to upload document'));
     } finally {
       setUploading(false);
       if (fileInputRef.current) {
@@ -153,11 +155,11 @@ const DocumentManagement = () => {
 
       if (error) throw error;
 
-      toast.success('Primary document updated');
+      toast.success(t('text.documentmanagement.primaryDocumentUpdated', 'Primary document updated'));
       loadDocuments();
     } catch (error) {
       logger.error('Set primary error:', error);
-      toast.error('Failed to set primary document');
+      toast.error(t('text.documentmanagement.failedToSetPrimaryDocument', 'Failed to set primary document'));
     }
   };
 
@@ -178,7 +180,7 @@ const DocumentManagement = () => {
       URL.revokeObjectURL(url);
     } catch (error) {
       logger.error('Download error:', error);
-      toast.error('Failed to download document');
+      toast.error(t('text.documentmanagement.failedToDownloadDocument', 'Failed to download document'));
     }
   };
 
@@ -206,13 +208,13 @@ const DocumentManagement = () => {
 
       if (dbError) throw dbError;
 
-      toast.success('Document deleted');
+      toast.success(t('text.documentmanagement.documentDeleted', 'Document deleted'));
       setDeleteDialogOpen(false);
       setDocumentToDelete(null);
       loadDocuments();
     } catch (error) {
       logger.error('Delete error:', error);
-      toast.error('Failed to delete document');
+      toast.error(t('text.documentmanagement.failedToDeleteDocument', 'Failed to delete document'));
     }
   };
 
@@ -232,18 +234,16 @@ const DocumentManagement = () => {
     <div className="w-full px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         <Breadcrumb
           items={[
-            { label: 'Home', path: '/home' },
-            { label: 'Profile', path: '/profile' },
-            { label: 'Documents' }
+            { label: t('text.documentmanagement.home', 'Home'), path: '/home' },
+            { label: t('text.documentmanagement.profile', 'Profile'), path: '/profile' },
+            { label: t('text.documentmanagement.documents', 'Documents') }
           ]}
         />
 
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold">Document Management</h1>
-            <p className="text-muted-foreground mt-1">
-              Upload and manage your resumes, CVs, and certificates
-            </p>
+            <h1 className="text-3xl font-bold">{t('documentManagement.title')}</h1>
+            <p className="text-muted-foreground mt-1">{t('documentManagement.desc')}</p>
           </div>
 
           <div>
@@ -262,7 +262,7 @@ const DocumentManagement = () => {
               {uploading ? (
                 <>
                   <InlineLoader />
-                  Uploading...
+                  {t('text.documentmanagement.uploading', 'Uploading...')}
                 </>
               ) : (
                 <>
@@ -293,10 +293,8 @@ const DocumentManagement = () => {
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12 text-center">
               <FileText className="h-16 w-16 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No documents uploaded</h3>
-              <p className="text-muted-foreground mb-4">
-                Upload your resume or CV to get started with job applications
-              </p>
+              <h3 className="text-lg font-semibold mb-2">{t('documentManagement.title')}</h3>
+              <p className="text-muted-foreground mb-4">{t('documentManagement.desc2')}</p>
               <Button onClick={() => fileInputRef.current?.click()}>
                 <Upload className="w-4 h-4 mr-2" />
                 Upload First Document
@@ -373,16 +371,14 @@ const DocumentManagement = () => {
         <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Delete Document</AlertDialogTitle>
+              <AlertDialogTitle>{t('text.documentmanagement.deleteDocument', 'Delete Document')}</AlertDialogTitle>
               <AlertDialogDescription>
                 Are you sure you want to delete "{documentToDelete?.display_name}"? This action cannot be undone.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel onClick={() => setDocumentToDelete(null)}>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                Delete
-              </AlertDialogAction>
+              <AlertDialogCancel onClick={() => setDocumentToDelete(null)}>{t('text.documentmanagement.cancel', 'Cancel')}</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">{t('text.documentmanagement.delete', 'Delete')}</AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
       </AlertDialog>

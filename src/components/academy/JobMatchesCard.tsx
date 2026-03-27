@@ -1,4 +1,5 @@
 import { memo, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -17,6 +18,7 @@ interface JobMatch {
 }
 
 export const JobMatchesCard = memo(() => {
+  const { t } = useTranslation('common');
   const [matches, setMatches] = useState<JobMatch[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -77,7 +79,7 @@ export const JobMatchesCard = memo(() => {
           <Briefcase className="w-5 h-5 text-primary" />
         </div>
         <div>
-          <h3 className="font-semibold">Jobs Matching Your Skills</h3>
+          <h3 className="font-semibold">{t('academy.jobsMatchingYourSkills')}</h3>
           <p className="text-sm text-muted-foreground">
             {matches.length} {matches.length === 1 ? 'opportunity' : 'opportunities'} waiting
           </p>

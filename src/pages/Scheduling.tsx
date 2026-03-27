@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -75,6 +76,7 @@ const INITIAL_LINK_STATE = {
 };
 
 function generateSlug(title: string) {
+  const { t } = useTranslation('settings');
   return title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 }
 
@@ -95,7 +97,7 @@ export default function Scheduling() {
 
   const handleCreateLink = async () => {
     if (!newLink.title || !newLink.slug) {
-      toast.error('Please provide a title and URL slug');
+      toast.error("Please provide a title and URL slug");
       return;
     }
     createLink.mutate(newLink, {
@@ -119,10 +121,8 @@ export default function Scheduling() {
       <div className="w-full px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-4xl font-bold">Scheduling</h1>
-            <p className="text-muted-foreground mt-2">
-              Share your availability and let people book time with you
-            </p>
+            <h1 className="text-4xl font-bold">{t('scheduling.text3')}</h1>
+            <p className="text-muted-foreground mt-2">{t('scheduling.desc')}</p>
           </div>
 
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -134,7 +134,7 @@ export default function Scheduling() {
             </DialogTrigger>
             <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>Create Booking Link</DialogTitle>
+                <DialogTitle>{t('scheduling.text4')}</DialogTitle>
                 <DialogDescription>
                   Set up a new booking link for people to schedule time with you
                 </DialogDescription>
@@ -143,7 +143,7 @@ export default function Scheduling() {
               <div className="space-y-4">
                 {/* Basic fields */}
                 <div>
-                  <Label htmlFor="title">Event Title *</Label>
+                  <Label htmlFor="title">{"Event Title *"}</Label>
                   <Input
                     id="title"
                     value={newLink.title}
@@ -152,56 +152,56 @@ export default function Scheduling() {
                       title: e.target.value,
                       slug: newLink.slug || generateSlug(e.target.value),
                     })}
-                    placeholder="e.g., 30 Minute Meeting"
+                    placeholder={"e.g., 30 Minute Meeting"}
                   />
                 </div>
                 <div>
-                  <Label htmlFor="slug">URL Slug *</Label>
+                  <Label htmlFor="slug">{"URL Slug *"}</Label>
                   <div className="flex gap-2">
                     <span className="flex items-center text-sm text-muted-foreground">/book/</span>
                     <Input
                       id="slug"
                       value={newLink.slug}
                       onChange={(e) => setNewLink({ ...newLink, slug: generateSlug(e.target.value) })}
-                      placeholder="30-min-meeting"
+                      placeholder={"30-min-meeting"}
                     />
                   </div>
                 </div>
                 <div>
-                  <Label htmlFor="description">Description</Label>
+                  <Label htmlFor="description">{t('scheduling.text5')}</Label>
                   <Textarea
                     id="description"
                     value={newLink.description}
                     onChange={(e) => setNewLink({ ...newLink, description: e.target.value })}
-                    placeholder="What's this meeting about?"
+                    placeholder={t('scheduling.text6')}
                   />
                 </div>
 
                 {/* Timing */}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label>Duration (minutes)</Label>
+                    <Label>{t('scheduling.text7')}</Label>
                     <Input type="number" min="15" step="15" value={newLink.duration_minutes} onChange={(e) => setNewLink({ ...newLink, duration_minutes: parseInt(e.target.value) })} />
                   </div>
                   <div>
-                    <Label>Minimum notice (hours)</Label>
+                    <Label>{t('scheduling.text8')}</Label>
                     <Input type="number" min="0" value={newLink.min_notice_hours} onChange={(e) => setNewLink({ ...newLink, min_notice_hours: parseInt(e.target.value) })} />
                   </div>
                   <div>
-                    <Label>Buffer before (minutes)</Label>
+                    <Label>{t('scheduling.text9')}</Label>
                     <Input type="number" min="0" step="5" value={newLink.buffer_before_minutes} onChange={(e) => setNewLink({ ...newLink, buffer_before_minutes: parseInt(e.target.value) })} />
                   </div>
                   <div>
-                    <Label>Buffer after (minutes)</Label>
+                    <Label>{t('scheduling.text10')}</Label>
                     <Input type="number" min="0" step="5" value={newLink.buffer_after_minutes} onChange={(e) => setNewLink({ ...newLink, buffer_after_minutes: parseInt(e.target.value) })} />
                   </div>
                 </div>
                 <div>
-                  <Label>Advance booking (days)</Label>
+                  <Label>{t('scheduling.text11')}</Label>
                   <Input type="number" min="1" value={newLink.advance_booking_days} onChange={(e) => setNewLink({ ...newLink, advance_booking_days: parseInt(e.target.value) })} />
                 </div>
                 <div>
-                  <Label>Theme Color</Label>
+                  <Label>{t('scheduling.text12')}</Label>
                   <Input type="color" value={newLink.color} onChange={(e) => setNewLink({ ...newLink, color: e.target.value })} />
                 </div>
 
@@ -212,28 +212,28 @@ export default function Scheduling() {
                     Advanced Options
                   </h3>
                   <div>
-                    <Label>Scheduling Type</Label>
+                    <Label>{t('scheduling.text13')}</Label>
                     <Select value={newLink.scheduling_type} onValueChange={(value) => setNewLink({ ...newLink, scheduling_type: value })}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="individual">Individual (1-on-1)</SelectItem>
-                        <SelectItem value="round_robin">Round Robin (Team)</SelectItem>
-                        <SelectItem value="collective">Collective (Group)</SelectItem>
+                        <SelectItem value="individual">{t('scheduling.text14')}</SelectItem>
+                        <SelectItem value="round_robin">{t('scheduling.text15')}</SelectItem>
+                        <SelectItem value="collective">{t('scheduling.text16')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   <div>
-                    <Label>Video Conferencing</Label>
+                    <Label>{t('scheduling.text17')}</Label>
                     <Select
                       value={newLink.video_conferencing_provider || 'none'}
                       onValueChange={(value) => setNewLink({ ...newLink, video_conferencing_provider: value === 'none' ? null : value, auto_generate_meeting_link: value !== 'none' })}
                     >
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="none">None</SelectItem>
-                        <SelectItem value="google_meet">Google Meet</SelectItem>
-                        <SelectItem value="zoom">Zoom</SelectItem>
-                        <SelectItem value="microsoft_teams">Microsoft Teams</SelectItem>
+                        <SelectItem value="none">{t('scheduling.text18')}</SelectItem>
+                        <SelectItem value="google_meet">{t('scheduling.text19')}</SelectItem>
+                        <SelectItem value="zoom">{t('scheduling.text20')}</SelectItem>
+                        <SelectItem value="microsoft_teams">{t('scheduling.text21')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -253,8 +253,8 @@ export default function Scheduling() {
                   ))}
 
                   <div>
-                    <Label>Max Bookings Per Day (optional)</Label>
-                    <Input type="number" min="1" placeholder="Unlimited" value={newLink.max_bookings_per_day || ''} onChange={(e) => setNewLink({ ...newLink, max_bookings_per_day: e.target.value ? parseInt(e.target.value) : null })} />
+                    <Label>{t('scheduling.text22')}</Label>
+                    <Input type="number" min="1" placeholder={t('scheduling.text23')} value={newLink.max_bookings_per_day || ''} onChange={(e) => setNewLink({ ...newLink, max_bookings_per_day: e.target.value ? parseInt(e.target.value) : null })} />
                   </div>
                 </div>
 
@@ -265,11 +265,11 @@ export default function Scheduling() {
                     Calendar Integration
                   </h3>
                   <div>
-                    <Label>Primary Calendar (Auto-sync)</Label>
+                    <Label>{t('scheduling.text24')}</Label>
                     <Select value={newLink.primary_calendar_id || 'none'} onValueChange={(value) => setNewLink({ ...newLink, primary_calendar_id: value === 'none' ? null : value })}>
-                      <SelectTrigger><SelectValue placeholder="Select a calendar" /></SelectTrigger>
+                      <SelectTrigger><SelectValue placeholder={t('scheduling.text25')} /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="none">None (No auto-sync)</SelectItem>
+                        <SelectItem value="none">{t('scheduling.text26')}</SelectItem>
                         {connectedCalendars.map((cal: any) => (
                           <SelectItem key={cal.id} value={cal.id}>
                             {cal.provider === 'google' ? '📅 Google' : '📆 Microsoft'} - {cal.calendar_label}
@@ -287,7 +287,7 @@ export default function Scheduling() {
                       available_platforms: newLink.available_platforms.includes(platform) ? newLink.available_platforms : [...newLink.available_platforms, platform],
                     })}
                     hasGoogleCalendar={connectedCalendars.some((cal: any) => cal.provider === 'google')}
-                    onConnectGoogle={() => toast.info('Please connect your Google Calendar in Settings → Connections')}
+                    onConnectGoogle={() => toast.info("Please connect your Google Calendar in Settings → Connections")}
                     enableClubAI={newLink.enable_club_ai}
                     onEnableClubAIChange={(checked) => setNewLink({ ...newLink, enable_club_ai: checked })}
                     allowGuestChoice={newLink.allow_guest_platform_choice}
@@ -317,8 +317,8 @@ export default function Scheduling() {
                   <div className="pt-2 border-t border-border/50">
                     <div className="flex items-center justify-between">
                       <div className="space-y-0.5">
-                        <Label className="text-sm font-normal">Allow booker to delegate permissions</Label>
-                        <p className="text-xs text-muted-foreground">Let the person booking decide what their guests can do</p>
+                        <Label className="text-sm font-normal">{t('scheduling.text27')}</Label>
+                        <p className="text-xs text-muted-foreground">{t('scheduling.text28')}</p>
                       </div>
                       <Switch checked={newLink.guest_permissions.booker_can_delegate} onCheckedChange={(checked) => setNewLink({ ...newLink, guest_permissions: { ...newLink.guest_permissions, booker_can_delegate: checked } })} />
                     </div>
@@ -333,25 +333,25 @@ export default function Scheduling() {
                   </h3>
                   <div className="flex items-center justify-between">
                     <div className="space-y-0.5">
-                      <Label>Require payment</Label>
-                      <p className="text-sm text-muted-foreground">Guests must pay before confirming their booking</p>
+                      <Label>{t('scheduling.text29')}</Label>
+                      <p className="text-sm text-muted-foreground">{t('scheduling.text30')}</p>
                     </div>
                     <Switch checked={newLink.payment_required} onCheckedChange={(checked) => setNewLink({ ...newLink, payment_required: checked })} />
                   </div>
                   {newLink.payment_required && (
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <Label>Amount</Label>
+                        <Label>{t('scheduling.text31')}</Label>
                         <Input type="number" min="0.50" step="0.50" placeholder="25.00" value={newLink.payment_amount || ''} onChange={(e) => setNewLink({ ...newLink, payment_amount: e.target.value ? parseFloat(e.target.value) : null })} />
                       </div>
                       <div>
-                        <Label>Currency</Label>
+                        <Label>{t('scheduling.text32')}</Label>
                         <Select value={newLink.payment_currency} onValueChange={(value) => setNewLink({ ...newLink, payment_currency: value })}>
                           <SelectTrigger><SelectValue /></SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="eur">EUR (€)</SelectItem>
-                            <SelectItem value="usd">USD ($)</SelectItem>
-                            <SelectItem value="gbp">GBP (£)</SelectItem>
+                            <SelectItem value="eur">{"EUR (€)"}</SelectItem>
+                            <SelectItem value="usd">{"USD ($)"}</SelectItem>
+                            <SelectItem value="gbp">{"GBP (£)"}</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -381,19 +381,19 @@ export default function Scheduling() {
 
         <Tabs value={currentTab} onValueChange={(val) => setSearchParams({ tab: val }, { replace: true })} className="w-full">
           <TabsList className="flex-wrap h-auto gap-1 py-1">
-            <TabsTrigger value="links"><LinkIcon className="h-4 w-4 mr-2" />Booking Links</TabsTrigger>
+            <TabsTrigger value="links"><LinkIcon className="h-4 w-4 mr-2" />{t('scheduling.text33')}</TabsTrigger>
             <TabsTrigger value="pending" className="relative">
               <CheckCircle className="h-4 w-4 mr-2" />
               Pending Approvals
               {pendingCount > 0 && <Badge variant="destructive" className="ml-2 h-5 min-w-5 text-xs">{pendingCount}</Badge>}
             </TabsTrigger>
-            <TabsTrigger value="bookings"><Calendar className="h-4 w-4 mr-2" />Upcoming Bookings</TabsTrigger>
-            <TabsTrigger value="analytics"><BarChart3 className="h-4 w-4 mr-2" />Analytics</TabsTrigger>
-            <TabsTrigger value="availability"><Clock className="h-4 w-4 mr-2" />Availability</TabsTrigger>
-            <TabsTrigger value="ai" className="gap-2"><Brain className="h-4 w-4" />AI Intelligence</TabsTrigger>
-            <TabsTrigger value="team" className="gap-2"><UsersRound className="h-4 w-4" />Team</TabsTrigger>
-            <TabsTrigger value="embed" className="gap-2"><Code className="h-4 w-4" />Embed</TabsTrigger>
-            <TabsTrigger value="workflows" className="gap-2"><Zap className="h-4 w-4" />Workflows</TabsTrigger>
+            <TabsTrigger value="bookings"><Calendar className="h-4 w-4 mr-2" />{t('scheduling.text34')}</TabsTrigger>
+            <TabsTrigger value="analytics"><BarChart3 className="h-4 w-4 mr-2" />{t('scheduling.text35')}</TabsTrigger>
+            <TabsTrigger value="availability"><Clock className="h-4 w-4 mr-2" />{t('scheduling.text36')}</TabsTrigger>
+            <TabsTrigger value="ai" className="gap-2"><Brain className="h-4 w-4" />{t('scheduling.text37')}</TabsTrigger>
+            <TabsTrigger value="team" className="gap-2"><UsersRound className="h-4 w-4" />{t('scheduling.text38')}</TabsTrigger>
+            <TabsTrigger value="embed" className="gap-2"><Code className="h-4 w-4" />{t('scheduling.text39')}</TabsTrigger>
+            <TabsTrigger value="workflows" className="gap-2"><Zap className="h-4 w-4" />{t('scheduling.text40')}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="links" className="space-y-4 mt-6">
@@ -427,10 +427,8 @@ export default function Scheduling() {
               <Card>
                 <CardContent className="py-12 text-center">
                   <UsersRound className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-lg font-medium mb-2">No Team Booking Links</h3>
-                  <p className="text-muted-foreground max-w-md mx-auto">
-                    Create a Round Robin or Collective booking link to enable team load balancing features.
-                  </p>
+                  <h3 className="text-lg font-medium mb-2">{t('scheduling.text41')}</h3>
+                  <p className="text-muted-foreground max-w-md mx-auto">{t('scheduling.desc2')}</p>
                 </CardContent>
               </Card>
             )}

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Email } from "@/hooks/useEmails";
 import { EmailRow } from "./EmailRow";
 import { ChevronDown, ChevronRight } from "lucide-react";
@@ -21,6 +22,7 @@ export function EmailThread({
   onToggleCheck,
   onToggleStar,
 }: EmailThreadProps) {
+  const { t } = useTranslation('messages');
   const [isExpanded, setIsExpanded] = useState(false);
   
   if (emails.length === 1) {
@@ -65,7 +67,7 @@ export function EmailThread({
         </div>
         
         <Badge variant="secondary" className="text-xs flex-shrink-0 whitespace-nowrap">
-          {emails.length} messages
+          {t('messagesCount', { count: emails.length })}
         </Badge>
       </div>
 

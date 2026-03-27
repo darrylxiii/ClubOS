@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useDealPipeline, useDealStages, usePipelineMetrics } from "@/hooks/useDealPipeline";
 import { formatCurrency } from "@/lib/format";
@@ -5,12 +6,13 @@ import { TrendingUp, AlertTriangle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 export function RevenueIntelligenceDashboard() {
+  const { t } = useTranslation('common');
   const { data: deals, isLoading } = useDealPipeline();
   const { data: stages } = useDealStages();
   const { data: metrics, isLoading: metricsLoading } = usePipelineMetrics();
 
   if (isLoading || metricsLoading) {
-    return <div className="text-muted-foreground">Loading revenue intelligence...</div>;
+    return <div className="text-muted-foreground">{t("loading_revenue_intelligence", "Loading revenue intelligence...")}</div>;
   }
 
   const totalPipelineValue = metrics?.total_pipeline || 0;
@@ -41,18 +43,18 @@ export function RevenueIntelligenceDashboard() {
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Quarter Forecast</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("quarter_forecast", "Quarter Forecast")}</CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{formatCurrency(q4Forecast)}</div>
-            <p className="text-xs text-muted-foreground">Expected revenue this quarter</p>
+            <p className="text-xs text-muted-foreground">{t("expected_revenue_this_quarter", "Expected revenue this quarter")}</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Data Quality</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("data_quality", "Data Quality")}</CardTitle>
             <AlertTriangle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -63,7 +65,7 @@ export function RevenueIntelligenceDashboard() {
                 {dealsWithoutFee} missing fee configuration
               </div>
             ) : (
-              <p className="text-xs text-muted-foreground">All deals have fee data</p>
+              <p className="text-xs text-muted-foreground">{t("all_deals_have_fee", "All deals have fee data")}</p>
             )}
           </CardContent>
         </Card>
@@ -72,8 +74,8 @@ export function RevenueIntelligenceDashboard() {
       {/* Revenue by Stage */}
       <Card>
         <CardHeader>
-          <CardTitle>Revenue by Stage</CardTitle>
-          <CardDescription>Pipeline value distribution across deal stages</CardDescription>
+          <CardTitle>{t("revenue_by_stage", "Revenue by Stage")}</CardTitle>
+          <CardDescription>{t("pipeline_value_distribution_across", "Pipeline value distribution across deal stages")}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">

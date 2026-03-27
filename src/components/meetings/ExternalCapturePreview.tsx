@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Mic, MicOff, Square, Clock, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 
 interface ExternalCapturePreviewProps {
   stream: MediaStream | null;
@@ -36,6 +37,7 @@ export function ExternalCapturePreview({
   onStop,
   className
 }: ExternalCapturePreviewProps) {
+  const { t } = useTranslation("meetings");
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
@@ -84,12 +86,12 @@ export function ExternalCapturePreview({
             {hasAudio ? (
               <Badge variant="secondary" className="bg-primary/20 text-primary">
                 <Mic className="w-3 h-3 mr-1" />
-                Audio
+                {t('capture.audio')}
               </Badge>
             ) : (
               <Badge variant="secondary" className="bg-accent text-accent-foreground">
                 <MicOff className="w-3 h-3 mr-1" />
-                No Audio
+                {t('capture.noAudio')}
               </Badge>
             )}
           </div>
@@ -102,7 +104,7 @@ export function ExternalCapturePreview({
               {!hasAudio && (
                 <div className="flex items-center gap-1 text-accent-foreground">
                   <AlertTriangle className="w-3.5 h-3.5" />
-                  <span className="text-xs">Transcript may be limited without audio</span>
+                  <span className="text-xs">{t('capture.limitedWithoutAudio')}</span>
                 </div>
               )}
             </div>
@@ -114,7 +116,7 @@ export function ExternalCapturePreview({
               className="gap-1.5"
             >
               <Square className="w-3.5 h-3.5 fill-current" />
-              Stop Recording
+              {t('capture.stopRecording')}
             </Button>
           </div>
         </div>

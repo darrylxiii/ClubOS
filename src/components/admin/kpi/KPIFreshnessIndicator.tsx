@@ -9,6 +9,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { useTranslation } from 'react-i18next';
 
 interface KPIFreshnessIndicatorProps {
   lastUpdated: Date | string | null;
@@ -57,6 +58,7 @@ const statusConfig = {
 };
 
 export function KPIFreshnessIndicator({ lastUpdated, className }: KPIFreshnessIndicatorProps) {
+  const { t } = useTranslation('admin');
   const { status, hoursAgo } = getFreshnessStatus(lastUpdated);
   const config = statusConfig[status];
   const Icon = config.icon;

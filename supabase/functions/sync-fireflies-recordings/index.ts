@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { resilientFetch } from '../_shared/resilient-fetch.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -66,13 +67,19 @@ async function fetchFirefliesTranscripts(apiKey: string, skip: number, limit: nu
     }
   `;
 
-  const res = await fetch(FIREFLIES_API_URL, {
+  const { response: res } = await resilientFetch(FIREFLIES_API_URL, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${apiKey}`,
     },
     body: JSON.stringify({ query, variables: { skip, limit } }),
+  }, {
+    timeoutMs: 30_000,
+    maxRetries: 1,
+    retryNonIdempotent: true,
+    service: 'fireflies',
+    operation: 'fetch-transcripts',
   });
 
   if (!res.ok) {

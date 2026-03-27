@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,6 +27,7 @@ interface AuditEvent {
 }
 
 export default function AdminAuditLog() {
+  const { t } = useTranslation('admin');
   const [events, setEvents] = useState<AuditEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -67,9 +69,9 @@ export default function AdminAuditLog() {
   const getResultBadge = (result: string | null) => {
     if (!result) return null;
     switch (result.toLowerCase()) {
-      case 'success': return <Badge variant="default" className="bg-green-500/20 text-green-400 border-green-500/30">Success</Badge>;
-      case 'failure': case 'failed': return <Badge variant="destructive">Failed</Badge>;
-      case 'blocked': return <Badge variant="outline" className="border-amber-500/30 text-amber-400">Blocked</Badge>;
+      case 'success': return <Badge variant="default" className="bg-green-500/20 text-green-400 border-green-500/30">{t('adminAuditLog.text1')}</Badge>;
+      case 'failure': case 'failed': return <Badge variant="destructive">{t('adminAuditLog.text2')}</Badge>;
+      case 'blocked': return <Badge variant="outline" className="border-amber-500/30 text-amber-400">{t('adminAuditLog.text3')}</Badge>;
       default: return <Badge variant="secondary">{result}</Badge>;
     }
   };
@@ -104,17 +106,17 @@ export default function AdminAuditLog() {
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Search by action, email, or resource..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-10" />
+              <Input placeholder={t('adminAuditLog.text4')} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-10" />
             </div>
             <Select value={eventTypeFilter} onValueChange={setEventTypeFilter}>
-              <SelectTrigger className="w-full sm:w-[180px]"><Filter className="h-4 w-4 mr-2" /><SelectValue placeholder="Filter by type" /></SelectTrigger>
+              <SelectTrigger className="w-full sm:w-[180px]"><Filter className="h-4 w-4 mr-2" /><SelectValue placeholder={t('adminAuditLog.text5')} /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Events</SelectItem>
-                <SelectItem value="auth">Authentication</SelectItem>
-                <SelectItem value="user">User Actions</SelectItem>
-                <SelectItem value="settings">Settings</SelectItem>
-                <SelectItem value="document">Documents</SelectItem>
-                <SelectItem value="security">Security</SelectItem>
+                <SelectItem value="all">{t('adminAuditLog.text6')}</SelectItem>
+                <SelectItem value="auth">{t('adminAuditLog.text7')}</SelectItem>
+                <SelectItem value="user">{t('adminAuditLog.text8')}</SelectItem>
+                <SelectItem value="settings">{t('adminAuditLog.text9')}</SelectItem>
+                <SelectItem value="document">{t('adminAuditLog.text10')}</SelectItem>
+                <SelectItem value="security">{t('adminAuditLog.text11')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -123,8 +125,8 @@ export default function AdminAuditLog() {
 
       <Card className="glass-card">
         <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2"><Activity className="h-5 w-5 text-primary" />Recent Events</CardTitle>
-          <CardDescription>Showing last 100 events</CardDescription>
+          <CardTitle className="flex items-center gap-2"><Activity className="h-5 w-5 text-primary" />{t('adminAuditLog.text12')}</CardTitle>
+          <CardDescription>{t('adminAuditLog.text13')}</CardDescription>
         </CardHeader>
         <CardContent>
           <ScrollArea className="h-[600px] pr-4">
@@ -140,8 +142,8 @@ export default function AdminAuditLog() {
             ) : events.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 text-center">
                 <Activity className="h-12 w-12 text-muted-foreground/50 mb-4" />
-                <p className="text-muted-foreground">No audit events found</p>
-                <p className="text-sm text-muted-foreground/70">Events will appear here as actions are performed</p>
+                <p className="text-muted-foreground">{t('adminAuditLog.text14')}</p>
+                <p className="text-sm text-muted-foreground/70">{t('adminAuditLog.text15')}</p>
               </div>
             ) : (
               <div className="space-y-3">

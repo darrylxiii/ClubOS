@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -55,6 +56,7 @@ export function CandidateBriefPanel({
   jobId,
   compact = false,
 }: CandidateBriefPanelProps) {
+  const { t } = useTranslation('common');
   const [candidate, setCandidate] = useState<CandidateData | null>(null);
   const [application, setApplication] = useState<ApplicationData | null>(null);
   const [interviewScores, setInterviewScores] = useState<any[]>([]);
@@ -183,7 +185,7 @@ export function CandidateBriefPanel({
       <Card className="w-full">
         <CardContent className="py-6 text-center text-muted-foreground">
           <User className="h-8 w-8 mx-auto mb-2 opacity-50" />
-          <p>Candidate information not available</p>
+          <p>{t("candidate_information_not_available", "Candidate information not available")}</p>
         </CardContent>
       </Card>
     );
@@ -259,7 +261,7 @@ export function CandidateBriefPanel({
             {/* Skills */}
             {candidate.skills && candidate.skills.length > 0 && (
               <div className="space-y-1">
-                <p className="text-xs font-medium text-muted-foreground">Key Skills</p>
+                <p className="text-xs font-medium text-muted-foreground">{t("key_skills", "Key Skills")}</p>
                 <div className="flex flex-wrap gap-1">
                   {candidate.skills.slice(0, 5).map((skill, idx) => (
                     <Badge key={idx} variant="outline" className="text-xs">

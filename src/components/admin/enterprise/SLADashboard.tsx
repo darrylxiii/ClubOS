@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Clock, CheckCircle, AlertTriangle, TrendingUp, Download, Target, AlertCircle } from 'lucide-react';
 import { format, subDays } from 'date-fns';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 
 interface SLACommitment {
   id: string;
@@ -31,6 +32,7 @@ interface SLAViolation {
 }
 
 export const SLADashboard = () => {
+  const { t } = useTranslation('admin');
   const { data: commitments } = useQuery({
     queryKey: ['sla-commitments'],
     queryFn: async () => {
@@ -104,7 +106,7 @@ export const SLADashboard = () => {
     a.download = `sla-report-${format(new Date(), 'yyyy-MM-dd')}.json`;
     a.click();
     URL.revokeObjectURL(url);
-    toast.success('SLA report downloaded');
+    toast.success(t('enterprise.sLADashboard.slaReportDownloaded'));
   };
 
   return (
@@ -112,8 +114,8 @@ export const SLADashboard = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold">SLA Performance</h2>
-          <p className="text-muted-foreground">Service Level Agreement monitoring and compliance</p>
+          <h2 className="text-2xl font-bold">{t('enterprise.sLADashboard.slaPerformance')}</h2>
+          <p className="text-muted-foreground">{t('enterprise.sLADashboard.serviceLevelAgreementMonitoringAndCompliance')}</p>
         </div>
         <Button onClick={downloadSLAReport}>
           <Download className="h-4 w-4 mr-2" />
@@ -127,7 +129,7 @@ export const SLADashboard = () => {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Overall Compliance</p>
+                <p className="text-sm text-muted-foreground">{t('enterprise.sLADashboard.overallCompliance')}</p>
                 <p className="text-3xl font-bold">{overallCompliance}%</p>
               </div>
               <Target className={`h-8 w-8 ${overallCompliance >= 95 ? 'text-green-500' : overallCompliance >= 80 ? 'text-amber-500' : 'text-red-500'}`} />
@@ -138,7 +140,7 @@ export const SLADashboard = () => {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Active SLAs</p>
+                <p className="text-sm text-muted-foreground">{t('enterprise.sLADashboard.activeSlas')}</p>
                 <p className="text-3xl font-bold">{commitments?.length || 0}</p>
               </div>
               <CheckCircle className="h-8 w-8 text-primary" />
@@ -149,7 +151,7 @@ export const SLADashboard = () => {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Violations (30d)</p>
+                <p className="text-sm text-muted-foreground">{t('enterprise.sLADashboard.violations30d')}</p>
                 <p className="text-3xl font-bold text-amber-600">{violations?.length || 0}</p>
               </div>
               <AlertTriangle className="h-8 w-8 text-amber-500" />
@@ -160,7 +162,7 @@ export const SLADashboard = () => {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">At Risk</p>
+                <p className="text-sm text-muted-foreground">{t('enterprise.sLADashboard.atRisk')}</p>
                 <p className="text-3xl font-bold text-red-600">{commitments?.filter(c => !isCompliant(c)).length || 0}</p>
               </div>
               <AlertCircle className="h-8 w-8 text-red-500" />
@@ -176,7 +178,7 @@ export const SLADashboard = () => {
             <TrendingUp className="h-5 w-5" />
             SLA Commitments
           </CardTitle>
-          <CardDescription>Current performance against service level targets</CardDescription>
+          <CardDescription>{t('enterprise.sLADashboard.currentPerformanceAgainstServiceLevelTargets')}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -228,7 +230,7 @@ export const SLADashboard = () => {
             <AlertTriangle className="h-5 w-5" />
             Recent Violations
           </CardTitle>
-          <CardDescription>SLA breaches in the last 30 days</CardDescription>
+          <CardDescription>{t('enterprise.sLADashboard.slaBreachesInTheLast30')}</CardDescription>
         </CardHeader>
         <CardContent>
           {violations && violations.length > 0 ? (
@@ -255,7 +257,7 @@ export const SLADashboard = () => {
           ) : (
             <div className="text-center py-8 text-muted-foreground">
               <CheckCircle className="h-12 w-12 mx-auto mb-4 text-green-600" />
-              <p className="font-medium">No violations in the last 30 days</p>
+              <p className="font-medium">{t('enterprise.sLADashboard.noViolationsInTheLast30')}</p>
             </div>
           )}
         </CardContent>

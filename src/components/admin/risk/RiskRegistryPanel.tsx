@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -35,6 +36,7 @@ interface NewRisk {
 }
 
 export function RiskRegistryPanel() {
+  const { t } = useTranslation('common');
   const queryClient = useQueryClient();
   const [filterCategory, setFilterCategory] = useState<string>('all');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -77,12 +79,12 @@ export function RiskRegistryPanel() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['risk-registry'] });
-      toast.success('Risk added successfully');
+      toast.success(t("risk_added_successfully", "Risk added successfully"));
       setIsAddDialogOpen(false);
       setNewRisk({ title: '', category: 'operational', likelihood: 'medium', impact: 'medium', owner: '', mitigation: '' });
     },
     onError: (error) => {
-      toast.error('Failed to add risk: ' + error.message);
+      toast.error(t("failed_to_add_risk", "Failed to add risk:") + error.message);
     },
   });
 
@@ -97,7 +99,7 @@ export function RiskRegistryPanel() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['risk-registry'] });
-      toast.success('Risk status updated');
+      toast.success(t("risk_status_updated", "Risk status updated"));
     },
   });
 
@@ -109,7 +111,7 @@ export function RiskRegistryPanel() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['risk-registry'] });
-      toast.success('Risk deleted');
+      toast.success(t("risk_deleted", "Risk deleted"));
     },
   });
 
@@ -158,25 +160,25 @@ export function RiskRegistryPanel() {
         <Card className="border-destructive/50 bg-destructive/5">
           <CardContent className="pt-4">
             <p className="text-3xl font-bold text-destructive">{riskSummary.critical}</p>
-            <p className="text-sm text-muted-foreground">Critical Risks</p>
+            <p className="text-sm text-muted-foreground">{t("critical_risks", "Critical Risks")}</p>
           </CardContent>
         </Card>
         <Card className="border-orange-500/50 bg-orange-500/5">
           <CardContent className="pt-4">
             <p className="text-3xl font-bold text-orange-500">{riskSummary.high}</p>
-            <p className="text-sm text-muted-foreground">High Risks</p>
+            <p className="text-sm text-muted-foreground">{t("high_risks", "High Risks")}</p>
           </CardContent>
         </Card>
         <Card className="border-yellow-500/50 bg-yellow-500/5">
           <CardContent className="pt-4">
             <p className="text-3xl font-bold text-yellow-600">{riskSummary.medium}</p>
-            <p className="text-sm text-muted-foreground">Medium Risks</p>
+            <p className="text-sm text-muted-foreground">{t("medium_risks", "Medium Risks")}</p>
           </CardContent>
         </Card>
         <Card className="border-green-500/50 bg-green-500/5">
           <CardContent className="pt-4">
             <p className="text-3xl font-bold text-green-500">{riskSummary.low}</p>
-            <p className="text-sm text-muted-foreground">Low Risks</p>
+            <p className="text-sm text-muted-foreground">{t("low_risks", "Low Risks")}</p>
           </CardContent>
         </Card>
       </div>
@@ -185,16 +187,16 @@ export function RiskRegistryPanel() {
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         <Select value={filterCategory} onValueChange={setFilterCategory}>
           <SelectTrigger className="w-[200px]">
-            <SelectValue placeholder="Filter by category" />
+            <SelectValue placeholder={t("filter_by_category", "Filter by category")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Categories</SelectItem>
-            <SelectItem value="operational">Operational</SelectItem>
-            <SelectItem value="financial">Financial</SelectItem>
-            <SelectItem value="technical">Technical</SelectItem>
-            <SelectItem value="legal">Legal</SelectItem>
-            <SelectItem value="market">Market</SelectItem>
-            <SelectItem value="security">Security</SelectItem>
+            <SelectItem value="all">{t("all_categories", "All Categories")}</SelectItem>
+            <SelectItem value="operational">{t("operational", "Operational")}</SelectItem>
+            <SelectItem value="financial">{t("financial", "Financial")}</SelectItem>
+            <SelectItem value="technical">{t("technical", "Technical")}</SelectItem>
+            <SelectItem value="legal">{t("legal", "Legal")}</SelectItem>
+            <SelectItem value="market">{t("market", "Market")}</SelectItem>
+            <SelectItem value="security">{t("security", "Security")}</SelectItem>
           </SelectContent>
         </Select>
 
@@ -207,36 +209,36 @@ export function RiskRegistryPanel() {
           </DialogTrigger>
           <DialogContent className="max-w-lg">
             <DialogHeader>
-              <DialogTitle>Add New Risk</DialogTitle>
+              <DialogTitle>{t("add_new_risk", "Add New Risk")}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
               <div>
-                <Label>Risk Title</Label>
+                <Label>{t("risk_title", "Risk Title")}</Label>
                 <Input
-                  placeholder="Describe the risk..."
+                  placeholder={t("describe_the_risk", "Describe the risk...")}
                   value={newRisk.title}
                   onChange={(e) => setNewRisk({ ...newRisk, title: e.target.value })}
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label>Category</Label>
+                  <Label>{t("category", "Category")}</Label>
                   <Select value={newRisk.category} onValueChange={(v) => setNewRisk({ ...newRisk, category: v })}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="operational">Operational</SelectItem>
-                      <SelectItem value="financial">Financial</SelectItem>
-                      <SelectItem value="technical">Technical</SelectItem>
-                      <SelectItem value="legal">Legal</SelectItem>
-                      <SelectItem value="market">Market</SelectItem>
-                      <SelectItem value="security">Security</SelectItem>
+                      <SelectItem value="operational">{t("operational", "Operational")}</SelectItem>
+                      <SelectItem value="financial">{t("financial", "Financial")}</SelectItem>
+                      <SelectItem value="technical">{t("technical", "Technical")}</SelectItem>
+                      <SelectItem value="legal">{t("legal", "Legal")}</SelectItem>
+                      <SelectItem value="market">{t("market", "Market")}</SelectItem>
+                      <SelectItem value="security">{t("security", "Security")}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div>
-                  <Label>Owner</Label>
+                  <Label>{t("owner", "Owner")}</Label>
                   <Input
-                    placeholder="Risk owner"
+                    placeholder={t("risk_owner", "Risk owner")}
                     value={newRisk.owner}
                     onChange={(e) => setNewRisk({ ...newRisk, owner: e.target.value })}
                   />
@@ -244,34 +246,34 @@ export function RiskRegistryPanel() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label>Likelihood</Label>
+                  <Label>{t("likelihood", "Likelihood")}</Label>
                   <Select value={newRisk.likelihood} onValueChange={(v) => setNewRisk({ ...newRisk, likelihood: v })}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="low">Low</SelectItem>
-                      <SelectItem value="medium">Medium</SelectItem>
-                      <SelectItem value="high">High</SelectItem>
-                      <SelectItem value="critical">Critical</SelectItem>
+                      <SelectItem value="low">{t("low", "Low")}</SelectItem>
+                      <SelectItem value="medium">{t("medium", "Medium")}</SelectItem>
+                      <SelectItem value="high">{t("high", "High")}</SelectItem>
+                      <SelectItem value="critical">{t("critical", "Critical")}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div>
-                  <Label>Impact</Label>
+                  <Label>{t("impact", "Impact")}</Label>
                   <Select value={newRisk.impact} onValueChange={(v) => setNewRisk({ ...newRisk, impact: v })}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="low">Low</SelectItem>
-                      <SelectItem value="medium">Medium</SelectItem>
-                      <SelectItem value="high">High</SelectItem>
-                      <SelectItem value="critical">Critical</SelectItem>
+                      <SelectItem value="low">{t("low", "Low")}</SelectItem>
+                      <SelectItem value="medium">{t("medium", "Medium")}</SelectItem>
+                      <SelectItem value="high">{t("high", "High")}</SelectItem>
+                      <SelectItem value="critical">{t("critical", "Critical")}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
               </div>
               <div>
-                <Label>Mitigation Strategy</Label>
+                <Label>{t("mitigation_strategy", "Mitigation Strategy")}</Label>
                 <Textarea
-                  placeholder="How will this risk be mitigated?"
+                  placeholder={t("how_will_this_risk", "How will this risk be mitigated?")}
                   value={newRisk.mitigation}
                   onChange={(e) => setNewRisk({ ...newRisk, mitigation: e.target.value })}
                 />
@@ -345,10 +347,10 @@ export function RiskRegistryPanel() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="open">Open</SelectItem>
-                          <SelectItem value="mitigating">Mitigating</SelectItem>
-                          <SelectItem value="resolved">Resolved</SelectItem>
-                          <SelectItem value="accepted">Accepted</SelectItem>
+                          <SelectItem value="open">{t("open", "Open")}</SelectItem>
+                          <SelectItem value="mitigating">{t("mitigating", "Mitigating")}</SelectItem>
+                          <SelectItem value="resolved">{t("resolved", "Resolved")}</SelectItem>
+                          <SelectItem value="accepted">{t("accepted", "Accepted")}</SelectItem>
                         </SelectContent>
                       </Select>
                       <Button

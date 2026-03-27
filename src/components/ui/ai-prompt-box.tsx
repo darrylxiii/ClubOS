@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { ArrowUp, Paperclip, Square, X, StopCircle, Mic, Globe, BrainCog, FolderCode } from "lucide-react";
@@ -137,25 +138,28 @@ DialogOverlay.displayName = DialogPrimitive.Overlay.displayName;
 const DialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
->(({ className, children, ...props }, ref) => (
-  <DialogPortal>
-    <DialogOverlay />
-    <DialogPrimitive.Content
-      ref={ref}
-      className={cn(
-        "fixed left-[50%] top-[50%] z-50 grid w-full max-w-[90vw] md:max-w-[800px] translate-x-[-50%] translate-y-[-50%] gap-4 border border-[#333333] bg-[#1F2023] p-0 shadow-xl duration-300 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 rounded-2xl",
-        className
-      )}
-      {...props}
-    >
-      {children}
-      <DialogPrimitive.Close className="absolute right-4 top-4 z-10 rounded-full bg-[#2E3033]/80 p-2 hover:bg-[#2E3033] transition-all">
-        <X className="h-5 w-5 text-gray-200 hover:text-white" />
-        <span className="sr-only">Close</span>
-      </DialogPrimitive.Close>
-    </DialogPrimitive.Content>
-  </DialogPortal>
-));
+>(({ className, children, ...props }, ref) => {
+  const { t } = useTranslation('common');
+  return (
+    <DialogPortal>
+      <DialogOverlay />
+      <DialogPrimitive.Content
+        ref={ref}
+        className={cn(
+          "fixed left-[50%] top-[50%] z-50 grid w-full max-w-[90vw] md:max-w-[800px] translate-x-[-50%] translate-y-[-50%] gap-4 border border-[#333333] bg-[#1F2023] p-0 shadow-xl duration-300 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 rounded-2xl",
+          className
+        )}
+        {...props}
+      >
+        {children}
+        <DialogPrimitive.Close className="absolute right-4 top-4 z-10 rounded-full bg-[#2E3033]/80 p-2 hover:bg-[#2E3033] transition-all">
+          <X className="h-5 w-5 text-gray-200 hover:text-white" />
+          <span className="sr-only">{t("actions.close", "Close")}</span>
+        </DialogPrimitive.Close>
+      </DialogPrimitive.Content>
+    </DialogPortal>
+  );
+});
 DialogContent.displayName = DialogPrimitive.Content.displayName;
 
 const DialogTitle = React.forwardRef<
@@ -277,11 +281,12 @@ interface ImageViewDialogProps {
   onClose: () => void;
 }
 const ImageViewDialog: React.FC<ImageViewDialogProps> = ({ imageUrl, onClose }) => {
+  const { t } = useTranslation('common');
   if (!imageUrl) return null;
   return (
     <Dialog open={!!imageUrl} onOpenChange={onClose}>
       <DialogContent className="p-0 border-none bg-transparent shadow-none max-w-[90vw] md:max-w-[800px]">
-        <DialogTitle className="sr-only">Image Preview</DialogTitle>
+        <DialogTitle className="sr-only">{t("dialog.imagePreview", "Image Preview")}</DialogTitle>
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -291,7 +296,7 @@ const ImageViewDialog: React.FC<ImageViewDialogProps> = ({ imageUrl, onClose }) 
         >
           <img
             src={imageUrl}
-            alt="Full preview"
+            alt={t("dialog.fullPreview", "Full preview")}
             className="w-full max-h-[80vh] object-contain rounded-2xl"
           />
         </motion.div>
@@ -495,10 +500,11 @@ interface PromptInputBoxProps {
   onCanvasToggle?: () => void;
 }
 export const PromptInputBox = React.forwardRef((props: PromptInputBoxProps, ref: React.Ref<HTMLDivElement>) => {
+  const { t } = useTranslation('common');
   const {
     onSend = () => {},
     isLoading = false,
-    placeholder = "Type your message here...",
+    placeholder = t("promptBox.typeMessage", "Type your message here..."),
     placeholders = [],
     className,
     showSearch = false,
@@ -647,11 +653,11 @@ export const PromptInputBox = React.forwardRef((props: PromptInputBoxProps, ref:
             value={input}
             placeholders={placeholders.length > 0 ? placeholders : [
               showSearch
-                ? "Search the web..."
+                ? t("promptBox.searchTheWeb", "Search the web...")
                 : showThink
-                ? "Think deeply..."
+                ? t("promptBox.thinkDeeply", "Think deeply...")
                 : showCanvas
-                ? "Create on canvas..."
+                ? t("promptBox.createOnCanvas", "Create on canvas...")
                 : placeholder
             ]}
             onChange={(e) => setInput(e.target.value)}
@@ -686,7 +692,7 @@ export const PromptInputBox = React.forwardRef((props: PromptInputBoxProps, ref:
               isRecording ? "opacity-0 invisible h-0" : "opacity-100 visible"
             )}
           >
-            <PromptInputAction tooltip="Upload image">
+            <PromptInputAction tooltip={t("actions.uploadImage", "Upload image")}>
               <button
                 onClick={() => uploadInputRef.current?.click()}
                 className="flex h-8 w-8 text-[#9CA3AF] cursor-pointer items-center justify-center rounded-full transition-colors hover:bg-gray-600/30 hover:text-[#D1D5DB]"
@@ -735,7 +741,7 @@ export const PromptInputBox = React.forwardRef((props: PromptInputBoxProps, ref:
                       transition={{ duration: 0.2 }}
                       className="text-xs overflow-hidden whitespace-nowrap text-[#1EAEDB] flex-shrink-0"
                     >
-                      Search
+                      {t("promptBox.searchLabel", "Search")}
                     </motion.span>
                   )}
                 </AnimatePresence>
@@ -771,7 +777,7 @@ export const PromptInputBox = React.forwardRef((props: PromptInputBoxProps, ref:
                       transition={{ duration: 0.2 }}
                       className="text-xs overflow-hidden whitespace-nowrap text-[#8B5CF6] flex-shrink-0"
                     >
-                      Think
+                      {t("promptBox.thinkLabel", "Think")}
                     </motion.span>
                   )}
                 </AnimatePresence>
@@ -807,7 +813,7 @@ export const PromptInputBox = React.forwardRef((props: PromptInputBoxProps, ref:
                       transition={{ duration: 0.2 }}
                       className="text-xs overflow-hidden whitespace-nowrap text-[#F97316] flex-shrink-0"
                     >
-                      Canvas
+                      {t("promptBox.canvasLabel", "Canvas")}
                     </motion.span>
                   )}
                 </AnimatePresence>
@@ -818,12 +824,12 @@ export const PromptInputBox = React.forwardRef((props: PromptInputBoxProps, ref:
           <PromptInputAction
             tooltip={
               isLoading
-                ? "Stop generation"
+                ? t("actions.stopGeneration", "Stop generation")
                 : isRecording
-                ? "Stop recording"
+                ? t("actions.stopRecording", "Stop recording")
                 : hasContent
-                ? "Send message"
-                : "Voice message"
+                ? t("actions.sendMessage", "Send message")
+                : t("actions.voiceMessage", "Voice message")
             }
           >
             <Button

@@ -1,4 +1,5 @@
 import { memo, useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from '@/lib/motion';
 import { Card, CardContent } from '@/components/ui/card';
 import { BriefCase } from '@/types/miljoenenjacht';
@@ -13,6 +14,7 @@ interface CaseGridProps {
 }
 
 export const CaseGrid = memo(({ cases, playerCase, onSelectCase, disabled }: CaseGridProps) => {
+  const { t } = useTranslation('common');
   const [hoveredCase, setHoveredCase] = useState<number | null>(null);
   const [revealingCase, setRevealingCase] = useState<number | null>(null);
   const [focusedCase, setFocusedCase] = useState<number | null>(null);
@@ -53,7 +55,7 @@ export const CaseGrid = memo(({ cases, playerCase, onSelectCase, disabled }: Cas
     <div 
       className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-7 gap-2 md:gap-3"
       role="grid"
-      aria-label="Briefcase selection grid"
+      aria-label={t('miljoenenjacht.briefcaseSelectionGrid')}
     >
       {availableCases.map((briefCase, index) => (
         <motion.div

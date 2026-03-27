@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -19,6 +20,7 @@ interface PageSearchDialogProps {
 }
 
 export function PageSearchDialog({ open, onOpenChange }: PageSearchDialogProps) {
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
   const { pages, favorites, recent, createPage } = useWorkspacePages();
   const [search, setSearch] = useState('');
@@ -57,7 +59,7 @@ export function PageSearchDialog({ open, onOpenChange }: PageSearchDialogProps) 
   return (
     <CommandDialog open={open} onOpenChange={onOpenChange}>
       <CommandInput 
-        placeholder="Search pages or create new..." 
+        placeholder={t("search_pages_or_create", "Search pages or create new...")} 
         value={search}
         onValueChange={setSearch}
       />
@@ -65,7 +67,7 @@ export function PageSearchDialog({ open, onOpenChange }: PageSearchDialogProps) 
         <CommandEmpty className="py-6 text-center">
           <div className="flex flex-col items-center gap-2">
             <Search className="h-8 w-8 text-muted-foreground" />
-            <p className="text-sm text-muted-foreground">No pages found</p>
+            <p className="text-sm text-muted-foreground">{t("no_pages_found", "No pages found")}</p>
             <button
               onClick={handleCreateNew}
               className="text-sm text-primary hover:underline flex items-center gap-1"
@@ -125,7 +127,7 @@ export function PageSearchDialog({ open, onOpenChange }: PageSearchDialogProps) 
           <CommandGroup heading="Quick Actions">
             <CommandItem onSelect={handleCreateNew}>
               <Plus className="h-4 w-4 mr-2" />
-              <span>Create new page</span>
+              <span>{t("create_new_page", "Create new page")}</span>
               <kbd className="ml-auto text-xs text-muted-foreground">⌘N</kbd>
             </CommandItem>
           </CommandGroup>

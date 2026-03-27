@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -20,6 +21,7 @@ import {
 } from "lucide-react";
 
 export function OneOnOneNotes() {
+  const { t } = useTranslation('common');
   const { data: notes, isLoading } = useOneOnOneNotes();
   const { data: employees } = useAllEmployees();
   const createNote = useCreateOneOnOneNote();
@@ -35,7 +37,7 @@ export function OneOnOneNotes() {
 
   const handleCreate = async () => {
     if (!newNote.employee_id) {
-      toast.error('Please select an employee');
+      toast.error(t("please_select_an_employee", "Please select an employee"));
       return;
     }
     try {
@@ -48,9 +50,9 @@ export function OneOnOneNotes() {
         discussion_notes: '',
         action_items: '',
       });
-      toast.success('1:1 notes saved');
+      toast.success(t("11_notes_saved", "1:1 notes saved"));
     } catch (error) {
-      toast.error('Failed to save notes');
+      toast.error(t("failed_to_save_notes", "Failed to save notes"));
     }
   };
 
@@ -76,18 +78,18 @@ export function OneOnOneNotes() {
             </DialogTrigger>
             <DialogContent className="max-w-lg">
               <DialogHeader>
-                <DialogTitle>Record 1:1 Meeting</DialogTitle>
+                <DialogTitle>{t("record_11_meeting", "Record 1:1 Meeting")}</DialogTitle>
               </DialogHeader>
               <div className="space-y-4 mt-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>Employee</Label>
+                    <Label>{t("employee", "Employee")}</Label>
                     <Select
                       value={newNote.employee_id}
                       onValueChange={(v) => setNewNote(prev => ({ ...prev, employee_id: v }))}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Select employee" />
+                        <SelectValue placeholder={t("select_employee", "Select employee")} />
                       </SelectTrigger>
                       <SelectContent>
                         {employees?.map(emp => (
@@ -99,7 +101,7 @@ export function OneOnOneNotes() {
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label>Meeting Date</Label>
+                    <Label>{t("meeting_date", "Meeting Date")}</Label>
                     <Input
                       type="date"
                       value={newNote.meeting_date}
@@ -116,7 +118,7 @@ export function OneOnOneNotes() {
                   <Textarea
                     value={newNote.agenda}
                     onChange={(e) => setNewNote(prev => ({ ...prev, agenda: e.target.value }))}
-                    placeholder="Topics to discuss..."
+                    placeholder={t("topics_to_discuss", "Topics to discuss...")}
                     rows={2}
                   />
                 </div>
@@ -129,7 +131,7 @@ export function OneOnOneNotes() {
                   <Textarea
                     value={newNote.discussion_notes}
                     onChange={(e) => setNewNote(prev => ({ ...prev, discussion_notes: e.target.value }))}
-                    placeholder="Key points discussed..."
+                    placeholder={t("key_points_discussed", "Key points discussed...")}
                     rows={4}
                   />
                 </div>
@@ -142,7 +144,7 @@ export function OneOnOneNotes() {
                   <Textarea
                     value={newNote.action_items}
                     onChange={(e) => setNewNote(prev => ({ ...prev, action_items: e.target.value }))}
-                    placeholder="Follow-up actions and owners..."
+                    placeholder={t("followup_actions_and_owners", "Follow-up actions and owners...")}
                     rows={3}
                   />
                 </div>
@@ -170,7 +172,7 @@ export function OneOnOneNotes() {
         ) : !notes?.length ? (
           <div className="text-center py-8 text-muted-foreground">
             <MessageSquare className="h-12 w-12 mx-auto mb-2 opacity-50" />
-            <p>No 1:1 notes yet</p>
+            <p>{t("no_11_notes_yet", "No 1:1 notes yet")}</p>
           </div>
         ) : (
           <div className="space-y-3 max-h-[400px] overflow-y-auto">
@@ -186,19 +188,19 @@ export function OneOnOneNotes() {
                 </div>
                 {note.agenda && (
                   <div>
-                    <p className="text-xs text-muted-foreground mb-1">Agenda</p>
+                    <p className="text-xs text-muted-foreground mb-1">{t("agenda", "Agenda")}</p>
                     <p className="text-sm">{note.agenda}</p>
                   </div>
                 )}
                 {note.discussion_notes && (
                   <div>
-                    <p className="text-xs text-muted-foreground mb-1">Discussion</p>
+                    <p className="text-xs text-muted-foreground mb-1">{t("discussion", "Discussion")}</p>
                     <p className="text-sm line-clamp-3">{note.discussion_notes}</p>
                   </div>
                 )}
                 {note.action_items && (
                   <div className="pt-2 border-t border-border/50">
-                    <p className="text-xs text-muted-foreground mb-1">Action Items</p>
+                    <p className="text-xs text-muted-foreground mb-1">{t("action_items", "Action Items")}</p>
                     <p className="text-sm">{note.action_items}</p>
                   </div>
                 )}

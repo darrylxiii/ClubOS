@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ErrorState } from '@/components/ui/error-state';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -13,6 +14,7 @@ import type { CompanyInteraction, CompanyStakeholder } from '@/types/interaction
 import { toast } from 'sonner';
 
 export default function CompanyIntelligence() {
+  const { t } = useTranslation('common');
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
@@ -60,7 +62,7 @@ export default function CompanyIntelligence() {
     } catch (error) {
       console.error('Error loading data:', error);
       setFetchError('Failed to load company intelligence data');
-      toast.error('Failed to load company data');
+      toast.error("Failed to load company data");
     } finally {
       setLoading(false);
     }
@@ -101,7 +103,7 @@ export default function CompanyIntelligence() {
   if (fetchError || !company) {
     return (
       <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
-        <ErrorState variant="page" title="Company Intelligence Unavailable" message={fetchError || 'Company not found'} onRetry={loadData} />
+        <ErrorState variant="page" title={t('companyIntelligence.text1')} message={fetchError || 'Company not found'} onRetry={loadData} />
       </div>
     );
   }
@@ -142,7 +144,7 @@ export default function CompanyIntelligence() {
         <div className="mb-8 flex items-start justify-between">
           <div>
             <h1 className="text-3xl font-bold">{company.name}</h1>
-            <p className="text-muted-foreground">Company Intelligence Dashboard</p>
+            <p className="text-muted-foreground">{t('companyIntelligence.text2')}</p>
           </div>
           <Button
             variant="outline"
@@ -157,7 +159,7 @@ export default function CompanyIntelligence() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
           <Card>
             <CardHeader className="pb-2">
-              <CardDescription>Total Interactions</CardDescription>
+              <CardDescription>{t('companyIntelligence.text3')}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold">{totalInteractions}</div>
@@ -166,7 +168,7 @@ export default function CompanyIntelligence() {
 
           <Card>
             <CardHeader className="pb-2">
-              <CardDescription>Avg Sentiment</CardDescription>
+              <CardDescription>{t('companyIntelligence.text4')}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="flex items-center gap-2">
@@ -182,7 +184,7 @@ export default function CompanyIntelligence() {
 
           <Card>
             <CardHeader className="pb-2">
-              <CardDescription>Avg Urgency</CardDescription>
+              <CardDescription>{t('companyIntelligence.text5')}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold">{avgUrgency.toFixed(1)}/10</div>
@@ -191,7 +193,7 @@ export default function CompanyIntelligence() {
 
           <Card>
             <CardHeader className="pb-2">
-              <CardDescription>Stakeholders</CardDescription>
+              <CardDescription>{t('companyIntelligence.text6')}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold">{stakeholders.length}</div>
@@ -202,17 +204,17 @@ export default function CompanyIntelligence() {
         {/* Main Content */}
         <Tabs defaultValue="timeline" className="space-y-6">
           <TabsList>
-            <TabsTrigger value="timeline">Interaction Timeline</TabsTrigger>
-            <TabsTrigger value="stakeholders">Stakeholders</TabsTrigger>
-            <TabsTrigger value="insights">Insights</TabsTrigger>
+            <TabsTrigger value="timeline">{t('companyIntelligence.text7')}</TabsTrigger>
+            <TabsTrigger value="stakeholders">{t('companyIntelligence.text8')}</TabsTrigger>
+            <TabsTrigger value="insights">{t('companyIntelligence.text9')}</TabsTrigger>
           </TabsList>
 
           {/* Timeline Tab */}
           <TabsContent value="timeline" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>Recent Interactions</CardTitle>
-                <CardDescription>Latest communication with this company</CardDescription>
+                <CardTitle>{t('companyIntelligence.text10')}</CardTitle>
+                <CardDescription>{t('companyIntelligence.text11')}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -226,7 +228,7 @@ export default function CompanyIntelligence() {
                             {interaction.interaction_type.replace('_', ' ')}
                           </Badge>
                           {interaction.urgency_score && interaction.urgency_score > 7 && (
-                            <Badge variant="destructive" className="text-xs">High Urgency</Badge>
+                            <Badge variant="destructive" className="text-xs">{t('companyIntelligence.text12')}</Badge>
                           )}
                         </div>
                         <p className="text-sm text-muted-foreground mb-2">
@@ -248,7 +250,7 @@ export default function CompanyIntelligence() {
                     </div>
                   ))}
                   {interactions.length === 0 && (
-                    <p className="text-center text-muted-foreground py-8">No interactions recorded yet</p>
+                    <p className="text-center text-muted-foreground py-8">{t('companyIntelligence.text13')}</p>
                   )}
                 </div>
               </CardContent>
@@ -257,7 +259,7 @@ export default function CompanyIntelligence() {
             {/* Interaction Breakdown */}
             <Card>
               <CardHeader>
-                <CardTitle>Interaction Breakdown</CardTitle>
+                <CardTitle>{t('companyIntelligence.text14')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -279,8 +281,8 @@ export default function CompanyIntelligence() {
           <TabsContent value="stakeholders" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>Company Stakeholders</CardTitle>
-                <CardDescription>Key people at this company</CardDescription>
+                <CardTitle>{t('companyIntelligence.text15')}</CardTitle>
+                <CardDescription>{t('companyIntelligence.text16')}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -312,7 +314,7 @@ export default function CompanyIntelligence() {
                     </div>
                   ))}
                   {stakeholders.length === 0 && (
-                    <p className="text-center text-muted-foreground py-8">No stakeholders recorded yet</p>
+                    <p className="text-center text-muted-foreground py-8">{t('companyIntelligence.text17')}</p>
                   )}
                 </div>
               </CardContent>
@@ -329,7 +331,7 @@ export default function CompanyIntelligence() {
                       <Sparkles className="h-5 w-5 text-primary" />
                       Intelligence Insights
                     </CardTitle>
-                    <CardDescription>AI-powered analysis of your company interactions</CardDescription>
+                    <CardDescription>{t('companyIntelligence.text18')}</CardDescription>
                   </div>
                   <Button onClick={generateInsights} disabled={loadingInsights}>
                     {loadingInsights ? (
@@ -349,7 +351,7 @@ export default function CompanyIntelligence() {
                       <Card className="p-4">
                         <div className="flex items-center gap-2 mb-2">
                           <Target className="h-4 w-4 text-primary" />
-                          <span className="text-sm font-medium">Engagement Score</span>
+                          <span className="text-sm font-medium">{t('companyIntelligence.text19')}</span>
                         </div>
                         <div className="text-3xl font-bold">{insights.engagement_score}/100</div>
                       </Card>
@@ -362,14 +364,14 @@ export default function CompanyIntelligence() {
                           ) : (
                             <TrendingUp className="h-4 w-4 text-yellow-500" />
                           )}
-                          <span className="text-sm font-medium">Sentiment Trend</span>
+                          <span className="text-sm font-medium">{t('companyIntelligence.text20')}</span>
                         </div>
                         <div className="text-xl font-bold capitalize">{insights.sentiment_trend}</div>
                       </Card>
                       <Card className="p-4">
                         <div className="flex items-center gap-2 mb-2">
                           <MessageSquare className="h-4 w-4 text-blue-500" />
-                          <span className="text-sm font-medium">Preferred Channel</span>
+                          <span className="text-sm font-medium">{t('companyIntelligence.text21')}</span>
                         </div>
                         <div className="text-xl font-bold capitalize">{insights.preferred_channel?.replace('_', ' ')}</div>
                       </Card>

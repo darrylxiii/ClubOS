@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,6 +24,7 @@ interface TaskAttachmentsProps {
 }
 
 export function TaskAttachments({ taskId }: TaskAttachmentsProps) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [uploading, setUploading] = useState(false);
@@ -55,7 +57,7 @@ export function TaskAttachments({ taskId }: TaskAttachmentsProps) {
 
     // Max 10MB
     if (file.size > 10 * 1024 * 1024) {
-      toast.error("File size must be less than 10MB");
+      toast.error(t("file_size_must_be", "File size must be less than 10MB"));
       return;
     }
 
@@ -87,11 +89,11 @@ export function TaskAttachments({ taskId }: TaskAttachmentsProps) {
 
       if (dbError) throw dbError;
 
-      toast.success("File uploaded successfully");
+      toast.success(t("file_uploaded_successfully", "File uploaded successfully"));
       loadAttachments();
     } catch (error) {
       console.error("Upload error:", error);
-      toast.error("Failed to upload file");
+      toast.error(t("failed_to_upload_file", "Failed to upload file"));
     } finally {
       setUploading(false);
       // Reset the input
@@ -101,7 +103,7 @@ export function TaskAttachments({ taskId }: TaskAttachmentsProps) {
 
   const handleDelete = async (attachment: Attachment) => {
     if (attachment.user_id !== user?.id) {
-      toast.error("You can only delete your own attachments");
+      toast.error(t("you_can_only_delete", "You can only delete your own attachments"));
       return;
     }
 
@@ -119,11 +121,11 @@ export function TaskAttachments({ taskId }: TaskAttachmentsProps) {
 
       if (error) throw error;
 
-      toast.success("Attachment deleted");
+      toast.success(t("attachment_deleted", "Attachment deleted"));
       loadAttachments();
     } catch (error) {
       console.error("Delete error:", error);
-      toast.error("Failed to delete attachment");
+      toast.error(t("failed_to_delete_attachment", "Failed to delete attachment"));
     }
   };
 

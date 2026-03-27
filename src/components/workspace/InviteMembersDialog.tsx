@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Copy, Mail, Send, UserPlus, X, Clock, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -43,6 +44,7 @@ export function InviteMembersDialog({
   workspaceId,
   workspaceName,
 }: InviteMembersDialogProps) {
+  const { t } = useTranslation('common');
   const { invitations, createInvitation, resendInvitation, revokeInvitation } = useWorkspaceInvitations(workspaceId);
   const [email, setEmail] = useState('');
   const [role, setRole] = useState<WorkspaceInvitation['role']>('member');
@@ -65,7 +67,7 @@ export function InviteMembersDialog({
   const handleCopyLink = (invitation: WorkspaceInvitation) => {
     const link = `${window.location.origin}/workspace/join/${invitation.token}`;
     navigator.clipboard.writeText(link);
-    toast.success('Invite link copied');
+    toast.success(t("invite_link_copied", "Invite link copied"));
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -92,11 +94,11 @@ export function InviteMembersDialog({
           <div className="space-y-3">
             <div className="flex gap-2">
               <div className="flex-1">
-                <Label htmlFor="email" className="sr-only">Email</Label>
+                <Label htmlFor="email" className="sr-only">{t("email", "Email")}</Label>
                 <Input
                   id="email"
                   type="email"
-                  placeholder="colleague@company.com"
+                  placeholder={t("colleaguecompanycom", "colleague@company.com")}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   onKeyDown={handleKeyDown}
@@ -160,7 +162,7 @@ export function InviteMembersDialog({
                           size="icon"
                           className="h-7 w-7"
                           onClick={() => handleCopyLink(invitation)}
-                          title="Copy link"
+                          title={t("copy_link", "Copy link")}
                         >
                           <Copy className="h-3 w-3" />
                         </Button>
@@ -169,7 +171,7 @@ export function InviteMembersDialog({
                           size="icon"
                           className="h-7 w-7"
                           onClick={() => resendInvitation.mutate(invitation.id)}
-                          title="Resend"
+                          title={t("resend", "Resend")}
                           disabled={resendInvitation.isPending}
                         >
                           <RefreshCw className="h-3 w-3" />
@@ -179,7 +181,7 @@ export function InviteMembersDialog({
                           size="icon"
                           className="h-7 w-7 text-destructive hover:text-destructive"
                           onClick={() => revokeInvitation.mutate(invitation.id)}
-                          title="Revoke"
+                          title={t("revoke", "Revoke")}
                           disabled={revokeInvitation.isPending}
                         >
                           <X className="h-3 w-3" />

@@ -1,4 +1,5 @@
 import { memo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { motion } from '@/lib/motion';
 import { Card, CardContent } from '@/components/ui/card';
 import { Brain, TrendingUp, TrendingDown, AlertCircle } from 'lucide-react';
@@ -11,6 +12,7 @@ interface InsightPanelProps {
 }
 
 export const InsightPanel = memo(({ currentRound, avgDecisionTime, riskTrend, recentBehavior }: InsightPanelProps) => {
+  const { t } = useTranslation('common');
   const insights = [];
 
   if (avgDecisionTime > 15000) {
@@ -53,7 +55,7 @@ export const InsightPanel = memo(({ currentRound, avgDecisionTime, riskTrend, re
         <CardContent className="p-4">
           <div className="flex items-center gap-2 mb-3">
             <Brain className="w-4 h-4 text-primary" />
-            <span className="text-sm font-semibold">Live Insights</span>
+            <span className="text-sm font-semibold">{t('miljoenenjacht.liveInsights')}</span>
           </div>
           <div className="space-y-2">
             {insights.map((insight, i) => {

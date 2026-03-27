@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Server, Shield, AlertTriangle, CheckCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 
 interface TURNServerStatusProps {
   className?: string;
@@ -11,6 +12,7 @@ interface TURNServerStatusProps {
 }
 
 export function TURNServerStatus({ className, showDetails = false }: TURNServerStatusProps) {
+  const { t } = useTranslation("meetings");
   const [health, setHealth] = useState<TURNServerHealth | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -40,7 +42,7 @@ export function TURNServerStatus({ className, showDetails = false }: TURNServerS
     return (
       <Badge variant="outline" className={cn('animate-pulse', className)}>
         <Server className="w-3 h-3 mr-1" />
-        Checking...
+        {t('turn.checking')}
       </Badge>
     );
   }
@@ -67,7 +69,7 @@ export function TURNServerStatus({ className, showDetails = false }: TURNServerS
             ) : (
               <Server className="w-3 h-3 mr-1" />
             )}
-            {isOptimal ? 'Production TURN' : health.isPaidServer ? 'TURN Error' : 'Community TURN'}
+            {isOptimal ? t('turn.production') : health.isPaidServer ? t('turn.error') : t('turn.community')}
           </Badge>
         </TooltipTrigger>
         <TooltipContent side="bottom" className="max-w-xs">
@@ -79,14 +81,14 @@ export function TURNServerStatus({ className, showDetails = false }: TURNServerS
                 <AlertTriangle className="w-4 h-4 text-yellow-500" />
               )}
               <span className="font-medium">
-                {health.isPaidServer ? 'Production TURN Servers' : 'Free Community Servers'}
+                {health.isPaidServer ? t('turn.productionServers') : t('turn.communityServers')}
               </span>
             </div>
             
             <p className="text-xs text-muted-foreground">
-              {health.isPaidServer 
-                ? `${health.servers} dedicated server(s) configured for reliable connections.`
-                : 'Using free OpenRelay servers. Connection quality may vary under high load.'}
+              {health.isPaidServer
+                ? t('turn.dedicatedDescription', { count: health.servers })
+                : t('turn.communityDescription')}
             </p>
 
             {health.validationErrors.length > 0 && (
@@ -99,9 +101,9 @@ export function TURNServerStatus({ className, showDetails = false }: TURNServerS
 
             {showDetails && (
               <div className="text-xs text-muted-foreground pt-1 border-t">
-                <p>Servers: {health.servers}</p>
+                <p>{t('turn.servers')}: {health.servers}</p>
                 {health.lastValidated && (
-                  <p>Validated: {health.lastValidated.toLocaleTimeString()}</p>
+                  <p>{t('turn.validated')}: {health.lastValidated.toLocaleTimeString()}</p>
                 )}
               </div>
             )}

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Sparkles, TrendingUp, AlertTriangle, Target, Clock } from "lucide-react";
@@ -13,6 +14,7 @@ interface SmartInsightsCardProps {
 }
 
 export function SmartInsightsCard({ metrics, stages }: SmartInsightsCardProps) {
+  const { t } = useTranslation('common');
   // Find bottleneck stages (avg days > 7)
   const bottlenecks = stages
     .map((stage, idx) => ({
@@ -114,7 +116,7 @@ export function SmartInsightsCard({ metrics, stages }: SmartInsightsCardProps) {
         
         <div className="pt-2 border-t border-border/20">
           <div className="flex items-center justify-between text-xs">
-            <span className="text-muted-foreground">Time-to-hire forecast</span>
+            <span className="text-muted-foreground">{t("timetohire_forecast", "Time-to-hire forecast")}</span>
             <span className="font-bold text-foreground">{Math.round(avgTimeToHire)} days</span>
           </div>
         </div>

@@ -7,6 +7,7 @@ import { useCRMPipelineMetrics, useStageProbabilities, formatCurrencyCompact } f
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { useTranslation } from 'react-i18next';
 
 interface StageBreakdown {
   stage: string;
@@ -15,6 +16,7 @@ interface StageBreakdown {
 }
 
 export const DealPipelineSummaryWidget = () => {
+  const { t } = useTranslation('common');
   const { data: pipelineMetrics, isLoading: metricsLoading } = useCRMPipelineMetrics();
   const { data: stageProbabilities, isLoading: probLoading } = useStageProbabilities();
   
@@ -91,7 +93,7 @@ export const DealPipelineSummaryWidget = () => {
         <CardContent>
           <div className="flex flex-col items-center justify-center py-6 text-center">
             <Info className="h-8 w-8 text-muted-foreground mb-2" />
-            <p className="text-sm text-muted-foreground mb-4">No active deals in pipeline</p>
+            <p className="text-sm text-muted-foreground mb-4">{t('dealPipelineSummaryWidget.noActiveDealsInPipeline')}</p>
             <Button asChild variant="outline" size="sm">
               <Link to="/crm">
                 <Target className="h-4 w-4 mr-2" />
@@ -115,7 +117,7 @@ export const DealPipelineSummaryWidget = () => {
               <Info className="h-3 w-3 text-muted-foreground" />
             </TooltipTrigger>
             <TooltipContent>
-              <p>Weighted values use stage probability from CRM settings</p>
+              <p>{t('dealPipelineSummaryWidget.weightedValuesUseStageProbabilityFromCrm')}</p>
             </TooltipContent>
           </Tooltip>
         </CardTitle>
@@ -124,15 +126,15 @@ export const DealPipelineSummaryWidget = () => {
         <div className="grid grid-cols-3 gap-3 mb-4">
           <div className="text-center p-2 rounded-lg bg-muted/50">
             <div className="text-xl font-bold text-primary">{pipelineMetrics.prospect_count}</div>
-            <div className="text-xs text-muted-foreground">Active Deals</div>
+            <div className="text-xs text-muted-foreground">{t('dealPipelineSummaryWidget.activeDeals')}</div>
           </div>
           <div className="text-center p-2 rounded-lg bg-muted/50">
             <div className="text-xl font-bold">{formatCurrencyCompact(pipelineMetrics.total_pipeline)}</div>
-            <div className="text-xs text-muted-foreground">Total Value</div>
+            <div className="text-xs text-muted-foreground">{t('dealPipelineSummaryWidget.totalValue')}</div>
           </div>
           <div className="text-center p-2 rounded-lg bg-muted/50">
             <div className="text-xl font-bold text-green-500">{formatCurrencyCompact(pipelineMetrics.weighted_pipeline)}</div>
-            <div className="text-xs text-muted-foreground">Weighted</div>
+            <div className="text-xs text-muted-foreground">{t('dealPipelineSummaryWidget.weighted')}</div>
           </div>
         </div>
 

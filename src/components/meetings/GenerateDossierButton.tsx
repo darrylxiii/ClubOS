@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -28,6 +29,7 @@ export function GenerateDossierButton({
   candidateId,
   candidateName
 }: GenerateDossierButtonProps) {
+  const { t } = useTranslation('common');
   const [open, setOpen] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [dossier, setDossier] = useState<{
@@ -61,11 +63,11 @@ export function GenerateDossierButton({
 
       if (data?.dossier) {
         setDossier(data.dossier);
-        toast.success('Dossier generated successfully');
+        toast.success(t("dossier_generated_successfully", "Dossier generated successfully"));
       }
     } catch (error) {
       console.error('Failed to generate dossier:', error);
-      toast.error('Failed to generate dossier');
+      toast.error(t("failed_to_generate_dossier", "Failed to generate dossier"));
     } finally {
       setGenerating(false);
     }
@@ -75,7 +77,7 @@ export function GenerateDossierButton({
     if (dossier?.shareUrl) {
       navigator.clipboard.writeText(dossier.shareUrl);
       setCopied(true);
-      toast.success('Link copied to clipboard');
+      toast.success(t("link_copied_to_clipboard", "Link copied to clipboard"));
       setTimeout(() => setCopied(false), 2000);
     }
   };
@@ -96,7 +98,7 @@ export function GenerateDossierButton({
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Generate Client Dossier</DialogTitle>
+          <DialogTitle>{t("generate_client_dossier", "Generate Client Dossier")}</DialogTitle>
           <DialogDescription>
             Create a shareable dossier with AI insights, scorecards, and recommendations
             {candidateName && ` for ${candidateName}`}.
@@ -106,7 +108,7 @@ export function GenerateDossierButton({
         {!dossier ? (
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="expiry">Link expiry (hours)</Label>
+              <Label htmlFor="expiry">{t("link_expiry_hours", "Link expiry (hours)")}</Label>
               <Input
                 id="expiry"
                 type="number"
@@ -122,7 +124,7 @@ export function GenerateDossierButton({
 
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label htmlFor="scorecard">Include Scorecards</Label>
+                <Label htmlFor="scorecard">{t("include_scorecards", "Include Scorecards")}</Label>
                 <p className="text-xs text-muted-foreground">
                   Interviewer ratings and feedback
                 </p>
@@ -136,7 +138,7 @@ export function GenerateDossierButton({
 
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label htmlFor="transcript">Include Full Transcript</Label>
+                <Label htmlFor="transcript">{t("include_full_transcript", "Include Full Transcript")}</Label>
                 <p className="text-xs text-muted-foreground">
                   Complete meeting transcript
                 </p>
@@ -171,7 +173,7 @@ export function GenerateDossierButton({
             <div className="p-4 bg-green-500/10 border border-green-500/20 rounded-lg">
               <div className="flex items-center gap-2 text-green-600 dark:text-green-400 mb-2">
                 <Check className="h-5 w-5" />
-                <span className="font-medium">Dossier Ready</span>
+                <span className="font-medium">{t("dossier_ready", "Dossier Ready")}</span>
               </div>
               <p className="text-sm text-muted-foreground">
                 Expires: {new Date(dossier.expiresAt).toLocaleString()}

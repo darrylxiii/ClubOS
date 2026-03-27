@@ -16,6 +16,7 @@ import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { ThumbsUp, ThumbsDown, Minus, Star } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface InterviewFeedbackDialogProps {
   booking: any;
@@ -32,6 +33,7 @@ export const InterviewFeedbackDialog = ({
   onOpenChange,
   onSubmitted,
 }: InterviewFeedbackDialogProps) => {
+  const { t } = useTranslation('partner');
   const [recommendation, setRecommendation] = useState<string>('');
   const [overallRating, setOverallRating] = useState<number>(3);
   const [technicalScore, setTechnicalScore] = useState<number[]>([5]);
@@ -64,7 +66,7 @@ export const InterviewFeedbackDialog = ({
 
   const handleSubmit = async () => {
     if (!recommendation) {
-      toast.error('Please select a recommendation');
+      toast.error(t('interviewFeedbackDialog.toast.pleaseSelectARecommendation'));
       return;
     }
 
@@ -109,12 +111,12 @@ export const InterviewFeedbackDialog = ({
 
       if (bookingError) throw bookingError;
 
-      toast.success('Feedback submitted successfully');
+      toast.success(t('interviewFeedbackDialog.toast.feedbackSubmittedSuccessfully'));
       onSubmitted();
       onOpenChange(false);
     } catch (error: unknown) {
       console.error('Error submitting feedback:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to submit feedback');
+      toast.error(error instanceof Error ? error.message : t('partner.interviewfeedbackdialog.failedToSubmitFeedback', 'Failed to submit feedback'));
     } finally {
       setSubmitting(false);
     }
@@ -124,7 +126,7 @@ export const InterviewFeedbackDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Interview Feedback</DialogTitle>
+          <DialogTitle>{t('interviewFeedbackDialog.dialogTitle')}</DialogTitle>
           <DialogDescription>
             Provide your assessment for {application.candidate_full_name || 'this candidate'}
           </DialogDescription>
@@ -133,41 +135,41 @@ export const InterviewFeedbackDialog = ({
         <div className="space-y-6 py-4">
           {/* Overall Recommendation */}
           <div className="space-y-3">
-            <Label className="text-base font-semibold">Recommendation *</Label>
+            <Label className="text-base font-semibold">{t('interviewFeedbackDialog.label.recommendation')}</Label>
             <RadioGroup value={recommendation} onValueChange={setRecommendation}>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="strong_yes" id="strong_yes" />
                 <label htmlFor="strong_yes" className="flex items-center gap-2 cursor-pointer">
                   <ThumbsUp className="w-4 h-4 text-green-500" />
-                  <span>Strong Yes - Exceptional candidate</span>
+                  <span>{t('interviewFeedbackDialog.strongYesExceptionalCandidate')}</span>
                 </label>
               </div>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="yes" id="yes" />
                 <label htmlFor="yes" className="flex items-center gap-2 cursor-pointer">
                   <ThumbsUp className="w-4 h-4" />
-                  <span>Yes - Good fit, recommend to proceed</span>
+                  <span>{t('interviewFeedbackDialog.yesGoodFitRecommendToProceed')}</span>
                 </label>
               </div>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="maybe" id="maybe" />
                 <label htmlFor="maybe" className="flex items-center gap-2 cursor-pointer">
                   <Minus className="w-4 h-4 text-yellow-500" />
-                  <span>Maybe - Has potential but concerns exist</span>
+                  <span>{t('interviewFeedbackDialog.maybeHasPotentialButConcernsExist')}</span>
                 </label>
               </div>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="no" id="no" />
                 <label htmlFor="no" className="flex items-center gap-2 cursor-pointer">
                   <ThumbsDown className="w-4 h-4" />
-                  <span>No - Not the right fit</span>
+                  <span>{t('interviewFeedbackDialog.noNotTheRightFit')}</span>
                 </label>
               </div>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="strong_no" id="strong_no" />
                 <label htmlFor="strong_no" className="flex items-center gap-2 cursor-pointer">
                   <ThumbsDown className="w-4 h-4 text-red-500" />
-                  <span>Strong No - Definitely not suitable</span>
+                  <span>{t('interviewFeedbackDialog.strongNoDefinitelyNotSuitable')}</span>
                 </label>
               </div>
             </RadioGroup>
@@ -175,7 +177,7 @@ export const InterviewFeedbackDialog = ({
 
           {/* Overall Rating */}
           <div className="space-y-2">
-            <Label>Overall Rating (1-5)</Label>
+            <Label>{t('partner.interviewfeedbackdialog.overallRating15', 'Overall Rating (1-5)')}</Label>
             <div className="flex items-center gap-3">
               {[1, 2, 3, 4, 5].map((rating) => (
                 <Button
@@ -238,13 +240,13 @@ export const InterviewFeedbackDialog = ({
 
           {/* Strengths */}
           <div className="space-y-2">
-            <Label>Key Strengths</Label>
+            <Label>{t('interviewFeedbackDialog.label.keyStrengths')}</Label>
             {strengths.map((strength, index) => (
               <div key={index} className="flex gap-2">
                 <Input
                   value={strength}
                   onChange={(e) => handleUpdateField(setStrengths, index, e.target.value)}
-                  placeholder="E.g., Strong problem-solving skills"
+                  placeholder={t('interviewFeedbackDialog.placeholder.egStrongProblemsolvingSkills')}
                 />
                 {strengths.length > 1 && (
                   <Button
@@ -253,7 +255,7 @@ export const InterviewFeedbackDialog = ({
                     size="sm"
                     onClick={() => handleRemoveField(setStrengths, index)}
                   >
-                    Remove
+                    {t('common:remove')}
                   </Button>
                 )}
               </div>
@@ -264,19 +266,19 @@ export const InterviewFeedbackDialog = ({
               size="sm"
               onClick={() => handleAddField(setStrengths)}
             >
-              Add Strength
+              {t('partner.interviewfeedbackdialog.addStrength', 'Add Strength')}
             </Button>
           </div>
 
           {/* Concerns */}
           <div className="space-y-2">
-            <Label>Concerns / Areas for Improvement</Label>
+            <Label>{t('interviewFeedbackDialog.label.concernsAreasForImprovement')}</Label>
             {concerns.map((concern, index) => (
               <div key={index} className="flex gap-2">
                 <Input
                   value={concern}
                   onChange={(e) => handleUpdateField(setConcerns, index, e.target.value)}
-                  placeholder="E.g., Limited experience with X technology"
+                  placeholder={t('interviewFeedbackDialog.placeholder.egLimitedExperienceWithXTechnology')}
                 />
                 {concerns.length > 1 && (
                   <Button
@@ -285,7 +287,7 @@ export const InterviewFeedbackDialog = ({
                     size="sm"
                     onClick={() => handleRemoveField(setConcerns, index)}
                   >
-                    Remove
+                    {t('common:remove')}
                   </Button>
                 )}
               </div>
@@ -296,19 +298,19 @@ export const InterviewFeedbackDialog = ({
               size="sm"
               onClick={() => handleAddField(setConcerns)}
             >
-              Add Concern
+              {t('partner.interviewfeedbackdialog.addConcern', 'Add Concern')}
             </Button>
           </div>
 
           {/* Key Observations */}
           <div className="space-y-2">
-            <Label>Key Observations</Label>
+            <Label>{t('interviewFeedbackDialog.label.keyObservations')}</Label>
             {keyObservations.map((observation, index) => (
               <div key={index} className="flex gap-2">
                 <Input
                   value={observation}
                   onChange={(e) => handleUpdateField(setKeyObservations, index, e.target.value)}
-                  placeholder="E.g., Handled pressure well during technical challenge"
+                  placeholder={t('interviewFeedbackDialog.placeholder.egHandledPressureWellDuringTechnicalChal')}
                 />
                 {keyObservations.length > 1 && (
                   <Button
@@ -317,7 +319,7 @@ export const InterviewFeedbackDialog = ({
                     size="sm"
                     onClick={() => handleRemoveField(setKeyObservations, index)}
                   >
-                    Remove
+                    {t('common:remove')}
                   </Button>
                 )}
               </div>
@@ -328,17 +330,17 @@ export const InterviewFeedbackDialog = ({
               size="sm"
               onClick={() => handleAddField(setKeyObservations)}
             >
-              Add Observation
+              {t('partner.interviewfeedbackdialog.addObservation', 'Add Observation')}
             </Button>
           </div>
 
           {/* Detailed Notes */}
           <div className="space-y-2">
-            <Label>Detailed Notes</Label>
+            <Label>{t('interviewFeedbackDialog.label.detailedNotes')}</Label>
             <Textarea
               value={detailedNotes}
               onChange={(e) => setDetailedNotes(e.target.value)}
-              placeholder="Provide comprehensive notes about the interview..."
+              placeholder={t('interviewFeedbackDialog.placeholder.provideComprehensiveNotesAboutTheIntervi')}
               rows={5}
             />
           </div>
@@ -346,10 +348,10 @@ export const InterviewFeedbackDialog = ({
 
         <div className="flex justify-end gap-2">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+            {t('common:cancel')}
           </Button>
           <Button onClick={handleSubmit} disabled={submitting || !recommendation}>
-            {submitting ? 'Submitting...' : 'Submit Feedback'}
+            {submitting ? t('partner.interviewfeedbackdialog.submitting', 'Submitting...') : t('partner.interviewfeedbackdialog.submitFeedback', 'Submit Feedback')}
           </Button>
         </div>
       </DialogContent>

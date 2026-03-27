@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -48,6 +49,7 @@ const statusColors: Record<string, string> = {
 };
 
 export function TaskTimelineView({ objectiveId, onRefresh }: TaskTimelineViewProps) {
+  const { t } = useTranslation('common');
   const [tasks, setTasks] = useState<TimelineTask[]>([]);
   const [deps, setDeps] = useState<Dependency[]>([]);
   const [loading, setLoading] = useState(true);
@@ -133,8 +135,8 @@ export function TaskTimelineView({ objectiveId, onRefresh }: TaskTimelineViewPro
       <Card>
         <CardContent className="flex flex-col items-center justify-center py-16 text-muted-foreground">
           <GanttChart className="h-10 w-10 mb-3 opacity-20" />
-          <p className="text-sm">No tasks with dates to display on the timeline.</p>
-          <p className="text-xs mt-1">Add due dates or scheduled starts to see tasks here.</p>
+          <p className="text-sm">{t("no_tasks_with_dates", "No tasks with dates to display on the timeline.")}</p>
+          <p className="text-xs mt-1">{t("add_due_dates_or", "Add due dates or scheduled starts to see tasks here.")}</p>
         </CardContent>
       </Card>
     );

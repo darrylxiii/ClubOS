@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 
 interface CreateChannelDialogProps {
   open: boolean;
@@ -16,6 +17,7 @@ interface CreateChannelDialogProps {
 }
 
 const CreateChannelDialog = ({ open, onOpenChange, serverId, onChannelCreated }: CreateChannelDialogProps) => {
+  const { t } = useTranslation('meetings');
   const [name, setName] = useState('');
   const [channelType, setChannelType] = useState<'text' | 'voice' | 'video' | 'stage'>('text');
   const [category, setCategory] = useState('GENERAL');
@@ -25,7 +27,7 @@ const CreateChannelDialog = ({ open, onOpenChange, serverId, onChannelCreated }:
 
   const handleCreate = async () => {
     if (!name.trim() || !serverId) {
-      toast.error('Please enter a channel name');
+      toast.error(t('channel.enterName', 'Please enter a channel name'));
       return;
     }
 
@@ -44,7 +46,7 @@ const CreateChannelDialog = ({ open, onOpenChange, serverId, onChannelCreated }:
 
       if (error) throw error;
 
-      toast.success('Channel created successfully');
+      toast.success(t('channel.created', 'Channel created successfully'));
       onChannelCreated();
       onOpenChange(false);
       setName('');
@@ -54,7 +56,7 @@ const CreateChannelDialog = ({ open, onOpenChange, serverId, onChannelCreated }:
       setAutoTranscribe(true);
     } catch (error: unknown) {
       console.error('Error creating channel:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to create channel';
+      const errorMessage = error instanceof Error ? error.message : t('channel.createFailed', 'Failed to create channel');
       toast.error(errorMessage);
     } finally {
       setLoading(false);
@@ -65,12 +67,12 @@ const CreateChannelDialog = ({ open, onOpenChange, serverId, onChannelCreated }:
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Create Channel</DialogTitle>
+          <DialogTitle>{t('channel.createChannel', 'Create Channel')}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
           <div>
-            <Label htmlFor="name">Channel Name</Label>
+            <Label htmlFor="name">{t('channel.channelName', 'Channel Name')}</Label>
             <Input
               id="name"
               value={name}
@@ -80,34 +82,34 @@ const CreateChannelDialog = ({ open, onOpenChange, serverId, onChannelCreated }:
           </div>
 
           <div>
-            <Label htmlFor="type">Channel Type</Label>
+            <Label htmlFor="type">{t('channel.channelType', 'Channel Type')}</Label>
             <Select value={channelType} onValueChange={(value: any) => setChannelType(value)}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="text">Text Channel</SelectItem>
-                <SelectItem value="voice">Voice Channel</SelectItem>
-                <SelectItem value="video">Video Channel</SelectItem>
-                <SelectItem value="stage">Stage Channel</SelectItem>
+                <SelectItem value="text">{t('channel.textChannel', 'Text Channel')}</SelectItem>
+                <SelectItem value="voice">{t('channel.voiceChannel', 'Voice Channel')}</SelectItem>
+                <SelectItem value="video">{t('channel.videoChannel', 'Video Channel')}</SelectItem>
+                <SelectItem value="stage">{t('channel.stageChannel', 'Stage Channel')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <div>
-            <Label htmlFor="category">Category</Label>
+            <Label htmlFor="category">{t('channel.category', 'Category')}</Label>
             <Input
               id="category"
               value={category}
               onChange={(e) => setCategory(e.target.value)}
-              placeholder="e.g., GENERAL, STRATEGY"
+              placeholder="e.g., GENERAL," STRATEGY
             />
           </div>
 
           {(channelType === 'voice' || channelType === 'video' || channelType === 'stage') && (
             <>
               <div className="flex items-center justify-between">
-                <Label htmlFor="auto-record">Auto-record sessions</Label>
+                <Label htmlFor="auto-record">{t('channel.autoRecord', 'Auto-record sessions')}</Label>
                 <Switch
                   id="auto-record"
                   checked={autoRecord}
@@ -116,7 +118,7 @@ const CreateChannelDialog = ({ open, onOpenChange, serverId, onChannelCreated }:
               </div>
 
               <div className="flex items-center justify-between">
-                <Label htmlFor="auto-transcribe">Auto-transcribe audio</Label>
+                <Label htmlFor="auto-transcribe">{t('channel.autoTranscribe', 'Auto-transcribe audio')}</Label>
                 <Switch
                   id="auto-transcribe"
                   checked={autoTranscribe}
@@ -129,10 +131,10 @@ const CreateChannelDialog = ({ open, onOpenChange, serverId, onChannelCreated }:
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+            {t('common:cancel', 'Cancel')}
           </Button>
           <Button onClick={handleCreate} disabled={loading}>
-            Create Channel
+            {t('channel.createChannel', 'Create Channel')}
           </Button>
         </DialogFooter>
       </DialogContent>

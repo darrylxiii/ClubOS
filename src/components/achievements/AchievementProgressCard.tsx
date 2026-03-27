@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
@@ -37,6 +38,7 @@ export const AchievementProgressCard = ({
   progress,
   onActionClick,
 }: AchievementProgressCardProps) => {
+  const { t } = useTranslation('common');
   const progressPercentage = progress
     ? Math.min((progress.progress_value / progress.target_value) * 100, 100)
     : 0;
@@ -56,15 +58,15 @@ export const AchievementProgressCard = ({
   const getActionText = () => {
     const criteria = achievement.unlock_criteria;
     const typeMap: Record<string, string> = {
-      applications: 'Apply to jobs',
-      courses: 'Complete courses',
-      referrals: 'Refer friends',
-      posts: 'Create posts',
-      messages_sent: 'Send messages',
-      jobs_saved: 'Save jobs',
-      profile_completion: 'Complete profile',
+      applications: t('achievements.actions.applyToJobs'),
+      courses: t('achievements.actions.completeCourses'),
+      referrals: t('achievements.actions.referFriends'),
+      posts: t('achievements.actions.createPosts'),
+      messages_sent: t('achievements.actions.sendMessages'),
+      jobs_saved: t('achievements.actions.saveJobs'),
+      profile_completion: t('achievements.actions.completeProfile'),
     };
-    return typeMap[criteria.type] || 'Take action';
+    return typeMap[criteria.type] || t('achievements.actions.takeAction');
   };
 
   const estimateTimeToUnlock = () => {
@@ -76,17 +78,17 @@ export const AchievementProgressCard = ({
     );
     
     if (daysSinceUpdate === 0 || progress.progress_value === 0) {
-      return 'Start now to unlock!';
+      return t('achievements.startNowToUnlock');
     }
 
     const ratePerDay = progress.progress_value / daysSinceUpdate;
     const daysToComplete = Math.ceil(remainingActions / ratePerDay);
 
-    if (daysToComplete < 1) return 'Less than a day';
-    if (daysToComplete === 1) return '~1 day';
-    if (daysToComplete < 7) return `~${daysToComplete} days`;
-    if (daysToComplete < 30) return `~${Math.ceil(daysToComplete / 7)} weeks`;
-    return `~${Math.ceil(daysToComplete / 30)} months`;
+    if (daysToComplete < 1) return t('achievements.estimates.lessThanADay');
+    if (daysToComplete === 1) return t('achievements.estimates.oneDay');
+    if (daysToComplete < 7) return t('achievements.estimates.days', { count: daysToComplete });
+    if (daysToComplete < 30) return t('achievements.estimates.weeks', { count: Math.ceil(daysToComplete / 7) });
+    return t('achievements.estimates.months', { count: Math.ceil(daysToComplete / 30) });
   };
 
   return (
@@ -130,7 +132,7 @@ export const AchievementProgressCard = ({
         {/* Progress Bar */}
         <div className="space-y-2">
           <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">Progress</span>
+            <span className="text-muted-foreground">{t('achievements.progress')}</span>
             <span className="font-semibold">
               {progress?.progress_value || 0} / {progress?.target_value || 1}
             </span>
@@ -142,7 +144,7 @@ export const AchievementProgressCard = ({
         <div className="flex items-center justify-between text-sm">
           <div className="flex items-center gap-2 text-muted-foreground">
             <TrendingUp className="h-4 w-4" />
-            <span>{remainingActions} more to unlock</span>
+            <span>{t('achievements.moreToUnlock', { count: remainingActions })}</span>
           </div>
           {estimateTimeToUnlock() && (
             <div className="flex items-center gap-1 text-xs text-muted-foreground">
@@ -167,7 +169,7 @@ export const AchievementProgressCard = ({
         {/* Last Progress Update */}
         {progress && (
           <p className="text-xs text-muted-foreground text-center">
-            Last progress: {formatDistanceToNow(new Date(progress.last_updated), { addSuffix: true })}
+            {t('achievements.lastProgress')}: {formatDistanceToNow(new Date(progress.last_updated), { addSuffix: true })}
           </p>
         )}
       </div>

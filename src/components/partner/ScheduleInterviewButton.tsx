@@ -5,6 +5,7 @@ import { CreateInterviewDialog } from './CreateInterviewDialog';
 import { T } from '@/components/T';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 
 interface ScheduleInterviewButtonProps {
   application: any;
@@ -25,6 +26,7 @@ export const ScheduleInterviewButton = ({
   size = 'sm',
   className = '',
 }: ScheduleInterviewButtonProps) => {
+  const { t } = useTranslation('partner');
   const [dialogOpen, setDialogOpen] = useState(false);
   const queryClient = useQueryClient();
 
@@ -50,7 +52,7 @@ export const ScheduleInterviewButton = ({
         onInterviewCreated={() => {
           setDialogOpen(false);
           queryClient.invalidateQueries({ queryKey: ['interviews'] });
-          toast.success("Interview scheduled successfully");
+          toast.success(t('scheduleInterviewButton.toast.interviewScheduledSuccessfully'));
         }}
       />
     </>

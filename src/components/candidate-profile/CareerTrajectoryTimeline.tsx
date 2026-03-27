@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { TrendingUp, Briefcase, ArrowUp, Minus } from "lucide-react";
 import { candidateProfileTokens } from "@/config/candidate-profile-tokens";
+import { useTranslation } from 'react-i18next';
 
 interface CareerTrajectoryTimelineProps {
   candidate: any;
@@ -40,6 +41,7 @@ function formatDuration(months: number | undefined): string {
 }
 
 export function CareerTrajectoryTimeline({ candidate }: CareerTrajectoryTimelineProps) {
+  const { t } = useTranslation('candidates');
   const workHistory = Array.isArray(candidate.work_history) ? candidate.work_history : [];
 
   if (workHistory.length === 0) return null;

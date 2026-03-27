@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -32,6 +33,7 @@ export function PredictiveHiringPanel({
   candidateId,
   compact = false
 }: PredictiveHiringPanelProps) {
+  const { t } = useTranslation('common');
   const [loading, setLoading] = useState(true);
   const [prediction, setPrediction] = useState<{
     overallScore: number;
@@ -199,7 +201,7 @@ export function PredictiveHiringPanel({
         <CardContent className="p-6">
           <div className="flex items-center justify-center gap-2 text-muted-foreground">
             <RefreshCw className="h-4 w-4 animate-spin" />
-            <span>Analyzing hiring signals...</span>
+            <span>{t("analyzing_hiring_signals", "Analyzing hiring signals...")}</span>
           </div>
         </CardContent>
       </Card>

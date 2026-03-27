@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -71,6 +72,7 @@ const LegalDocumentCard = ({
 );
 
 export default function LegalHub() {
+  const { t } = useTranslation('common');
   const documents = [
     {
       icon: <FileText className="w-5 h-5" />,
@@ -146,12 +148,12 @@ export default function LegalHub() {
           <Link to="/" className="flex items-center">
             <img 
               src={quantumLogoDark} 
-              alt="Quantum Club" 
+              alt={"Quantum Club"} 
               className="h-12 w-auto dark:hidden"
             />
             <img 
               src={quantumLogoLight} 
-              alt="Quantum Club" 
+              alt={"Quantum Club"} 
               className="h-12 w-auto hidden dark:block"
             />
           </Link>
@@ -164,11 +166,10 @@ export default function LegalHub() {
         {/* Hero */}
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
-            Legal Center
+            {t('legalPages.legalCenter', 'Legal Center')}
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Your rights and our commitments, clearly documented. We believe in transparency 
-            and want you to understand how we operate.
+            {t('legalPages.legalCenterDesc', 'Your rights and our commitments, clearly documented. We believe in transparency and want you to understand how we operate.')}
           </p>
         </div>
 
@@ -181,16 +182,16 @@ export default function LegalHub() {
 
         {/* Additional Resources */}
         <div className="mt-12 text-center">
-          <h2 className="text-xl font-semibold mb-4">Additional Resources</h2>
+          <h2 className="text-xl font-semibold mb-4">{t('legalPages.additionalResources', 'Additional Resources')}</h2>
           <div className="flex flex-wrap justify-center gap-4">
             <Button asChild variant="outline">
               <Link to="/compliance/subprocessors">
-                View Subprocessors
+                {t('legalPages.viewSubprocessors', 'View Subprocessors')}
               </Link>
             </Button>
             <Button asChild variant="outline">
               <a href="mailto:privacy@thequantumclub.com">
-                Contact Privacy Team
+                {t('legalPages.contactPrivacyTeam', 'Contact Privacy Team')}
               </a>
             </Button>
           </div>

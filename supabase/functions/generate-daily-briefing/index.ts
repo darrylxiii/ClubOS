@@ -1,26 +1,12 @@
-import { createClient } from "npm:@supabase/supabase-js@2";
+import { createHandler } from '../_shared/handler.ts';
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
-
-Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  try {
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
+Deno.serve(createHandler(async (_req, ctx) => {
     const now = new Date();
     const today = now.toISOString().split("T")[0];
     const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString();
 
     // --- ONCE-PER-DAY GUARD: Check if briefing already exists for today ---
-    const { data: existingBriefing } = await supabase
+    const { data: existingBriefing } = await ctx.supabase
       .from("daily_briefings")
       .select("id")
       .eq("briefing_date", today)
@@ -31,19 +17,19 @@ Deno.serve(async (req) => {
       console.log(`[Daily Briefing] Already generated for ${today} — skipping`);
       return new Response(
         JSON.stringify({ success: true, skipped: true, reason: "already_generated_today", date: today }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { headers: { ...ctx.corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
     // Get all admin users
-    const { data: adminRoles } = await supabase
+    const { data: adminRoles } = await ctx.supabase
       .from("user_roles")
       .select("user_id")
       .eq("role", "admin");
 
     if (!adminRoles?.length) {
       return new Response(JSON.stringify({ success: true, briefings: 0, reason: "No admins" }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...ctx.corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -58,36 +44,36 @@ Deno.serve(async (req) => {
       { data: todayMeetings },
       { data: heartbeats },
     ] = await Promise.all([
-      supabase
+      ctx.supabase
         .from("predictive_signals")
         .select("id, signal_type, entity_type, entity_id, signal_strength, recommended_actions, contributing_factors")
         .eq("is_active", true)
         .order("signal_strength", { ascending: false })
         .limit(10),
-      supabase
+      ctx.supabase
         .from("applications")
         .select("id, candidate_full_name, position, company_name, updated_at")
         .lt("updated_at", new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString())
         .not("status", "in", '("rejected","hired","archived","withdrawn")')
         .limit(20),
-      supabase
+      ctx.supabase
         .from("agent_decision_log")
         .select("id, agent_name, decision_type, decision_made, confidence_score, created_at")
         .gte("created_at", yesterday)
         .order("created_at", { ascending: false })
         .limit(20),
-      supabase
+      ctx.supabase
         .from("applications")
         .select("id")
         .gte("created_at", yesterday),
-      supabase
+      ctx.supabase
         .from("quantum_meetings")
         .select("id, title, scheduled_start, participant_count")
         .gte("scheduled_start", `${today}T00:00:00`)
         .lte("scheduled_start", `${today}T23:59:59`)
         .order("scheduled_start", { ascending: true })
         .limit(10),
-      supabase
+      ctx.supabase
         .from("agentic_heartbeat_log")
         .select("events_processed, signals_detected, tasks_created, errors")
         .gte("run_at", yesterday),
@@ -153,7 +139,7 @@ Deno.serve(async (req) => {
     // Create briefing for each admin
     let briefingsCreated = 0;
     for (const adminId of adminIds) {
-      const { error } = await supabase
+      const { error } = await ctx.supabase
         .from("daily_briefings")
         .upsert(
           {
@@ -177,14 +163,6 @@ Deno.serve(async (req) => {
         date: today,
         summary: briefingContent.summary,
       }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      { headers: { ...ctx.corsHeaders, "Content-Type": "application/json" } }
     );
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Unknown error";
-    console.error("[Daily Briefing] Error:", message);
-    return new Response(
-      JSON.stringify({ success: false, error: message }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
-  }
-});
+}));

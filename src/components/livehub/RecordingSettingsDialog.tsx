@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { Video, Settings } from 'lucide-react';
 import { RecordingQuality, RecordingFormat } from '@/hooks/useRecordingWithEffects';
+import { useTranslation } from 'react-i18next';
 
 interface RecordingSettingsProps {
     open: boolean;
@@ -36,6 +37,7 @@ const AUDIO_BITRATE_OPTIONS = [
 ];
 
 export const RecordingSettingsDialog = ({ open, onOpenChange, onStartRecording }: RecordingSettingsProps) => {
+    const { t } = useTranslation('meetings');
     const [settings, setSettings] = useState<RecordingSettings>({
         quality: '720p',
         format: 'webm',
@@ -54,14 +56,14 @@ export const RecordingSettingsDialog = ({ open, onOpenChange, onStartRecording }
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
                         <Settings className="w-5 h-5" />
-                        Recording Settings
+                        {t('recording.settings', 'Recording Settings')}
                     </DialogTitle>
                 </DialogHeader>
 
                 <div className="space-y-6 py-4">
                     {/* Video Quality */}
                     <div className="space-y-2">
-                        <Label>Video Quality</Label>
+                        <Label>{t('recording.videoQuality', 'Video Quality')}</Label>
                         <Select
                             value={settings.quality}
                             onValueChange={(value: RecordingQuality) =>
@@ -83,13 +85,13 @@ export const RecordingSettingsDialog = ({ open, onOpenChange, onStartRecording }
                             </SelectContent>
                         </Select>
                         <p className="text-xs text-muted-foreground">
-                            Higher quality requires more storage space
+                            {t('recording.higherQualityNote', 'Higher quality requires more storage space')}
                         </p>
                     </div>
 
                     {/* Format */}
                     <div className="space-y-2">
-                        <Label>Format</Label>
+                        <Label>{t('recording.format', 'Format')}</Label>
                         <Select
                             value={settings.format}
                             onValueChange={(value: RecordingFormat) =>
@@ -103,13 +105,13 @@ export const RecordingSettingsDialog = ({ open, onOpenChange, onStartRecording }
                                 <SelectItem value="webm">
                                     <div className="flex flex-col items-start">
                                         <span className="font-medium">WebM</span>
-                                        <span className="text-xs text-muted-foreground">Best compatibility</span>
+                                        <span className="text-xs text-muted-foreground">{t('recording.bestCompatibility', 'Best compatibility')}</span>
                                     </div>
                                 </SelectItem>
                                 <SelectItem value="mp4">
                                     <div className="flex flex-col items-start">
                                         <span className="font-medium">MP4</span>
-                                        <span className="text-xs text-muted-foreground">Universal format</span>
+                                        <span className="text-xs text-muted-foreground">{t('recording.universalFormat', 'Universal format')}</span>
                                     </div>
                                 </SelectItem>
                             </SelectContent>
@@ -118,7 +120,7 @@ export const RecordingSettingsDialog = ({ open, onOpenChange, onStartRecording }
 
                     {/* Audio Bitrate */}
                     <div className="space-y-2">
-                        <Label>Audio Quality</Label>
+                        <Label>{t('recording.audioQuality', 'Audio Quality')}</Label>
                         <Select
                             value={settings.audioBitrate.toString()}
                             onValueChange={(value) =>
@@ -141,9 +143,9 @@ export const RecordingSettingsDialog = ({ open, onOpenChange, onStartRecording }
                     {/* System Audio Toggle */}
                     <div className="flex items-center justify-between">
                         <div>
-                            <Label>Include System Audio</Label>
+                            <Label>{t('recording.includeSystemAudio', 'Include System Audio')}</Label>
                             <p className="text-xs text-muted-foreground">
-                                Record audio from other participants
+                                {t('recording.recordOtherParticipants', 'Record audio from other participants')}
                             </p>
                         </div>
                         <Switch
@@ -159,11 +161,11 @@ export const RecordingSettingsDialog = ({ open, onOpenChange, onStartRecording }
                         <div className="flex items-start gap-2">
                             <Video className="w-4 h-4 mt-0.5 text-muted-foreground" />
                             <div className="space-y-1">
-                                <p className="text-sm font-medium">Recording Info</p>
+                                <p className="text-sm font-medium">{t('recording.info', 'Recording Info')}</p>
                                 <ul className="text-xs text-muted-foreground space-y-1">
-                                    <li>• Virtual backgrounds will be included</li>
-                                    <li>• Recording saves locally to your device</li>
-                                    <li>• Estimated file size: ~{estimateFileSize(settings.quality)} MB/min</li>
+                                    <li>{t('recording.virtualBgIncluded', 'Virtual backgrounds will be included')}</li>
+                                    <li>{t('recording.savesLocally', 'Recording saves locally to your device')}</li>
+                                    <li>{t('recording.estimatedSize', 'Estimated file size: ~{{size}} MB/min', { size: estimateFileSize(settings.quality) })}</li>
                                 </ul>
                             </div>
                         </div>
@@ -172,10 +174,10 @@ export const RecordingSettingsDialog = ({ open, onOpenChange, onStartRecording }
 
                 <div className="flex gap-2">
                     <Button variant="outline" onClick={() => onOpenChange(false)} className="flex-1">
-                        Cancel
+                        {t('common:cancel', 'Cancel')}
                     </Button>
                     <Button onClick={handleStartRecording} className="flex-1">
-                        Start Recording
+                        {t('recording.startRecording', 'Start Recording')}
                     </Button>
                 </div>
             </DialogContent>

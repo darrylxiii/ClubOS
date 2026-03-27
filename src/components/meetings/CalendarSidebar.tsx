@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Calendar } from "@/components/ui/calendar";
 import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
@@ -21,6 +22,7 @@ export function CalendarSidebar({
   onToggleFilter,
   onRefresh,
 }: CalendarSidebarProps) {
+  const { t } = useTranslation('common');
   return (
     <div className="space-y-6">
       <Card className="p-4">
@@ -34,7 +36,7 @@ export function CalendarSidebar({
 
       <Card className="p-4">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="font-semibold">Calendars</h3>
+          <h3 className="font-semibold">{t("calendars", "Calendars")}</h3>
           <Button size="sm" variant="ghost" onClick={onRefresh}>
             <RefreshCw className="h-4 w-4" />
           </Button>

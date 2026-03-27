@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
@@ -14,6 +15,7 @@ interface UsageMeterProps {
 }
 
 export function UsageMeter({ limitType, title, description, icon }: UsageMeterProps) {
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
   const { data: limit, isLoading } = useTierLimit(limitType);
 
@@ -59,14 +61,14 @@ export function UsageMeter({ limitType, title, description, icon }: UsageMeterPr
       <CardContent className="space-y-4">
         {isUnlimited ? (
           <div className="text-center py-4">
-            <p className="text-2xl font-bold mb-1">Unlimited</p>
-            <p className="text-sm text-muted-foreground">No usage limits on your current plan</p>
+            <p className="text-2xl font-bold mb-1">{t("unlimited", "Unlimited")}</p>
+            <p className="text-sm text-muted-foreground">{t("no_usage_limits_on", "No usage limits on your current plan")}</p>
           </div>
         ) : (
           <>
             <div className="space-y-2">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Usage</span>
+                <span className="text-muted-foreground">{t("usage", "Usage")}</span>
                 <span className="font-medium">
                   {limit.usage} / {limit.limit}
                 </span>

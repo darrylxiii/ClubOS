@@ -1,20 +1,20 @@
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useTranslation } from 'react-i18next';
 import { BarChart3, AlertTriangle, Rocket, Shield } from 'lucide-react';
 import { CapacityPlanningDashboard } from '@/components/admin/risk/CapacityPlanningDashboard';
 import { RiskRegistryPanel } from '@/components/admin/risk/RiskRegistryPanel';
 import { ScalingReadinessPanel } from '@/components/admin/risk/ScalingReadinessPanel';
 
 export default function RiskManagementDashboard() {
+  const { t } = useTranslation('admin');
   return (
     <>
       <div className="space-y-6 p-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold">Risk & Scale Management</h1>
-            <p className="text-muted-foreground">
-              Capacity planning, risk registry, and scaling readiness
-            </p>
+            <h1 className="text-3xl font-bold">{t('riskManagementDashboard.text2')}</h1>
+            <p className="text-muted-foreground">{t('riskManagementDashboard.desc')}</p>
           </div>
           <Shield className="h-12 w-12 text-primary" />
         </div>

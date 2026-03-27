@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { ImageEditor } from "@/components/image-editor";
+import { useTranslation } from 'react-i18next';
 
 interface AvatarUploadProps {
   avatarUrl: string | null;
@@ -15,6 +16,7 @@ interface AvatarUploadProps {
 }
 
 export const AvatarUpload = ({ avatarUrl, onAvatarChange, userId, required = false }: AvatarUploadProps) => {
+  const { t } = useTranslation('common');
   const [uploading, setUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(avatarUrl);
   const [editorOpen, setEditorOpen] = useState(false);
@@ -32,13 +34,13 @@ export const AvatarUpload = ({ avatarUrl, onAvatarChange, userId, required = fal
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
-      toast.error('Please upload an image file');
+      toast.error(t('avatarUpload.pleaseUploadImageFile', 'Please upload an image file'));
       return;
     }
 
     // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      toast.error('Image must be less than 5MB');
+      toast.error(t('avatarUpload.imageMustBeLessThan5MB', 'Image must be less than 5MB'));
       return;
     }
 
@@ -98,7 +100,7 @@ export const AvatarUpload = ({ avatarUrl, onAvatarChange, userId, required = fal
 
       setPreviewUrl(publicUrl);
       onAvatarChange(publicUrl);
-      toast.success('Profile picture updated');
+      toast.success(t('avatarUpload.profilePictureUpdated', 'Profile picture updated'));
     } catch (error: unknown) {
       console.error('Error uploading avatar:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to upload profile picture');
@@ -135,10 +137,10 @@ export const AvatarUpload = ({ avatarUrl, onAvatarChange, userId, required = fal
 
       setPreviewUrl(null);
       onAvatarChange('');
-      toast.success('Profile picture removed');
+      toast.success(t('avatarUpload.profilePictureRemoved', 'Profile picture removed'));
     } catch (error: unknown) {
       console.error('Error removing avatar:', error);
-      toast.error('Failed to remove profile picture');
+      toast.error(t('avatarUpload.failedToRemoveProfilePicture', 'Failed to remove profile picture'));
     } finally {
       setUploading(false);
     }
@@ -153,10 +155,10 @@ export const AvatarUpload = ({ avatarUrl, onAvatarChange, userId, required = fal
     <>
       <div className="space-y-4">
         <Label className="flex items-center gap-2">
-          Profile Picture
+          {t('avatarUpload.profilePicture', 'Profile Picture')}
           {required && !previewUrl && (
             <span className="text-xs text-muted-foreground ml-2 px-2 py-0.5 bg-muted rounded">
-              Recommended
+              {t('avatarUpload.recommended', 'Recommended')}
             </span>
           )}
         </Label>
@@ -165,7 +167,7 @@ export const AvatarUpload = ({ avatarUrl, onAvatarChange, userId, required = fal
           <div className="p-3 bg-muted/50 border border-border rounded-lg">
             <p className="text-sm text-muted-foreground flex items-center gap-2">
               <ImageIcon className="w-4 h-4" />
-              Add a profile picture to complete your profile
+              {t('avatarUpload.addProfilePictureToComplete', 'Add a profile picture to complete your profile')}
             </p>
           </div>
         )}
@@ -206,7 +208,7 @@ export const AvatarUpload = ({ avatarUrl, onAvatarChange, userId, required = fal
               className="w-fit"
             >
               <Upload className="w-4 h-4 mr-2" />
-              {previewUrl ? 'Change' : 'Upload'} Picture
+              {previewUrl ? t('avatarUpload.changePicture', 'Change Picture') : t('avatarUpload.uploadPicture', 'Upload Picture')}
             </Button>
 
             {previewUrl && !required && (

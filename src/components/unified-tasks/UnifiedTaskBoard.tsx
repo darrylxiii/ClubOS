@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -54,6 +55,7 @@ export const UnifiedTaskBoard = ({
   onRefresh,
   aiSchedulingEnabled,
 }: UnifiedTaskBoardProps) => {
+  const { t } = useTranslation('common');
   const {
     filteredTasks: tasks,
     loading,
@@ -102,15 +104,15 @@ export const UnifiedTaskBoard = ({
     const prev = tasks.find((t) => t.id === taskId);
     try {
       await updateTask(taskId, { status: newStatus });
-      toast.success("Status updated", {
+      toast.success(t('tasks.statusUpdated', 'Status updated'), {
         action: prev?.status ? {
-          label: "Undo",
+          label: t('tasks.undo', 'Undo'),
           onClick: async () => { await updateTask(taskId, { status: prev.status }); onRefresh(); }
         } : undefined,
         duration: 5000
       });
       onRefresh();
-    } catch { toast.error("Failed to update task"); }
+    } catch { toast.error(t('tasks.failedToUpdateTask', 'Failed to update task')); }
   };
 
   const handleDragStart = (e: DragStartEvent) => setActiveTask(tasks.find((t) => t.id === e.active.id) || null);
@@ -147,10 +149,10 @@ export const UnifiedTaskBoard = ({
                     <div className="px-1 pb-1 space-y-1 min-h-[80px]">
                       {colTasks.length === 0 ? (
                         <div className="border border-dashed border-border/15 rounded-md p-4 text-center my-1 mx-0.5">
-                          <p className="text-[10px] text-muted-foreground/30 mb-1.5">Drop tasks here</p>
+                          <p className="text-[10px] text-muted-foreground/30 mb-1.5">{t('tasks.dropTasksHere', 'Drop tasks here')}</p>
                           <CreateUnifiedTaskDialog objectiveId={objectiveId} defaultStatus={col.key} onTaskCreated={handleTaskUpdated}>
                             <Button variant="ghost" size="sm" className="h-5 text-[10px] gap-0.5 px-1.5">
-                              <Plus className="h-2.5 w-2.5" /> Add
+                              <Plus className="h-2.5 w-2.5" /> {t('tasks.add', 'Add')}
                             </Button>
                           </CreateUnifiedTaskDialog>
                         </div>

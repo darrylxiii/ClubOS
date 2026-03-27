@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
+import { useTranslation } from 'react-i18next';
 import { Label } from '@/components/ui/label';
 import {
   Tooltip,
@@ -16,6 +17,7 @@ interface SilentObserverToggleProps {
 }
 
 export function SilentObserverToggle({ value, onChange, disabled }: SilentObserverToggleProps) {
+  const { t } = useTranslation("meetings");
   return (
     <div className="flex items-center justify-between p-4 bg-card/50 backdrop-blur-sm rounded-lg border border-border/50">
       <div className="flex items-center gap-3">
@@ -26,10 +28,10 @@ export function SilentObserverToggle({ value, onChange, disabled }: SilentObserv
         )}
         <div className="flex flex-col">
           <Label htmlFor="silent-observer" className="text-sm font-medium cursor-pointer">
-            Join as Silent Observer
+            {t('observer.joinAsSilent')}
           </Label>
           <p className="text-xs text-muted-foreground">
-            Watch the interview without being seen by candidates
+            {t('observer.description')}
           </p>
         </div>
       </div>
@@ -48,8 +50,7 @@ export function SilentObserverToggle({ value, onChange, disabled }: SilentObserv
           </TooltipTrigger>
           <TooltipContent>
             <p className="max-w-xs text-xs">
-              Silent observers can see and hear everything but won't appear in the video grid.
-              Perfect for training, QA, or team evaluation.
+              {t('observer.tooltip')}
             </p>
           </TooltipContent>
         </Tooltip>

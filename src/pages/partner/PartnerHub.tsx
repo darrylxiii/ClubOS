@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { lazy, Suspense } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { RoleGate } from '@/components/RoleGate';
@@ -27,6 +28,7 @@ const TAB_MAP: Record<string, string> = {
 };
 
 export default function PartnerHub() {
+  const { t } = useTranslation('common');
   const [searchParams, setSearchParams] = useSearchParams();
   const activeTab = TAB_MAP[searchParams.get('tab') || ''] || 'analytics';
 
@@ -38,21 +40,21 @@ export default function PartnerHub() {
     <RoleGate allowedRoles={['partner', 'admin', 'strategist']}>
       <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-4">
         <PartnerPageHeader
-          title="Partner Hub"
-          subtitle="Analytics, billing, SLA, integrations and partner operations"
+          title={t("partner_hub", "Partner Hub")}
+          subtitle={t("analytics_billing_sla_integrations", "Analytics, billing, SLA, integrations and partner operations")}
         />
 
         <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
           <ScrollArea className="w-full whitespace-nowrap">
             <TabsList className="h-auto inline-flex bg-card/30 backdrop-blur-sm border border-border/20 rounded-lg p-1">
-              <TabsTrigger value="analytics">Analytics</TabsTrigger>
-              <TabsTrigger value="billing">Billing</TabsTrigger>
+              <TabsTrigger value="analytics">{t("analytics", "Analytics")}</TabsTrigger>
+              <TabsTrigger value="billing">{t("billing", "Billing")}</TabsTrigger>
               <TabsTrigger value="sla">SLA</TabsTrigger>
-              <TabsTrigger value="integrations">Integrations</TabsTrigger>
-              <TabsTrigger value="audit-log">Audit Log</TabsTrigger>
-              <TabsTrigger value="rejections">Rejections</TabsTrigger>
-              <TabsTrigger value="target-companies">Target Companies</TabsTrigger>
-              <TabsTrigger value="social">Social</TabsTrigger>
+              <TabsTrigger value="integrations">{t("integrations", "Integrations")}</TabsTrigger>
+              <TabsTrigger value="audit-log">{t("audit_log", "Audit Log")}</TabsTrigger>
+              <TabsTrigger value="rejections">{t("rejections", "Rejections")}</TabsTrigger>
+              <TabsTrigger value="target-companies">{t("target_companies", "Target Companies")}</TabsTrigger>
+              <TabsTrigger value="social">{t("social", "Social")}</TabsTrigger>
             </TabsList>
             <ScrollBar orientation="horizontal" />
           </ScrollArea>

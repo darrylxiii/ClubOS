@@ -32,35 +32,23 @@ export interface ModelConfig {
 
 // Model configurations with their context limits
 export const MODEL_CONFIGS: Record<string, ModelConfig> = {
-  'google/gemini-3-flash-preview': {
-    name: 'Gemini 3 Flash Preview',
-    maxContextTokens: 128000,
-    optimalUtilization: 0.70,
-    reservedForResponse: 4096,
-  },
-  'google/gemini-2.5-flash': {
+  'gemini-2.5-flash': {
     name: 'Gemini 2.5 Flash',
     maxContextTokens: 128000,
     optimalUtilization: 0.70,
     reservedForResponse: 4096,
   },
-  'google/gemini-2.5-pro': {
-    name: 'Gemini 2.5 Pro',
-    maxContextTokens: 200000,
-    optimalUtilization: 0.70,
-    reservedForResponse: 8192,
-  },
-  'openai/gpt-5': {
-    name: 'GPT-5',
+  'gemini-2.5-flash-lite': {
+    name: 'Gemini 2.5 Flash Lite',
     maxContextTokens: 128000,
     optimalUtilization: 0.70,
     reservedForResponse: 4096,
   },
-  'openai/gpt-5-mini': {
-    name: 'GPT-5 Mini',
-    maxContextTokens: 64000,
+  'gemini-2.5-pro': {
+    name: 'Gemini 2.5 Pro',
+    maxContextTokens: 200000,
     optimalUtilization: 0.70,
-    reservedForResponse: 4096,
+    reservedForResponse: 8192,
   },
 };
 
@@ -142,7 +130,7 @@ function applyDiversityBonus(
  */
 export function optimizeContext(
   chunks: ChunkWithScore[],
-  modelName: string = 'google/gemini-3-flash-preview',
+  modelName: string = 'gemini-2.5-flash',
   options: {
     systemPromptTokens?: number;
     queryTokens?: number;
@@ -214,7 +202,7 @@ export function optimizeContext(
 export function adaptiveContextSelection(
   chunks: ChunkWithScore[],
   queryComplexity: 'simple' | 'moderate' | 'complex',
-  modelName: string = 'google/gemini-3-flash-preview'
+  modelName: string = 'gemini-2.5-flash'
 ): ContextOptimizationResult {
   const complexityMultipliers = {
     simple: 0.5,    // Use 50% of optimal budget

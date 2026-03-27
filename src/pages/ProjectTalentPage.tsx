@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from 'react-i18next';
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,6 +24,7 @@ interface FreelancerProfile {
 }
 
 export default function ProjectTalentPage() {
+  const { t } = useTranslation('candidates');
   const [searchQuery, setSearchQuery] = useState("");
   const [skillFilter, setSkillFilter] = useState<string>("");
   const [availabilityFilter, setAvailabilityFilter] = useState<string>("");
@@ -78,8 +80,8 @@ export default function ProjectTalentPage() {
       {/* Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Find Talent</h1>
-          <p className="text-muted-foreground">Search and invite freelancers to your projects</p>
+          <h1 className="text-2xl font-semibold tracking-tight">{t('projectTalentPage.text3')}</h1>
+          <p className="text-muted-foreground">{t('projectTalentPage.text4')}</p>
         </div>
         <Badge variant="outline" className="w-fit">
           <Users className="h-3 w-3 mr-1" />
@@ -94,7 +96,7 @@ export default function ProjectTalentPage() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search by name, title, or bio..."
+                placeholder={t('projectTalentPage.text5')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-9"
@@ -103,10 +105,10 @@ export default function ProjectTalentPage() {
             <Select value={skillFilter} onValueChange={setSkillFilter}>
               <SelectTrigger className="w-full md:w-[180px]">
                 <Filter className="h-4 w-4 mr-2" />
-                <SelectValue placeholder="Filter by skill" />
+                <SelectValue placeholder={t('projectTalentPage.text6')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Skills</SelectItem>
+                <SelectItem value="all">{t('projectTalentPage.text7')}</SelectItem>
                 {allSkills.slice(0, 20).map((skill) => (
                   <SelectItem key={skill} value={skill}>{skill}</SelectItem>
                 ))}
@@ -114,13 +116,13 @@ export default function ProjectTalentPage() {
             </Select>
             <Select value={availabilityFilter} onValueChange={setAvailabilityFilter}>
               <SelectTrigger className="w-full md:w-[180px]">
-                <SelectValue placeholder="Availability" />
+                <SelectValue placeholder={t('projectTalentPage.text8')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All</SelectItem>
-                <SelectItem value="available">Available</SelectItem>
-                <SelectItem value="partially_available">Partially Available</SelectItem>
-                <SelectItem value="not_available">Not Available</SelectItem>
+                <SelectItem value="all">{t('projectTalentPage.text9')}</SelectItem>
+                <SelectItem value="available">{t('projectTalentPage.text10')}</SelectItem>
+                <SelectItem value="partially_available">{t('projectTalentPage.text11')}</SelectItem>
+                <SelectItem value="not_available">{t('projectTalentPage.text12')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -149,10 +151,8 @@ export default function ProjectTalentPage() {
         <Card>
           <CardContent className="py-12 text-center">
             <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-lg font-medium">No freelancers found</h3>
-            <p className="text-muted-foreground mt-1">
-              Try adjusting your search or filters
-            </p>
+            <h3 className="text-lg font-medium">{t('projectTalentPage.text13')}</h3>
+            <p className="text-muted-foreground mt-1">{t('projectTalentPage.desc')}</p>
           </CardContent>
         </Card>
       ) : (
@@ -209,9 +209,7 @@ export default function ProjectTalentPage() {
                         <Mail className="h-3 w-3 mr-1" />
                         Invite
                       </Button>
-                      <Button size="sm" variant="outline">
-                        View
-                      </Button>
+                      <Button size="sm" variant="outline">{t('projectTalentPage.btn2')}</Button>
                     </div>
                   </div>
                 </div>

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -25,6 +26,7 @@ export function ShareRecordingDialog({
   recordingId,
   recordingTitle,
 }: ShareRecordingDialogProps) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [isCreating, setIsCreating] = useState(false);
   const [shareLink, setShareLink] = useState<string | null>(null);
@@ -38,7 +40,7 @@ export function ShareRecordingDialog({
 
   const createShareLink = async () => {
     if (!user) {
-      toast.error('Please sign in to share recordings');
+      toast.error(t("please_sign_in_to", "Please sign in to share recordings"));
       return;
     }
 
@@ -68,7 +70,7 @@ export function ShareRecordingDialog({
       const baseUrl = window.location.origin;
       const link = `${baseUrl}/shared-recording/${(data as any).share_token}`;
       setShareLink(link);
-      toast.success('Share link created successfully');
+      toast.success(t("share_link_created_successfully", "Share link created successfully"));
     } catch (error: unknown) {
       console.error('Error creating share link:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to create share link');
@@ -82,10 +84,10 @@ export function ShareRecordingDialog({
     try {
       await navigator.clipboard.writeText(shareLink);
       setCopied(true);
-      toast.success('Link copied to clipboard');
+      toast.success(t("link_copied_to_clipboard", "Link copied to clipboard"));
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      toast.error('Failed to copy link');
+      toast.error(t("failed_to_copy_link", "Failed to copy link"));
     }
   };
 
@@ -137,7 +139,7 @@ export function ShareRecordingDialog({
               </Label>
               <Input
                 type="number"
-                placeholder="Unlimited"
+                placeholder={t("unlimited", "Unlimited")}
                 min={1}
                 value={maxViews || ''}
                 onChange={(e) => setMaxViews(e.target.value ? parseInt(e.target.value) : null)}
@@ -151,7 +153,7 @@ export function ShareRecordingDialog({
                 Allowed domains (optional)
               </Label>
               <Input
-                placeholder="company.com, partner.org"
+                placeholder={t("companycom_partnerorg", "company.com, partner.org")}
                 value={allowedDomains}
                 onChange={(e) => setAllowedDomains(e.target.value)}
               />
@@ -163,7 +165,7 @@ export function ShareRecordingDialog({
             {/* Watermark Toggle */}
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label>Add watermark</Label>
+                <Label>{t("add_watermark", "Add watermark")}</Label>
                 <p className="text-xs text-muted-foreground">
                   Overlay date and "Confidential" on transcript
                 </p>
@@ -192,7 +194,7 @@ export function ShareRecordingDialog({
             <div className="p-4 bg-muted rounded-lg space-y-3">
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="h-5 w-5 text-primary" />
-                <span className="font-medium">Link created successfully!</span>
+                <span className="font-medium">{t("link_created_successfully", "Link created successfully!")}</span>
               </div>
               
               <div className="flex gap-2">

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -20,6 +21,7 @@ const CONNECTS_PACKAGES = [
 const FREE_MONTHLY_CONNECTS = 10;
 
 export function ConnectsSystem() {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [purchasingPackage, setPurchasingPackage] = useState<string | null>(null);
@@ -54,7 +56,7 @@ export function ConnectsSystem() {
       }
     },
     onError: (error: Error) => {
-      toast.error("Failed to start purchase", { description: error.message });
+      toast.error(t("failed_to_start_purchase", "Failed to start purchase"), { description: error.message });
       setPurchasingPackage(null);
     },
   });
@@ -99,7 +101,7 @@ export function ConnectsSystem() {
           <div className="flex items-center justify-between">
             <div>
               <div className="text-4xl font-bold text-primary">{connectsBalance}</div>
-              <p className="text-sm text-muted-foreground">Available connects</p>
+              <p className="text-sm text-muted-foreground">{t("available_connects", "Available connects")}</p>
             </div>
             <div className="text-right">
               <Badge variant="outline" className="mb-2">
@@ -114,7 +116,7 @@ export function ConnectsSystem() {
           
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
-              <span>Monthly free connects</span>
+              <span>{t("monthly_free_connects", "Monthly free connects")}</span>
               <span className="text-muted-foreground">{daysUntilRefresh} days until refresh</span>
             </div>
             <Progress value={((30 - daysUntilRefresh) / 30) * 100} className="h-2" />
@@ -125,7 +127,7 @@ export function ConnectsSystem() {
       {/* How Connects Work */}
       <Card className="bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border-border/50">
         <CardHeader>
-          <CardTitle className="text-base">How Connects Work</CardTitle>
+          <CardTitle className="text-base">{t("how_connects_work", "How Connects Work")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid gap-3 text-sm">
@@ -134,8 +136,8 @@ export function ConnectsSystem() {
                 <span className="text-xs font-medium text-primary">2</span>
               </div>
               <div>
-                <p className="font-medium">Small projects (&lt;€500)</p>
-                <p className="text-muted-foreground">2 connects per proposal</p>
+                <p className="font-medium">{t("small_projects_lt500", "Small projects (&lt;€500)")}</p>
+                <p className="text-muted-foreground">{t("2_connects_per_proposal", "2 connects per proposal")}</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
@@ -143,8 +145,8 @@ export function ConnectsSystem() {
                 <span className="text-xs font-medium text-primary">4</span>
               </div>
               <div>
-                <p className="font-medium">Medium projects (€500-€5000)</p>
-                <p className="text-muted-foreground">4 connects per proposal</p>
+                <p className="font-medium">{t("medium_projects_5005000", "Medium projects (€500-€5000)")}</p>
+                <p className="text-muted-foreground">{t("4_connects_per_proposal", "4 connects per proposal")}</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
@@ -152,8 +154,8 @@ export function ConnectsSystem() {
                 <span className="text-xs font-medium text-primary">6</span>
               </div>
               <div>
-                <p className="font-medium">Large projects (€5000+)</p>
-                <p className="text-muted-foreground">6 connects per proposal</p>
+                <p className="font-medium">{t("large_projects_5000", "Large projects (€5000+)")}</p>
+                <p className="text-muted-foreground">{t("6_connects_per_proposal", "6 connects per proposal")}</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
@@ -161,8 +163,8 @@ export function ConnectsSystem() {
                 <Zap className="h-3 w-3 text-amber-500" />
               </div>
               <div>
-                <p className="font-medium">Boosted proposals</p>
-                <p className="text-muted-foreground">+50% connects for top placement</p>
+                <p className="font-medium">{t("boosted_proposals", "Boosted proposals")}</p>
+                <p className="text-muted-foreground">{t("50_connects_for_top", "+50% connects for top placement")}</p>
               </div>
             </div>
           </div>

@@ -1,5 +1,6 @@
 import { memo, useState, useCallback, useRef } from 'react';
 
+import { useTranslation } from 'react-i18next';
 import { InstructionsPage } from '@/components/swipe-game/InstructionsPage';
 import { SwipeInterface } from '@/components/swipe-game/SwipeInterface';
 import { LoadingScreen } from '@/components/swipe-game/LoadingScreen';
@@ -11,6 +12,8 @@ import { useAssessmentResults } from '@/hooks/useAssessmentResults';
 type GameStage = 'instructions' | 'swiping' | 'loading' | 'results';
 
 const SwipeGame = memo(() => {
+  const { t } = useTranslation('common');
+
   const [stage, setStage] = useState<GameStage>('instructions');
   const [result, setResult] = useState<SwipeResult | null>(null);
   const { saveResult } = useAssessmentResults();

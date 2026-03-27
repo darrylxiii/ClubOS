@@ -6,8 +6,10 @@ import { useQueryClient } from "@tanstack/react-query";
 import { AnimatedCard, CardVisual, CardBody, CardTitle, CardDescription } from "@/components/ui/animated-card";
 import { Visual1 } from "@/components/ui/visual-1";
 import { Visual3 } from "@/components/ui/visual-3";
+import { useTranslation } from 'react-i18next';
 
 export const SystemHealthDashboard = () => {
+  const { t } = useTranslation('admin');
   const queryClient = useQueryClient();
   const { metrics, isLoading } = useSystemHealthMetrics();
 
@@ -18,7 +20,7 @@ export const SystemHealthDashboard = () => {
   if (isLoading || !metrics) {
     return (
       <div className="space-y-6">
-        <DashboardHeader title="System Health" description="Platform health" onRefresh={handleRefresh} />
+        <DashboardHeader title={t('system.systemHealthDashboard.system')} Health description="Platform health" onRefresh={handleRefresh} />
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <MetricCardSkeleton />
           <MetricCardSkeleton />
@@ -32,7 +34,7 @@ export const SystemHealthDashboard = () => {
   return (
     <div className="space-y-6">
       <DashboardHeader
-        title="System Health"
+        title={t('system.systemHealthDashboard.systemHealth')}
         description="Monitor platform health and data integrity"
         onRefresh={handleRefresh}
         isRefreshing={isLoading}
@@ -46,8 +48,8 @@ export const SystemHealthDashboard = () => {
           <CardBody>
             <div className="flex items-start justify-between">
               <div className="space-y-1">
-                <CardDescription>Platform Status</CardDescription>
-                <CardTitle className="text-xl">Operational</CardTitle>
+                <CardDescription>{t('system.systemHealthDashboard.platformStatus')}</CardDescription>
+                <CardTitle className="text-xl">{t('system.systemHealthDashboard.operational')}</CardTitle>
               </div>
               <div className="flex items-center gap-1 text-green-500 text-sm font-medium">
                 <CheckCircle className="w-4 h-4" />
@@ -69,7 +71,7 @@ export const SystemHealthDashboard = () => {
           <CardBody>
             <div className="flex items-start justify-between">
               <div className="space-y-1">
-                <CardDescription>Response Time</CardDescription>
+                <CardDescription>{t('system.systemHealthDashboard.responseTime')}</CardDescription>
                 <CardTitle>{metrics.avg_response_time_ms}ms</CardTitle>
               </div>
               <div className="flex items-center gap-1 text-green-500 text-sm font-medium">
@@ -90,8 +92,8 @@ export const SystemHealthDashboard = () => {
           <CardBody>
             <div className="flex items-start justify-between">
               <div className="space-y-1">
-                <CardDescription>Last Backup</CardDescription>
-                <CardTitle className="text-xl">Recent</CardTitle>
+                <CardDescription>{t('system.systemHealthDashboard.lastBackup')}</CardDescription>
+                <CardTitle className="text-xl">{t('system.systemHealthDashboard.recent')}</CardTitle>
               </div>
               <div className="flex items-center gap-1 text-green-500 text-sm font-medium">
                 <CheckCircle className="w-4 h-4" />
@@ -110,7 +112,7 @@ export const SystemHealthDashboard = () => {
           <CardBody>
             <div className="flex items-start justify-between">
               <div className="space-y-1">
-                <CardDescription>Error Rate (24h)</CardDescription>
+                <CardDescription>{t('system.systemHealthDashboard.errorRate24h')}</CardDescription>
                 <CardTitle>{metrics.total_errors_24h}</CardTitle>
               </div>
               <div className="flex items-center gap-1 text-green-500 text-sm font-medium">

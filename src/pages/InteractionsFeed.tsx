@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ErrorState } from '@/components/ui/error-state';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,6 +14,7 @@ import type { CompanyInteraction } from '@/types/interaction';
 
 
 export default function InteractionsFeed({ embedded = false }: { embedded?: boolean }) {
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
   const [interactions, setInteractions] = useState<CompanyInteraction[]>([]);
   const [loading, setLoading] = useState(true);
@@ -49,7 +51,7 @@ export default function InteractionsFeed({ embedded = false }: { embedded?: bool
       console.error('Error loading interactions:', error);
       setFetchError('Failed to load interactions');
       const { toast } = await import('sonner');
-      toast.error('Failed to load interactions');
+      toast.error("Failed to load interactions");
     } finally {
       setLoading(false);
     }
@@ -110,7 +112,7 @@ export default function InteractionsFeed({ embedded = false }: { embedded?: bool
   if (fetchError && interactions.length === 0) {
     return (
       <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
-        <ErrorState variant="page" title="Interactions Unavailable" message={fetchError} onRetry={loadInteractions} />
+        <ErrorState variant="page" title={t('interactionsFeed.text1')} message={fetchError} onRetry={loadInteractions} />
       </div>
     );
   }
@@ -120,8 +122,8 @@ export default function InteractionsFeed({ embedded = false }: { embedded?: bool
       <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8 flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Interaction Feed</h1>
-          <p className="text-muted-foreground">All company interactions across the platform</p>
+          <h1 className="text-3xl font-bold">{t('interactionsFeed.text2')}</h1>
+          <p className="text-muted-foreground">{t('interactionsFeed.text3')}</p>
         </div>
         <div className="flex gap-2">
           <Button onClick={() => navigate('/interactions/import/whatsapp')} variant="outline">
@@ -142,7 +144,7 @@ export default function InteractionsFeed({ embedded = false }: { embedded?: bool
             <div className="relative">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search interactions..."
+                placeholder={t('interactionsFeed.text4')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-9"
@@ -154,12 +156,12 @@ export default function InteractionsFeed({ embedded = false }: { embedded?: bool
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Types</SelectItem>
-                <SelectItem value="phone_call">Phone Calls</SelectItem>
-                <SelectItem value="email">Emails</SelectItem>
-                <SelectItem value="whatsapp">WhatsApp</SelectItem>
-                <SelectItem value="zoom_meeting">Zoom Meetings</SelectItem>
-                <SelectItem value="in_person">In Person</SelectItem>
+                <SelectItem value="all">{t('interactionsFeed.text5')}</SelectItem>
+                <SelectItem value="phone_call">{t('interactionsFeed.text6')}</SelectItem>
+                <SelectItem value="email">{t('interactionsFeed.text7')}</SelectItem>
+                <SelectItem value="whatsapp">{t('interactionsFeed.text8')}</SelectItem>
+                <SelectItem value="zoom_meeting">{t('interactionsFeed.text9')}</SelectItem>
+                <SelectItem value="in_person">{t('interactionsFeed.text10')}</SelectItem>
               </SelectContent>
             </Select>
 
@@ -168,10 +170,10 @@ export default function InteractionsFeed({ embedded = false }: { embedded?: bool
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Sentiments</SelectItem>
-                <SelectItem value="positive">Positive</SelectItem>
-                <SelectItem value="neutral">Neutral</SelectItem>
-                <SelectItem value="negative">Negative</SelectItem>
+                <SelectItem value="all">{t('interactionsFeed.text11')}</SelectItem>
+                <SelectItem value="positive">{t('interactionsFeed.text12')}</SelectItem>
+                <SelectItem value="neutral">{t('interactionsFeed.text13')}</SelectItem>
+                <SelectItem value="negative">{t('interactionsFeed.text14')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -181,7 +183,7 @@ export default function InteractionsFeed({ embedded = false }: { embedded?: bool
       {/* Interactions Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Recent Interactions</CardTitle>
+          <CardTitle>{t('interactionsFeed.text15')}</CardTitle>
           <CardDescription>
             Showing {filteredInteractions.length} of {interactions.length} interactions
           </CardDescription>
@@ -190,13 +192,13 @@ export default function InteractionsFeed({ embedded = false }: { embedded?: bool
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Date</TableHead>
-                <TableHead>Company</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Subject</TableHead>
-                <TableHead>Sentiment</TableHead>
-                <TableHead>Urgency</TableHead>
-                <TableHead>Duration</TableHead>
+                <TableHead>{t('interactionsFeed.text16')}</TableHead>
+                <TableHead>{t('interactionsFeed.text17')}</TableHead>
+                <TableHead>{t('interactionsFeed.text18')}</TableHead>
+                <TableHead>{t('interactionsFeed.text19')}</TableHead>
+                <TableHead>{t('interactionsFeed.text20')}</TableHead>
+                <TableHead>{t('interactionsFeed.text21')}</TableHead>
+                <TableHead>{t('interactionsFeed.text22')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

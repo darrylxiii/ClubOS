@@ -1,4 +1,5 @@
 import { Message } from "@/hooks/useMessages";
+import { useTranslation } from "react-i18next";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { format } from "date-fns";
 import { Check, CheckCheck, Volume2, Pin, FileText, Download } from "lucide-react";
@@ -34,6 +35,7 @@ export const MessageBubble = ({
   onEdit,
   onDelete,
 }: MessageBubbleProps) => {
+  const { t } = useTranslation('messages');
   const navigate = useNavigate();
   const { user } = useAuth();
   const [attachmentUrls, setAttachmentUrls] = useState<Record<string, string>>({});
@@ -49,7 +51,7 @@ export const MessageBubble = ({
   const [translations, setTranslations] = useState<any[]>([]);
   const [activeTranslation, setActiveTranslation] = useState<string | null>(null);
 
-  const senderName = message.sender?.full_name || "Unknown User";
+  const senderName = message.sender?.full_name || t('unknownUser');
   const initials = senderName
     .split(" ")
     .map((n) => n[0])
@@ -312,7 +314,7 @@ export const MessageBubble = ({
             {displayContent}
             {activeTranslation && (
               <span className="block text-[10px] opacity-60 mt-1 italic">
-                Translated to {activeTranslation.toUpperCase()}
+                {t('bubble.translatedTo', { lang: activeTranslation.toUpperCase() })}
               </span>
             )}
           </p>
@@ -331,7 +333,7 @@ export const MessageBubble = ({
                     : "bg-transparent border-white/10 hover:bg-white/10"
                 )}
               >
-                Original
+                {t('bubble.original')}
               </button>
               {translations.map((t) => (
                 <button
@@ -465,7 +467,7 @@ export const MessageBubble = ({
       {message.pinned_at && (
         <div className="absolute -top-5 left-0 flex items-center gap-1.5 text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded-full border border-primary/20 shadow-glass-sm">
           <Pin className="h-3 w-3" />
-          <span>Pinned Message</span>
+          <span>{t('bubble.pinnedMessage')}</span>
         </div>
       )}
 
@@ -516,11 +518,11 @@ export const MessageBubble = ({
                   <span className="text-[10px] text-white/60">
                     {isRead
                       ? isGroup && readReceipts.length > 0
-                        ? `Read by ${readReceipts.length}`
+                        ? t('bubble.readByCount', { count: readReceipts.length })
                         : message.read_at
-                          ? `Read ${format(new Date(message.read_at), "HH:mm")}`
-                          : 'Read'
-                      : 'Sent'
+                          ? t('bubble.readAt', { time: format(new Date(message.read_at), "HH:mm") })
+                          : t('bubble.read')
+                      : t('bubble.sent')
                     }
                   </span>
                   {isRead ? (
@@ -540,7 +542,7 @@ export const MessageBubble = ({
                       return (
                         <div key={attachment.id} className="flex items-center gap-2 text-xs text-muted-foreground">
                           <FileText className="h-4 w-4" />
-                          <span>Loading {attachment.file_name}...</span>
+                          <span>{t('bubble.loadingFile', { name: attachment.file_name })}</span>
                         </div>
                       );
                     }
@@ -574,7 +576,7 @@ export const MessageBubble = ({
                           className="max-w-xs rounded-xl shadow-glass-md"
                         >
                           <source src={url} type={attachment.file_type} />
-                          Your browser doesn't support video playback.
+                          {t('bubble.videoNotSupported')}
                         </video>
                       );
                     }

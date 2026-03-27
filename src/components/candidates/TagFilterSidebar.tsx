@@ -6,6 +6,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { Tags, ChevronDown, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 
 interface TagDefinition {
   id: string;
@@ -20,19 +21,20 @@ interface TagFilterSidebarProps {
   className?: string;
 }
 
-const CATEGORY_LABELS: Record<string, string> = {
-  quality: 'Quality',
-  seniority: 'Seniority',
-  function: 'Function',
-  industry: 'Industry',
-  availability: 'Availability',
-  source: 'Source',
-  custom: 'Custom',
-};
-
 const CATEGORY_ORDER = ['quality', 'seniority', 'function', 'industry', 'availability', 'source', 'custom'];
 
 export function TagFilterSidebar({ selectedTagIds, onTagSelectionChange, className }: TagFilterSidebarProps) {
+  const { t } = useTranslation('candidates');
+
+  const CATEGORY_LABELS: Record<string, string> = {
+    quality: t('tagFilter.quality', 'Quality'),
+    seniority: t('tagFilter.seniority', 'Seniority'),
+    function: t('tagFilter.function', 'Function'),
+    industry: t('tagFilter.industry', 'Industry'),
+    availability: t('tagFilter.availability', 'Availability'),
+    source: t('tagFilter.source', 'Source'),
+    custom: t('tagFilter.custom', 'Custom'),
+  };
   const [tagsByCategory, setTagsByCategory] = useState<Record<string, TagDefinition[]>>({});
   const [openCategories, setOpenCategories] = useState<Set<string>>(new Set(CATEGORY_ORDER));
 
@@ -80,7 +82,7 @@ export function TagFilterSidebar({ selectedTagIds, onTagSelectionChange, classNa
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-semibold flex items-center gap-2">
           <Tags className="w-4 h-4" />
-          Filter by Tags
+          {t('tagFilter.title', 'Filter by Tags')}
         </h3>
         {selectedTagIds.length > 0 && (
           <Button
@@ -89,7 +91,7 @@ export function TagFilterSidebar({ selectedTagIds, onTagSelectionChange, classNa
             className="h-6 text-xs text-muted-foreground"
             onClick={() => onTagSelectionChange([])}
           >
-            Clear all
+            {t('tagFilter.clearAll', 'Clear all')}
           </Button>
         )}
       </div>

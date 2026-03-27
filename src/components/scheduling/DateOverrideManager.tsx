@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -22,6 +23,7 @@ interface DateOverrideManagerProps {
 }
 
 export function DateOverrideManager({ overrides, onChange }: DateOverrideManagerProps) {
+  const { t } = useTranslation('common');
   const [newOverride, setNewOverride] = useState<DateOverride>({
     date: "",
     is_available: false,
@@ -61,7 +63,7 @@ export function DateOverrideManager({ overrides, onChange }: DateOverrideManager
         {/* Add new override */}
         <div className="flex flex-wrap items-end gap-3 p-3 border rounded-lg bg-muted/20">
           <div className="space-y-1">
-            <Label className="text-xs">Date</Label>
+            <Label className="text-xs">{t("date", "Date")}</Label>
             <Input
               type="date"
               value={newOverride.date}
@@ -84,7 +86,7 @@ export function DateOverrideManager({ overrides, onChange }: DateOverrideManager
           {newOverride.is_available && (
             <>
               <div className="space-y-1">
-                <Label className="text-xs">Start</Label>
+                <Label className="text-xs">{t("start", "Start")}</Label>
                 <Input
                   type="time"
                   value={newOverride.start_time}
@@ -93,7 +95,7 @@ export function DateOverrideManager({ overrides, onChange }: DateOverrideManager
                 />
               </div>
               <div className="space-y-1">
-                <Label className="text-xs">End</Label>
+                <Label className="text-xs">{t("end", "End")}</Label>
                 <Input
                   type="time"
                   value={newOverride.end_time}
@@ -131,7 +133,7 @@ export function DateOverrideManager({ overrides, onChange }: DateOverrideManager
                       {override.start_time} – {override.end_time}
                     </Badge>
                   ) : (
-                    <Badge variant="secondary" className="text-xs">Blocked</Badge>
+                    <Badge variant="secondary" className="text-xs">{t("blocked", "Blocked")}</Badge>
                   )}
                 </div>
                 <Button

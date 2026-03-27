@@ -16,6 +16,7 @@ import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useTranslation } from 'react-i18next';
 
 interface DomainSLA {
   domain: string;
@@ -45,6 +46,7 @@ interface SLADashboardData {
 }
 
 function useSLADashboard() {
+  const { t } = useTranslation('admin');
   return useQuery({
     queryKey: ['kpi-sla-dashboard'],
     queryFn: async () => {
@@ -146,7 +148,7 @@ export function SLAStatusPanel() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-muted-foreground">Unable to load SLA data</p>
+          <p className="text-sm text-muted-foreground">{t('kpi.sLAStatusPanel.unableToLoadSlaData')}</p>
         </CardContent>
       </Card>
     );
@@ -189,11 +191,11 @@ export function SLAStatusPanel() {
               <TooltipTrigger asChild>
                 <div className="flex flex-col items-center p-2 rounded-lg bg-emerald-500/10 cursor-help">
                   <span className="text-lg font-bold text-emerald-500">{healthyCount}</span>
-                  <span className="text-[10px] text-muted-foreground">Healthy</span>
+                  <span className="text-[10px] text-muted-foreground">{t('kpi.sLAStatusPanel.healthy')}</span>
                 </div>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Domains meeting all SLA targets</p>
+                <p>{t('kpi.sLAStatusPanel.domainsMeetingAllSlaTargets')}</p>
               </TooltipContent>
             </Tooltip>
 
@@ -201,11 +203,11 @@ export function SLAStatusPanel() {
               <TooltipTrigger asChild>
                 <div className="flex flex-col items-center p-2 rounded-lg bg-muted/50 cursor-help">
                   <span className="text-lg font-bold text-foreground">{totalDomains}</span>
-                  <span className="text-[10px] text-muted-foreground">Total</span>
+                  <span className="text-[10px] text-muted-foreground">{t('kpi.sLAStatusPanel.total')}</span>
                 </div>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Total monitored domains</p>
+                <p>{t('kpi.sLAStatusPanel.totalMonitoredDomains')}</p>
               </TooltipContent>
             </Tooltip>
 
@@ -221,11 +223,11 @@ export function SLAStatusPanel() {
                   )}>
                     {openCircuits}
                   </span>
-                  <span className="text-[10px] text-muted-foreground">Circuits Open</span>
+                  <span className="text-[10px] text-muted-foreground">{t('kpi.sLAStatusPanel.circuitsOpen')}</span>
                 </div>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Functions with open circuit breakers (temporarily disabled)</p>
+                <p>{t('kpi.sLAStatusPanel.functionsWithOpenCircuitBreakersTemporarily')}</p>
               </TooltipContent>
             </Tooltip>
           </div>
@@ -270,11 +272,11 @@ export function SLAStatusPanel() {
                     </TooltipTrigger>
                     <TooltipContent side="left" className="max-w-xs">
                       <div className="space-y-1 text-xs">
-                        <p><strong>Max Stale:</strong> {domain.max_stale_minutes} min</p>
-                        <p><strong>Target Time:</strong> {domain.target_calculation_time_ms}ms</p>
-                        <p><strong>Min Success Rate:</strong> {domain.min_success_rate}%</p>
+                        <p><strong>{"Max Stale:"}</strong> {domain.max_stale_minutes} min</p>
+                        <p><strong>{"Target Time:"}</strong> {domain.target_calculation_time_ms}ms</p>
+                        <p><strong>{"Min Success Rate:"}</strong> {domain.min_success_rate}%</p>
                         {domain.avg_calculation_time_ms && (
-                          <p><strong>Avg Calc Time:</strong> {domain.avg_calculation_time_ms}ms</p>
+                          <p><strong>{"Avg Calc Time:"}</strong> {domain.avg_calculation_time_ms}ms</p>
                         )}
                       </div>
                     </TooltipContent>
@@ -347,7 +349,7 @@ export function SLAStatusBadge() {
             <span className={cn("font-bold", config.color)}>
               {healthyCount}/{totalDomains}
             </span>
-            <span className="text-xs text-muted-foreground hidden sm:inline">SLA</span>
+            <span className="text-xs text-muted-foreground hidden sm:inline">{t('kpi.sLAStatusPanel.sla')}</span>
           </div>
         </TooltipTrigger>
         <TooltipContent>

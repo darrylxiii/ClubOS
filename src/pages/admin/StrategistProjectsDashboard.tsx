@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -52,6 +53,7 @@ interface FreelanceProfile {
 }
 
 export default function StrategistProjectsDashboard() {
+  const { t } = useTranslation('admin');
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("open");
@@ -161,9 +163,7 @@ export default function StrategistProjectsDashboard() {
             <Target className="h-8 w-8" />
             Strategist Matching Dashboard
           </h1>
-          <p className="text-muted-foreground mt-1">
-            Curate perfect freelancer matches for client projects
-          </p>
+          <p className="text-muted-foreground mt-1">{t('strategistProjectsDashboard.desc')}</p>
         </div>
 
         {/* Stats */}
@@ -175,7 +175,7 @@ export default function StrategistProjectsDashboard() {
               </div>
               <div>
                 <p className="text-2xl font-bold">{projects?.filter(p => p.status === "open").length || 0}</p>
-                <p className="text-xs text-muted-foreground">Open Projects</p>
+                <p className="text-xs text-muted-foreground">{t('strategistProjectsDashboard.text2')}</p>
               </div>
             </div>
           </Card>
@@ -186,7 +186,7 @@ export default function StrategistProjectsDashboard() {
               </div>
               <div>
                 <p className="text-2xl font-bold">{freelancers?.length || 0}</p>
-                <p className="text-xs text-muted-foreground">Available Talent</p>
+                <p className="text-xs text-muted-foreground">{t('strategistProjectsDashboard.text3')}</p>
               </div>
             </div>
           </Card>
@@ -197,7 +197,7 @@ export default function StrategistProjectsDashboard() {
               </div>
               <div>
                 <p className="text-2xl font-bold">0</p>
-                <p className="text-xs text-muted-foreground">Placements This Month</p>
+                <p className="text-xs text-muted-foreground">{t('strategistProjectsDashboard.text4')}</p>
               </div>
             </div>
           </Card>
@@ -208,7 +208,7 @@ export default function StrategistProjectsDashboard() {
               </div>
               <div>
                 <p className="text-2xl font-bold">€0</p>
-                <p className="text-xs text-muted-foreground">Commission Earned</p>
+                <p className="text-xs text-muted-foreground">{t('strategistProjectsDashboard.text5')}</p>
               </div>
             </div>
           </Card>
@@ -219,7 +219,7 @@ export default function StrategistProjectsDashboard() {
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search projects..."
+              placeholder={t('strategistProjectsDashboard.text6')}
               className="pl-10"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -227,9 +227,9 @@ export default function StrategistProjectsDashboard() {
           </div>
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList>
-              <TabsTrigger value="open">Open</TabsTrigger>
-              <TabsTrigger value="matched">Matched</TabsTrigger>
-              <TabsTrigger value="all">All</TabsTrigger>
+              <TabsTrigger value="open">{t('strategistProjectsDashboard.text7')}</TabsTrigger>
+              <TabsTrigger value="matched">{t('strategistProjectsDashboard.text8')}</TabsTrigger>
+              <TabsTrigger value="all">{t('strategistProjectsDashboard.text9')}</TabsTrigger>
             </TabsList>
           </Tabs>
         </div>
@@ -318,7 +318,7 @@ export default function StrategistProjectsDashboard() {
             <Card className="col-span-2">
               <CardContent className="py-12 text-center">
                 <Briefcase className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <p className="text-muted-foreground">No projects found</p>
+                <p className="text-muted-foreground">{t('strategistProjectsDashboard.text10')}</p>
               </CardContent>
             </Card>
           )}
@@ -328,7 +328,7 @@ export default function StrategistProjectsDashboard() {
         <Dialog open={matchDialogOpen} onOpenChange={setMatchDialogOpen}>
           <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Match Freelancers to Project</DialogTitle>
+              <DialogTitle>{t('strategistProjectsDashboard.text11')}</DialogTitle>
             </DialogHeader>
             
             {selectedProject && (
@@ -384,9 +384,9 @@ export default function StrategistProjectsDashboard() {
                 </div>
                 
                 <div className="space-y-2">
-                  <h4 className="font-medium">Notes for Shortlist</h4>
+                  <h4 className="font-medium">{t('strategistProjectsDashboard.text12')}</h4>
                   <Textarea
-                    placeholder="Add notes about why you're recommending these freelancers..."
+                    placeholder={t('strategistProjectsDashboard.text13')}
                     value={placementNotes}
                     onChange={(e) => setPlacementNotes(e.target.value)}
                     rows={3}

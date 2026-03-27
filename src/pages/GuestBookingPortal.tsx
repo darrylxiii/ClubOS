@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from 'react-i18next';
 import { useParams, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -76,6 +77,7 @@ interface GuestRecord {
 }
 
 export default function GuestBookingPortal() {
+  const { t } = useTranslation('common');
   const { bookingId, accessToken } = useParams();
   const [searchParams] = useSearchParams();
   const [booking, setBooking] = useState<BookingDetails | null>(null);
@@ -231,13 +233,13 @@ export default function GuestBookingPortal() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "confirmed":
-        return <Badge className="bg-green-500/20 text-green-400 border-green-500/30"><CheckCircle2 className="w-3 h-3 mr-1" /> Confirmed</Badge>;
+        return <Badge className="bg-green-500/20 text-green-400 border-green-500/30"><CheckCircle2 className="w-3 h-3 mr-1" />{t('guestBookingPortal.text4')}</Badge>;
       case "cancelled":
-        return <Badge variant="destructive"><XCircle className="w-3 h-3 mr-1" /> Cancelled</Badge>;
+        return <Badge variant="destructive"><XCircle className="w-3 h-3 mr-1" />{t('guestBookingPortal.text5')}</Badge>;
       case "completed":
-        return <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30"><CheckCircle2 className="w-3 h-3 mr-1" /> Completed</Badge>;
+        return <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30"><CheckCircle2 className="w-3 h-3 mr-1" />{t('guestBookingPortal.text6')}</Badge>;
       case "pending":
-        return <Badge variant="secondary"><Clock className="w-3 h-3 mr-1" /> Pending</Badge>;
+        return <Badge variant="secondary"><Clock className="w-3 h-3 mr-1" />{t('guestBookingPortal.text7')}</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -257,10 +259,8 @@ export default function GuestBookingPortal() {
         <Card className="max-w-md w-full">
           <CardContent className="pt-6 text-center">
             <CalendarX className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-            <h2 className="text-xl font-semibold mb-2">Booking Not Found</h2>
-            <p className="text-muted-foreground">
-              This booking may have been cancelled or the link is invalid.
-            </p>
+            <h2 className="text-xl font-semibold mb-2">{t('guestBookingPortal.text8')}</h2>
+            <p className="text-muted-foreground">{t('guestBookingPortal.desc')}</p>
           </CardContent>
         </Card>
       </div>
@@ -295,7 +295,7 @@ export default function GuestBookingPortal() {
         {isAuthenticated && hasAnyPermission && (
           <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
             <Shield className="h-4 w-4 text-primary" />
-            <span>You have special permissions for this meeting</span>
+            <span>{t('guestBookingPortal.text9')}</span>
           </div>
         )}
 
@@ -338,7 +338,7 @@ export default function GuestBookingPortal() {
             <div className="flex items-center gap-3">
               <User className="w-5 h-5 text-primary" />
               <div>
-                <p className="font-medium">Host</p>
+                <p className="font-medium">{t('guestBookingPortal.text10')}</p>
                 <p className="text-sm text-muted-foreground">
                   {booking.profiles?.full_name || "Meeting Host"}
                 </p>
@@ -349,7 +349,7 @@ export default function GuestBookingPortal() {
             <div className="flex items-center gap-3">
               <Mail className="w-5 h-5 text-primary" />
               <div>
-                <p className="font-medium">Booked by</p>
+                <p className="font-medium">{t('guestBookingPortal.text11')}</p>
                 <p className="text-sm text-muted-foreground">
                   {booking.guest_name} ({booking.guest_email})
                 </p>
@@ -363,7 +363,7 @@ export default function GuestBookingPortal() {
                 <div className="flex items-center gap-3">
                   <Video className="w-5 h-5 text-primary" />
                   <div className="flex-1">
-                    <p className="font-medium">Video Meeting</p>
+                    <p className="font-medium">{t('guestBookingPortal.text12')}</p>
                     <a 
                       href={meetingLink}
                       target="_blank"
@@ -382,7 +382,7 @@ export default function GuestBookingPortal() {
               <>
                 <Separator />
                 <div>
-                  <p className="font-medium mb-1">Notes</p>
+                  <p className="font-medium mb-1">{t('guestBookingPortal.text13')}</p>
                   <p className="text-sm text-muted-foreground">{booking.notes}</p>
                 </div>
               </>
@@ -458,12 +458,10 @@ export default function GuestBookingPortal() {
         {canModify && (!isAuthenticated || !hasAnyPermission) && (
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Need to make changes?</CardTitle>
+              <CardTitle className="text-lg">{t('guestBookingPortal.text14')}</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground mb-4">
-                Please contact the person who booked this meeting or the host to make changes.
-              </p>
+              <p className="text-sm text-muted-foreground mb-4">{t('guestBookingPortal.desc2')}</p>
               <div className="flex gap-3">
                 <Button 
                   variant="outline" 
@@ -483,7 +481,7 @@ export default function GuestBookingPortal() {
           <Card className="border-destructive/50">
             <CardContent className="pt-6 text-center">
               <XCircle className="w-12 h-12 mx-auto text-destructive mb-3" />
-              <h3 className="font-semibold mb-1">This booking has been cancelled</h3>
+              <h3 className="font-semibold mb-1">{t('guestBookingPortal.text15')}</h3>
               <p className="text-sm text-muted-foreground">
                 Need to book again?{" "}
                 <a 
@@ -502,7 +500,7 @@ export default function GuestBookingPortal() {
           <Card className="border-muted">
             <CardContent className="pt-6 text-center">
               <CheckCircle2 className="w-12 h-12 mx-auto text-muted-foreground mb-3" />
-              <h3 className="font-semibold mb-1">This meeting has passed</h3>
+              <h3 className="font-semibold mb-1">{t('guestBookingPortal.text16')}</h3>
               <p className="text-sm text-muted-foreground">
                 Want to schedule another meeting?{" "}
                 <a 
@@ -517,9 +515,7 @@ export default function GuestBookingPortal() {
         )}
 
         {/* Footer */}
-        <p className="text-center text-xs text-muted-foreground">
-          Powered by The Quantum Club
-        </p>
+        <p className="text-center text-xs text-muted-foreground">{t('guestBookingPortal.desc3')}</p>
       </div>
 
       {/* Propose Time Dialog */}

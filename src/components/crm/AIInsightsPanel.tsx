@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -33,6 +34,7 @@ interface OutreachInsight {
 }
 
 export function AIInsightsPanel() {
+  const { t } = useTranslation('common');
   const queryClient = useQueryClient();
   const [generating, setGenerating] = useState(false);
 
@@ -92,13 +94,13 @@ export function AIInsightsPanel() {
   const getSeverityBadge = (severity: string) => {
     switch (severity) {
       case 'critical':
-        return <Badge className="bg-red-500/10 text-red-500 border-red-500/30">Critical</Badge>;
+        return <Badge className="bg-red-500/10 text-red-500 border-red-500/30">{t("critical", "Critical")}</Badge>;
       case 'high':
-        return <Badge className="bg-orange-500/10 text-orange-500 border-orange-500/30">High</Badge>;
+        return <Badge className="bg-orange-500/10 text-orange-500 border-orange-500/30">{t("high", "High")}</Badge>;
       case 'medium':
-        return <Badge className="bg-yellow-500/10 text-yellow-500 border-yellow-500/30">Medium</Badge>;
+        return <Badge className="bg-yellow-500/10 text-yellow-500 border-yellow-500/30">{t("medium", "Medium")}</Badge>;
       default:
-        return <Badge className="bg-green-500/10 text-green-500 border-green-500/30">Low</Badge>;
+        return <Badge className="bg-green-500/10 text-green-500 border-green-500/30">{t("low", "Low")}</Badge>;
     }
   };
 
@@ -183,7 +185,7 @@ export function AIInsightsPanel() {
         ) : (
           <div className="text-center py-8">
             <Brain className="w-12 h-12 mx-auto text-muted-foreground/50 mb-3" />
-            <p className="text-muted-foreground mb-3">No insights available</p>
+            <p className="text-muted-foreground mb-3">{t("no_insights_available", "No insights available")}</p>
             <Button 
               variant="outline" 
               size="sm"

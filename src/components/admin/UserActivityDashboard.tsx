@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
@@ -14,6 +15,7 @@ interface ActivityMetrics {
 }
 
 export function UserActivityDashboard() {
+  const { t } = useTranslation('common');
   const [metrics, setMetrics] = useState<ActivityMetrics>({
     activeUsers1h: 0,
     totalSessions24h: 0,
@@ -84,7 +86,7 @@ export function UserActivityDashboard() {
   };
 
   if (loading) {
-    return <div className="text-muted-foreground">Loading activity metrics...</div>;
+    return <div className="text-muted-foreground">{t("loading_activity_metrics", "Loading activity metrics...")}</div>;
   }
 
   return (
@@ -92,29 +94,29 @@ export function UserActivityDashboard() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Users (1h)</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("active_users_1h", "Active Users (1h)")}</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{metrics.activeUsers1h}</div>
-            <p className="text-xs text-muted-foreground">Currently online</p>
+            <p className="text-xs text-muted-foreground">{t("currently_online", "Currently online")}</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Sessions (24h)</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("sessions_24h", "Sessions (24h)")}</CardTitle>
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{metrics.totalSessions24h}</div>
-            <p className="text-xs text-muted-foreground">Unique sessions</p>
+            <p className="text-xs text-muted-foreground">{t("unique_sessions", "Unique sessions")}</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Avg Engagement</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("avg_engagement", "Avg Engagement")}</CardTitle>
             {metrics.engagementTrend === 'up' ? (
               <TrendingUp className="h-4 w-4 text-green-500" />
             ) : (
@@ -131,12 +133,12 @@ export function UserActivityDashboard() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Frustration Signals</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("frustration_signals", "Frustration Signals")}</CardTitle>
             <AlertTriangle className="h-4 w-4 text-yellow-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{metrics.frustrationSignals24h}</div>
-            <p className="text-xs text-muted-foreground">Last 24 hours</p>
+            <p className="text-xs text-muted-foreground">{t("last_24_hours", "Last 24 hours")}</p>
           </CardContent>
         </Card>
       </div>

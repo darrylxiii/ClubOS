@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Progress } from '@/components/ui/progress';
 import { CheckCircle, XCircle, Loader2, Globe } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 
 interface TranslationJob {
   id: string;
@@ -26,6 +27,7 @@ export const TranslationProgressToast: React.FC<TranslationProgressToastProps> =
   jobId,
   onComplete
 }) => {
+  const { t } = useTranslation('common');
   const [job, setJob] = useState<TranslationJob | null>(null);
 
   useEffect(() => {

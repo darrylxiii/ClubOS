@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Separator } from '@/components/ui/separator';
@@ -8,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Brain, TrendingUp, Play } from 'lucide-react';
 export function MeetingIntelligenceHub() {
+  const { t } = useTranslation('common');
   const [meetings, setMeetings] = useState<any[]>([]);
   const [processingQueue, setProcessingQueue] = useState<any[]>([]);
   const [hiringManagers, setHiringManagers] = useState<any[]>([]);
@@ -100,7 +102,7 @@ export function MeetingIntelligenceHub() {
                     <Card>
                       <CardContent className="pt-4">
                         <div className="text-2xl font-bold">{selectedPattern.frequency}</div>
-                        <p className="text-xs text-muted-foreground">Times Asked</p>
+                        <p className="text-xs text-muted-foreground">{t("times_asked", "Times Asked")}</p>
                       </CardContent>
                     </Card>
                     <Card>
@@ -108,7 +110,7 @@ export function MeetingIntelligenceHub() {
                         <div className="text-2xl font-bold text-green-500">
                           {Math.round(70 + Math.random() * 25)}%
                         </div>
-                        <p className="text-xs text-muted-foreground">Candidate Success Rate</p>
+                        <p className="text-xs text-muted-foreground">{t("candidate_success_rate", "Candidate Success Rate")}</p>
                       </CardContent>
                     </Card>
                   </div>

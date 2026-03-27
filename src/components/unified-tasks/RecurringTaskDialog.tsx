@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -34,6 +35,7 @@ export const RecurringTaskDialog = ({
   onOpenChange, 
   onSaved 
 }: RecurringTaskDialogProps) => {
+  const { t } = useTranslation('common');
   const [frequency, setFrequency] = useState<string>(currentRule?.frequency || 'weekly');
   const [interval, setInterval] = useState(currentRule?.interval || 1);
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
@@ -57,12 +59,12 @@ export const RecurringTaskDialog = ({
 
       if (error) throw error;
 
-      toast.success("Recurrence rule saved");
+      toast.success(t('tasks.recurrenceSaved', 'Recurrence rule saved'));
       onSaved();
       onOpenChange(false);
     } catch (error) {
       console.error("Error saving recurrence:", error);
-      toast.error("Failed to save recurrence rule");
+      toast.error(t('tasks.failedToSaveRecurrence', 'Failed to save recurrence rule'));
     } finally {
       setSaving(false);
     }
@@ -82,12 +84,12 @@ export const RecurringTaskDialog = ({
 
       if (error) throw error;
 
-      toast.success("Recurrence removed");
+      toast.success(t('tasks.recurrenceRemoved', 'Recurrence removed'));
       onSaved();
       onOpenChange(false);
     } catch (error) {
       console.error("Error removing recurrence:", error);
-      toast.error("Failed to remove recurrence");
+      toast.error(t('tasks.failedToRemoveRecurrence', 'Failed to remove recurrence'));
     } finally {
       setSaving(false);
     }
@@ -99,27 +101,27 @@ export const RecurringTaskDialog = ({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Repeat className="h-5 w-5 text-primary" />
-            Set Recurrence
+            {t('tasks.setRecurrence', 'Set Recurrence')}
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
           <div className="space-y-2">
-            <Label>Frequency</Label>
+            <Label>{t('tasks.frequency', 'Frequency')}</Label>
             <Select value={frequency} onValueChange={setFrequency}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="daily">Daily</SelectItem>
-                <SelectItem value="weekly">Weekly</SelectItem>
-                <SelectItem value="monthly">Monthly</SelectItem>
+                <SelectItem value="daily">{t('tasks.daily', 'Daily')}</SelectItem>
+                <SelectItem value="weekly">{t('tasks.weekly', 'Weekly')}</SelectItem>
+                <SelectItem value="monthly">{t('tasks.monthly', 'Monthly')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <div className="space-y-2">
-            <Label>Repeat every</Label>
+            <Label>{t('tasks.repeatEvery', 'Repeat every')}</Label>
             <div className="flex items-center gap-2">
               <Input
                 type="number"
@@ -138,7 +140,7 @@ export const RecurringTaskDialog = ({
           </div>
 
           <div className="space-y-2">
-            <Label>End Date (optional)</Label>
+            <Label>{t('tasks.endDateOptional', 'End Date (optional)')}</Label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button
@@ -149,7 +151,7 @@ export const RecurringTaskDialog = ({
                   )}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {endDate ? format(endDate, "PPP") : "No end date"}
+                  {endDate ? format(endDate, "PPP") : t('tasks.noEndDate', 'No end date')}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
@@ -165,7 +167,7 @@ export const RecurringTaskDialog = ({
           </div>
 
           <div className="rounded-lg bg-muted/50 p-3 text-sm">
-            <p className="font-medium mb-1">Preview</p>
+            <p className="font-medium mb-1">{t('tasks.preview', 'Preview')}</p>
             <p className="text-muted-foreground">
               Repeats every {interval} {frequency.replace('ly', interval === 1 ? '' : 's')}
               {endDate ? ` until ${format(endDate, "MMM d, yyyy")}` : ' indefinitely'}
@@ -181,7 +183,7 @@ export const RecurringTaskDialog = ({
               disabled={saving}
               className="text-destructive hover:text-destructive"
             >
-              Remove Recurrence
+              {t('tasks.removeRecurrence', 'Remove Recurrence')}
             </Button>
           )}
           <Button onClick={handleSave} disabled={saving}>

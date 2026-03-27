@@ -1,5 +1,6 @@
 import { CheckCircle2, AlertCircle } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useTranslation } from 'react-i18next';
 
 interface EdgeFunctionHealth {
   function_name: string;
@@ -15,15 +16,16 @@ interface FunctionHealthTableProps {
 }
 
 export const FunctionHealthTable = ({ functions }: FunctionHealthTableProps) => {
+  const { t } = useTranslation('admin');
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Edge Functions Health</CardTitle>
-        <CardDescription>Performance metrics for backend functions</CardDescription>
+        <CardTitle>{t('system.functionHealthTable.edgeFunctionsHealth')}</CardTitle>
+        <CardDescription>{t('system.functionHealthTable.performanceMetricsForBackendFunctions')}</CardDescription>
       </CardHeader>
       <CardContent>
         {!functions || functions.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No function data available</p>
+          <p className="text-sm text-muted-foreground">{t('system.functionHealthTable.noFunctionDataAvailable')}</p>
         ) : (
           <div className="space-y-4">
             {functions.map((func) => (

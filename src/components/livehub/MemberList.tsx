@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useState, useEffect } from 'react';
@@ -18,6 +19,7 @@ interface MemberListProps {
 }
 
 const MemberList = ({ onlineMembers, channelType, channelId }: MemberListProps) => {
+  const { t } = useTranslation('meetings');
   const [channelParticipants, setChannelParticipants] = useState<Member[]>([]);
   const [showAllMembers, setShowAllMembers] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
@@ -108,9 +110,9 @@ const MemberList = ({ onlineMembers, channelType, channelId }: MemberListProps) 
     <div className="w-60 bg-card border-l border-border flex flex-col">
       <div className="h-12 px-4 flex items-center justify-between border-b border-border">
         <h3 className="font-semibold text-sm">
-          {isVoiceChannel 
-            ? `In Channel — ${channelParticipants.length}`
-            : `Members — ${onlineMembers.length}`
+          {isVoiceChannel
+            ? t('livehub.inChannelCount', { count: channelParticipants.length })
+            : t('livehub.membersCount', { count: onlineMembers.length })
           }
         </h3>
         {isVoiceChannel && otherMembers.length > 0 && (
@@ -118,7 +120,7 @@ const MemberList = ({ onlineMembers, channelType, channelId }: MemberListProps) 
             onClick={() => setShowAllMembers(!showAllMembers)}
             className="text-xs text-muted-foreground hover:text-foreground"
           >
-            {showAllMembers ? 'Channel' : 'All'}
+            {showAllMembers ? t('livehub.channel') : t('livehub.all')}
           </button>
         )}
       </div>
@@ -128,7 +130,7 @@ const MemberList = ({ onlineMembers, channelType, channelId }: MemberListProps) 
           {isVoiceChannel && channelParticipants.length > 0 && !showAllMembers && (
             <div>
               <div className="px-2 py-1 text-xs font-semibold text-muted-foreground uppercase">
-                In Voice Channel
+                {t('livehub.inVoiceChannel')}
               </div>
               <div className="space-y-0.5">
                 {channelParticipants.map((member) => (
@@ -156,7 +158,7 @@ const MemberList = ({ onlineMembers, channelType, channelId }: MemberListProps) 
           {isVoiceChannel && otherMembers.length > 0 && showAllMembers && (
             <div>
               <div className="px-2 py-1 text-xs font-semibold text-muted-foreground uppercase">
-                Other Members
+                {t('livehub.otherMembers')}
               </div>
               <div className="space-y-0.5">
                 {otherMembers.map((member) => (

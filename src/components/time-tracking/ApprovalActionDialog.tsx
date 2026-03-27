@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import {
   Dialog,
@@ -27,6 +28,7 @@ export function ApprovalActionDialog({
   timesheet,
   action,
 }: ApprovalActionDialogProps) {
+  const { t } = useTranslation('common');
   const { processApproval } = useTimesheets();
   const [comment, setComment] = useState('');
 
@@ -65,15 +67,15 @@ export function ApprovalActionDialog({
           <div className="grid grid-cols-3 gap-4 p-4 rounded-lg bg-muted/30">
             <div className="text-center">
               <p className="text-xl font-bold">{Number(timesheet.total_hours).toFixed(1)}h</p>
-              <p className="text-xs text-muted-foreground">Total</p>
+              <p className="text-xs text-muted-foreground">{t("total", "Total")}</p>
             </div>
             <div className="text-center">
               <p className="text-xl font-bold text-emerald-400">{Number(timesheet.billable_hours).toFixed(1)}h</p>
-              <p className="text-xs text-muted-foreground">Billable</p>
+              <p className="text-xs text-muted-foreground">{t("billable", "Billable")}</p>
             </div>
             <div className="text-center">
               <p className="text-xl font-bold text-amber-400">{Number(timesheet.overtime_hours).toFixed(1)}h</p>
-              <p className="text-xs text-muted-foreground">Overtime</p>
+              <p className="text-xs text-muted-foreground">{t("overtime", "Overtime")}</p>
             </div>
           </div>
 

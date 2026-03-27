@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Badge } from '@/components/ui/badge';
 import { 
   Tooltip, 
@@ -72,6 +73,7 @@ export function NoShowRiskBadge({
   size = 'md',
   className,
 }: NoShowRiskBadgeProps) {
+  const { t } = useTranslation('common');
   if (!prediction) return null;
 
   const config = riskConfig[prediction.risk_level];
@@ -125,7 +127,7 @@ export function NoShowRiskBadge({
             </div>
             
             <div className="text-xs text-muted-foreground space-y-1.5 pt-1 border-t">
-              <p className="font-medium text-foreground">Risk Factors:</p>
+              <p className="font-medium text-foreground">{t("risk_factors", "Risk Factors:")}</p>
               {Object.entries(prediction.prediction_factors)
                 .filter(([key]) => key in factorLabels)
                 .map(([key, value]) => {

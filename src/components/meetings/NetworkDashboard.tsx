@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -55,6 +56,7 @@ export function NetworkDashboard({
   onClearHistory,
   className,
 }: NetworkDashboardProps) {
+  const { t } = useTranslation('common');
   const statusConfig = useMemo(() => {
     const configs = {
       excellent: { color: 'bg-green-500', textColor: 'text-green-500', label: 'Excellent' },
@@ -118,7 +120,7 @@ export function NetworkDashboard({
             ) : (
               <Wifi className={cn("h-4 w-4", statusConfig.textColor)} />
             )}
-            <span>Network Quality</span>
+            <span>{t("network_quality", "Network Quality")}</span>
           </div>
           <Badge variant="outline" className={statusConfig.textColor}>
             {statusConfig.label}
@@ -130,7 +132,7 @@ export function NetworkDashboard({
         {/* Overall Quality Bar */}
         <div className="space-y-1">
           <div className="flex justify-between text-xs">
-            <span className="text-muted-foreground">Connection Quality</span>
+            <span className="text-muted-foreground">{t("connection_quality", "Connection Quality")}</span>
             <span className={statusConfig.textColor}>{getQualityPercentage()}%</span>
           </div>
           <Progress value={getQualityPercentage()} className="h-2" />
@@ -150,25 +152,25 @@ export function NetworkDashboard({
         {currentStats && (
           <div className="grid grid-cols-2 gap-3">
             <div className="rounded-md bg-muted/50 p-2">
-              <div className="text-xs text-muted-foreground">Latency</div>
+              <div className="text-xs text-muted-foreground">{t("latency", "Latency")}</div>
               <div className="text-lg font-semibold">
                 {Math.round(currentStats.rtt)} ms
               </div>
             </div>
             <div className="rounded-md bg-muted/50 p-2">
-              <div className="text-xs text-muted-foreground">Packet Loss</div>
+              <div className="text-xs text-muted-foreground">{t("packet_loss", "Packet Loss")}</div>
               <div className="text-lg font-semibold">
                 {(currentStats.packetLoss * 100).toFixed(1)}%
               </div>
             </div>
             <div className="rounded-md bg-muted/50 p-2">
-              <div className="text-xs text-muted-foreground">Jitter</div>
+              <div className="text-xs text-muted-foreground">{t("jitter", "Jitter")}</div>
               <div className="text-lg font-semibold">
                 {Math.round(currentStats.jitter)} ms
               </div>
             </div>
             <div className="rounded-md bg-muted/50 p-2">
-              <div className="text-xs text-muted-foreground">Bandwidth</div>
+              <div className="text-xs text-muted-foreground">{t("bandwidth", "Bandwidth")}</div>
               <div className="text-lg font-semibold">
                 {formatBandwidth(currentStats.bandwidth)}
               </div>
@@ -180,7 +182,7 @@ export function NetworkDashboard({
         <div className="flex items-center justify-between rounded-md bg-muted/30 p-2">
           <div className="flex items-center gap-2">
             <Activity className="h-4 w-4 text-muted-foreground" />
-            <span className="text-xs text-muted-foreground">Network Trend</span>
+            <span className="text-xs text-muted-foreground">{t("network_trend", "Network Trend")}</span>
           </div>
           <div className={cn("flex items-center gap-1", trendColor)}>
             <TrendIcon className="h-4 w-4" />
@@ -191,7 +193,7 @@ export function NetworkDashboard({
         {/* Mini Sparkline */}
         {sparklineData && sparklineData.length > 0 && (
           <div className="space-y-1">
-            <div className="text-xs text-muted-foreground">Latency History (30s)</div>
+            <div className="text-xs text-muted-foreground">{t("latency_history_30s", "Latency History (30s)")}</div>
             <div className="flex h-8 items-end gap-px">
               {sparklineData.map((value, i) => (
                 <div
@@ -206,19 +208,19 @@ export function NetworkDashboard({
 
         {/* Average Stats */}
         <div className="space-y-1 text-xs">
-          <div className="text-muted-foreground">Session Averages</div>
+          <div className="text-muted-foreground">{t("session_averages", "Session Averages")}</div>
           <div className="grid grid-cols-3 gap-2">
             <div className="text-center">
               <div className="font-medium">{Math.round(history.avgRtt)} ms</div>
-              <div className="text-muted-foreground">Avg RTT</div>
+              <div className="text-muted-foreground">{t("avg_rtt", "Avg RTT")}</div>
             </div>
             <div className="text-center">
               <div className="font-medium">{(history.avgPacketLoss * 100).toFixed(2)}%</div>
-              <div className="text-muted-foreground">Avg Loss</div>
+              <div className="text-muted-foreground">{t("avg_loss", "Avg Loss")}</div>
             </div>
             <div className="text-center">
               <div className="font-medium">{formatBandwidth(history.avgBandwidth)}</div>
-              <div className="text-muted-foreground">Avg BW</div>
+              <div className="text-muted-foreground">{t("avg_bw", "Avg BW")}</div>
             </div>
           </div>
         </div>

@@ -1,15 +1,11 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
-import { EMAIL_SENDERS, EMAIL_COLORS, getEmailAppUrl, getEmailHeaders, htmlToPlainText } from "../_shared/email-config.ts";
+import { createHandler } from '../_shared/handler.ts';
+import { EMAIL_SENDERS, EMAIL_COLORS, getEmailAppUrl } from "../_shared/email-config.ts";
+import { sendEmail } from '../_shared/resend-client.ts';
 import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
 import {
   Heading, Paragraph, Spacer, Card, Button, AlertBox, StatusBadge, InfoRow,
 } from "../_shared/email-templates/components.ts";
 import { getAppUrl } from "../_shared/app-config.ts";
-
-const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
-
-import { corsHeaders } from "../_shared/cors.ts";
 
 interface NotificationRequest {
   userId: string;
@@ -21,12 +17,7 @@ interface NotificationRequest {
   testMode?: boolean;
 }
 
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  try {
+Deno.serve(createHandler(async (req, ctx) => {
     const { userId, email, fullName, requestType = 'candidate', status, declineReason, testMode }: NotificationRequest = await req.json();
 
     console.log('[send-approval-notification] Processing:', { userId, email, requestType, status, testMode });
@@ -41,12 +32,7 @@ serve(async (req) => {
     // For approved users, generate a magic link for direct login
     if (status === 'approved') {
       try {
-        const supabaseAdmin = createClient(
-          Deno.env.get('SUPABASE_URL')!,
-          Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-        );
-
-        const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
+        const { data: linkData, error: linkError } = await ctx.supabase.auth.admin.generateLink({
           type: 'magiclink',
           email: email,
           options: { redirectTo: `${appUrl}/home` }
@@ -70,9 +56,6 @@ serve(async (req) => {
       const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
       if (status === 'approved') {
-        // Partner approval is handled by provision-partner / approve-partner-request
-        // which call send-partner-welcome-email directly.
-        // If this function is called for a partner approval, delegate:
         const welcomeResponse = await fetch(
           `${supabaseUrl}/functions/v1/send-partner-welcome-email`,
           {
@@ -91,7 +74,7 @@ serve(async (req) => {
         );
         const welcomeResult = await welcomeResponse.json();
         return new Response(JSON.stringify({ success: welcomeResult.success }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' },
         });
       } else {
         // Partner decline
@@ -112,7 +95,7 @@ serve(async (req) => {
         );
         const declineResult = await declineResponse.json();
         return new Response(JSON.stringify({ success: declineResult.success }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' },
         });
       }
     }
@@ -205,74 +188,35 @@ serve(async (req) => {
       showFooter: true,
     });
 
-    // Send email via Resend
-    if (RESEND_API_KEY) {
-      const resendResponse = await fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${RESEND_API_KEY}`,
-        },
-        body: JSON.stringify({
-          from: EMAIL_SENDERS.notifications,
-          to: [email],
+    // Send email via shared Resend client
+    const emailResponse = await sendEmail({
+      from: EMAIL_SENDERS.notifications,
+      to: [email],
+      subject: subject,
+      html: htmlContent,
+    });
+
+    console.log('[send-approval-notification] Email sent successfully to:', email);
+
+    // Log notification to database
+    try {
+      await ctx.supabase.from('approval_notification_logs').insert({
+        user_id: userId,
+        request_type: requestType,
+        notification_type: 'email',
+        status: 'sent',
+        metadata: {
+          email_id: emailResponse.id,
+          email: email,
           subject: subject,
-          html: htmlContent,
-          text: htmlToPlainText(htmlContent),
-          headers: getEmailHeaders(),
-        }),
+          approval_status: status,
+        },
       });
-
-      if (!resendResponse.ok) {
-        const error = await resendResponse.text();
-        console.error('[send-approval-notification] Resend error:', error);
-        throw new Error(`Failed to send email: ${error}`);
-      }
-
-      const emailResponse = await resendResponse.json();
-      console.log('[send-approval-notification] Email sent successfully to:', email);
-
-      // Log notification to database
-      try {
-        const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-        const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-
-        await fetch(`${supabaseUrl}/rest/v1/approval_notification_logs`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'apikey': supabaseServiceKey,
-            'Authorization': `Bearer ${supabaseServiceKey}`,
-            'Prefer': 'return=minimal',
-          },
-          body: JSON.stringify({
-            user_id: userId,
-            request_type: requestType,
-            notification_type: 'email',
-            status: 'sent',
-            metadata: {
-              email_id: emailResponse.id,
-              email: email,
-              subject: subject,
-              approval_status: status,
-            },
-          }),
-        });
-      } catch (logError) {
-        console.warn('[send-approval-notification] Failed to log notification:', logError);
-      }
-    } else {
-      console.warn('[send-approval-notification] RESEND_API_KEY not configured');
+    } catch (logError) {
+      console.warn('[send-approval-notification] Failed to log notification:', logError);
     }
 
     return new Response(JSON.stringify({ success: true }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' },
     });
-  } catch (error) {
-    console.error('[send-approval-notification] Error:', error);
-    return new Response(JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-  }
-});
+}));

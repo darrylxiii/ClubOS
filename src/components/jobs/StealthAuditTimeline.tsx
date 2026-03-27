@@ -19,6 +19,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useTranslation } from 'react-i18next';
 
 interface AuditLogEntry {
   id: string;
@@ -40,51 +41,59 @@ interface StealthAuditTimelineProps {
   maxHeight?: string;
 }
 
-const ACTION_CONFIG: Record<string, { 
-  icon: typeof UserPlus; 
-  label: string; 
+const ACTION_CONFIG: Record<string, {
+  icon: typeof UserPlus;
+  labelKey: string;
+  labelFallback: string;
   color: string;
   bgColor: string;
 }> = {
-  viewer_added: { 
-    icon: UserPlus, 
-    label: "Viewer Added", 
+  viewer_added: {
+    icon: UserPlus,
+    labelKey: "stealthAudit.viewerAdded",
+    labelFallback: "Viewer Added",
     color: "text-emerald-600 dark:text-emerald-400",
     bgColor: "bg-emerald-100 dark:bg-emerald-900/30"
   },
-  viewer_removed: { 
-    icon: UserMinus, 
-    label: "Viewer Removed", 
+  viewer_removed: {
+    icon: UserMinus,
+    labelKey: "stealthAudit.viewerRemoved",
+    labelFallback: "Viewer Removed",
     color: "text-rose-600 dark:text-rose-400",
     bgColor: "bg-rose-100 dark:bg-rose-900/30"
   },
-  stealth_enabled: { 
-    icon: Lock, 
-    label: "Stealth Enabled", 
+  stealth_enabled: {
+    icon: Lock,
+    labelKey: "stealthAudit.stealthEnabled",
+    labelFallback: "Stealth Enabled",
     color: "text-amber-600 dark:text-amber-400",
     bgColor: "bg-amber-100 dark:bg-amber-900/30"
   },
-  stealth_disabled: { 
-    icon: Unlock, 
-    label: "Stealth Disabled", 
+  stealth_disabled: {
+    icon: Unlock,
+    labelKey: "stealthAudit.stealthDisabled",
+    labelFallback: "Stealth Disabled",
     color: "text-blue-600 dark:text-blue-400",
     bgColor: "bg-blue-100 dark:bg-blue-900/30"
   },
-  bulk_add: { 
-    icon: Users, 
-    label: "Bulk Add", 
+  bulk_add: {
+    icon: Users,
+    labelKey: "stealthAudit.bulkAdd",
+    labelFallback: "Bulk Add",
     color: "text-emerald-600 dark:text-emerald-400",
     bgColor: "bg-emerald-100 dark:bg-emerald-900/30"
   },
-  bulk_remove: { 
-    icon: Users, 
-    label: "Bulk Remove", 
+  bulk_remove: {
+    icon: Users,
+    labelKey: "stealthAudit.bulkRemove",
+    labelFallback: "Bulk Remove",
     color: "text-rose-600 dark:text-rose-400",
     bgColor: "bg-rose-100 dark:bg-rose-900/30"
   },
 };
 
 export const StealthAuditTimeline = ({ jobId, maxHeight = "300px" }: StealthAuditTimelineProps) => {
+  const { t } = useTranslation('jobs');
   const [logs, setLogs] = useState<AuditLogEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -124,7 +133,7 @@ export const StealthAuditTimeline = ({ jobId, maxHeight = "300px" }: StealthAudi
     return (
       <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
         <Clock className="h-8 w-8 mb-2 opacity-50" />
-        <p className="text-sm">No access changes recorded yet</p>
+        <p className="text-sm">{t('stealthAudit.noChanges', 'No access changes recorded yet')}</p>
       </div>
     );
   }
@@ -148,7 +157,7 @@ export const StealthAuditTimeline = ({ jobId, maxHeight = "300px" }: StealthAudi
           <div className="flex items-start justify-between gap-2">
             <div>
               <Badge variant="outline" className={cn("text-xs mb-1", config.color)}>
-                {config.label}
+                {t(config.labelKey, config.labelFallback)}
               </Badge>
               
               <p className="text-sm">
@@ -156,32 +165,32 @@ export const StealthAuditTimeline = ({ jobId, maxHeight = "300px" }: StealthAudi
                   {log.performed_by_name || log.performed_by_email || 'Unknown user'}
                 </span>
                 {' '}
-                {log.action_type === 'stealth_enabled' && 'enabled stealth mode'}
-                {log.action_type === 'stealth_disabled' && 'disabled stealth mode'}
+                {log.action_type === 'stealth_enabled' && t('stealthAudit.enabledStealthMode', 'enabled stealth mode')}
+                {log.action_type === 'stealth_disabled' && t('stealthAudit.disabledStealthMode', 'disabled stealth mode')}
                 {log.action_type === 'viewer_added' && (
                   <>
-                    added{' '}
+                    {t('stealthAudit.added', 'added')}{' '}
                     <span className="font-medium">
-                      {log.target_user_name || log.target_user_email || 'a user'}
+                      {log.target_user_name || log.target_user_email || t('stealthAudit.aUser', 'a user')}
                     </span>
                   </>
                 )}
                 {log.action_type === 'viewer_removed' && (
                   <>
-                    removed{' '}
+                    {t('stealthAudit.removed', 'removed')}{' '}
                     <span className="font-medium">
-                      {log.target_user_name || log.target_user_email || 'a user'}
+                      {log.target_user_name || log.target_user_email || t('stealthAudit.aUser', 'a user')}
                     </span>
                   </>
                 )}
                 {log.action_type === 'bulk_add' && (
                   <>
-                    added{' '}
+                    {t('stealthAudit.added', 'added')}{' '}
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <span className="font-medium cursor-help underline decoration-dotted">
-                            {bulkCount} viewer{bulkCount !== 1 ? 's' : ''}
+                            {t('stealthAudit.viewerCount', '{{count}} viewer', { count: bulkCount })}
                           </span>
                         </TooltipTrigger>
                         <TooltipContent>
@@ -195,12 +204,12 @@ export const StealthAuditTimeline = ({ jobId, maxHeight = "300px" }: StealthAudi
                 )}
                 {log.action_type === 'bulk_remove' && (
                   <>
-                    removed{' '}
+                    {t('stealthAudit.removed', 'removed')}{' '}
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <span className="font-medium cursor-help underline decoration-dotted">
-                            {bulkCount} viewer{bulkCount !== 1 ? 's' : ''}
+                            {t('stealthAudit.viewerCount', '{{count}} viewer', { count: bulkCount })}
                           </span>
                         </TooltipTrigger>
                         <TooltipContent>

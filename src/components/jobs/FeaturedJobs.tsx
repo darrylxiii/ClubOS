@@ -5,8 +5,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useTranslation } from 'react-i18next';
 
 export const FeaturedJobs = () => {
+  const { t } = useTranslation('jobs');
   const { data: jobs, isLoading } = useQuery({
     queryKey: ['featured-jobs'],
     queryFn: async () => {
@@ -25,10 +27,10 @@ export const FeaturedJobs = () => {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-medium text-muted-foreground">Featured Opportunities</h3>
+        <h3 className="text-sm font-medium text-muted-foreground">{t('featured.title', 'Featured Opportunities')}</h3>
         <Button variant="ghost" asChild>
           <Link to="/jobs">
-            View All <ArrowRight className="ml-2 h-4 w-4" />
+            {t('common:viewAll', 'View All')} <ArrowRight className="ml-2 h-4 w-4" />
           </Link>
         </Button>
       </div>

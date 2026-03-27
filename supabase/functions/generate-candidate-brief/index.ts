@@ -1,28 +1,16 @@
-import { createClient } from "npm:@supabase/supabase-js@2";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
-};
+import { createHandler } from '../_shared/handler.ts';
 
 // 48h cache TTL for candidate briefs
 const BRIEF_CACHE_TTL_MS = 48 * 60 * 60 * 1000;
 
-Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
-
-  try {
+Deno.serve(createHandler(async (req, ctx) => {
     const { candidateId } = await req.json();
     if (!candidateId) throw new Error('candidateId is required');
 
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) throw new Error('LOVABLE_API_KEY not configured');
+    const GOOGLE_API_KEY = Deno.env.get('GOOGLE_API_KEY');
+    if (!GOOGLE_API_KEY) throw new Error('GOOGLE_API_KEY not configured');
 
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
-    const { data: candidate, error: fetchErr } = await supabase
+    const { data: candidate, error: fetchErr } = await ctx.supabase
       .from('candidate_profiles')
       .select('*')
       .eq('id', candidateId)
@@ -39,7 +27,7 @@ Deno.serve(async (req) => {
           success: true,
           data: candidate.candidate_brief,
           cached: true,
-        }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+        }), { headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } });
       }
     }
 
@@ -84,7 +72,7 @@ Deno.serve(async (req) => {
       context.push(`Notice period: ${candidate.notice_period}`);
     }
 
-    const systemPrompt = `You are QUIN, the AI intelligence engine for The Quantum Club, a luxury talent platform. 
+    const systemPrompt = `You are QUIN, the AI intelligence engine for The Quantum Club, a luxury talent platform.
 You produce concise, executive-grade candidate intelligence briefs. Be direct and substantive. Never fabricate credentials.
 
 You MUST respond with a valid JSON object using this exact structure:
@@ -102,15 +90,15 @@ You MUST respond with a valid JSON object using this exact structure:
 
     const userPrompt = `Generate a 360-degree intelligence brief for this candidate:\n\n${context.join('\n')}`;
 
-    // Downgraded from gemini-3-flash-preview → gemini-2.5-flash (quality-sensitive, not flash-lite)
-    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    // Downgraded from gemini-3-flash-preview -> gemini-2.5-flash (quality-sensitive, not flash-lite)
+    const aiResponse = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Authorization': `Bearer ${GOOGLE_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash-lite',
+        model: 'gemini-2.5-flash-lite',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt },
@@ -122,12 +110,12 @@ You MUST respond with a valid JSON object using this exact structure:
     if (!aiResponse.ok) {
       if (aiResponse.status === 429) {
         return new Response(JSON.stringify({ success: false, error: 'Rate limit exceeded. Please try again later.' }), {
-          status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 429, headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' },
         });
       }
       if (aiResponse.status === 402) {
-        return new Response(JSON.stringify({ success: false, error: 'AI credits exhausted. Please add credits.' }), {
-          status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        return new Response(JSON.stringify({ success: false, error: 'AI quota exceeded. Please add credits.' }), {
+          status: 402, headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' },
         });
       }
       const errText = await aiResponse.text();
@@ -157,7 +145,7 @@ You MUST respond with a valid JSON object using this exact structure:
     }
 
     brief.generated_at = new Date().toISOString();
-    brief.model = 'google/gemini-2.5-flash-lite';
+    brief.model = 'gemini-2.5-flash-lite';
 
     const skillVerification = (brief.skill_verification || []).reduce((acc: any, sv: any) => {
       acc[sv.skill] = {
@@ -169,7 +157,7 @@ You MUST respond with a valid JSON object using this exact structure:
     }, {});
 
     // Store brief with timestamp for cache invalidation
-    await supabase
+    await ctx.supabase
       .from('candidate_profiles')
       .update({
         candidate_brief: brief,
@@ -178,7 +166,7 @@ You MUST respond with a valid JSON object using this exact structure:
       })
       .eq('id', candidateId);
 
-    await supabase.from('audit_logs').insert({
+    await ctx.supabase.from('audit_logs').insert({
       action: 'enrichment.candidate_brief',
       entity_type: 'candidate_profile',
       entity_id: candidateId,
@@ -191,13 +179,5 @@ You MUST respond with a valid JSON object using this exact structure:
       success: true,
       data: brief,
       cached: false,
-    }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-
-  } catch (error) {
-    console.error('[generate-brief] Error:', error);
-    return new Response(JSON.stringify({
-      success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
-    }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-  }
-});
+    }), { headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } });
+}));

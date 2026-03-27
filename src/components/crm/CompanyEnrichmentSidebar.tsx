@@ -3,6 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Building, Globe, Users, MapPin, Linkedin, ExternalLink, TrendingUp } from 'lucide-react';
 import { motion } from '@/lib/motion';
+import { useTranslation } from 'react-i18next';
 
 interface CompanyData {
   name: string;
@@ -22,6 +23,7 @@ interface CompanyEnrichmentSidebarProps {
 }
 
 export function CompanyEnrichmentSidebar({ company, loading }: CompanyEnrichmentSidebarProps) {
+  const { t } = useTranslation('common');
   if (loading) {
     return (
       <Card className="bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border-border/30">

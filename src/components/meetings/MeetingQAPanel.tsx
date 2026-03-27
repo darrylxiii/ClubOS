@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -30,6 +31,7 @@ interface MeetingQAPanelProps {
 }
 
 export function MeetingQAPanel({ meetingId, isHost, open, onOpenChange }: MeetingQAPanelProps) {
+  const { t } = useTranslation('common');
   const [questions, setQuestions] = useState<Question[]>([]);
   const [newQuestion, setNewQuestion] = useState("");
   const [isAnonymous, setIsAnonymous] = useState(false);
@@ -95,7 +97,7 @@ export function MeetingQAPanel({ meetingId, isHost, open, onOpenChange }: Meetin
 
   const askQuestion = async () => {
     if (!newQuestion.trim()) {
-      toast.error("Question cannot be empty");
+      toast.error(t("question_cannot_be_empty", "Question cannot be empty"));
       return;
     }
 
@@ -116,10 +118,10 @@ export function MeetingQAPanel({ meetingId, isHost, open, onOpenChange }: Meetin
 
       setNewQuestion("");
       setIsAnonymous(false);
-      toast.success("Question submitted");
+      toast.success(t("question_submitted", "Question submitted"));
     } catch (error) {
       console.error('Error asking question:', error);
-      toast.error("Failed to submit question");
+      toast.error(t("failed_to_submit_question", "Failed to submit question"));
     }
   };
 
@@ -160,7 +162,7 @@ export function MeetingQAPanel({ meetingId, isHost, open, onOpenChange }: Meetin
     } catch (error: unknown) {
       const err = error as { code?: string };
       if (err.code !== '23505') {
-        toast.error("Failed to upvote");
+        toast.error(t("failed_to_upvote", "Failed to upvote"));
       }
     }
   };
@@ -185,9 +187,9 @@ export function MeetingQAPanel({ meetingId, isHost, open, onOpenChange }: Meetin
 
       setAnsweringId(null);
       setAnswerText("");
-      toast.success("Answer posted");
+      toast.success(t("answer_posted", "Answer posted"));
     } catch (error) {
-      toast.error("Failed to post answer");
+      toast.error(t("failed_to_post_answer", "Failed to post answer"));
     }
   };
 
@@ -206,7 +208,7 @@ export function MeetingQAPanel({ meetingId, isHost, open, onOpenChange }: Meetin
             <Textarea
               value={newQuestion}
               onChange={(e) => setNewQuestion(e.target.value)}
-              placeholder="Ask a question..."
+              placeholder={t("ask_a_question", "Ask a question...")}
               rows={3}
             />
             <div className="flex items-center justify-between mt-3">
@@ -232,7 +234,7 @@ export function MeetingQAPanel({ meetingId, isHost, open, onOpenChange }: Meetin
               {questions.length === 0 ? (
                 <Card className="p-8 text-center bg-card/50">
                   <MessageCircleQuestion className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
-                  <p className="text-muted-foreground">No questions yet</p>
+                  <p className="text-muted-foreground">{t("no_questions_yet", "No questions yet")}</p>
                   <p className="text-sm text-muted-foreground mt-2">
                     Be the first to ask a question
                   </p>
@@ -277,7 +279,7 @@ export function MeetingQAPanel({ meetingId, isHost, open, onOpenChange }: Meetin
                             <Textarea
                               value={answerText}
                               onChange={(e) => setAnswerText(e.target.value)}
-                              placeholder="Type your answer..."
+                              placeholder={t("type_your_answer", "Type your answer...")}
                               rows={3}
                             />
                             <div className="flex gap-2">

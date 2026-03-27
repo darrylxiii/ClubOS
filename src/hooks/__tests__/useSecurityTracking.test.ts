@@ -3,6 +3,12 @@ import { renderHook, act } from '@testing-library/react';
 import { useSecurityTracking, generateDeviceFingerprint } from '../useSecurityTracking';
 import { supabase } from '@/integrations/supabase/client';
 
+vi.mock('@/integrations/supabase/client', () => ({
+  supabase: {
+    rpc: vi.fn().mockResolvedValue({ data: null, error: null }),
+  },
+}));
+
 describe('useSecurityTracking', () => {
   beforeEach(() => {
     vi.clearAllMocks();

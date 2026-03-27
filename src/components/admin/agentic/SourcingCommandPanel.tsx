@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Search, Zap, Copy, CheckCircle, AlertCircle, Clock, Users, Target } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 
 interface StrategyQuery {
   label: string;
@@ -53,19 +54,19 @@ export default function SourcingCommandPanel() {
 
   const handleGenerateStrategy = async () => {
     if (!selectedJobId) {
-      toast.error('Select a job first');
+      toast.error(t('agentic.sourcingCommandPanel.selectAJobFirst'));
       return;
     }
     const result = await generateStrategy.mutateAsync(selectedJobId);
     if (result?.strategy) {
       setStrategy(result.strategy);
-      toast.success('Sourcing strategy generated');
+      toast.success(t('agentic.sourcingCommandPanel.sourcingStrategyGenerated'));
     }
   };
 
   const handleImportUrls = async () => {
     if (!selectedJobId) {
-      toast.error('Select a job first');
+      toast.error(t('agentic.sourcingCommandPanel.selectAJobFirst'));
       return;
     }
     const urls = urlInput
@@ -74,7 +75,7 @@ export default function SourcingCommandPanel() {
       .filter((u: string) => u.length > 0);
 
     if (urls.length === 0) {
-      toast.error('Paste at least one LinkedIn URL');
+      toast.error(t('agentic.sourcingCommandPanel.pasteAtLeastOneLinkedinUrl'));
       return;
     }
 
@@ -98,10 +99,11 @@ export default function SourcingCommandPanel() {
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
-    toast.success('Copied to clipboard');
+    toast.success(t('agentic.sourcingCommandPanel.copiedToClipboard'));
   };
 
   const statusColor = (status: string) => {
+  const { t } = useTranslation('admin');
     switch (status) {
       case 'completed': return 'default';
       case 'in_progress': return 'secondary';
@@ -123,7 +125,7 @@ export default function SourcingCommandPanel() {
         <CardContent>
           <Select value={selectedJobId} onValueChange={setSelectedJobId}>
             <SelectTrigger className="bg-card/30 border-border/30">
-              <SelectValue placeholder="Select a role to source for" />
+              <SelectValue placeholder={t('agentic.sourcingCommandPanel.selectARoleToSourceFor')} />
             </SelectTrigger>
             <SelectContent>
               {jobs.map((job) => (
@@ -161,7 +163,7 @@ export default function SourcingCommandPanel() {
                 <>
                   <p className="text-xs text-muted-foreground">{strategy.ideal_candidate_summary}</p>
                   <div className="space-y-2">
-                    <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">LinkedIn Boolean Queries</h4>
+                    <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t('agentic.sourcingCommandPanel.linkedinBooleanQueries')}</h4>
                     {strategy.linkedin_queries.map((q, i) => (
                       <div key={i} className="group relative bg-card/30 border border-border/20 rounded-lg p-3">
                         <p className="text-xs font-medium text-muted-foreground mb-1">{q.label}</p>
@@ -177,7 +179,7 @@ export default function SourcingCommandPanel() {
                   </div>
                   {strategy.github_queries.length > 0 && (
                     <div className="space-y-2">
-                      <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">GitHub Queries</h4>
+                      <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t('agentic.sourcingCommandPanel.githubQueries')}</h4>
                       {strategy.github_queries.map((q, i) => (
                         <div key={i} className="group relative bg-card/30 border border-border/20 rounded-lg p-3">
                           <p className="text-xs font-medium text-muted-foreground mb-1">{q.label}</p>
@@ -194,7 +196,7 @@ export default function SourcingCommandPanel() {
                   )}
                   {strategy.platform_tips.length > 0 && (
                     <div className="space-y-2">
-                      <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Platform Tips</h4>
+                      <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t('agentic.sourcingCommandPanel.platformTips')}</h4>
                       {strategy.platform_tips.map((t, i) => (
                         <div key={i} className="bg-card/30 border border-border/20 rounded-lg p-3">
                           <span className="text-xs font-semibold text-primary">{t.platform}</span>
@@ -227,7 +229,7 @@ export default function SourcingCommandPanel() {
               <Textarea
                 value={urlInput}
                 onChange={(e) => setUrlInput(e.target.value)}
-                placeholder="Paste LinkedIn URLs, one per line..."
+                placeholder={t('agentic.sourcingCommandPanel.pasteLinkedinUrlsOnePerLine')}
                 className="bg-card/30 border-border/30 min-h-[120px] font-mono text-xs"
               />
               <div className="flex items-center justify-between">
@@ -247,7 +249,7 @@ export default function SourcingCommandPanel() {
 
               {importResults && (
                 <div className="bg-card/30 border border-border/20 rounded-lg p-3 space-y-2">
-                  <h4 className="text-xs font-semibold uppercase tracking-wider">Import Results</h4>
+                  <h4 className="text-xs font-semibold uppercase tracking-wider">{t('agentic.sourcingCommandPanel.importResults')}</h4>
                   <div className="grid grid-cols-2 gap-2 text-xs">
                     <div className="flex items-center gap-1.5">
                       <Users className="h-3.5 w-3.5 text-muted-foreground" />
@@ -284,9 +286,9 @@ export default function SourcingCommandPanel() {
           </CardHeader>
           <CardContent>
             {missionsLoading ? (
-              <p className="text-xs text-muted-foreground">Loading missions...</p>
+              <p className="text-xs text-muted-foreground">{t('agentic.sourcingCommandPanel.loadingMissions')}</p>
             ) : missions.length === 0 ? (
-              <p className="text-xs text-muted-foreground">No sourcing missions yet for this role.</p>
+              <p className="text-xs text-muted-foreground">{t('agentic.sourcingCommandPanel.noSourcingMissionsYetForThis')}</p>
             ) : (
               <div className="space-y-3">
                 {missions.map((mission) => (

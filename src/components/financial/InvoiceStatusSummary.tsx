@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, FileText, Clock, AlertTriangle, CheckCircle } from "lucide-react";
@@ -8,6 +9,7 @@ interface InvoiceStatusSummaryProps {
 }
 
 export function InvoiceStatusSummary({ year }: InvoiceStatusSummaryProps) {
+  const { t } = useTranslation('common');
   const { data: invoices, isLoading } = useMoneybirdInvoices(year);
 
   if (isLoading) {
@@ -44,7 +46,7 @@ export function InvoiceStatusSummary({ year }: InvoiceStatusSummaryProps) {
   return (
     <Card>
       <CardHeader className="pb-2">
-        <CardTitle className="text-base">Invoice Status</CardTitle>
+        <CardTitle className="text-base">{t("invoice_status", "Invoice Status")}</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">

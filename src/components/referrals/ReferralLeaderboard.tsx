@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Trophy, Medal, Award, Crown, TrendingUp, Eye, EyeOff } from "lucide-react";
@@ -84,6 +85,7 @@ const PodiumPosition = ({
 };
 
 export function ReferralLeaderboard() {
+  const { t } = useTranslation('common');
   const [period, setPeriod] = useState<LeaderboardPeriod>('month');
   const { data: leaderboard, isLoading } = useReferralLeaderboard(period);
   const { user } = useAuth();
@@ -143,7 +145,7 @@ export function ReferralLeaderboard() {
           <div className="text-center py-8 text-muted-foreground">
             <Trophy className="h-12 w-12 mx-auto mb-2 opacity-30" />
             <p>No referrals yet this {period.replace('_', ' ')}</p>
-            <p className="text-sm">Be the first to climb the leaderboard!</p>
+            <p className="text-sm">{t("be_the_first_to", "Be the first to climb the leaderboard!")}</p>
           </div>
         )}
 
@@ -164,7 +166,7 @@ export function ReferralLeaderboard() {
                   <AvatarFallback>{currentUserEntry.display_name?.charAt(0)}</AvatarFallback>
                 </Avatar>
                 <div>
-                  <p className="text-sm font-medium text-foreground">Your Position</p>
+                  <p className="text-sm font-medium text-foreground">{t("your_position", "Your Position")}</p>
                   <p className="text-xs text-muted-foreground">
                     {currentUserEntry.successful_placements} placements • {currentUserEntry.success_rate}% success
                   </p>

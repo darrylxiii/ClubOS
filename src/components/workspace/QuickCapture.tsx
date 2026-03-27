@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -24,6 +25,7 @@ interface QuickCaptureProps {
 type CaptureMode = 'note' | 'url' | 'image';
 
 export function QuickCapture({ open, onOpenChange }: QuickCaptureProps) {
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
   const { createPage } = useWorkspacePages();
   const [mode, setMode] = useState<CaptureMode>('note');
@@ -69,7 +71,7 @@ export function QuickCapture({ open, onOpenChange }: QuickCaptureProps) {
 
       if (mode === 'note') {
         if (!content.trim()) {
-          toast.error('Please enter some content');
+          toast.error(t("please_enter_some_content", "Please enter some content"));
           return;
         }
         pageTitle = title || 'Quick Note';
@@ -81,14 +83,14 @@ export function QuickCapture({ open, onOpenChange }: QuickCaptureProps) {
         ];
       } else if (mode === 'url') {
         if (!url.trim()) {
-          toast.error('Please enter a URL');
+          toast.error(t("please_enter_a_url", "Please enter a URL"));
           return;
         }
 
         try {
           new URL(url);
         } catch {
-          toast.error('Please enter a valid URL');
+          toast.error(t("please_enter_a_valid", "Please enter a valid URL"));
           return;
         }
 
@@ -112,7 +114,7 @@ export function QuickCapture({ open, onOpenChange }: QuickCaptureProps) {
         ];
       } else if (mode === 'image') {
         if (!imageUrl.trim()) {
-          toast.error('Please enter an image URL');
+          toast.error(t("please_enter_an_image", "Please enter an image URL"));
           return;
         }
 
@@ -132,12 +134,12 @@ export function QuickCapture({ open, onOpenChange }: QuickCaptureProps) {
         content: pageContent,
       });
 
-      toast.success('Page created');
+      toast.success(t("page_created", "Page created"));
       onOpenChange(false);
       navigate(`/pages/${newPage.id}`);
     } catch (error) {
       console.error('Failed to create capture:', error);
-      toast.error('Failed to create page');
+      toast.error(t("failed_to_create_page", "Failed to create page"));
     } finally {
       setIsSubmitting(false);
     }
@@ -171,10 +173,10 @@ export function QuickCapture({ open, onOpenChange }: QuickCaptureProps) {
 
           <div className="mt-4 space-y-4">
             <div>
-              <Label htmlFor="title">Title (optional)</Label>
+              <Label htmlFor="title">{t("title_optional", "Title (optional)")}</Label>
               <Input
                 id="title"
-                placeholder="Page title..."
+                placeholder={t("page_title", "Page title...")}
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
               />
@@ -182,10 +184,10 @@ export function QuickCapture({ open, onOpenChange }: QuickCaptureProps) {
 
             <TabsContent value="note" className="mt-0">
               <div>
-                <Label htmlFor="content">Content</Label>
+                <Label htmlFor="content">{t("content", "Content")}</Label>
                 <Textarea
                   id="content"
-                  placeholder="Start typing..."
+                  placeholder={t("start_typing", "Start typing...")}
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
                   rows={5}
@@ -212,7 +214,7 @@ export function QuickCapture({ open, onOpenChange }: QuickCaptureProps) {
 
             <TabsContent value="image" className="mt-0">
               <div>
-                <Label htmlFor="imageUrl">Image URL</Label>
+                <Label htmlFor="imageUrl">{t("image_url", "Image URL")}</Label>
                 <Input
                   id="imageUrl"
                   type="url"
@@ -224,7 +226,7 @@ export function QuickCapture({ open, onOpenChange }: QuickCaptureProps) {
                   <div className="mt-2 rounded border overflow-hidden">
                     <img
                       src={imageUrl}
-                      alt="Preview"
+                      alt={t("preview", "Preview")}
                       className="max-h-32 w-full object-cover"
                       onError={(e) => {
                         (e.target as HTMLImageElement).style.display = 'none';

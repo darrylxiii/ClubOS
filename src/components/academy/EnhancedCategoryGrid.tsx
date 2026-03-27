@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
@@ -25,6 +26,7 @@ const categoryGradients = [
 ];
 
 export const EnhancedCategoryGrid = ({ onCategoryClick }: EnhancedCategoryGridProps) => {
+  const { t } = useTranslation('common');
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -83,7 +85,7 @@ export const EnhancedCategoryGrid = ({ onCategoryClick }: EnhancedCategoryGridPr
 
   return (
     <div className="space-y-4">
-      <h2 className="text-2xl font-semibold">Browse by Category</h2>
+      <h2 className="text-2xl font-semibold">{t('academy.browseByCategory')}</h2>
       <div className="grid grid-cols-3 gap-4">
         {categories.map((category, index) => (
           <Card

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
@@ -23,6 +24,7 @@ interface BulkReplyActionsProps {
 }
 
 export function BulkReplyActions({ selectedIds, onClearSelection }: BulkReplyActionsProps) {
+  const { t } = useTranslation('common');
   const queryClient = useQueryClient();
   const selectedCount = selectedIds.size;
 
@@ -103,7 +105,7 @@ export function BulkReplyActions({ selectedIds, onClearSelection }: BulkReplyAct
 
       if (error) throw error;
       if (!data || data.length === 0) {
-        toast.error('No data to export');
+        toast.error(t("no_data_to_export", "No data to export"));
         return;
       }
 
@@ -131,7 +133,7 @@ export function BulkReplyActions({ selectedIds, onClearSelection }: BulkReplyAct
 
       toast.success(`Exported ${data.length} replies to CSV`);
     } catch (error) {
-      toast.error('Export failed');
+      toast.error(t("export_failed", "Export failed"));
     }
   };
 

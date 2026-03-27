@@ -69,7 +69,7 @@ serve(async (req) => {
 
     if (fullTranscript.length > 50) {
       try {
-        // Use Lovable AI for summarization
+        // Use Google Gemini for summarization
         const aiResponse = await fetch(`${supabaseUrl}/functions/v1/club-ai-chat`, {
           method: 'POST',
           headers: {

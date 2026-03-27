@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { motion, AnimatePresence } from '@/lib/motion';
 import { Download, X, Smartphone } from 'lucide-react';
@@ -5,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { useInstallPrompt } from '@/hooks/useInstallPrompt';
 
 export function InstallPromptBanner() {
+  const { t } = useTranslation('common');
   const { isInstallable, isIOS, isInstalled, promptInstall, dismissPrompt } = useInstallPrompt();
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -48,7 +50,7 @@ export function InstallPromptBanner() {
                 <button
                   onClick={dismissPrompt}
                   className="p-1 hover:bg-muted rounded-md transition-colors shrink-0"
-                  aria-label="Dismiss"
+                  aria-label={t("dismiss", "Dismiss")}
                 >
                   <X className="w-4 h-4 text-muted-foreground" />
                 </button>
@@ -80,7 +82,7 @@ export function InstallPromptBanner() {
                 <button
                   onClick={() => setIsExpanded(false)}
                   className="p-1 hover:bg-muted rounded-md transition-colors"
-                  aria-label="Close"
+                  aria-label={t("close", "Close")}
                 >
                   <X className="w-4 h-4 text-muted-foreground" />
                 </button>
@@ -89,19 +91,19 @@ export function InstallPromptBanner() {
                 <li className="flex items-start gap-2">
                   <span className="font-semibold text-foreground">1.</span>
                   <span>
-                    Tap the <strong className="text-foreground">Share</strong> button in Safari
+                    Tap the <strong className="text-foreground">{t("share", "Share")}</strong> button in Safari
                   </span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="font-semibold text-foreground">2.</span>
                   <span>
-                    Scroll down and tap <strong className="text-foreground">"Add to Home Screen"</strong>
+                    Scroll down and tap <strong className="text-foreground">{t("add_to_home_screen", "')Add to Home Screen'")}</strong>
                   </span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="font-semibold text-foreground">3.</span>
                   <span>
-                    Tap <strong className="text-foreground">"Add"</strong> to confirm
+                    Tap <strong className="text-foreground">{t("add", "')Add'")}</strong> to confirm
                   </span>
                 </li>
               </ol>

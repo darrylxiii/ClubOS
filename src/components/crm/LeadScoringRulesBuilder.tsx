@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { motion, AnimatePresence } from '@/lib/motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -40,6 +41,7 @@ const OPERATOR_OPTIONS = [
 ];
 
 export function LeadScoringRulesBuilder() {
+  const { t } = useTranslation('common');
   const [rules, setRules] = useState<ScoringRule[]>([
     { id: '1', field: 'email_opens', operator: 'greater_than', value: '3', score: 10, isActive: true },
     { id: '2', field: 'reply_count', operator: 'greater_than', value: '0', score: 25, isActive: true },
@@ -69,7 +71,7 @@ export function LeadScoringRulesBuilder() {
   };
 
   const handleSave = () => {
-    toast.success('Scoring rules saved successfully');
+    toast.success(t("scoring_rules_saved_successfully", "Scoring rules saved successfully"));
   };
 
   const handlePreview = () => {
@@ -121,7 +123,7 @@ export function LeadScoringRulesBuilder() {
               
               <div className="flex-1 grid grid-cols-4 gap-3">
                 <div>
-                  <Label className="text-xs text-muted-foreground">Field</Label>
+                  <Label className="text-xs text-muted-foreground">{t("field", "Field")}</Label>
                   <Select
                     value={rule.field}
                     onValueChange={(value) => updateRule(rule.id, { field: value })}
@@ -140,7 +142,7 @@ export function LeadScoringRulesBuilder() {
                 </div>
 
                 <div>
-                  <Label className="text-xs text-muted-foreground">Operator</Label>
+                  <Label className="text-xs text-muted-foreground">{t("operator", "Operator")}</Label>
                   <Select
                     value={rule.operator}
                     onValueChange={(value) => updateRule(rule.id, { operator: value })}
@@ -159,11 +161,11 @@ export function LeadScoringRulesBuilder() {
                 </div>
 
                 <div>
-                  <Label className="text-xs text-muted-foreground">Value</Label>
+                  <Label className="text-xs text-muted-foreground">{t("value", "Value")}</Label>
                   <Input
                     value={rule.value}
                     onChange={(e) => updateRule(rule.id, { value: e.target.value })}
-                    placeholder="Enter value"
+                    placeholder={t("enter_value", "Enter value")}
                     className="h-9"
                   />
                 </div>
@@ -209,7 +211,7 @@ export function LeadScoringRulesBuilder() {
             animate={{ opacity: 1 }}
             className="p-4 rounded-lg bg-primary/10 border border-primary/20 text-center"
           >
-            <p className="text-sm text-muted-foreground">Maximum Achievable Score</p>
+            <p className="text-sm text-muted-foreground">{t("maximum_achievable_score", "Maximum Achievable Score")}</p>
             <p className="text-3xl font-bold text-primary">{previewScore}</p>
           </motion.div>
         )}

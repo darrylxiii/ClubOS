@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -32,6 +33,7 @@ const STEPS = [
 ];
 
 export function ReconciliationModal({ invoice, open, onOpenChange }: ReconciliationModalProps) {
+  const { t } = useTranslation('common');
   const [currentStep, setCurrentStep] = useState(0);
   const [selectedCompany, setSelectedCompany] = useState<CompanyForReconciliation | null>(null);
   const [selectedPlacement, setSelectedPlacement] = useState<PlacementFeeForReconciliation | null>(null);
@@ -149,7 +151,7 @@ export function ReconciliationModal({ invoice, open, onOpenChange }: Reconciliat
       return data;
     },
     onSuccess: () => {
-      toast.success('Invoice reconciled successfully');
+      toast.success(t("invoice_reconciled_successfully", "Invoice reconciled successfully"));
       queryClient.invalidateQueries({ queryKey: ['reconciliation-invoices'] });
       queryClient.invalidateQueries({ queryKey: ['unmatched-invoice-count'] });
       onOpenChange(false);
@@ -161,7 +163,7 @@ export function ReconciliationModal({ invoice, open, onOpenChange }: Reconciliat
 
   const handleNext = () => {
     if (currentStep === 1 && !selectedCompany) {
-      toast.error('Please select a company');
+      toast.error(t("please_select_a_company", "Please select a company"));
       return;
     }
     setCurrentStep(prev => Math.min(prev + 1, STEPS.length - 1));
@@ -197,7 +199,7 @@ export function ReconciliationModal({ invoice, open, onOpenChange }: Reconciliat
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Reconcile Invoice</DialogTitle>
+          <DialogTitle>{t("reconcile_invoice", "Reconcile Invoice")}</DialogTitle>
           <DialogDescription>
             Link invoice {invoice.invoice_number} to a company and capture reconciliation data
           </DialogDescription>

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -10,6 +11,7 @@ import { secondsToHours } from "@/hooks/useTimeTracking";
 import { format, startOfWeek, endOfWeek } from "date-fns";
 
 export function TeamTimeView() {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
 
   // Get user's company
@@ -118,7 +120,7 @@ export function TeamTimeView() {
       <Card>
         <CardContent className="py-8 text-center">
           <Users className="h-12 w-12 mx-auto mb-3 text-muted-foreground" />
-          <p className="text-muted-foreground">No company assigned</p>
+          <p className="text-muted-foreground">{t("no_company_assigned", "No company assigned")}</p>
           <p className="text-sm text-muted-foreground mt-1">
             Team time tracking requires company membership
           </p>
@@ -142,15 +144,15 @@ export function TeamTimeView() {
           <div className="grid grid-cols-3 gap-4">
             <div className="text-center">
               <p className="text-3xl font-bold">{(teamStats?.totalHours || 0).toFixed(1)}h</p>
-              <p className="text-sm text-muted-foreground">Total Hours</p>
+              <p className="text-sm text-muted-foreground">{t("total_hours", "Total Hours")}</p>
             </div>
             <div className="text-center">
               <p className="text-3xl font-bold">{(teamStats?.totalBillableHours || 0).toFixed(1)}h</p>
-              <p className="text-sm text-muted-foreground">Billable</p>
+              <p className="text-sm text-muted-foreground">{t("billable", "Billable")}</p>
             </div>
             <div className="text-center">
               <p className="text-3xl font-bold">{teamStats?.avgActivity || 0}%</p>
-              <p className="text-sm text-muted-foreground">Avg Activity</p>
+              <p className="text-sm text-muted-foreground">{t("avg_activity", "Avg Activity")}</p>
             </div>
           </div>
         </CardContent>
@@ -163,13 +165,13 @@ export function TeamTimeView() {
             <Users className="h-5 w-5" />
             Team Members
           </CardTitle>
-          <CardDescription>Individual time tracked this week</CardDescription>
+          <CardDescription>{t("individual_time_tracked_this", "Individual time tracked this week")}</CardDescription>
         </CardHeader>
         <CardContent>
           {!teamStats?.teamMembers?.length ? (
             <div className="text-center py-8">
               <Clock className="h-12 w-12 mx-auto mb-3 text-muted-foreground" />
-              <p className="text-muted-foreground">No time entries this week</p>
+              <p className="text-muted-foreground">{t("no_time_entries_this", "No time entries this week")}</p>
             </div>
           ) : (
             <div className="space-y-4">
@@ -195,7 +197,7 @@ export function TeamTimeView() {
                   <div className="flex items-center gap-2">
                     <div className="text-right">
                       <p className="text-sm font-medium">{member.avgActivity}%</p>
-                      <p className="text-xs text-muted-foreground">Activity</p>
+                      <p className="text-xs text-muted-foreground">{t("activity", "Activity")}</p>
                     </div>
                     <Badge 
                       variant={member.avgActivity >= 60 ? "default" : member.avgActivity >= 30 ? "secondary" : "outline"}

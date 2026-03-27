@@ -142,7 +142,7 @@ function tokenize(formula: string): Token[] {
 }
 
 // Built-in functions
-const FUNCTIONS: Record<string, (...args: any[]) => FormulaValue> = {
+const FUNCTIONS: Record<string, (...args: FormulaValue[]) => FormulaValue> = {
   // Math functions
   SUM: (...args: number[]) => args.filter(n => typeof n === 'number' && !isNaN(n)).reduce((a, b) => a + b, 0),
   AVG: (...args: number[]) => {
@@ -165,27 +165,27 @@ const FUNCTIONS: Record<string, (...args: any[]) => FormulaValue> = {
   SQRT: (n: number) => Math.sqrt(n),
   
   // String functions
-  CONCAT: (...args: any[]) => args.map(a => String(a ?? '')).join(''),
-  LENGTH: (str: any) => String(str ?? '').length,
-  UPPER: (str: any) => String(str ?? '').toUpperCase(),
-  LOWER: (str: any) => String(str ?? '').toLowerCase(),
-  TRIM: (str: any) => String(str ?? '').trim(),
-  LEFT: (str: any, n: number) => String(str ?? '').slice(0, n),
-  RIGHT: (str: any, n: number) => String(str ?? '').slice(-n),
-  REPLACE: (str: any, find: string, replace: string) => String(str ?? '').replace(find, replace),
-  CONTAINS: (str: any, search: string) => String(str ?? '').toLowerCase().includes(String(search ?? '').toLowerCase()),
+  CONCAT: (...args: FormulaValue[]) => args.map(a => String(a ?? '')).join(''),
+  LENGTH: (str: FormulaValue) => String(str ?? '').length,
+  UPPER: (str: FormulaValue) => String(str ?? '').toUpperCase(),
+  LOWER: (str: FormulaValue) => String(str ?? '').toLowerCase(),
+  TRIM: (str: FormulaValue) => String(str ?? '').trim(),
+  LEFT: (str: FormulaValue, n: FormulaValue) => String(str ?? '').slice(0, Number(n)),
+  RIGHT: (str: FormulaValue, n: FormulaValue) => String(str ?? '').slice(-Number(n)),
+  REPLACE: (str: FormulaValue, find: FormulaValue, replace: FormulaValue) => String(str ?? '').replace(String(find), String(replace)),
+  CONTAINS: (str: FormulaValue, search: FormulaValue) => String(str ?? '').toLowerCase().includes(String(search ?? '').toLowerCase()),
   
   // Date functions
   NOW: () => new Date().toISOString(),
   TODAY: () => new Date().toISOString().split('T')[0],
-  YEAR: (date: any) => new Date(date).getFullYear(),
-  MONTH: (date: any) => new Date(date).getMonth() + 1,
-  DAY: (date: any) => new Date(date).getDate(),
-  DATE_DIFF: (date1: any, date2: any, unit: string = 'days') => {
-    const d1 = new Date(date1);
-    const d2 = new Date(date2);
+  YEAR: (date: FormulaValue) => new Date(String(date)).getFullYear(),
+  MONTH: (date: FormulaValue) => new Date(String(date)).getMonth() + 1,
+  DAY: (date: FormulaValue) => new Date(String(date)).getDate(),
+  DATE_DIFF: (date1: FormulaValue, date2: FormulaValue, unit: FormulaValue = 'days') => {
+    const d1 = new Date(String(date1));
+    const d2 = new Date(String(date2));
     const diffMs = d2.getTime() - d1.getTime();
-    switch (unit.toLowerCase()) {
+    switch (String(unit).toLowerCase()) {
       case 'seconds': return Math.floor(diffMs / 1000);
       case 'minutes': return Math.floor(diffMs / 60000);
       case 'hours': return Math.floor(diffMs / 3600000);
@@ -196,35 +196,36 @@ const FUNCTIONS: Record<string, (...args: any[]) => FormulaValue> = {
       default: return Math.floor(diffMs / 86400000);
     }
   },
-  DATE_ADD: (date: any, amount: number, unit: string = 'days') => {
-    const d = new Date(date);
-    switch (unit.toLowerCase()) {
-      case 'seconds': d.setSeconds(d.getSeconds() + amount); break;
-      case 'minutes': d.setMinutes(d.getMinutes() + amount); break;
-      case 'hours': d.setHours(d.getHours() + amount); break;
-      case 'days': d.setDate(d.getDate() + amount); break;
-      case 'weeks': d.setDate(d.getDate() + amount * 7); break;
-      case 'months': d.setMonth(d.getMonth() + amount); break;
-      case 'years': d.setFullYear(d.getFullYear() + amount); break;
+  DATE_ADD: (date: FormulaValue, amount: FormulaValue, unit: FormulaValue = 'days') => {
+    const d = new Date(String(date));
+    const amountNum = Number(amount);
+    switch (String(unit).toLowerCase()) {
+      case 'seconds': d.setSeconds(d.getSeconds() + amountNum); break;
+      case 'minutes': d.setMinutes(d.getMinutes() + amountNum); break;
+      case 'hours': d.setHours(d.getHours() + amountNum); break;
+      case 'days': d.setDate(d.getDate() + amountNum); break;
+      case 'weeks': d.setDate(d.getDate() + amountNum * 7); break;
+      case 'months': d.setMonth(d.getMonth() + amountNum); break;
+      case 'years': d.setFullYear(d.getFullYear() + amountNum); break;
     }
     return d.toISOString();
   },
   
   // Logical functions
-  IF: (condition: any, trueValue: any, falseValue: any) => condition ? trueValue : falseValue,
-  AND: (...args: any[]) => args.every(Boolean),
-  OR: (...args: any[]) => args.some(Boolean),
-  NOT: (value: any) => !value,
-  ISNULL: (value: any) => value === null || value === undefined || value === '',
-  COALESCE: (...args: any[]) => args.find(a => a !== null && a !== undefined && a !== '') ?? null,
-  
+  IF: (condition: FormulaValue, trueValue: FormulaValue, falseValue: FormulaValue) => condition ? trueValue : falseValue,
+  AND: (...args: FormulaValue[]) => args.every(Boolean),
+  OR: (...args: FormulaValue[]) => args.some(Boolean),
+  NOT: (value: FormulaValue) => !value,
+  ISNULL: (value: FormulaValue) => value === null || value === undefined || value === '',
+  COALESCE: (...args: FormulaValue[]) => args.find(a => a !== null && a !== undefined && a !== '') ?? null,
+
   // Type conversion
-  NUMBER: (value: any) => {
-    const n = parseFloat(value);
+  NUMBER: (value: FormulaValue) => {
+    const n = parseFloat(String(value));
     return isNaN(n) ? 0 : n;
   },
-  TEXT: (value: any) => String(value ?? ''),
-  BOOLEAN: (value: any) => Boolean(value),
+  TEXT: (value: FormulaValue) => String(value ?? ''),
+  BOOLEAN: (value: FormulaValue) => Boolean(value),
 };
 
 // Evaluate a parsed formula

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -27,6 +28,7 @@ export function ReconciliationDataStep({
   formData, 
   onChange 
 }: ReconciliationDataStepProps) {
+  const { t } = useTranslation('common');
   const hasVariance = selectedPlacement && Math.abs(invoice.total_amount - selectedPlacement.fee_amount) > 0.01;
 
   const formatCurrency = (amount: number) => {
@@ -45,7 +47,7 @@ export function ReconciliationDataStep({
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label>Invoice Type</Label>
+            <Label>{t("invoice_type", "Invoice Type")}</Label>
             <Select
               value={formData.invoice_type}
               onValueChange={(value) => onChange({ 
@@ -70,7 +72,7 @@ export function ReconciliationDataStep({
           </div>
 
           <div className="space-y-2">
-            <Label>Payment Terms</Label>
+            <Label>{t("payment_terms", "Payment Terms")}</Label>
             <Select
               value={formData.payment_terms}
               onValueChange={(value) => onChange({ 
@@ -105,15 +107,15 @@ export function ReconciliationDataStep({
           <CardContent className="space-y-4">
             <div className="grid grid-cols-3 gap-4 p-3 bg-white rounded-lg">
               <div className="text-center">
-                <p className="text-xs text-muted-foreground">Invoice</p>
+                <p className="text-xs text-muted-foreground">{t("invoice", "Invoice")}</p>
                 <p className="font-bold">{formatCurrency(invoice.total_amount)}</p>
               </div>
               <div className="text-center">
-                <p className="text-xs text-muted-foreground">Expected</p>
+                <p className="text-xs text-muted-foreground">{t("expected", "Expected")}</p>
                 <p className="font-bold">{formatCurrency(selectedPlacement.fee_amount)}</p>
               </div>
               <div className="text-center">
-                <p className="text-xs text-muted-foreground">Difference</p>
+                <p className="text-xs text-muted-foreground">{t("difference", "Difference")}</p>
                 <p className="font-bold text-amber-600">
                   {formatCurrency(invoice.total_amount - selectedPlacement.fee_amount)}
                 </p>
@@ -121,13 +123,13 @@ export function ReconciliationDataStep({
             </div>
 
             <div className="space-y-2">
-              <Label>Variance Reason</Label>
+              <Label>{t("variance_reason", "Variance Reason")}</Label>
               <Select
                 value={formData.variance_reason || ''}
                 onValueChange={(value) => onChange({ ...formData, variance_reason: value })}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select reason for variance" />
+                  <SelectValue placeholder={t("select_reason_for_variance", "Select reason for variance")} />
                 </SelectTrigger>
                 <SelectContent>
                   {VARIANCE_REASONS.map((reason) => (
@@ -141,7 +143,7 @@ export function ReconciliationDataStep({
 
             {formData.variance_reason === 'other' && (
               <div className="space-y-2">
-                <Label>Variance Amount Override</Label>
+                <Label>{t("variance_amount_override", "Variance Amount Override")}</Label>
                 <Input
                   type="number"
                   value={formData.variance_amount}
@@ -167,11 +169,11 @@ export function ReconciliationDataStep({
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label>Internal Notes</Label>
+            <Label>{t("internal_notes", "Internal Notes")}</Label>
             <Textarea
               value={formData.reconciliation_notes}
               onChange={(e) => onChange({ ...formData, reconciliation_notes: e.target.value })}
-              placeholder="Add any notes about this reconciliation..."
+              placeholder={t("add_any_notes_about", "Add any notes about this reconciliation...")}
               rows={3}
             />
             <p className="text-xs text-muted-foreground">
@@ -183,7 +185,7 @@ export function ReconciliationDataStep({
             <div className="flex items-center gap-2">
               <Flag className="h-4 w-4 text-muted-foreground" />
               <div>
-                <p className="font-medium text-sm">Requires Finance Review</p>
+                <p className="font-medium text-sm">{t("requires_finance_review", "Requires Finance Review")}</p>
                 <p className="text-xs text-muted-foreground">
                   Flag this for the finance team to review
                 </p>

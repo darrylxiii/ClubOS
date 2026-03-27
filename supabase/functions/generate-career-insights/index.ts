@@ -70,7 +70,7 @@ serve(async (req) => {
       .limit(20)
 
     // Generate insights
-    const insights: any = {
+    const insights: Record<string, unknown> = {
       generatedAt: new Date().toISOString(),
       userId,
     }
@@ -125,17 +125,17 @@ serve(async (req) => {
       JSON.stringify({ success: true, insights }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error generating career insights:', error)
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   }
 })
 
 // Helper functions
-function extractMarketSkills(marketData: any[]): string[] {
+function extractMarketSkills(marketData: Record<string, unknown>[]): string[] {
   const skills = new Set<string>()
   marketData.forEach(item => {
     if (item.trending_skills) {
@@ -157,9 +157,9 @@ function generateSkillRecommendations(userSkills: string[], demandedSkills: stri
   return gap.missing.slice(0, 5).map(skill => `Consider learning ${skill} to increase your market value`)
 }
 
-function calculateSalaryPercentile(salary: number, marketData: any[]): number {
+function calculateSalaryPercentile(salary: number, marketData: Record<string, unknown>[]): number {
   if (!salary || marketData.length === 0) return 50
-  const salaries = marketData.map(m => m.avg_salary || 0).filter(s => s > 0).sort((a, b) => a - b)
+  const salaries = marketData.map(m => (m.avg_salary as number) || 0).filter(s => s > 0).sort((a, b) => a - b)
   if (salaries.length === 0) return 50
   const below = salaries.filter(s => s < salary).length
   return Math.round((below / salaries.length) * 100)
@@ -172,28 +172,28 @@ function categorizeExperience(years: number): string {
   return 'Expert'
 }
 
-function calculateCompetitiveness(profile: any, applications: any[]): number {
+function calculateCompetitiveness(profile: Record<string, unknown> | null, applications: Record<string, unknown>[]): number {
   if (!profile || applications.length === 0) return 50
-  const avgMatchScore = applications.reduce((sum, app) => sum + (app.match_score || 0), 0) / applications.length
+  const avgMatchScore = applications.reduce((sum, app) => sum + ((app.match_score as number) || 0), 0) / applications.length
   return Math.round(avgMatchScore)
 }
 
-function analyzeMarketTrend(marketData: any[]): string {
+function analyzeMarketTrend(marketData: Record<string, unknown>[]): string {
   if (marketData.length < 2) return 'stable'
-  const recent = marketData[0]?.demand_level || 50
-  const older = marketData[marketData.length - 1]?.demand_level || 50
+  const recent = (marketData[0]?.demand_level as number) || 50
+  const older = (marketData[marketData.length - 1]?.demand_level as number) || 50
   if (recent > older + 10) return 'growing'
   if (recent < older - 10) return 'declining'
   return 'stable'
 }
 
-function analyzeCareerPath(snapshots: any[]): string {
+function analyzeCareerPath(snapshots: unknown[]): string {
   if (snapshots.length === 0) return 'Starting career journey'
   return 'Progressing in chosen field'
 }
 
-function calculateProjectedGrowth(profile: any, marketData: any[]): { salary: number, timeline: string } {
-  const currentSalary = profile?.current_salary || 0
+function calculateProjectedGrowth(profile: Record<string, unknown> | null, marketData: Record<string, unknown>[]): { salary: number, timeline: string } {
+  const currentSalary = (profile?.current_salary as number) || 0
   const projectedIncrease = analyzeMarketTrend(marketData) === 'growing' ? 0.15 : 0.08
   return {
     salary: Math.round(currentSalary * (1 + projectedIncrease)),
@@ -201,7 +201,7 @@ function calculateProjectedGrowth(profile: any, marketData: any[]): { salary: nu
   }
 }
 
-function generateNextSteps(profile: any, applications: any[]): string[] {
+function generateNextSteps(profile: Record<string, unknown> | null, applications: unknown[]): string[] {
   const steps: string[] = []
   if (applications.length === 0) {
     steps.push('Start applying to roles that match your profile')
@@ -213,8 +213,8 @@ function generateNextSteps(profile: any, applications: any[]): string[] {
   return steps.slice(0, 3)
 }
 
-function estimateCareerTimeline(profile: any): { nextPromotion: string, seniorLevel: string } {
-  const experience = profile?.experience_years || 0
+function estimateCareerTimeline(profile: Record<string, unknown> | null): { nextPromotion: string, seniorLevel: string } {
+  const experience = (profile?.experience_years as number) || 0
   return {
     nextPromotion: experience < 3 ? '1-2 years' : '2-3 years',
     seniorLevel: experience < 5 ? '3-5 years' : 'Currently at or near senior level',

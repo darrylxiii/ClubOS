@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useSLATracking } from "@/hooks/usePartnerAnalytics";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -7,6 +8,7 @@ import { formatDistanceToNow } from "date-fns";
 import { motion } from "framer-motion";
 
 export function SLATracker({ companyId }: { companyId: string }) {
+  const { t } = useTranslation('common');
   const { data: slaItems, isLoading } = useSLATracking(companyId);
 
   if (isLoading) {
@@ -78,8 +80,8 @@ export function SLATracker({ companyId }: { companyId: string }) {
               <CheckCircle className="h-5 w-5 text-emerald-500" />
             </div>
             <div>
-              <p className="font-medium text-emerald-600 dark:text-emerald-400">All SLAs Met</p>
-              <p className="text-sm text-muted-foreground">No pending commitments</p>
+              <p className="font-medium text-emerald-600 dark:text-emerald-400">{t("all_slas_met", "All SLAs Met")}</p>
+              <p className="text-sm text-muted-foreground">{t("no_pending_commitments", "No pending commitments")}</p>
             </div>
           </motion.div>
         )}

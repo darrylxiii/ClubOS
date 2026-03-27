@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -11,6 +12,7 @@ interface ComparisonToggleProps {
 }
 
 export function ComparisonToggle({ isComparing, onToggle, period }: ComparisonToggleProps) {
+  const { t } = useTranslation('common');
   const comparisonLabel = period === 'weekly' ? 'vs Last Week' : 'vs Last Month';
   
   return (
@@ -27,7 +29,7 @@ export function ComparisonToggle({ isComparing, onToggle, period }: ComparisonTo
         "h-4 w-4 transition-transform",
         isComparing && "text-primary"
       )} />
-      <span className="hidden sm:inline">Compare</span>
+      <span className="hidden sm:inline">{t("compare", "Compare")}</span>
       {isComparing && (
         <Badge variant="outline" className="ml-1 text-[10px] px-1.5 bg-primary/10 border-primary/30">
           {comparisonLabel}

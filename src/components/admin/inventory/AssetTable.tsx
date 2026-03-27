@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { AssetStatusBadge } from '@/components/ui/UnifiedStatusBadge';
@@ -18,18 +19,19 @@ const formatCurrency = (value: number | null) => {
 };
 
 export function AssetTable({ assets, onEdit, onStatusChange }: AssetTableProps) {
+  const { t } = useTranslation('common');
   return (
     <div className="rounded-md border">
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Inventory #</TableHead>
-            <TableHead>Name</TableHead>
-            <TableHead>Category</TableHead>
-            <TableHead className="text-right">Purchase Value</TableHead>
-            <TableHead className="text-right">Book Value</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead className="w-[100px]">Actions</TableHead>
+            <TableHead>{t("inventory", "Inventory #")}</TableHead>
+            <TableHead>{t("name", "Name")}</TableHead>
+            <TableHead>{t("category", "Category")}</TableHead>
+            <TableHead className="text-right">{t("purchase_value", "Purchase Value")}</TableHead>
+            <TableHead className="text-right">{t("book_value", "Book Value")}</TableHead>
+            <TableHead>{t("status", "Status")}</TableHead>
+            <TableHead className="w-[100px]">{t("actions", "Actions")}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -51,12 +53,12 @@ export function AssetTable({ assets, onEdit, onStatusChange }: AssetTableProps) 
                 <TableCell>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" aria-label="Asset actions"><MoreHorizontal className="h-4 w-4" aria-hidden="true" /></Button>
+                      <Button variant="ghost" size="icon" aria-label={t("asset_actions", "Asset actions")}><MoreHorizontal className="h-4 w-4" aria-hidden="true" /></Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => onEdit(asset)}><Edit className="h-4 w-4 mr-2" />Edit</DropdownMenuItem>
-                      {asset.status !== 'sold' && <DropdownMenuItem onClick={() => onStatusChange(asset.id, 'sold')}>Mark as Sold</DropdownMenuItem>}
-                      {asset.status !== 'written_off' && <DropdownMenuItem onClick={() => onStatusChange(asset.id, 'written_off')}>Write Off</DropdownMenuItem>}
+                      <DropdownMenuItem onClick={() => onEdit(asset)}><Edit className="h-4 w-4 mr-2" />{t("edit", "Edit")}</DropdownMenuItem>
+                      {asset.status !== 'sold' && <DropdownMenuItem onClick={() => onStatusChange(asset.id, 'sold')}>{t("mark_as_sold", "Mark as Sold")}</DropdownMenuItem>}
+                      {asset.status !== 'written_off' && <DropdownMenuItem onClick={() => onStatusChange(asset.id, 'written_off')}>{t("write_off", "Write Off")}</DropdownMenuItem>}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>

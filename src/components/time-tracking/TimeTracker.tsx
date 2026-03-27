@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect, useRef } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -28,6 +29,7 @@ interface TimeTrackerProps {
 }
 
 export function TimeTracker({ contractId, hourlyRate, onSave }: TimeTrackerProps) {
+  const { t } = useTranslation('common');
   const [isRunning, setIsRunning] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [seconds, setSeconds] = useState(0);
@@ -163,7 +165,7 @@ export function TimeTracker({ contractId, hourlyRate, onSave }: TimeTrackerProps
         </Label>
         <Textarea
           id="task-desc"
-          placeholder="Describe the task you're working on..."
+          placeholder={t("describe_the_task_youre", "Describe the task you're working on...")}
           value={taskDescription}
           onChange={(e) => setTaskDescription(e.target.value)}
           disabled={!isRunning}
@@ -173,10 +175,10 @@ export function TimeTracker({ contractId, hourlyRate, onSave }: TimeTrackerProps
 
       {/* Tags */}
       <div className="mb-4">
-        <Label className="mb-2 block">Tags</Label>
+        <Label className="mb-2 block">{t("tags", "Tags")}</Label>
         <div className="flex items-center gap-2 mb-2">
           <Input
-            placeholder="Add tag (e.g., frontend, bug-fix)"
+            placeholder={t("add_tag_eg_frontend", "Add tag (e.g., frontend, bug-fix)")}
             value={tagInput}
             onChange={(e) => setTagInput(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && addTag()}

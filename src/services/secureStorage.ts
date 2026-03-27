@@ -14,7 +14,8 @@ const webStorage: SecureStorageService = {
       const encoded = btoa(encodeURIComponent(value));
       localStorage.setItem(`${STORAGE_PREFIX}${key}`, encoded);
       return true;
-    } catch {
+    } catch (error) {
+      console.error('[SecureStorage] Failed to set item:', key, error);
       return false;
     }
   },
@@ -23,7 +24,8 @@ const webStorage: SecureStorageService = {
       const encoded = localStorage.getItem(`${STORAGE_PREFIX}${key}`);
       if (!encoded) return null;
       return decodeURIComponent(atob(encoded));
-    } catch {
+    } catch (error) {
+      console.error('[SecureStorage] Failed to get item:', key, error);
       return null;
     }
   },
@@ -31,7 +33,8 @@ const webStorage: SecureStorageService = {
     try {
       localStorage.removeItem(`${STORAGE_PREFIX}${key}`);
       return true;
-    } catch {
+    } catch (error) {
+      console.error('[SecureStorage] Failed to remove item:', key, error);
       return false;
     }
   },
@@ -40,7 +43,8 @@ const webStorage: SecureStorageService = {
       const keys = Object.keys(localStorage).filter(k => k.startsWith(STORAGE_PREFIX));
       keys.forEach(k => localStorage.removeItem(k));
       return true;
-    } catch {
+    } catch (error) {
+      console.error('[SecureStorage] Failed to clear storage:', error);
       return false;
     }
   },

@@ -87,7 +87,8 @@ export function useDealPipeline() {
         `)
         .in('status', ['published', 'closed'])
         .eq('is_lost', false)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(250);
       
       if (error) {
         logger.error('Error fetching deal pipeline', { componentName: 'DealPipeline', error });
@@ -99,7 +100,7 @@ export function useDealPipeline() {
       }
       
       // Batch fetch salary stats for all jobs in a single RPC call
-      const jobIds = data.map((j: any) => j.id);
+      const jobIds = data.map((j) => j.id);
       const salaryMap = new Map<string, { avg_desired_salary: number; avg_current_salary: number }>();
       
       try {
@@ -109,7 +110,7 @@ export function useDealPipeline() {
         if (batchError) {
           logger.warn('Batch salary stats error', { componentName: 'DealPipeline', error: batchError });
         } else if (batchStats) {
-          batchStats.forEach((row: any) => {
+          batchStats.forEach((row: { job_id: string; avg_desired_salary: number; avg_current_salary: number }) => {
             salaryMap.set(row.job_id, {
               avg_desired_salary: row.avg_desired_salary || 0,
               avg_current_salary: row.avg_current_salary || 0,
@@ -120,20 +121,20 @@ export function useDealPipeline() {
         logger.warn('Failed to fetch batch salary stats', { componentName: 'DealPipeline', error: err });
       }
 
-      const dealsWithRevenue = data.map((job: any) => {
+      const dealsWithRevenue = (data as Array<typeof data[number] & { company_name?: string; is_continuous?: boolean }>).map((job) => {
         const feePercentage = job.companies?.placement_fee_percentage || 0;
         const stats = salaryMap.get(job.id);
         const avgSalary = stats?.avg_desired_salary || stats?.avg_current_salary || 0;
-        
+
         const baseSalary = avgSalary || job.salary_max || job.salary_min || 60000;
         const estimatedRevenue = baseSalary * (feePercentage / 100);
-        
+
         const targetHireCount = job.target_hire_count || 1;
         const hiredCount = job.hired_count || 0;
         const remainingPositions = Math.max(targetHireCount - hiredCount, 0);
         const singleFeeValue = job.deal_value_override || estimatedRevenue;
         const totalDealValue = singleFeeValue * remainingPositions;
-        
+
         return {
           ...job,
           company_name: job.companies?.name || job.company_name || 'Unknown',
@@ -196,7 +197,7 @@ export function useUpdateDealStage() {
       
       const probability = stageData?.probability_weight ?? undefined;
       
-      const updatePayload: any = { 
+      const updatePayload: Record<string, unknown> = {
         deal_stage: newStage,
         updated_at: new Date().toISOString(),
       };
@@ -352,7 +353,7 @@ export function useCloseJobWon() {
     mutationFn: async ({ 
       jobId, 
       hiredCandidateId, 
-      actualSalary,
+      actualSalary: _actualSalary,
       placementFee 
     }: { 
       jobId: string; 

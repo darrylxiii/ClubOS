@@ -1,9 +1,11 @@
+import { useTranslation } from 'react-i18next';
 import { GlobalJobsMap } from "@/components/maps/GlobalJobsMap";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 export default function JobsMap() {
+  const { t } = useTranslation('jobs');
   const navigate = useNavigate();
 
   return (
@@ -19,8 +21,8 @@ export default function JobsMap() {
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div>
-            <h1 className="text-xl font-bold">Global Jobs Map</h1>
-            <p className="text-sm text-muted-foreground">Explore opportunities worldwide</p>
+            <h1 className="text-xl font-bold">{t('map.title')}</h1>
+            <p className="text-sm text-muted-foreground">{t('map.subtitle')}</p>
           </div>
         </div>
       </header>

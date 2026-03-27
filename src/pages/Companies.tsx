@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 
+import { useTranslation } from 'react-i18next';
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -75,6 +76,7 @@ interface OverallMetrics {
 }
 
 export default function Companies() {
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
   const { user } = useAuth();
   const { currentRole } = useRole();
@@ -129,7 +131,7 @@ export default function Companies() {
       }
     } catch (error) {
       console.error("Error loading partner company:", error);
-      toast.error("Failed to load your company");
+      toast.error(t('text.companies.failedToLoadYourCompany', 'Failed to load your company'));
     } finally {
       setLoading(false);
     }
@@ -167,7 +169,7 @@ export default function Companies() {
       }
     } catch (error) {
       console.error("Error loading companies:", error);
-      toast.error("Failed to load companies");
+      toast.error(t('text.companies.failedToLoadCompanies', 'Failed to load companies'));
     } finally {
       setLoading(false);
     }
@@ -189,7 +191,7 @@ export default function Companies() {
       setCompanyMembers(memberCounts);
     } catch (error) {
       console.error('Error loading company members:', error);
-      toast.error('Failed to load company member counts');
+      toast.error(t('text.companies.failedToLoadCompanyMemberCounts', 'Failed to load company member counts'));
     }
   };
 
@@ -242,7 +244,7 @@ export default function Companies() {
       setCompanyMetrics(metrics);
     } catch (error) {
       console.error('Error loading company metrics:', error);
-      toast.error('Failed to load company metrics');
+      toast.error(t('text.companies.failedToLoadCompanyMetrics', 'Failed to load company metrics'));
     }
   };
 
@@ -288,7 +290,7 @@ export default function Companies() {
       });
     } catch (error) {
       console.error('Error loading overall metrics:', error);
-      toast.error('Failed to load overall metrics');
+      toast.error(t('text.companies.failedToLoadOverallMetrics', 'Failed to load overall metrics'));
     }
   };
 
@@ -379,12 +381,8 @@ export default function Companies() {
         {/* Header */}
         <div className="flex items-start justify-between gap-4">
           <div className="space-y-2">
-            <h1 className="text-5xl font-black uppercase tracking-tight text-foreground">
-              Partner Companies
-            </h1>
-            <p className="text-lg text-muted-foreground">
-              Elite talent partners shaping the future of work
-            </p>
+            <h1 className="text-5xl font-black uppercase tracking-tight text-foreground">{t('companies.title')}</h1>
+            <p className="text-lg text-muted-foreground">{t('companies.desc')}</p>
           </div>
 
           <div className="flex items-center gap-3">
@@ -412,7 +410,7 @@ export default function Companies() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
             <Card className="border-2 hover-scale">
               <CardHeader className="pb-3">
-                <CardDescription className="text-xs uppercase tracking-wide">Active</CardDescription>
+                <CardDescription className="text-xs uppercase tracking-wide">{t('companies.text2')}</CardDescription>
                 <CardTitle className="text-4xl font-black">{overallMetrics.active_companies}</CardTitle>
               </CardHeader>
               <CardContent>
@@ -424,14 +422,14 @@ export default function Companies() {
               <>
                 <Card className="border-2 hover-scale">
                   <CardHeader className="pb-3">
-                    <CardDescription className="text-xs uppercase tracking-wide text-amber-600">Suspended</CardDescription>
+                    <CardDescription className="text-xs uppercase tracking-wide text-amber-600">{t('companies.text3')}</CardDescription>
                     <CardTitle className="text-4xl font-black">{overallMetrics.suspended_companies}</CardTitle>
                   </CardHeader>
                 </Card>
 
                 <Card className="border-2 hover-scale">
                   <CardHeader className="pb-3">
-                    <CardDescription className="text-xs uppercase tracking-wide text-muted-foreground">Archived</CardDescription>
+                    <CardDescription className="text-xs uppercase tracking-wide text-muted-foreground">{t('companies.text4')}</CardDescription>
                     <CardTitle className="text-4xl font-black">{overallMetrics.archived_companies}</CardTitle>
                   </CardHeader>
                 </Card>
@@ -460,11 +458,11 @@ export default function Companies() {
               <>
                 <Card className="border-2 hover-scale">
                   <CardHeader className="pb-3">
-                    <CardDescription className="text-xs uppercase tracking-wide">Avg Apps</CardDescription>
+                    <CardDescription className="text-xs uppercase tracking-wide">{t('companies.text5')}</CardDescription>
                     <CardTitle className="text-4xl font-black">{overallMetrics.avg_apps_per_company}</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-xs text-muted-foreground">per company</p>
+                    <p className="text-xs text-muted-foreground">{"per company"}</p>
                   </CardContent>
                 </Card>
 
@@ -473,10 +471,10 @@ export default function Companies() {
                     <CardDescription className="text-xs uppercase tracking-wide flex items-center gap-1">
                       <BarChart3 className="w-3 h-3" /> Activity
                     </CardDescription>
-                    <CardTitle className="text-4xl font-black">Live</CardTitle>
+                    <CardTitle className="text-4xl font-black">{t('companies.text6')}</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-xs text-muted-foreground">Real-time updates</p>
+                    <p className="text-xs text-muted-foreground">{t('companies.text7')}</p>
                   </CardContent>
                 </Card>
               </>
@@ -492,7 +490,7 @@ export default function Companies() {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   type="text"
-                  placeholder="Search companies, industries, locations..."
+                  placeholder={t('companies.text8')}
                   value={searchQuery}
                   onChange={e => setSearchQuery(e.target.value)}
                   className="pl-10"
@@ -502,23 +500,23 @@ export default function Companies() {
               {isAdmin && (
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Status" />
+                    <SelectValue placeholder={t('companies.text9')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Status</SelectItem>
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="suspended">Suspended</SelectItem>
-                    <SelectItem value="archived">Archived</SelectItem>
+                    <SelectItem value="all">{t('companies.text10')}</SelectItem>
+                    <SelectItem value="active">{t('companies.text11')}</SelectItem>
+                    <SelectItem value="suspended">{t('companies.text12')}</SelectItem>
+                    <SelectItem value="archived">{t('companies.text13')}</SelectItem>
                   </SelectContent>
                 </Select>
               )}
 
               <Select value={industryFilter} onValueChange={setIndustryFilter}>
                 <SelectTrigger>
-                  <SelectValue placeholder="All Industries" />
+                  <SelectValue placeholder={t('companies.text14')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Industries</SelectItem>
+                  <SelectItem value="all">{t('companies.text15')}</SelectItem>
                   {industries.map(industry => (
                     <SelectItem key={industry} value={industry!}>{industry}</SelectItem>
                   ))}
@@ -527,14 +525,14 @@ export default function Companies() {
 
               <Select value={sortBy} onValueChange={setSortBy}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Sort by" />
+                  <SelectValue placeholder={t('companies.text16')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="name">Name (A-Z)</SelectItem>
-                  <SelectItem value="jobs">Most Jobs</SelectItem>
-                  <SelectItem value="applications">Most Applications</SelectItem>
-                  <SelectItem value="followers">Most Followers</SelectItem>
-                  <SelectItem value="activity">Recent Activity</SelectItem>
+                  <SelectItem value="name">{t('companies.text17')}</SelectItem>
+                  <SelectItem value="jobs">{t('companies.text18')}</SelectItem>
+                  <SelectItem value="applications">{t('companies.text19')}</SelectItem>
+                  <SelectItem value="followers">{t('companies.text20')}</SelectItem>
+                  <SelectItem value="activity">{t('companies.text21')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -546,18 +544,17 @@ export default function Companies() {
           <div className="flex items-center justify-center py-20">
             <div className="space-y-4 text-center">
               <div className="animate-spin w-12 h-12 border-4 border-primary border-t-transparent rounded-full mx-auto" />
-              <p className="text-muted-foreground">Loading partner ecosystem...</p>
+              <p className="text-muted-foreground">{t('companies.text22')}</p>
             </div>
           </div>
         ) : filteredCompanies.length === 0 ? (
           <Card className="border-2">
             <CardContent className="py-20 text-center">
               <Building2 className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-              <h3 className="text-xl font-bold mb-2">No companies found</h3>
+              <h3 className="text-xl font-bold mb-2">{t('companies.text23')}</h3>
               <p className="text-muted-foreground mb-4">
                 {searchQuery || industryFilter !== "all" || statusFilter !== "active"
-                  ? "Try adjusting your filters"
-                  : "No companies available yet"}
+                  ? t('text.companies.tryAdjustingYourFilters', 'Try adjusting your filters') : t('text.companies.noCompaniesAvailableYet', 'No companies available yet')}
               </p>
               {(searchQuery || industryFilter !== "all" || statusFilter !== "active") && (
                 <Button variant="outline" onClick={() => {
@@ -565,7 +562,7 @@ export default function Companies() {
                   setIndustryFilter("all");
                   setStatusFilter("active");
                 }}>
-                  Clear Filters
+                  {t('text.companies.clearFilters', 'Clear Filters')}
                 </Button>
               )}
             </CardContent>
@@ -621,9 +618,7 @@ export default function Companies() {
                                     />
                                   )}
                                   {company.membership_tier === 'premium' && (
-                                    <Badge className="bg-gradient-to-r from-yellow-500 to-yellow-600">
-                                      Premium Partner
-                                    </Badge>
+                                    <Badge className="bg-gradient-to-r from-yellow-500 to-yellow-600">{t('text.companies.premiumPartner', 'Premium Partner')}</Badge>
                                   )}
                                 </div>
                                 {company.tagline && <p className="text-muted-foreground text-sm">{company.tagline}</p>}
@@ -681,7 +676,7 @@ export default function Companies() {
                                 <div className="flex items-center gap-2">
                                   <Briefcase className="w-4 h-4 text-primary" />
                                   <span className="font-bold">{metrics.active_jobs}</span>
-                                  <span className="text-xs text-muted-foreground">open roles</span>
+                                  <span className="text-xs text-muted-foreground">{"open roles"}</span>
                                 </div>
                                 <div className="flex items-center gap-2">
                                   <TrendingUp className="w-4 h-4 text-muted-foreground" />
@@ -753,7 +748,7 @@ export default function Companies() {
                         {/* Company Details */}
                         {company.description && (
                           <div>
-                            <h4 className="text-sm font-semibold mb-2">About</h4>
+                            <h4 className="text-sm font-semibold mb-2">{t('companies.text24')}</h4>
                             <p className="text-sm text-muted-foreground line-clamp-3">{company.description}</p>
                           </div>
                         )}
@@ -767,7 +762,7 @@ export default function Companies() {
                             if (company.slug) {
                               navigate(`/companies/${company.slug}`);
                             } else {
-                              toast.error('Unable to open company page');
+                              toast.error(t('text.companies.unableToOpenCompanyPage', 'Unable to open company page'));
                             }
                           }} className="gap-2">
                             <ExternalLink className="w-4 h-4" />

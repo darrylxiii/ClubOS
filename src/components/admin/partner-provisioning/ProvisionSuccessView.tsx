@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { motion } from '@/lib/motion';
@@ -20,6 +21,7 @@ export function ProvisionSuccessView({
   onDone,
   onAddAnother,
 }: ProvisionSuccessViewProps) {
+  const { t } = useTranslation('common');
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
     toast.success(`${label} copied`);
@@ -39,13 +41,13 @@ export function ProvisionSuccessView({
         <CheckCircle className="w-10 h-10 text-emerald-500" />
       </div>
 
-      <h2 className="text-2xl font-bold mb-1">Partner Provisioned</h2>
+      <h2 className="text-2xl font-bold mb-1">{t("partner_provisioned", "Partner Provisioned")}</h2>
       <p className="text-muted-foreground mb-6">{partnerName} has been added as a partner</p>
 
       <div className="space-y-3 text-left bg-muted/30 rounded-lg p-4">
         {result.invite_code && (
           <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">Invite Code</span>
+            <span className="text-sm text-muted-foreground">{t("invite_code", "Invite Code")}</span>
             <div className="flex items-center gap-2">
               <code className="text-sm font-mono bg-background px-2 py-1 rounded">{result.invite_code}</code>
               <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => copyToClipboard(result.invite_code!, 'Invite code')}>
@@ -57,7 +59,7 @@ export function ProvisionSuccessView({
 
         {result.magic_link && (
           <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">Magic Link</span>
+            <span className="text-sm text-muted-foreground">{t("magic_link", "Magic Link")}</span>
             <Button size="sm" variant="outline" onClick={() => copyToClipboard(result.magic_link!, 'Magic link')}>
               <Copy className="w-4 h-4 mr-2" /> Copy Link
             </Button>
@@ -65,7 +67,7 @@ export function ProvisionSuccessView({
         )}
 
         <div className="flex items-center justify-between">
-          <span className="text-sm text-muted-foreground">Welcome Email</span>
+          <span className="text-sm text-muted-foreground">{t("welcome_email", "Welcome Email")}</span>
           <Badge variant={result.welcome_email_sent ? 'default' : 'secondary'}>
             {result.welcome_email_sent ? 'Sent' : 'Not Sent'}
           </Badge>
@@ -73,7 +75,7 @@ export function ProvisionSuccessView({
 
         {result.company_slug && (
           <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">Company Page</span>
+            <span className="text-sm text-muted-foreground">{t("company_page", "Company Page")}</span>
             <Button size="sm" variant="outline" onClick={() => window.open(`/companies/${result.company_slug}`, '_blank')}>
               <ExternalLink className="w-4 h-4 mr-2" /> View
             </Button>
@@ -82,7 +84,7 @@ export function ProvisionSuccessView({
 
         {whatsappLink && (
           <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">WhatsApp Welcome</span>
+            <span className="text-sm text-muted-foreground">{t("whatsapp_welcome", "WhatsApp Welcome")}</span>
             <Button size="sm" variant="outline" onClick={() => window.open(whatsappLink, '_blank')}>
               <MessageCircle className="w-4 h-4 mr-2" /> Send
             </Button>
@@ -91,7 +93,7 @@ export function ProvisionSuccessView({
       </div>
 
       <div className="flex gap-3 mt-6">
-        <Button variant="outline" className="flex-1" onClick={onDone}>Done</Button>
+        <Button variant="outline" className="flex-1" onClick={onDone}>{t("done", "Done")}</Button>
         <Button className="flex-1" onClick={onAddAnother}>
           <UserPlus className="w-4 h-4 mr-2" /> Add Another
         </Button>

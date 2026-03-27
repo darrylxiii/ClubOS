@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -31,6 +32,7 @@ interface AIHighlightClipsProps {
 }
 
 export function AIHighlightClips({ recordingId, onSeek, onShare }: AIHighlightClipsProps) {
+  const { t } = useTranslation('common');
   const [clips, setClips] = useState<AIClip[]>([]);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
@@ -70,7 +72,7 @@ export function AIHighlightClips({ recordingId, onSeek, onShare }: AIHighlightCl
       loadClips();
     } catch (error) {
       console.error('Failed to generate highlights:', error);
-      toast.error('Failed to generate highlights');
+      toast.error(t("failed_to_generate_highlights", "Failed to generate highlights"));
     } finally {
       setGenerating(false);
     }
@@ -176,7 +178,7 @@ export function AIHighlightClips({ recordingId, onSeek, onShare }: AIHighlightCl
         {clips.length === 0 ? (
           <div className="text-center py-8">
             <Sparkles className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-30" />
-            <p className="text-muted-foreground mb-2">No AI highlights yet</p>
+            <p className="text-muted-foreground mb-2">{t("no_ai_highlights_yet", "No AI highlights yet")}</p>
             <p className="text-sm text-muted-foreground">
               Click "Generate" to have QUIN identify key moments
             </p>

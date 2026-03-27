@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React, { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -55,6 +56,7 @@ export function ExecutiveKPIDashboard({
   onViewDetails,
   onGenerateReport
 }: ExecutiveKPIDashboardProps) {
+  const { t } = useTranslation('common');
   // Extract the 5 key vitals for executives
   const companyVitals = useMemo((): VitalMetric[] => {
     const vitals: VitalMetric[] = [];
@@ -186,8 +188,8 @@ export function ExecutiveKPIDashboard({
             <Crown className="h-6 w-6 text-primary" />
           </div>
           <div>
-            <h2 className="text-xl font-semibold">Executive Dashboard</h2>
-            <p className="text-sm text-muted-foreground">Strategic overview for leadership</p>
+            <h2 className="text-xl font-semibold">{t("executive_dashboard", "Executive Dashboard")}</h2>
+            <p className="text-sm text-muted-foreground">{t("strategic_overview_for_leadership", "Strategic overview for leadership")}</p>
           </div>
         </div>
         {onGenerateReport && (
@@ -203,7 +205,7 @@ export function ExecutiveKPIDashboard({
         <CardContent className="pt-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-muted-foreground mb-1">Overall Platform Health</p>
+              <p className="text-sm text-muted-foreground mb-1">{t("overall_platform_health", "Overall Platform Health")}</p>
               <div className="flex items-baseline gap-2">
                 <span className="text-4xl font-bold">{overallHealth.toFixed(0)}%</span>
                 <Badge variant="outline" className={cn(
@@ -230,7 +232,7 @@ export function ExecutiveKPIDashboard({
 
       {/* Company Vitals - 5 Key Metrics */}
       <div>
-        <h3 className="text-sm font-medium text-muted-foreground mb-3">Company Vitals</h3>
+        <h3 className="text-sm font-medium text-muted-foreground mb-3">{t("company_vitals", "Company Vitals")}</h3>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
           {companyVitals.map(vital => {
             const Icon = vital.icon;
@@ -263,7 +265,7 @@ export function ExecutiveKPIDashboard({
 
       {/* Strategic Initiatives Progress */}
       <div>
-        <h3 className="text-sm font-medium text-muted-foreground mb-3">Domain Performance</h3>
+        <h3 className="text-sm font-medium text-muted-foreground mb-3">{t("domain_performance", "Domain Performance")}</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {strategicInitiatives.map(initiative => (
             <Card key={initiative.name} className="border-border/50">
@@ -343,28 +345,28 @@ export function ExecutiveKPIDashboard({
           <CheckCircle2 className="h-5 w-5 text-emerald-500" />
           <div>
             <p className="text-lg font-semibold">{allKPIs.filter(k => k.status === 'success').length}</p>
-            <p className="text-xs text-muted-foreground">On Target</p>
+            <p className="text-xs text-muted-foreground">{t("on_target", "On Target")}</p>
           </div>
         </div>
         <div className="flex items-center gap-3 p-3 rounded-lg bg-amber-500/10">
           <Clock className="h-5 w-5 text-amber-500" />
           <div>
             <p className="text-lg font-semibold">{allKPIs.filter(k => k.status === 'warning').length}</p>
-            <p className="text-xs text-muted-foreground">Warnings</p>
+            <p className="text-xs text-muted-foreground">{t("warnings", "Warnings")}</p>
           </div>
         </div>
         <div className="flex items-center gap-3 p-3 rounded-lg bg-rose-500/10">
           <AlertTriangle className="h-5 w-5 text-rose-500" />
           <div>
             <p className="text-lg font-semibold">{allKPIs.filter(k => k.status === 'critical').length}</p>
-            <p className="text-xs text-muted-foreground">Critical</p>
+            <p className="text-xs text-muted-foreground">{t("critical", "Critical")}</p>
           </div>
         </div>
         <div className="flex items-center gap-3 p-3 rounded-lg bg-primary/10">
           <Activity className="h-5 w-5 text-primary" />
           <div>
             <p className="text-lg font-semibold">{allKPIs.length}</p>
-            <p className="text-xs text-muted-foreground">Total KPIs</p>
+            <p className="text-xs text-muted-foreground">{t("total_kpis", "Total KPIs")}</p>
           </div>
         </div>
       </div>

@@ -1,4 +1,5 @@
 import { RoleGate } from "@/components/RoleGate";
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -27,6 +28,7 @@ import {
 import { toast } from "sonner";
 
 export default function InvestorMetrics() {
+  const { t } = useTranslation('admin');
   const { data: latest, isLoading } = useLatestInvestorMetrics();
   const { data: history } = useInvestorMetricsHistory(90);
   const { mutate: captureSnapshot, isPending: isCapturing } = useCaptureInvestorSnapshot();
@@ -34,7 +36,7 @@ export default function InvestorMetrics() {
 
   const handleRefresh = () => {
     captureSnapshot('daily', {
-      onSuccess: () => toast.success('Investor metrics refreshed'),
+      onSuccess: () => toast.success("Investor metrics refreshed"),
       onError: (err) => toast.error(`Refresh failed: ${err.message}`),
     });
   };
@@ -93,7 +95,7 @@ export default function InvestorMetrics() {
                 ) : (
                   <p className="text-3xl font-bold">{formatCurrencyCompact(valuation.valuationAt5xARR)}</p>
                 )}
-                <p className="text-xs text-muted-foreground mt-1">Conservative SaaS multiple</p>
+                <p className="text-xs text-muted-foreground mt-1">{t('investorMetrics.text1')}</p>
               </CardContent>
             </Card>
 
@@ -109,7 +111,7 @@ export default function InvestorMetrics() {
                 ) : (
                   <p className="text-3xl font-bold text-success">{formatCurrencyCompact(valuation.valuationAt10xARR)}</p>
                 )}
-                <p className="text-xs text-muted-foreground mt-1">Growth SaaS multiple</p>
+                <p className="text-xs text-muted-foreground mt-1">{t('investorMetrics.text2')}</p>
               </CardContent>
             </Card>
 
@@ -125,7 +127,7 @@ export default function InvestorMetrics() {
                 ) : (
                   <p className="text-3xl font-bold text-warning">{formatCurrencyCompact(valuation.valuationAt15xARR)}</p>
                 )}
-                <p className="text-xs text-muted-foreground mt-1">Premium SaaS multiple</p>
+                <p className="text-xs text-muted-foreground mt-1">{t('investorMetrics.text3')}</p>
               </CardContent>
             </Card>
           </div>
@@ -205,7 +207,7 @@ export default function InvestorMetrics() {
                 ) : (
                   <p className="text-2xl font-bold">{formatCurrency(valuation.revenueYTD)}</p>
                 )}
-                <p className="text-xs text-muted-foreground mt-1">Collected revenue</p>
+                <p className="text-xs text-muted-foreground mt-1">{t('investorMetrics.text4')}</p>
               </CardContent>
             </Card>
 
@@ -239,19 +241,19 @@ export default function InvestorMetrics() {
                   <Building2 className="h-5 w-5" />
                   Customer Metrics
                 </CardTitle>
-                <CardDescription>Active customers and retention</CardDescription>
+                <CardDescription>{t('investorMetrics.text5')}</CardDescription>
               </CardHeader>
               <CardContent className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm text-muted-foreground">Total Customers</p>
+                  <p className="text-sm text-muted-foreground">{t('investorMetrics.text6')}</p>
                   <p className="text-2xl font-bold">{latest?.total_customers || 0}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Active (12mo)</p>
+                  <p className="text-sm text-muted-foreground">{t('investorMetrics.text7')}</p>
                   <p className="text-2xl font-bold">{latest?.active_customers || 0}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Net Revenue Retention</p>
+                  <p className="text-sm text-muted-foreground">{t('investorMetrics.text8')}</p>
                   <p className="text-2xl font-bold">
                     {latest?.net_revenue_retention 
                       ? `${(latest.net_revenue_retention * 100).toFixed(0)}%` 
@@ -259,7 +261,7 @@ export default function InvestorMetrics() {
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Logo Retention</p>
+                  <p className="text-sm text-muted-foreground">{t('investorMetrics.text9')}</p>
                   <p className="text-2xl font-bold">
                     {latest?.logo_retention 
                       ? `${(latest.logo_retention * 100).toFixed(0)}%` 
@@ -275,7 +277,7 @@ export default function InvestorMetrics() {
                   <Percent className="h-5 w-5" />
                   Unit Economics
                 </CardTitle>
-                <CardDescription>LTV, CAC, and payback period</CardDescription>
+                <CardDescription>{t('investorMetrics.text10')}</CardDescription>
               </CardHeader>
               <CardContent className="grid grid-cols-2 gap-4">
                 <div>
@@ -291,7 +293,7 @@ export default function InvestorMetrics() {
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">LTV:CAC Ratio</p>
+                  <p className="text-sm text-muted-foreground">{t('investorMetrics.text11')}</p>
                   <p className="text-2xl font-bold">
                     {valuation.ltvCacRatio ? `${valuation.ltvCacRatio.toFixed(1)}x` : '—'}
                   </p>
@@ -302,7 +304,7 @@ export default function InvestorMetrics() {
                   )}
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Rule of 40</p>
+                  <p className="text-sm text-muted-foreground">{t('investorMetrics.text12')}</p>
                   <p className="text-2xl font-bold">
                     {valuation.ruleOf40 !== null ? valuation.ruleOf40.toFixed(0) : '—'}
                   </p>
@@ -323,28 +325,28 @@ export default function InvestorMetrics() {
                 <Briefcase className="h-5 w-5" />
                 Product Metrics
               </CardTitle>
-              <CardDescription>Platform usage and engagement</CardDescription>
+              <CardDescription>{t('investorMetrics.text13')}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                 <div className="text-center p-4 rounded-lg bg-muted/50">
-                  <p className="text-sm text-muted-foreground">Total Users</p>
+                  <p className="text-sm text-muted-foreground">{t('investorMetrics.text14')}</p>
                   <p className="text-2xl font-bold">{latest?.total_users || 0}</p>
                 </div>
                 <div className="text-center p-4 rounded-lg bg-muted/50">
-                  <p className="text-sm text-muted-foreground">Candidates</p>
+                  <p className="text-sm text-muted-foreground">{t('investorMetrics.text15')}</p>
                   <p className="text-2xl font-bold">{latest?.total_candidates || 0}</p>
                 </div>
                 <div className="text-center p-4 rounded-lg bg-muted/50">
-                  <p className="text-sm text-muted-foreground">Applications</p>
+                  <p className="text-sm text-muted-foreground">{t('investorMetrics.text16')}</p>
                   <p className="text-2xl font-bold">{latest?.total_applications || 0}</p>
                 </div>
                 <div className="text-center p-4 rounded-lg bg-muted/50">
-                  <p className="text-sm text-muted-foreground">Placements</p>
+                  <p className="text-sm text-muted-foreground">{t('investorMetrics.text17')}</p>
                   <p className="text-2xl font-bold text-success">{latest?.total_placements || 0}</p>
                 </div>
                 <div className="text-center p-4 rounded-lg bg-muted/50">
-                  <p className="text-sm text-muted-foreground">Placement Rate</p>
+                  <p className="text-sm text-muted-foreground">{t('investorMetrics.text18')}</p>
                   <p className="text-2xl font-bold">
                     {latest?.placement_rate 
                       ? `${(latest.placement_rate * 100).toFixed(1)}%` 
@@ -352,7 +354,7 @@ export default function InvestorMetrics() {
                   </p>
                 </div>
                 <div className="text-center p-4 rounded-lg bg-muted/50">
-                  <p className="text-sm text-muted-foreground">Avg Deal Size</p>
+                  <p className="text-sm text-muted-foreground">{t('investorMetrics.text19')}</p>
                   <p className="text-2xl font-bold">
                     {latest?.avg_deal_size ? formatCurrencyCompact(latest.avg_deal_size) : '—'}
                   </p>

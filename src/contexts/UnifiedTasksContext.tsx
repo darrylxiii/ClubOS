@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { createContext, useContext, useState, useCallback, ReactNode, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -83,13 +84,13 @@ interface UnifiedTasksContextType {
 
 const UnifiedTasksContext = createContext<UnifiedTasksContextType | undefined>(undefined);
 
-export function UnifiedTasksProvider({ 
-  children,
+export function UnifiedTasksProvider({  children,
   objectiveId 
 }: { 
   children: ReactNode;
   objectiveId?: string | null;
 }) {
+const { t } = useTranslation('common');
   const { user } = useAuth();
   const { currentBoard } = useTaskBoard();
   const queryClient = useQueryClient();
@@ -176,7 +177,7 @@ export function UnifiedTasksProvider({
       }
     } catch (error) {
       console.error("Error loading tasks:", error);
-      toast.error("Failed to load tasks");
+      toast.error(t("failed_to_load_tasks", "Failed to load tasks"));
     } finally {
       setLoading(false);
     }
@@ -234,7 +235,7 @@ export function UnifiedTasksProvider({
       if (error) throw error;
     } catch (error) {
       console.error("Error updating task:", error);
-      toast.error("Failed to update task");
+      toast.error(t("failed_to_update_task", "Failed to update task"));
       loadTasks(objectiveId);
     }
   }, [loadTasks, objectiveId]);
@@ -254,10 +255,10 @@ export function UnifiedTasksProvider({
         next.delete(taskId);
         return next;
       });
-      toast.success("Task deleted");
+      toast.success(t("task_deleted", "Task deleted"));
     } catch (error) {
       console.error("Error deleting task:", error);
-      toast.error("Failed to delete task");
+      toast.error(t("failed_to_delete_task", "Failed to delete task"));
     }
   }, []);
 
@@ -284,7 +285,7 @@ export function UnifiedTasksProvider({
       clearSelection();
     } catch (error) {
       console.error("Error bulk updating tasks:", error);
-      toast.error("Failed to update tasks");
+      toast.error(t("failed_to_update_tasks", "Failed to update tasks"));
       loadTasks(objectiveId);
     }
   }, [loadTasks, objectiveId]);
@@ -303,7 +304,7 @@ export function UnifiedTasksProvider({
       toast.success(`${taskIds.length} tasks deleted`);
     } catch (error) {
       console.error("Error bulk deleting tasks:", error);
-      toast.error("Failed to delete tasks");
+      toast.error(t("failed_to_delete_tasks", "Failed to delete tasks"));
     }
   }, []);
 

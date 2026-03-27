@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -22,6 +23,7 @@ interface TeamMember {
 type DateRange = "today" | "week" | "month";
 
 export function TeamTimeOverview() {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [dateRange, setDateRange] = useState<DateRange>("week");
 
@@ -129,8 +131,8 @@ export function TeamTimeOverview() {
       <Card className="border-border/50">
         <CardContent className="flex flex-col items-center justify-center py-12 text-center">
           <Users className="h-12 w-12 text-muted-foreground/50 mb-4" />
-          <h3 className="text-lg font-medium">No Team Found</h3>
-          <p className="text-sm text-muted-foreground mt-1">You need to be part of a company to view team data</p>
+          <h3 className="text-lg font-medium">{t("no_team_found", "No Team Found")}</h3>
+          <p className="text-sm text-muted-foreground mt-1">{t("you_need_to_be", "You need to be part of a company to view team data")}</p>
         </CardContent>
       </Card>
     );
@@ -143,19 +145,19 @@ export function TeamTimeOverview() {
         <Card className="border-border/50">
           <CardContent className="p-4 flex items-center gap-3">
             <div className="p-2 rounded-lg bg-primary/10"><Users className="h-5 w-5 text-primary" /></div>
-            <div><p className="text-sm text-muted-foreground">Team Members</p><p className="text-2xl font-bold">{teamData?.length || 0}</p></div>
+            <div><p className="text-sm text-muted-foreground">{t("team_members", "Team Members")}</p><p className="text-2xl font-bold">{teamData?.length || 0}</p></div>
           </CardContent>
         </Card>
         <Card className="border-border/50">
           <CardContent className="p-4 flex items-center gap-3">
             <div className="p-2 rounded-lg bg-green-500/10"><Clock className="h-5 w-5 text-green-500" /></div>
-            <div><p className="text-sm text-muted-foreground">Total Hours</p><p className="text-2xl font-bold">{totalTeamHours.toFixed(1)}h</p></div>
+            <div><p className="text-sm text-muted-foreground">{t("total_hours", "Total Hours")}</p><p className="text-2xl font-bold">{totalTeamHours.toFixed(1)}h</p></div>
           </CardContent>
         </Card>
         <Card className="border-border/50">
           <CardContent className="p-4 flex items-center gap-3">
             <div className="p-2 rounded-lg bg-amber-500/10"><TrendingUp className="h-5 w-5 text-amber-500" /></div>
-            <div><p className="text-sm text-muted-foreground">Billable %</p><p className="text-2xl font-bold">{billablePercentage}%</p></div>
+            <div><p className="text-sm text-muted-foreground">{t("billable", "Billable %")}</p><p className="text-2xl font-bold">{billablePercentage}%</p></div>
           </CardContent>
         </Card>
       </div>
@@ -163,19 +165,19 @@ export function TeamTimeOverview() {
       {/* Team List */}
       <Card className="border-border/50">
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-lg">Team Activity</CardTitle>
+          <CardTitle className="text-lg">{t("team_activity", "Team Activity")}</CardTitle>
           <Select value={dateRange} onValueChange={(v) => setDateRange(v as DateRange)}>
             <SelectTrigger className="w-[140px]"><SelectValue /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="today">Today</SelectItem>
-              <SelectItem value="week">This Week</SelectItem>
-              <SelectItem value="month">This Month</SelectItem>
+              <SelectItem value="today">{t("today", "Today")}</SelectItem>
+              <SelectItem value="week">{t("this_week", "This Week")}</SelectItem>
+              <SelectItem value="month">{t("this_month", "This Month")}</SelectItem>
             </SelectContent>
           </Select>
         </CardHeader>
         <CardContent>
           {!teamData?.length ? (
-            <div className="text-center py-8 text-muted-foreground">No time tracked by team members</div>
+            <div className="text-center py-8 text-muted-foreground">{t("no_time_tracked_by", "No time tracked by team members")}</div>
           ) : (
             <div className="space-y-3">
               {teamData.map((member) => (

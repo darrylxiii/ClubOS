@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect, useCallback } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -22,6 +23,7 @@ interface CRMGlobalSearchProps {
 }
 
 export function CRMGlobalSearch({ open, onOpenChange }: CRMGlobalSearchProps) {
+  const { t } = useTranslation('common');
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
@@ -136,7 +138,7 @@ export function CRMGlobalSearch({ open, onOpenChange }: CRMGlobalSearchProps) {
         <div className="flex items-center border-b px-4">
           <Search className="h-4 w-4 text-muted-foreground mr-2" />
           <Input
-            placeholder="Search prospects, campaigns..."
+            placeholder={t("search_prospects_campaigns", "Search prospects, campaigns...")}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
@@ -188,11 +190,11 @@ export function CRMGlobalSearch({ open, onOpenChange }: CRMGlobalSearchProps) {
             ) : query.length >= 2 && !loading ? (
               <div className="p-8 text-center text-muted-foreground">
                 <Search className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                <p>No results found</p>
+                <p>{t("no_results_found", "No results found")}</p>
               </div>
             ) : query.length === 0 ? (
               <div className="p-8 text-center text-muted-foreground">
-                <p className="text-sm">Start typing to search...</p>
+                <p className="text-sm">{t("start_typing_to_search", "Start typing to search...")}</p>
               </div>
             ) : null}
           </AnimatePresence>

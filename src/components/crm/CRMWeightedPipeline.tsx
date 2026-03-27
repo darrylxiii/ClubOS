@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -28,6 +29,7 @@ interface MonthlyForecast {
 }
 
 export function CRMWeightedPipeline() {
+  const { t } = useTranslation('common');
   const { currentRole } = useRole();
   const [stageMetrics, setStageMetrics] = useState<PipelineStageMetrics[]>([]);
   const [monthlyForecast, setMonthlyForecast] = useState<MonthlyForecast[]>([]);
@@ -190,7 +192,7 @@ export function CRMWeightedPipeline() {
           <CardContent className="p-4">
             <div className="flex items-center gap-2 text-muted-foreground mb-2">
               <DollarSign className="w-4 h-4" />
-              <span className="text-xs">Total Pipeline</span>
+              <span className="text-xs">{t("total_pipeline", "Total Pipeline")}</span>
             </div>
             <p className="text-2xl font-bold">{formatCurrency(totals.totalPipeline)}</p>
           </CardContent>
@@ -200,7 +202,7 @@ export function CRMWeightedPipeline() {
           <CardContent className="p-4">
             <div className="flex items-center gap-2 text-primary mb-2">
               <Target className="w-4 h-4" />
-              <span className="text-xs">Weighted Pipeline</span>
+              <span className="text-xs">{t("weighted_pipeline", "Weighted Pipeline")}</span>
             </div>
             <p className="text-2xl font-bold text-primary">{formatCurrency(totals.weightedPipeline)}</p>
           </CardContent>
@@ -210,7 +212,7 @@ export function CRMWeightedPipeline() {
           <CardContent className="p-4">
             <div className="flex items-center gap-2 text-muted-foreground mb-2">
               <PieChart className="w-4 h-4" />
-              <span className="text-xs">Avg Deal Size</span>
+              <span className="text-xs">{t("avg_deal_size", "Avg Deal Size")}</span>
             </div>
             <p className="text-2xl font-bold">{formatCurrency(totals.avgDealSize)}</p>
           </CardContent>
@@ -224,7 +226,7 @@ export function CRMWeightedPipeline() {
               ) : (
                 <TrendingDown className="w-4 h-4 text-red-500" />
               )}
-              <span className="text-xs">Win Rate</span>
+              <span className="text-xs">{t("win_rate", "Win Rate")}</span>
             </div>
             <p className="text-2xl font-bold">{totals.winRate.toFixed(1)}%</p>
           </CardContent>
@@ -234,7 +236,7 @@ export function CRMWeightedPipeline() {
       {/* Pipeline by Stage */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Pipeline by Stage</CardTitle>
+          <CardTitle className="text-lg">{t("pipeline_by_stage", "Pipeline by Stage")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">

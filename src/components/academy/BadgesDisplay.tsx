@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -18,6 +19,7 @@ interface BadgeData {
 }
 
 export function BadgesDisplay() {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [badges, setBadges] = useState<BadgeData[]>([]);
 
@@ -67,7 +69,7 @@ export function BadgesDisplay() {
           <Award className="h-5 w-5 text-primary" />
         </div>
         <div>
-          <h3 className="font-semibold">Your Badges</h3>
+          <h3 className="font-semibold">{t("your_badges", "Your Badges")}</h3>
           <p className="text-sm text-muted-foreground">
             {badges.filter(b => b.earned).length} of {badges.length} unlocked
           </p>

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -49,6 +50,7 @@ export const ConnectionsSettings = ({
   onDisconnectSocial,
   onUpdate
 }: ConnectionsSettingsProps) => {
+  const { t } = useTranslation('settings');
   const { user } = useAuth();
   const location = useLocation();
   const [userResumes, setUserResumes] = useState<Array<any>>([]);
@@ -94,7 +96,7 @@ export const ConnectionsSettings = ({
     if (error) {
       if (pendingCalendar) {
         const { provider } = JSON.parse(pendingCalendar);
-        const providerName = provider === 'google' ? 'Google' : 'Microsoft';
+        const providerName = provider === 'google' ? t('settings.connectionssettings.google', 'Google') : t('settings.connectionssettings.microsoft', 'Microsoft');
         
         let errorMessage = `${providerName} Calendar connection failed`;
         if (error === 'access_denied') {
@@ -107,7 +109,7 @@ export const ConnectionsSettings = ({
         localStorage.removeItem('pending_calendar_connection');
       } else if (pendingEmail) {
         const { provider } = JSON.parse(pendingEmail);
-        const providerName = provider === 'gmail' ? 'Gmail' : 'Outlook';
+        const providerName = provider === 'gmail' ? t('settings.connectionssettings.gmail', 'Gmail') : t('settings.connectionssettings.outlook', 'Outlook');
         
         let errorMessage = `${providerName} connection failed`;
         if (error === 'access_denied') {
@@ -304,7 +306,7 @@ export const ConnectionsSettings = ({
       
     } catch (error) {
       console.error('❌ OAuth error:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to complete connection');
+      toast.error(error instanceof Error ? error.message : t('settings.connectionssettings.failedToCompleteConnection', 'Failed to complete connection'));
       
       localStorage.removeItem('pending_calendar_connection');
       localStorage.removeItem('pending_email_connection');
@@ -402,7 +404,7 @@ export const ConnectionsSettings = ({
 
   const handleUploadResume = async () => {
     if (!resumeFile || !user || !resumeDisplayName.trim()) {
-      toast.error('Please provide a name for your resume');
+      toast.error(t('connections.provideResumeName'));
       return;
     }
 
@@ -425,7 +427,7 @@ export const ConnectionsSettings = ({
 
       if (dbError) throw dbError;
 
-      toast.success('Resume uploaded successfully!');
+      toast.success(t('connections.resumeUploaded'));
       setShowResumeDialog(false);
       setResumeFile(null);
       setResumeDisplayName('');
@@ -434,13 +436,13 @@ export const ConnectionsSettings = ({
       console.error('Error uploading resume:', error);
       // Hook handles upload errors, we catch DB errors here
       if ((error as any).message !== 'Upload failed') { // Simple check
-         toast.error('Failed to save resume metadata');
+         toast.error(t('connections.failedSaveResume'));
       }
     }
   };
 
   const handleDeleteResume = async (resumeId: string, filePath: string) => {
-    if (!confirm('Are you sure you want to delete this resume?')) return;
+    if (!confirm(t('connections.confirmDeleteResume'))) return;
 
     try {
       const { error: storageError } = await supabase.storage
@@ -456,11 +458,11 @@ export const ConnectionsSettings = ({
 
       if (dbError) throw dbError;
 
-      toast.success('Resume deleted successfully');
+      toast.success(t('connections.resumeDeleted'));
       await loadUserResumes();
     } catch (error) {
       console.error('Error deleting resume:', error);
-      toast.error('Failed to delete resume');
+      toast.error(t('connections.failedDeleteResume'));
     }
   };
 
@@ -482,14 +484,14 @@ export const ConnectionsSettings = ({
       document.body.removeChild(a);
     } catch (error) {
       console.error('Error downloading resume:', error);
-      toast.error('Failed to download resume');
+      toast.error(t('connections.failedDownloadResume'));
     }
   };
 
   const handlePreviewResume = async (filePath: string, fileName: string, mimeType: string) => {
     try {
       if (!mimeType.includes('pdf')) {
-        toast.error('Only PDF files can be previewed. Please download to view.');
+        toast.error(t('connections.pdfOnlyPreview'));
         return;
       }
 
@@ -504,7 +506,7 @@ export const ConnectionsSettings = ({
       setShowPreviewDialog(true);
     } catch (error) {
       console.error('Error previewing resume:', error);
-      toast.error('Failed to preview resume');
+      toast.error(t('connections.failedPreviewResume'));
     }
   };
 
@@ -522,19 +524,19 @@ export const ConnectionsSettings = ({
 
       if (error) throw error;
 
-      toast.success('Primary resume updated');
+      toast.success(t('connections.primaryResumeUpdated'));
       await loadUserResumes();
     } catch (error) {
       console.error('Error setting primary resume:', error);
-      toast.error('Failed to set primary resume');
+      toast.error(t('connections.failedSetPrimary'));
     }
   };
 
   const handleConnectCalendar = async (provider: 'google' | 'microsoft' | 'apple') => {
     // Apple Calendar support coming soon
     if (provider === 'apple') {
-      toast.info('Apple Calendar integration coming soon', {
-        description: 'We\'re working on adding Apple Calendar support. Use Google or Microsoft Calendar for now.'
+      toast.info("Apple Calendar integration coming soon", {
+        description: t('settings.connectionssettings.workingOnAppleCalendar', "We're working on adding Apple Calendar support. Use Google or Microsoft Calendar for now.")
       });
       return;
     }
@@ -545,8 +547,8 @@ export const ConnectionsSettings = ({
       dialog.className = 'fixed inset-0 bg-black/50 flex items-center justify-center z-50';
       dialog.innerHTML = `
         <div class="bg-background border rounded-lg p-6 max-w-md w-full mx-4 shadow-xl">
-          <h3 class="text-lg font-semibold mb-2">Name Your Calendar</h3>
-          <p class="text-sm text-muted-foreground mb-4">Choose a name for this ${provider === 'google' ? 'Google' : 'Microsoft'} Calendar connection</p>
+          <h3 class="text-lg font-semibold mb-2">{t('settings.connectionssettings.nameYourCalendar', 'Name Your Calendar')}</h3>
+          <p class="text-sm text-muted-foreground mb-4">Choose a name for this ${provider === 'google' ? t('settings.connectionssettings.google', 'Google') : t('settings.connectionssettings.microsoft', 'Microsoft')} Calendar connection</p>
           <input 
             type="text" 
             id="calendar-label-input"
@@ -554,8 +556,8 @@ export const ConnectionsSettings = ({
             class="w-full px-3 py-2 border rounded-md mb-4"
           />
           <div class="flex gap-2 justify-end">
-            <button id="cancel-btn" class="px-4 py-2 border rounded-md hover:bg-accent">Cancel</button>
-            <button id="connect-btn" class="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90">Connect</button>
+            <button id="cancel-btn" class="px-4 py-2 border rounded-md hover:bg-accent">{t('settings.connectionssettings.cancel', 'Cancel')}</button>
+            <button id="connect-btn" class="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90">{t('settings.connectionssettings.connect', 'Connect')}</button>
           </div>
         </div>
       `;
@@ -593,7 +595,7 @@ export const ConnectionsSettings = ({
     });
     
     if (!label) {
-      toast.error('Calendar connection cancelled');
+      toast.error(t('connections.calendarCancelled'));
       return;
     }
 
@@ -633,12 +635,12 @@ export const ConnectionsSettings = ({
       window.location.href = data.authUrl;
     } catch (error) {
       console.error(`[Calendar] ${provider} Calendar connection error:`, error);
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorMessage = error instanceof Error ? error.message : t('settings.connectionssettings.unknownError', 'Unknown error');
       
       // Show detailed error with better formatting
       const isRedirectError = errorMessage.includes('redirect URI');
       toast.error(
-        `Failed to connect ${provider === 'google' ? 'Google' : 'Microsoft'} Calendar`,
+        `Failed to connect ${provider === 'google' ? t('settings.connectionssettings.google', 'Google') : t('settings.connectionssettings.microsoft', 'Microsoft')} Calendar`,
         {
           description: errorMessage,
           duration: isRedirectError ? 10000 : 5000
@@ -660,16 +662,16 @@ export const ConnectionsSettings = ({
       if (error) throw error;
       
       await loadConnectedCalendars();
-      toast.success('Calendar disconnected');
+      toast.success(t('connections.calendarDisconnected'));
     } catch (error) {
       console.error('Error disconnecting calendar:', error);
-      toast.error('Failed to disconnect calendar');
+      toast.error(t('connections.failedDisconnectCalendar'));
     }
   };
 
   const handleConnectEmail = async (provider: 'gmail' | 'outlook') => {
     if (!user) {
-      toast.error('Please sign in to connect email');
+      toast.error(t('connections.signInToConnect'));
       return;
     }
 
@@ -680,7 +682,7 @@ export const ConnectionsSettings = ({
 
   const handleEmailLabelSubmit = async () => {
     if (!pendingEmailProvider || !emailLabel.trim()) {
-      toast.error('Please enter a label for your email connection');
+      toast.error(t('connections.enterEmailLabel'));
       return;
     }
 
@@ -710,7 +712,7 @@ export const ConnectionsSettings = ({
       window.location.href = data.authUrl;
     } catch (error) {
       console.error('Email connection error:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to connect email');
+      toast.error(error instanceof Error ? error.message : t('settings.connectionssettings.failedToConnectEmail', 'Failed to connect email'));
       localStorage.removeItem('pending_email_connection');
       setEmailLoading(false);
     }
@@ -729,7 +731,7 @@ export const ConnectionsSettings = ({
       toast.success(`Email sync ${enabled ? 'enabled' : 'disabled'}`);
     } catch (error) {
       console.error('Error toggling email sync:', error);
-      toast.error('Failed to update sync setting');
+      toast.error(t('connections.failedUpdateSync'));
     }
   };
 
@@ -743,10 +745,10 @@ export const ConnectionsSettings = ({
       if (error) throw error;
 
       await loadConnectedEmails();
-      toast.success('Email disconnected');
+      toast.success(t('connections.emailDisconnected'));
     } catch (error) {
       console.error('Error disconnecting email:', error);
-      toast.error('Failed to disconnect email');
+      toast.error(t('connections.failedDisconnectEmail'));
     }
   };
 
@@ -775,9 +777,9 @@ export const ConnectionsSettings = ({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Upload className="w-5 h-5" />
-            Resume/CV
+            {t('connections.resumeCV')}
           </CardTitle>
-          <CardDescription>Upload and manage your resumes</CardDescription>
+          <CardDescription>{t('connections.uploadManageResumes')}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="border-2 border-dashed border-border rounded-lg hover:border-primary/50 transition-colors">
@@ -791,17 +793,17 @@ export const ConnectionsSettings = ({
             <label htmlFor="resume-upload" className="cursor-pointer block p-8 text-center">
               <Upload className="w-12 h-12 mx-auto mb-4 text-primary" />
               <p className="text-sm font-medium mb-1">
-                Click to upload new resume
+                {t('connections.clickToUpload')}
               </p>
               <p className="text-xs text-muted-foreground">
-                PDF, DOC, or DOCX (Max 10MB)
+                {t('connections.fileFormats')}
               </p>
             </label>
           </div>
 
           {userResumes.length > 0 && (
             <div className="space-y-2">
-              <h4 className="text-sm font-medium">Your Resumes</h4>
+              <h4 className="text-sm font-medium">{t('connections.yourResumes')}</h4>
               {userResumes.map((resume) => (
                 <div key={resume.id} className="flex items-center justify-between p-3 border rounded-lg bg-card/30">
                   <div className="flex items-center gap-3 flex-1">
@@ -821,7 +823,7 @@ export const ConnectionsSettings = ({
                         size="sm"
                         variant="ghost"
                         onClick={() => handleSetPrimaryResume(resume.id)}
-                        title="Set as primary"
+                        title={t('settings.connectionssettings.setAsPrimary', 'Set as primary')}
                       >
                         <CheckCircle2 className="w-4 h-4" />
                       </Button>
@@ -830,7 +832,7 @@ export const ConnectionsSettings = ({
                       size="sm"
                       variant="ghost"
                       onClick={() => handlePreviewResume(resume.file_path, resume.file_name, resume.mime_type)}
-                      title="Preview"
+                      title={t('settings.connectionssettings.preview', 'Preview')}
                     >
                       <Eye className="w-4 h-4" />
                     </Button>
@@ -838,7 +840,7 @@ export const ConnectionsSettings = ({
                       size="sm"
                       variant="ghost"
                       onClick={() => handleDownloadResume(resume.file_path, resume.file_name)}
-                      title="Download"
+                      title={t('settings.connectionssettings.download', 'Download')}
                     >
                       <Download className="w-4 h-4" />
                     </Button>
@@ -846,7 +848,7 @@ export const ConnectionsSettings = ({
                       size="sm"
                       variant="ghost"
                       onClick={() => handleDeleteResume(resume.id, resume.file_path)}
-                      title="Delete"
+                      title={t('settings.connectionssettings.delete', 'Delete')}
                     >
                       <X className="w-4 h-4" />
                     </Button>
@@ -863,10 +865,10 @@ export const ConnectionsSettings = ({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Sparkles className="w-5 h-5" />
-            The Quantum Club Resume
+            {t('connections.tqcResume')}
           </CardTitle>
           <CardDescription>
-            Create an AI-powered executive resume optimized for elite opportunities
+            {t('connections.tqcResumeDesc')}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -877,9 +879,9 @@ export const ConnectionsSettings = ({
                   <FileText className="w-6 h-6 text-primary" />
                 </div>
                 <div className="flex-1">
-                  <h4 className="font-semibold mb-2">Premium Resume Builder</h4>
+                  <h4 className="font-semibold mb-2">{t('connections.premiumResumeBuilder')}</h4>
                   <p className="text-sm text-muted-foreground mb-4">
-                    Our AI analyzes your experience and creates a tailored resume that highlights your executive presence and achievements for premium positions.
+                    {t('connections.premiumResumeDesc')}
                   </p>
                   <ul className="text-sm text-muted-foreground space-y-2 mb-4">
                     <li>✓ Executive-level formatting and tone</li>
@@ -892,10 +894,10 @@ export const ConnectionsSettings = ({
                     disabled
                   >
                     <Sparkles className="w-4 h-4 mr-2" />
-                    Coming Soon - Create TQC Resume
+                    {t('connections.comingSoonTQCResume')}
                   </Button>
                   <p className="text-xs text-muted-foreground mt-2">
-                    This feature will be available soon
+                    {t('connections.featureComingSoon')}
                   </p>
                 </div>
               </div>
@@ -909,15 +911,15 @@ export const ConnectionsSettings = ({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Calendar className="w-5 h-5" />
-            Connect Your Calendars
+            {t('connections.connectCalendars')}
           </CardTitle>
           <CardDescription>
-            Link multiple calendars (personal + work accounts) to sync your availability and prevent scheduling conflicts
+            {t('connections.connectCalendarsDesc')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <h4 className="font-medium text-sm mb-3">Currently Connected Calendars</h4>
+            <h4 className="font-medium text-sm mb-3">{t('connections.currentlyConnected')}</h4>
             {connectedCalendars.length > 0 ? (
               <div className="space-y-2">
                 {connectedCalendars.map((calendar) => (
@@ -929,7 +931,7 @@ export const ConnectionsSettings = ({
                       <CheckCircle2 className="w-5 h-5 text-green-500" />
                       <div>
                         <p className="font-medium">
-                          {calendar.provider === 'google' ? 'Google' : 'Microsoft'} - {calendar.label}
+                          {calendar.provider === 'google' ? t('settings.connectionssettings.google', 'Google') : t('settings.connectionssettings.microsoft', 'Microsoft')} - {calendar.label}
                         </p>
                         <p className="text-sm text-muted-foreground">{calendar.email}</p>
                       </div>
@@ -941,7 +943,7 @@ export const ConnectionsSettings = ({
                       onClick={() => handleDisconnectCalendar(calendar.id)}
                       className="text-destructive hover:text-destructive/80"
                     >
-                      Remove
+                      {t('common:actions.remove')}
                     </Button>
                   </div>
                 ))}
@@ -949,9 +951,9 @@ export const ConnectionsSettings = ({
             ) : (
               <div className="text-center py-8 border-2 border-dashed border-border rounded-lg">
                 <Calendar className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
-                <p className="text-sm font-medium mb-1">No calendars connected yet</p>
+                <p className="text-sm font-medium mb-1">{t('connections.noCalendarsYet')}</p>
                 <p className="text-xs text-muted-foreground">
-                  Connect your calendars to enable automatic scheduling and prevent conflicts
+                  {t('connections.connectCalendarsHint')}
                 </p>
               </div>
             )}
@@ -959,7 +961,7 @@ export const ConnectionsSettings = ({
 
           <div className="space-y-2">
             <h4 className="font-medium text-sm mb-3">
-              {connectedCalendars.length > 0 ? 'Add Another Calendar' : 'Connect a Calendar'}
+              {connectedCalendars.length > 0 ? t('connections.addAnotherCalendar') : t('connections.connectACalendar')}
             </h4>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               <Button
@@ -970,7 +972,7 @@ export const ConnectionsSettings = ({
                 className="w-full"
               >
                 <Calendar className="w-4 h-4 mr-2" />
-                Add Google Calendar
+                {t('connections.addGoogleCalendar')}
               </Button>
               <Button
                 type="button"
@@ -980,7 +982,7 @@ export const ConnectionsSettings = ({
                 className="w-full"
               >
                 <Calendar className="w-4 h-4 mr-2" />
-                Add Microsoft Calendar
+                {t('connections.addMicrosoftCalendar')}
               </Button>
               <Button
                 type="button"
@@ -990,7 +992,7 @@ export const ConnectionsSettings = ({
                 className="w-full"
               >
                 <Calendar className="w-4 h-4 mr-2" />
-                Add Apple Calendar
+                {t('connections.addAppleCalendar')}
               </Button>
             </div>
           </div>
@@ -1001,28 +1003,28 @@ export const ConnectionsSettings = ({
       <Dialog open={showEmailLabelDialog} onOpenChange={setShowEmailLabelDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Name Your Email Connection</DialogTitle>
+            <DialogTitle>{t('connections.nameEmailConnection')}</DialogTitle>
             <DialogDescription>
-              Choose a descriptive name for this {pendingEmailProvider === 'gmail' ? 'Gmail' : 'Outlook'} connection
+              {t('connections.nameEmailConnectionDesc', { provider: pendingEmailProvider === 'gmail' ? t('settings.connectionssettings.gmail', 'Gmail') : t('settings.connectionssettings.outlook', 'Outlook') })}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label htmlFor="email-label">Connection Name</Label>
+              <Label htmlFor="email-label">{t('connections.connectionName')}</Label>
               <Input
                 id="email-label"
                 value={emailLabel}
                 onChange={(e) => setEmailLabel(e.target.value)}
-                placeholder="e.g., Work Email, Personal Gmail"
+                placeholder={t('connections.emailLabelPlaceholder')}
               />
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowEmailLabelDialog(false)}>
-              Cancel
+              {t('common:actions.cancel')}
             </Button>
             <Button onClick={handleEmailLabelSubmit} disabled={!emailLabel.trim()}>
-              Connect
+              {t('common:actions.connect')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1031,14 +1033,14 @@ export const ConnectionsSettings = ({
       <Dialog open={showResumeDialog} onOpenChange={setShowResumeDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Name Your Resume</DialogTitle>
+            <DialogTitle>{t('connections.nameResume')}</DialogTitle>
             <DialogDescription>
-              Choose a descriptive name for your resume
+              {t('connections.nameResumeDesc')}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label htmlFor="resume-name">Resume Name</Label>
+              <Label htmlFor="resume-name">{t('connections.resumeName')}</Label>
               <Input
                 id="resume-name"
                 value={resumeDisplayName}
@@ -1049,10 +1051,10 @@ export const ConnectionsSettings = ({
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowResumeDialog(false)}>
-              Cancel
+              {t('common:actions.cancel')}
             </Button>
             <Button onClick={handleUploadResume} disabled={isUploadingResume || !resumeDisplayName.trim()}>
-              {isUploadingResume ? 'Uploading...' : 'Upload'}
+              {isUploadingResume ? t('common:status.uploading') : t('common:actions.upload')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1067,7 +1069,7 @@ export const ConnectionsSettings = ({
             <iframe
               src={previewResumeUrl}
               className="w-full h-full border-0"
-              title="Resume Preview"
+              title={t('settings.connectionssettings.resumePreview', 'Resume Preview')}
             />
           )}
         </DialogContent>

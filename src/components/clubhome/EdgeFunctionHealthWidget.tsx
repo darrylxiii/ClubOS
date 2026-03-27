@@ -6,8 +6,10 @@ import { useEdgeFunctionHealth } from "@/hooks/useEdgeFunctionHealth";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
+import { useTranslation } from 'react-i18next';
 
 export const EdgeFunctionHealthWidget = () => {
+  const { t } = useTranslation('common');
   const { data: health, isLoading } = useEdgeFunctionHealth();
 
   if (isLoading) {
@@ -45,7 +47,7 @@ export const EdgeFunctionHealthWidget = () => {
           <CardTitle className="flex items-center justify-between text-base">
             <div className="flex items-center gap-2">
               <Server className="h-4 w-4 text-premium" />
-              <span>Backend Health</span>
+              <span>{t('edgeFunctionHealthWidget.backendHealth')}</span>
             </div>
             <Button variant="ghost" size="sm" asChild className="text-xs">
               <Link to="/admin/audit-log">
@@ -74,7 +76,7 @@ export const EdgeFunctionHealthWidget = () => {
               <p className="font-semibold">{health?.totalInvocations || 0}</p>
             </div>
             <div className="p-2 rounded-lg bg-muted/30">
-              <p className="text-xs text-muted-foreground">Avg Response</p>
+              <p className="text-xs text-muted-foreground">{t('edgeFunctionHealthWidget.avgResponse')}</p>
               <p className="font-semibold">{health?.avgResponseTime || 0}ms</p>
             </div>
           </div>

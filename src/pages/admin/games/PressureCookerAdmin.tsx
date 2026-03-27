@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from 'react-i18next';
 import { GameResultsSkeleton } from "@/components/LoadingSkeletons";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,6 +21,7 @@ import {
 } from "@/components/ui/table";
 
 export default function PressureCookerAdmin() {
+  const { t } = useTranslation('admin');
   const [searchQuery, setSearchQuery] = useState("");
 
   const { data: results, isLoading } = useQuery({
@@ -76,7 +78,7 @@ export default function PressureCookerAdmin() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Total Completions</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('gameAdmin.totalCompletions', 'Total Completions')}</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -85,7 +87,7 @@ export default function PressureCookerAdmin() {
         </Card>
         <Card className="bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Avg. Prioritization Score</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('gameAdmin.avgPrioritizationScore', 'Avg. Prioritization Score')}</CardTitle>
             <Zap className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -94,7 +96,7 @@ export default function PressureCookerAdmin() {
         </Card>
         <Card className="bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Avg. Time Spent</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('gameAdmin.avgTimeSpent', 'Avg. Time Spent')}</CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -108,11 +110,11 @@ export default function PressureCookerAdmin() {
       <Card className="bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl">
         <CardHeader>
           <div className="flex items-center justify-between">
-            <SectionTitle>All Results</SectionTitle>
+            <SectionTitle>{t('gameAdmin.allResults', 'All Results')}</SectionTitle>
             <div className="relative w-64">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search by name or email..."
+                placeholder={t('gameAdmin.searchPlaceholder', 'Search by name or email...')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-9"
@@ -131,11 +133,11 @@ export default function PressureCookerAdmin() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Candidate</TableHead>
-                  <TableHead>Score</TableHead>
-                  <TableHead>Time Spent</TableHead>
-                  <TableHead>Completed</TableHead>
-                  <TableHead>Actions</TableHead>
+                  <TableHead>{t('gameAdmin.candidate', 'Candidate')}</TableHead>
+                  <TableHead>{t('gameAdmin.score', 'Score')}</TableHead>
+                  <TableHead>{t('gameAdmin.timeSpent', 'Time Spent')}</TableHead>
+                  <TableHead>{t('gameAdmin.completed', 'Completed')}</TableHead>
+                  <TableHead>{t('gameAdmin.actions', 'Actions')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

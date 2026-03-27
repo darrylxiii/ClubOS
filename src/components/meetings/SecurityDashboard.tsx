@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 /**
  * Meeting Security Dashboard
  * Comprehensive view of encryption status across all participants
@@ -57,6 +58,7 @@ export function SecurityDashboard({
   onToggleEncryption,
   className
 }: SecurityDashboardProps) {
+  const { t } = useTranslation('common');
   const [isOpen, setIsOpen] = useState(false);
   const [isRotating, setIsRotating] = useState(false);
 
@@ -159,7 +161,7 @@ export function SecurityDashboard({
               <div className="space-y-2">
                 <div className="flex items-center gap-1 text-xs text-muted-foreground">
                   <Users className="h-3 w-3" />
-                  <span>Participants</span>
+                  <span>{t("participants", "Participants")}</span>
                 </div>
                 <div className="space-y-1 max-h-32 overflow-y-auto">
                   {participants.map(participant => (

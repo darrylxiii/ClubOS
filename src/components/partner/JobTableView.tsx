@@ -50,6 +50,7 @@ import { useVirtualizedTable } from '@/hooks/useVirtualizedList';
 import { format } from 'date-fns';
 import { UrgencyMeter } from '@/components/jobs/UrgencyMeter';
 import { computeJobUrgencyScore, type UrgencyScoreResult } from '@/lib/jobUrgencyScore';
+import { useTranslation } from 'react-i18next';
 
 interface JobWithMetrics {
   id: string;
@@ -206,7 +207,7 @@ const JobTableRow = memo(({
                     <TooltipTrigger>
                       <Lock className="h-3 w-3 text-amber-500" />
                     </TooltipTrigger>
-                    <TooltipContent>Confidential</TooltipContent>
+                    <TooltipContent>{t('jobTableView.tooltip.confidential')}</TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
               )}
@@ -318,7 +319,7 @@ const JobTableRow = memo(({
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={onClose}>
                   <XCircle className="h-4 w-4 mr-2" />
-                  Close
+                  {t('common:close')}
                 </DropdownMenuItem>
               </>
             )}
@@ -331,7 +332,7 @@ const JobTableRow = memo(({
             {job.status !== 'archived' && (
               <DropdownMenuItem onClick={onArchive} className="text-destructive">
                 <Archive className="h-4 w-4 mr-2" />
-                Archive
+                {t('common:archive')}
               </DropdownMenuItem>
             )}
             {job.status === 'archived' && (
@@ -399,6 +400,7 @@ export const JobTableView = memo(({
   isSelected,
   isAdmin = false,
 }: JobTableViewProps) => {
+  const { t } = useTranslation('partner');
   const [sortKey, setSortKey] = useState<SortKey | null>('created_at');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [columnVisibility, setColumnVisibility] = useState<Record<ColumnKey, boolean>>(loadColumnVisibility);
@@ -514,9 +516,7 @@ export const JobTableView = memo(({
 
   if (jobs.length === 0) {
     return (
-      <div className="flex items-center justify-center py-12 text-muted-foreground">
-        No jobs found
-      </div>
+      <div className="flex items-center justify-center py-12 text-muted-foreground">{t('jobTableView.noJobsFound')}</div>
     );
   }
 
@@ -606,7 +606,7 @@ export const JobTableView = memo(({
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuLabel>Visible Columns</DropdownMenuLabel>
+                  <DropdownMenuLabel>{t('jobTableView.menu.visibleColumns')}</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   {COLUMNS.map(col => (
                     <DropdownMenuItem

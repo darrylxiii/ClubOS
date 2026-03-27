@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -26,6 +27,7 @@ import {
 } from "lucide-react";
 
 export function PerformanceReviewPanel() {
+  const { t } = useTranslation('common');
   const { data: reviews, isLoading } = usePerformanceReviews();
   const { data: employees } = useAllEmployees();
   const createReview = useCreatePerformanceReview();
@@ -44,7 +46,7 @@ export function PerformanceReviewPanel() {
 
   const handleCreate = async () => {
     if (!newReview.employee_id) {
-      toast.error('Please select an employee');
+      toast.error(t("please_select_an_employee", "Please select an employee"));
       return;
     }
     try {
@@ -59,9 +61,9 @@ export function PerformanceReviewPanel() {
         goals: '',
         comments: '',
       });
-      toast.success('Performance review created');
+      toast.success(t("performance_review_created", "Performance review created"));
     } catch (error) {
-      toast.error('Failed to create review');
+      toast.error(t("failed_to_create_review", "Failed to create review"));
     }
   };
 
@@ -72,9 +74,9 @@ export function PerformanceReviewPanel() {
         status: 'completed',
         completed_at: new Date().toISOString(),
       });
-      toast.success('Review marked as completed');
+      toast.success(t("review_marked_as_completed", "Review marked as completed"));
     } catch (error) {
-      toast.error('Failed to update review');
+      toast.error(t("failed_to_update_review", "Failed to update review"));
     }
   };
 
@@ -134,17 +136,17 @@ export function PerformanceReviewPanel() {
             </DialogTrigger>
             <DialogContent className="max-w-lg">
               <DialogHeader>
-                <DialogTitle>Create Performance Review</DialogTitle>
+                <DialogTitle>{t("create_performance_review", "Create Performance Review")}</DialogTitle>
               </DialogHeader>
               <div className="space-y-4 mt-4">
                 <div className="space-y-2">
-                  <Label>Employee</Label>
+                  <Label>{t("employee", "Employee")}</Label>
                   <Select
                     value={newReview.employee_id}
                     onValueChange={(v) => setNewReview(prev => ({ ...prev, employee_id: v }))}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select employee" />
+                      <SelectValue placeholder={t("select_employee", "Select employee")} />
                     </SelectTrigger>
                     <SelectContent>
                       {employees?.map(emp => (
@@ -158,15 +160,15 @@ export function PerformanceReviewPanel() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>Review Period</Label>
+                    <Label>{t("review_period", "Review Period")}</Label>
                     <Input
                       value={newReview.review_period}
                       onChange={(e) => setNewReview(prev => ({ ...prev, review_period: e.target.value }))}
-                      placeholder="e.g. Q4 2024"
+                      placeholder={t("eg_q4_2024", "e.g. Q4 2024")}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Overall Rating (1-5)</Label>
+                    <Label>{t("overall_rating_15", "Overall Rating (1-5)")}</Label>
                     <Input
                       type="number"
                       min={1}
@@ -178,7 +180,7 @@ export function PerformanceReviewPanel() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Strengths</Label>
+                  <Label>{t("strengths", "Strengths")}</Label>
                   <Textarea
                     value={newReview.strengths}
                     onChange={(e) => setNewReview(prev => ({ ...prev, strengths: e.target.value }))}
@@ -187,7 +189,7 @@ export function PerformanceReviewPanel() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Areas for Improvement</Label>
+                  <Label>{t("areas_for_improvement", "Areas for Improvement")}</Label>
                   <Textarea
                     value={newReview.areas_for_improvement}
                     onChange={(e) => setNewReview(prev => ({ ...prev, areas_for_improvement: e.target.value }))}
@@ -196,7 +198,7 @@ export function PerformanceReviewPanel() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Goals for Next Period</Label>
+                  <Label>{t("goals_for_next_period", "Goals for Next Period")}</Label>
                   <Textarea
                     value={newReview.goals}
                     onChange={(e) => setNewReview(prev => ({ ...prev, goals: e.target.value }))}
@@ -227,7 +229,7 @@ export function PerformanceReviewPanel() {
         ) : !reviews?.length ? (
           <div className="text-center py-8 text-muted-foreground">
             <ClipboardCheck className="h-12 w-12 mx-auto mb-2 opacity-50" />
-            <p>No performance reviews yet</p>
+            <p>{t("no_performance_reviews_yet", "No performance reviews yet")}</p>
           </div>
         ) : (
           <div className="space-y-3">

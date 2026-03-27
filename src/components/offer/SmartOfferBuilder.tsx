@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 /**
  * Smart Offer Builder Component
  * 
@@ -59,6 +60,7 @@ export function SmartOfferBuilder({
   applicationId,
   onOfferCreated,
 }: SmartOfferBuilderProps) {
+  const { t } = useTranslation('common');
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [savedOfferId, setSavedOfferId] = useState<string | null>(null);
@@ -174,7 +176,7 @@ export function SmartOfferBuilder({
         <CardContent className="flex items-center justify-center py-12">
           <div className="text-center space-y-4">
             <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
-            <p className="text-muted-foreground">Analyzing market data and generating recommendation...</p>
+            <p className="text-muted-foreground">{t("analyzing_market_data_and", "Analyzing market data and generating recommendation...")}</p>
           </div>
         </CardContent>
       </Card>
@@ -199,13 +201,13 @@ export function SmartOfferBuilder({
                 <p className="text-2xl font-bold text-primary">
                   {recommendation.currency} {recommendation.recommended_base_salary.toLocaleString()}
                 </p>
-                <p className="text-xs text-muted-foreground">Recommended Base</p>
+                <p className="text-xs text-muted-foreground">{t("recommended_base", "Recommended Base")}</p>
               </div>
               <div className="text-center p-3 rounded-lg bg-background/50">
                 <p className={`text-2xl font-bold ${getCompetitivenessColor(recommendation.market_competitiveness_score)}`}>
                   {recommendation.market_competitiveness_score}%
                 </p>
-                <p className="text-xs text-muted-foreground">Competitiveness</p>
+                <p className="text-xs text-muted-foreground">{t("competitiveness", "Competitiveness")}</p>
               </div>
               <div className="text-center p-3 rounded-lg bg-background/50">
                 <p className="text-2xl font-bold">{recommendation.salary_percentile}th</p>
@@ -217,7 +219,7 @@ export function SmartOfferBuilder({
             <div className="space-y-2">
               <div className="flex justify-between text-xs text-muted-foreground">
                 <span>{recommendation.currency} {recommendation.market_data.min.toLocaleString()}</span>
-                <span>Market Range</span>
+                <span>{t("market_range", "Market Range")}</span>
                 <span>{recommendation.currency} {recommendation.market_data.max.toLocaleString()}</span>
               </div>
               <div className="relative h-2 bg-muted rounded-full overflow-hidden">
@@ -245,17 +247,17 @@ export function SmartOfferBuilder({
               </p>
               <div className="grid grid-cols-3 gap-2 text-sm">
                 <div>
-                  <p className="text-muted-foreground">Current</p>
+                  <p className="text-muted-foreground">{t("current", "Current")}</p>
                   <p className="font-medium">{recommendation.currency} {recommendation.candidate_expectations.current_salary.toLocaleString()}</p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground">Expected Range</p>
+                  <p className="text-muted-foreground">{t("expected_range", "Expected Range")}</p>
                   <p className="font-medium">
                     {recommendation.currency} {recommendation.candidate_expectations.expected_min.toLocaleString()} - {recommendation.candidate_expectations.expected_max.toLocaleString()}
                   </p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground">Experience</p>
+                  <p className="text-muted-foreground">{t("experience", "Experience")}</p>
                   <p className="font-medium">{recommendation.candidate_expectations.years_experience} years</p>
                 </div>
               </div>
@@ -301,13 +303,13 @@ export function SmartOfferBuilder({
             <DollarSign className="h-5 w-5" />
             Build Offer
           </CardTitle>
-          <CardDescription>Customize the compensation package</CardDescription>
+          <CardDescription>{t("customize_the_compensation_package", "Customize the compensation package")}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Base Salary */}
           <div className="space-y-3">
             <div className="flex justify-between">
-              <Label>Base Salary</Label>
+              <Label>{t("base_salary", "Base Salary")}</Label>
               <span className="text-sm font-medium">
                 {recommendation?.currency || 'EUR'} {baseSalary.toLocaleString()}
               </span>
@@ -330,7 +332,7 @@ export function SmartOfferBuilder({
           {/* Bonus */}
           <div className="space-y-3">
             <div className="flex justify-between">
-              <Label>Annual Bonus</Label>
+              <Label>{t("annual_bonus", "Annual Bonus")}</Label>
               <span className="text-sm font-medium">{bonusPercentage}%</span>
             </div>
             <Slider
@@ -345,7 +347,7 @@ export function SmartOfferBuilder({
           {/* Equity */}
           <div className="space-y-3">
             <div className="flex justify-between">
-              <Label>Equity</Label>
+              <Label>{t("equity", "Equity")}</Label>
               <span className="text-sm font-medium">{equityPercentage}%</span>
             </div>
             <Slider
@@ -362,7 +364,7 @@ export function SmartOfferBuilder({
           {/* Total Compensation */}
           <div className="p-4 rounded-lg bg-primary/10 border border-primary/20">
             <div className="flex justify-between items-center">
-              <span className="font-medium">Total Compensation</span>
+              <span className="font-medium">{t("total_compensation", "Total Compensation")}</span>
               <span className="text-2xl font-bold text-primary">
                 {recommendation?.currency || 'EUR'} {Math.round(baseSalary * (1 + bonusPercentage / 100)).toLocaleString()}
               </span>
@@ -374,9 +376,9 @@ export function SmartOfferBuilder({
 
           {/* Notes */}
           <div className="space-y-2">
-            <Label>Notes</Label>
+            <Label>{t("notes", "Notes")}</Label>
             <Input
-              placeholder="Add any notes about this offer..."
+              placeholder={t("add_any_notes_about", "Add any notes about this offer...")}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
             />

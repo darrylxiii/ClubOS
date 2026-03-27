@@ -1,11 +1,8 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createAuthenticatedHandler } from '../_shared/handler.ts';
+import { SupabaseClient } from "npm:@supabase/supabase-js@2";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+const corsHeaders: Record<string, string> = {};
 
 interface SearchWeights {
   semantic_weight: number;
@@ -20,34 +17,10 @@ interface WeightAdjustment {
   reason: string;
 }
 
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      return new Response(JSON.stringify({ error: 'No authorization header' }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    const { data: { user }, error: authError } = await supabase.auth.getUser(
-      authHeader.replace('Bearer ', '')
-    );
-
-    if (authError || !user) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
+Deno.serve(createAuthenticatedHandler(async (req, ctx) => {
+    const supabase = ctx.supabase;
+    const user = ctx.user;
+    Object.assign(corsHeaders, ctx.corsHeaders);
 
     const { action, query_context, feedback_data } = await req.json();
 
@@ -61,19 +34,12 @@ serve(async (req) => {
       default:
         return new Response(JSON.stringify({ error: 'Invalid action' }), {
           status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' },
         });
     }
-  } catch (error: unknown) {
-    console.error('Adaptive weights error:', error);
-    return new Response(JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-  }
-});
+}));
 
-async function getWeights(supabase: any, userId: string) {
+async function getWeights(supabase: SupabaseClient, userId: string) {
   // Get user's personalized weights or create defaults
   let { data: prefs, error } = await supabase
     .from('user_search_preferences')
@@ -135,9 +101,9 @@ async function getWeights(supabase: any, userId: string) {
 }
 
 async function calculateAdaptiveAdjustments(
-  supabase: any, 
-  userId: string, 
-  currentPrefs: any
+  supabase: SupabaseClient,
+  userId: string,
+  currentPrefs: Record<string, unknown>
 ): Promise<WeightAdjustment> {
   // Get recent feedback to learn from
   const { data: recentFeedback } = await supabase
@@ -153,15 +119,15 @@ async function calculateAdaptiveAdjustments(
   }
 
   // Analyze feedback patterns
-  const thumbsUp = recentFeedback.filter((f: any) => f.feedback_type === 'thumbs_up');
-  const thumbsDown = recentFeedback.filter((f: any) => f.feedback_type === 'thumbs_down');
+  const thumbsUp = recentFeedback.filter((f: Record<string, unknown>) => f.feedback_type === 'thumbs_up');
+  const thumbsDown = recentFeedback.filter((f: Record<string, unknown>) => f.feedback_type === 'thumbs_down');
   
   const positiveRate = thumbsUp.length / recentFeedback.length;
   
   // Analyze which results were clicked (higher engagement)
-  const clickedResults = recentFeedback.filter((f: any) => f.was_clicked);
+  const clickedResults = recentFeedback.filter((f: Record<string, unknown>) => f.was_clicked);
   const avgClickRank = clickedResults.length > 0
-    ? clickedResults.reduce((sum: number, f: any) => sum + (f.result_rank || 5), 0) / clickedResults.length
+    ? clickedResults.reduce((sum: number, f: Record<string, unknown>) => sum + ((f.result_rank as number) || 5), 0) / clickedResults.length
     : 5;
 
   // Determine adjustments based on patterns
@@ -194,9 +160,9 @@ async function calculateAdaptiveAdjustments(
 
   // Check dwell time patterns (longer dwell = more relevant)
   const avgDwellTime = recentFeedback
-    .filter((f: any) => f.dwell_time_ms)
-    .reduce((sum: number, f: any) => sum + f.dwell_time_ms, 0) / 
-    recentFeedback.filter((f: any) => f.dwell_time_ms).length || 0;
+    .filter((f: Record<string, unknown>) => f.dwell_time_ms)
+    .reduce((sum: number, f: Record<string, unknown>) => sum + (f.dwell_time_ms as number), 0) /
+    recentFeedback.filter((f: Record<string, unknown>) => f.dwell_time_ms).length || 0;
 
   // If dwell time is short, results may not be relevant
   if (avgDwellTime < 5000 && avgDwellTime > 0) {
@@ -207,7 +173,7 @@ async function calculateAdaptiveAdjustments(
   return adjustment;
 }
 
-async function calibrateWeights(supabase: any, userId: string, queryContext: any) {
+async function calibrateWeights(supabase: SupabaseClient, userId: string, queryContext: Record<string, unknown>) {
   // Analyze query to suggest optimal weights
   const { query, entity_type, time_sensitivity } = queryContext || {};
 
@@ -259,7 +225,7 @@ async function calibrateWeights(supabase: any, userId: string, queryContext: any
   });
 }
 
-async function updateFromFeedback(supabase: any, userId: string, feedbackData: any) {
+async function updateFromFeedback(supabase: SupabaseClient, userId: string, feedbackData: Record<string, unknown>) {
   const { feedback_type, result_context } = feedbackData;
 
   // Get current preferences

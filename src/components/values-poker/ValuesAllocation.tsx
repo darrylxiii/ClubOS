@@ -1,4 +1,5 @@
 import { memo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
@@ -14,6 +15,7 @@ interface ValuesAllocationProps {
 }
 
 export const ValuesAllocation = memo(({ values, session, onComplete }: ValuesAllocationProps) => {
+  const { t } = useTranslation('common');
   const [allocations, setAllocations] = useState<{ [key: string]: number }>(
     Object.fromEntries(values.map(v => [v.id, 10]))
   );
@@ -44,15 +46,13 @@ export const ValuesAllocation = memo(({ values, session, onComplete }: ValuesAll
     <div className="container mx-auto p-6 max-w-4xl space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Allocate Your 100 Points</CardTitle>
-          <p className="text-sm text-muted-foreground">
-            Distribute points to reflect what truly matters to you in your career
-          </p>
+          <CardTitle>{t('valuesPoker.allocateYour100Points')}</CardTitle>
+          <p className="text-sm text-muted-foreground">{t('valuesPoker.distributePointsToReflectWhatTrulyMatter')}</p>
         </CardHeader>
         <CardContent>
           <div className="space-y-2 mb-4">
             <div className="flex justify-between text-sm">
-              <span>Points Allocated</span>
+              <span>{t('valuesPoker.pointsAllocated')}</span>
               <span className={remaining === 0 ? 'text-green-500 font-bold' : remaining < 0 ? 'text-red-500 font-bold' : 'font-bold'}>
                 {totalPoints} / 100
               </span>
@@ -117,9 +117,7 @@ export const ValuesAllocation = memo(({ values, session, onComplete }: ValuesAll
         className="w-full" 
         size="lg"
         disabled={!isValid}
-      >
-        Continue to Trade-offs
-      </Button>
+      >{t('valuesPoker.continueToTradeoffs')}</Button>
     </div>
   );
 });

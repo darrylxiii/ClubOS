@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { DynamicChart } from "@/components/charts/DynamicChart";
 import { Loader2, TrendingUp } from "lucide-react";
@@ -9,6 +10,7 @@ interface ARRChartProps {
 }
 
 export function ARRChart({ data, isLoading }: ARRChartProps) {
+  const { t } = useTranslation('common');
   const formatCurrency = (cents: number) => {
     return new Intl.NumberFormat('en-EU', {
       style: 'currency',
@@ -41,7 +43,7 @@ export function ARRChart({ data, isLoading }: ARRChartProps) {
               <TrendingUp className="w-5 h-5 text-primary" />
               ARR Growth Trajectory
             </CardTitle>
-            <CardDescription>Annual recurring revenue over time</CardDescription>
+            <CardDescription>{t("annual_recurring_revenue_over", "Annual recurring revenue over time")}</CardDescription>
           </div>
           {totalGrowth !== 0 && (
             <div className={`text-sm font-medium px-3 py-1 rounded-full ${totalGrowth >= 0 ? 'bg-green-500/10 text-green-600' : 'bg-red-500/10 text-red-600'}`}>

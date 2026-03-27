@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { toast } from 'sonner';
 import { audioUnlock } from '@/hooks/useAudioUnlock';
@@ -47,6 +48,7 @@ export function RemoteAudioPlayer({
   isDeafened = false,
   onAudioLevelChange 
 }: RemoteAudioPlayerProps) {
+  const { t } = useTranslation('common');
   // HTML Audio element as PRIMARY playback (most compatible)
   const audioRef = useRef<HTMLAudioElement | null>(null);
   
@@ -244,7 +246,7 @@ export function RemoteAudioPlayer({
               retryIntervalRef.current = null;
             }
             console.warn(`[RemoteAudio] Max retries reached for ${userId}`);
-            toast.error('Click anywhere to enable audio', {
+            toast.error(t("click_anywhere_to_enable", "Click anywhere to enable audio"), {
               id: 'audio-autoplay-blocked',
               duration: 10000,
             });

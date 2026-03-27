@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -33,6 +34,7 @@ export function CoverLetterPreview({
   isRegenerating = false,
   isSaving = false,
 }: CoverLetterPreviewProps) {
+  const { t } = useTranslation('common');
   const [isEditing, setIsEditing] = useState(false);
 
   const wordCount = content.trim().split(/\s+/).filter(Boolean).length;
@@ -72,10 +74,10 @@ export function CoverLetterPreview({
       });
 
       doc.save(`Cover Letter - ${companyName} - ${jobTitle}.pdf`);
-      toast.success('PDF exported successfully!');
+      toast.success(t("pdf_exported_successfully", "PDF exported successfully!"));
     } catch (err) {
       console.error('PDF export error:', err);
-      toast.error('Failed to export PDF');
+      toast.error(t("failed_to_export_pdf", "Failed to export PDF"));
     }
   };
 
@@ -108,7 +110,7 @@ export function CoverLetterPreview({
             value={content}
             onChange={(e) => onContentChange(e.target.value)}
             className="min-h-[400px] font-mono text-sm leading-relaxed"
-            placeholder="Your cover letter content..."
+            placeholder={t("your_cover_letter_content", "Your cover letter content...")}
           />
         ) : (
           <div 

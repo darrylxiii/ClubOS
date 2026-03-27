@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { formatDistanceToNow } from "date-fns";
+import { useTranslation } from 'react-i18next';
 
 interface AuditEvent {
   id: string;
@@ -29,6 +30,7 @@ const SENSITIVE_ACTIONS = [
 ];
 
 export const AuditLogSummaryWidget = () => {
+  const { t } = useTranslation('common');
   const { data: auditData, isLoading } = useQuery({
     queryKey: ['audit-log-summary'],
     queryFn: async () => {
@@ -138,12 +140,12 @@ export const AuditLogSummaryWidget = () => {
             <div className="text-center p-2 rounded-lg bg-muted/50">
               <Eye className="h-4 w-4 mx-auto text-blue-500 mb-1" />
               <div className="text-lg font-bold">{auditData?.todayCount || 0}</div>
-              <div className="text-[10px] text-muted-foreground">Today</div>
+              <div className="text-[10px] text-muted-foreground">{t('auditLogSummaryWidget.today')}</div>
             </div>
             <div className="text-center p-2 rounded-lg bg-amber-500/10">
               <AlertTriangle className="h-4 w-4 mx-auto text-amber-500 mb-1" />
               <div className="text-lg font-bold">{auditData?.sensitiveCount || 0}</div>
-              <div className="text-[10px] text-muted-foreground">Sensitive</div>
+              <div className="text-[10px] text-muted-foreground">{t('auditLogSummaryWidget.sensitive')}</div>
             </div>
             <div className={`text-center p-2 rounded-lg ${
               (auditData?.failedCount || 0) > 0 ? 'bg-rose-500/10' : 'bg-muted/50'
@@ -156,14 +158,14 @@ export const AuditLogSummaryWidget = () => {
               }`}>
                 {auditData?.failedCount || 0}
               </div>
-              <div className="text-[10px] text-muted-foreground">Failed</div>
+              <div className="text-[10px] text-muted-foreground">{t('auditLogSummaryWidget.failed')}</div>
             </div>
           </div>
 
           {/* Recent Events */}
           {auditData?.recentEvents && auditData.recentEvents.length > 0 ? (
             <div className="space-y-2">
-              <div className="text-xs font-medium text-muted-foreground">Recent Activity</div>
+              <div className="text-xs font-medium text-muted-foreground">{t('auditLogSummaryWidget.recentActivity')}</div>
               {auditData.recentEvents.slice(0, 4).map((event) => (
                 <div 
                   key={event.id} 
@@ -188,9 +190,7 @@ export const AuditLogSummaryWidget = () => {
               ))}
             </div>
           ) : (
-            <div className="text-center py-4 text-sm text-muted-foreground">
-              No audit events today
-            </div>
+            <div className="text-center py-4 text-sm text-muted-foreground">{t('auditLogSummaryWidget.noAuditEventsToday')}</div>
           )}
 
           {/* Action */}

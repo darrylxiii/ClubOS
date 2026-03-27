@@ -14,6 +14,7 @@ import {
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 import type { UnifiedKPI } from '@/hooks/useUnifiedKPIs';
+import { useTranslation } from 'react-i18next';
 
 interface AnomalyDetectionPanelProps {
   allKPIs: UnifiedKPI[];
@@ -157,6 +158,7 @@ const severityConfig = {
 };
 
 export function AnomalyDetectionPanel({ allKPIs, onKPIClick, className }: AnomalyDetectionPanelProps) {
+  const { t } = useTranslation('admin');
   const anomalies = useMemo(() => detectAnomalies(allKPIs), [allKPIs]);
   
   if (anomalies.length === 0) {
@@ -178,7 +180,7 @@ export function AnomalyDetectionPanel({ allKPIs, onKPIClick, className }: Anomal
             <div className="h-12 w-12 rounded-full bg-emerald-500/10 flex items-center justify-center mb-3">
               <Sparkles className="h-6 w-6 text-emerald-500" />
             </div>
-            <p className="text-sm font-medium">No Anomalies Detected</p>
+            <p className="text-sm font-medium">{t('kpi.anomalyDetectionPanel.noAnomaliesDetected')}</p>
             <p className="text-xs text-muted-foreground mt-1">
               All KPIs are within expected ranges
             </p>

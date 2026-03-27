@@ -1,5 +1,6 @@
 import { createReactBlockSpec } from '@blocknote/react';
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { RefreshCw, Link2, Unlink, Copy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -24,6 +25,7 @@ export const SyncedBlock = createReactBlockSpec(
       const syncId = props.block.props.syncId as string;
 
       useEffect(() => {
+  const { t } = useTranslation('common');
         if (syncId) {
           setIsLinked(true);
         }
@@ -35,13 +37,13 @@ export const SyncedBlock = createReactBlockSpec(
           props: { syncId: newId },
         });
         setIsLinked(true);
-        toast.success('Synced block created! Copy the ID to reference elsewhere.');
+        toast.success(t('workspace.syncedBlockCreated', 'Synced block created! Copy the ID to reference elsewhere.'));
       };
 
       const handleCopyId = () => {
         if (syncId) {
           navigator.clipboard.writeText(syncId);
-          toast.success('Sync ID copied to clipboard');
+          toast.success(t('workspace.syncIdCopied', 'Sync ID copied to clipboard'));
         }
       };
 
@@ -50,7 +52,7 @@ export const SyncedBlock = createReactBlockSpec(
           props: { syncId: '' },
         });
         setIsLinked(false);
-        toast.success('Block unlinked');
+        toast.success(t('workspace.blockUnlinked', 'Block unlinked'));
       };
 
       return (
@@ -68,7 +70,7 @@ export const SyncedBlock = createReactBlockSpec(
               {isLinked ? (
                 <>
                   <RefreshCw className="h-3 w-3 text-primary" />
-                  <span className="text-muted-foreground">Synced Block</span>
+                  <span className="text-muted-foreground">{t('workspace.syncedBlock', 'Synced Block')}</span>
                   <Badge variant="secondary" className="h-4 text-[10px]">
                     {syncId.slice(0, 12)}...
                   </Badge>
@@ -76,7 +78,7 @@ export const SyncedBlock = createReactBlockSpec(
               ) : (
                 <>
                   <Link2 className="h-3 w-3 text-muted-foreground" />
-                  <span className="text-muted-foreground">Create Synced Block</span>
+                  <span className="text-muted-foreground">{t('workspace.createSyncedBlock', 'Create Synced Block')}</span>
                 </>
               )}
             </div>
@@ -91,7 +93,7 @@ export const SyncedBlock = createReactBlockSpec(
                     onClick={handleCopyId}
                   >
                     <Copy className="h-3 w-3 mr-1" />
-                    Copy ID
+                    {t('workspace.copyId', 'Copy ID')}
                   </Button>
                   <Button
                     variant="ghost"
@@ -110,7 +112,7 @@ export const SyncedBlock = createReactBlockSpec(
                   onClick={handleCreateSyncedBlock}
                 >
                   <Link2 className="h-3 w-3 mr-1" />
-                  Create Sync
+                  {t('workspace.createSync', 'Create Sync')}
                 </Button>
               )}
             </div>

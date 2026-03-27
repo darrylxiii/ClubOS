@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -29,6 +30,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 export function NotificationAuditLog() {
+  const { t } = useTranslation('common');
   const [actionFilter, setActionFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
   
@@ -115,7 +117,7 @@ export function NotificationAuditLog() {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search audit log..."
+            placeholder={t("search_audit_log", "Search audit log...")}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10"
@@ -124,10 +126,10 @@ export function NotificationAuditLog() {
         
         <Select value={actionFilter} onValueChange={setActionFilter}>
           <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filter by action" />
+            <SelectValue placeholder={t("filter_by_action", "Filter by action")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Actions</SelectItem>
+            <SelectItem value="all">{t("all_actions", "All Actions")}</SelectItem>
             {AUDIT_ACTIONS.map((action) => (
               <SelectItem key={action.key} value={action.key}>
                 {action.label}

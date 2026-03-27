@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { useTaskBoard } from '@/contexts/TaskBoardContext';
 import {
@@ -23,6 +24,7 @@ interface BoardSettingsDialogProps {
 }
 
 export function BoardSettingsDialog({ open, onOpenChange }: BoardSettingsDialogProps) {
+  const { t } = useTranslation('common');
   const { currentBoard, refreshBoards } = useTaskBoard();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -41,7 +43,7 @@ export function BoardSettingsDialog({ open, onOpenChange }: BoardSettingsDialogP
 
   const handleUpdateBoard = async () => {
     if (!name.trim()) {
-      toast.error('Board name is required');
+      toast.error(t("board_name_is_required", "Board name is required"));
       return;
     }
 
@@ -57,11 +59,11 @@ export function BoardSettingsDialog({ open, onOpenChange }: BoardSettingsDialogP
 
       if (error) throw error;
 
-      toast.success('Board updated successfully');
+      toast.success(t("board_updated_successfully", "Board updated successfully"));
       await refreshBoards();
     } catch (error) {
       console.error('Failed to update board:', error);
-      toast.error('Failed to update board');
+      toast.error(t("failed_to_update_board", "Failed to update board"));
     } finally {
       setIsSubmitting(false);
     }
@@ -80,12 +82,12 @@ export function BoardSettingsDialog({ open, onOpenChange }: BoardSettingsDialogP
 
       if (error) throw error;
 
-      toast.success('Board archived');
+      toast.success(t("board_archived", "Board archived"));
       onOpenChange(false);
       await refreshBoards();
     } catch (error) {
       console.error('Failed to archive board:', error);
-      toast.error('Failed to archive board');
+      toast.error(t("failed_to_archive_board", "Failed to archive board"));
     }
   };
 
@@ -117,7 +119,7 @@ export function BoardSettingsDialog({ open, onOpenChange }: BoardSettingsDialogP
 
           <TabsContent value="general" className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="board-name">Board Name</Label>
+              <Label htmlFor="board-name">{t("board_name", "Board Name")}</Label>
               <Input
                 id="board-name"
                 value={name}
@@ -127,7 +129,7 @@ export function BoardSettingsDialog({ open, onOpenChange }: BoardSettingsDialogP
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="board-description">Description</Label>
+              <Label htmlFor="board-description">{t("description", "Description")}</Label>
               <Textarea
                 id="board-description"
                 value={description}
@@ -148,7 +150,7 @@ export function BoardSettingsDialog({ open, onOpenChange }: BoardSettingsDialogP
                 <div className="flex items-start gap-2">
                   <AlertTriangle className="h-5 w-5 text-destructive mt-0.5" />
                   <div>
-                    <h3 className="font-semibold text-destructive">Danger Zone</h3>
+                    <h3 className="font-semibold text-destructive">{t("danger_zone", "Danger Zone")}</h3>
                     <p className="text-sm text-muted-foreground mb-3">
                       Archive this board. It will be hidden but can be restored later.
                     </p>

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -64,6 +65,7 @@ interface StoryComment {
 }
 
 export function EnhancedStoryViewer({ stories, initialIndex, onClose }: EnhancedStoryViewerProps) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const navigate = useNavigate();
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
@@ -626,7 +628,7 @@ export function EnhancedStoryViewer({ stories, initialIndex, onClose }: Enhanced
           ) : (
             <img
               src={currentStory.media_url}
-              alt="Story"
+              alt={t("story", "Story")}
               style={{ 
                 width: '100%', 
                 height: '100%', 
@@ -702,7 +704,7 @@ export function EnhancedStoryViewer({ stories, initialIndex, onClose }: Enhanced
         <div className="px-4 pb-3 flex-shrink-0">
           <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2">
             <Input
-              placeholder="Send message..."
+              placeholder={t("send_message", "Send message...")}
               value={replyText}
               onChange={(e) => setReplyText(e.target.value)}
               onKeyDown={(e) => {
@@ -791,7 +793,7 @@ export function EnhancedStoryViewer({ stories, initialIndex, onClose }: Enhanced
         open={showShareDialog}
         onOpenChange={setShowShareDialog}
         onConversationCreated={handleShareToConversation}
-        title="Share Story To"
+        title={t("share_story_to", "Share Story To")}
       />
     </div>,
     document.body

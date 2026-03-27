@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useQuery } from '@tanstack/react-query';
@@ -12,6 +13,7 @@ interface EBITDACardProps {
 }
 
 export function EBITDACard({ year, legalEntity }: EBITDACardProps) {
+  const { t } = useTranslation('common');
   const { data, isLoading } = useQuery({
     queryKey: ['ebitda-card', year, legalEntity],
     queryFn: async () => {
@@ -114,19 +116,19 @@ export function EBITDACard({ year, legalEntity }: EBITDACardProps) {
             {/* EBITDA Bridge */}
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Net Revenue</span>
+                <span className="text-muted-foreground">{t("net_revenue", "Net Revenue")}</span>
                 <span className="font-medium">{fmtEur(cur?.netRevenue || 0)}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">− COGS (Commissions + Payouts)</span>
+                <span className="text-muted-foreground">{t("cogs_commissions_payouts", "− COGS (Commissions + Payouts)")}</span>
                 <span className="font-medium text-destructive">−{fmtEur(cur?.cogs || 0)}</span>
               </div>
               <div className="flex justify-between text-sm border-t pt-1">
-                <span className="font-medium">Gross Profit</span>
+                <span className="font-medium">{t("gross_profit", "Gross Profit")}</span>
                 <span className="font-medium">{fmtEur(cur?.grossProfit || 0)} ({grossMargin.toFixed(1)}%)</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">− OpEx (Expenses + Subscriptions)</span>
+                <span className="text-muted-foreground">{t("opex_expenses_subscriptions", "− OpEx (Expenses + Subscriptions)")}</span>
                 <span className="font-medium text-destructive">−{fmtEur(cur?.totalOpex || 0)}</span>
               </div>
               <div className="flex justify-between text-sm border-t border-primary/30 pt-1">
@@ -140,7 +142,7 @@ export function EBITDACard({ year, legalEntity }: EBITDACardProps) {
             {/* Key ratios */}
             <div className="grid grid-cols-2 gap-3 pt-2">
               <div className="p-3 rounded-lg bg-muted/50">
-                <p className="text-xs text-muted-foreground">EBITDA Margin</p>
+                <p className="text-xs text-muted-foreground">{t("ebitda_margin", "EBITDA Margin")}</p>
                 <p className="text-lg font-bold">{ebitdaMargin.toFixed(1)}%</p>
                 {prev && prev.netRevenue > 0 && (
                   <div className="flex items-center gap-1 text-xs">
@@ -156,7 +158,7 @@ export function EBITDACard({ year, legalEntity }: EBITDACardProps) {
                 )}
               </div>
               <div className="p-3 rounded-lg bg-muted/50">
-                <p className="text-xs text-muted-foreground">Rule of 40</p>
+                <p className="text-xs text-muted-foreground">{t("rule_of_40", "Rule of 40")}</p>
                 <p className={`text-lg font-bold ${ruleOf40 >= 40 ? 'text-success' : ruleOf40 >= 20 ? 'text-warning' : 'text-destructive'}`}>
                   {ruleOf40.toFixed(0)}
                 </p>
@@ -169,7 +171,7 @@ export function EBITDACard({ year, legalEntity }: EBITDACardProps) {
             {/* Valuation multiples */}
             {annualizedEbitda > 0 && (
               <div className="pt-2 border-t">
-                <p className="text-xs text-muted-foreground mb-2">Implied Valuation (EBITDA multiples)</p>
+                <p className="text-xs text-muted-foreground mb-2">{t("implied_valuation_ebitda_multiples", "Implied Valuation (EBITDA multiples)")}</p>
                 <div className="grid grid-cols-3 gap-2">
                   {[10, 15, 20].map((m) => (
                     <div key={m} className="text-center p-2 rounded bg-muted/30">

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { Eye, X, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -6,6 +7,7 @@ import { motion, AnimatePresence } from '@/lib/motion';
 import { format, differenceInMinutes } from 'date-fns';
 
 export function ImpersonationBanner() {
+  const { t } = useTranslation('common');
   const { isImpersonating, activeSession, endImpersonation, getTargetUserInfo, isLoading } = useImpersonation();
   const [targetUser, setTargetUser] = useState<{ full_name: string; email: string } | null>(null);
   const [timeRemaining, setTimeRemaining] = useState<number>(0);
@@ -41,11 +43,11 @@ export function ImpersonationBanner() {
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2 bg-black/20 rounded-full px-3 py-1">
               <Eye className="h-4 w-4" />
-              <span className="font-medium text-sm">Impersonation Mode</span>
+              <span className="font-medium text-sm">{t("impersonation_mode", "Impersonation Mode")}</span>
             </div>
             
             <span className="text-sm">
-              Viewing as: <strong>{targetUser?.full_name || <span className="inline-flex items-center gap-1"><span className="h-4 w-20 bg-black/20 rounded animate-pulse" /><span className="sr-only">Loading user info</span></span>}</strong>
+              Viewing as: <strong>{targetUser?.full_name || <span className="inline-flex items-center gap-1"><span className="h-4 w-20 bg-black/20 rounded animate-pulse" /><span className="sr-only">{t("loading_user_info", "Loading user info")}</span></span>}</strong>
               {targetUser?.email && <span className="opacity-75 ml-1">({targetUser.email})</span>}
             </span>
           </div>

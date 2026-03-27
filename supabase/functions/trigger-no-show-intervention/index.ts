@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { sendNoShowWarningEmail } from "../_shared/email-notification-templates.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -122,7 +123,7 @@ serve(async (req) => {
 
           case 'sms_confirmation': {
             // Send SMS confirmation request
-            const { error } = await supabase.functions.invoke('send-booking-sms', {
+            const { error } = await supabase.functions.invoke('send-booking-sms-reminder', {
               body: {
                 bookingId,
                 messageType: 'confirmation_request',
@@ -134,28 +135,22 @@ serve(async (req) => {
           }
 
           case 'host_notification': {
-            // Notify host about high-risk booking
+            // Notify host about high-risk booking via Resend
             const hostEmail = hostProfile?.email;
             const hostName = hostProfile?.full_name;
-            
+
             if (hostEmail) {
-              const { error } = await supabase.functions.invoke('send-email', {
-                body: {
-                  to: hostEmail,
-                  subject: `⚠️ High No-Show Risk: ${booking.guest_name}`,
-                  templateId: 'no-show-warning',
-                  data: {
-                    hostName,
-                    guestName: booking.guest_name,
-                    guestEmail: booking.guest_email,
-                    meetingTitle: bookingLink?.title,
-                    scheduledStart: booking.scheduled_start,
-                    riskScore,
-                    riskLevel,
-                  }
-                }
+              const sent = await sendNoShowWarningEmail({
+                hostName: hostName || 'Host',
+                hostEmail,
+                guestName: booking.guest_name,
+                guestEmail: booking.guest_email,
+                meetingTitle: bookingLink?.title || 'Meeting',
+                scheduledStart: booking.scheduled_start,
+                riskScore,
+                riskLevel,
               });
-              interventionResults.host_notification = { sent: !error, error: error?.message };
+              interventionResults.host_notification = { sent };
             }
             break;
           }

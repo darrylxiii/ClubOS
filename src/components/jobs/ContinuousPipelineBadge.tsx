@@ -2,6 +2,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Infinity, Users, Euro, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslation } from 'react-i18next';
 
 interface ContinuousPipelineBadgeProps {
   isContinuous: boolean;
@@ -33,6 +34,7 @@ export function ContinuousPipelineBadge({
   feePerPlacement,
   className,
 }: ContinuousPipelineBadgeProps) {
+  const { t } = useTranslation('jobs');
   if (!isContinuous) return null;
 
   const isUnlimited = targetHireCount === null || targetHireCount === undefined;
@@ -66,9 +68,9 @@ export function ContinuousPipelineBadge({
       {isUnlimited ? (
         <>
           <Infinity className="h-3 w-3" />
-          <span>Continuous</span>
+          <span>{t('continuousPipeline.continuous', 'Continuous')}</span>
           {showProgress && hiredCount > 0 && (
-            <span className="ml-1 opacity-70">({hiredCount} hired)</span>
+            <span className="ml-1 opacity-70">({t('continuousPipeline.countHired', '{{count}} hired', { count: hiredCount })})</span>
           )}
         </>
       ) : (
@@ -111,20 +113,20 @@ export function ContinuousPipelineBadge({
             <div className="space-y-1.5 text-xs">
               <div className="font-medium flex items-center gap-1">
                 <TrendingUp className="h-3 w-3" />
-                Pipeline Projection
+                {t('continuousPipeline.projection', 'Pipeline Projection')}
               </div>
               <div className="grid grid-cols-2 gap-x-4 gap-y-1">
-                <span className="text-muted-foreground">Fee per hire:</span>
+                <span className="text-muted-foreground">{t('continuousPipeline.feePerHire', 'Fee per hire:')}</span>
                 <span className="font-medium">{formatCurrency(feePerPlacement!)}</span>
-                <span className="text-muted-foreground">Realized:</span>
+                <span className="text-muted-foreground">{t('continuousPipeline.realized', 'Realized:')}</span>
                 <span className="font-medium text-green-600">{formatCurrency(realized)}</span>
-                <span className="text-muted-foreground">Remaining:</span>
+                <span className="text-muted-foreground">{t('continuousPipeline.remaining', 'Remaining:')}</span>
                 <span className="font-medium text-amber-600">{formatCurrency(remaining)}</span>
-                <span className="text-muted-foreground">Total projected:</span>
+                <span className="text-muted-foreground">{t('continuousPipeline.totalProjected', 'Total projected:')}</span>
                 <span className="font-medium">{formatCurrency(totalProjected)}</span>
               </div>
               <div className="pt-1 border-t text-muted-foreground">
-                {progressPercent.toFixed(0)}% complete
+                {t('continuousPipeline.percentComplete', '{{percent}}% complete', { percent: progressPercent.toFixed(0) })}
               </div>
             </div>
           </TooltipContent>

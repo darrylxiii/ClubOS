@@ -1,14 +1,16 @@
 import { memo, useMemo } from 'react';
 import { Badge } from '@/components/ui/badge';
-import { 
-  MessageSquare, 
-  TrendingUp, 
-  AlertTriangle, 
+import {
+  MessageSquare,
+  TrendingUp,
+  AlertTriangle,
   Trophy,
   Clock,
   Users,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 
 interface JobNextActionProps {
   candidateCount: number;
@@ -24,18 +26,17 @@ interface ActionSuggestion {
   variant: 'default' | 'warning' | 'success' | 'info';
 }
 
-const getNextAction = ({
-  candidateCount,
-  activeStageCount,
-  daysOpen,
-  conversionRate,
-  lastActivityDays,
-}: JobNextActionProps): ActionSuggestion | null => {
+const getNextAction = (
+  props: JobNextActionProps,
+  t: TFunction,
+): ActionSuggestion | null => {
+  const { candidateCount, activeStageCount, daysOpen, conversionRate, lastActivityDays } = props;
+
   // Priority 1: Candidates awaiting feedback
   if (activeStageCount > 0 && activeStageCount >= candidateCount * 0.5) {
     return {
       icon: MessageSquare,
-      message: `${activeStageCount} candidate${activeStageCount > 1 ? 's' : ''} awaiting feedback`,
+      message: t('partner.candidatesAwaitingFeedback', '{{count}} candidate(s) awaiting feedback', { count: activeStageCount }),
       variant: 'warning',
     };
   }
@@ -44,7 +45,7 @@ const getNextAction = ({
   if (daysOpen > 45 && candidateCount < 5) {
     return {
       icon: TrendingUp,
-      message: 'Consider promoting — low applicants',
+      message: t('partner.considerPromoting', 'Consider promoting \u2014 low applicants'),
       variant: 'warning',
     };
   }
@@ -53,7 +54,7 @@ const getNextAction = ({
   if (lastActivityDays !== null && lastActivityDays > 7 && activeStageCount > 0) {
     return {
       icon: Clock,
-      message: 'Pipeline stalled — check in',
+      message: t('partner.pipelineStalled', 'Pipeline stalled \u2014 check in'),
       variant: 'warning',
     };
   }
@@ -62,7 +63,7 @@ const getNextAction = ({
   if (conversionRate !== null && conversionRate >= 20) {
     return {
       icon: Trophy,
-      message: 'High performing role',
+      message: t('partner.highPerformingRole', 'High performing role'),
       variant: 'success',
     };
   }
@@ -71,7 +72,7 @@ const getNextAction = ({
   if (candidateCount >= 10 && activeStageCount > 0) {
     return {
       icon: Users,
-      message: 'Strong pipeline — review candidates',
+      message: t('partner.strongPipeline', 'Strong pipeline \u2014 review candidates'),
       variant: 'info',
     };
   }
@@ -88,7 +89,8 @@ const variantStyles = {
 };
 
 export const JobNextAction = memo((props: JobNextActionProps) => {
-  const action = useMemo(() => getNextAction(props), [props]);
+  const { t } = useTranslation('common');
+  const action = useMemo(() => getNextAction(props, t), [props, t]);
 
   if (!action) return null;
 

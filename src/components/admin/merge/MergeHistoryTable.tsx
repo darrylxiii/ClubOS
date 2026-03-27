@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,6 +15,7 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 
 export function MergeHistoryTable() {
+  const { t } = useTranslation('common');
   const [history, setHistory] = useState<MergeLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState<string>("all");
@@ -47,7 +49,7 @@ export function MergeHistoryTable() {
       setHistory(data);
     } catch (error) {
       console.error('Error loading merge history:', error);
-      toast.error('Failed to load merge history');
+      toast.error(t("failed_to_load_merge", "Failed to load merge history"));
     } finally {
       setLoading(false);
     }
@@ -78,10 +80,10 @@ export function MergeHistoryTable() {
       a.click();
       window.URL.revokeObjectURL(url);
 
-      toast.success('Export complete');
+      toast.success(t("export_complete", "Export complete"));
     } catch (error) {
       console.error('Error exporting:', error);
-      toast.error('Failed to export data');
+      toast.error(t("failed_to_export_data", "Failed to export data"));
     }
   };
 
@@ -101,7 +103,7 @@ export function MergeHistoryTable() {
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle>Merge History</CardTitle>
+            <CardTitle>{t("merge_history", "Merge History")}</CardTitle>
             <CardDescription>
               Complete audit trail of all profile merge operations
             </CardDescription>
@@ -116,22 +118,22 @@ export function MergeHistoryTable() {
         {/* Filters */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="space-y-2">
-            <Label>Status</Label>
+            <Label>{t("status", "Status")}</Label>
             <Select value={status} onValueChange={setStatus}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
-                <SelectItem value="completed">Completed</SelectItem>
-                <SelectItem value="failed">Failed</SelectItem>
-                <SelectItem value="reverted">Reverted</SelectItem>
+                <SelectItem value="all">{t("all_statuses", "All Statuses")}</SelectItem>
+                <SelectItem value="completed">{t("completed", "Completed")}</SelectItem>
+                <SelectItem value="failed">{t("failed", "Failed")}</SelectItem>
+                <SelectItem value="reverted">{t("reverted", "Reverted")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <div className="space-y-2">
-            <Label>From Date</Label>
+            <Label>{t("from_date", "From Date")}</Label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button
@@ -157,7 +159,7 @@ export function MergeHistoryTable() {
           </div>
 
           <div className="space-y-2">
-            <Label>To Date</Label>
+            <Label>{t("to_date", "To Date")}</Label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button
@@ -190,7 +192,7 @@ export function MergeHistoryTable() {
         ) : history.length === 0 ? (
           <div className="text-center py-12">
             <AlertCircle className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-            <p className="text-muted-foreground">No merge history found</p>
+            <p className="text-muted-foreground">{t("no_merge_history_found", "No merge history found")}</p>
             <p className="text-sm text-muted-foreground mt-1">
               Try adjusting the filters to see more results
             </p>
@@ -200,12 +202,12 @@ export function MergeHistoryTable() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Date & Time</TableHead>
-                  <TableHead>Candidate</TableHead>
-                  <TableHead>User</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Details</TableHead>
+                  <TableHead>{t("date_time", "Date & Time")}</TableHead>
+                  <TableHead>{t("candidate", "Candidate")}</TableHead>
+                  <TableHead>{t("user", "User")}</TableHead>
+                  <TableHead>{t("type", "Type")}</TableHead>
+                  <TableHead>{t("status", "Status")}</TableHead>
+                  <TableHead>{t("details", "Details")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

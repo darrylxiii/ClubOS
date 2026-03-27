@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -15,6 +16,7 @@ import { grossToNet } from '@/lib/vatRates';
  * to calculate real ROI.
  */
 export function RevenueAttributionROI() {
+  const { t } = useTranslation('common');
   const { data: subscriptions, isLoading: subsLoading } = useVendorSubscriptions('active');
 
   // Get total net revenue for the year
@@ -56,7 +58,7 @@ export function RevenueAttributionROI() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Revenue Attribution ROI</CardTitle>
+          <CardTitle className="text-base">{t("revenue_attribution_roi", "Revenue Attribution ROI")}</CardTitle>
           <CardDescription>
             Set revenue attribution on subscriptions to track their ROI against your revenue.
           </CardDescription>
@@ -70,7 +72,7 @@ export function RevenueAttributionROI() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Subscription ROI Analysis</CardTitle>
+        <CardTitle className="text-base">{t("subscription_roi_analysis", "Subscription ROI Analysis")}</CardTitle>
         <CardDescription>
           Cost justification for critical and revenue-attributed tools
         </CardDescription>
@@ -79,11 +81,11 @@ export function RevenueAttributionROI() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Tool</TableHead>
-              <TableHead>Criticality</TableHead>
-              <TableHead className="text-right">Annual Cost</TableHead>
-              <TableHead className="text-right">% of Revenue</TableHead>
-              <TableHead>ROI Signal</TableHead>
+              <TableHead>{t("tool", "Tool")}</TableHead>
+              <TableHead>{t("criticality", "Criticality")}</TableHead>
+              <TableHead className="text-right">{t("annual_cost", "Annual Cost")}</TableHead>
+              <TableHead className="text-right">{t("of_revenue", "% of Revenue")}</TableHead>
+              <TableHead>{t("roi_signal", "ROI Signal")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

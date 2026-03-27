@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -30,6 +31,7 @@ const CHANNEL_COLORS = {
 };
 
 export default function CommunicationAnalyticsDashboard() {
+  const { t } = useTranslation('common');
   const { loading, analytics, fetchAnalytics } = useCommunicationAnalytics();
   const [dateRange, setDateRange] = useState('30d');
 
@@ -70,8 +72,8 @@ export default function CommunicationAnalyticsDashboard() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold">Communication Analytics</h2>
-          <p className="text-muted-foreground">Track communication performance and revenue attribution</p>
+          <h2 className="text-2xl font-bold">{t("communication_analytics", "Communication Analytics")}</h2>
+          <p className="text-muted-foreground">{t("track_communication_performance_and", "Track communication performance and revenue attribution")}</p>
         </div>
         <div className="flex items-center gap-3">
           <Select value={dateRange} onValueChange={setDateRange}>
@@ -79,9 +81,9 @@ export default function CommunicationAnalyticsDashboard() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="7d">Last 7 days</SelectItem>
-              <SelectItem value="30d">Last 30 days</SelectItem>
-              <SelectItem value="90d">Last 90 days</SelectItem>
+              <SelectItem value="7d">{t("last_7_days", "Last 7 days")}</SelectItem>
+              <SelectItem value="30d">{t("last_30_days", "Last 30 days")}</SelectItem>
+              <SelectItem value="90d">{t("last_90_days", "Last 90 days")}</SelectItem>
             </SelectContent>
           </Select>
           <Button variant="outline" size="icon" onClick={() => fetchAnalytics()}>
@@ -101,7 +103,7 @@ export default function CommunicationAnalyticsDashboard() {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Total Communications</p>
+                  <p className="text-sm text-muted-foreground">{t("total_communications", "Total Communications")}</p>
                   <p className="text-3xl font-bold">{analytics.summary.total_communications}</p>
                 </div>
                 <BarChart3 className="h-8 w-8 text-primary opacity-80" />
@@ -113,7 +115,7 @@ export default function CommunicationAnalyticsDashboard() {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Response Rate</p>
+                  <p className="text-sm text-muted-foreground">{t("response_rate", "Response Rate")}</p>
                   <p className="text-3xl font-bold">{analytics.summary.overall_response_rate}%</p>
                 </div>
                 <TrendingUp className="h-8 w-8 text-green-500 opacity-80" />
@@ -125,7 +127,7 @@ export default function CommunicationAnalyticsDashboard() {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Avg Response Time</p>
+                  <p className="text-sm text-muted-foreground">{t("avg_response_time", "Avg Response Time")}</p>
                   <p className="text-3xl font-bold">{analytics.summary.avg_response_time_hours}h</p>
                 </div>
                 <Clock className="h-8 w-8 text-yellow-500 opacity-80" />
@@ -137,7 +139,7 @@ export default function CommunicationAnalyticsDashboard() {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Unique Contacts</p>
+                  <p className="text-sm text-muted-foreground">{t("unique_contacts", "Unique Contacts")}</p>
                   <p className="text-3xl font-bold">{analytics.summary.unique_contacts}</p>
                 </div>
                 <Users className="h-8 w-8 text-blue-500 opacity-80" />
@@ -151,16 +153,16 @@ export default function CommunicationAnalyticsDashboard() {
       {analytics && (
         <Tabs defaultValue="activity" className="space-y-4">
           <TabsList>
-            <TabsTrigger value="activity">Daily Activity</TabsTrigger>
-            <TabsTrigger value="channels">Channel Performance</TabsTrigger>
-            <TabsTrigger value="sentiment">Sentiment Trend</TabsTrigger>
-            <TabsTrigger value="revenue">Revenue Attribution</TabsTrigger>
+            <TabsTrigger value="activity">{t("daily_activity", "Daily Activity")}</TabsTrigger>
+            <TabsTrigger value="channels">{t("channel_performance", "Channel Performance")}</TabsTrigger>
+            <TabsTrigger value="sentiment">{t("sentiment_trend", "Sentiment Trend")}</TabsTrigger>
+            <TabsTrigger value="revenue">{t("revenue_attribution", "Revenue Attribution")}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="activity">
             <Card className="bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border-border/50">
               <CardHeader>
-                <CardTitle>Daily Communication Activity</CardTitle>
+                <CardTitle>{t("daily_communication_activity", "Daily Communication Activity")}</CardTitle>
               </CardHeader>
               <CardContent>
                 <DynamicChart
@@ -185,7 +187,7 @@ export default function CommunicationAnalyticsDashboard() {
             <div className="grid md:grid-cols-2 gap-6">
               <Card className="bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border-border/50">
                 <CardHeader>
-                  <CardTitle>Channel Distribution</CardTitle>
+                  <CardTitle>{t("channel_distribution", "Channel Distribution")}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <DynamicChart
@@ -216,7 +218,7 @@ export default function CommunicationAnalyticsDashboard() {
 
               <Card className="bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border-border/50">
                 <CardHeader>
-                  <CardTitle>Response Rate by Channel</CardTitle>
+                  <CardTitle>{t("response_rate_by_channel", "Response Rate by Channel")}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
@@ -253,7 +255,7 @@ export default function CommunicationAnalyticsDashboard() {
           <TabsContent value="sentiment">
             <Card className="bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border-border/50">
               <CardHeader>
-                <CardTitle>Sentiment Trend Over Time</CardTitle>
+                <CardTitle>{t("sentiment_trend_over_time", "Sentiment Trend Over Time")}</CardTitle>
               </CardHeader>
               <CardContent>
                 <DynamicChart
@@ -296,17 +298,17 @@ export default function CommunicationAnalyticsDashboard() {
                     <p className="text-4xl font-bold text-green-500">
                       {analytics.revenue_attribution.total_placements}
                     </p>
-                    <p className="text-sm text-muted-foreground mt-2">Total Placements</p>
+                    <p className="text-sm text-muted-foreground mt-2">{t("total_placements", "Total Placements")}</p>
                   </div>
                   <div className="p-6 rounded-lg bg-primary/10 border border-primary/20 text-center">
                     <p className="text-4xl font-bold text-primary">
                       {analytics.revenue_attribution.attributed_to_communication}
                     </p>
-                    <p className="text-sm text-muted-foreground mt-2">Communication-Attributed</p>
+                    <p className="text-sm text-muted-foreground mt-2">{t("communicationattributed", "Communication-Attributed")}</p>
                   </div>
                 </div>
                 <div className="mt-6 p-4 rounded-lg bg-muted/30">
-                  <h4 className="font-medium mb-2">Peak Activity Hours</h4>
+                  <h4 className="font-medium mb-2">{t("peak_activity_hours", "Peak Activity Hours")}</h4>
                   <div className="flex flex-wrap gap-2">
                     {analytics.peak_hours.map((hour) => (
                       <Badge key={hour} variant="secondary">

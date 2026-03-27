@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -17,6 +18,7 @@ const statusColors: Record<string, string> = {
 };
 
 export function ReferralPayoutsTable() {
+  const { t } = useTranslation('common');
   const currentYear = new Date().getFullYear();
   const startOfYear = `${currentYear}-01-01`;
 
@@ -124,11 +126,11 @@ export function ReferralPayoutsTable() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Referrer</TableHead>
-                  <TableHead>Details</TableHead>
-                  <TableHead className="text-right">Amount</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Date</TableHead>
+                  <TableHead>{t("referrer", "Referrer")}</TableHead>
+                  <TableHead>{t("details", "Details")}</TableHead>
+                  <TableHead className="text-right">{t("amount", "Amount")}</TableHead>
+                  <TableHead>{t("status", "Status")}</TableHead>
+                  <TableHead>{t("date", "Date")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

@@ -1,0 +1,231 @@
+{
+  "actions": {
+    "retrySidebar": "Повторить загрузку боковой панели",
+    "quickActions": "Быстрые действия"
+  },
+  "errors": {
+    "retrying": "Повторная попытка..."
+  },
+  "empty": {
+    "tips": "Советы",
+    "tryAdjusting": "Попробуйте изменить поиск или фильтры",
+    "tipDifferentKeywords": "Попробуйте другие ключевые слова",
+    "tipCheckSpelling": "Проверьте правильность написания",
+    "tipRemoveFilters": "Уберите часть фильтров для большего количества результатов",
+    "nothingHereYet": "Здесь пока ничего нет",
+    "dataWillAppear": "Данные появятся здесь, когда будут доступны",
+    "noItemsFound": "Элементы не найдены",
+    "getStartedAdding": "Начните с добавления первого элемента",
+    "noMatchingItems": "Совпадений не найдено",
+    "tryChangingFilters": "Попробуйте изменить фильтры для большего количества результатов"
+  },
+  "pagination": {
+    "label": "навигация по страницам"
+  },
+  "models": {
+    "gpt5": "GPT-5",
+    "gpt5Desc": "Флагманская модель OpenAI"
+  },
+  "password": {
+    "medium": "Средний"
+  },
+  "breadcrumbNav": {
+    "label": "навигационная цепочка",
+    "more": "Ещё"
+  },
+  "carousel": {
+    "previousSlide": "Предыдущий слайд",
+    "nextSlide": "Следующий слайд",
+    "scrollLeft": "Прокрутить влево",
+    "scrollRight": "Прокрутить вправо"
+  },
+  "companyLogo": {
+    "fallbackName": "Компания",
+    "logo": "логотип"
+  },
+  "notifications": {
+    "dismiss": "Закрыть",
+    "stayInTheLoop": "Будьте в курсе",
+    "getNotifiedAboutInterviewInvitesJobMatch": "Получайте уведомления о приглашениях на собеседования, подходящих вакансиях и сообщениях от рекрутеров.",
+    "maybeLater": "Может быть, позже"
+  },
+  "applicationDetail": {
+    "text1": "Заявка не найдена",
+    "text2": "Воронка заявки и подготовка",
+    "text3": "Ваш талант-стратегист",
+    "text4": "Нажмите для просмотра профиля",
+    "text5": "Ресурсы:",
+    "text6": "Запланировано",
+    "text7": "О роли",
+    "text8": "Требования",
+    "text9": "Льготы",
+    "text10": "Следующий шаг",
+    "text11": "Аналитика заявки",
+    "text12": "Ваш талант-стратегист",
+    "text13": "Нажмите для просмотра профиля"
+  },
+  "admin": {
+    "title": "Панель управления администратора",
+    "desc": "Управление компаниями, пользователями и конфигурацией системы",
+    "desc2": "Управление пользователями перемещено в отдельный раздел.",
+    "desc3": "Откройте полную панель слияния для ручной привязки кандидатов к учётным записям",
+    "desc4": "Проверяйте и одобряйте заявки на членство от кандидатов и партнёров",
+    "tabCompanies": "Компании",
+    "tabRevenue": "Выручка",
+    "tabActivity": "Активность",
+    "tabMerge": "Слияние",
+    "tabMemberrequests": "Заявки участников",
+    "tabApplications": "Заявки",
+    "tabAchievements": "Достижения",
+    "tabAssessments": "Оценки",
+    "tabSecurity": "Безопасность",
+    "tabSystemhealth": "Состояние системы",
+    "tabCompliance": "Соответствие",
+    "tabSupport": "Поддержка"
+  },
+  "academy": {
+    "text1": "Загрузка академии...",
+    "text2": "Академия не найдена",
+    "text3": "На главную",
+    "text4": "Панель",
+    "text5": "Мои курсы",
+    "text6": "Обзор",
+    "text7": "Рекомендуемые курсы",
+    "text8": "Продолжить обучение",
+    "text9": "Популярное",
+    "text10": "Новые выпуски",
+    "text11": "Все материалы",
+    "text12": "Все статусы",
+    "text13": "Не начато",
+    "text14": "В процессе",
+    "text15": "Завершено",
+    "text16": "Поиск...",
+    "text17": "Пока нет курсов",
+    "text18": "Поиск курсов...",
+    "text19": "Пока нет курсов",
+    "exploreOurAcademyCourses": "Изучите курсы нашей Академии",
+    "masterTheSkillsThatMatter": "Освойте навыки, которые важны.",
+    "noImage": "Нет изображения",
+    "startLearning ": "Начать обучение",
+    "filters": "Фильтры",
+    "sortBy": "Сортировать по",
+    "shareYourThoughtsAboutThisCourse": "Поделитесь впечатлениями об этом курсе...",
+    "yourReviewOptional": "Ваш отзыв (необязательно)",
+    "wouldYouRecommendThisCourse": "Рекомендовали бы Вы этот курс?",
+    "whatWillStudentsLearnInThisModule": "Чему студенты научатся в этом модуле?",
+    "moduleTitle ": "Название модуля *",
+    "description ": "Описание *",
+    "estimatedTimeMinutes": "Примерное время (минуты)",
+    "featuredCourseOfTheWeek": "Курс недели",
+    "jobsMatchingYourSkills": "Вакансии, соответствующие Вашим навыкам",
+    "completeMoreCoursesToUnlockJobMatches": "Завершите больше курсов, чтобы открыть подходящие вакансии",
+    "view": "Просмотр",
+    "topLearnersInTheQuantumClubAcademy": "Лучшие студенты Академии The Quantum Club",
+    "finishedWatchingMarkThisModuleAsComplete": "Закончили просмотр? Отметьте этот модуль как завершённый",
+    "takeNotesWhileYouLearnAutosavesEvery2S": "Делайте заметки во время обучения... Автосохранение каждые 2 секунды",
+    "keepLearningDailyToMaintainYourStreak": "Продолжайте учиться ежедневно, чтобы сохранить свою серию!",
+    "completeCoursesToUnlockAchievements": "Завершайте курсы, чтобы открыть достижения!",
+    "courseCount": "{{count}} курс",
+    "courseCount_other": "{{count}} курсов",
+    "resultCount": "{{count}} результат",
+    "resultCount_other": "{{count}} результатов",
+    "lessonCount": "{{count}} уроков",
+    "nav": {
+      "home": "Главная",
+      "myLearning": "Моё обучение",
+      "achievements": "Достижения",
+      "profile": "Профиль"
+    }
+  },
+  "incubator": {
+    "askForHelpWithCalculationsStrategyOrSpec": "Попросите помощь с расчётами, стратегией или конкретными разделами...",
+    "analyzingYourQuestion": "Анализ Вашего вопроса...",
+    "pressEnterToSendShiftEnterForNewLine": "Нажмите Enter для отправки, Shift+Enter для новой строки",
+    "aIAssistantIsInitializingPleaseWaitAMome": "ИИ-ассистент инициализируется. Пожалуйста, подождите и попробуйте снова.",
+    "rateLimitReachedPleaseWaitAMoment": "Достигнут лимит запросов. Пожалуйста, подождите.",
+    "aICreditsDepletedPleaseAddFunds": "Кредиты ИИ исчерпаны. Пожалуйста, пополните баланс.",
+    "readCarefullyYouHave45Seconds": "Внимательно прочитайте. У Вас 45 секунд.",
+    "budget12Weeks": "Бюджет (12 недель)",
+    "autoadvancingIn": "Автопереход через",
+    "imReadyStartNow": "Я готов — Начать сейчас",
+    "askQuestionsRunCalculationsAndGetStrateg": "Задавайте вопросы, делайте расчёты и получайте стратегическую обратную связь",
+    "need300450WordsTotalToProceed": "Для продолжения необходимо 300-450 слов",
+    "reviewYourOnepagerAndOptionallyAddA30sec": "Просмотрите Ваш одностраничник и при желании добавьте 30-секундное голосовое обоснование.",
+    "voiceRationaleOptional": "Голосовое обоснование (необязательно)",
+    "recordA30secondExplanationOfYourStrategy": "Запишите 30-секундное объяснение Вашей стратегии. Это поможет нам понять Ваш мыслительный процесс.",
+    "lockInYourNorthStarTheseAnswersWillGuide": "Зафиксируйте Ваш ориентир. Эти ответы будут направлять Ваш план и помогут оценить последовательность.",
+    "answerEachQuestionIn12SentencesBeSpecifi": "Ответьте на каждый вопрос 1-2 предложениями. Будьте конкретны и лаконичны.",
+    "lockInFrameworkContinue": "Зафиксировать рамки и продолжить",
+    "fillOutAllFieldsToContinue": "Заполните все поля для продолжения"
+  },
+  "assessments": {
+    "title": "Центр оценки",
+    "desc": "Откройте свои сильные стороны и возможности через наш комплексный набор оценок"
+  },
+  "achievements": {
+    "title": "Хронология восхождения",
+    "desc": "Ваш квантовый путь через достижения",
+    "desc2": "Создавайте и управляйте пользовательскими достижениями для Вашей компании",
+    "desc3": "Ваш квантовый путь через достижения",
+    "tabAchievementgallery": "Галерея достижений",
+    "tabCommunityfeed": "Лента сообщества",
+    "tabLeaderboard": "Рейтинг",
+    "tabAchievementpaths": "Пути достижений",
+    "tabCustomcompanyachievements": "Пользовательские достижения компании",
+    "completeChallengeForXP": "Выполните задание, чтобы получить бонусные XP!",
+    "progress": "Прогресс",
+    "reactionRemoved": "Реакция удалена",
+    "applauseSent": "Квантовые аплодисменты отправлены!",
+    "failedToReact": "Не удалось отреагировать",
+    "achievements": "достижения",
+    "thisMonth": "В этом месяце",
+    "unlockInSequence": "Открывайте достижения последовательно для продвижения по дереву навыков",
+    "lastProgress": "Последний прогресс",
+    "completeChallengeToUnlock": "Выполните задание, чтобы открыть это достижение",
+    "youDiscoveredSecret": "Вы обнаружили этот секрет!",
+    "sharedToFeed": "Достижение опубликовано в Вашей ленте!",
+    "searchPlaceholder": "Поиск достижений...",
+    "categories": {
+      "all": "Все",
+      "influence": "Влияние",
+      "innovation": "Инновации",
+      "social": "Социальные",
+      "learning": "Обучение",
+      "prestige": "Престиж",
+      "event": "Событие",
+      "pioneer": "Первопроходец"
+    },
+    "rarities": {
+      "common": "Обычное",
+      "rare": "Редкое",
+      "epic": "Эпическое",
+      "legendary": "Легендарное",
+      "quantum": "Квантовое"
+    },
+    "actions": {
+      "applyToJobs": "Откликнуться на вакансии",
+      "completeCourses": "Завершить курсы",
+      "referFriends": "Пригласить друзей",
+      "createPosts": "Создать публикации",
+      "sendMessages": "Отправить сообщения",
+      "saveJobs": "Сохранить вакансии",
+      "completeProfile": "Заполнить профиль",
+      "takeAction": "Действовать"
+    },
+    "estimates": {
+      "lessThanADay": "Менее одного дня",
+      "oneDay": "~1 день",
+      "days": "~{{count}} дней",
+      "weeks": "~{{count}} недель",
+      "months": "~{{count}} месяцев"
+    }
+  },
+  "toast": {
+    "0": "T",
+    "1": "o",
+    "2": "a",
+    "3": "s",
+    "4": "t",
+    "youreFullySetUpYour": "Вы полностью настроены"
+  }
+}

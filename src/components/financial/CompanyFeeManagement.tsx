@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
@@ -40,6 +41,7 @@ interface CompanyWithFee {
 }
 
 export function CompanyFeeManagement() {
+  const { t } = useTranslation('common');
   const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -113,11 +115,11 @@ export function CompanyFeeManagement() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["company-fees"] });
       queryClient.invalidateQueries({ queryKey: ["deal-pipeline"] });
-      toast.success("Fee percentage updated");
+      toast.success(t("fee_percentage_updated", "Fee percentage updated"));
       setEditingId(null);
     },
     onError: () => {
-      toast.error("Failed to update fee percentage");
+      toast.error(t("failed_to_update_fee", "Failed to update fee percentage"));
     },
   });
 
@@ -156,7 +158,7 @@ export function CompanyFeeManagement() {
   const handleSave = (companyId: string) => {
     const fee = parseFloat(editValue);
     if (isNaN(fee) || fee < 0 || fee > 100) {
-      toast.error("Fee must be between 0 and 100");
+      toast.error(t("fee_must_be_between", "Fee must be between 0 and 100"));
       return;
     }
     updateFeeMutation.mutate({ companyId, fee });
@@ -221,7 +223,7 @@ export function CompanyFeeManagement() {
                 </div>
                 <div>
                   <p className="text-2xl font-bold">{companies?.length || 0}</p>
-                  <p className="text-sm text-muted-foreground">Total Companies</p>
+                  <p className="text-sm text-muted-foreground">{t("total_companies", "Total Companies")}</p>
                 </div>
               </div>
             </CardContent>
@@ -241,7 +243,7 @@ export function CompanyFeeManagement() {
                 </div>
                 <div>
                   <p className="text-2xl font-bold">{companiesWithFee.length - companiesWithFixedFee.length}</p>
-                  <p className="text-sm text-muted-foreground">Percentage Fee</p>
+                  <p className="text-sm text-muted-foreground">{t("percentage_fee", "Percentage Fee")}</p>
                 </div>
               </div>
             </CardContent>
@@ -261,7 +263,7 @@ export function CompanyFeeManagement() {
                 </div>
                 <div>
                   <p className="text-2xl font-bold">{companiesWithFixedFee.length}</p>
-                  <p className="text-sm text-muted-foreground">Fixed Fee</p>
+                  <p className="text-sm text-muted-foreground">{t("fixed_fee", "Fixed Fee")}</p>
                 </div>
               </div>
             </CardContent>
@@ -289,7 +291,7 @@ export function CompanyFeeManagement() {
                 </div>
                 <div>
                   <p className="text-2xl font-bold">{companiesWithoutFee.length}</p>
-                  <p className="text-sm text-muted-foreground">Missing Fee</p>
+                  <p className="text-sm text-muted-foreground">{t("missing_fee", "Missing Fee")}</p>
                 </div>
               </div>
             </CardContent>
@@ -309,7 +311,7 @@ export function CompanyFeeManagement() {
               <CardHeader>
                 <div className="flex items-center gap-2">
                   <AlertCircle className="h-5 w-5 text-destructive" />
-                  <CardTitle className="text-lg">Companies Missing Fee Configuration</CardTitle>
+                  <CardTitle className="text-lg">{t("companies_missing_fee_configuration", "Companies Missing Fee Configuration")}</CardTitle>
                 </div>
                 <CardDescription>
                   {companiesWithoutFee.length} {companiesWithoutFee.length === 1 ? "company has" : "companies have"} no 
@@ -350,7 +352,7 @@ export function CompanyFeeManagement() {
       {/* Company Fee Table */}
       <Card className="bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border-border/50">
         <CardHeader>
-          <CardTitle>Company Fee Configuration</CardTitle>
+          <CardTitle>{t("company_fee_configuration", "Company Fee Configuration")}</CardTitle>
           <CardDescription>
             Manage placement fee percentages for all partner companies
           </CardDescription>
@@ -359,12 +361,12 @@ export function CompanyFeeManagement() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Company</TableHead>
-                <TableHead className="text-center">Type</TableHead>
-                <TableHead className="text-center">Active Jobs</TableHead>
-                <TableHead className="text-right">Fee</TableHead>
-                <TableHead className="text-right">Status</TableHead>
-                <TableHead className="text-right w-32">Actions</TableHead>
+                <TableHead>{t("company", "Company")}</TableHead>
+                <TableHead className="text-center">{t("type", "Type")}</TableHead>
+                <TableHead className="text-center">{t("active_jobs", "Active Jobs")}</TableHead>
+                <TableHead className="text-right">{t("fee", "Fee")}</TableHead>
+                <TableHead className="text-right">{t("status", "Status")}</TableHead>
+                <TableHead className="text-right w-32">{t("actions", "Actions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -430,7 +432,7 @@ export function CompanyFeeManagement() {
                             </Badge>
                           </TooltipTrigger>
                           <TooltipContent>
-                            <p>Revenue calculations will be inaccurate</p>
+                            <p>{t("revenue_calculations_will_be", "Revenue calculations will be inaccurate")}</p>
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>

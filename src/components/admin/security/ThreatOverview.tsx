@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -14,6 +15,7 @@ const threatLevelConfig: Record<ThreatLevel, { icon: typeof Shield; color: strin
 };
 
 export function ThreatOverview() {
+  const { t } = useTranslation('common');
   const { data: summary, isLoading } = useThreatSummary();
 
   if (isLoading) {
@@ -57,14 +59,14 @@ export function ThreatOverview() {
           )}>
             <ThreatIcon className={cn("h-12 w-12 mb-2", config.color)} />
             <span className={cn("text-lg font-bold", config.color)}>{config.label}</span>
-            <span className="text-xs text-muted-foreground">Current Threat Level</span>
+            <span className="text-xs text-muted-foreground">{t("current_threat_level", "Current Threat Level")}</span>
           </div>
 
           {/* Critical Threats */}
           <div className="p-4 rounded-lg border bg-red-500/5">
             <div className="flex items-center gap-2 mb-2">
               <ShieldX className="h-4 w-4 text-red-500" />
-              <span className="text-sm text-muted-foreground">Critical</span>
+              <span className="text-sm text-muted-foreground">{t("critical", "Critical")}</span>
             </div>
             <span className="text-2xl font-bold text-red-500">{summary?.critical_threats || 0}</span>
           </div>
@@ -73,7 +75,7 @@ export function ThreatOverview() {
           <div className="p-4 rounded-lg border bg-orange-500/5">
             <div className="flex items-center gap-2 mb-2">
               <AlertTriangle className="h-4 w-4 text-orange-500" />
-              <span className="text-sm text-muted-foreground">High</span>
+              <span className="text-sm text-muted-foreground">{t("high", "High")}</span>
             </div>
             <span className="text-2xl font-bold text-orange-500">{summary?.high_threats || 0}</span>
           </div>
@@ -82,7 +84,7 @@ export function ThreatOverview() {
           <div className="p-4 rounded-lg border bg-muted/50">
             <div className="flex items-center gap-2 mb-2">
               <Ban className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm text-muted-foreground">Blocked IPs</span>
+              <span className="text-sm text-muted-foreground">{t("blocked_ips", "Blocked IPs")}</span>
             </div>
             <span className="text-2xl font-bold">{summary?.blocked_ips_active || 0}</span>
             <Badge variant="outline" className="ml-2 text-xs">
@@ -94,7 +96,7 @@ export function ThreatOverview() {
           <div className="p-4 rounded-lg border bg-muted/50">
             <div className="flex items-center gap-2 mb-2">
               <Activity className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm text-muted-foreground">Threats (24h)</span>
+              <span className="text-sm text-muted-foreground">{t("threats_24h", "Threats (24h)")}</span>
             </div>
             <span className="text-2xl font-bold">{summary?.total_threats_24h || 0}</span>
           </div>
@@ -103,7 +105,7 @@ export function ThreatOverview() {
         {/* Attack Types Breakdown */}
         {summary?.attacks_by_type && Object.keys(summary.attacks_by_type).length > 0 && (
           <div className="mt-4 pt-4 border-t">
-            <h4 className="text-sm font-medium mb-2">Attack Types (24h)</h4>
+            <h4 className="text-sm font-medium mb-2">{t("attack_types_24h", "Attack Types (24h)")}</h4>
             <div className="flex flex-wrap gap-2">
               {Object.entries(summary.attacks_by_type).map(([type, count]) => (
                 <Badge key={type} variant="secondary" className="capitalize">

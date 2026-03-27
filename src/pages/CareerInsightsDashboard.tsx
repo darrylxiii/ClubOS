@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -18,6 +19,7 @@ interface CareerInsights {
 }
 
 export default function CareerInsightsDashboard() {
+  const { t } = useTranslation('analytics');
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
@@ -45,7 +47,7 @@ export default function CareerInsightsDashboard() {
       }
     } catch (error) {
       logger.error('Error loading insights', error as Error, { componentName: 'CareerInsightsDashboard' });
-      toast.error('Failed to load career insights');
+      toast.error("Failed to load career insights");
     } finally {
       setLoading(false);
     }
@@ -67,11 +69,11 @@ export default function CareerInsightsDashboard() {
           careerTrends: data.career_trends || [],
           nextActions: data.next_actions || [],
         });
-        toast.success('Career insights generated successfully');
+        toast.success("Career insights generated successfully");
       }
     } catch (error) {
       logger.error('Error generating insights', error as Error, { componentName: 'CareerInsightsDashboard' });
-      toast.error('Failed to generate career insights');
+      toast.error("Failed to generate career insights");
     } finally {
       setGenerating(false);
     }
@@ -95,7 +97,7 @@ export default function CareerInsightsDashboard() {
           <h1 className="text-3xl font-bold flex items-center gap-2">
             <Brain className="h-8 w-8" /> Career Insights
           </h1>
-          <p className="text-muted-foreground">AI-powered career analysis and recommendations</p>
+          <p className="text-muted-foreground">{t('careerInsightsDashboard.text1')}</p>
         </div>
         <Button onClick={generateInsights} disabled={generating}>
           <RefreshCw className={`h-4 w-4 mr-2 ${generating ? 'animate-spin' : ''}`} />
@@ -108,8 +110,8 @@ export default function CareerInsightsDashboard() {
           {/* Skill Gap Analysis */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2"><Target className="h-5 w-5" />Skill Gap Analysis</CardTitle>
-              <CardDescription>Your skills vs market requirements</CardDescription>
+              <CardTitle className="flex items-center gap-2"><Target className="h-5 w-5" />{t('careerInsightsDashboard.text2')}</CardTitle>
+              <CardDescription>{t('careerInsightsDashboard.text3')}</CardDescription>
             </CardHeader>
             <CardContent>
               <DynamicChart
@@ -130,23 +132,23 @@ export default function CareerInsightsDashboard() {
           {/* Market Position */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2"><TrendingUp className="h-5 w-5" />Market Position</CardTitle>
-              <CardDescription>How you compare in the market</CardDescription>
+              <CardTitle className="flex items-center gap-2"><TrendingUp className="h-5 w-5" />{t('careerInsightsDashboard.text4')}</CardTitle>
+              <CardDescription>{t('careerInsightsDashboard.text5')}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="text-center">
                 <p className="text-5xl font-bold text-primary">{insights.marketPosition.percentile}th</p>
-                <p className="text-muted-foreground">Percentile in your field</p>
+                <p className="text-muted-foreground">{t('careerInsightsDashboard.text6')}</p>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="text-center p-4 bg-muted/50 rounded-lg">
-                  <p className="text-sm text-muted-foreground">Salary Range</p>
+                  <p className="text-sm text-muted-foreground">{t('careerInsightsDashboard.text7')}</p>
                   <p className="font-semibold">
                     ${(insights.marketPosition.salaryRange.min / 1000).toFixed(0)}k - ${(insights.marketPosition.salaryRange.max / 1000).toFixed(0)}k
                   </p>
                 </div>
                 <div className="text-center p-4 bg-muted/50 rounded-lg">
-                  <p className="text-sm text-muted-foreground">Demand Level</p>
+                  <p className="text-sm text-muted-foreground">{t('careerInsightsDashboard.text8')}</p>
                   <Badge variant={insights.marketPosition.demandLevel === 'high' ? 'default' : 'secondary'}>
                     {insights.marketPosition.demandLevel}
                   </Badge>
@@ -158,8 +160,8 @@ export default function CareerInsightsDashboard() {
           {/* Career Trends */}
           <Card>
             <CardHeader>
-              <CardTitle>Career Trends</CardTitle>
-              <CardDescription>Industry trends affecting your career</CardDescription>
+              <CardTitle>{t('careerInsightsDashboard.text9')}</CardTitle>
+              <CardDescription>{t('careerInsightsDashboard.text10')}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
@@ -181,8 +183,8 @@ export default function CareerInsightsDashboard() {
           {/* Next Actions */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2"><Lightbulb className="h-5 w-5" />Recommended Actions</CardTitle>
-              <CardDescription>Club AI's personalized recommendations</CardDescription>
+              <CardTitle className="flex items-center gap-2"><Lightbulb className="h-5 w-5" />{t('careerInsightsDashboard.text11')}</CardTitle>
+              <CardDescription>{t('careerInsightsDashboard.text12')}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
@@ -206,8 +208,8 @@ export default function CareerInsightsDashboard() {
         <Card>
           <CardContent className="py-16 text-center">
             <Brain className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-            <h3 className="text-xl font-semibold mb-2">No Insights Generated Yet</h3>
-            <p className="text-muted-foreground mb-6">Click "Generate Insights" to get AI-powered career recommendations</p>
+            <h3 className="text-xl font-semibold mb-2">{t('careerInsightsDashboard.text13')}</h3>
+            <p className="text-muted-foreground mb-6">{t('careerInsightsDashboard.text14')}</p>
             <Button onClick={generateInsights} disabled={generating}>
               <RefreshCw className={`h-4 w-4 mr-2 ${generating ? 'animate-spin' : ''}`} />
               Generate Insights

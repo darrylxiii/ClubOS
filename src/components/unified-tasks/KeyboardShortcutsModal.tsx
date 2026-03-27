@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import {
   Dialog,
   DialogContent,
@@ -22,11 +23,12 @@ const SHORTCUTS = [
 ];
 
 export function KeyboardShortcutsModal({ open, onOpenChange }: KeyboardShortcutsModalProps) {
+  const { t } = useTranslation('common');
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[360px] p-0">
         <DialogHeader className="px-5 pt-5 pb-3">
-          <DialogTitle className="text-sm font-semibold">Keyboard Shortcuts</DialogTitle>
+          <DialogTitle className="text-sm font-semibold">{t("keyboard_shortcuts", "Keyboard Shortcuts")}</DialogTitle>
         </DialogHeader>
         <div className="px-5 pb-5 space-y-1">
           {SHORTCUTS.map(({ keys, desc }) => (

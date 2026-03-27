@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -19,6 +20,7 @@ import {
 } from "lucide-react";
 
 export function OnboardingChecklist() {
+  const { t } = useTranslation('common');
   const { data: employees } = useAllEmployees();
   const [selectedEmployee, setSelectedEmployee] = useState<string>('');
   const { data: items, isLoading } = useOnboardingChecklists(selectedEmployee || undefined);
@@ -29,7 +31,7 @@ export function OnboardingChecklist() {
       await updateItem.mutateAsync({ id, completed });
       toast.success(completed ? 'Task completed' : 'Task reopened');
     } catch (error) {
-      toast.error('Failed to update task');
+      toast.error(t("failed_to_update_task", "Failed to update task"));
     }
   };
 
@@ -46,8 +48,8 @@ export function OnboardingChecklist() {
   const getDueBadge = (dueDate?: string | null, completed?: boolean) => {
     if (completed || !dueDate) return null;
     const daysUntilDue = differenceInDays(new Date(dueDate), new Date());
-    if (daysUntilDue < 0) return <Badge variant="destructive" className="text-xs">Overdue</Badge>;
-    if (daysUntilDue <= 3) return <Badge className="bg-amber-500/10 text-amber-500 text-xs">Due soon</Badge>;
+    if (daysUntilDue < 0) return <Badge variant="destructive" className="text-xs">{t("overdue", "Overdue")}</Badge>;
+    if (daysUntilDue <= 3) return <Badge className="bg-amber-500/10 text-amber-500 text-xs">{t("due_soon", "Due soon")}</Badge>;
     return null;
   };
 
@@ -66,7 +68,7 @@ export function OnboardingChecklist() {
           </div>
           <Select value={selectedEmployee} onValueChange={setSelectedEmployee}>
             <SelectTrigger className="w-[200px]">
-              <SelectValue placeholder="Select employee" />
+              <SelectValue placeholder={t("select_employee", "Select employee")} />
             </SelectTrigger>
             <SelectContent>
               {employees?.map(emp => (
@@ -82,7 +84,7 @@ export function OnboardingChecklist() {
         {!selectedEmployee ? (
           <div className="text-center py-8 text-muted-foreground">
             <User className="h-12 w-12 mx-auto mb-2 opacity-50" />
-            <p>Select an employee to view their checklist</p>
+            <p>{t("select_an_employee_to", "Select an employee to view their checklist")}</p>
           </div>
         ) : isLoading ? (
           <div className="flex items-center justify-center py-8">
@@ -91,7 +93,7 @@ export function OnboardingChecklist() {
         ) : !items?.length ? (
           <div className="text-center py-8 text-muted-foreground">
             <ClipboardList className="h-12 w-12 mx-auto mb-2 opacity-50" />
-            <p>No onboarding tasks assigned</p>
+            <p>{t("no_onboarding_tasks_assigned", "No onboarding tasks assigned")}</p>
           </div>
         ) : (
           <div className="space-y-6">

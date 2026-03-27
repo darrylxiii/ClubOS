@@ -1,4 +1,5 @@
 import React, { useMemo, useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -127,6 +128,7 @@ export function FormulaCell({
   onFormulaChange,
   readOnly = true 
 }: FormulaCellProps) {
+  const { t } = useTranslation('common');
   const [open, setOpen] = useState(false);
   const [editedFormula, setEditedFormula] = useState(formula);
   const [mathReady, setMathReady] = useState(!!_evaluate);
@@ -182,14 +184,14 @@ export function FormulaCell({
           {error ? (
             <span className="text-destructive flex items-center gap-1">
               <AlertCircle className="h-3 w-3" />
-              <span className="text-xs">Error</span>
+              <span className="text-xs">{"Error"}</span>
             </span>
           ) : result !== null && result !== '' ? (
             <span className="text-sm">{formatResult(result)}</span>
           ) : (
             <span className="text-muted-foreground flex items-center gap-1">
               <Calculator className="h-3 w-3" />
-              <span className="text-xs">Add formula...</span>
+              <span className="text-xs">{t('workspace.addFormula', 'Add formula...')}</span>
             </span>
           )}
         </Button>
@@ -198,11 +200,11 @@ export function FormulaCell({
         <div className="space-y-3">
           <div className="flex items-center gap-2">
             <Calculator className="h-4 w-4 text-muted-foreground" />
-            <span className="font-medium text-sm">Formula Editor</span>
+            <span className="font-medium text-sm">{t('workspace.formulaEditor', 'Formula Editor')}</span>
           </div>
           
           <div className="space-y-2">
-            <Label className="text-xs">Formula</Label>
+            <Label className="text-xs">{t('workspace.formula', 'Formula')}</Label>
             <Input
               value={editedFormula}
               onChange={(e) => setEditedFormula(e.target.value)}
@@ -212,7 +214,7 @@ export function FormulaCell({
           </div>
 
           <div className="space-y-2">
-            <Label className="text-xs">Preview</Label>
+            <Label className="text-xs">{t('workspace.preview', 'Preview')}</Label>
             <div className="p-2 rounded bg-muted text-sm">
               {evaluateFormula(editedFormula, rowData, columnTypes).error ? (
                 <span className="text-destructive flex items-center gap-1">
@@ -226,7 +228,7 @@ export function FormulaCell({
           </div>
 
           <div className="space-y-1">
-            <Label className="text-xs text-muted-foreground">Available functions</Label>
+            <Label className="text-xs text-muted-foreground">{t('workspace.availableFunctions', 'Available functions')}</Label>
             <div className="flex flex-wrap gap-1">
               {['SUM', 'AVG', 'MIN', 'MAX', 'IF', 'CONCAT', 'NOW'].map(fn => (
                 <Badge key={fn} variant="secondary" className="text-[10px]">
@@ -238,11 +240,11 @@ export function FormulaCell({
 
           <div className="flex justify-end gap-2">
             <Button size="sm" variant="outline" onClick={() => setOpen(false)}>
-              Cancel
+              {t('workspace.cancel', 'Cancel')}
             </Button>
             <Button size="sm" onClick={handleSave}>
               <Check className="h-3 w-3 mr-1" />
-              Save
+              {t('workspace.save', 'Save')}
             </Button>
           </div>
         </div>

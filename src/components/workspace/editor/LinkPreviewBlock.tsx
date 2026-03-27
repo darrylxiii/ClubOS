@@ -1,5 +1,6 @@
 import { createReactBlockSpec } from '@blocknote/react';
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link, ExternalLink, X, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -38,6 +39,7 @@ export const LinkPreviewBlock = createReactBlockSpec(
       const siteName = props.block.props.siteName as string;
 
       const fetchMetadata = async (fetchUrl: string) => {
+  const { t } = useTranslation('common');
         setIsLoading(true);
         setError(null);
         
@@ -79,7 +81,7 @@ export const LinkPreviewBlock = createReactBlockSpec(
             new URL(inputUrl.trim());
             fetchMetadata(inputUrl.trim());
           } catch {
-            setError('Please enter a valid URL');
+            setError(t('workspace.invalidUrl', 'Please enter a valid URL'));
           }
         }
       };
@@ -99,18 +101,18 @@ export const LinkPreviewBlock = createReactBlockSpec(
           >
             <div className="flex items-center gap-2 mb-3">
               <Link className="h-5 w-5 text-muted-foreground" />
-              <span className="font-medium">Link Preview</span>
+              <span className="font-medium">{t('workspace.linkPreview', 'Link Preview')}</span>
             </div>
             <div className="flex gap-2">
               <Input
-                placeholder="Paste any URL to create a preview..."
+                placeholder={t('workspace.pasteUrlPreview', 'Paste any URL to create a preview...')}
                 value={inputUrl}
                 onChange={(e) => setInputUrl(e.target.value)}
                 className="flex-1"
                 disabled={isLoading}
               />
               <Button type="submit" size="sm" disabled={!inputUrl.trim() || isLoading}>
-                {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Create Preview'}
+                {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : t('workspace.createPreview', 'Create Preview')}
               </Button>
             </div>
             {error && <p className="text-xs text-destructive mt-2">{error}</p>}

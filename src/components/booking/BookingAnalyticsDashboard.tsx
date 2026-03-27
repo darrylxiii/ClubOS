@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
@@ -23,6 +24,7 @@ interface BookingAnalyticsDashboardProps {
 }
 
 export function BookingAnalyticsDashboard({ bookingLinkId, userId, dateRange }: BookingAnalyticsDashboardProps) {
+  const { t } = useTranslation('common');
   const [stats, setStats] = useState<BookingStats | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -129,7 +131,7 @@ export function BookingAnalyticsDashboard({ bookingLinkId, userId, dateRange }: 
     return (
       <Card>
         <CardContent className="py-8 text-center">
-          <p className="text-muted-foreground">No analytics data available</p>
+          <p className="text-muted-foreground">{t("no_analytics_data_available", "No analytics data available")}</p>
         </CardContent>
       </Card>
     );
@@ -140,18 +142,18 @@ export function BookingAnalyticsDashboard({ bookingLinkId, userId, dateRange }: 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Bookings</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("total_bookings", "Total Bookings")}</CardTitle>
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalBookings}</div>
-            <p className="text-xs text-muted-foreground">All time bookings</p>
+            <p className="text-xs text-muted-foreground">{t("all_time_bookings", "All time bookings")}</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Confirmed</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("confirmed", "Confirmed")}</CardTitle>
             <CheckCircle className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
@@ -164,7 +166,7 @@ export function BookingAnalyticsDashboard({ bookingLinkId, userId, dateRange }: 
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Cancelled</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("cancelled", "Cancelled")}</CardTitle>
             <XCircle className="h-4 w-4 text-red-500" />
           </CardHeader>
           <CardContent>
@@ -180,12 +182,12 @@ export function BookingAnalyticsDashboard({ bookingLinkId, userId, dateRange }: 
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Avg Lead Time</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("avg_lead_time", "Avg Lead Time")}</CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.avgBookingTime.toFixed(1)}</div>
-            <p className="text-xs text-muted-foreground">days in advance</p>
+            <p className="text-xs text-muted-foreground">{t("days_in_advance", "days in advance")}</p>
           </CardContent>
         </Card>
       </div>
@@ -193,8 +195,8 @@ export function BookingAnalyticsDashboard({ bookingLinkId, userId, dateRange }: 
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Top Booking Days</CardTitle>
-            <CardDescription>Most popular days of the week</CardDescription>
+            <CardTitle>{t("top_booking_days", "Top Booking Days")}</CardTitle>
+            <CardDescription>{t("most_popular_days_of", "Most popular days of the week")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-2">
             {stats.topBookingDays.map((item, idx) => (
@@ -208,8 +210,8 @@ export function BookingAnalyticsDashboard({ bookingLinkId, userId, dateRange }: 
 
         <Card>
           <CardHeader>
-            <CardTitle>Top Booking Times</CardTitle>
-            <CardDescription>Most popular hours of the day</CardDescription>
+            <CardTitle>{t("top_booking_times", "Top Booking Times")}</CardTitle>
+            <CardDescription>{t("most_popular_hours_of", "Most popular hours of the day")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-2">
             {stats.topBookingTimes.map((item, idx) => (

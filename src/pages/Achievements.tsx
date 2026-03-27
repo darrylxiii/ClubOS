@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from 'react-i18next';
 import { AchievementHero } from "@/components/achievements/AchievementHero";
 import { AchievementTimeline } from "@/components/achievements/AchievementTimeline";
 import { AchievementClusters } from "@/components/achievements/AchievementClusters";
@@ -16,6 +17,7 @@ import { Loader2 } from "lucide-react";
 import { BackgroundVideo } from "@/components/BackgroundVideo";
 
 const Achievements = () => {
+  const { t } = useTranslation('common');
   const { currentRole, companyId, loading } = useRole();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -51,8 +53,8 @@ const Achievements = () => {
           </div>
           <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
             <div className="mb-8">
-              <h2 className="text-3xl font-bold mb-2 text-foreground">Timeline of Ascendance</h2>
-              <p className="text-muted-foreground">Your quantum journey through achievement</p>
+              <h2 className="text-3xl font-bold mb-2 text-foreground">{t('achievements.title')}</h2>
+              <p className="text-muted-foreground">{t('achievements.desc')}</p>
             </div>
             <AchievementTimeline />
           </div>
@@ -62,11 +64,11 @@ const Achievements = () => {
           <div className="w-full px-4 sm:px-6 lg:px-8 pb-16">
             <Tabs defaultValue="clusters" className="w-full">
               <TabsList className="glass mb-8">
-                <TabsTrigger value="clusters">Achievement Gallery</TabsTrigger>
-                <TabsTrigger value="feed">Community Feed</TabsTrigger>
-                <TabsTrigger value="leaderboard">Leaderboard</TabsTrigger>
-                <TabsTrigger value="tree">Achievement Paths</TabsTrigger>
-                <TabsTrigger value="company">Custom Company Achievements</TabsTrigger>
+                <TabsTrigger value="clusters">{t('achievements.tabAchievementgallery')}</TabsTrigger>
+                <TabsTrigger value="feed">{t('achievements.tabCommunityfeed')}</TabsTrigger>
+                <TabsTrigger value="leaderboard">{t('achievements.tabLeaderboard')}</TabsTrigger>
+                <TabsTrigger value="tree">{t('achievements.tabAchievementpaths')}</TabsTrigger>
+                <TabsTrigger value="company">{t('achievements.tabCustomcompanyachievements')}</TabsTrigger>
               </TabsList>
               <TabsContent value="clusters" className="space-y-8">
                 <AchievementClusters searchQuery={searchQuery} selectedCategory={selectedCategory} selectedRarity={selectedRarity} />
@@ -76,8 +78,8 @@ const Achievements = () => {
               <TabsContent value="tree"><AchievementTree /></TabsContent>
               <TabsContent value="company">
                 <div className="mb-6">
-                  <h3 className="text-2xl font-bold mb-2">Custom Company Achievements</h3>
-                  <p className="text-muted-foreground">Create and manage custom achievements for your company</p>
+                  <h3 className="text-2xl font-bold mb-2">{t('achievements.title')}</h3>
+                  <p className="text-muted-foreground">{t('achievements.desc2')}</p>
                 </div>
                 <CompanyAchievements companyId={companyId} />
               </TabsContent>
@@ -100,8 +102,8 @@ const Achievements = () => {
         </div>
         <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
           <div className="mb-8">
-            <h2 className="text-3xl font-bold mb-2 text-foreground">Timeline of Ascendance</h2>
-            <p className="text-muted-foreground">Your quantum journey through achievement</p>
+            <h2 className="text-3xl font-bold mb-2 text-foreground">{t('achievements.title')}</h2>
+            <p className="text-muted-foreground">{t('achievements.desc3')}</p>
           </div>
           <AchievementTimeline />
         </div>
@@ -111,10 +113,10 @@ const Achievements = () => {
         <div className="w-full px-4 sm:px-6 lg:px-8 pb-16">
           <Tabs defaultValue="clusters" className="w-full">
             <TabsList className="glass mb-8">
-              <TabsTrigger value="clusters">Achievement Gallery</TabsTrigger>
-              <TabsTrigger value="feed">Community Feed</TabsTrigger>
-              <TabsTrigger value="leaderboard">Leaderboard</TabsTrigger>
-              <TabsTrigger value="tree">Achievement Paths</TabsTrigger>
+              <TabsTrigger value="clusters">{t('achievements.tabAchievementgallery')}</TabsTrigger>
+              <TabsTrigger value="feed">{t('achievements.tabCommunityfeed')}</TabsTrigger>
+              <TabsTrigger value="leaderboard">{t('achievements.tabLeaderboard')}</TabsTrigger>
+              <TabsTrigger value="tree">{t('achievements.tabAchievementpaths')}</TabsTrigger>
             </TabsList>
             <TabsContent value="clusters" className="space-y-8">
               <AchievementClusters searchQuery={searchQuery} selectedCategory={selectedCategory} selectedRarity={selectedRarity} />

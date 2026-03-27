@@ -30,6 +30,7 @@ import { JobFilterState } from '@/types/jobFilters';
 import { useSavedFilterPresets, FilterPreset } from '@/hooks/useSavedFilterPresets';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
+import { useTranslation } from 'react-i18next';
 
 interface SavedFilterPresetsProps {
   currentFilters: JobFilterState;
@@ -42,6 +43,7 @@ export const SavedFilterPresets = memo(({
   onApplyPreset,
   hasActiveFilters,
 }: SavedFilterPresetsProps) => {
+  const { t } = useTranslation('partner');
   const { presets, addPreset, deletePreset, canAddMore } = useSavedFilterPresets();
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
   const [presetName, setPresetName] = useState('');
@@ -49,7 +51,7 @@ export const SavedFilterPresets = memo(({
 
   const handleSavePreset = () => {
     if (!presetName.trim()) {
-      toast.error('Please enter a name for your preset');
+      toast.error(t('savedFilterPresets.toast.pleaseEnterANameForYourPreset'));
       return;
     }
 
@@ -91,7 +93,7 @@ export const SavedFilterPresets = memo(({
             )}
           >
             <Bookmark className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Presets</span>
+            <span className="hidden sm:inline">{t('savedFilterPresets.presets')}</span>
             {presets.length > 0 && (
               <span className="ml-1 text-xs text-muted-foreground">
                 ({presets.length})
@@ -102,7 +104,7 @@ export const SavedFilterPresets = memo(({
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-64">
           <DropdownMenuLabel className="flex items-center justify-between">
-            <span>Saved Views</span>
+            <span>{t('savedFilterPresets.savedViews')}</span>
             <span className="text-xs font-normal text-muted-foreground">
               {presets.length}/10
             </span>
@@ -112,8 +114,8 @@ export const SavedFilterPresets = memo(({
           {presets.length === 0 ? (
             <div className="px-2 py-4 text-center text-sm text-muted-foreground">
               <Bookmark className="h-8 w-8 mx-auto mb-2 opacity-40" />
-              <p>No saved presets</p>
-              <p className="text-xs">Save your current filters for quick access</p>
+              <p>{t('savedFilterPresets.noSavedPresets')}</p>
+              <p className="text-xs">{t('savedFilterPresets.saveYourCurrentFiltersForQuickAccess')}</p>
             </div>
           ) : (
             presets.map((preset) => (
@@ -162,10 +164,8 @@ export const SavedFilterPresets = memo(({
       <Dialog open={saveDialogOpen} onOpenChange={setSaveDialogOpen}>
         <DialogContent className="sm:max-w-[400px]">
           <DialogHeader>
-            <DialogTitle>Save Filter Preset</DialogTitle>
-            <DialogDescription>
-              Save your current filters for quick access later.
-            </DialogDescription>
+            <DialogTitle>{t('savedFilterPresets.dialogTitle')}</DialogTitle>
+            <DialogDescription>{t('savedFilterPresets.dialogDescription')}</DialogDescription>
           </DialogHeader>
           <div className="py-4">
             <Input
@@ -182,7 +182,7 @@ export const SavedFilterPresets = memo(({
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setSaveDialogOpen(false)}>
-              Cancel
+              {t('common:cancel')}
             </Button>
             <Button onClick={handleSavePreset} disabled={!presetName.trim()}>
               <Plus className="h-4 w-4 mr-2" />

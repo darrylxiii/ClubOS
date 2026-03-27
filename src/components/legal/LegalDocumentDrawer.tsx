@@ -1,4 +1,5 @@
 import { ReactNode, useState } from "react";
+import { useTranslation } from 'react-i18next';
 import {
   Drawer,
   DrawerClose,
@@ -35,6 +36,7 @@ export function LegalDocumentDrawer({
   onAccept,
   acceptLabel = "I've Read This",
 }: LegalDocumentDrawerProps) {
+  const { t } = useTranslation('common');
   const [activeTab, setActiveTab] = useState<string>("full");
 
   const handleAccept = () => {
@@ -114,9 +116,7 @@ export function LegalDocumentDrawer({
               </Button>
             ) : (
               <DrawerClose asChild>
-                <Button variant="secondary" className="flex-1">
-                  Close
-                </Button>
+                <Button variant="secondary" className="flex-1">{t('legal.close')}</Button>
               </DrawerClose>
             )}
           </div>

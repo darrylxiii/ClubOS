@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Sparkles, Zap } from 'lucide-react';
@@ -10,6 +11,7 @@ interface QuickReplyPanelProps {
 }
 
 export function QuickReplyPanel({ lastMessage, onSelectReply }: QuickReplyPanelProps) {
+  const { t } = useTranslation('common');
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -52,7 +54,7 @@ export function QuickReplyPanel({ lastMessage, onSelectReply }: QuickReplyPanelP
       <Sparkles className="h-4 w-4 text-primary flex-shrink-0" />
       <div className="flex gap-2 overflow-x-auto scrollbar-hide">
         {loading ? (
-          <div className="text-sm text-muted-foreground">Generating suggestions...</div>
+          <div className="text-sm text-muted-foreground">{t("generating_suggestions", "Generating suggestions...")}</div>
         ) : (
           suggestions.map((suggestion, idx) => (
             <Button

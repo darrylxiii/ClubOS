@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Check, Sparkles } from "lucide-react";
@@ -15,6 +16,7 @@ interface MatchExplainerProps {
 }
 
 export function MatchExplainer({ score, factors, explanation }: MatchExplainerProps) {
+  const { t } = useTranslation('common');
   return (
     <Card className="border-l-4 border-l-primary bg-card/40 backdrop-blur-sm">
       <CardContent className="pt-4">
@@ -23,11 +25,11 @@ export function MatchExplainer({ score, factors, explanation }: MatchExplainerPr
             {score}% Match
           </Badge>
           <Sparkles className="w-4 h-4 text-primary" />
-          <span className="text-sm font-medium">AI-Powered Match</span>
+          <span className="text-sm font-medium">{t("aipowered_match", "AI-Powered Match")}</span>
         </div>
         
         <div className="space-y-2 text-sm">
-          <h4 className="font-semibold">Why you're a great fit:</h4>
+          <h4 className="font-semibold">{t("why_youre_a_great", "Why you're a great fit:")}</h4>
           <ul className="space-y-1">
             {factors && factors.skillOverlap > 75 && (
               <li className="flex items-center gap-2">
@@ -38,19 +40,19 @@ export function MatchExplainer({ score, factors, explanation }: MatchExplainerPr
             {factors && factors.cultureFit > 80 && (
               <li className="flex items-center gap-2">
                 <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
-                <span>Excellent culture alignment</span>
+                <span>{t("excellent_culture_alignment", "Excellent culture alignment")}</span>
               </li>
             )}
             {factors && factors.experienceMatch > 85 && (
               <li className="flex items-center gap-2">
                 <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
-                <span>Experience level matches requirements</span>
+                <span>{t("experience_level_matches_requirements", "Experience level matches requirements")}</span>
               </li>
             )}
             {factors && factors.assessmentFit > 70 && (
               <li className="flex items-center gap-2">
                 <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
-                <span>Assessment results align well</span>
+                <span>{t("assessment_results_align_well", "Assessment results align well")}</span>
               </li>
             )}
           </ul>

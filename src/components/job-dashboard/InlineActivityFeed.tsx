@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { formatDistanceToNow, parseISO } from "date-fns";
+import { useTranslation } from 'react-i18next';
 
 interface InlineActivityFeedProps {
   jobId: string;
@@ -32,21 +33,21 @@ const ACTION_ICONS: Record<string, any> = {
   'email_dump_created': Mail,
 };
 
-const ACTION_LABELS: Record<string, string> = {
-  'candidate_added': 'added a candidate',
-  'candidate_advanced': 'advanced a candidate',
-  'candidate_moved_back': 'moved back a candidate',
-  'candidate_declined': 'declined a candidate',
-  'stage_changed_manual': 'changed stage',
-  'stage_added': 'added a stage',
-  'stage_removed': 'removed a stage',
-  'stage_updated': 'updated a stage',
-  'stage_reordered': 'reordered stages',
-  'interview_scheduled': 'scheduled an interview',
-  'note_added': 'added a note',
-  'document_uploaded': 'uploaded a document',
-  'job_viewed': 'viewed the job',
-  'email_dump_created': 'created email dump',
+const ACTION_LABEL_KEYS: Record<string, { key: string; fallback: string }> = {
+  'candidate_added': { key: 'activityFeed.addedCandidate', fallback: 'added a candidate' },
+  'candidate_advanced': { key: 'activityFeed.advancedCandidate', fallback: 'advanced a candidate' },
+  'candidate_moved_back': { key: 'activityFeed.movedBackCandidate', fallback: 'moved back a candidate' },
+  'candidate_declined': { key: 'activityFeed.declinedCandidate', fallback: 'declined a candidate' },
+  'stage_changed_manual': { key: 'activityFeed.changedStage', fallback: 'changed stage' },
+  'stage_added': { key: 'activityFeed.addedStage', fallback: 'added a stage' },
+  'stage_removed': { key: 'activityFeed.removedStage', fallback: 'removed a stage' },
+  'stage_updated': { key: 'activityFeed.updatedStage', fallback: 'updated a stage' },
+  'stage_reordered': { key: 'activityFeed.reorderedStages', fallback: 'reordered stages' },
+  'interview_scheduled': { key: 'activityFeed.scheduledInterview', fallback: 'scheduled an interview' },
+  'note_added': { key: 'activityFeed.addedNote', fallback: 'added a note' },
+  'document_uploaded': { key: 'activityFeed.uploadedDocument', fallback: 'uploaded a document' },
+  'job_viewed': { key: 'activityFeed.viewedJob', fallback: 'viewed the job' },
+  'email_dump_created': { key: 'activityFeed.createdEmailDump', fallback: 'created email dump' },
 };
 
 interface AuditLog {
@@ -59,6 +60,7 @@ interface AuditLog {
 }
 
 export const InlineActivityFeed = memo(({ jobId, initialLimit = 5 }: InlineActivityFeedProps) => {
+  const { t } = useTranslation('jobs');
   const [activities, setActivities] = useState<(AuditLog & { profile?: { full_name: string | null; avatar_url: string | null } })[]>([]);
   const [loading, setLoading] = useState(true);
   const [isExpanded, setIsExpanded] = useState(false);

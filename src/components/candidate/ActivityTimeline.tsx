@@ -13,6 +13,7 @@ import {
   Activity as ActivityIcon
 } from "lucide-react";
 import { formatDistanceToNow, format, isToday, isYesterday } from "date-fns";
+import { useTranslation } from 'react-i18next';
 
 interface TimelineActivity {
   id: string;
@@ -22,6 +23,7 @@ interface TimelineActivity {
 }
 
 export function ActivityTimeline({ userId }: { userId: string }) {
+  const { t } = useTranslation('candidates');
   const [activities, setActivities] = useState<TimelineActivity[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();

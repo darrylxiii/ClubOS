@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -15,6 +16,7 @@ interface RunwayCalculatorProps {
 }
 
 export function RunwayCalculator({ year, legalEntity }: RunwayCalculatorProps) {
+  const { t } = useTranslation('common');
   const currentYear = year || new Date().getFullYear();
   const [cashBalance, setCashBalance] = useState<number>(250000);
   const { data: costData } = useCostIntelligence();
@@ -106,12 +108,12 @@ export function RunwayCalculator({ year, legalEntity }: RunwayCalculatorProps) {
           <Fuel className="h-5 w-5" />
           Runway Calculator
         </CardTitle>
-        <CardDescription>Cash position and burn analysis with scenario modeling</CardDescription>
+        <CardDescription>{t("cash_position_and_burn", "Cash position and burn analysis with scenario modeling")}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Cash Balance Input */}
         <div className="space-y-2">
-          <Label htmlFor="cash-balance">Current Cash Balance (€)</Label>
+          <Label htmlFor="cash-balance">{t("current_cash_balance", "Current Cash Balance (€)")}</Label>
           <Input
             id="cash-balance"
             type="number"
@@ -129,7 +131,7 @@ export function RunwayCalculator({ year, legalEntity }: RunwayCalculatorProps) {
               <span className="text-2xl font-bold">
                 {runwayMonths === Infinity ? '∞' : `${runwayMonths.toFixed(1)}`}
               </span>
-              <span className="text-muted-foreground">months runway</span>
+              <span className="text-muted-foreground">{t("months_runway", "months runway")}</span>
               <Badge variant={status.variant}>{status.label}</Badge>
             </div>
             <p className="text-sm text-muted-foreground">
@@ -141,22 +143,22 @@ export function RunwayCalculator({ year, legalEntity }: RunwayCalculatorProps) {
         {/* Burn Breakdown */}
         <div className="grid gap-3 md:grid-cols-3">
           <div className="p-3 rounded-lg border">
-            <p className="text-sm text-muted-foreground">Avg Monthly OpEx</p>
+            <p className="text-sm text-muted-foreground">{t("avg_monthly_opex", "Avg Monthly OpEx")}</p>
             <p className="text-lg font-semibold">{formatCurrency(burnData?.avgMonthlyOpex || 0)}</p>
           </div>
           <div className="p-3 rounded-lg border">
-            <p className="text-sm text-muted-foreground">Subscription MRC</p>
+            <p className="text-sm text-muted-foreground">{t("subscription_mrc", "Subscription MRC")}</p>
             <p className="text-lg font-semibold">{formatCurrency(burnData?.subscriptionMRC || 0)}</p>
           </div>
           <div className="p-3 rounded-lg border">
-            <p className="text-sm text-muted-foreground">Avg Monthly Collections</p>
+            <p className="text-sm text-muted-foreground">{t("avg_monthly_collections", "Avg Monthly Collections")}</p>
             <p className="text-lg font-semibold">{formatCurrency(burnData?.avgMonthlyCollections || 0)}</p>
           </div>
         </div>
 
         {/* Scenario Table */}
         <div>
-          <h4 className="text-sm font-medium mb-3">Scenario Analysis</h4>
+          <h4 className="text-sm font-medium mb-3">{t("scenario_analysis", "Scenario Analysis")}</h4>
           <div className="space-y-2">
             {scenarios.map((s) => (
               <div key={s.name} className="flex items-center justify-between p-3 rounded-lg border">

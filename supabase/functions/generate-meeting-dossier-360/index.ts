@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -163,7 +163,7 @@ serve(async (req) => {
   }
 });
 
-async function fetchLinkedInData(supabase: any, email: string, name?: string): Promise<any> {
+async function fetchLinkedInData(supabase: SupabaseClient, email: string, name?: string): Promise<Record<string, unknown> | null> {
   try {
     // First check if we have cached LinkedIn data
     const { data: cachedData } = await supabase
@@ -190,7 +190,7 @@ async function fetchLinkedInData(supabase: any, email: string, name?: string): P
 
     // Try to enrich via LinkedIn scraper if we have the URL
     if (candidate?.linkedin_url) {
-      const { data: enriched, error } = await supabase.functions.invoke('linkedin-scraper-proxycurl', {
+      const { data: enriched, error } = await supabase.functions.invoke('linkedin-scraper', {
         body: { linkedinUrl: candidate.linkedin_url }
       });
 
@@ -206,8 +206,8 @@ async function fetchLinkedInData(supabase: any, email: string, name?: string): P
   }
 }
 
-async function fetchInteractionHistory(supabase: any, email: string): Promise<any[]> {
-  const interactions: any[] = [];
+async function fetchInteractionHistory(supabase: SupabaseClient, email: string): Promise<Record<string, unknown>[]> {
+  const interactions: Record<string, unknown>[] = [];
 
   try {
     // Fetch previous meetings
@@ -276,7 +276,7 @@ async function fetchInteractionHistory(supabase: any, email: string): Promise<an
   }
 }
 
-async function fetchCompanyIntelligence(supabase: any, email: string): Promise<any> {
+async function fetchCompanyIntelligence(supabase: SupabaseClient, email: string): Promise<Record<string, unknown> | null> {
   try {
     const domain = email.split('@')[1];
     if (!domain || domain.includes('gmail') || domain.includes('hotmail') || domain.includes('yahoo')) {
@@ -318,7 +318,7 @@ async function fetchCompanyIntelligence(supabase: any, email: string): Promise<a
   }
 }
 
-async function fetchMutualConnections(supabase: any, email: string): Promise<string[]> {
+async function fetchMutualConnections(supabase: SupabaseClient, email: string): Promise<string[]> {
   try {
     // Check if this person knows anyone in our network
     const { data: connections } = await supabase
@@ -328,7 +328,7 @@ async function fetchMutualConnections(supabase: any, email: string): Promise<str
       .limit(5);
 
     if (connections) {
-      return connections.map((c: any) => c.connected_user_name).filter(Boolean);
+      return connections.map((c: Record<string, unknown>) => c.connected_user_name as string).filter(Boolean);
     }
 
     return [];
@@ -341,14 +341,14 @@ async function fetchMutualConnections(supabase: any, email: string): Promise<str
 async function generateDossierWithAI(data: {
   participantEmail: string;
   participantName?: string;
-  linkedinData: any;
-  interactionHistory: any[];
-  companyData: any;
+  linkedinData: Record<string, unknown> | null;
+  interactionHistory: Record<string, unknown>[];
+  companyData: Record<string, unknown> | null;
   mutualConnections: string[];
 }): Promise<ParticipantDossier> {
-  const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+  const GOOGLE_API_KEY = Deno.env.get('GOOGLE_API_KEY');
   
-  if (!LOVABLE_API_KEY) {
+  if (!GOOGLE_API_KEY) {
     // Return basic dossier without AI enhancement
     return createBasicDossier(data);
   }
@@ -387,14 +387,14 @@ Generate a JSON response with these exact fields:
   }
 }`;
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    const response = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Authorization': `Bearer ${GOOGLE_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash-lite',
+        model: 'gemini-2.5-flash-lite',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt },
@@ -448,7 +448,7 @@ Generate a JSON response with these exact fields:
   }
 }
 
-function createBasicDossier(data: any): ParticipantDossier {
+function createBasicDossier(data: Record<string, unknown>): ParticipantDossier {
   return {
     executiveSummary: createBasicSummary(data),
     linkedinSnapshot: data.linkedinData ? {
@@ -469,7 +469,7 @@ function createBasicDossier(data: any): ParticipantDossier {
   };
 }
 
-function createBasicSummary(data: any): string {
+function createBasicSummary(data: Record<string, unknown>): string {
   const parts: string[] = [];
   
   if (data.participantName) {
@@ -491,7 +491,7 @@ function createBasicSummary(data: any): string {
   return parts.join('. ') + '.';
 }
 
-function generateBasicTopics(data: any): string[] {
+function generateBasicTopics(data: Record<string, unknown>): string[] {
   const topics: string[] = [];
   
   if (data.companyData?.industry) {
@@ -509,7 +509,7 @@ function generateBasicTopics(data: any): string[] {
   return topics.length > 0 ? topics : ['Introduction and role overview', 'Current challenges and goals'];
 }
 
-function generateBasicIceBreakers(data: any): string[] {
+function generateBasicIceBreakers(data: Record<string, unknown>): string[] {
   const iceBreakers: string[] = [];
   
   if (data.mutualConnections.length > 0) {

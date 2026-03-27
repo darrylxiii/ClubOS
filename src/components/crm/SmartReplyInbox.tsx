@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
@@ -37,6 +38,7 @@ interface SmartReplyInboxProps {
 }
 
 export function SmartReplyInbox({ onReplySelect }: SmartReplyInboxProps) {
+  const { t } = useTranslation('common');
   const queryClient = useQueryClient();
   const [activeCategory, setActiveCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -148,7 +150,7 @@ export function SmartReplyInbox({ onReplySelect }: SmartReplyInboxProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['smart-reply-inbox'] });
-      toast.success('Reply archived');
+      toast.success(t("reply_archived", "Reply archived"));
     }
   });
 
@@ -179,7 +181,7 @@ export function SmartReplyInbox({ onReplySelect }: SmartReplyInboxProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['smart-reply-inbox'] });
-      toast.success('Reply snoozed');
+      toast.success(t("reply_snoozed", "Reply snoozed"));
       setSnoozeDialogOpen(false);
       setReplyToSnooze(null);
     },
@@ -219,7 +221,7 @@ export function SmartReplyInbox({ onReplySelect }: SmartReplyInboxProps) {
           friendly: data.followUp.friendly,
           decline: data.followUp.concise
         });
-        toast.success('AI replies generated');
+        toast.success(t("ai_replies_generated", "AI replies generated"));
       }
     },
     onError: (error: Error) => {
@@ -275,7 +277,7 @@ export function SmartReplyInbox({ onReplySelect }: SmartReplyInboxProps) {
               <Sparkles className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <CardTitle className="text-lg font-semibold">Smart Reply Inbox</CardTitle>
+              <CardTitle className="text-lg font-semibold">{t("smart_reply_inbox", "Smart Reply Inbox")}</CardTitle>
               <p className="text-xs text-muted-foreground">
                 {unreadCount} unread {hotCount > 0 && `• ${hotCount} hot leads`}
               </p>
@@ -297,7 +299,7 @@ export function SmartReplyInbox({ onReplySelect }: SmartReplyInboxProps) {
         <div className="relative mt-4">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search replies..."
+            placeholder={t("search_replies", "Search replies...")}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-9 bg-background/50"
@@ -345,7 +347,7 @@ export function SmartReplyInbox({ onReplySelect }: SmartReplyInboxProps) {
         ) : filteredReplies.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full p-8 text-center">
             <Mail className="h-12 w-12 text-muted-foreground/50 mb-4" />
-            <h3 className="font-medium text-lg mb-2">No replies yet</h3>
+            <h3 className="font-medium text-lg mb-2">{t("no_replies_yet", "No replies yet")}</h3>
             <p className="text-sm text-muted-foreground">
               {activeCategory !== 'all' 
                 ? `No ${activeCategory} replies found. Try a different category.`
@@ -403,7 +405,7 @@ export function SmartReplyInbox({ onReplySelect }: SmartReplyInboxProps) {
               <Card className="p-4 border-primary/20">
                 <div className="flex items-center gap-2">
                   <Sparkles className="h-4 w-4 animate-pulse text-primary" />
-                  <span className="text-sm">Generating AI replies...</span>
+                  <span className="text-sm">{t("generating_ai_replies", "Generating AI replies...")}</span>
                 </div>
               </Card>
             </motion.div>

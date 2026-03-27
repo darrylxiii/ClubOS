@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import { useGroupedSalesKPIs, useCalculateSalesKPIs, SalesKPI } from '@/hooks/useSalesKPIs';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 
 const categoryConfig = {
   conversational: { icon: MessageSquare, label: 'Conversational', color: 'text-blue-500' },
@@ -75,6 +76,7 @@ const kpiLabels: Record<string, string> = {
 };
 
 function formatValue(kpi: SalesKPI): string {
+  const { t } = useTranslation('admin');
   const name = kpi.kpi_name;
   const value = kpi.value;
   
@@ -124,17 +126,17 @@ function StatusBadge({ kpi }: { kpi: SalesKPI }) {
   
   if (critical !== undefined && critical !== null) {
     if (lowerIsBetter ? value >= critical : value <= critical) {
-      return <Badge variant="destructive" className="text-xs"><XCircle className="h-3 w-3 mr-1" />Critical</Badge>;
+      return <Badge variant="destructive" className="text-xs"><XCircle className="h-3 w-3 mr-1" />{t('salesKPIDashboard.critical')}</Badge>;
     }
   }
   if (warning !== undefined && warning !== null) {
     if (lowerIsBetter ? value >= warning : value <= warning) {
-      return <Badge variant="secondary" className="text-xs bg-amber-100 text-amber-800"><AlertTriangle className="h-3 w-3 mr-1" />Warning</Badge>;
+      return <Badge variant="secondary" className="text-xs bg-amber-100 text-amber-800"><AlertTriangle className="h-3 w-3 mr-1" />{t('common:status.warning')}</Badge>;
     }
   }
   if (target !== undefined && target !== null) {
     if (lowerIsBetter ? value <= target : value >= target) {
-      return <Badge variant="secondary" className="text-xs bg-green-100 text-green-800"><CheckCircle className="h-3 w-3 mr-1" />On Target</Badge>;
+      return <Badge variant="secondary" className="text-xs bg-green-100 text-green-800"><CheckCircle className="h-3 w-3 mr-1" />{t('salesKPIDashboard.onTarget')}</Badge>;
     }
   }
   return null;
@@ -199,7 +201,7 @@ function CategoryTab({ category, kpis }: { category: string; kpis: SalesKPI[] })
       <div className="text-center py-12 text-muted-foreground">
         <Icon className="h-12 w-12 mx-auto mb-4 opacity-50" />
         <p>No {config?.label || category} KPIs calculated yet</p>
-        <p className="text-sm">Run the calculation to generate metrics</p>
+        <p className="text-sm">{t('salesKPIDashboard.runTheCalculationToGenerateMetrics')}</p>
       </div>
     );
   }
@@ -241,7 +243,7 @@ function OverviewStats({ kpis }: { kpis: Record<string, SalesKPI[]> | undefined 
           <CardContent className="p-4">
             <div className="flex items-center gap-2">
               <MessageSquare className="h-4 w-4 text-blue-500" />
-              <span className="text-xs text-muted-foreground">Conversations</span>
+              <span className="text-xs text-muted-foreground">{t('salesKPIDashboard.conversations')}</span>
             </div>
             <p className="text-2xl font-bold mt-1">{conversations}</p>
           </CardContent>
@@ -250,7 +252,7 @@ function OverviewStats({ kpis }: { kpis: Record<string, SalesKPI[]> | undefined 
           <CardContent className="p-4">
             <div className="flex items-center gap-2">
               <Users className="h-4 w-4 text-purple-500" />
-              <span className="text-xs text-muted-foreground">Qualified</span>
+              <span className="text-xs text-muted-foreground">{t('salesKPIDashboard.qualified')}</span>
             </div>
             <p className="text-2xl font-bold mt-1">{qualified}</p>
           </CardContent>
@@ -259,7 +261,7 @@ function OverviewStats({ kpis }: { kpis: Record<string, SalesKPI[]> | undefined 
           <CardContent className="p-4">
             <div className="flex items-center gap-2">
               <Calendar className="h-4 w-4 text-green-500" />
-              <span className="text-xs text-muted-foreground">Meetings</span>
+              <span className="text-xs text-muted-foreground">{t('salesKPIDashboard.meetings')}</span>
             </div>
             <p className="text-2xl font-bold mt-1">{meetings}</p>
           </CardContent>
@@ -268,7 +270,7 @@ function OverviewStats({ kpis }: { kpis: Record<string, SalesKPI[]> | undefined 
           <CardContent className="p-4">
             <div className="flex items-center gap-2">
               <FileText className="h-4 w-4 text-orange-500" />
-              <span className="text-xs text-muted-foreground">Proposals</span>
+              <span className="text-xs text-muted-foreground">{t('salesKPIDashboard.proposals')}</span>
             </div>
             <p className="text-2xl font-bold mt-1">{proposals}</p>
           </CardContent>
@@ -277,7 +279,7 @@ function OverviewStats({ kpis }: { kpis: Record<string, SalesKPI[]> | undefined 
           <CardContent className="p-4">
             <div className="flex items-center gap-2">
               <Target className="h-4 w-4 text-amber-500" />
-              <span className="text-xs text-muted-foreground">Closed Won</span>
+              <span className="text-xs text-muted-foreground">{t('salesKPIDashboard.closedWon')}</span>
             </div>
             <p className="text-2xl font-bold mt-1">{closed}</p>
           </CardContent>
@@ -286,7 +288,7 @@ function OverviewStats({ kpis }: { kpis: Record<string, SalesKPI[]> | undefined 
           <CardContent className="p-4">
             <div className="flex items-center gap-2">
               <DollarSign className="h-4 w-4 text-emerald-500" />
-              <span className="text-xs text-muted-foreground">Revenue</span>
+              <span className="text-xs text-muted-foreground">{t('salesKPIDashboard.revenue')}</span>
             </div>
             <p className="text-2xl font-bold mt-1">
               {new Intl.NumberFormat('en-EU', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(revenue)}
@@ -298,8 +300,8 @@ function OverviewStats({ kpis }: { kpis: Record<string, SalesKPI[]> | undefined 
       {/* Conversion Funnel */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Sales Funnel Conversion</CardTitle>
-          <CardDescription>Stage-to-stage conversion rates</CardDescription>
+          <CardTitle className="text-lg">{t('salesKPIDashboard.salesFunnelConversion')}</CardTitle>
+          <CardDescription>{t('salesKPIDashboard.stagetostageConversionRates')}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-between gap-2">
@@ -335,10 +337,10 @@ export function SalesKPIDashboard() {
   const handleCalculate = async () => {
     try {
       await calculateKpis.mutateAsync({ period_type: periodType });
-      toast.success('Sales KPIs calculated successfully');
+      toast.success(t('salesKPIDashboard.salesKpisCalculatedSuccessfully'));
       refetch();
     } catch (error) {
-      toast.error('Failed to calculate KPIs');
+      toast.error(t('salesKPIDashboard.failedToCalculateKpis'));
     }
   };
   
@@ -347,8 +349,8 @@ export function SalesKPIDashboard() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold">Sales KPI Dashboard</h1>
-          <p className="text-muted-foreground">Track conversion metrics from conversation to cash</p>
+          <h1 className="text-2xl font-bold">{t('salesKPIDashboard.salesKpiDashboard')}</h1>
+          <p className="text-muted-foreground">{t('salesKPIDashboard.trackConversionMetricsFromConversationTo')}</p>
         </div>
         <div className="flex items-center gap-3">
           <Select value={periodType} onValueChange={setPeriodType}>
@@ -356,10 +358,10 @@ export function SalesKPIDashboard() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="daily">Daily</SelectItem>
-              <SelectItem value="weekly">Weekly</SelectItem>
-              <SelectItem value="monthly">Monthly</SelectItem>
-              <SelectItem value="quarterly">Quarterly</SelectItem>
+              <SelectItem value="daily">{t('salesKPIDashboard.daily')}</SelectItem>
+              <SelectItem value="weekly">{t('salesKPIDashboard.weekly')}</SelectItem>
+              <SelectItem value="monthly">{t('salesKPIDashboard.monthly')}</SelectItem>
+              <SelectItem value="quarterly">{t('salesKPIDashboard.quarterly')}</SelectItem>
             </SelectContent>
           </Select>
           <Button 

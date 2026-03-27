@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import type { CRMProspect } from '@/types/crm-enterprise';
 import type { CRMActivity } from '@/types/crm-activities';
 import type { CRMEmailReply } from '@/types/crm-enterprise';
+import { useTranslation } from 'react-i18next';
 
 interface CRMRealtimeContextValue {
   prospectChanges: CRMProspect[];
@@ -36,6 +37,7 @@ export function CRMRealtimeProvider({
   onActivityUpdate,
   onReplyUpdate,
 }: CRMRealtimeProviderProps) {
+  const { t } = useTranslation('common');
   const [prospectChanges, setProspectChanges] = useState<CRMProspect[]>([]);
   const [activityChanges, setActivityChanges] = useState<CRMActivity[]>([]);
   const [replyChanges, setReplyChanges] = useState<CRMEmailReply[]>([]);

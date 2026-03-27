@@ -1,78 +1,56 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { createHandler } from '../_shared/handler.ts';
+import { SupabaseClient } from 'npm:@supabase/supabase-js@2';
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
-
-interface EventBatch {
-  events: Array<{
-    user_id: string;
-    session_id: string;
-    event_type: string;
-    page_path: string;
-    metadata?: Record<string, any>;
-  }>;
+interface UserEvent {
+  user_id: string;
+  session_id: string;
+  event_type: string;
+  page_path: string;
+  metadata?: Record<string, unknown>;
 }
 
-Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+interface EventBatch {
+  events: UserEvent[];
+}
+
+Deno.serve(createHandler(async (req, ctx) => {
+  const { events } = await req.json() as EventBatch;
+
+  if (!events || !Array.isArray(events)) {
+    throw new Error('Invalid event batch format');
   }
 
-  try {
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    );
+  // Process events in parallel
+  const results = await Promise.allSettled([
+    updateEngagementScores(ctx.supabase, events),
+    detectFrustrationPatterns(ctx.supabase, events),
+    updatePartnerMetrics(ctx.supabase, events),
+    detectChurnSignals(ctx.supabase, events),
+  ]);
 
-    const { events } = await req.json() as EventBatch;
+  const successful = results.filter(r => r.status === 'fulfilled').length;
+  const failed = results.filter(r => r.status === 'rejected').length;
 
-    if (!events || !Array.isArray(events)) {
-      throw new Error('Invalid event batch format');
-    }
+  return new Response(
+    JSON.stringify({
+      success: true,
+      processed: events.length,
+      operations: { successful, failed }
+    }),
+    { headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } }
+  );
+}));
 
-    // Process events in parallel
-    const results = await Promise.allSettled([
-      updateEngagementScores(supabase, events),
-      detectFrustrationPatterns(supabase, events),
-      updatePartnerMetrics(supabase, events),
-      detectChurnSignals(supabase, events),
-    ]);
-
-    const successful = results.filter(r => r.status === 'fulfilled').length;
-    const failed = results.filter(r => r.status === 'rejected').length;
-
-    return new Response(
-      JSON.stringify({ 
-        success: true, 
-        processed: events.length,
-        operations: { successful, failed }
-      }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-  } catch (error: any) {
-    console.error('Error processing events:', error);
-    return new Response(
-      JSON.stringify({ error: error?.message || 'Unknown error' }),
-      { 
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      }
-    );
-  }
-});
-
-async function updateEngagementScores(supabase: any, events: any[]) {
+async function updateEngagementScores(supabase: SupabaseClient, events: UserEvent[]) {
   const userEvents = events.reduce((acc, event) => {
     if (!acc[event.user_id]) acc[event.user_id] = [];
     acc[event.user_id].push(event);
     return acc;
-  }, {} as Record<string, any[]>);
+  }, {} as Record<string, UserEvent[]>);
 
   for (const [userId, userEventList] of Object.entries(userEvents)) {
-    const score = calculateEngagementScore(userEventList as any[]);
-    
+    const score = calculateEngagementScore(userEventList);
+
     await supabase.rpc('calculate_user_engagement_score', {
       p_user_id: userId,
       p_score: score
@@ -80,30 +58,30 @@ async function updateEngagementScores(supabase: any, events: any[]) {
   }
 }
 
-function calculateEngagementScore(events: any[]): number {
+function calculateEngagementScore(events: UserEvent[]): number {
   let score = 0;
-  
+
   const clickEvents = events.filter(e => e.event_type === 'click').length;
   const scrollEvents = events.filter(e => e.event_type === 'scroll').length;
-  const timeOnPage = events.reduce((sum, e) => sum + (e.metadata?.time_on_page || 0), 0);
-  
+  const timeOnPage = events.reduce((sum, e) => sum + ((e.metadata?.time_on_page as number) || 0), 0);
+
   score += Math.min(clickEvents * 2, 30);
   score += Math.min(scrollEvents, 20);
   score += Math.min(timeOnPage / 60, 50);
-  
+
   return Math.min(score, 100);
 }
 
-async function detectFrustrationPatterns(supabase: any, events: any[]) {
-  const frustrationEvents = events.filter(e => 
-    e.event_type === 'rage_click' || 
+async function detectFrustrationPatterns(supabase: SupabaseClient, events: UserEvent[]) {
+  const frustrationEvents = events.filter(e =>
+    e.event_type === 'rage_click' ||
     e.event_type === 'error' ||
     e.event_type === 'dead_click'
   );
 
   if (frustrationEvents.length > 0) {
     const patterns = frustrationEvents.reduce((acc, event) => {
-      const key = `${event.page_path}-${event.metadata?.element_id || 'unknown'}`;
+      const key = `${event.page_path}-${(event.metadata?.element_id as string) || 'unknown'}`;
       if (!acc[key]) {
         acc[key] = {
           user_id: event.user_id,
@@ -116,7 +94,7 @@ async function detectFrustrationPatterns(supabase: any, events: any[]) {
       }
       acc[key].count++;
       return acc;
-    }, {} as Record<string, any>);
+    }, {} as Record<string, { user_id: string; session_id: string; page_path: string; signal_type: string; element_info?: Record<string, unknown>; count: number }>);
 
     await supabase
       .from('user_frustration_signals')
@@ -124,7 +102,7 @@ async function detectFrustrationPatterns(supabase: any, events: any[]) {
   }
 }
 
-async function updatePartnerMetrics(supabase: any, events: any[]) {
+async function updatePartnerMetrics(supabase: SupabaseClient, events: UserEvent[]) {
   const { data: partners } = await supabase
     .from('profiles')
     .select('id')
@@ -133,15 +111,15 @@ async function updatePartnerMetrics(supabase: any, events: any[]) {
 
   if (!partners || partners.length === 0) return;
 
-  const partnerIds = new Set(partners.map((p: any) => p.id));
+  const partnerIds = new Set(partners.map((p) => p.id));
   const partnerEvents = events.filter(e => partnerIds.has(e.user_id));
 
-  const metricsMap = new Map<string, any>();
-  
+  const metricsMap = new Map<string, { partner_id: string; date: string; total_logins: number; total_session_time_minutes: number; candidates_viewed: number; engagement_score: number }>();
+
   partnerEvents.forEach(event => {
-    const date = new Date(event.metadata?.timestamp || Date.now()).toISOString().split('T')[0];
+    const date = new Date((event.metadata?.timestamp as string | number) || Date.now()).toISOString().split('T')[0];
     const key = `${event.user_id}-${date}`;
-    
+
     if (!metricsMap.has(key)) {
       metricsMap.set(key, {
         partner_id: event.user_id,
@@ -152,17 +130,17 @@ async function updatePartnerMetrics(supabase: any, events: any[]) {
         engagement_score: 0,
       });
     }
-    
+
     const metrics = metricsMap.get(key);
-    
+
     if (event.event_type === 'page_entry' && event.page_path === '/') {
       metrics.total_logins++;
     }
-    
+
     if (event.metadata?.time_on_page) {
-      metrics.total_session_time_minutes += event.metadata.time_on_page / 60;
+      metrics.total_session_time_minutes += (event.metadata.time_on_page as number) / 60;
     }
-    
+
     if (event.page_path?.includes('/candidates/')) {
       metrics.candidates_viewed++;
     }
@@ -175,9 +153,9 @@ async function updatePartnerMetrics(supabase: any, events: any[]) {
   }
 }
 
-async function detectChurnSignals(supabase: any, events: any[]) {
+async function detectChurnSignals(supabase: SupabaseClient, events: UserEvent[]) {
   const userIds = [...new Set(events.map(e => e.user_id))];
-  
+
   for (const userId of userIds) {
     await supabase.rpc('detect_churn_risk', { p_user_id: userId });
   }

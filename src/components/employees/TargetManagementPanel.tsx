@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -33,6 +34,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 export function TargetManagementPanel() {
+  const { t } = useTranslation('common');
   const [selectedPeriod, setSelectedPeriod] = useState<string>("quarterly");
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isBulkOpen, setIsBulkOpen] = useState(false);
@@ -88,9 +90,9 @@ export function TargetManagementPanel() {
         </div>
         <Tabs value={selectedPeriod} onValueChange={setSelectedPeriod}>
           <TabsList>
-            <TabsTrigger value="monthly">Monthly</TabsTrigger>
-            <TabsTrigger value="quarterly">Quarterly</TabsTrigger>
-            <TabsTrigger value="annual">Annual</TabsTrigger>
+            <TabsTrigger value="monthly">{t("monthly", "Monthly")}</TabsTrigger>
+            <TabsTrigger value="quarterly">{t("quarterly", "Quarterly")}</TabsTrigger>
+            <TabsTrigger value="annual">{t("annual", "Annual")}</TabsTrigger>
           </TabsList>
         </Tabs>
       </div>
@@ -105,7 +107,7 @@ export function TargetManagementPanel() {
               </div>
               <div>
                 <p className="text-2xl font-bold">{currentTargets.length}</p>
-                <p className="text-sm text-muted-foreground">Active Targets</p>
+                <p className="text-sm text-muted-foreground">{t("active_targets", "Active Targets")}</p>
               </div>
             </div>
           </CardContent>
@@ -118,7 +120,7 @@ export function TargetManagementPanel() {
               </div>
               <div>
                 <p className="text-2xl font-bold">{Math.round(avgProgress)}%</p>
-                <p className="text-sm text-muted-foreground">Avg Progress</p>
+                <p className="text-sm text-muted-foreground">{t("avg_progress", "Avg Progress")}</p>
               </div>
             </div>
           </CardContent>
@@ -131,7 +133,7 @@ export function TargetManagementPanel() {
               </div>
               <div>
                 <p className="text-2xl font-bold">{employeesWithoutTargets}</p>
-                <p className="text-sm text-muted-foreground">Without Targets</p>
+                <p className="text-sm text-muted-foreground">{t("without_targets", "Without Targets")}</p>
               </div>
             </div>
           </CardContent>
@@ -255,8 +257,8 @@ function TargetRow({
           <span className="text-sm text-muted-foreground">
             {format(new Date(target.period_start), 'MMM d')} - {format(new Date(target.period_end), 'MMM d, yyyy')}
           </span>
-          {isCurrent && <Badge variant="default" className="text-xs">Current</Badge>}
-          {isPast && <Badge variant="secondary" className="text-xs">Completed</Badge>}
+          {isCurrent && <Badge variant="default" className="text-xs">{t("current", "Current")}</Badge>}
+          {isPast && <Badge variant="secondary" className="text-xs">{t("completed", "Completed")}</Badge>}
         </div>
         <div className="flex items-center gap-2">
           <Button
@@ -264,25 +266,25 @@ function TargetRow({
             size="sm"
             onClick={onRecalculate}
             disabled={isRecalculating}
-            title="Recalculate progress"
+            title={t("recalculate_progress", "Recalculate progress")}
           >
             <RefreshCw className={`h-4 w-4 ${isRecalculating ? 'animate-spin' : ''}`} />
           </Button>
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button variant="ghost" size="sm" title="Delete target">
+              <Button variant="ghost" size="sm" title={t("delete_target", "Delete target")}>
                 <Trash2 className="h-4 w-4 text-destructive" />
               </Button>
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>Delete Target?</AlertDialogTitle>
+                <AlertDialogTitle>{t("delete_target", "Delete Target?")}</AlertDialogTitle>
                 <AlertDialogDescription>
                   This will permanently delete this target and its progress data.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogCancel>{t("cancel", "Cancel")}</AlertDialogCancel>
                 <AlertDialogAction onClick={onDelete} className="bg-destructive text-destructive-foreground">
                   Delete
                 </AlertDialogAction>

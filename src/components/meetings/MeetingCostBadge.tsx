@@ -11,6 +11,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { useTranslation } from 'react-i18next';
 
 interface MeetingCostBadgeProps {
   durationSeconds: number | null;
@@ -24,6 +25,7 @@ export function MeetingCostBadge({
   participantCount,
   avgHourlyRate = 75,
 }: MeetingCostBadgeProps) {
+  const { t } = useTranslation("meetings");
   if (!durationSeconds || participantCount < 1) return null;
 
   const hours = durationSeconds / 3600;
@@ -46,7 +48,7 @@ export function MeetingCostBadge({
         </TooltipTrigger>
         <TooltipContent side="top" className="text-xs max-w-48">
           <p>
-            Estimated cost: {participantCount} participant{participantCount !== 1 ? 's' : ''} × {Math.round(hours * 60)}min @ €{avgHourlyRate}/hr
+            {t('cost.estimated', { participants: participantCount, minutes: Math.round(hours * 60), rate: avgHourlyRate })}
           </p>
         </TooltipContent>
       </Tooltip>

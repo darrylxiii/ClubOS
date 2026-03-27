@@ -1,61 +1,16 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.58.0';
+import { createAuthenticatedHandler } from '../_shared/handler.ts';
 import { checkUserRateLimit, createRateLimitResponse } from '../_shared/rate-limiter.ts';
 import { verifyRecaptcha, createRecaptchaErrorResponse } from '../_shared/recaptcha-verifier.ts';
 import { logAIUsage, extractClientInfo } from '../_shared/ai-logger.ts';
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
-
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
+Deno.serve(createAuthenticatedHandler(async (req, ctx) => {
+  const { user, corsHeaders } = ctx;
 
   const startTime = Date.now();
   const clientInfo = extractClientInfo(req);
-  let userId: string | undefined;
+  const userId = user.id;
 
   try {
-    // Authentication check
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      await logAIUsage({
-        functionName: 'interview-prep-chat',
-        ...clientInfo,
-        success: false,
-        errorMessage: 'No authorization header'
-      });
-      return new Response(
-        JSON.stringify({ error: 'Authentication required' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    const supabaseAuth = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      { global: { headers: { Authorization: authHeader } } }
-    );
-
-    const { data: { user }, error: authError } = await supabaseAuth.auth.getUser();
-    
-    if (authError || !user) {
-      await logAIUsage({
-        functionName: 'interview-prep-chat',
-        ...clientInfo,
-        success: false,
-        errorMessage: 'Authentication failed'
-      });
-      return new Response(
-        JSON.stringify({ error: 'Invalid authentication' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    userId = user.id;
 
     // Rate limiting: 12 requests per hour
     const rateLimit = await checkUserRateLimit(userId, 'interview-prep-chat', 12);
@@ -89,9 +44,9 @@ serve(async (req) => {
       }
     }
     
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY is not configured');
+    const GOOGLE_API_KEY = Deno.env.get('GOOGLE_API_KEY');
+    if (!GOOGLE_API_KEY) {
+      throw new Error('GOOGLE_API_KEY is not configured');
     }
 
     // Build context-aware system prompt
@@ -129,16 +84,16 @@ YOUR ROLE:
 
 Keep responses concise and focused. Ask one question at a time. Begin by introducing yourself and explaining what to expect in this interview stage.`;
 
-    console.log('Calling Lovable AI for interview prep chat');
+    console.log('Calling Google Gemini for interview prep chat');
     
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    const response = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Authorization': `Bearer ${GOOGLE_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash-lite',
+        model: 'gemini-2.5-flash-lite',
         messages: [
           { role: 'system', content: systemPrompt },
           ...messages
@@ -149,7 +104,7 @@ Keep responses concise and focused. Ask one question at a time. Begin by introdu
 
     if (!response.ok) {
       const errorMessage = response.status === 429 ? 'AI rate limit exceeded' :
-                          response.status === 402 ? 'AI credits exhausted' :
+                          response.status === 402 ? 'AI quota exceeded' :
                           'AI service error';
       await logAIUsage({
         userId,
@@ -167,7 +122,7 @@ Keep responses concise and focused. Ask one question at a time. Begin by introdu
         });
       }
       if (response.status === 402) {
-        return new Response(JSON.stringify({ error: 'AI credits exhausted. Please add credits to continue.' }), {
+        return new Response(JSON.stringify({ error: 'AI quota exceeded. Please check your Google API billing.' }), {
           status: 402,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
@@ -207,4 +162,4 @@ Keep responses concise and focused. Ask one question at a time. Begin by introdu
       }
     );
   }
-});
+}));

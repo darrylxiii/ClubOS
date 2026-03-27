@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useMemo, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useVirtualizer } from "@tanstack/react-virtual";
@@ -139,7 +140,7 @@ export const CandidateSelectorTable = ({
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search candidates..."
+            placeholder={t("search_candidates", "Search candidates...")}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-9"
@@ -148,10 +149,10 @@ export const CandidateSelectorTable = ({
         <Select value={jobFilter} onValueChange={setJobFilter}>
           <SelectTrigger className="w-full sm:w-[250px]">
             <Filter className="h-4 w-4 mr-2" />
-            <SelectValue placeholder="Filter by job" />
+            <SelectValue placeholder={t("filter_by_job", "Filter by job")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Candidates</SelectItem>
+            <SelectItem value="all">{t("all_candidates", "All Candidates")}</SelectItem>
             {jobs?.map((job) => (
               <SelectItem key={job.id} value={job.id}>
                 {job.title} - {(job.companies as any)?.name}
@@ -200,8 +201,7 @@ export const CandidateSelectorTable = ({
 };
 
 // Extracted virtualized list component
-function VirtualizedCandidateList({
-  candidates,
+function VirtualizedCandidateList({  candidates,
   selectedCandidates,
   onToggle,
 }: {
@@ -209,6 +209,7 @@ function VirtualizedCandidateList({
   selectedCandidates: string[];
   onToggle: (id: string) => void;
 }) {
+const { t } = useTranslation('common');
   const parentRef = useRef<HTMLDivElement>(null);
 
   const virtualizer = useVirtualizer({

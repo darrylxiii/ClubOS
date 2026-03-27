@@ -22,6 +22,7 @@ import {
   getUrgencyLabel,
   getUrgencyAccentHsl,
 } from '@/lib/jobUrgencyScore';
+import { useTranslation } from 'react-i18next';
 
 interface UrgencyMeterProps {
   jobId: string;
@@ -104,26 +105,26 @@ const ArcGauge = memo(({ score, size }: { score: number; size: 'sm' | 'md' }) =>
 ArcGauge.displayName = 'ArcGauge';
 
 /** Inline breakdown for tooltip / popover */
-const BreakdownDisplay = memo(({ result }: { result: UrgencyScoreResult }) => (
+const BreakdownDisplay = memo(({ result, t }: { result: UrgencyScoreResult; t: (key: string, fallback: string) => string }) => (
   <div className="space-y-1.5 text-xs">
     <div className="flex justify-between gap-4">
-      <span className="text-muted-foreground">Time Pressure</span>
+      <span className="text-muted-foreground">{t('urgencyMeter.timePressure', 'Time Pressure')}</span>
       <span className="font-medium">{result.breakdown.timePressure}/3</span>
     </div>
     <div className="flex justify-between gap-4">
-      <span className="text-muted-foreground">Pipeline Health</span>
+      <span className="text-muted-foreground">{t('urgencyMeter.pipelineHealth', 'Pipeline Health')}</span>
       <span className="font-medium">{result.breakdown.pipelineHealth}/3</span>
     </div>
     <div className="flex justify-between gap-4">
-      <span className="text-muted-foreground">Activity Decay</span>
+      <span className="text-muted-foreground">{t('urgencyMeter.activityDecay', 'Activity Decay')}</span>
       <span className="font-medium">{result.breakdown.activityDecay}/2</span>
     </div>
     <div className="flex justify-between gap-4">
-      <span className="text-muted-foreground">Intel Boost</span>
+      <span className="text-muted-foreground">{t('urgencyMeter.intelBoost', 'Intel Boost')}</span>
       <span className="font-medium">{result.breakdown.intelligenceBoost}/2</span>
     </div>
     <div className="border-t border-border/30 pt-1.5 flex justify-between gap-4 font-semibold">
-      <span>Data Score</span>
+      <span>{t('urgencyMeter.dataScore', 'Data Score')}</span>
       <span>{result.dataScore}</span>
     </div>
   </div>
@@ -141,6 +142,7 @@ export const UrgencyMeter = memo(({
   manualSetByName,
   manualSetAt,
 }: UrgencyMeterProps) => {
+  const { t } = useTranslation('jobs');
   const [sliderValue, setSliderValue] = useState<number>(result.manualScore ?? result.dataScore);
   const [saving, setSaving] = useState(false);
   const [open, setOpen] = useState(false);
@@ -163,11 +165,11 @@ export const UrgencyMeter = memo(({
         .eq('id', jobId);
 
       if (error) throw error;
-      toast.success(`Urgency set to ${sliderValue}`);
+      toast.success(t('urgencyMeter.setSuccess', 'Urgency set to {{value}}', { value: sliderValue }));
       onManualScoreChange?.(sliderValue);
       setOpen(false);
     } catch {
-      toast.error('Failed to update urgency');
+      toast.error(t('urgencyMeter.updateFailed', 'Failed to update urgency'));
     } finally {
       setSaving(false);
     }
@@ -186,11 +188,11 @@ export const UrgencyMeter = memo(({
         .eq('id', jobId);
 
       if (error) throw error;
-      toast.success('Reverted to data-driven score');
+      toast.success(t('urgencyMeter.revertedSuccess', 'Reverted to data-driven score'));
       onManualScoreChange?.(null);
       setOpen(false);
     } catch {
-      toast.error('Failed to clear override');
+      toast.error(t('urgencyMeter.clearFailed', 'Failed to clear override'));
     } finally {
       setSaving(false);
     }
@@ -240,18 +242,18 @@ export const UrgencyMeter = memo(({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Gauge className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm font-semibold">Urgency Score</span>
+              <span className="text-sm font-semibold">{t('urgencyMeter.urgencyScore', 'Urgency Score')}</span>
             </div>
             <Badge variant="outline" className={cn('text-[10px]', colors.text, colors.bg, colors.border)}>
               {label}
             </Badge>
           </div>
 
-          <BreakdownDisplay result={result} />
+          <BreakdownDisplay result={result} t={t} />
 
           <div className="space-y-2 pt-2 border-t border-border/30">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-medium">Manual Override</span>
+              <span className="text-xs font-medium">{t('urgencyMeter.manualOverride', 'Manual Override')}</span>
               <span className={cn('text-sm font-bold', getUrgencyScoreColor(sliderValue).text)}>
                 {sliderValue}
               </span>
@@ -266,18 +268,18 @@ export const UrgencyMeter = memo(({
             />
             <div className="flex gap-2">
               <Button size="sm" className="flex-1 h-7 text-xs" onClick={handleSave} disabled={saving}>
-                {saving ? 'Saving…' : 'Set Override'}
+                {saving ? t('common:saving', 'Saving...') : t('urgencyMeter.setOverride', 'Set Override')}
               </Button>
               {result.isManual && (
                 <Button size="sm" variant="ghost" className="h-7 text-xs gap-1" onClick={handleClear} disabled={saving}>
                   <X className="h-3 w-3" />
-                  Clear
+                  {t('common:clear', 'Clear')}
                 </Button>
               )}
             </div>
             {result.isManual && manualSetByName && (
               <p className="text-[10px] text-muted-foreground">
-                Set by {manualSetByName}
+                {t('urgencyMeter.setBy', 'Set by {{name}}', { name: manualSetByName })}
                 {manualSetAt && ` • ${new Date(manualSetAt).toLocaleDateString()}`}
               </p>
             )}
@@ -296,15 +298,15 @@ export const UrgencyMeter = memo(({
       <TooltipContent side="top" className="max-w-xs p-3">
         <div className="space-y-2">
           <div className="flex items-center gap-2">
-            <span className="text-sm font-semibold">Urgency: {label}</span>
+            <span className="text-sm font-semibold">{t('urgencyMeter.urgencyLabel', 'Urgency: {{label}}', { label })}</span>
             <Badge variant="outline" className={cn('text-[10px]', colors.text, colors.bg, colors.border)}>
               {result.effectiveScore}
             </Badge>
           </div>
-          <BreakdownDisplay result={result} />
+          <BreakdownDisplay result={result} t={t} />
           {result.isManual && (
             <p className="text-[10px] text-muted-foreground pt-1 border-t border-border/30">
-              Manually set{manualSetByName ? ` by ${manualSetByName}` : ''}
+              {manualSetByName ? t('urgencyMeter.manuallySetBy', 'Manually set by {{name}}', { name: manualSetByName }) : t('urgencyMeter.manuallySet', 'Manually set')}
             </p>
           )}
         </div>

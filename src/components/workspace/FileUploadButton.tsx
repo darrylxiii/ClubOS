@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
@@ -18,6 +19,7 @@ interface FileUploadButtonProps {
 const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
 
 export function FileUploadButton({ pageId, onFileUploaded }: FileUploadButtonProps) {
+  const { t } = useTranslation('common');
   const imageInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { uploadFile } = usePageAttachments(pageId);
@@ -31,13 +33,13 @@ export function FileUploadButton({ pageId, onFileUploaded }: FileUploadButtonPro
     
     // Validate file size
     if (file.size > MAX_FILE_SIZE) {
-      toast.error('File too large. Maximum size is 50MB.');
+      toast.error(t("file_too_large_maximum", "File too large. Maximum size is 50MB."));
       return;
     }
 
     // Validate image type if needed
     if (type === 'image' && !file.type.startsWith('image/')) {
-      toast.error('Please select an image file');
+      toast.error(t("please_select_an_image", "Please select an image file"));
       return;
     }
 
@@ -81,7 +83,7 @@ export function FileUploadButton({ pageId, onFileUploaded }: FileUploadButtonPro
             ) : (
               <Paperclip className="h-4 w-4" />
             )}
-            <span className="ml-2">Attach</span>
+            <span className="ml-2">{t("attach", "Attach")}</span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start">

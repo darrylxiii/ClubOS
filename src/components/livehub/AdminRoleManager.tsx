@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -24,6 +25,7 @@ interface UserWithRole {
 }
 
 export function AdminRoleManager({ open, onOpenChange }: AdminRoleManagerProps) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const [users, setUsers] = useState<UserWithRole[]>([]);
   const [loading, setLoading] = useState(false);
@@ -55,7 +57,7 @@ export function AdminRoleManager({ open, onOpenChange }: AdminRoleManagerProps) 
       setUsers(usersWithRoles);
     } catch (error) {
       console.error('Error loading users:', error);
-      toast.error('Failed to load users');
+      toast.error(t("failed_to_load_users", "Failed to load users"));
     } finally {
       setLoading(false);
     }
@@ -78,11 +80,11 @@ export function AdminRoleManager({ open, onOpenChange }: AdminRoleManagerProps) 
         await assignRole(userId, newRole, user.id);
       }
 
-      toast.success('Role updated successfully');
+      toast.success(t("role_updated_successfully", "Role updated successfully"));
       await loadUsers();
     } catch (error) {
       console.error('Error updating role:', error);
-      toast.error('Failed to update role');
+      toast.error(t("failed_to_update_role", "Failed to update role"));
     } finally {
       setUpdating(null);
     }
@@ -114,7 +116,7 @@ export function AdminRoleManager({ open, onOpenChange }: AdminRoleManagerProps) 
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Manage User Roles</DialogTitle>
+          <DialogTitle>{t("manage_user_roles", "Manage User Roles")}</DialogTitle>
         </DialogHeader>
 
         <ScrollArea className="h-[500px] pr-4">
@@ -155,10 +157,10 @@ export function AdminRoleManager({ open, onOpenChange }: AdminRoleManagerProps) 
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="none">No Role</SelectItem>
-                      <SelectItem value="user">User</SelectItem>
-                      <SelectItem value="moderator">Moderator</SelectItem>
-                      <SelectItem value="admin">Admin</SelectItem>
+                      <SelectItem value="none">{t("no_role", "No Role")}</SelectItem>
+                      <SelectItem value="user">{t("user", "User")}</SelectItem>
+                      <SelectItem value="moderator">{t("moderator", "Moderator")}</SelectItem>
+                      <SelectItem value="admin">{t("admin", "Admin")}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

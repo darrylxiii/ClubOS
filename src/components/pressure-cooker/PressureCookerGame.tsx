@@ -1,4 +1,5 @@
 import { memo, useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { PressureCookerTask, PressureCookerAction } from '@/types/assessment';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -25,6 +26,7 @@ interface PressureCookerGameProps {
 const TIME_LIMIT = 900;
 
 export const PressureCookerGame = memo(({ session, elapsedTime, onComplete }: PressureCookerGameProps) => {
+  const { t } = useTranslation('common');
   const [selectedTask, setSelectedTask] = useState<PressureCookerTask | null>(null);
   const [notes, setNotes] = useState('');
   const [quality, setQuality] = useState([85]);
@@ -138,7 +140,7 @@ export const PressureCookerGame = memo(({ session, elapsedTime, onComplete }: Pr
               <div className="text-sm text-muted-foreground">
                 Completed: <span className="font-semibold text-foreground">{session.completedTaskIds.size}</span> / {session.currentTasks.length}
               </div>
-              <Button onClick={onComplete} variant="outline" size="sm">Finish Early</Button>
+              <Button onClick={onComplete} variant="outline" size="sm">{t('pressureCooker.finishEarly')}</Button>
             </div>
           </div>
           <Progress value={progress} className="h-1" />
@@ -149,7 +151,7 @@ export const PressureCookerGame = memo(({ session, elapsedTime, onComplete }: Pr
         <div className="h-full w-full grid grid-cols-2 gap-6 p-6">
           <Card className="flex flex-col">
             <div className="p-4 border-b">
-              <h2 className="text-lg font-semibold">Task Inbox</h2>
+              <h2 className="text-lg font-semibold">{t('pressureCooker.taskInbox')}</h2>
             </div>
             <ScrollArea className="flex-1">
               <div className="p-4 space-y-2">
@@ -208,7 +210,7 @@ export const PressureCookerGame = memo(({ session, elapsedTime, onComplete }: Pr
                   </div>
                   <Separator />
                   <div>
-                    <Label>Notes / Response</Label>
+                    <Label>{t('pressureCooker.notesResponse')}</Label>
                     <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} />
                   </div>
                   <div>
@@ -216,16 +218,16 @@ export const PressureCookerGame = memo(({ session, elapsedTime, onComplete }: Pr
                     <Slider value={quality} onValueChange={setQuality} min={50} max={100} step={5} />
                   </div>
                   <div>
-                    <Label>Response Tone</Label>
+                    <Label>{t('pressureCooker.responseTone')}</Label>
                     <RadioGroup value={responseTemplate} onValueChange={setResponseTemplate}>
                       <div className="grid grid-cols-2 gap-2">
                         <div className="flex items-center space-x-2">
                           <RadioGroupItem value="brief" id="brief" />
-                          <Label htmlFor="brief">Brief</Label>
+                          <Label htmlFor="brief">{t('pressureCooker.brief')}</Label>
                         </div>
                         <div className="flex items-center space-x-2">
                           <RadioGroupItem value="professional" id="professional" />
-                          <Label htmlFor="professional">Professional</Label>
+                          <Label htmlFor="professional">{t('pressureCooker.professional')}</Label>
                         </div>
                       </div>
                     </RadioGroup>

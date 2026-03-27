@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -34,6 +35,7 @@ interface OKRIntegrationProps {
 }
 
 export function OKRIntegration({ kpis, onLinkKPI, onUnlinkKPI }: OKRIntegrationProps) {
+  const { t } = useTranslation('common');
   const currentYear = new Date().getFullYear();
   const currentQuarter = `Q${Math.ceil((new Date().getMonth() + 1) / 3)}`;
   
@@ -102,7 +104,7 @@ export function OKRIntegration({ kpis, onLinkKPI, onUnlinkKPI }: OKRIntegrationP
       onUnlinkKPI(kpiName, keyResultId);
     } else {
       unlinkKPI({ kpiName, keyResultId }, {
-        onSuccess: () => toast.success('KPI unlinked')
+        onSuccess: () => toast.success(t("kpi_unlinked", "KPI unlinked"))
       });
     }
   };
@@ -146,7 +148,7 @@ export function OKRIntegration({ kpis, onLinkKPI, onUnlinkKPI }: OKRIntegrationP
         </div>
         <Select value={selectedQuarter} onValueChange={setSelectedQuarter}>
           <SelectTrigger className="w-[140px]">
-            <SelectValue placeholder="Quarter" />
+            <SelectValue placeholder={t("quarter", "Quarter")} />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value={`Q1 ${currentYear}`}>Q1 {currentYear}</SelectItem>
@@ -163,7 +165,7 @@ export function OKRIntegration({ kpis, onLinkKPI, onUnlinkKPI }: OKRIntegrationP
         <Card className="bg-card/50 backdrop-blur border-border/50">
           <CardContent className="py-12 text-center">
             <AlertCircle className="h-12 w-12 text-muted-foreground/50 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-foreground mb-2">No OKRs Found</h3>
+            <h3 className="text-lg font-medium text-foreground mb-2">{t("no_okrs_found", "No OKRs Found")}</h3>
             <p className="text-sm text-muted-foreground max-w-md mx-auto">
               No objectives have been created for {selectedQuarter}. OKRs can be created by administrators to track strategic goals.
             </p>
@@ -201,7 +203,7 @@ export function OKRIntegration({ kpis, onLinkKPI, onUnlinkKPI }: OKRIntegrationP
                 </div>
                 <div className="text-right">
                   <span className="text-2xl font-bold text-foreground">{okr.progress}%</span>
-                  <p className="text-xs text-muted-foreground">Overall Progress</p>
+                  <p className="text-xs text-muted-foreground">{t("overall_progress", "Overall Progress")}</p>
                 </div>
               </div>
               <Progress value={okr.progress} className="h-1.5 mt-3" />
@@ -210,7 +212,7 @@ export function OKRIntegration({ kpis, onLinkKPI, onUnlinkKPI }: OKRIntegrationP
             {selectedOKR?.id === okr.id && okr.key_results && okr.key_results.length > 0 && (
               <CardContent className="pt-0">
                 <div className="border-t border-border/50 pt-4 mt-2">
-                  <h4 className="text-sm font-medium text-foreground mb-3">Key Results</h4>
+                  <h4 className="text-sm font-medium text-foreground mb-3">{t("key_results", "Key Results")}</h4>
                   <div className="space-y-3">
                     {okr.key_results.map((kr) => {
                       const linkedKPIs = getLinkedKPIsForKR(kr.id);
@@ -250,7 +252,7 @@ export function OKRIntegration({ kpis, onLinkKPI, onUnlinkKPI }: OKRIntegrationP
 
                           {/* Linked KPIs */}
                           <div className="flex items-center gap-2 flex-wrap">
-                            <span className="text-xs text-muted-foreground">Linked KPIs:</span>
+                            <span className="text-xs text-muted-foreground">{t("linked_kpis", "Linked KPIs:")}</span>
                             {linkedKPIs.length > 0 ? (
                               linkedKPIs.map((kpiName) => {
                                 const kpi = getLinkedKPIDetails(kpiName);
@@ -275,7 +277,7 @@ export function OKRIntegration({ kpis, onLinkKPI, onUnlinkKPI }: OKRIntegrationP
                                 );
                               })
                             ) : (
-                              <span className="text-xs text-muted-foreground italic">None linked</span>
+                              <span className="text-xs text-muted-foreground italic">{t("none_linked", "None linked")}</span>
                             )}
                             <Dialog open={linkDialogOpen && selectedKR?.id === kr.id} onOpenChange={(open) => {
                               setLinkDialogOpen(open);
@@ -298,7 +300,7 @@ export function OKRIntegration({ kpis, onLinkKPI, onUnlinkKPI }: OKRIntegrationP
                               </DialogTrigger>
                               <DialogContent className="sm:max-w-lg" onClick={(e) => e.stopPropagation()}>
                                 <DialogHeader>
-                                  <DialogTitle>Link KPI to Key Result</DialogTitle>
+                                  <DialogTitle>{t("link_kpi_to_key", "Link KPI to Key Result")}</DialogTitle>
                                   <DialogDescription>
                                     Select a KPI to link to "{kr.title}"
                                   </DialogDescription>
@@ -307,7 +309,7 @@ export function OKRIntegration({ kpis, onLinkKPI, onUnlinkKPI }: OKRIntegrationP
                                   <div className="relative">
                                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                     <Input
-                                      placeholder="Search KPIs..."
+                                      placeholder={t("search_kpis", "Search KPIs...")}
                                       value={searchQuery}
                                       onChange={(e) => setSearchQuery(e.target.value)}
                                       className="pl-9"
@@ -382,25 +384,25 @@ export function OKRIntegration({ kpis, onLinkKPI, onUnlinkKPI }: OKRIntegrationP
             <div className="grid grid-cols-4 gap-4 text-center">
               <div>
                 <p className="text-2xl font-bold text-foreground">{okrs.length}</p>
-                <p className="text-xs text-muted-foreground">Active OKRs</p>
+                <p className="text-xs text-muted-foreground">{t("active_okrs", "Active OKRs")}</p>
               </div>
               <div>
                 <p className="text-2xl font-bold text-foreground">
                   {okrs.reduce((acc, o) => acc + (o.key_results?.length || 0), 0)}
                 </p>
-                <p className="text-xs text-muted-foreground">Key Results</p>
+                <p className="text-xs text-muted-foreground">{t("key_results", "Key Results")}</p>
               </div>
               <div>
                 <p className="text-2xl font-bold text-emerald-400">
                   {okrs.filter(o => o.status === 'on-track' || o.status === 'completed').length}
                 </p>
-                <p className="text-xs text-muted-foreground">On Track</p>
+                <p className="text-xs text-muted-foreground">{t("on_track", "On Track")}</p>
               </div>
               <div>
                 <p className="text-2xl font-bold text-foreground">
                   {totalLinkedKPIs}
                 </p>
-                <p className="text-xs text-muted-foreground">Linked KPIs</p>
+                <p className="text-xs text-muted-foreground">{t("linked_kpis", "Linked KPIs")}</p>
               </div>
             </div>
           </CardContent>

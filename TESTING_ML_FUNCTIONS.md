@@ -1,7 +1,7 @@
 # Testing ML Intelligence Functions
 
 ## Overview
-Three new AI-powered edge functions have been created to extract intelligence from company interactions using Lovable AI (Gemini 2.5 Flash).
+Three new AI-powered edge functions have been created to extract intelligence from company interactions using Google Gemini (Gemini 2.5 Flash).
 
 ## Edge Functions Created
 
@@ -30,7 +30,7 @@ Three new AI-powered edge functions have been created to extract intelligence fr
 ```bash
 # Using curl (replace with actual interaction ID)
 curl -X POST \
-  'https://dpjucecmoyfzrduhlctt.supabase.co/functions/v1/extract-interaction-insights' \
+  'https://chgrkvftjfibufoopmav.supabase.co/functions/v1/extract-interaction-insights' \
   -H 'Authorization: Bearer YOUR_JWT_TOKEN' \
   -H 'Content-Type: application/json' \
   -d '{"interaction_id": "actual-interaction-id-here"}'
@@ -57,7 +57,7 @@ curl -X POST \
 **How to test:**
 ```bash
 curl -X POST \
-  'https://dpjucecmoyfzrduhlctt.supabase.co/functions/v1/calculate-stakeholder-influence' \
+  'https://chgrkvftjfibufoopmav.supabase.co/functions/v1/calculate-stakeholder-influence' \
   -H 'Authorization: Bearer YOUR_JWT_TOKEN' \
   -H 'Content-Type: application/json' \
   -d '{"company_id": "actual-company-id-here"}'
@@ -85,7 +85,7 @@ curl -X POST \
 **How to test:**
 ```bash
 curl -X POST \
-  'https://dpjucecmoyfzrduhlctt.supabase.co/functions/v1/generate-company-intelligence-report' \
+  'https://chgrkvftjfibufoopmav.supabase.co/functions/v1/generate-company-intelligence-report' \
   -H 'Authorization: Bearer YOUR_JWT_TOKEN' \
   -H 'Content-Type: application/json' \
   -d '{"company_id": "actual-company-id-here"}'
@@ -151,7 +151,7 @@ LIMIT 5;
 ### Step 3: Verify Edge Function Logs
 ```bash
 # View logs for extract-interaction-insights
-# (Use Lovable Cloud backend interface or Supabase dashboard)
+# (Use Supabase backend interface or Supabase dashboard)
 
 # Check for errors in ai_usage_logs table
 SELECT 
@@ -189,7 +189,7 @@ LIMIT 10;
 **Solution:** Ensure you have logged interactions for the company. Use the Interaction Entry page or import WhatsApp chats.
 
 ### Issue: "AI rate limit exceeded"
-**Solution:** Wait a few minutes before retrying. Lovable AI has rate limits per workspace.
+**Solution:** Wait a few minutes before retrying. Google Gemini has rate limits per workspace.
 
 ### Issue: "Stakeholder not found"
 **Solution:** Run `resolve-stakeholder-entities` function first to match names to stakeholder records.

@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Users, Mail, Shield, Trash2 } from "lucide-react";
 import { TeamInviteWidget } from "./TeamInviteWidget";
+import { useTranslation } from 'react-i18next';
 
 interface TeamManagementProps {
   companyId: string;
@@ -13,6 +14,7 @@ interface TeamManagementProps {
 }
 
 export const TeamManagement = ({ companyId, canManage }: TeamManagementProps) => {
+  const { t } = useTranslation('partner');
   const [members, setMembers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [companyName, setCompanyName] = useState("");
@@ -46,7 +48,7 @@ export const TeamManagement = ({ companyId, canManage }: TeamManagementProps) =>
       setMembers(data || []);
     } catch (error) {
       console.error('Error fetching members:', error);
-      toast.error("Failed to load team members");
+      toast.error(t('teamManagement.toast.failedToLoadTeamMembers'));
     } finally {
       setLoading(false);
     }
@@ -63,11 +65,11 @@ export const TeamManagement = ({ companyId, canManage }: TeamManagementProps) =>
 
       if (error) throw error;
       
-      toast.success("Team member removed");
+      toast.success(t('teamManagement.toast.teamMemberRemoved'));
       fetchMembers();
     } catch (error) {
       console.error('Error removing member:', error);
-      toast.error("Failed to remove team member");
+      toast.error(t('teamManagement.toast.failedToRemoveTeamMember'));
     }
   };
 
@@ -99,17 +101,15 @@ export const TeamManagement = ({ companyId, canManage }: TeamManagementProps) =>
 
       {/* Team Members Header */}
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-black uppercase">Team Members</h2>
+        <h2 className="text-2xl font-black uppercase">{t('teamManagement.teamMembers')}</h2>
       </div>
 
       {members.filter(m => m.is_active).length === 0 ? (
         <Card className="border-2 border-dashed">
           <CardContent className="flex flex-col items-center justify-center py-12">
             <Users className="w-12 h-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-bold mb-2">No team members yet</h3>
-            <p className="text-sm text-muted-foreground">
-              Invite team members to collaborate on job postings
-            </p>
+            <h3 className="text-lg font-bold mb-2">{t('teamManagement.noTeamMembersYet')}</h3>
+            <p className="text-sm text-muted-foreground">{t('teamManagement.inviteTeamMembersToCollaborateOnJobPosti')}</p>
           </CardContent>
         </Card>
       ) : (

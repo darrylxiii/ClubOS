@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -38,6 +39,7 @@ const WON_REASONS = [
 ];
 
 export function CloseWonDialog({ open, onClose, prospect, onConfirm }: CloseWonDialogProps) {
+  const { t } = useTranslation('common');
   const [dealValue, setDealValue] = useState(prospect.deal_value?.toString() || '');
   const [reasonCategory, setReasonCategory] = useState('');
   const [notes, setNotes] = useState('');
@@ -55,7 +57,7 @@ export function CloseWonDialog({ open, onClose, prospect, onConfirm }: CloseWonD
 
   const handleConfirm = async () => {
     if (!reasonCategory) {
-      toast.error('Please select a reason for winning');
+      toast.error(t("please_select_a_reason", "Please select a reason for winning"));
       return;
     }
 
@@ -77,7 +79,7 @@ export function CloseWonDialog({ open, onClose, prospect, onConfirm }: CloseWonD
       }, 2000);
     } catch (error) {
       console.error('Error closing deal:', error);
-      toast.error('Failed to close deal');
+      toast.error(t("failed_to_close_deal", "Failed to close deal"));
     } finally {
       setLoading(false);
     }
@@ -151,7 +153,7 @@ export function CloseWonDialog({ open, onClose, prospect, onConfirm }: CloseWonD
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="deal-value">Deal Value (€)</Label>
+                    <Label htmlFor="deal-value">{t("deal_value", "Deal Value (€)")}</Label>
                     <Input
                       id="deal-value"
                       type="number"
@@ -164,10 +166,10 @@ export function CloseWonDialog({ open, onClose, prospect, onConfirm }: CloseWonD
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Why did we win? *</Label>
+                  <Label>{t("why_did_we_win", "Why did we win? *")}</Label>
                   <Select value={reasonCategory} onValueChange={setReasonCategory}>
                     <SelectTrigger className="bg-muted/20">
-                      <SelectValue placeholder="Select primary reason" />
+                      <SelectValue placeholder={t("select_primary_reason", "Select primary reason")} />
                     </SelectTrigger>
                     <SelectContent>
                       {WON_REASONS.map((reason) => (
@@ -180,12 +182,12 @@ export function CloseWonDialog({ open, onClose, prospect, onConfirm }: CloseWonD
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="notes">Additional Notes</Label>
+                  <Label htmlFor="notes">{t("additional_notes", "Additional Notes")}</Label>
                   <Textarea
                     id="notes"
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
-                    placeholder="Any insights or learnings from this deal..."
+                    placeholder={t("any_insights_or_learnings", "Any insights or learnings from this deal...")}
                     className="bg-muted/20 min-h-[80px]"
                   />
                 </div>
@@ -197,9 +199,9 @@ export function CloseWonDialog({ open, onClose, prospect, onConfirm }: CloseWonD
                     This will:
                   </p>
                   <ul className="text-sm text-muted-foreground space-y-1 ml-6 list-disc">
-                    <li>Mark prospect as closed_won</li>
-                    <li>Record win reason for analytics</li>
-                    <li>Update pipeline metrics</li>
+                    <li>{t("mark_prospect_as_closed_won", "Mark prospect as closed_won")}</li>
+                    <li>{t("record_win_reason_for", "Record win reason for analytics")}</li>
+                    <li>{t("update_pipeline_metrics", "Update pipeline metrics")}</li>
                   </ul>
                 </div>
               </div>

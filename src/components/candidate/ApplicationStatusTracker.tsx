@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
@@ -16,6 +17,7 @@ import { useApplications } from "@/hooks/useApplications";
 import { getApplicationStageInfo } from "@/lib/applicationStageUtils";
 
 export function ApplicationStatusTracker({ userId }: { userId: string }) {
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   
@@ -75,10 +77,10 @@ export function ApplicationStatusTracker({ userId }: { userId: string }) {
   if (displayApps.length === 0) {
     return (
       <div className="glass-subtle rounded-2xl p-6">
-        <h3 className="text-sm font-medium text-muted-foreground mb-6">Application Pipeline</h3>
+        <h3 className="text-sm font-medium text-muted-foreground mb-6">{t("application_pipeline", "Application Pipeline")}</h3>
         <div className="text-center py-8 space-y-4">
           <Briefcase className="w-12 h-12 mx-auto text-muted-foreground opacity-50" />
-          <p className="text-muted-foreground">No active applications yet</p>
+          <p className="text-muted-foreground">{t("no_active_applications_yet", "No active applications yet")}</p>
           <Button onClick={() => navigate('/jobs')} variant="default">
             Browse Jobs
           </Button>
@@ -89,7 +91,7 @@ export function ApplicationStatusTracker({ userId }: { userId: string }) {
 
   return (
     <div className="glass-subtle rounded-2xl p-6">
-      <h3 className="text-sm font-medium text-muted-foreground mb-4">Application Pipeline</h3>
+      <h3 className="text-sm font-medium text-muted-foreground mb-4">{t("application_pipeline", "Application Pipeline")}</h3>
       <div className="space-y-3">
         {displayApps.map((app) => {
           const stageInfo = getStageInfo(app);

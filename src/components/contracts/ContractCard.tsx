@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -20,6 +21,7 @@ interface ContractCardProps {
 }
 
 export function ContractCard({ contract, view }: ContractCardProps) {
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
   
   const getStatusColor = (status: string) => {
@@ -61,7 +63,7 @@ export function ContractCard({ contract, view }: ContractCardProps) {
           {view === 'freelancer' && contract.company_id && (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Building2 className="h-4 w-4" />
-              <span>Client Company</span>
+              <span>{t("client_company", "Client Company")}</span>
             </div>
           )}
           
@@ -85,7 +87,7 @@ export function ContractCard({ contract, view }: ContractCardProps) {
       {contract.contract_status === 'active' && (
         <div className="mb-4">
           <div className="flex items-center justify-between text-sm mb-2">
-            <span className="text-muted-foreground">Progress</span>
+            <span className="text-muted-foreground">{t("progress", "Progress")}</span>
             <span className="font-medium text-foreground">{progress}%</span>
           </div>
           <Progress value={progress} className="h-2" />
@@ -96,7 +98,7 @@ export function ContractCard({ contract, view }: ContractCardProps) {
         <div className="flex items-center gap-2">
           <Calendar className="h-4 w-4 text-muted-foreground" />
           <div>
-            <div className="text-xs text-muted-foreground">Start</div>
+            <div className="text-xs text-muted-foreground">{t("start", "Start")}</div>
             <div className="text-sm font-medium text-foreground">
               {contract.start_date ? format(new Date(contract.start_date), 'MMM d') : 'TBD'}
             </div>
@@ -106,7 +108,7 @@ export function ContractCard({ contract, view }: ContractCardProps) {
         <div className="flex items-center gap-2">
           <Clock className="h-4 w-4 text-muted-foreground" />
           <div>
-            <div className="text-xs text-muted-foreground">Due</div>
+            <div className="text-xs text-muted-foreground">{t("due", "Due")}</div>
             <div className="text-sm font-medium text-foreground">
               {contract.end_date ? format(new Date(contract.end_date), 'MMM d') : 'TBD'}
             </div>
@@ -118,16 +120,16 @@ export function ContractCard({ contract, view }: ContractCardProps) {
             <>
               <CheckCircle className="h-4 w-4 text-green-500" />
               <div>
-                <div className="text-xs text-muted-foreground">Escrow</div>
-                <div className="text-sm font-medium text-green-600">Secured</div>
+                <div className="text-xs text-muted-foreground">{t("escrow", "Escrow")}</div>
+                <div className="text-sm font-medium text-green-600">{t("secured", "Secured")}</div>
               </div>
             </>
           ) : (
             <>
               <AlertCircle className="h-4 w-4 text-yellow-500" />
               <div>
-                <div className="text-xs text-muted-foreground">Escrow</div>
-                <div className="text-sm font-medium text-yellow-600">Pending</div>
+                <div className="text-xs text-muted-foreground">{t("escrow", "Escrow")}</div>
+                <div className="text-sm font-medium text-yellow-600">{t("pending", "Pending")}</div>
               </div>
             </>
           )}

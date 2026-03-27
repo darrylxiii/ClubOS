@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from 'react-i18next';
 import { useRole } from "@/contexts/RoleContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -12,6 +13,7 @@ import { PartnerInlineStats } from "@/components/partner/PartnerInlineStats";
 import { PartnerGlassCard } from "@/components/partner/PartnerGlassCard";
 
 const PartnerTargetCompanies = () => {
+  const { t } = useTranslation('partner');
   const { currentRole: role, companyId } = useRole();
   const { user } = useAuth();
   const [dialogOpen, setDialogOpen] = useState(false);

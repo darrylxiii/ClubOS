@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -16,6 +17,7 @@ interface EditCompanyDialogProps {
 }
 
 export function EditCompanyDialog({ companyId, open, onClose, onSuccess }: EditCompanyDialogProps) {
+  const { t } = useTranslation('common');
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [formData, setFormData] = useState({
@@ -61,7 +63,7 @@ export function EditCompanyDialog({ companyId, open, onClose, onSuccess }: EditC
       setCoverPreview(data.cover_image_url || "");
     } catch (error: unknown) {
       console.error("Error loading company:", error);
-      toast.error("Failed to load company data");
+      toast.error(t("failed_to_load_company", "Failed to load company data"));
     }
   };
 
@@ -71,13 +73,13 @@ export function EditCompanyDialog({ companyId, open, onClose, onSuccess }: EditC
       // Validate file type
       const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
       if (!validTypes.includes(file.type)) {
-        toast.error("Please upload a JPG, PNG, or WEBP image");
+        toast.error(t("please_upload_a_jpg", "Please upload a JPG, PNG, or WEBP image"));
         return;
       }
       
       // Validate file size
       if (file.size > 5 * 1024 * 1024) {
-        toast.error("Logo must be less than 5MB");
+        toast.error(t("logo_must_be_less", "Logo must be less than 5MB"));
         return;
       }
       
@@ -92,13 +94,13 @@ export function EditCompanyDialog({ companyId, open, onClose, onSuccess }: EditC
       // Validate file type
       const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
       if (!validTypes.includes(file.type)) {
-        toast.error("Please upload a JPG, PNG, or WEBP image");
+        toast.error(t("please_upload_a_jpg", "Please upload a JPG, PNG, or WEBP image"));
         return;
       }
       
       // Validate file size
       if (file.size > 10 * 1024 * 1024) {
-        toast.error("Cover image must be less than 10MB");
+        toast.error(t("cover_image_must_be", "Cover image must be less than 10MB"));
         return;
       }
       
@@ -145,7 +147,7 @@ export function EditCompanyDialog({ companyId, open, onClose, onSuccess }: EditC
           .getPublicUrl(fileName);
 
         updates.logo_url = publicUrl;
-        toast.success("Logo uploaded successfully!");
+        toast.success(t("logo_uploaded_successfully", "Logo uploaded successfully!"));
       }
 
       // Upload cover if changed
@@ -171,7 +173,7 @@ export function EditCompanyDialog({ companyId, open, onClose, onSuccess }: EditC
           .getPublicUrl(fileName);
 
         updates.cover_image_url = publicUrl;
-        toast.success("Cover image uploaded successfully!");
+        toast.success(t("cover_image_uploaded_successfully", "Cover image uploaded successfully!"));
       }
 
       // Update company
@@ -182,7 +184,7 @@ export function EditCompanyDialog({ companyId, open, onClose, onSuccess }: EditC
 
       if (updateError) throw updateError;
 
-      toast.success("Company updated successfully");
+      toast.success(t("company_updated_successfully", "Company updated successfully"));
       onSuccess();
       onClose();
     } catch (error: unknown) {
@@ -198,18 +200,18 @@ export function EditCompanyDialog({ companyId, open, onClose, onSuccess }: EditC
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Edit Company Profile</DialogTitle>
+          <DialogTitle>{t("edit_company_profile", "Edit Company Profile")}</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Logo Upload */}
           <div className="space-y-2">
-            <Label>Company Logo</Label>
+            <Label>{t("company_logo", "Company Logo")}</Label>
             <div className="flex items-center gap-4">
               {logoPreview && (
                 <img 
                   src={logoPreview} 
-                  alt="Logo preview" 
+                  alt={t("logo_preview", "Logo preview")} 
                   className="w-20 h-20 object-cover rounded-lg border-2 border-border"
                 />
               )}
@@ -229,12 +231,12 @@ export function EditCompanyDialog({ companyId, open, onClose, onSuccess }: EditC
 
           {/* Cover Upload */}
           <div className="space-y-2">
-            <Label>Cover Image</Label>
+            <Label>{t("cover_image", "Cover Image")}</Label>
             <div className="flex items-center gap-4">
               {coverPreview && (
                 <img 
                   src={coverPreview} 
-                  alt="Cover preview" 
+                  alt={t("cover_preview", "Cover preview")} 
                   className="w-32 h-20 object-cover rounded-lg border-2 border-border"
                 />
               )}
@@ -254,7 +256,7 @@ export function EditCompanyDialog({ companyId, open, onClose, onSuccess }: EditC
 
           <div className="grid grid-cols-1 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Company Name *</Label>
+              <Label htmlFor="name">{t("company_name", "Company Name *")}</Label>
               <Input
                 id="name"
                 value={formData.name}
@@ -264,28 +266,28 @@ export function EditCompanyDialog({ companyId, open, onClose, onSuccess }: EditC
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="tagline">Tagline</Label>
+              <Label htmlFor="tagline">{t("tagline", "Tagline")}</Label>
               <Input
                 id="tagline"
                 value={formData.tagline}
                 onChange={(e) => setFormData({ ...formData, tagline: e.target.value })}
-                placeholder="One-line description"
+                placeholder={t("oneline_description", "One-line description")}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
+              <Label htmlFor="description">{t("description", "Description")}</Label>
               <Textarea
                 id="description"
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 rows={4}
-                placeholder="Tell us about your company"
+                placeholder={t("tell_us_about_your", "Tell us about your company")}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="website">Website</Label>
+              <Label htmlFor="website">{t("website", "Website")}</Label>
               <Input
                 id="website"
                 type="url"
@@ -296,7 +298,7 @@ export function EditCompanyDialog({ companyId, open, onClose, onSuccess }: EditC
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="linkedin">LinkedIn URL</Label>
+              <Label htmlFor="linkedin">{t("linkedin_url", "LinkedIn URL")}</Label>
               <Input
                 id="linkedin"
                 type="url"
@@ -307,7 +309,7 @@ export function EditCompanyDialog({ companyId, open, onClose, onSuccess }: EditC
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="twitter">Twitter URL</Label>
+              <Label htmlFor="twitter">{t("twitter_url", "Twitter URL")}</Label>
               <Input
                 id="twitter"
                 type="url"
@@ -318,7 +320,7 @@ export function EditCompanyDialog({ companyId, open, onClose, onSuccess }: EditC
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="instagram">Instagram URL</Label>
+              <Label htmlFor="instagram">{t("instagram_url", "Instagram URL")}</Label>
               <Input
                 id="instagram"
                 type="url"
@@ -333,7 +335,7 @@ export function EditCompanyDialog({ companyId, open, onClose, onSuccess }: EditC
           {uploading && (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Loader2 className="w-4 h-4 animate-spin" />
-              <span>Uploading images, please wait...</span>
+              <span>{t("uploading_images_please_wait", "Uploading images, please wait...")}</span>
             </div>
           )}
 

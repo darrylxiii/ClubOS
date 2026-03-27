@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -26,6 +27,7 @@ const SUBSCRIPTION_TIERS = [
 ];
 
 export default function ConnectsStorePage() {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [purchasingPackage, setPurchasingPackage] = useState<string | null>(null);
@@ -92,7 +94,7 @@ export default function ConnectsStorePage() {
       setPurchasingPackage(null);
     },
     onError: (error: Error) => {
-      toast.error("Failed to start purchase", { description: error.message });
+      toast.error(t("failed_to_start_purchase", "Failed to start purchase"), { description: error.message });
       setPurchasingPackage(null);
     },
   });
@@ -111,14 +113,14 @@ export default function ConnectsStorePage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Connects Store</h1>
-          <p className="text-muted-foreground">Purchase connects to submit proposals</p>
+          <h1 className="text-3xl font-bold">{t("connects_store", "Connects Store")}</h1>
+          <p className="text-muted-foreground">{t("purchase_connects_to_submit", "Purchase connects to submit proposals")}</p>
         </div>
         <Card className="px-6 py-3 bg-primary/10 border-primary/20">
           <div className="flex items-center gap-3">
             <Coins className="h-8 w-8 text-primary" />
             <div>
-              <p className="text-sm text-muted-foreground">Current Balance</p>
+              <p className="text-sm text-muted-foreground">{t("current_balance", "Current Balance")}</p>
               <p className="text-2xl font-bold">{profile?.connects_balance ?? 0}</p>
             </div>
           </div>
@@ -127,9 +129,9 @@ export default function ConnectsStorePage() {
 
       <Tabs defaultValue="packages" className="w-full">
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="packages">One-Time Packages</TabsTrigger>
-          <TabsTrigger value="subscriptions">Subscriptions</TabsTrigger>
-          <TabsTrigger value="history">Transaction History</TabsTrigger>
+          <TabsTrigger value="packages">{t("onetime_packages", "One-Time Packages")}</TabsTrigger>
+          <TabsTrigger value="subscriptions">{t("subscriptions", "Subscriptions")}</TabsTrigger>
+          <TabsTrigger value="history">{t("transaction_history", "Transaction History")}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="packages" className="mt-6">
@@ -145,7 +147,7 @@ export default function ConnectsStorePage() {
                 >
                   <Card className={`relative h-full ${pkg.popular ? "border-primary shadow-lg" : ""}`}>
                     {pkg.popular && (
-                      <Badge className="absolute -top-2 left-1/2 -translate-x-1/2">Most Popular</Badge>
+                      <Badge className="absolute -top-2 left-1/2 -translate-x-1/2">{t("most_popular", "Most Popular")}</Badge>
                     )}
                     <CardHeader className="text-center pb-2">
                       <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-2">
@@ -201,7 +203,7 @@ export default function ConnectsStorePage() {
               >
                 <Card className={`h-full flex flex-col ${tier.popular ? "border-primary shadow-lg" : ""}`}>
                   {tier.popular && (
-                    <Badge className="absolute -top-2 left-1/2 -translate-x-1/2">Recommended</Badge>
+                    <Badge className="absolute -top-2 left-1/2 -translate-x-1/2">{t("recommended", "Recommended")}</Badge>
                   )}
                   <CardHeader className="text-center">
                     <CardTitle>{tier.name}</CardTitle>
@@ -272,7 +274,7 @@ export default function ConnectsStorePage() {
                   ))}
                 </div>
               ) : (
-                <p className="text-center text-muted-foreground py-8">No transactions yet</p>
+                <p className="text-center text-muted-foreground py-8">{t("no_transactions_yet", "No transactions yet")}</p>
               )}
             </CardContent>
           </Card>

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useMoneybirdFinancials, useSyncMoneybirdFinancials } from '@/hooks/useMoneybirdFinancials';
 import { Button } from '@/components/ui/button';
 import { RefreshCw, Loader2 } from 'lucide-react';
@@ -12,6 +13,7 @@ interface RevenueOverviewChartProps {
 const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 export function RevenueOverviewChart({ year, legalEntity }: RevenueOverviewChartProps) {
+  const { t } = useTranslation('common');
   const { data: metrics, isLoading } = useMoneybirdFinancials(year, legalEntity);
   const { mutate: syncData, isPending: isSyncing } = useSyncMoneybirdFinancials();
 
@@ -41,7 +43,7 @@ export function RevenueOverviewChart({ year, legalEntity }: RevenueOverviewChart
   if (!metrics) {
     return (
       <div className="flex flex-col items-center justify-center h-[300px] space-y-4">
-        <p className="text-muted-foreground">No financial data available</p>
+        <p className="text-muted-foreground">{t("no_financial_data_available", "No financial data available")}</p>
         <Button onClick={handleSync} disabled={isSyncing}>
           {isSyncing ? (
             <>
@@ -71,7 +73,7 @@ export function RevenueOverviewChart({ year, legalEntity }: RevenueOverviewChart
           ) : (
             <RefreshCw className="h-4 w-4" />
           )}
-          <span className="ml-2">Refresh</span>
+          <span className="ml-2">{t("refresh", "Refresh")}</span>
         </Button>
       </div>
 

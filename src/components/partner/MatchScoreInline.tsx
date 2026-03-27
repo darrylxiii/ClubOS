@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Sparkles, Check, Info } from "lucide-react";
@@ -36,6 +37,7 @@ export function MatchScoreInline({
   locationFit = 0,
   topFactors = []
 }: MatchScoreInlineProps) {
+  const { t } = useTranslation('common');
   const [showBreakdown, setShowBreakdown] = useState(false);
 
   const getMatchColor = (score: number) => {
@@ -89,7 +91,7 @@ export function MatchScoreInline({
                     </div>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>Strong skills alignment with role requirements</p>
+                    <p>{t("strong_skills_alignment_with", "Strong skills alignment with role requirements")}</p>
                   </TooltipContent>
                 </Tooltip>
               )}
@@ -103,7 +105,7 @@ export function MatchScoreInline({
                     </div>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>Experience level aligns well with role requirements</p>
+                    <p>{t("experience_level_aligns_well", "Experience level aligns well with role requirements")}</p>
                   </TooltipContent>
                 </Tooltip>
               )}
@@ -113,11 +115,11 @@ export function MatchScoreInline({
                   <TooltipTrigger asChild>
                     <div className="flex items-center gap-2 text-xs">
                       <Check className="w-3 h-3 text-green-600" />
-                      <span className="text-muted-foreground">Salary compatible</span>
+                      <span className="text-muted-foreground">{t("salary_compatible", "Salary compatible")}</span>
                     </div>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>Candidate expectations align with budget</p>
+                    <p>{t("candidate_expectations_align_with", "Candidate expectations align with budget")}</p>
                   </TooltipContent>
                 </Tooltip>
               )}
@@ -127,11 +129,11 @@ export function MatchScoreInline({
                   <TooltipTrigger asChild>
                     <div className="flex items-center gap-2 text-xs">
                       <Check className="w-3 h-3 text-green-600" />
-                      <span className="text-muted-foreground">Location fit</span>
+                      <span className="text-muted-foreground">{t("location_fit", "Location fit")}</span>
                     </div>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>Location or remote work preferences align</p>
+                    <p>{t("location_or_remote_work", "Location or remote work preferences align")}</p>
                   </TooltipContent>
                 </Tooltip>
               )}
@@ -141,7 +143,7 @@ export function MatchScoreInline({
           {/* Top Match Factors */}
           {topFactors.length > 0 && (
             <div className="pt-2 border-t border-border/50">
-              <p className="text-xs font-semibold text-muted-foreground mb-1.5">Top Match Factors:</p>
+              <p className="text-xs font-semibold text-muted-foreground mb-1.5">{t("top_match_factors", "Top Match Factors:")}</p>
               <div className="space-y-1">
                 {topFactors.slice(0, 3).map((factor, index) => (
                   <p key={index} className="text-xs text-muted-foreground flex items-start gap-1.5">

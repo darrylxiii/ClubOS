@@ -2,16 +2,11 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
 import { Button, Card, Heading, Paragraph, Spacer } from "../_shared/email-templates/components.ts";
-import { EMAIL_SENDERS, getEmailAppUrl, getEmailHeaders, htmlToPlainText } from "../_shared/email-config.ts";
-
-const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY")!;
+import { EMAIL_SENDERS, getEmailAppUrl } from "../_shared/email-config.ts";
+import { sendEmail } from '../_shared/resend-client.ts';
+import { getCorsHeaders } from '../_shared/cors.ts';
 const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
 const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
 
 interface NotificationEmailRequest {
   userId: string;
@@ -24,6 +19,7 @@ interface NotificationEmailRequest {
 }
 
 serve(async (req: Request) => {
+  const corsHeaders = getCorsHeaders(req);
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -169,30 +165,14 @@ serve(async (req: Request) => {
       showFooter: true,
     });
 
-    // Send email via Resend API
-    const emailResponse = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${RESEND_API_KEY}`,
-      },
-      body: JSON.stringify({
-        from: EMAIL_SENDERS.notifications,
-        to: [userEmail],
-        subject: title,
-        html,
-        text: htmlToPlainText(html),
-        headers: getEmailHeaders(),
-      }),
+    // Send email via shared Resend client
+    const emailData = await sendEmail({
+      from: EMAIL_SENDERS.notifications,
+      to: [userEmail],
+      subject: title,
+      html,
     });
 
-    if (!emailResponse.ok) {
-      const errorData = await emailResponse.json();
-      console.error("Resend API error:", errorData);
-      throw new Error(`Resend API error: ${errorData.message || "Unknown error"}`);
-    }
-
-    const emailData = await emailResponse.json();
     console.log("Email sent successfully:", emailData);
 
     return new Response(

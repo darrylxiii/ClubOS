@@ -1,9 +1,12 @@
 import { memo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Breadcrumb } from '@/components/Breadcrumb';
 import { AssessmentCard } from '@/components/assessments/AssessmentCard';
 import { ASSESSMENTS } from '@/data/assessments';
 
 const Assessments = memo(() => {
+  const { t } = useTranslation('common');
+
   return (
     <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-8">
       {/* Breadcrumb */}
@@ -16,10 +19,8 @@ const Assessments = memo(() => {
       
       {/* Header */}
       <div className="space-y-3 text-center max-w-3xl mx-auto">
-        <h1 className="text-5xl font-bold tracking-tight">Assessment Center</h1>
-        <p className="text-lg text-muted-foreground">
-          Discover your strengths and unlock opportunities through our comprehensive assessment suite
-        </p>
+        <h1 className="text-5xl font-bold tracking-tight">{t('assessments.title')}</h1>
+        <p className="text-lg text-muted-foreground">{t('assessments.desc')}</p>
       </div>
 
       {/* Assessment Grid */}

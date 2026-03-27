@@ -1,4 +1,5 @@
 import { RoleGate } from "@/components/RoleGate";
+import { useTranslation } from 'react-i18next';
 import { EmployeeOverviewCard } from "@/components/employees/EmployeeOverviewCard";
 import { CommissionsTracker } from "@/components/employees/CommissionsTracker";
 import { TargetsProgressCard } from "@/components/employees/TargetsProgressCard";
@@ -25,6 +26,7 @@ import { motion } from "framer-motion";
 import { startOfMonth, endOfMonth } from "date-fns";
 
 export default function MyPerformance() {
+  const { t } = useTranslation('analytics');
   const { data: employee, isLoading: employeeLoading, refetch } = useEmployeeProfile();
   const { data: targets, isLoading: targetsLoading } = useEmployeeTargets(employee?.id);
   const { data: commissions, isLoading: commissionsLoading } = useEmployeeCommissions(employee?.id);
@@ -67,10 +69,8 @@ export default function MyPerformance() {
           {/* Header */}
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold">My Performance</h1>
-              <p className="text-muted-foreground">
-                Track your commissions, targets, and placements
-              </p>
+              <h1 className="text-3xl font-bold">{t('myPerformance.text2')}</h1>
+              <p className="text-muted-foreground">{t('myPerformance.desc')}</p>
             </div>
             <Button 
               variant="outline" 
@@ -178,11 +178,11 @@ export default function MyPerformance() {
                         <CardContent>
                           <div className="grid grid-cols-2 gap-4">
                             <div className="p-3 bg-muted/30 rounded-lg">
-                              <p className="text-xs text-muted-foreground">Hours This Month</p>
+                              <p className="text-xs text-muted-foreground">{t('myPerformance.text3')}</p>
                               <p className="text-2xl font-bold">{hoursData?.hours || 0}h</p>
                             </div>
                             <div className="p-3 bg-muted/30 rounded-lg">
-                              <p className="text-xs text-muted-foreground">Revenue per Hour</p>
+                              <p className="text-xs text-muted-foreground">{t('myPerformance.text4')}</p>
                               <p className="text-2xl font-bold">
                                 €{hoursData?.hours && metrics?.total_commissions 
                                   ? Math.round(metrics.total_commissions / hoursData.hours)

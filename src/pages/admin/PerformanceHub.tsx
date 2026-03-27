@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { lazy, Suspense } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { BarChart3 } from 'lucide-react';
@@ -16,6 +17,7 @@ const TAB_MAP: Record<string, string> = {
 };
 
 export default function PerformanceHub() {
+  const { t } = useTranslation('common');
   const [searchParams, setSearchParams] = useSearchParams();
   const activeTab = TAB_MAP[searchParams.get('tab') || ''] || 'matrix';
 
@@ -29,7 +31,7 @@ export default function PerformanceHub() {
           <div className="space-y-1">
             <div className="flex items-center gap-3">
               <BarChart3 className="h-8 w-8 text-primary" />
-              <h1 className="text-3xl font-bold tracking-tight">PERFORMANCE HUB</h1>
+              <h1 className="text-3xl font-bold tracking-tight">{t("performance_hub", "PERFORMANCE HUB")}</h1>
             </div>
             <p className="text-muted-foreground">
               Performance metrics, team tracking, and user activity analytics
@@ -38,9 +40,9 @@ export default function PerformanceHub() {
 
           <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
             <TabsList className="h-auto flex-wrap bg-card/50 backdrop-blur-sm rounded-lg p-1">
-              <TabsTrigger value="matrix">Performance Matrix</TabsTrigger>
-              <TabsTrigger value="team">Team Performance</TabsTrigger>
-              <TabsTrigger value="activity">User Activity</TabsTrigger>
+              <TabsTrigger value="matrix">{t("performance_matrix", "Performance Matrix")}</TabsTrigger>
+              <TabsTrigger value="team">{t("team_performance", "Team Performance")}</TabsTrigger>
+              <TabsTrigger value="activity">{t("user_activity", "User Activity")}</TabsTrigger>
             </TabsList>
 
             <Suspense fallback={<PageLoader />}>

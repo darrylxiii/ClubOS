@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 /**
  * Pre-Join Bandwidth Test Modal
  * Shows bandwidth test results before joining a meeting
@@ -23,6 +24,7 @@ export function BandwidthTestModal({
   onClose,
   onContinue
 }: BandwidthTestModalProps) {
+  const { t } = useTranslation('common');
   const {
     isRunning,
     progress,
@@ -90,7 +92,7 @@ export function BandwidthTestModal({
           {isRunning && (
             <div className="space-y-2">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Testing connection...</span>
+                <span className="text-muted-foreground">{t("testing_connection", "Testing connection...")}</span>
                 <span className="font-mono">{Math.round(progress)}%</span>
               </div>
               <Progress value={progress} className="h-2" />
@@ -131,7 +133,7 @@ export function BandwidthTestModal({
                 <div className="flex items-center gap-2 p-2 rounded-md bg-muted/50">
                   <Download className="h-4 w-4 text-blue-500" />
                   <div className="text-sm">
-                    <div className="text-muted-foreground text-xs">Download</div>
+                    <div className="text-muted-foreground text-xs">{t("download", "Download")}</div>
                     <div className="font-mono font-medium">{result.downloadMbps} Mbps</div>
                   </div>
                 </div>
@@ -139,7 +141,7 @@ export function BandwidthTestModal({
                 <div className="flex items-center gap-2 p-2 rounded-md bg-muted/50">
                   <Upload className="h-4 w-4 text-emerald-500" />
                   <div className="text-sm">
-                    <div className="text-muted-foreground text-xs">Upload</div>
+                    <div className="text-muted-foreground text-xs">{t("upload", "Upload")}</div>
                     <div className="font-mono font-medium">{result.uploadMbps} Mbps</div>
                   </div>
                 </div>
@@ -147,7 +149,7 @@ export function BandwidthTestModal({
                 <div className="flex items-center gap-2 p-2 rounded-md bg-muted/50">
                   <Clock className="h-4 w-4 text-amber-500" />
                   <div className="text-sm">
-                    <div className="text-muted-foreground text-xs">Latency</div>
+                    <div className="text-muted-foreground text-xs">{t("latency", "Latency")}</div>
                     <div className={cn(
                       'font-mono font-medium',
                       result.latency > 200 && 'text-yellow-500',
@@ -161,7 +163,7 @@ export function BandwidthTestModal({
                 <div className="flex items-center gap-2 p-2 rounded-md bg-muted/50">
                   <Activity className="h-4 w-4 text-purple-500" />
                   <div className="text-sm">
-                    <div className="text-muted-foreground text-xs">Jitter</div>
+                    <div className="text-muted-foreground text-xs">{t("jitter", "Jitter")}</div>
                     <div className={cn(
                       'font-mono font-medium',
                       result.jitter > 30 && 'text-yellow-500',
@@ -178,7 +180,7 @@ export function BandwidthTestModal({
                 <div className="flex items-start gap-2 p-3 rounded-md bg-yellow-500/10 border border-yellow-500/30 text-sm">
                   <AlertTriangle className="h-4 w-4 text-yellow-500 mt-0.5 flex-shrink-0" />
                   <div>
-                    <div className="font-medium text-yellow-500">Limited Bandwidth</div>
+                    <div className="font-medium text-yellow-500">{t("limited_bandwidth", "Limited Bandwidth")}</div>
                     <div className="text-muted-foreground text-xs mt-0.5">
                       Your connection may not support video. Consider joining with audio only for a better experience.
                     </div>
@@ -200,7 +202,7 @@ export function BandwidthTestModal({
             <div className="flex items-start gap-2 p-3 rounded-md bg-red-500/10 border border-red-500/30">
               <XCircle className="h-4 w-4 text-red-500 mt-0.5" />
               <div className="text-sm">
-                <div className="font-medium text-red-500">Test Failed</div>
+                <div className="font-medium text-red-500">{t("test_failed", "Test Failed")}</div>
                 <div className="text-muted-foreground text-xs">{error}</div>
               </div>
             </div>

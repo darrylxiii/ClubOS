@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -20,6 +21,7 @@ interface UnifiedImportDialogProps {
 }
 
 export function UnifiedImportDialog({ children, defaultEntityId, defaultEntityType }: UnifiedImportDialogProps) {
+  const { t } = useTranslation('common');
     const [open, setOpen] = useState(false);
     const [activeTab, setActiveTab] = useState('file');
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -54,21 +56,21 @@ export function UnifiedImportDialog({ children, defaultEntityId, defaultEntityTy
 
     const handleSubmit = async () => {
         if (!title) {
-            toast.error('Please enter a title');
+            toast.error(t("please_enter_a_title", "Please enter a title"));
             return;
         }
         if (!selectedIdentity) {
-            toast.error('Please select an identity (Person)');
+            toast.error(t("please_select_an_identity", "Please select an identity (Person)"));
             return;
         }
 
         if (activeTab === 'file' && !file) {
-            toast.error('Please select a file');
+            toast.error(t("please_select_a_file", "Please select a file"));
             return;
         }
 
         if (activeTab === 'text' && !textContent) {
-            toast.error('Please enter text content');
+            toast.error(t("please_enter_text_content", "Please enter text content"));
             return;
         }
 
@@ -124,7 +126,7 @@ export function UnifiedImportDialog({ children, defaultEntityId, defaultEntityTy
 
             setOpen(false);
             resetForm();
-            toast.success('Communication imported successfully');
+            toast.success(t("communication_imported_successfully", "Communication imported successfully"));
         } catch (error: unknown) {
             toast.error(`Import failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
         } finally {
@@ -154,39 +156,39 @@ export function UnifiedImportDialog({ children, defaultEntityId, defaultEntityTy
             </DialogTrigger>
             <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                    <DialogTitle>Import External Communication</DialogTitle>
+                    <DialogTitle>{t("import_external_communication", "Import External Communication")}</DialogTitle>
                 </DialogHeader>
 
                 <div className="space-y-6 py-4">
                     {/* Part 1: Identity & Subject */}
                     <div className="space-y-4 border-b pb-6">
                         <div className="space-y-2">
-                            <Label className="text-sm font-bold uppercase tracking-wider text-muted-foreground">1. Participant (Identity)</Label>
+                            <Label className="text-sm font-bold uppercase tracking-wider text-muted-foreground">{t("1_participant_identity", "1. Participant (Identity)")}</Label>
                             < UniversalIdentitySearch onSelect={setSelectedIdentity} />
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label>Title / Subject</Label>
+                                <Label>{t("title_subject", "Title / Subject")}</Label>
                                 <Input
-                                    placeholder="E.g. Initial Screening Call"
+                                    placeholder={t("eg_initial_screening_call", "E.g. Initial Screening Call")}
                                     value={title}
                                     onChange={(e) => setTitle(e.target.value)}
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label>Source Platform</Label>
+                                <Label>{t("source_platform", "Source Platform")}</Label>
                                 <Select value={sourcePlatform} onValueChange={setSourcePlatform}>
                                     <SelectTrigger>
                                         <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="zoom">Zoom</SelectItem>
-                                        <SelectItem value="google_meet">Google Meet</SelectItem>
-                                        <SelectItem value="teams">Microsoft Teams</SelectItem>
-                                        <SelectItem value="phone">Phone Call</SelectItem>
-                                        <SelectItem value="whatsapp">WhatsApp Export</SelectItem>
-                                        <SelectItem value="in_person">In Person</SelectItem>
+                                        <SelectItem value="zoom">{t("zoom", "Zoom")}</SelectItem>
+                                        <SelectItem value="google_meet">{t("google_meet", "Google Meet")}</SelectItem>
+                                        <SelectItem value="teams">{t("microsoft_teams", "Microsoft Teams")}</SelectItem>
+                                        <SelectItem value="phone">{t("phone_call", "Phone Call")}</SelectItem>
+                                        <SelectItem value="whatsapp">{t("whatsapp_export", "WhatsApp Export")}</SelectItem>
+                                        <SelectItem value="in_person">{t("in_person", "In Person")}</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -201,9 +203,9 @@ export function UnifiedImportDialog({ children, defaultEntityId, defaultEntityTy
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div className="space-y-2">
-                                <Label className="flex items-center gap-1"><Building2 className="h-3 w-3" /> Company</Label>
+                                <Label className="flex items-center gap-1"><Building2 className="h-3 w-3" />{t("company", "Company")}</Label>
                                 <Select value={companyId} onValueChange={setCompanyId}>
-                                    <SelectTrigger><SelectValue placeholder="Link Company" /></SelectTrigger>
+                                    <SelectTrigger><SelectValue placeholder={t("link_company", "Link Company")} /></SelectTrigger>
                                     <SelectContent>
                                         {companies.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
                                     </SelectContent>
@@ -211,9 +213,9 @@ export function UnifiedImportDialog({ children, defaultEntityId, defaultEntityTy
                             </div>
 
                             <div className="space-y-2">
-                                <Label className="flex items-center gap-1"><Briefcase className="h-3 w-3" /> Job</Label>
+                                <Label className="flex items-center gap-1"><Briefcase className="h-3 w-3" />{t("job", "Job")}</Label>
                                 <Select value={jobId} onValueChange={setJobId}>
-                                    <SelectTrigger><SelectValue placeholder="Link Job" /></SelectTrigger>
+                                    <SelectTrigger><SelectValue placeholder={t("link_job", "Link Job")} /></SelectTrigger>
                                     <SelectContent>
                                         {jobs.map(j => <SelectItem key={j.id} value={j.id}>{j.title}</SelectItem>)}
                                     </SelectContent>
@@ -221,9 +223,9 @@ export function UnifiedImportDialog({ children, defaultEntityId, defaultEntityTy
                             </div>
 
                             <div className="space-y-2">
-                                <Label className="flex items-center gap-1"><Calendar className="h-3 w-3" /> Meeting</Label>
+                                <Label className="flex items-center gap-1"><Calendar className="h-3 w-3" />{t("meeting", "Meeting")}</Label>
                                 <Select value={meetingId} onValueChange={setMeetingId}>
-                                    <SelectTrigger><SelectValue placeholder="Link Meeting" /></SelectTrigger>
+                                    <SelectTrigger><SelectValue placeholder={t("link_meeting", "Link Meeting")} /></SelectTrigger>
                                     <SelectContent>
                                         {meetings.map(m => (
                                             <SelectItem key={m.id} value={m.id}>
@@ -239,8 +241,8 @@ export function UnifiedImportDialog({ children, defaultEntityId, defaultEntityTy
                     {/* Part 3: Content */}
                     <Tabs defaultValue="file" value={activeTab} onValueChange={setActiveTab} className="w-full">
                         <TabsList className="grid w-full grid-cols-2">
-                            <TabsTrigger value="file">File Upload (Audio/Transcript)</TabsTrigger>
-                            <TabsTrigger value="text">Paste Text</TabsTrigger>
+                            <TabsTrigger value="file">{t("file_upload_audiotranscript", "File Upload (Audio/Transcript)")}</TabsTrigger>
+                            <TabsTrigger value="text">{t("paste_text", "Paste Text")}</TabsTrigger>
                         </TabsList>
 
                         <TabsContent value="file" className="space-y-4 pt-4">
@@ -272,7 +274,7 @@ export function UnifiedImportDialog({ children, defaultEntityId, defaultEntityTy
 
                         <TabsContent value="text" className="pt-4">
                             <Textarea
-                                placeholder="Paste transcript, meeting notes, or message content here..."
+                                placeholder={t("paste_transcript_meeting_notes", "Paste transcript, meeting notes, or message content here...")}
                                 className="min-h-[150px] font-mono text-xs"
                                 value={textContent}
                                 onChange={(e) => setTextContent(e.target.value)}

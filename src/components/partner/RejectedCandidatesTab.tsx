@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -59,6 +60,7 @@ const REJECTION_LABELS: { [key: string]: string } = {
 };
 
 export function RejectedCandidatesTab({ jobId, stages }: Props) {
+  const { t } = useTranslation('common');
   const [loading, setLoading] = useState(true);
   const [rejectedCandidates, setRejectedCandidates] = useState<RejectedCandidate[]>([]);
   const [filteredCandidates, setFilteredCandidates] = useState<RejectedCandidate[]>([]);
@@ -177,7 +179,7 @@ export function RejectedCandidatesTab({ jobId, stages }: Props) {
       setRejectedCandidates(enriched);
     } catch (error) {
       console.error('Error fetching rejected candidates:', error);
-      toast.error("Failed to load rejected candidates");
+      toast.error(t("failed_to_load_rejected", "Failed to load rejected candidates"));
     } finally {
       setLoading(false);
     }
@@ -235,7 +237,7 @@ export function RejectedCandidatesTab({ jobId, stages }: Props) {
     a.href = url;
     a.download = `rejected-candidates-${new Date().toISOString().split('T')[0]}.csv`;
     a.click();
-    toast.success("CSV exported successfully");
+    toast.success(t("csv_exported_successfully", "CSV exported successfully"));
   };
 
   const handleViewDetails = (candidate: RejectedCandidate) => {
@@ -290,7 +292,7 @@ export function RejectedCandidatesTab({ jobId, stages }: Props) {
       fetchRejectedCandidates();
     } catch (error) {
       console.error('Error reconsidering candidate:', error);
-      toast.error("Failed to reconsider candidate");
+      toast.error(t("failed_to_reconsider_candidate", "Failed to reconsider candidate"));
     } finally {
       setReconsideringId(null);
     }
@@ -316,7 +318,7 @@ export function RejectedCandidatesTab({ jobId, stages }: Props) {
                 <TrendingDown className="w-5 h-5 text-destructive" />
               </div>
               <div>
-                <CardTitle className="text-2xl">Rejected Candidates</CardTitle>
+                <CardTitle className="text-2xl">{t("rejected_candidates", "Rejected Candidates")}</CardTitle>
                 <p className="text-sm text-muted-foreground mt-1">
                   {filteredCandidates.length} of {rejectedCandidates.length} total rejections
                 </p>
@@ -350,7 +352,7 @@ export function RejectedCandidatesTab({ jobId, stages }: Props) {
           <Card>
             <CardContent className="py-12 text-center">
               <TrendingDown className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-50" />
-              <p className="text-muted-foreground">No rejected candidates match your filters</p>
+              <p className="text-muted-foreground">{t("no_rejected_candidates_match", "No rejected candidates match your filters")}</p>
             </CardContent>
           </Card>
         ) : (
@@ -393,7 +395,7 @@ export function RejectedCandidatesTab({ jobId, stages }: Props) {
                           className="gap-2"
                         >
                           <Eye className="w-4 h-4" />
-                          View Details
+                          {t('common:viewDetails')}
                         </Button>
                       </div>
                     </div>
@@ -433,7 +435,7 @@ export function RejectedCandidatesTab({ jobId, stages }: Props) {
                       </span>
                       {candidate.reviewer_name && (
                         <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                          <span>Rejected by:</span>
+                          <span>{t("rejected_by", "Rejected by:")}</span>
                           <Avatar className="w-5 h-5">
                             <AvatarImage src={candidate.reviewer_avatar} />
                             <AvatarFallback className="text-[10px]">
@@ -454,10 +456,10 @@ export function RejectedCandidatesTab({ jobId, stages }: Props) {
                         </Badge>
                       )}
                       {candidate.salary_mismatch && (
-                        <Badge variant="destructive" className="text-xs">Salary Mismatch</Badge>
+                        <Badge variant="destructive" className="text-xs">{t("salary_mismatch", "Salary Mismatch")}</Badge>
                       )}
                       {candidate.location_mismatch && (
-                        <Badge variant="destructive" className="text-xs">Location Mismatch</Badge>
+                        <Badge variant="destructive" className="text-xs">{t("location_mismatch", "Location Mismatch")}</Badge>
                       )}
                       {candidate.seniority_mismatch && (
                         <Badge variant="destructive" className="text-xs">

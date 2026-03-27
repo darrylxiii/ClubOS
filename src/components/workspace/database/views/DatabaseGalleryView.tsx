@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React from 'react';
 import { DatabaseColumn, DatabaseRow, ColumnType } from '@/hooks/useWorkspaceDatabase';
 import { Button } from '@/components/ui/button';
@@ -19,6 +20,7 @@ export function DatabaseGalleryView({
   rows,
   onAddRow,
 }: DatabaseGalleryViewProps) {
+  const { t } = useTranslation('common');
   const primaryColumn = columns.find(c => c.is_primary) || columns[0];
   const urlColumn = columns.find(c => c.column_type === 'url');
 
@@ -79,7 +81,7 @@ export function DatabaseGalleryView({
           onClick={() => onAddRow()}
         >
           <Plus className="h-6 w-6" />
-          <span className="text-sm">Add item</span>
+          <span className="text-sm">{t("add_item", "Add item")}</span>
         </Button>
       </div>
     </div>

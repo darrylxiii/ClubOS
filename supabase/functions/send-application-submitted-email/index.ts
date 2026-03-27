@@ -1,18 +1,11 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
-import { EMAIL_SENDERS, EMAIL_COLORS, SUPPORT_EMAIL, getEmailHeaders, htmlToPlainText } from "../_shared/email-config.ts";
+import { createHandler } from '../_shared/handler.ts';
+import { EMAIL_SENDERS, EMAIL_COLORS, SUPPORT_EMAIL } from "../_shared/email-config.ts";
+import { sendEmail } from '../_shared/resend-client.ts';
 import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
 import {
   Heading, Paragraph, Spacer, Card, Button, StatusBadge,
 } from "../_shared/email-templates/components.ts";
 import { getAppUrl } from "../_shared/app-config.ts";
-
-const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
 
 interface ApplicationSubmittedRequest {
   userId: string;
@@ -20,12 +13,7 @@ interface ApplicationSubmittedRequest {
   fullName: string;
 }
 
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  try {
+Deno.serve(createHandler(async (req, ctx) => {
     const { userId, email, fullName, testMode }: ApplicationSubmittedRequest & { testMode?: boolean } = await req.json();
 
     console.log('[send-application-submitted-email] Processing:', { userId, email, fullName, testMode });
@@ -38,12 +26,7 @@ serve(async (req) => {
     let accessToken = 'test-token-12345';
 
     if (!testMode && userId) {
-      const supabaseAdmin = createClient(
-        Deno.env.get('SUPABASE_URL')!,
-        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-      );
-
-      const { data: profile, error: profileError } = await supabaseAdmin
+      const { data: profile, error: profileError } = await ctx.supabase
         .from('profiles')
         .select('application_access_token')
         .eq('id', userId)
@@ -108,49 +91,17 @@ serve(async (req) => {
       showFooter: true,
     });
 
-    if (RESEND_API_KEY) {
-      const resendResponse = await fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${RESEND_API_KEY}`,
-        },
-        body: JSON.stringify({
-          from: EMAIL_SENDERS.notifications,
-          to: [email],
-          subject,
-          html: htmlContent,
-          text: htmlToPlainText(htmlContent),
-          headers: getEmailHeaders(),
-        }),
-      });
+    const emailResponse = await sendEmail({
+      from: EMAIL_SENDERS.notifications,
+      to: [email],
+      subject,
+      html: htmlContent,
+    });
 
-      if (!resendResponse.ok) {
-        const error = await resendResponse.text();
-        console.error('[send-application-submitted-email] Resend error:', error);
-        throw new Error(`Failed to send email: ${error}`);
-      }
+    console.log('[send-application-submitted-email] Email sent successfully:', emailResponse);
 
-      const emailResponse = await resendResponse.json();
-      console.log('[send-application-submitted-email] Email sent successfully:', emailResponse);
-
-      return new Response(
-        JSON.stringify({ success: true, emailId: emailResponse.id }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    } else {
-      console.warn('[send-application-submitted-email] RESEND_API_KEY not configured');
-      return new Response(
-        JSON.stringify({ success: false, error: 'Email service not configured' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-  } catch (error: any) {
-    console.error('[send-application-submitted-email] Error:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      JSON.stringify({ success: true, emailId: emailResponse.id }),
+      { headers: { ...ctx.corsHeaders, 'Content-Type': 'application/json' } }
     );
-  }
-});
+}));

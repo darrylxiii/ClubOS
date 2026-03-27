@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { AlertTriangle, MousePointer, XCircle, AlertCircle, Wifi } from "lucide-react";
 import { DynamicChart } from "@/components/charts/DynamicChart";
+import { useTranslation } from 'react-i18next';
 
 export default function FrustrationSignalsTab() {
   const { data: frustrationData } = useQuery({
@@ -52,6 +53,7 @@ export default function FrustrationSignalsTab() {
   });
 
   const getSignalIcon = (type: string) => {
+  const { t } = useTranslation('admin');
     switch (type) {
       case 'rage_click': return <MousePointer className="h-4 w-4 text-red-500" />;
       case 'dead_click': return <XCircle className="h-4 w-4 text-orange-500" />;
@@ -97,8 +99,8 @@ export default function FrustrationSignalsTab() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Frustration Signals by Type</CardTitle>
-          <CardDescription>Distribution of user frustration incidents</CardDescription>
+          <CardTitle>{t('activity.frustrationSignalsTab.frustrationSignalsByType')}</CardTitle>
+          <CardDescription>{t('activity.frustrationSignalsTab.distributionOfUserFrustrationIncidents')}</CardDescription>
         </CardHeader>
         <CardContent>
           <DynamicChart
@@ -116,8 +118,8 @@ export default function FrustrationSignalsTab() {
       <div className="grid gap-6 md:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Problem Pages</CardTitle>
-            <CardDescription>Pages with most frustration signals</CardDescription>
+            <CardTitle>{t('activity.frustrationSignalsTab.problemPages')}</CardTitle>
+            <CardDescription>{t('activity.frustrationSignalsTab.pagesWithMostFrustrationSignals')}</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
@@ -138,7 +140,7 @@ export default function FrustrationSignalsTab() {
                   </div>
                 ))
               ) : (
-                <p className="text-sm text-muted-foreground">No frustration signals detected</p>
+                <p className="text-sm text-muted-foreground">{t('activity.frustrationSignalsTab.noFrustrationSignalsDetected')}</p>
               )}
             </div>
           </CardContent>
@@ -146,8 +148,8 @@ export default function FrustrationSignalsTab() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Recent Incidents</CardTitle>
-            <CardDescription>Latest frustration signals</CardDescription>
+            <CardTitle>{t('activity.frustrationSignalsTab.recentIncidents')}</CardTitle>
+            <CardDescription>{t('activity.frustrationSignalsTab.latestFrustrationSignals')}</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-2 max-h-96 overflow-y-auto">
@@ -172,7 +174,7 @@ export default function FrustrationSignalsTab() {
                   </div>
                 ))
               ) : (
-                <p className="text-sm text-muted-foreground">No recent signals</p>
+                <p className="text-sm text-muted-foreground">{t('activity.frustrationSignalsTab.noRecentSignals')}</p>
               )}
             </div>
           </CardContent>

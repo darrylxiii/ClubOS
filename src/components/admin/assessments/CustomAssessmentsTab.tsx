@@ -5,8 +5,10 @@ import { useCustomAssessments } from '@/hooks/useCustomAssessments';
 import { AssessmentTemplate } from '@/types/assessment';
 import { Plus, Edit, Trash, Copy } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { useTranslation } from 'react-i18next';
 
 export const CustomAssessmentsTab = memo(() => {
+  const { t } = useTranslation('admin');
   const { getTemplates, deleteTemplate, loading } = useCustomAssessments();
   const [templates, setTemplates] = useState<AssessmentTemplate[]>([]);
 

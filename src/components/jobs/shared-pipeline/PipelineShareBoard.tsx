@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Users } from 'lucide-react';
@@ -38,6 +39,7 @@ const STAGE_COLORS = [
 ];
 
 export function PipelineShareBoard({ stages, applications, visibility }: PipelineShareBoardProps) {
+  const { t } = useTranslation('common');
   const sortedStages = [...stages].sort((a, b) => a.order - b.order);
 
   // Build a set of all valid stage orders for fast lookup
@@ -83,7 +85,7 @@ export function PipelineShareBoard({ stages, applications, visibility }: Pipelin
               <div className="flex flex-col gap-3 flex-1">
                 {candidates.length === 0 ? (
                   <div className="flex-1 flex items-center justify-center py-8 text-center">
-                    <p className="text-xs text-muted-foreground/60">No candidates</p>
+                    <p className="text-xs text-muted-foreground/60">{t("no_candidates", "No candidates")}</p>
                   </div>
                 ) : (
                   candidates.map((app) => (

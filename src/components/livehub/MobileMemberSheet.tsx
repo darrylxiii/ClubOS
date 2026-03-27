@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import {
   Sheet,
   SheetContent,
@@ -22,6 +23,7 @@ const MobileMemberSheet = ({
   channelType,
   channelId,
 }: MobileMemberSheetProps) => {
+  const { t } = useTranslation('meetings');
   const onlineCount = onlineMembers.length;
   const offlineCount = 0; // Will be enhanced later
 
@@ -29,7 +31,7 @@ const MobileMemberSheet = ({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="right" className="w-[85vw] p-0 flex flex-col">
         <SheetHeader className="px-4 py-3 border-b border-border">
-          <SheetTitle>Members — {onlineCount}</SheetTitle>
+          <SheetTitle>{t('livehub.membersCount', { count: onlineCount })}</SheetTitle>
         </SheetHeader>
         
         <ScrollArea className="flex-1">

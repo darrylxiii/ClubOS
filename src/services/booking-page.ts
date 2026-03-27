@@ -57,7 +57,8 @@ function getCachedBookingPage(slug: string): BookingPageResponse | null {
       return null;
     }
     return parsed.data;
-  } catch {
+  } catch (error) {
+    console.error('[BookingPage] Failed to read cached booking page:', error);
     return null;
   }
 }
@@ -66,8 +67,8 @@ function setCachedBookingPage(slug: string, data: BookingPageResponse): void {
   try {
     const cached: CachedBookingPage = { data, timestamp: Date.now() };
     sessionStorage.setItem(`${CACHE_KEY_PREFIX}${slug}`, JSON.stringify(cached));
-  } catch {
-    // Ignore storage errors
+  } catch (error) {
+    console.error('[BookingPage] Failed to cache booking page:', error);
   }
 }
 

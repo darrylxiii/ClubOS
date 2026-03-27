@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { 
@@ -59,6 +60,7 @@ export function UnifiedMeetingControls({
   onOpenPerformance,
   className
 }: UnifiedMeetingControlsProps) {
+  const { t } = useTranslation('common');
   const meeting = useMasterMeeting({
     channelId,
     userId,
@@ -111,7 +113,7 @@ export function UnifiedMeetingControls({
             </Button>
           </TooltipTrigger>
           <TooltipContent>
-            {isMuted ? 'Unmute' : 'Mute'}
+            {isMuted ? t('meetings.unifiedmeetingcontrols.unmute', 'Unmute') : t('meetings.unifiedmeetingcontrols.mute', 'Mute')}
           </TooltipContent>
         </Tooltip>
 
@@ -128,7 +130,7 @@ export function UnifiedMeetingControls({
             </Button>
           </TooltipTrigger>
           <TooltipContent>
-            {isVideoOn ? 'Turn off camera' : 'Turn on camera'}
+            {isVideoOn ? t('meetings.unifiedmeetingcontrols.turnOffCamera', 'Turn off camera') : t('meetings.unifiedmeetingcontrols.turnOnCamera', 'Turn on camera')}
           </TooltipContent>
         </Tooltip>
 
@@ -145,7 +147,7 @@ export function UnifiedMeetingControls({
             </Button>
           </TooltipTrigger>
           <TooltipContent>
-            {isScreenSharing ? 'Stop sharing' : 'Share screen'}
+            {isScreenSharing ? t('meetings.unifiedmeetingcontrols.stopSharing', 'Stop sharing') : t('meetings.unifiedmeetingcontrols.shareScreen', 'Share screen')}
           </TooltipContent>
         </Tooltip>
 
@@ -161,7 +163,7 @@ export function UnifiedMeetingControls({
               <Sparkles className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
-          <TooltipContent>Effects</TooltipContent>
+          <TooltipContent>{t("effects", "Effects")}</TooltipContent>
         </Tooltip>
 
         {/* Raise Hand */}
@@ -180,7 +182,7 @@ export function UnifiedMeetingControls({
             </Button>
           </TooltipTrigger>
           <TooltipContent>
-            {handRaised ? 'Lower hand' : 'Raise hand'}
+            {handRaised ? t('meetings.unifiedmeetingcontrols.lowerHand', 'Lower hand') : t('meetings.unifiedmeetingcontrols.raiseHand', 'Raise hand')}
           </TooltipContent>
         </Tooltip>
 
@@ -225,7 +227,7 @@ export function UnifiedMeetingControls({
               </span>
             </Button>
           </TooltipTrigger>
-          <TooltipContent>Participants</TooltipContent>
+          <TooltipContent>{t("participants", "Participants")}</TooltipContent>
         </Tooltip>
 
         {/* Chat */}
@@ -240,7 +242,7 @@ export function UnifiedMeetingControls({
               <MessageSquare className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
-          <TooltipContent>Chat</TooltipContent>
+          <TooltipContent>{t("chat", "Chat")}</TooltipContent>
         </Tooltip>
 
         {/* Transcription */}
@@ -256,7 +258,7 @@ export function UnifiedMeetingControls({
             </Button>
           </TooltipTrigger>
           <TooltipContent>
-            {meeting.meetingState.isTranscribing ? 'Stop transcription' : 'Start transcription'}
+            {meeting.meetingState.isTranscribing ? t('meetings.unifiedmeetingcontrols.stopTranscription', 'Stop transcription') : t('meetings.unifiedmeetingcontrols.startTranscription', 'Start transcription')}
           </TooltipContent>
         </Tooltip>
 
@@ -276,7 +278,7 @@ export function UnifiedMeetingControls({
             </Button>
           </TooltipTrigger>
           <TooltipContent>
-            {meeting.meetingState.isRecording ? 'Stop recording' : 'Start recording'}
+            {meeting.meetingState.isRecording ? t('meetings.unifiedmeetingcontrols.stopRecording', 'Stop recording') : t('meetings.unifiedmeetingcontrols.startRecording', 'Start recording')}
           </TooltipContent>
         </Tooltip>
 
@@ -325,7 +327,7 @@ export function UnifiedMeetingControls({
               <PhoneOff className="h-5 w-5" />
             </Button>
           </TooltipTrigger>
-          <TooltipContent>Leave meeting</TooltipContent>
+          <TooltipContent>{t("leave_meeting", "Leave meeting")}</TooltipContent>
         </Tooltip>
       </div>
     </TooltipProvider>

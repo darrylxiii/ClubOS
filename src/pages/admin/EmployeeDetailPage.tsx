@@ -1,8 +1,10 @@
+import { useTranslation } from 'react-i18next';
 import { RoleGate } from "@/components/RoleGate";
 import { EmployeeDetailView } from "@/components/employees/EmployeeDetailView";
 import { useParams, useNavigate } from "react-router-dom";
 
 export default function EmployeeDetailPage() {
+  const { t } = useTranslation('admin');
   const { employeeId } = useParams<{ employeeId: string }>();
   const navigate = useNavigate();
 

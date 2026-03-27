@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { validatePostMediaFile } from "@/lib/fileValidation";
 import { FileText, X, Loader2 } from "lucide-react";
 import { ToolSelector } from "@/components/jobs/ToolSelector";
+import { useTranslation } from 'react-i18next';
 
 interface EditJobDialogProps {
   open: boolean;
@@ -20,6 +21,7 @@ interface EditJobDialogProps {
 }
 
 export const EditJobDialog = ({ open, onOpenChange, job, onJobUpdated }: EditJobDialogProps) => {
+  const { t } = useTranslation('partner');
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -87,7 +89,7 @@ export const EditJobDialog = ({ open, onOpenChange, job, onJobUpdated }: EditJob
       setCompanies(data || []);
     } catch (error) {
       console.error('Error fetching companies:', error);
-      toast.error("Failed to load companies");
+      toast.error(t('editJobDialog.toast.failedToLoadCompanies'));
     }
   };
 
@@ -237,12 +239,12 @@ export const EditJobDialog = ({ open, onOpenChange, job, onJobUpdated }: EditJob
         }
       }
 
-      toast.success("Job updated successfully");
+      toast.success(t('editJobDialog.toast.jobUpdatedSuccessfully'));
       onJobUpdated();
       onOpenChange(false);
     } catch (error) {
       console.error('Error updating job:', error);
-      toast.error("Failed to update job");
+      toast.error(t('editJobDialog.toast.failedToUpdateJob'));
     } finally {
       setLoading(false);
     }
@@ -252,18 +254,18 @@ export const EditJobDialog = ({ open, onOpenChange, job, onJobUpdated }: EditJob
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-black uppercase">Edit Job</DialogTitle>
+          <DialogTitle className="text-2xl font-black uppercase">{t('editJobDialog.dialogTitle')}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="company">Company *</Label>
+            <Label htmlFor="company">{t('editJobDialog.label.company')}</Label>
             <Select
               value={formData.company_id}
               onValueChange={(value) => setFormData({ ...formData, company_id: value })}
               required
             >
               <SelectTrigger>
-                <SelectValue placeholder="Select a company" />
+                <SelectValue placeholder={t('editJobDialog.placeholder.selectACompany')} />
               </SelectTrigger>
               <SelectContent>
                 {companies.map((company) => (
@@ -276,7 +278,7 @@ export const EditJobDialog = ({ open, onOpenChange, job, onJobUpdated }: EditJob
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="title">Job Title *</Label>
+            <Label htmlFor="title">{t('editJobDialog.label.jobTitle')}</Label>
             <Input
               id="title"
               value={formData.title}
@@ -286,7 +288,7 @@ export const EditJobDialog = ({ open, onOpenChange, job, onJobUpdated }: EditJob
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
+            <Label htmlFor="description">{t('editJobDialog.label.description')}</Label>
             <Textarea
               id="description"
               value={formData.description}
@@ -297,7 +299,7 @@ export const EditJobDialog = ({ open, onOpenChange, job, onJobUpdated }: EditJob
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="location">Location</Label>
+              <Label htmlFor="location">{t('editJobDialog.label.location')}</Label>
               <Input
                 id="location"
                 value={formData.location}
@@ -306,7 +308,7 @@ export const EditJobDialog = ({ open, onOpenChange, job, onJobUpdated }: EditJob
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="employment_type">Employment Type</Label>
+              <Label htmlFor="employment_type">{t('editJobDialog.label.employmentType')}</Label>
               <Select
                 value={formData.employment_type}
                 onValueChange={(value) => setFormData({ ...formData, employment_type: value })}
@@ -315,16 +317,16 @@ export const EditJobDialog = ({ open, onOpenChange, job, onJobUpdated }: EditJob
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="fulltime">Full-time</SelectItem>
-                  <SelectItem value="parttime">Part-time</SelectItem>
-                  <SelectItem value="contract">Contract</SelectItem>
-                  <SelectItem value="freelance">Freelance</SelectItem>
+                  <SelectItem value="fulltime">{t('editJobDialog.option.fulltime')}</SelectItem>
+                  <SelectItem value="parttime">{t('editJobDialog.option.parttime')}</SelectItem>
+                  <SelectItem value="contract">{t('editJobDialog.option.contract')}</SelectItem>
+                  <SelectItem value="freelance">{t('editJobDialog.option.freelance')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="currency">Currency</Label>
+              <Label htmlFor="currency">{t('editJobDialog.label.currency')}</Label>
               <Select
                 value={formData.currency}
                 onValueChange={(value) => setFormData({ ...formData, currency: value })}
@@ -333,10 +335,10 @@ export const EditJobDialog = ({ open, onOpenChange, job, onJobUpdated }: EditJob
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="EUR">EUR (€) - Euro</SelectItem>
-                  <SelectItem value="USD">USD ($) - US Dollar</SelectItem>
-                  <SelectItem value="GBP">GBP (£) - British Pound</SelectItem>
-                  <SelectItem value="AED">AED (د.إ) - UAE Dirham</SelectItem>
+                  <SelectItem value="EUR">{t('partner.editjobdialog.eurEuro', 'EUR (€) - Euro')}</SelectItem>
+                  <SelectItem value="USD">{t('partner.editjobdialog.usdUsDollar', 'USD ($) - US Dollar')}</SelectItem>
+                  <SelectItem value="GBP">{t('partner.editjobdialog.gbpBritishPound', 'GBP (£) - British Pound')}</SelectItem>
+                  <SelectItem value="AED">{t('partner.editjobdialog.aedUaeDirham', 'AED (د.إ) - UAE Dirham')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -344,7 +346,7 @@ export const EditJobDialog = ({ open, onOpenChange, job, onJobUpdated }: EditJob
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="salary_min">Min Salary</Label>
+              <Label htmlFor="salary_min">{t('editJobDialog.label.minSalary')}</Label>
               <Input
                 id="salary_min"
                 type="number"
@@ -355,7 +357,7 @@ export const EditJobDialog = ({ open, onOpenChange, job, onJobUpdated }: EditJob
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="salary_max">Max Salary</Label>
+              <Label htmlFor="salary_max">{t('editJobDialog.label.maxSalary')}</Label>
               <Input
                 id="salary_max"
                 type="number"
@@ -373,9 +375,7 @@ export const EditJobDialog = ({ open, onOpenChange, job, onJobUpdated }: EditJob
               {!job.job_description_url && <span className="text-destructive">*</span>}
             </Label>
             {job.job_description_url && (
-              <p className="text-xs text-muted-foreground">
-                Current document uploaded. Upload a new file to replace it.
-              </p>
+              <p className="text-xs text-muted-foreground">{t('editJobDialog.currentDocumentUploadedUploadANewFileToR')}</p>
             )}
             <div className="flex items-center gap-2">
               <Input
@@ -404,7 +404,7 @@ export const EditJobDialog = ({ open, onOpenChange, job, onJobUpdated }: EditJob
 
           {/* Supporting Documents Upload */}
           <div className="space-y-2">
-            <Label htmlFor="supporting-docs">Add Supporting Documents</Label>
+            <Label htmlFor="supporting-docs">{t('editJobDialog.label.addSupportingDocuments')}</Label>
             <div className="space-y-2">
               <Input
                 id="supporting-docs"
@@ -436,39 +436,35 @@ export const EditJobDialog = ({ open, onOpenChange, job, onJobUpdated }: EditJob
 
           {/* Required Tools & Technologies */}
           <div className="space-y-2">
-            <Label>Required Tools & Technologies</Label>
-            <p className="text-xs text-muted-foreground">
-              Select tools candidates must be proficient with
-            </p>
+            <Label>{t('partner.editjobdialog.requiredToolsTechnologies', 'Required Tools & Technologies')}</Label>
+            <p className="text-xs text-muted-foreground">{t('editJobDialog.selectToolsCandidatesMustBeProficientWit')}</p>
             <ToolSelector
               selectedTools={requiredTools}
               onChange={setRequiredTools}
-              placeholder="Search tools (e.g., Notion, Figma, Python)..."
+              placeholder={t('editJobDialog.placeholder.searchToolsEgNotionFigmaPython')}
             />
           </div>
 
           {/* Nice-to-Have Tools */}
           <div className="space-y-2">
-            <Label>Nice-to-Have Tools</Label>
-            <p className="text-xs text-muted-foreground">
-              Bonus skills that would be beneficial
-            </p>
+            <Label>{t('editJobDialog.label.nicetohaveTools')}</Label>
+            <p className="text-xs text-muted-foreground">{t('editJobDialog.bonusSkillsThatWouldBeBeneficial')}</p>
             <ToolSelector
               selectedTools={niceToHaveTools}
               onChange={setNiceToHaveTools}
-              placeholder="Search additional tools..."
+              placeholder={t('editJobDialog.placeholder.searchAdditionalTools')}
             />
           </div>
 
           <div className="flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
+              {t('common:cancel')}
             </Button>
             <Button type="submit" disabled={loading || uploading}>
               {loading || uploading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  {uploading ? "Uploading..." : "Updating..."}
+                  {uploading ? t('partner.editjobdialog.uploading', 'Uploading...') : t('partner.editjobdialog.updating', 'Updating...')}
                 </>
               ) : (
                 "Update Job"

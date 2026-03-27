@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { useSwipeable } from "react-swipeable";
 import type { CRMEmailReply } from "@/types/crm-enterprise";
 import { REPLY_CLASSIFICATIONS } from "@/types/crm-enterprise";
+import { useTranslation } from 'react-i18next';
 
 interface ReplyRowProps {
   reply: CRMEmailReply;
@@ -29,6 +30,7 @@ export function ReplyRow({
   onArchive,
   onSnooze,
 }: ReplyRowProps) {
+  const { t } = useTranslation('common');
   const classification = REPLY_CLASSIFICATIONS.find(c => c.value === reply.classification);
 
   const getInitials = (name: string) =>

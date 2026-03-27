@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { UseFormReturn } from 'react-hook-form';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -27,6 +28,7 @@ interface CompanyStepProps {
 }
 
 export function CompanyStep({ form, companies, onBack, onNext }: CompanyStepProps) {
+  const { t } = useTranslation('common');
   const { watch, setValue, register, formState: { errors } } = form;
   const companyMode = watch('companyMode');
   const companyId = watch('companyId');
@@ -57,8 +59,8 @@ export function CompanyStep({ form, companies, onBack, onNext }: CompanyStepProp
         }}
       >
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="existing">Existing Company</TabsTrigger>
-          <TabsTrigger value="new">Create New</TabsTrigger>
+          <TabsTrigger value="existing">{t("existing_company", "Existing Company")}</TabsTrigger>
+          <TabsTrigger value="new">{t("create_new", "Create New")}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="existing" className="space-y-4 mt-4">
@@ -76,9 +78,9 @@ export function CompanyStep({ form, companies, onBack, onNext }: CompanyStepProp
             </PopoverTrigger>
             <PopoverContent className="w-full p-0" align="start">
               <Command>
-                <CommandInput placeholder="Search companies..." />
+                <CommandInput placeholder={t("search_companies", "Search companies...")} />
                 <CommandList>
-                  <CommandEmpty>No company found.</CommandEmpty>
+                  <CommandEmpty>{t("no_company_found", "No company found.")}</CommandEmpty>
                   <CommandGroup>
                     {companies.map((c) => (
                       <CommandItem
@@ -103,10 +105,10 @@ export function CompanyStep({ form, companies, onBack, onNext }: CompanyStepProp
 
         <TabsContent value="new" className="space-y-4 mt-4">
           <div className="space-y-2">
-            <Label>Company Name *</Label>
+            <Label>{t("company_name", "Company Name *")}</Label>
             <Input
               {...register('companyName')}
-              placeholder="Acme Corporation"
+              placeholder={t("acme_corporation", "Acme Corporation")}
               aria-invalid={!!errors.companyName}
             />
             {errors.companyName && (
@@ -116,9 +118,9 @@ export function CompanyStep({ form, companies, onBack, onNext }: CompanyStepProp
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Industry</Label>
+              <Label>{t("industry", "Industry")}</Label>
               <Select value={watch('industry')} onValueChange={(v) => setValue('industry', v, { shouldDirty: true })}>
-                <SelectTrigger><SelectValue placeholder="Select industry" /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder={t("select_industry", "Select industry")} /></SelectTrigger>
                 <SelectContent>
                   {INDUSTRIES.map((ind) => (
                     <SelectItem key={ind} value={ind}>{ind}</SelectItem>
@@ -127,9 +129,9 @@ export function CompanyStep({ form, companies, onBack, onNext }: CompanyStepProp
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Company Size</Label>
+              <Label>{t("company_size", "Company Size")}</Label>
               <Select value={watch('companySize')} onValueChange={(v) => setValue('companySize', v, { shouldDirty: true })}>
-                <SelectTrigger><SelectValue placeholder="Select size" /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder={t("select_size", "Select size")} /></SelectTrigger>
                 <SelectContent>
                   {COMPANY_SIZES.map((size) => (
                     <SelectItem key={size} value={size}>{size} employees</SelectItem>
@@ -151,10 +153,10 @@ export function CompanyStep({ form, companies, onBack, onNext }: CompanyStepProp
               />
             </div>
             <div className="space-y-2">
-              <Label>Est. Roles / Year</Label>
+              <Label>{t("est_roles_year", "Est. Roles / Year")}</Label>
               <Input
                 {...register('estimatedRolesPerYear')}
-                placeholder="e.g. 10-25"
+                placeholder={t("eg_1025", "e.g. 10-25")}
               />
             </div>
           </div>
@@ -163,7 +165,7 @@ export function CompanyStep({ form, companies, onBack, onNext }: CompanyStepProp
 
       {/* Company Role */}
       <div className="space-y-2">
-        <Label>Company Role</Label>
+        <Label>{t("company_role", "Company Role")}</Label>
         <Select
           value={watch('companyRole')}
           onValueChange={(v: any) => setValue('companyRole', v, { shouldDirty: true })}
@@ -171,16 +173,16 @@ export function CompanyStep({ form, companies, onBack, onNext }: CompanyStepProp
           <SelectTrigger><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="owner">
-              <span className="flex items-center gap-2"><Crown className="w-4 h-4 text-yellow-500" /> Owner</span>
+              <span className="flex items-center gap-2"><Crown className="w-4 h-4 text-yellow-500" />{t("owner", "Owner")}</span>
             </SelectItem>
             <SelectItem value="admin">
-              <span className="flex items-center gap-2"><Shield className="w-4 h-4 text-blue-500" /> Admin</span>
+              <span className="flex items-center gap-2"><Shield className="w-4 h-4 text-blue-500" />{t("admin", "Admin")}</span>
             </SelectItem>
             <SelectItem value="recruiter">
-              <span className="flex items-center gap-2"><Users className="w-4 h-4 text-green-500" /> Recruiter</span>
+              <span className="flex items-center gap-2"><Users className="w-4 h-4 text-green-500" />{t("recruiter", "Recruiter")}</span>
             </SelectItem>
             <SelectItem value="member">
-              <span className="flex items-center gap-2"><Users className="w-4 h-4 text-muted-foreground" /> Member</span>
+              <span className="flex items-center gap-2"><Users className="w-4 h-4 text-muted-foreground" />{t("member", "Member")}</span>
             </SelectItem>
           </SelectContent>
         </Select>
@@ -195,22 +197,22 @@ export function CompanyStep({ form, companies, onBack, onNext }: CompanyStepProp
             </h4>
             <div className="grid grid-cols-3 gap-4">
               <div className="space-y-2">
-                <Label>Fee Type</Label>
+                <Label>{t("fee_type", "Fee Type")}</Label>
                 <Select
                   value={feeType}
                   onValueChange={(v: any) => setValue('feeType', v, { shouldDirty: true })}
                 >
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="percentage">Percentage</SelectItem>
-                    <SelectItem value="fixed">Fixed</SelectItem>
-                    <SelectItem value="hybrid">Hybrid</SelectItem>
+                    <SelectItem value="percentage">{t("percentage", "Percentage")}</SelectItem>
+                    <SelectItem value="fixed">{t("fixed", "Fixed")}</SelectItem>
+                    <SelectItem value="hybrid">{t("hybrid", "Hybrid")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               {(feeType === 'percentage' || feeType === 'hybrid') && (
                 <div className="space-y-2">
-                  <Label>Fee %</Label>
+                  <Label>{t("fee", "Fee %")}</Label>
                   <Input
                     type="number"
                     {...register('placementFeePercentage')}
@@ -222,7 +224,7 @@ export function CompanyStep({ form, companies, onBack, onNext }: CompanyStepProp
               )}
               {(feeType === 'fixed' || feeType === 'hybrid') && (
                 <div className="space-y-2">
-                  <Label>Fixed Fee (€)</Label>
+                  <Label>{t("fixed_fee", "Fixed Fee (€)")}</Label>
                   <Input
                     type="number"
                     {...register('placementFeeFixed')}
@@ -233,18 +235,18 @@ export function CompanyStep({ form, companies, onBack, onNext }: CompanyStepProp
               )}
             </div>
             <div className="space-y-2">
-              <Label>Payment Terms (days)</Label>
+              <Label>{t("payment_terms_days", "Payment Terms (days)")}</Label>
               <Select
                 value={String(watch('defaultPaymentTermsDays') || 30)}
                 onValueChange={(v) => setValue('defaultPaymentTermsDays', Number(v), { shouldDirty: true })}
               >
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="14">Net 14</SelectItem>
-                  <SelectItem value="30">Net 30</SelectItem>
-                  <SelectItem value="45">Net 45</SelectItem>
-                  <SelectItem value="60">Net 60</SelectItem>
-                  <SelectItem value="90">Net 90</SelectItem>
+                  <SelectItem value="14">{t("net_14", "Net 14")}</SelectItem>
+                  <SelectItem value="30">{t("net_30", "Net 30")}</SelectItem>
+                  <SelectItem value="45">{t("net_45", "Net 45")}</SelectItem>
+                  <SelectItem value="60">{t("net_60", "Net 60")}</SelectItem>
+                  <SelectItem value="90">{t("net_90", "Net 90")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -276,15 +278,15 @@ export function CompanyStep({ form, companies, onBack, onNext }: CompanyStepProp
                 <Separator />
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>Default Role</Label>
+                    <Label>{t("default_role", "Default Role")}</Label>
                     <Select
                       value={watch('domainDefaultRole')}
                       onValueChange={(v) => setValue('domainDefaultRole', v)}
                     >
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="member">Member</SelectItem>
-                        <SelectItem value="recruiter">Recruiter</SelectItem>
+                        <SelectItem value="member">{t("member", "Member")}</SelectItem>
+                        <SelectItem value="recruiter">{t("recruiter", "Recruiter")}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -293,7 +295,7 @@ export function CompanyStep({ form, companies, onBack, onNext }: CompanyStepProp
                       checked={watch('requireDomainApproval')}
                       onCheckedChange={(v) => setValue('requireDomainApproval', v)}
                     />
-                    <Label>Require Approval</Label>
+                    <Label>{t("require_approval", "Require Approval")}</Label>
                   </div>
                 </div>
               </>
@@ -303,8 +305,8 @@ export function CompanyStep({ form, companies, onBack, onNext }: CompanyStepProp
       )}
 
       <div className="flex justify-between">
-        <Button type="button" variant="outline" onClick={onBack}>Back</Button>
-        <Button type="button" onClick={onNext} disabled={!canContinue}>Continue</Button>
+        <Button type="button" variant="outline" onClick={onBack}>{t("back", "Back")}</Button>
+        <Button type="button" onClick={onNext} disabled={!canContinue}>{t("continue", "Continue")}</Button>
       </div>
     </div>
   );

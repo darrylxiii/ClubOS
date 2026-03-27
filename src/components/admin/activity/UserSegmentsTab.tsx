@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,6 +7,7 @@ import { useRecharts } from '@/hooks/useRecharts';
 import { Smartphone, Monitor, Tablet } from 'lucide-react';
 
 export function UserSegmentsTab() {
+  const { t } = useTranslation('common');
   const { recharts, isLoading: chartsLoading } = useRecharts();
   const { data: deviceData, isLoading } = useQuery({
     queryKey: ['user-segments-device'],
@@ -117,7 +119,7 @@ export function UserSegmentsTab() {
       {/* Role Activity Breakdown */}
       <Card className="bg-card/30 backdrop-blur-[var(--blur-glass)] border-border/20">
         <CardHeader>
-          <CardTitle>User Activity by Role (24h)</CardTitle>
+          <CardTitle>{t("user_activity_by_role", "User Activity by Role (24h)")}</CardTitle>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
@@ -146,7 +148,7 @@ export function UserSegmentsTab() {
         {/* Device Breakdown */}
         <Card className="bg-card/30 backdrop-blur-[var(--blur-glass)] border-border/20">
           <CardHeader>
-            <CardTitle>Device Distribution (7d)</CardTitle>
+            <CardTitle>{t("device_distribution_7d", "Device Distribution (7d)")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
@@ -177,7 +179,7 @@ export function UserSegmentsTab() {
         {/* Browser Breakdown */}
         <Card className="bg-card/30 backdrop-blur-[var(--blur-glass)] border-border/20">
           <CardHeader>
-            <CardTitle>Top Browsers (7d)</CardTitle>
+            <CardTitle>{t("top_browsers_7d", "Top Browsers (7d)")}</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={250}>
@@ -199,7 +201,7 @@ export function UserSegmentsTab() {
       {/* Timezone Distribution */}
       <Card className="bg-card/30 backdrop-blur-[var(--blur-glass)] border-border/20">
         <CardHeader>
-          <CardTitle>User Timezones (7d)</CardTitle>
+          <CardTitle>{t("user_timezones_7d", "User Timezones (7d)")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
