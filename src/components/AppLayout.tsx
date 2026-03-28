@@ -247,8 +247,8 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
           )}
             style={{
               paddingBottom: (location.pathname !== '/messages' && !location.pathname.startsWith('/admin/whatsapp') && location.pathname !== '/crm/inbox')
-                ? 'max(env(safe-area-inset-bottom), 1rem)'
-                : undefined
+                ? 'calc(5rem + env(safe-area-inset-bottom))'
+                : 'env(safe-area-inset-bottom)'
             }}
           >
             <Suspense fallback={null}><AmbientInsightBar /></Suspense>

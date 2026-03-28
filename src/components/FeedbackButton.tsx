@@ -176,15 +176,7 @@ export const FeedbackButton = () => {
   const content = (
     <>
       <div 
-        style={{ 
-          position: 'fixed',
-          bottom: '5rem',
-          right: '2rem',
-          zIndex: 9999,
-          display: 'flex',
-          alignItems: 'center',
-          gap: 0
-        }}
+        className="fixed z-[9999] flex items-center gap-0 bottom-32 right-0 md:bottom-12 transition-all duration-300"
       >
         {!minimized && (
           <Button
