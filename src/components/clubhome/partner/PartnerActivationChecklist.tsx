@@ -141,8 +141,8 @@ function StepRow({
 // Main component
 // ---------------------------------------------------------------------------
 export function PartnerActivationChecklist({ companyId }: PartnerActivationChecklistProps) {
-  const {
   const { t } = useTranslation('clubhome');
+  const {
     steps,
     progress,
     completedCount,

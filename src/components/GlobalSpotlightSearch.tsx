@@ -68,6 +68,17 @@ const allCommands: NavCommand[] = [
   { id: "unified-tasks", label: "Tasks", icon: ListTodo, path: "/tasks", category: "Quick Actions", roles: ["user", "partner", "admin", "strategist"] },
   { id: "club-pilot", label: "Club Pilot (AI Tasks)", icon: Sparkles, path: "/club-pilot", category: "Quick Actions", roles: ["user", "partner", "admin", "strategist"] },
   { id: "settings", label: "Account Settings", icon: Settings, path: "/settings", category: "Quick Actions", roles: ["user", "partner", "admin", "strategist"] },
+  // Partner-specific commands
+  { id: "partner-hub", label: "Partner Hub", icon: Building, path: "/partner/hub", category: "Partner", roles: ["partner"] },
+  { id: "partner-analytics", label: "View Analytics", icon: Target, path: "/partner/hub?tab=analytics", category: "Partner", roles: ["partner"] },
+  { id: "partner-health", label: "Hiring Health Score", icon: Brain, path: "/partner/hub?tab=health", category: "Partner", roles: ["partner"] },
+  { id: "partner-offers", label: "View Offers Pipeline", icon: FileText, path: "/partner/hub?tab=offers", category: "Partner", roles: ["partner"] },
+  { id: "partner-sla", label: "Check SLA Status", icon: Clock, path: "/partner/hub?tab=sla", category: "Partner", roles: ["partner"] },
+  { id: "partner-billing", label: "Billing & Invoices", icon: FileText, path: "/partner/hub?tab=billing", category: "Partner", roles: ["partner"] },
+  { id: "partner-workflows", label: "Active Workflows", icon: Sparkles, path: "/partner/hub?tab=workflows", category: "Partner", roles: ["partner"] },
+  { id: "partner-diversity", label: "Diversity Insights", icon: Users, path: "/partner/hub?tab=analytics", category: "Partner", roles: ["partner"] },
+  { id: "post-role", label: "Post a New Role", icon: Briefcase, path: "/company-jobs", category: "Partner", roles: ["partner"] },
+  { id: "review-candidates", label: "Review Candidates", icon: Users, path: "/company-applications", category: "Partner", roles: ["partner"] },
 ];
 
 const RECENT_KEY = "qc-spotlight-recent";

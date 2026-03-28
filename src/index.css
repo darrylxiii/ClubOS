@@ -217,7 +217,7 @@ Bold, minimalist aesthetic inspired by The Quantum Club design system.
     --secondary-foreground: 0 0% 12%;
 
     --muted: 0 0% 95%;
-    --muted-foreground: 0 0% 40%;
+    --muted-foreground: 0 0% 35%;
 
     --accent: 0 0% 20%;
     --accent-foreground: 0 0% 98%;
@@ -241,7 +241,7 @@ Bold, minimalist aesthetic inspired by The Quantum Club design system.
       radial-gradient(at 0% 50%, hsl(0 0% 94% / 0.1) 0px, transparent 50%);
     --gradient-card: linear-gradient(135deg, hsl(0 0% 98% / 0.9) 0%, hsl(0 0% 96% / 0.85) 100%);
     --gradient-accent: linear-gradient(135deg, hsl(0 0% 85%) 0%, hsl(0 0% 90%) 100%);
-    --gradient-glass: linear-gradient(135deg, hsl(0 0% 98% / 0.75) 0%, hsl(0 0% 96% / 0.6) 100%);
+    --gradient-glass: linear-gradient(135deg, hsl(0 0% 98% / 0.85) 0%, hsl(0 0% 96% / 0.75) 100%);
 
     /* Premium Glassmorphic Shadows */
     --shadow-glass-sm: 0 4px 16px hsl(0 0% 0% / 0.08), 0 2px 4px hsl(0 0% 0% / 0.06);
@@ -839,6 +839,19 @@ Bold, minimalist aesthetic inspired by The Quantum Club design system.
     .animate-spin,
     .animate-bounce {
       animation: none !important;
+    }
+
+    /* Disable custom Tailwind keyframe animations */
+    .animate-fade-in,
+    .animate-scale-in,
+    .animate-slide-up,
+    .animate-bounce-in,
+    .animate-spin-slow,
+    .animate-pulse-subtle,
+    .animate-rainbow {
+      animation: none !important;
+      opacity: 1 !important;
+      transform: none !important;
     }
 
     /* Disable backdrop-blur for reduced motion (performance + accessibility) */

@@ -35,7 +35,7 @@ export function SmartAlertsPanel({ companyId }: { companyId: string }) {
         .eq('is_dismissed', false)
         .order('created_at', { ascending: false })
         .limit(5);
-      if (error) throw error;
+      if (error) return []; // Gracefully handle missing table
       return (data || []) as unknown as SmartAlert[];
     },
     refetchInterval: 300000,

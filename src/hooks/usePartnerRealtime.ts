@@ -1,6 +1,9 @@
 import { useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import i18n from '@/i18n/config';
+import { quantumSoundEngine } from '@/lib/sounds/QuantumSoundEngine';
 
 /**
  * Hook to enable real-time subscriptions for Partner Dashboard
@@ -28,15 +31,43 @@ export function usePartnerRealtime(companyId: string | undefined) {
           queryClient.invalidateQueries({ queryKey: ['smart-alerts', companyId] });
         }
       )
-      // Applications - pipeline changes
+      // Applications - pipeline changes with stage toast notifications
       .on(
         'postgres_changes',
         {
-          event: '*',
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'applications',
+        },
+        (payload) => {
+          const oldStage = (payload.old as any)?.stage;
+          const newStage = (payload.new as any)?.stage;
+          if (oldStage && newStage && oldStage !== newStage) {
+            quantumSoundEngine.play('pipeline.stage_advanced');
+            const stageName = String(newStage).replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+            toast.info(i18n.t('common:realtime.candidateMoved', 'Candidate moved to {{stage}}', { stage: stageName }), {
+              description: i18n.t('common:realtime.pipelineUpdated', 'Pipeline updated in real-time'),
+            });
+          }
+          queryClient.invalidateQueries({ queryKey: ['partner-applications', companyId] });
+          queryClient.invalidateQueries({ queryKey: ['hiring-pipeline', companyId] });
+          queryClient.invalidateQueries({ queryKey: ['recent-applications', companyId] });
+          queryClient.invalidateQueries({ queryKey: ['role-stats', 'partner'] });
+          queryClient.invalidateQueries({ queryKey: ['pending-offers', companyId] });
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
           schema: 'public',
           table: 'applications',
         },
         () => {
+          quantumSoundEngine.play('pipeline.new_application');
+          toast.info(i18n.t('common:realtime.newApplication', 'New application received'), {
+            description: i18n.t('common:realtime.candidateApplied', 'A candidate has applied to one of your roles'),
+          });
           queryClient.invalidateQueries({ queryKey: ['partner-applications', companyId] });
           queryClient.invalidateQueries({ queryKey: ['hiring-pipeline', companyId] });
           queryClient.invalidateQueries({ queryKey: ['recent-applications', companyId] });

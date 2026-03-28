@@ -4,39 +4,59 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Activity, Zap, Clock, TrendingUp, AlertTriangle } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion } from "@/lib/motion";
 import { useTranslation } from 'react-i18next';
 
-export function HealthScoreDashboard({
-  const { t } = useTranslation('partner'); companyId }: { companyId: string }) {
+export function HealthScoreDashboard({ companyId }: { companyId: string }) {
+  const { t } = useTranslation('partner');
   const { data: healthData, isLoading } = useQuery({
     queryKey: ['health-score', companyId],
     queryFn: async () => {
-      // Get latest health score
-      const { data: score } = await supabase
-        .from('partner_health_scores' as any)
-        .select('*')
-        .eq('company_id', companyId)
-        .order('calculated_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
+      try {
+        // Get latest health score
+        const { data: score, error } = await supabase
+          .from('partner_health_scores' as any)
+          .select('*')
+          .eq('company_id', companyId)
+          .order('calculated_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
 
-      // Calculate score if doesn't exist
-      if (!score) {
-        const { data: calculated } = await supabase.rpc(
-          'calculate_company_health_score' as any,
-          { p_company_id: companyId }
-        );
-        return { 
-          overall_score: calculated || 50, 
+        if (error || !score) {
+          // Try RPC fallback, or return default
+          try {
+            const { data: calculated } = await supabase.rpc(
+              'calculate_company_health_score' as any,
+              { p_company_id: companyId }
+            );
+            return {
+              overall_score: calculated || 50,
+              response_time_score: null,
+              pipeline_velocity_score: null,
+              conversion_rate_score: null,
+              bottleneck_score: null
+            };
+          } catch {
+            return {
+              overall_score: 50,
+              response_time_score: null,
+              pipeline_velocity_score: null,
+              conversion_rate_score: null,
+              bottleneck_score: null
+            };
+          }
+        }
+
+        return score as any;
+      } catch {
+        return {
+          overall_score: 50,
           response_time_score: null,
           pipeline_velocity_score: null,
           conversion_rate_score: null,
           bottleneck_score: null
         };
       }
-
-      return score as any;
     },
     refetchInterval: 300000 // Refresh every 5 min
   });
@@ -47,7 +67,7 @@ export function HealthScoreDashboard({
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-base">
             <Activity className="h-4 w-4 text-primary" />
-            Hiring Health
+            {t('healthScore.title', 'Hiring Health')}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -93,10 +113,10 @@ export function HealthScoreDashboard({
   };
 
   const getScoreLabel = () => {
-    if (score >= 80) return 'Excellent';
-    if (score >= 60) return 'Good';
-    if (score >= 40) return 'Needs Attention';
-    return 'Critical';
+    if (score >= 80) return t('healthScore.excellent', 'Excellent');
+    if (score >= 60) return t('healthScore.good', 'Good');
+    if (score >= 40) return t('healthScore.needsAttention', 'Needs Attention');
+    return t('healthScore.critical', 'Critical');
   };
 
   const style = getScoreStyle();
@@ -132,7 +152,7 @@ export function HealthScoreDashboard({
             <div className={`p-1.5 rounded-lg ${style.bg}`}>
               <Activity className={`h-4 w-4 ${style.color}`} />
             </div>
-            Hiring Health
+            {t('healthScore.title', 'Hiring Health')}
           </div>
           <Badge variant="outline" className={`${style.bg} ${style.color} ${style.border}`}>
             {getScoreLabel()}

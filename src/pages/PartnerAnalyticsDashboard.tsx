@@ -2,6 +2,7 @@ import { PartnerAnalytics } from "@/components/partner/PartnerAnalytics";
 import { EnhancedAnalytics } from "@/components/partner/EnhancedAnalytics";
 import { CompanyAnalyticsChart } from "@/components/partner/CompanyAnalyticsChart";
 import { BenchmarkComparison } from "@/components/partner/BenchmarkComparison";
+import { DiversityInsightsWidget } from "@/components/partner/DiversityInsightsWidget";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEffect, useState } from "react";
 import { useTranslation } from 'react-i18next';
@@ -84,6 +85,7 @@ export default function PartnerAnalyticsDashboard() {
           <TabsTrigger value="pipeline">{t('partnerAnalyticsDashboard.text3')}</TabsTrigger>
           <TabsTrigger value="trends">{t('partnerAnalyticsDashboard.text4')}</TabsTrigger>
           <TabsTrigger value="benchmarks">{t('partnerAnalyticsDashboard.text5')}</TabsTrigger>
+          <TabsTrigger value="diversity">{t('partnerAnalyticsDashboard.diversity', 'Diversity')}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
@@ -101,6 +103,10 @@ export default function PartnerAnalyticsDashboard() {
 
         <TabsContent value="benchmarks" className="space-y-6">
           <BenchmarkComparison companyId={companyId} />
+        </TabsContent>
+
+        <TabsContent value="diversity" className="space-y-6">
+          <DiversityInsightsWidget />
         </TabsContent>
       </Tabs>
     </div>

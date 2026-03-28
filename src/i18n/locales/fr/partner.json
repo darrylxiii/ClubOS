@@ -2525,5 +2525,122 @@
       "failedToSetPassword": "Échec de la définition du mot de passe.",
       "partnerCompletedInitialAccountSetupPassword": "Le partenaire a terminé la configuration initiale du compte (mot de passe + profil)"
     }
+  },
+  "marketAlerts": {
+    "title": "Alertes du marché des talents",
+    "subtitle": "Signaux en temps réel sur les mouvements concurrentiels, licenciements et santé du pipeline",
+    "cards": {
+      "active": "Alertes actives",
+      "critical": "Critiques",
+      "thisWeek": "Cette semaine"
+    },
+    "categories": {
+      "competitor": "Mouvement concurrentiel",
+      "layoff": "Événements de licenciement",
+      "salary": "Changements de salaire",
+      "offerActivity": "Activité d'offres",
+      "pipeline": "Blocages du pipeline"
+    },
+    "actions": {
+      "viewProfile": "Voir le profil",
+      "addToPipeline": "Ajouter au pipeline",
+      "dismiss": "Rejeter",
+      "snooze": "Reporter"
+    },
+    "feed": {
+      "otherAlerts": "Signaux du marché"
+    },
+    "empty": {
+      "title": "Aucune nouvelle alerte",
+      "description": "Vous êtes à jour. Les nouveaux signaux du marché apparaîtront ici en temps réel."
+    },
+    "noCompany": {
+      "title": "Aucune entreprise sélectionnée",
+      "description": "Sélectionnez une entreprise pour voir les alertes du marché des talents."
+    },
+    "error": {
+      "title": "Impossible de charger les alertes",
+      "description": "Une erreur est survenue lors du chargement des alertes du marché. Veuillez réessayer plus tard."
+    },
+    "prefs": {
+      "title": "Préférences d'alertes",
+      "description": "Choisissez les alertes du marché que vous recevez et comment.",
+      "competitor": "Mouvement concurrentiel",
+      "layoff": "Événements de licenciement",
+      "salary": "Changements de salaire",
+      "offerActivity": "Activité d'offres des candidats",
+      "pipeline": "Blocages du pipeline",
+      "deliveryLabel": "Méthode de livraison",
+      "delivery": {
+        "inApp": "Application uniquement",
+        "inAppEmail": "Application + E-mail",
+        "inAppPush": "Application + Push"
+      },
+      "close": "Fermer"
+    }
+  },
+  "nurturing": {
+    "title": "Gestion du vivier de talents",
+    "subtitle": "Relancez les candidats de qualite depuis votre vivier de medailles d'argent",
+    "noCompany": "Aucune entreprise associee",
+    "noCompanyDesc": "La gestion du vivier de talents sera disponible une fois votre profil d'entreprise configure.",
+    "metrics": {
+      "poolSize": "Taille du vivier",
+      "silverMedalists": "Medailles d'argent",
+      "reengaged": "Relances ce mois",
+      "last30Days": "30 derniers jours",
+      "conversionRate": "Taux de conversion",
+      "reengagementRate": "Taux de relance"
+    },
+    "pool": {
+      "title": "Vivier de medailles d'argent",
+      "empty": "Aucun medaille d'argent dans le vivier pour le moment.",
+      "profileUpdated": "Profil mis a jour",
+      "appliedElsewhere": "A postule ailleurs",
+      "inactive": "Inactif",
+      "rejectedAt": "Refuse a l'etape",
+      "lastActivity": "Derniere activite",
+      "reachOut": "Contacter",
+      "addToShortlist": "Pre-selectionner",
+      "reachOutSuccess": "E-mail de relance programme pour {{name}}",
+      "shortlistSuccess": "{{name}} ajoute a la pre-selection",
+      "sortQuality": "Score de qualite",
+      "sortRecency": "Plus recent"
+    },
+    "signals": {
+      "title": "Signaux de relance",
+      "empty": "Aucun signal de relance detecte pour le moment.",
+      "hot": "Prioritaire",
+      "type": "Type",
+      "action": "Action",
+      "priorityReachOut": "Contact prioritaire",
+      "monitor": "Surveiller",
+      "category": {
+        "profile_update": "Mises a jour de profil",
+        "new_application": "Nouvelles candidatures",
+        "linkedin_activity": "Activite LinkedIn"
+      }
+    },
+    "builder": {
+      "title": "Constructeur de sequences",
+      "step1": "Etape 1 : Selectionner le declencheur",
+      "step2": "Etape 2 : Selectionner l'action",
+      "step3": "Etape 3 : Apercu de la sequence",
+      "chooseTrigger": "Choisir un declencheur...",
+      "chooseAction": "Choisir une action...",
+      "add": "Ajouter",
+      "trigger": "Declencheur",
+      "action": "Action",
+      "save": "Enregistrer la sequence",
+      "saved": "Sequence de relance enregistree",
+      "deleted": "Sequence supprimee",
+      "savedSequences": "Sequences enregistrees",
+      "trigger30Days": "30 jours apres le refus",
+      "triggerProfileUpdated": "Profil mis a jour",
+      "triggerNewRole": "Nouveau poste correspondant aux competences",
+      "actionSendEmail": "Envoyer un e-mail personnalise",
+      "actionAddShortlist": "Ajouter a la pre-selection",
+      "actionNotifyStrategist": "Notifier le strategiste"
+    }
   }
 }

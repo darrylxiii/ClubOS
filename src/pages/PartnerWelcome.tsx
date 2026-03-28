@@ -1,16 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { motion } from '@/lib/motion';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { CheckCircle, Building2, Users, CalendarClock, ArrowRight, Sparkles, Shield } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { UnifiedLoader } from '@/components/ui/unified-loader';
 import { logger } from '@/lib/logger';
+import { WelcomeCeremony } from '@/components/partner/WelcomeCeremony';
 
 /**
  * PartnerWelcome - Concierge welcome screen for pre-provisioned partners
@@ -120,11 +116,11 @@ const PartnerWelcome = () => {
           }
         });
 
-      toast.success("Welcome to The Quantum Club!");
+      toast.success(t('partnerWelcome.welcomeToast', 'Welcome to The Quantum Club!'));
       navigate('/partner/hub');
     } catch (error) {
       logger.error('Error completing onboarding', error instanceof Error ? error : new Error(String(error)), { componentName: 'PartnerWelcome' });
-      toast.error("Failed to complete onboarding");
+      toast.error(t('partnerWelcome.failedOnboarding', 'Failed to complete onboarding'));
     }
   };
 
@@ -136,137 +132,17 @@ const PartnerWelcome = () => {
     return null; // Will redirect in useEffect
   }
 
+  const partnerFirstName = user?.user_metadata?.full_name?.split(' ')[0] ||
+    user?.email?.split('@')[0]?.replace(/^\w/, (c: string) => c.toUpperCase()) ||
+    'Partner';
+
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="w-full max-w-2xl"
-      >
-        <Card className="border-2 border-primary/20 shadow-2xl">
-          <CardHeader className="text-center pb-2">
-            <div className="mx-auto mb-4 w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
-              <Sparkles className="w-8 h-8 text-primary" />
-            </div>
-            <Badge variant="secondary" className="mx-auto mb-4">
-              <Shield className="w-3 h-3 mr-1" />
-              Pre-verified Account
-            </Badge>
-            <CardTitle className="text-3xl font-black uppercase tracking-tight">
-              Welcome, Partner
-            </CardTitle>
-            <CardDescription className="text-lg">
-              Your exclusive access to The Quantum Club has been activated
-            </CardDescription>
-          </CardHeader>
-
-          <CardContent className="space-y-6 pt-6">
-            {/* Company Info */}
-            {companyInfo && (
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.2 }}
-                className="flex items-center gap-4 p-4 bg-muted/50 rounded-xl"
-              >
-                <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
-                  <Building2 className="w-6 h-6 text-primary" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm text-muted-foreground">{t('partnerWelcome.desc')}</p>
-                  <p className="font-semibold text-lg">{companyInfo.name}</p>
-                </div>
-                <Badge variant="outline" className="capitalize">
-                  {companyInfo.role}
-                </Badge>
-              </motion.div>
-            )}
-
-            {/* Strategist Info */}
-            {strategist && (
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.3 }}
-                className="flex items-center gap-4 p-4 bg-muted/50 rounded-xl"
-              >
-                <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center overflow-hidden">
-                  {strategist.avatarUrl ? (
-                    <img 
-                      src={strategist.avatarUrl} 
-                      alt={strategist.name} 
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <Users className="w-6 h-6 text-primary" />
-                  )}
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm text-muted-foreground">{t('partnerWelcome.desc2')}</p>
-                  <p className="font-semibold text-lg">{strategist.name}</p>
-                  <p className="text-sm text-muted-foreground">{strategist.email}</p>
-                </div>
-              </motion.div>
-            )}
-
-            {/* What's Next */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-              className="pt-4"
-            >
-              <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-4">{t('partnerWelcome.title')}</h3>
-              <div className="space-y-3">
-                <div className="flex items-start gap-3">
-                  <CheckCircle className="w-5 h-5 text-emerald-500 mt-0.5" />
-                  <div>
-                    <p className="font-medium">{t('partnerWelcome.desc3')}</p>
-                    <p className="text-sm text-muted-foreground">{t('partnerWelcome.desc4')}</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <CheckCircle className="w-5 h-5 text-emerald-500 mt-0.5" />
-                  <div>
-                    <p className="font-medium">{t('partnerWelcome.desc5')}</p>
-                    <p className="text-sm text-muted-foreground">{t('partnerWelcome.desc6')}</p>
-                  </div>
-                </div>
-                {strategist && (
-                  <div className="flex items-start gap-3">
-                    <CalendarClock className="w-5 h-5 text-primary mt-0.5" />
-                    <div>
-                      <p className="font-medium">{t('partnerWelcome.desc7')}</p>
-                      <p className="text-sm text-muted-foreground">
-                        Meet with {strategist.name} for a personalized introduction
-                      </p>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </motion.div>
-
-            {/* CTA */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.6 }}
-              className="pt-6"
-            >
-              <Button
-                size="lg"
-                className="w-full h-14 text-lg font-semibold"
-                onClick={handleCompleteOnboarding}
-              >
-                Enter Partner Portal
-                <ArrowRight className="w-5 h-5 ml-2" />
-              </Button>
-            </motion.div>
-          </CardContent>
-        </Card>
-      </motion.div>
-    </div>
+    <WelcomeCeremony
+      partnerName={partnerFirstName}
+      companyInfo={companyInfo}
+      strategist={strategist}
+      onComplete={handleCompleteOnboarding}
+    />
   );
 };
 

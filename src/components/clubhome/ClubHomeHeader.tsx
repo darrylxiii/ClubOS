@@ -1,15 +1,15 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Shield, Users, User, Sparkles, RefreshCw, BarChart3, DollarSign } from "lucide-react";
+import { Shield, Users, User, Sparkles, RefreshCw, BarChart3, DollarSign, ClipboardCheck, MessageSquare, Plus } from "lucide-react";
 import { UserRole } from "@/hooks/useUserRole";
-import { NotificationBell } from "@/components/NotificationBell";
 import { useProfile } from "@/hooks/useProfile";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTranslation } from "react-i18next";
 import { CEOHealthScore } from "./CEOHealthScore";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
+import { usePartnerGreetingContext } from "@/hooks/usePartnerGreetingContext";
 
 interface ClubHomeHeaderProps {
   role: UserRole;
@@ -23,6 +23,7 @@ export const ClubHomeHeader = ({ role }: ClubHomeHeaderProps) => {
     userId: user?.id,
     autoLoad: true,
   });
+  const partnerCtx = usePartnerGreetingContext(role);
 
   const getRoleIcon = () => {
     switch (role) {
@@ -102,7 +103,31 @@ export const ClubHomeHeader = ({ role }: ClubHomeHeaderProps) => {
           </div>
         )}
 
-        {/* Right: Quick actions */}
+        {/* Center: Partner context summary */}
+        {role === "partner" && !partnerCtx.loading && (
+          <div className="hidden sm:flex items-center gap-3 text-xs text-muted-foreground">
+            {partnerCtx.pendingReviews > 0 && (
+              <span className="flex items-center gap-1">
+                <ClipboardCheck className="h-3 w-3 text-amber-500" />
+                {partnerCtx.pendingReviews} {t("common:to_review", "to review")}
+              </span>
+            )}
+            {partnerCtx.todayInterviews > 0 && (
+              <span className="flex items-center gap-1">
+                <Users className="h-3 w-3 text-primary" />
+                {partnerCtx.todayInterviews} {t("common:interviews_today", "today")}
+              </span>
+            )}
+            {partnerCtx.activeJobs > 0 && (
+              <span className="flex items-center gap-1">
+                <BarChart3 className="h-3 w-3 text-emerald-500" />
+                {partnerCtx.activeJobs} {t("common:active_roles", "active roles")}
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* Right: Admin quick actions */}
         {role === "admin" && (
           <div className="flex items-center gap-1">
             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={refreshKPIs} title={t("refresh_kpis", "Refresh KPIs")}>
@@ -116,6 +141,27 @@ export const ClubHomeHeader = ({ role }: ClubHomeHeaderProps) => {
             <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
               <Link to="/admin/global-analytics" title={t("analytics", "Analytics")}>
                 <BarChart3 className="h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
+        )}
+
+        {/* Right: Partner quick actions */}
+        {role === "partner" && (
+          <div className="flex items-center gap-1" role="toolbar" aria-label="Quick actions">
+            <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
+              <Link to="/company-jobs" title={t("post_role", "Post Role")}>
+                <Plus className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
+              <Link to="/partner/hub?tab=analytics" title={t("analytics", "Analytics")}>
+                <BarChart3 className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
+              <Link to="/messages" title={t("messages", "Messages")}>
+                <MessageSquare className="h-4 w-4" />
               </Link>
             </Button>
           </div>
