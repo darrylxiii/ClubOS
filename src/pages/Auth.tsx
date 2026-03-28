@@ -941,6 +941,19 @@ const Auth = () => {
 
       </motion.div>
       
+      {/* Build version badge — click to copy */}
+      <button
+        type="button"
+        onClick={() => {
+          const info = `Build ${typeof __BUILD_HASH__ !== 'undefined' ? __BUILD_HASH__ : 'dev'} @ ${typeof __BUILD_TIME__ !== 'undefined' ? __BUILD_TIME__ : 'local'}`;
+          navigator.clipboard?.writeText(info);
+        }}
+        className="fixed bottom-3 right-3 text-[10px] text-foreground/20 hover:text-foreground/50 transition-colors font-mono z-50"
+        title="Click to copy version info"
+      >
+        v{typeof __BUILD_HASH__ !== 'undefined' ? __BUILD_HASH__ : 'dev'}
+      </button>
+      
       <SetPasswordModal open={setPasswordOpen} onOpenChange={setSetPasswordOpen} />
     </div>;
 };

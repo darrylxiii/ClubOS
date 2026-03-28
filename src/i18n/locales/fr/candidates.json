@@ -344,29 +344,29 @@
   "text": {
     "admincandidates": {
       "next": "Suivant",
-      "failedToLoadCandidates": "Failed to load candidates",
-      "exportFailed": "Export failed",
-      "exportedSuccessfully": "Exported successfully",
-      "failedToAssignStrategist": "Failed to assign strategist"
+      "failedToLoadCandidates": "Échec du chargement des candidats",
+      "exportFailed": "L'exportation a échoué",
+      "exportedSuccessfully": "Exportation réussie",
+      "failedToAssignStrategist": "Échec de l'attribution du stratège"
     },
     "talentpoollists": {
-      "areYouSureYouWantTo": "Are you sure you want to delete this list? This action cannot be undone.",
+      "areYouSureYouWantTo": "Êtes-vous sûr de vouloir supprimer cette liste ? Cette action est irréversible.",
       "cancel": "Annuler",
       "delete": "Supprimer",
-      "listIsNowPrivate": "List is now private",
-      "listIsNowSharedWithYour": "List is now shared with your team",
-      "unshare": "Unshare",
-      "share": "Share",
-      "thisListIsCurrentlySharedWith": "This list is currently shared with your team. Would you like to make it private?",
-      "shareThisListWithYourTeam": "Share this list with your team so they can view the candidates.",
-      "makePrivate": "Make Private",
-      "shareWithTeam": "Share with Team"
+      "listIsNowPrivate": "La liste est désormais privée",
+      "listIsNowSharedWithYour": "La liste est désormais partagée avec votre équipe",
+      "unshare": "Ne plus partager",
+      "share": "Partager",
+      "thisListIsCurrentlySharedWith": "Cette liste est actuellement partagée avec votre équipe. Souhaitez-vous la rendre privée ?",
+      "shareThisListWithYourTeam": "Partagez cette liste avec votre équipe afin qu'elle puisse consulter les candidats.",
+      "makePrivate": "Rendre privée",
+      "shareWithTeam": "Partager avec l'équipe"
     },
     "unifiedcandidateprofile": {
-      "collaborationNotes": "Collaboration Notes",
-      "teamNotes": "Team Notes",
-      "shareNotesWithTqcAndYour": "Share notes with TQC and your team about this candidate",
-      "internalNotesAndObservationsAboutThis": "Internal notes and observations about this candidate"
+      "collaborationNotes": "Notes de collaboration",
+      "teamNotes": "Notes d'équipe",
+      "shareNotesWithTqcAndYour": "Partagez des notes avec The Quantum Club et votre équipe au sujet de ce candidat",
+      "internalNotesAndObservationsAboutThis": "Notes internes et observations concernant ce candidat"
     }
   }
 }

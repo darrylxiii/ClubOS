@@ -1,11 +1,20 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
+import { execSync } from "child_process";
 import { VitePWA } from "vite-plugin-pwa";
 import { visualizer } from "rollup-plugin-visualizer";
 
+// Build metadata — injected as compile-time constants
+const commitHash = (() => { try { return execSync('git rev-parse --short HEAD').toString().trim(); } catch { return 'dev'; } })();
+const buildTime = new Date().toISOString();
+
 // https://vitejs.dev/config/
 export default defineConfig(({ mode, command }) => ({
+  define: {
+    __BUILD_HASH__: JSON.stringify(commitHash),
+    __BUILD_TIME__: JSON.stringify(buildTime),
+  },
   server: {
     host: true,
     port: 8080,

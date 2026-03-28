@@ -8,13 +8,19 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { PublicProviders } from "@/contexts/PublicProviders";
-import { ProtectedProviders, ProtectedProvidersLoader } from "@/contexts/ProtectedProviders";
+// PERF: Lazy-load protected-route shell — unauthenticated users never pay for it
+const ProtectedProvidersModule = import("@/contexts/ProtectedProviders");
+const ProtectedProvidersLoader = lazy(() => ProtectedProvidersModule.then(m => ({ default: m.ProtectedProvidersLoader })));
 import { AuthProvider } from "@/contexts/AuthContext";
 // PostHog lazy-loaded to defer ~90KB posthog-js SDK from root chunk
 const LazyPostHogProvider = lazy(() =>
   import("@/providers/PostHogProvider").then(m => ({ default: m.PostHogProvider }))
 );
-import { ProtectedLayout } from "@/components/ProtectedLayout";
+// PERF: ProtectedLayout is lazy – the entire 500KB+ shell (sidebar, header,
+// spotlight, music player) only loads after auth succeeds.
+const ProtectedLayout = lazy(() =>
+  import("@/components/ProtectedLayout").then(m => ({ default: m.ProtectedLayout }))
+);
 import { RouteErrorBoundary } from "@/components/RouteErrorBoundary";
 import { SentryErrorBoundary } from "@/components/SentryErrorBoundary";
 import { TranslationProvider } from "@/providers/TranslationProvider";

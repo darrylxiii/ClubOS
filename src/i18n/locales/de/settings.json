@@ -338,7 +338,7 @@
     "willingToShift": "Ich bin bereit, meine Arbeitszeiten zu verschieben:",
     "zeroHours": "0 Stunden",
     "previewFor": "Vorschau fuer {{timezone}}:",
-    "withFlexibility": "With ±{{hours}}h flexibility:",
+    "withFlexibility": "Mit ±{{hours}}h Flexibilität:",
     "canStartBetween": "You can Starten between: {{range}}",
     "canEndBetween": "Sie koennen zwischen {{range}} enden",
     "workingDays": "Arbeitstage",
@@ -397,7 +397,7 @@
     "title": "Einwilligungsbelege",
     "description": "Ein Protokoll, was Sie geteilt haben, wann und mit wem.",
     "active": "Aktiv",
-    "loading": "Loading…",
+    "loading": "Lädt...",
     "noRecords": "Nein consent records yet.",
     "activeLabel": "Aktiv",
     "revokedLabel": "Widerrufen",
@@ -517,7 +517,7 @@
     "instantPayoutsStatus": "Sofortige Auszahlungen: {{status}}",
     "instantEnabled": "Aktiviert (1.5% fee)",
     "instantDisabled": "Deaktiviert",
-    "minimumPayout": "Minimum payout: €10",
+    "minimumPayout": "Mindestauszahlung: 10 €",
     "savePayoutSettings": "Speichern Payout Einstellungen",
     "saved": "Payout Einstellungen saved",
     "error": "Speichern payout Einstellungen fehlgeschlagen"
@@ -681,22 +681,22 @@
   },
   "settings": {
     "connectionssettings": {
-      "nameYourCalendar": "Name Your Calendar",
+      "nameYourCalendar": "Benennen Sie Ihren Kalender",
       "cancel": "Abbrechen",
-      "connect": "Connect",
-      "setAsPrimary": "Set as primary",
-      "preview": "Preview",
+      "connect": "Verbinden",
+      "setAsPrimary": "Als primär festlegen",
+      "preview": "Vorschau",
       "download": "Herunterladen",
       "delete": "Löschen",
-      "resumePreview": "Resume Preview",
+      "resumePreview": "Lebenslauf-Vorschau",
       "google": "Google",
       "microsoft": "Microsoft",
       "gmail": "Gmail",
       "outlook": "Outlook",
-      "failedToCompleteConnection": "Failed to complete connection",
-      "we": "We\\",
-      "unknownError": "Unknown error",
-      "failedToConnectEmail": "Failed to connect email"
+      "failedToCompleteConnection": "Verbindung konnte nicht hergestellt werden",
+      "we": "Wir\\",
+      "unknownError": "Unbekannter Fehler",
+      "failedToConnectEmail": "E-Mail konnte nicht verbunden werden"
     }
   }
 }

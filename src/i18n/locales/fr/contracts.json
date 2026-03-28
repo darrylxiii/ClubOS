@@ -232,16 +232,16 @@
   },
   "text": {
     "contractdetailpage": {
-      "signContract": "Sign Contract",
-      "milestoneStarted": "Milestone started!",
-      "milestoneSubmittedForReview": "Milestone submitted for review!",
-      "milestoneApprovedButPaymentReleaseFailed": "Milestone approved, but payment release failed. Please contact support.",
-      "milestoneApprovedPaymentReleasedSuccessfully": "Milestone approved! Payment released successfully.",
-      "youAreTheFreelancer": "You are the freelancer",
-      "youAreTheClient": "You are the client",
+      "signContract": "Signer le contrat",
+      "milestoneStarted": "Étape commencée !",
+      "milestoneSubmittedForReview": "Étape soumise pour examen !",
+      "milestoneApprovedButPaymentReleaseFailed": "Étape approuvée, mais le versement du paiement a échoué. Veuillez contacter le support.",
+      "milestoneApprovedPaymentReleasedSuccessfully": "Étape approuvée ! Paiement versé avec succès.",
+      "youAreTheFreelancer": "Vous êtes le freelance",
+      "youAreTheClient": "Vous êtes le client",
       "client": "Client",
-      "freelancer": "Freelancer",
-      "anErrorOccurred": "An error occurred"
+      "freelancer": "Freelance",
+      "anErrorOccurred": "Une erreur s'est produite"
     }
   }
 }
