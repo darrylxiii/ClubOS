@@ -278,5 +278,60 @@
     "passwordTooShort": "Password must be at least 8 characters",
     "passwordMismatch": "Passwords do not match"
   },
-  "error": "Error"
+  "error": "Error",
+  "home": {
+    "greeting": {
+      "morning": "Good morning",
+      "afternoon": "Good afternoon",
+      "evening": "Good evening"
+    },
+    "clubMember": "Club Member",
+    "welcome": "Welcome back",
+    "welcomeBack": "Welcome back, {{name}}",
+    "personalizedDashboard": "Here's your personalized dashboard",
+    "revenue": {
+      "title": "Revenue & Growth",
+      "thisMonth": "This Month",
+      "lastMonth": "Last Month",
+      "3m": "3 Months",
+      "6m": "6 Months",
+      "ytd": "Year to Date",
+      "1y": "1 Year",
+      "custom": "Custom",
+      "selectDateRange": "Select date range",
+      "placements": "Placements",
+      "chartRevenue": "Revenue",
+      "chartPreviousPeriod": "Previous Period",
+      "totalRevenueWithPlacements": "Total Revenue ({{count}} placements)",
+      "avgPerPlacement": "Avg. per Placement",
+      "perWorkingDay": "Per Working Day",
+      "bestMonth": "Best Month",
+      "users": "Users",
+      "companies": "Companies",
+      "openJobsLabel": "Open Jobs",
+      "applications": "Applications",
+      "weightedPipeline": "Weighted Pipeline",
+      "expectedClosings": "Expected Closings",
+      "expectedWithCount": "{{count}} expected closings",
+      "projectedMonthEnd": "Projected Month End",
+      "dayProgress": "Day {{current}} of {{total}}",
+      "collapse": "Collapse",
+      "expandAnalytics": "Expand Analytics"
+    },
+    "teamCapacity": {
+      "manage": "Manage",
+      "placedCount": "{{count}} placed",
+      "revenueAmount": "{{amount}} revenue",
+      "memberLastActive": "Last active {{time}}",
+      "moreCount": "+{{count}} more strategists",
+      "noStrategists": "No strategists found"
+    },
+    "partnerEngagement": {
+      "activeRate": "Active Rate",
+      "partners": "partners",
+      "inactive14Days": "inactive 14+ days",
+      "topPerformers": "Top Performers",
+      "hiresCount": "{{count}} hires"
+    }
+  }
 }
