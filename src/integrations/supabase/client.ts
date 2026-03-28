@@ -2,13 +2,17 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+/** Prefer VITE_SUPABASE_URL; VITE_SITE_URL is a legacy alias some deployments use for the same Supabase project URL. */
+const supabaseUrl =
+  (import.meta.env.VITE_SUPABASE_URL as string | undefined)?.trim() ||
+  (import.meta.env.VITE_SITE_URL as string | undefined)?.trim() ||
+  '';
 const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
 if (!supabaseUrl || !supabaseKey) {
   console.warn(
     'Supabase URL or Key is missing. The app is running in a mode where env vars are not set (e.g. preview). ' +
-    'Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in .env or your build environment.'
+    'Set VITE_SUPABASE_URL (or legacy VITE_SITE_URL) and VITE_SUPABASE_ANON_KEY in .env or your build environment.'
   );
 }
 

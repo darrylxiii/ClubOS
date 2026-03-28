@@ -1,20 +1,31 @@
 import { supabase } from "@/integrations/supabase/client";
 
 /**
- * OAuth helper — LinkedIn only.
- * Google and Apple use native Supabase Auth via supabase.auth.signInWithOAuth().
+ * OAuth via supabase.auth.signInWithOAuth().
+ * With skipBrowserRedirect we assign data.url — allow GoTrue host, IdPs, and VITE_SITE_URL alias.
  */
 
-const ALLOWED_OAUTH_HOSTS = [
+const IDP_HOSTS = new Set([
+  'accounts.google.com',
+  'appleid.apple.com',
   'www.linkedin.com',
   'linkedin.com',
-];
+]);
 
 const validateOAuthUrl = (url: string): boolean => {
   try {
     const parsed = new URL(url);
-    return ALLOWED_OAUTH_HOSTS.includes(parsed.hostname) ||
-      parsed.hostname.endsWith('.supabase.co');
+    if (parsed.protocol !== 'https:') return false;
+    if (parsed.hostname.endsWith('.supabase.co')) return true;
+    if (IDP_HOSTS.has(parsed.hostname)) return true;
+
+    const base =
+      import.meta.env.VITE_SUPABASE_URL || import.meta.env.VITE_SITE_URL;
+    if (base) {
+      const expectedHost = new URL(base).hostname;
+      if (parsed.hostname === expectedHost) return true;
+    }
+    return false;
   } catch {
     return false;
   }
@@ -47,6 +58,7 @@ export const signInWithOAuthCustomDomain = async (options: OAuthOptions) => {
         redirectTo,
         skipBrowserRedirect: true,
         scopes,
+        queryParams,
       },
     });
 
@@ -66,6 +78,7 @@ export const signInWithOAuthCustomDomain = async (options: OAuthOptions) => {
       options: {
         redirectTo,
         scopes,
+        queryParams,
       },
     });
 

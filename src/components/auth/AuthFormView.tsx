@@ -533,12 +533,32 @@ export function AuthFormView({ layout = 'page', onRequestClose }: AuthFormViewPr
     setMagicLinkLoading(true);
     try {
       const redirectUrl = `${window.location.origin}/auth`;
-      const { data, error } = await supabase.functions.invoke('send-magic-link-email', {
+      const { error: fnError } = await supabase.functions.invoke('send-magic-link-email', {
         body: { email, redirectTo: redirectUrl },
       });
-      if (error) throw error;
-      setMagicLinkSent(true);
-      toast.success(t('login.magicLink.toastSent'));
+
+      if (!fnError) {
+        setMagicLinkSent(true);
+        toast.success(t('login.magicLink.toastSent'));
+        return;
+      }
+
+      const isTransportFailure =
+        fnError instanceof Error &&
+        (fnError.name === 'FunctionsFetchError' || fnError.name === 'FunctionsRelayError');
+
+      if (isTransportFailure) {
+        const { error: otpError } = await supabase.auth.signInWithOtp({
+          email,
+          options: { emailRedirectTo: redirectUrl },
+        });
+        if (otpError) throw otpError;
+        setMagicLinkSent(true);
+        toast.success(t('login.magicLink.toastSent'));
+        return;
+      }
+
+      throw fnError;
     } catch (error) {
       toast.error(error instanceof Error ? error.message : t('text.auth.failedToSendMagicLink', 'Failed to send magic link'));
     } finally {
