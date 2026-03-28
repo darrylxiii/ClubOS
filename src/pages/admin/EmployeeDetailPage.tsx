@@ -13,7 +13,7 @@ export default function EmployeeDetailPage() {
       <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
         <EmployeeDetailView 
           employeeId={employeeId} 
-          onBack={() => navigate('/admin/employees')}
+          onBack={() => navigate('/admin/employee-management?tab=employees')}
         />
       </div>
     </RoleGate>

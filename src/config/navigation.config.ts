@@ -282,7 +282,6 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
         { name: "common:navigation.meetingAnalytics", icon: Video, path: "/meeting-intelligence" },
         { name: "common:navigation.aiAnalyticsHub", icon: Brain, path: "/admin/ai-analytics" },
         { name: "common:navigation.timeToFill", icon: Timer, path: "/admin/time-to-fill" },
-        { name: "common:navigation.recruiterProductivity", icon: Users, path: "/admin/recruiter-productivity" },
         { name: "common:navigation.sourceROI", icon: Crosshair, path: "/admin/source-effectiveness" },
         { name: "common:navigation.emailAnalytics", icon: MailOpen, path: "/admin/email-analytics" },
       ],

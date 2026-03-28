@@ -27,6 +27,10 @@ import { EmployeeEarningsTab } from "./EmployeeEarningsTab";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { formatDistanceToNow } from "date-fns";
+import { useStrategistWorkload } from "@/hooks/useStrategistWorkload";
+import { BenchmarkComparison } from "./BenchmarkComparison";
+import { HistoricalTrendsChart } from "./HistoricalTrendsChart";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface EmployeeDetailViewProps {
   employeeId?: string;
@@ -46,6 +50,7 @@ function formatDuration(minutes: number): string {
 export const EmployeeDetailView = ({ employeeId, employee: passedEmployee, onBack, onClose }: EmployeeDetailViewProps) => {
   const { t } = useTranslation('common');
   const [activeTab, setActiveTab] = useState("overview");
+  const [kpiDays, setKpiDays] = useState(30);
 
   const { data: fetchedEmployee, isLoading } = useQuery({
     queryKey: ['employee-detail', employeeId],
@@ -89,6 +94,9 @@ export const EmployeeDetailView = ({ employeeId, employee: passedEmployee, onBac
     },
     enabled: !!userId,
   });
+
+  const { data: workloads } = useStrategistWorkload();
+  const memberStats = workloads?.find(w => w.id === employee?.user_id);
 
   if ((isLoading && !passedEmployee) || !employee) {
     return (
@@ -234,6 +242,41 @@ export const EmployeeDetailView = ({ employeeId, employee: passedEmployee, onBac
               </CardContent>
             </Card>
 
+            {/* Performance Summary */}
+            {memberStats && (
+              <Card className="md:col-span-2 bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border-border/50">
+                <CardHeader><CardTitle className="text-base">Performance Summary</CardTitle></CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                    <div className="text-center p-3 bg-muted/30 rounded-lg">
+                      <p className="text-2xl font-bold">{memberStats.performanceScore}</p>
+                      <p className="text-[10px] text-muted-foreground">Score /100</p>
+                    </div>
+                    <div className="text-center p-3 bg-muted/30 rounded-lg">
+                      <p className="text-2xl font-bold">#{memberStats.rank}</p>
+                      <p className="text-[10px] text-muted-foreground">Team Rank</p>
+                    </div>
+                    <div className="text-center p-3 bg-muted/30 rounded-lg">
+                      <p className="text-2xl font-bold">{memberStats.placements}</p>
+                      <p className="text-[10px] text-muted-foreground">Placements</p>
+                    </div>
+                    <div className="text-center p-3 bg-muted/30 rounded-lg">
+                      <p className="text-2xl font-bold">${memberStats.revenue >= 1000 ? `${(memberStats.revenue / 1000).toFixed(0)}k` : memberStats.revenue}</p>
+                      <p className="text-[10px] text-muted-foreground">Revenue</p>
+                    </div>
+                    <div className="text-center p-3 bg-muted/30 rounded-lg">
+                      <p className="text-2xl font-bold">{memberStats.pipelineActions}</p>
+                      <p className="text-[10px] text-muted-foreground">Actions (7d)</p>
+                    </div>
+                    <div className="text-center p-3 bg-muted/30 rounded-lg">
+                      <p className="text-2xl font-bold">{memberStats.candidatesSourced}</p>
+                      <p className="text-[10px] text-muted-foreground">Sourced</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             {/* Activity Stats */}
             {activityStats && (
               <Card className="md:col-span-2">
@@ -279,10 +322,30 @@ export const EmployeeDetailView = ({ employeeId, employee: passedEmployee, onBac
               </Card>
             )}
           </div>
+          {employee?.user_id && (
+            <div className="grid gap-6 lg:grid-cols-2 mt-6">
+              <BenchmarkComparison userId={employee.user_id} />
+              <HistoricalTrendsChart userId={employee.user_id} months={6} />
+            </div>
+          )}
         </TabsContent>
 
         <TabsContent value="kpis" className="mt-6">
-          <RecruiterKPIDashboard userId={employee.user_id} days={30} />
+          <div className="flex justify-end mb-4">
+            <Select value={String(kpiDays)} onValueChange={(v) => setKpiDays(Number(v))}>
+              <SelectTrigger className="w-[140px]">
+                <SelectValue placeholder="Select period" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="7">Last 7 days</SelectItem>
+                <SelectItem value="14">Last 14 days</SelectItem>
+                <SelectItem value="30">Last 30 days</SelectItem>
+                <SelectItem value="60">Last 60 days</SelectItem>
+                <SelectItem value="90">Last 90 days</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <RecruiterKPIDashboard userId={employee.user_id} days={kpiDays} />
         </TabsContent>
 
         <TabsContent value="targets" className="mt-6">

@@ -203,8 +203,11 @@ export const adminRoutes = (
 
     {/* Performance Hub */}
     <Route path="/admin/performance-matrix" element={<Navigate to="/admin/performance-hub?tab=matrix" replace />} />
-    <Route path="/team-performance" element={<Navigate to="/admin/performance-hub?tab=team" replace />} />
+    <Route path="/team-performance" element={<Navigate to="/admin/employee-management?tab=team-performance" replace />} />
     <Route path="/admin/user-activity" element={<Navigate to="/admin/performance-hub?tab=activity" replace />} />
+
+    {/* Recruiter Productivity → Employee Management Hub */}
+    <Route path="/admin/recruiter-productivity" element={<Navigate to="/admin/employee-management?tab=productivity" replace />} />
 
     {/* Assessments Hub */}
     <Route path="/admin/games/values-poker" element={<Navigate to="/admin/assessments-hub?tab=values-poker" replace />} />
