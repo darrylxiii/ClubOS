@@ -20,11 +20,15 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp
 import { logger } from "@/lib/logger";
 import { signInWithOAuthCustomDomain } from "@/lib/oauth-helpers";
 import { getAuthMotionPreset } from "@/components/auth/authMotion";
+import { getMarketingSiteUrl } from "@/lib/marketing-site";
 
 import { SetPasswordModal } from "@/components/auth/SetPasswordModal";
 
-import quantumLogoLight from "@/assets/quantum-logo-dark.png";
-import quantumLogoDark from "@/assets/quantum-club-logo.png";
+/** Light theme: full-color club mark on light background */
+import logoLightTheme from "@/assets/quantum-club-logo.png";
+/** Dark theme: light/white mark (asset name is legacy) on dark background */
+import logoDarkTheme from "@/assets/quantum-logo-dark.png";
+
 const emailSchema = z.string().email();
 const passwordSchema = z.string().min(12).regex(/[A-Z]/).regex(/[a-z]/).regex(/[0-9]/).regex(/[^A-Za-z0-9]/);
 interface InviteInfo {
@@ -75,6 +79,7 @@ export function AuthFormView({ layout = 'page', onRequestClose }: AuthFormViewPr
   const [mfaChallengeId, setMfaChallengeId] = useState<string | null>(null);
   const [lockoutMessage, setLockoutMessage] = useState<string | null>(null);
   const [oauthProcessing, setOauthProcessing] = useState(false);
+  const marketingSiteUrl = getMarketingSiteUrl();
   const [setPasswordOpen, setSetPasswordOpen] = useState(false);
   const [showAccessDialog, setShowAccessDialog] = useState(false);
   const [magicLinkSent, setMagicLinkSent] = useState(false);
@@ -103,7 +108,11 @@ export function AuthFormView({ layout = 'page', onRequestClose }: AuthFormViewPr
           componentName: 'Auth',
           error
         });
-        toast.error(`Sign in failed: ${errorDescription || error}`);
+        toast.error(
+          t('oauth.signInFailedWithDetail', {
+            detail: errorDescription || error,
+          }),
+        );
         localStorage.removeItem('pending_invite_code');
         window.history.replaceState({}, '', '/auth');
         return;
@@ -328,7 +337,7 @@ export function AuthFormView({ layout = 'page', onRequestClose }: AuthFormViewPr
     if (prefillEmail) {
       setEmail(decodeURIComponent(prefillEmail));
       setIsLogin(true);
-      toast.info('login.pleaseEnterPassword');
+      toast.info(t('login.pleaseEnterPassword'));
     }
   }, [prefillEmail, t]);
   useEffect(() => {
@@ -362,15 +371,15 @@ export function AuthFormView({ layout = 'page', onRequestClose }: AuthFormViewPr
         // Pre-fill form fields from invite metadata
         if (data.recipientName && !fullName) setFullName(data.recipientName);
         if (data.recipientEmail && !email) setEmail(data.recipientEmail);
-        toast.success(data.message || 'invite.validMessage');
+        toast.success(data.message || t('invite.validMessage'));
       } else {
         setInviteValid(false);
-        toast.error(data?.message || 'invite.invalidOrExpired');
+        toast.error(data?.message || t('invite.invalidOrExpired'));
       }
     } catch (error) {
       logger.error("Invite validation failed", error instanceof Error ? error : new Error(String(error)), { componentName: 'Auth' });
       setInviteValid(false);
-      toast.error('invite.errorValidating');
+      toast.error(t('invite.errorValidating'));
     } finally {
       setInviteValidating(false);
     }
@@ -383,7 +392,7 @@ export function AuthFormView({ layout = 'page', onRequestClose }: AuthFormViewPr
       if (!isLogin) {
         passwordSchema.parse(password);
         if (password !== confirmPassword) {
-          toast.error('errors.passwordMismatch');
+          toast.error(t('errors.passwordMismatch'));
           return;
         }
       }
@@ -391,8 +400,8 @@ export function AuthFormView({ layout = 'page', onRequestClose }: AuthFormViewPr
         // Check for account lockout before attempting login
         const lockoutStatus = await checkLockout(email);
         if (lockoutStatus.locked) {
-          setLockoutMessage(lockoutStatus.message || 'errors.accountLocked');
-          toast.error(lockoutStatus.message || 'errors.tooManyAttempts');
+          setLockoutMessage(lockoutStatus.message || t('errors.accountLocked'));
+          toast.error(lockoutStatus.message || t('errors.tooManyAttempts'));
           return;
         }
         setLockoutMessage(null);
@@ -406,9 +415,9 @@ export function AuthFormView({ layout = 'page', onRequestClose }: AuthFormViewPr
         if (error) {
           await recordAttempt(email, false);
           if (error.message.includes("Invalid login credentials")) {
-            toast.error('errors.invalidCredentials');
+            toast.error(t('errors.invalidCredentials'));
           } else if (error.message.includes("Email not confirmed")) {
-            toast.error('errors.emailNotVerified');
+            toast.error(t('errors.emailNotVerified'));
             setNeedsEmailVerification(true);
           } else {
             toast.error(error.message);
@@ -429,13 +438,13 @@ export function AuthFormView({ layout = 'page', onRequestClose }: AuthFormViewPr
               factorId: verifiedFactor.id
             });
             if (challengeError) {
-              toast.error('errors.failed2FA');
+              toast.error(t('errors.failed2FA'));
               return;
             }
             setMfaFactorId(verifiedFactor.id);
             setMfaChallengeId(challengeData.id);
             setMfaRequired(true);
-            toast.info('mfa.pleaseEnter2FA');
+            toast.info(t('mfa.pleaseEnter2FA'));
             return;
           }
         }
@@ -446,10 +455,10 @@ export function AuthFormView({ layout = 'page', onRequestClose }: AuthFormViewPr
         }
       } else {
         if (!fullName.trim()) {
-          toast.error('errors.fullNameRequired');
+          toast.error(t('errors.fullNameRequired'));
           return;
         }
-        const redirectUrl = `${window.location.origin}/`;
+        const redirectUrl = `${window.location.origin}/auth`;
         const {
           data: authData,
           error
@@ -466,7 +475,7 @@ export function AuthFormView({ layout = 'page', onRequestClose }: AuthFormViewPr
         });
         if (error) {
           if (error.message.includes("already registered")) {
-            toast.error('errors.alreadyRegistered');
+            toast.error(t('errors.alreadyRegistered'));
             setIsLogin(true);
           } else {
             toast.error(error.message);
@@ -492,13 +501,17 @@ export function AuthFormView({ layout = 'page', onRequestClose }: AuthFormViewPr
         }
 
         if (authData?.user && !authData.session) {
-          toast.success('messages.verificationEmailSent');
+          toast.success(t('messages.verificationEmailSent'));
           setNeedsEmailVerification(true);
         }
       }
     } catch (error) {
       if (error instanceof z.ZodError) {
-        toast.error('errors.weakPassword');
+        const i0 = error.issues[0];
+        const isEmailShape =
+          i0?.validation === 'email' ||
+          (i0?.code === 'invalid_string' && String(i0?.message).toLowerCase().includes('email'));
+        toast.error(isEmailShape ? t('errors.invalidEmail') : t('errors.weakPassword'));
       } else if (error instanceof Error) {
         toast.error(error.message);
       }
@@ -525,7 +538,7 @@ export function AuthFormView({ layout = 'page', onRequestClose }: AuthFormViewPr
       });
       if (error) throw error;
       setMagicLinkSent(true);
-      toast.success(t('text.auth.magicLinkSentCheckYourEmail', 'Magic link sent! Check your email inbox.'));
+      toast.success(t('login.magicLink.toastSent'));
     } catch (error) {
       toast.error(error instanceof Error ? error.message : t('text.auth.failedToSendMagicLink', 'Failed to send magic link'));
     } finally {
@@ -591,7 +604,7 @@ export function AuthFormView({ layout = 'page', onRequestClose }: AuthFormViewPr
   };
   const handleVerifyEmail = async () => {
     if (emailVerificationCode.length !== 6) {
-      toast.error('verification.validCode');
+      toast.error(t('verification.validCode'));
       return;
     }
     setVerificationLoading(true);
@@ -607,23 +620,23 @@ export function AuthFormView({ layout = 'page', onRequestClose }: AuthFormViewPr
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
-      toast.success('messages.emailVerified');
+      toast.success(t('messages.emailVerified'));
       setNeedsEmailVerification(false);
       setEmailVerificationCode("");
       setIsLogin(true);
     } catch (error: unknown) {
-      toast.error(error instanceof Error ? error.message : 'mfa.invalidCode');
+      toast.error(error instanceof Error ? error.message : t('mfa.invalidCode'));
     } finally {
       setVerificationLoading(false);
     }
   };
   const handleVerifyMFA = async () => {
     if (mfaCode.length !== 6) {
-      toast.error('verification.validCode');
+      toast.error(t('verification.validCode'));
       return;
     }
     if (!mfaFactorId || !mfaChallengeId) {
-      toast.error('mfa.noChallengeFound');
+      toast.error(t('mfa.noChallengeFound'));
       setMfaRequired(false);
       return;
     }
@@ -640,10 +653,9 @@ export function AuthFormView({ layout = 'page', onRequestClose }: AuthFormViewPr
       if (error) throw error;
       if (data) {
         setMfaRequired(false);
-        navigate("/home");
       }
     } catch (error: unknown) {
-      toast.error(error instanceof Error ? error.message : 'errors.invalid2FACode');
+      toast.error(error instanceof Error ? error.message : t('errors.invalid2FACode'));
       setMfaCode("");
     } finally {
       setVerificationLoading(false);
@@ -671,11 +683,11 @@ export function AuthFormView({ layout = 'page', onRequestClose }: AuthFormViewPr
         >
           <CardHeader className="space-y-6 pb-8 text-center pt-12">
           <div className="flex items-center justify-center mb-2 drop-shadow-lg">
-            <img src={quantumLogoDark} alt={t('text.auth.theQuantumClub', 'The Quantum Club')} className="h-24 w-auto dark:hidden" fetchPriority="high" />
-            <img src={quantumLogoLight} alt={t('text.auth.theQuantumClub', 'The Quantum Club')} className="h-24 w-auto hidden dark:block" fetchPriority="high" />
+            <img src={logoLightTheme} alt="" className="h-24 w-auto dark:hidden" fetchPriority="high" decoding="async" />
+            <img src={logoDarkTheme} alt="" className="h-24 w-auto hidden dark:block" fetchPriority="high" decoding="async" />
           </div>
           <p className="text-center text-sm font-semibold tracking-tight text-foreground/90 -mt-2 mb-1">
-            The Quantum Club OS
+            {t('login.brandTagline')}
           </p>
 
           <div className="space-y-3">
@@ -717,10 +729,15 @@ export function AuthFormView({ layout = 'page', onRequestClose }: AuthFormViewPr
               </div>
               <p className="text-xs text-foreground/80">
                 {inviteInfo.targetRole === 'partner' && inviteInfo.recipientName
-                  ? `Welcome, ${inviteInfo.recipientName}. ${inviteInfo.referrerName ? `${inviteInfo.referrerName} has` : 'You have been'} invited to join as a capital partner.`
-                  : inviteInfo.referrerName ? t('invite.invitedBy', {
-                name: inviteInfo.referrerName
-              }) : 'invite.invitedByMember'}
+                  ? inviteInfo.referrerName
+                    ? t('invite.partnerWelcomeWithReferrer', {
+                        recipientName: inviteInfo.recipientName,
+                        referrerName: inviteInfo.referrerName,
+                      })
+                    : t('invite.partnerWelcomeSelf', { recipientName: inviteInfo.recipientName })
+                  : inviteInfo.referrerName
+                    ? t('invite.invitedBy', { name: inviteInfo.referrerName })
+                    : t('invite.invitedByMember')}
               </p>
               {inviteInfo.companyName && (
                 <p className="text-xs text-foreground/60 flex items-center justify-center gap-1">
@@ -731,7 +748,7 @@ export function AuthFormView({ layout = 'page', onRequestClose }: AuthFormViewPr
 
           {!inviteValidating && inviteValid === false && <Alert className="bg-destructive/10 border-destructive/20 backdrop-blur-sm rounded-2xl">
               <AlertDescription className="text-sm font-medium text-destructive text-center">
-                {'invite.invalidOrExpired'}
+                {t('invite.invalidOrExpired')}
               </AlertDescription>
             </Alert>}
           </CardHeader>
@@ -819,21 +836,21 @@ export function AuthFormView({ layout = 'page', onRequestClose }: AuthFormViewPr
 
               {/* Magic Link Sent Success State */}
               {magicLinkSent && (
-                <div className="p-4 rounded-2xl bg-green-500/10 border border-green-500/20 space-y-2">
+                <div className="p-4 rounded-2xl bg-green-500/10 border border-green-500/20 space-y-2" role="status" aria-live="polite">
                   <div className="flex items-center justify-center gap-2">
-                    <CheckCircle2 className="h-5 w-5 text-green-500" />
-                    <p className="text-sm font-bold text-green-500">{'Magic Link Sent!'}</p>
+                    <CheckCircle2 className="h-5 w-5 text-green-500" aria-hidden />
+                    <p className="text-sm font-bold text-green-500">{t('login.magicLink.sentTitle')}</p>
                   </div>
-                  <p className="text-xs text-foreground/80 text-center">
-                    {'Check your email inbox and click the link to sign in securely.'}
+                  <p className="text-xs text-center text-foreground/80">
+                    {t('login.magicLink.sentDescription')}
                   </p>
                 </div>
               )}
 
               {/* Email Input */}
               <div>
-                <label htmlFor="auth-email" className="sr-only">{t('login.email', 'Email')}</label>
-                <Input ref={emailInputRef} id="auth-email" type="email" placeholder={t('login.email', 'Email')} value={email} onChange={e => { setEmail(e.target.value); setMagicLinkSent(false); }} className="h-14 rounded-xl glass-input" required />
+                <label htmlFor="auth-email-login" className="sr-only">{t('login.email', 'Email')}</label>
+                <Input ref={emailInputRef} id="auth-email-login" type="email" autoComplete="email" placeholder={t('login.email', 'Email')} value={email} onChange={e => { setEmail(e.target.value); setMagicLinkSent(false); }} className="h-14 rounded-xl glass-input" required />
               </div>
 
               {/* Primary CTA: Send Secure Magic Link */}
@@ -842,7 +859,8 @@ export function AuthFormView({ layout = 'page', onRequestClose }: AuthFormViewPr
                 variant="outline"
                 onClick={handleMagicLink}
                 disabled={magicLinkLoading || magicLinkSent}
-                className="w-full h-14 rounded-xl gap-3 text-sm font-medium bg-card/25 backdrop-blur-xl border-white/15 hover:bg-card/35 hover:border-white/25 shadow-[0_8px_30px_rgba(0,0,0,0.16)]"
+                aria-busy={magicLinkLoading}
+                className="relative w-full h-14 rounded-xl gap-3 text-sm font-medium bg-card/25 backdrop-blur-xl border-white/15 hover:bg-card/35 hover:border-white/25 shadow-[0_8px_30px_rgba(0,0,0,0.16)]"
               >
                 <span
                   aria-hidden
@@ -866,23 +884,21 @@ export function AuthFormView({ layout = 'page', onRequestClose }: AuthFormViewPr
                 />
                 <span className="relative z-10 inline-flex items-center">
                   {magicLinkLoading ? (
-                    <><Loader2 className="h-4 w-4 animate-spin mr-2" />{tCommon('actions.loading')}</>
+                    <><Loader2 className="h-4 w-4 animate-spin mr-2" aria-hidden />{tCommon('actions.loading')}</>
                   ) : magicLinkSent ? (
-                    <><Mail className="h-4 w-4 mr-2" />{'Check Email'}</>
+                    <><Mail className="h-4 w-4 mr-2" aria-hidden />{t('login.magicLink.checkEmail')}</>
                   ) : (
-                    <><Wand2 className="h-4 w-4 mr-2" />{'Send Secure Magic Link'}</>
+                    <><Wand2 className="h-4 w-4 mr-2" aria-hidden />{t('login.magicLink.send')}</>
                   )}
                 </span>
               </Button>
 
-              {/* Divider: FASTEST WAY IN */}
-              <div className="relative py-3">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t border-border/40" />
-                </div>
-                <div className="relative flex justify-center text-[10px] uppercase tracking-[0.2em]">
-                  <span className="bg-card/85 px-3 text-muted-foreground">{'Fastest Entry'}</span>
-                </div>
+              <div className="flex items-center gap-3 py-2">
+                <span className="h-px min-w-0 flex-1 bg-border/50" aria-hidden />
+                <span className="shrink-0 text-center text-[11px] font-medium text-muted-foreground">
+                  {t('login.magicLink.divider')}
+                </span>
+                <span className="h-px min-w-0 flex-1 bg-border/50" aria-hidden />
               </div>
 
               {/* OAuth Buttons: Google & LinkedIn */}
@@ -892,13 +908,13 @@ export function AuthFormView({ layout = 'page', onRequestClose }: AuthFormViewPr
                 className="w-full h-14 rounded-xl gap-3 text-sm font-medium"
                 onClick={handleGoogleAuth}
               >
-                <svg className="h-5 w-5" viewBox="0 0 24 24">
+                <svg className="h-5 w-5" viewBox="0 0 24 24" aria-hidden>
                   <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
                   <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
                   <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
                   <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
                 </svg>
-                {t('oauth.google', 'Continue with Google')}
+                {t('oauth.continueWithGoogle')}
               </Button>
 
               <Button
@@ -907,10 +923,25 @@ export function AuthFormView({ layout = 'page', onRequestClose }: AuthFormViewPr
                 className="w-full h-14 rounded-xl gap-3 text-sm font-medium"
                 onClick={handleLinkedInAuth}
               >
-                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="#0A66C2">
+                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="#0A66C2" aria-hidden>
                   <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
                 </svg>
-                {t('oauth.linkedin', 'Continue with LinkedIn')}
+                {t('oauth.continueWithLinkedIn')}
+              </Button>
+
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full h-14 rounded-xl gap-3 text-sm font-medium"
+                onClick={handleAppleAuth}
+              >
+                <svg className="h-5 w-5" viewBox="0 0 24 24" aria-hidden>
+                  <path
+                    fill="currentColor"
+                    d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"
+                  />
+                </svg>
+                {t('oauth.continueWithApple')}
               </Button>
 
               {/* Request Access & Set Password */}
@@ -964,13 +995,13 @@ export function AuthFormView({ layout = 'page', onRequestClose }: AuthFormViewPr
             : <form onSubmit={handleEmailAuth} className="space-y-5">
               {/* Sign Up Form (with invite) */}
               <div>
-                <label htmlFor="auth-fullname" className="sr-only">{t('signup.fullName', 'Full Name')}</label>
-                <Input id="auth-fullname" type="text" placeholder={t('signup.fullName', 'Full Name')} value={fullName} onChange={e => setFullName(e.target.value)} className="h-14 rounded-xl glass-input" required />
+                <label htmlFor="auth-fullname-signup" className="sr-only">{t('signup.fullName', 'Full Name')}</label>
+                <Input id="auth-fullname-signup" type="text" autoComplete="name" placeholder={t('signup.fullName', 'Full Name')} value={fullName} onChange={e => setFullName(e.target.value)} className="h-14 rounded-xl glass-input" required />
               </div>
 
               <div>
-                <label htmlFor="auth-email" className="sr-only">{t('login.email', 'Email')}</label>
-                <Input id="auth-email" type="email" placeholder={t('login.email', 'Email')} value={email} onChange={e => setEmail(e.target.value)} className="h-14 rounded-xl glass-input" required />
+                <label htmlFor="auth-email-signup" className="sr-only">{t('login.email', 'Email')}</label>
+                <Input id="auth-email-signup" type="email" autoComplete="email" placeholder={t('login.email', 'Email')} value={email} onChange={e => setEmail(e.target.value)} className="h-14 rounded-xl glass-input" required />
               </div>
 
               <AssistedPasswordConfirmation password={password} confirmPassword={confirmPassword} onPasswordChange={setPassword} onConfirmPasswordChange={setConfirmPassword} />
@@ -989,27 +1020,30 @@ export function AuthFormView({ layout = 'page', onRequestClose }: AuthFormViewPr
         animate={layout === "dialog" ? "visible" : undefined}
         exit={layout === "dialog" ? "exit" : undefined}
         className="relative z-10 mt-8 flex flex-wrap justify-center gap-x-5 gap-y-2 text-xs text-muted-foreground"
-        aria-label={tCommon('publicHome.legalNavLabel', 'Legal')}
+        aria-label={t('footerNav.ariaLabel')}
       >
         <Link to="/legal/privacy" className="underline-offset-4 hover:text-foreground hover:underline">
-          {tCommon('footer.privacy_policy', 'Privacy Policy')}
+          {t('footerNav.privacyPolicy')}
         </Link>
         <Link to="/legal/terms" className="underline-offset-4 hover:text-foreground hover:underline">
-          {tCommon('footer.terms_of_service', 'Terms of Service')}
+          {t('footerNav.termsOfService')}
         </Link>
+        <a
+          href={marketingSiteUrl}
+          className="underline-offset-4 hover:text-foreground hover:underline"
+          rel="noopener noreferrer"
+        >
+          {t('footerNav.home')}
+        </a>
         {layout === 'dialog' ? (
           <button
             type="button"
             onClick={() => onRequestClose?.()}
             className="underline-offset-4 hover:text-foreground hover:underline"
           >
-            {tCommon('publicHome.closeSignIn', 'Close')}
+            {t('footerNav.close')}
           </button>
-        ) : (
-          <Link to="/" className="underline-offset-4 hover:text-foreground hover:underline">
-            {tCommon('publicHome.homeLink', 'Home')}
-          </Link>
-        )}
+        ) : null}
       </motion.nav>
     </>
   );

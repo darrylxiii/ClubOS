@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 declare global {
   interface Window {
@@ -6,7 +6,15 @@ declare global {
   }
 }
 
+type BackdropMode = "pending" | "static" | "webgl";
+
+/**
+ * Full-screen auth backdrop. Uses a lightweight gradient when
+ * `prefers-reduced-motion` is set or before WebGL is ready — avoids burning
+ * GPU + loading legacy Three from CDN for users who need a calm sign-in.
+ */
 export function ShaderAnimation() {
+  const [mode, setMode] = useState<BackdropMode>("pending");
   const containerRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<{
     camera: any;
@@ -25,8 +33,22 @@ export function ShaderAnimation() {
   });
 
   useEffect(() => {
+    const reduced =
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduced) {
+      setMode("static");
+      return;
+    }
+    setMode("webgl");
+  }, []);
+
+  useEffect(() => {
+    if (mode !== "webgl") return;
+
     const script = document.createElement("script");
     script.src = "https://cdnjs.cloudflare.com/ajax/libs/three.js/89/three.min.js";
+    script.crossOrigin = "anonymous";
     script.onload = () => {
       if (containerRef.current && window.THREE) {
         initThreeJS();
@@ -48,7 +70,7 @@ export function ShaderAnimation() {
         script.parentNode.removeChild(script);
       }
     };
-  }, []);
+  }, [mode]);
 
   const initThreeJS = () => {
     if (!containerRef.current || !window.THREE) return;
@@ -150,10 +172,20 @@ export function ShaderAnimation() {
     animate();
   };
 
+  if (mode === "pending" || mode === "static") {
+    return (
+      <div
+        className="fixed inset-0 z-0 h-full w-full bg-gradient-to-br from-background via-primary/[0.06] to-background"
+        aria-hidden
+      />
+    );
+  }
+
   return (
     <div
       ref={containerRef}
-      className="fixed inset-0 z-0 w-full h-full"
+      className="fixed inset-0 z-0 h-full w-full"
+      aria-hidden
     />
   );
 }
