@@ -9,7 +9,6 @@ import { CheckCircle2, AlertCircle, Briefcase, User } from "lucide-react";
 import { UnifiedLoader } from "@/components/ui/unified-loader";
 import { toast } from "sonner";
 import { signInWithOAuthCustomDomain } from "@/lib/oauth-helpers";
-import { lovable } from "@/integrations/lovable/index";
 
 export default function InviteAcceptance() {
   const { t } = useTranslation('common');
@@ -74,10 +73,13 @@ export default function InviteAcceptance() {
           scopes: 'openid profile email',
         });
       } else {
-        const result = await lovable.auth.signInWithOAuth(provider, {
-          redirect_uri: `${window.location.origin}/invite/${token}/complete`,
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: provider,
+          options: {
+            redirectTo: `${window.location.origin}/invite/${token}/complete`,
+          }
         });
-        if (result?.error) throw result.error;
+        if (error) throw error;
       }
     } catch (error) {
       console.error('Sign up error:', error);
