@@ -61,9 +61,10 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
       return <Navigate to="/oauth-onboarding" replace />;
     }
 
-    // Account status check
+    // Account status check — skip for elevated roles or legacy users with data
     const status = (prefetch.profile?.account_status as string) || 'pending';
-    if (status === 'pending' || status === 'declined') {
+    const hasElevatedRoles = isAdmin || isPartner || isStrategist;
+    if ((status === 'pending' || status === 'declined') && !hasElevatedRoles && !hasSubstantiveProfile) {
       return <Navigate to="/pending-approval" replace />;
     }
 
