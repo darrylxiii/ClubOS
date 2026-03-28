@@ -1,45 +1,52 @@
 import { useTranslation } from 'react-i18next';
-import { useState, useEffect, useMemo } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
-import { useEmails, Email } from "@/hooks/useEmails";
-import { useKeyboardShortcuts, EMAIL_SHORTCUTS } from "@/hooks/useKeyboardShortcuts";
-import { useAdvancedSearch } from "@/hooks/useAdvancedSearch";
-import { useUndoableAction } from "@/hooks/useUndoableAction";
-import { notify } from "@/lib/notify";
-import { EmailSidebar } from "./EmailSidebar";
-import { EmailList } from "./EmailList";
-import { EmailDetail } from "./EmailDetail";
+import { useState, useEffect, useMemo } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { useEmails, Email } from '@/hooks/useEmails';
+import { useKeyboardShortcuts, EMAIL_SHORTCUTS } from '@/hooks/useKeyboardShortcuts';
+import { useAdvancedSearch } from '@/hooks/useAdvancedSearch';
+import { useUndoableAction } from '@/hooks/useUndoableAction';
+import { notify } from '@/lib/notify';
+import { EmailSidebar } from './EmailSidebar';
+import { EmailList } from './EmailList';
+import { EmailDetail } from './EmailDetail';
 
-import { EmailComposer } from "./EmailComposer";
+import { EmailComposer } from './EmailComposer';
 
-import { KeyboardShortcutsDialog } from "./KeyboardShortcutsDialog";
-import { AdvancedSearchInput } from "./AdvancedSearchInput";
-import { PriorityInboxTabs } from "./intelligence/PriorityInboxTabs";
-import { AICommandPalette } from "./intelligence/AICommandPalette";
-import { QuickActionsBar } from "./intelligence/QuickActionsBar";
-import { useCommandPalette } from "@/hooks/useCommandPalette";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { RefreshCw, Mail, Settings as SettingsIcon, ArrowLeft, HelpCircle, Menu } from "lucide-react";
-import { Link } from "react-router-dom";
-import { cn } from "@/lib/utils";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { KeyboardShortcutsDialog } from './KeyboardShortcutsDialog';
+import { AdvancedSearchInput } from './AdvancedSearchInput';
+import { PriorityInboxTabs } from './intelligence/PriorityInboxTabs';
+import { AICommandPalette } from './intelligence/AICommandPalette';
+import { QuickActionsBar } from './intelligence/QuickActionsBar';
+import { useCommandPalette } from '@/hooks/useCommandPalette';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  RefreshCw,
+  Mail,
+  Settings as SettingsIcon,
+  ArrowLeft,
+  HelpCircle,
+  Menu,
+} from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { cn } from '@/lib/utils';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 
 export function EmailInbox() {
   const { t } = useTranslation('common');
-  const [filter, setFilter] = useState("inbox");
-  const [priorityTab, setPriorityTab] = useState("all");
+  const [filter, setFilter] = useState('inbox');
+  const [priorityTab, setPriorityTab] = useState('all');
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [selectedEmail, setSelectedEmail] = useState<any>(null);
   const [composerOpen, setComposerOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState('');
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [selectedEmailIds, setSelectedEmailIds] = useState<Set<string>>(new Set());
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const { user } = useAuth();
   const { executeWithUndo } = useUndoableAction();
   const { open: commandPaletteOpen, setOpen: setCommandPaletteOpen } = useCommandPalette();
-
 
   const {
     emails,
@@ -67,17 +74,17 @@ export function EmailInbox() {
       if (!user) return;
 
       const { data: connections } = await supabase
-        .from("email_connections")
-        .select("id, last_sync_at")
-        .eq("user_id", user.id)
-        .eq("is_active", true);
+        .from('email_connections')
+        .select('id, last_sync_at')
+        .eq('user_id', user.id)
+        .eq('is_active', true);
 
       setHasConnections((connections?.length || 0) > 0);
 
       // Auto-sync on first load if never synced
       const needsSync = connections?.some((c) => !c.last_sync_at);
       if (needsSync && !syncing && connections && connections.length > 0) {
-        console.log("Initial sync - fetching last 90 days of emails...");
+        console.log('Initial sync - fetching last 90 days of emails...');
         setIsInitialSync(true);
         // Allow edge functions to deploy
         setTimeout(async () => {
@@ -97,25 +104,25 @@ export function EmailInbox() {
 
   // Filter by priority tab when in inbox view
   const displayedEmails = useMemo(() => {
-    if (filter !== "inbox") return filteredEmails;
+    if (filter !== 'inbox') return filteredEmails;
 
     // Show all emails when "all" tab is active
-    if (priorityTab === "all") return filteredEmails;
+    if (priorityTab === 'all') return filteredEmails;
 
     return filteredEmails.filter((email) => {
-      const inboxType = email.inbox_type === 'primary' ? 'fyi' : (email.inbox_type || "fyi");
+      const inboxType = email.inbox_type === 'primary' ? 'fyi' : email.inbox_type || 'fyi';
 
       switch (priorityTab) {
-        case "important":
-          return inboxType === "important";
-        case "action":
-          return inboxType === "action";
-        case "fyi":
-          return inboxType === "fyi";
-        case "newsletters":
-          return inboxType === "newsletters";
-        case "low":
-          return inboxType === "low";
+        case 'important':
+          return inboxType === 'important';
+        case 'action':
+          return inboxType === 'action';
+        case 'fyi':
+          return inboxType === 'fyi';
+        case 'newsletters':
+          return inboxType === 'newsletters';
+        case 'low':
+          return inboxType === 'low';
         default:
           return true;
       }
@@ -124,14 +131,16 @@ export function EmailInbox() {
 
   // Calculate tab counts
   const tabCounts = useMemo(() => {
-    const inboxEmails = filteredEmails.filter(e => !e.archived_at && !e.deleted_at);
+    const inboxEmails = filteredEmails.filter((e) => !e.archived_at && !e.deleted_at);
     return {
       all: inboxEmails.length,
-      important: inboxEmails.filter(e => e.inbox_type === "important").length,
-      actionRequired: inboxEmails.filter(e => e.inbox_type === "action").length,
-      fyi: inboxEmails.filter(e => e.inbox_type === "fyi" || e.inbox_type === "primary" || !e.inbox_type).length,
-      newsletters: inboxEmails.filter(e => e.inbox_type === "newsletters").length,
-      lowPriority: inboxEmails.filter(e => e.inbox_type === "low").length,
+      important: inboxEmails.filter((e) => e.inbox_type === 'important').length,
+      actionRequired: inboxEmails.filter((e) => e.inbox_type === 'action').length,
+      fyi: inboxEmails.filter(
+        (e) => e.inbox_type === 'fyi' || e.inbox_type === 'primary' || !e.inbox_type
+      ).length,
+      newsletters: inboxEmails.filter((e) => e.inbox_type === 'newsletters').length,
+      lowPriority: inboxEmails.filter((e) => e.inbox_type === 'low').length,
     };
   }, [filteredEmails]);
 
@@ -203,7 +212,7 @@ export function EmailInbox() {
     setSelectedEmail(email);
 
     // Mark as read only if in inbox and unread
-    if (!email.is_read && filter === "inbox") {
+    if (!email.is_read && filter === 'inbox') {
       setTimeout(() => markAsRead(email.id), 100);
     }
   };
@@ -217,7 +226,7 @@ export function EmailInbox() {
   // Preserve selected email when emails array updates
   useEffect(() => {
     if (selectedEmail) {
-      const updatedEmail = emails.find(e => e.id === selectedEmail.id);
+      const updatedEmail = emails.find((e) => e.id === selectedEmail.id);
       if (updatedEmail) {
         console.log('[EmailInbox] Updating selected email from emails array');
         setSelectedEmail(updatedEmail);
@@ -226,9 +235,9 @@ export function EmailInbox() {
         console.log('[EmailInbox] Selected email not in filter, fetching directly');
         const fetchEmail = async () => {
           const { data, error } = await supabase
-            .from("emails")
-            .select("*")
-            .eq("id", selectedEmail.id)
+            .from('emails')
+            .select('*')
+            .eq('id', selectedEmail.id)
             .single();
 
           if (data && !error) {
@@ -252,7 +261,9 @@ export function EmailInbox() {
     snoozeUntil.setHours(snoozeUntil.getHours() + 3);
 
     snoozeEmail(selectedEmail.id, snoozeUntil);
-    notify.success(t('inbox.emailSnoozed', 'Email snoozed'), { description: t('inbox.emailWillReappear', 'This email will reappear in 3 hours') });
+    notify.success(t('inbox.emailSnoozed', 'Email snoozed'), {
+      description: t('inbox.emailWillReappear', 'This email will reappear in 3 hours'),
+    });
     setSelectedEmail(null);
   };
 
@@ -263,16 +274,16 @@ export function EmailInbox() {
     setSelectedEmail(null);
 
     await executeWithUndo({
-      description: "Email archived",
+      description: 'Email archived',
       execute: async () => {
         await archiveEmail(emailToArchive.id);
       },
       undo: async () => {
         // Restore from archive
         await supabase
-          .from("emails")
-          .update({ status: "inbox", archived_at: null })
-          .eq("id", emailToArchive.id);
+          .from('emails')
+          .update({ status: 'inbox', archived_at: null })
+          .eq('id', emailToArchive.id);
       },
     });
   };
@@ -284,30 +295,30 @@ export function EmailInbox() {
     setSelectedEmail(null);
 
     await executeWithUndo({
-      description: "Email moved to trash",
+      description: 'Email moved to trash',
       execute: async () => {
         await deleteEmail(emailToDelete.id);
       },
       undo: async () => {
         // Restore from trash
         await supabase
-          .from("emails")
-          .update({ status: "inbox", deleted_at: null })
-          .eq("id", emailToDelete.id);
+          .from('emails')
+          .update({ status: 'inbox', deleted_at: null })
+          .eq('id', emailToDelete.id);
       },
     });
   };
 
   // Bulk actions
   const handleBulkArchive = async () => {
-    const promises = Array.from(selectedEmailIds).map(id => archiveEmail(id));
+    const promises = Array.from(selectedEmailIds).map((id) => archiveEmail(id));
     await Promise.all(promises);
     setSelectedEmailIds(new Set());
     notify.success(t('inbox.archivedCount', `Archived ${selectedEmailIds.size} emails`));
   };
 
   const handleBulkDelete = async () => {
-    const promises = Array.from(selectedEmailIds).map(id => deleteEmail(id));
+    const promises = Array.from(selectedEmailIds).map((id) => deleteEmail(id));
     await Promise.all(promises);
     setSelectedEmailIds(new Set());
     notify.success(t('inbox.deletedCount', `Deleted ${selectedEmailIds.size} emails`));
@@ -316,24 +327,26 @@ export function EmailInbox() {
   const handleBulkSnooze = async () => {
     const snoozeUntil = new Date();
     snoozeUntil.setHours(snoozeUntil.getHours() + 24);
-    const promises = Array.from(selectedEmailIds).map(id => snoozeEmail(id, snoozeUntil));
+    const promises = Array.from(selectedEmailIds).map((id) => snoozeEmail(id, snoozeUntil));
     await Promise.all(promises);
     setSelectedEmailIds(new Set());
     notify.success(t('inbox.snoozedCount', `Snoozed ${selectedEmailIds.size} emails`));
   };
 
   const handleBulkMarkAsRead = async () => {
-    const promises = Array.from(selectedEmailIds).map(id => markAsRead(id));
+    const promises = Array.from(selectedEmailIds).map((id) => markAsRead(id));
     await Promise.all(promises);
     setSelectedEmailIds(new Set());
     notify.success(t('inbox.markedReadCount', `Marked ${selectedEmailIds.size} emails as read`));
   };
 
   const handleBulkMarkAsUnread = async () => {
-    const promises = Array.from(selectedEmailIds).map(id => markAsUnread(id));
+    const promises = Array.from(selectedEmailIds).map((id) => markAsUnread(id));
     await Promise.all(promises);
     setSelectedEmailIds(new Set());
-    notify.success(t('inbox.markedUnreadCount', `Marked ${selectedEmailIds.size} emails as unread`));
+    notify.success(
+      t('inbox.markedUnreadCount', `Marked ${selectedEmailIds.size} emails as unread`)
+    );
   };
 
   // Show empty state if no connections
@@ -345,14 +358,22 @@ export function EmailInbox() {
             <div className="flex justify-center mb-4">
               <Mail className="h-16 w-16 text-muted-foreground" />
             </div>
-            <CardTitle className="text-center">{t("connect_your_email", "Connect Your Email")}</CardTitle>
+            <CardTitle className="text-center">
+              {t('connect_your_email', 'Connect Your Email')}
+            </CardTitle>
             <CardDescription className="text-center">
-              {t('inbox.connectDescription', 'Connect Gmail or Outlook to manage your emails from The Quantum Club')}
+              {t(
+                'inbox.connectDescription',
+                'Connect Gmail or Outlook to manage your emails from The Quantum Club'
+              )}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-muted-foreground text-center">
-              {t('inbox.emptyInbox', 'Your email inbox is empty. Connect an email account to get started.')}
+              {t(
+                'inbox.emptyInbox',
+                'Your email inbox is empty. Connect an email account to get started.'
+              )}
             </p>
             <Link to="/settings">
               <Button className="w-full">
@@ -375,12 +396,20 @@ export function EmailInbox() {
             <RefreshCw className="h-12 w-12 mx-auto animate-spin text-primary" />
             <div>
               <h3 className="font-semibold text-lg">
-                {isInitialSync ? t('inbox.initialSyncInProgress', 'Initial sync in progress...') : t('inbox.syncingEmails', 'Syncing your emails...')}
+                {isInitialSync
+                  ? t('inbox.initialSyncInProgress', 'Initial sync in progress...')
+                  : t('inbox.syncingEmails', 'Syncing your emails...')}
               </h3>
               <p className="text-sm text-muted-foreground mt-2">
                 {isInitialSync
-                  ? t('inbox.fetchingLast90', 'Fetching your last 90 days of emails. This may take 30-60 seconds.')
-                  : t('inbox.fetchingLatest', "This may take a moment. We're fetching your latest emails.")}
+                  ? t(
+                      'inbox.fetchingLast90',
+                      'Fetching your last 90 days of emails. This may take 30-60 seconds.'
+                    )
+                  : t(
+                      'inbox.fetchingLatest',
+                      "This may take a moment. We're fetching your latest emails."
+                    )}
               </p>
             </div>
           </CardContent>
@@ -406,7 +435,7 @@ export function EmailInbox() {
         <AdvancedSearchInput
           value={searchQuery}
           onChange={setSearchQuery}
-          placeholder={t("search_emails", "Search emails...")}
+          placeholder={t('search_emails', 'Search emails...')}
           className="flex-1 min-w-[150px] sm:min-w-[200px] max-w-2xl"
         />
         <Button
@@ -416,8 +445,10 @@ export function EmailInbox() {
           disabled={syncing}
           className="min-h-[44px]"
         >
-          <RefreshCw className={`h-4 w-4 ${syncing ? "animate-spin" : ""} sm:mr-2`} />
-          <span className="hidden sm:inline">{syncing ? t('inbox.syncing', 'Syncing...') : t('inbox.sync', 'Sync')}</span>
+          <RefreshCw className={`h-4 w-4 ${syncing ? 'animate-spin' : ''} sm:mr-2`} />
+          <span className="hidden sm:inline">
+            {syncing ? t('inbox.syncing', 'Syncing...') : t('inbox.sync', 'Sync')}
+          </span>
         </Button>
         <Button
           variant="ghost"
@@ -430,7 +461,7 @@ export function EmailInbox() {
       </div>
 
       {/* Priority Tabs - Only show in inbox */}
-      {filter === "inbox" && (
+      {filter === 'inbox' && (
         <PriorityInboxTabs
           activeTab={priorityTab}
           onTabChange={setPriorityTab}
@@ -453,7 +484,7 @@ export function EmailInbox() {
         <Sheet open={mobileSidebarOpen} onOpenChange={setMobileSidebarOpen}>
           <SheetContent side="left" className="p-0 w-[280px] md:hidden">
             <SheetHeader className="p-4 border-b">
-              <SheetTitle>{t("menu", "Menu")}</SheetTitle>
+              <SheetTitle>{t('menu', 'Menu')}</SheetTitle>
             </SheetHeader>
             <EmailSidebar
               currentFilter={filter}
@@ -472,10 +503,12 @@ export function EmailInbox() {
         </Sheet>
 
         {/* Desktop Sidebar - Hidden on mobile, visible on md+ */}
-        <div className={cn(
-          "hidden md:block md:w-64 lg:w-72 xl:w-80 max-w-[320px] flex-shrink-0 border-r border-border overflow-x-hidden",
-          selectedEmail && "lg:hidden xl:block"
-        )}>
+        <div
+          className={cn(
+            'hidden md:block md:w-64 lg:w-72 xl:w-80 max-w-[320px] flex-shrink-0 border-r border-border overflow-x-hidden',
+            selectedEmail && 'lg:hidden xl:block'
+          )}
+        >
           <EmailSidebar
             currentFilter={filter}
             onFilterChange={setFilter}
@@ -486,29 +519,41 @@ export function EmailInbox() {
         </div>
 
         {/* Email List - Full width on mobile when no email selected */}
-        <div className={cn(
-          "flex-1 w-full md:w-auto md:flex-none md:max-w-[420px] lg:max-w-[480px] border-r border-border overflow-y-auto overflow-x-hidden min-h-0",
-          selectedEmail && "hidden lg:block"
-        )}>
+        <div
+          className={cn(
+            'flex-1 w-full md:w-auto md:flex-none md:max-w-[420px] lg:max-w-[480px] border-r border-border overflow-y-auto overflow-x-hidden min-h-0',
+            selectedEmail && 'hidden lg:block'
+          )}
+        >
           <EmailList
             emails={displayedEmails}
             selectedEmailId={selectedEmail?.id || null}
             onEmailSelect={handleEmailSelect}
             onToggleStar={toggleStar}
-            onArchive={(id) => executeWithUndo({
-              description: "Email archived",
-              execute: async () => await archiveEmail(id),
-              undo: async () => {
-                await supabase.from("emails").update({ status: "inbox", archived_at: null }).eq("id", id);
-              },
-            })}
-            onDelete={(id) => executeWithUndo({
-              description: "Email moved to trash",
-              execute: async () => await deleteEmail(id),
-              undo: async () => {
-                await supabase.from("emails").update({ status: "inbox", deleted_at: null }).eq("id", id);
-              },
-            })}
+            onArchive={(id) =>
+              executeWithUndo({
+                description: 'Email archived',
+                execute: async () => await archiveEmail(id),
+                undo: async () => {
+                  await supabase
+                    .from('emails')
+                    .update({ status: 'inbox', archived_at: null })
+                    .eq('id', id);
+                },
+              })
+            }
+            onDelete={(id) =>
+              executeWithUndo({
+                description: 'Email moved to trash',
+                execute: async () => await deleteEmail(id),
+                undo: async () => {
+                  await supabase
+                    .from('emails')
+                    .update({ status: 'inbox', deleted_at: null })
+                    .eq('id', id);
+                },
+              })
+            }
             onMarkAsRead={markAsRead}
             onMarkAsUnread={markAsUnread}
             loading={loading}
@@ -548,7 +593,7 @@ export function EmailInbox() {
         {/* Empty state when no email selected */}
         {!selectedEmail && (
           <div className="hidden md:flex flex-1 items-center justify-center text-muted-foreground">
-            <p>{t("select_an_email_to", "Select an email to read")}</p>
+            <p>{t('select_an_email_to', 'Select an email to read')}</p>
           </div>
         )}
       </div>
@@ -559,17 +604,14 @@ export function EmailInbox() {
         replyTo={
           selectedEmail
             ? {
-              email: selectedEmail.from_email,
-              subject: selectedEmail.subject,
-            }
+                email: selectedEmail.from_email,
+                subject: selectedEmail.subject,
+              }
             : undefined
         }
       />
 
-      <KeyboardShortcutsDialog
-        open={showShortcuts}
-        onOpenChange={setShowShortcuts}
-      />
+      <KeyboardShortcutsDialog open={showShortcuts} onOpenChange={setShowShortcuts} />
 
       <AICommandPalette
         open={commandPaletteOpen}

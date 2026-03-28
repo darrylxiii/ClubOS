@@ -1,48 +1,65 @@
 import { useTranslation } from 'react-i18next';
-import { useState, useEffect } from "react";
-import DOMPurify from "dompurify";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { MessageCircle, Share2, MoreHorizontal, FileText, Bookmark, Trash2, Edit, Copy, Flag, Mail, ChevronLeft, ChevronRight, Sparkles, ChevronDown, Flame } from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
-import { PostComments } from "./PostComments";
-import { CreateConversationDialog } from "@/components/messages/CreateConversationDialog";
-import { InteractiveReactions } from "./InteractiveReactions";
-import { PollPost } from "./PollPost";
-import { PostAnalyticsButton } from "@/components/analytics/PostAnalyticsButton";
-import { LiveViewerCounter } from "@/components/analytics/LiveViewerCounter";
+import { useState, useEffect } from 'react';
+import DOMPurify from 'dompurify';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import {
+  MessageCircle,
+  Share2,
+  MoreHorizontal,
+  FileText,
+  Bookmark,
+  Trash2,
+  Edit,
+  Copy,
+  Flag,
+  Mail,
+  ChevronLeft,
+  ChevronRight,
+  Sparkles,
+  ChevronDown,
+  Flame,
+} from 'lucide-react';
+import { formatDistanceToNow } from 'date-fns';
+import { PostComments } from './PostComments';
+import { CreateConversationDialog } from '@/components/messages/CreateConversationDialog';
+import { InteractiveReactions } from './InteractiveReactions';
+import { PollPost } from './PollPost';
+import { PostAnalyticsButton } from '@/components/analytics/PostAnalyticsButton';
+import { LiveViewerCounter } from '@/components/analytics/LiveViewerCounter';
 import { useNavigate } from 'react-router-dom';
-import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
-import { UserProfilePreview } from "@/components/UserProfilePreview";
-import { CompanyProfilePreview } from "@/components/CompanyProfilePreview";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { FollowButton } from "@/components/profile/FollowButton";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
+import { UserProfilePreview } from '@/components/UserProfilePreview';
+import { CompanyProfilePreview } from '@/components/CompanyProfilePreview';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { FollowButton } from '@/components/profile/FollowButton';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { LazyMedia } from "./LazyMedia";
-import { notify } from "@/lib/notify";
-import { useEngagementTracking } from "@/hooks/useEngagementTracking";
-import { cn } from "@/lib/utils";
-import { AlgorithmTransparency } from "./AlgorithmTransparency";
-import { PostPinning } from "./PostPinning";
-import { RepostButton } from "./RepostButton";
-import { EditPostDialog } from "./EditPostDialog";
-import { YouTubeEmbed } from "@/components/messages/YouTubeEmbed";
-import { SocialEmbed } from "./SocialEmbed";
+} from '@/components/ui/dropdown-menu';
+import { LazyMedia } from './LazyMedia';
+import { notify } from '@/lib/notify';
+import { useEngagementTracking } from '@/hooks/useEngagementTracking';
+import { cn } from '@/lib/utils';
+import { AlgorithmTransparency } from './AlgorithmTransparency';
+import { PostPinning } from './PostPinning';
+import { RepostButton } from './RepostButton';
+import { EditPostDialog } from './EditPostDialog';
+import { YouTubeEmbed } from '@/components/messages/YouTubeEmbed';
+import { SocialEmbed } from './SocialEmbed';
 import { SpotifyEmbed } from './SpotifyEmbed';
 import { ShareDialog } from './ShareDialog';
 import { RepostedPostCard } from './RepostedPostCard';
 
 interface PostCardProps {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   post: any;
   onUpdate: () => void;
 }
@@ -64,7 +81,7 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
   const [isPinned, setIsPinned] = useState(false);
   const [repostCount, setRepostCount] = useState(0);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
-  
+
   // Engagement tracking
   const { trackShare, trackSave: trackSaveEngagement } = useEngagementTracking({
     postId: post.id,
@@ -72,9 +89,9 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
   });
 
   const author = post.profiles || post.companies;
-  const authorName = author?.full_name || author?.name || "Unknown";
+  const authorName = author?.full_name || author?.name || 'Unknown';
   const authorImage = author?.avatar_url || author?.logo_url;
-  const authorTitle = post.profiles?.current_title || "Company";
+  const authorTitle = post.profiles?.current_title || 'Company';
 
   const isOwnPost = user?.id === post.user_id;
   const mediaUrls = Array.isArray(post.media_urls) ? post.media_urls : [];
@@ -104,7 +121,7 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
           event: '*',
           schema: 'public',
           table: 'post_comments',
-          filter: `post_id=eq.${post.id}`
+          filter: `post_id=eq.${post.id}`,
         },
         () => {
           // Refetch post data to get updated comments count
@@ -161,11 +178,8 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
   };
 
   const fetchPollVotes = async () => {
-    const { data } = await supabase
-      .from('poll_votes')
-      .select('option_id')
-      .eq('poll_id', post.id);
-    
+    const { data } = await supabase.from('poll_votes').select('option_id').eq('poll_id', post.id);
+
     if (data) {
       setPollTotalVotes(data.length);
     }
@@ -175,18 +189,22 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
     if (!user || !isOwnPost) return;
 
     try {
-      const { error } = await supabase
-        .from('posts')
-        .delete()
-        .eq('id', post.id);
+      const { error } = await supabase.from('posts').delete().eq('id', post.id);
 
       if (error) throw error;
 
-      notify.success("Post deleted", { description: t('feed.postcard.yourPostHasBeenDeletedSuccessfully', 'Your post has been deleted successfully.') });
+      notify.success('Post deleted', {
+        description: t(
+          'feed.postcard.yourPostHasBeenDeletedSuccessfully',
+          'Your post has been deleted successfully.'
+        ),
+      });
       onUpdate();
     } catch (error) {
       console.error('Error deleting post:', error);
-      notify.error("Failed to delete", { description: t('feed.postcard.pleaseTryAgain', 'Please try again.') });
+      notify.error('Failed to delete', {
+        description: t('feed.postcard.pleaseTryAgain', 'Please try again.'),
+      });
     }
   };
 
@@ -198,18 +216,12 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
 
     try {
       if (isSaved) {
-        await supabase
-          .from('saved_posts')
-          .delete()
-          .eq('user_id', user.id)
-          .eq('post_id', post.id);
+        await supabase.from('saved_posts').delete().eq('user_id', user.id).eq('post_id', post.id);
         setIsSaved(false);
         trackSaveEngagement(false);
         notify.info(t('feed.postcard.removedFromSaved', 'Removed from saved'));
       } else {
-        await supabase
-          .from('saved_posts')
-          .insert({ user_id: user.id, post_id: post.id });
+        await supabase.from('saved_posts').insert({ user_id: user.id, post_id: post.id });
         setIsSaved(true);
         trackSaveEngagement(true);
         notify.success(t('feed.postcard.postSaved', 'Post saved'));
@@ -233,7 +245,7 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
       await supabase.from('post_shares').insert({
         post_id: post.id,
         shared_by: user?.id ?? '',
-        share_platform: platform
+        share_platform: platform,
       });
       trackShare(); // Also track in engagement signals
     } catch (error) {
@@ -242,7 +254,12 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
   };
 
   const handleReport = () => {
-    notify.success("Report submitted", { description: t('feed.postcard.thankYouForHelpingKeepOur', 'Thank you for helping keep our community safe.') });
+    notify.success('Report submitted', {
+      description: t(
+        'feed.postcard.thankYouForHelpingKeepOur',
+        'Thank you for helping keep our community safe.'
+      ),
+    });
   };
 
   const handleAuthorClick = () => {
@@ -259,7 +276,7 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
         {/* Clickable Avatar with Hover Preview */}
         <HoverCard openDelay={200}>
           <HoverCardTrigger asChild>
-            <Avatar 
+            <Avatar
               className="w-12 h-12 cursor-pointer ring-2 ring-transparent hover:ring-accent transition-all"
               onClick={handleAuthorClick}
             >
@@ -269,8 +286,8 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
           </HoverCardTrigger>
           <HoverCardContent side="left" className="w-auto p-0 border-0 bg-transparent shadow-none">
             {post.profiles ? (
-              <UserProfilePreview 
-                userId={post.user_id} 
+              <UserProfilePreview
+                userId={post.user_id}
                 onMessageClick={() => setMessageDialogOpen(true)}
               />
             ) : post.companies ? (
@@ -278,16 +295,13 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
             ) : null}
           </HoverCardContent>
         </HoverCard>
-        
+
         <div className="flex-1">
           <div className="flex items-start justify-between">
             {/* Clickable Name with Hover Preview */}
             <HoverCard openDelay={200}>
               <HoverCardTrigger asChild>
-                <div 
-                  className="cursor-pointer group"
-                  onClick={handleAuthorClick}
-                >
+                <div className="cursor-pointer group" onClick={handleAuthorClick}>
                   <h3 className="font-semibold group-hover:text-accent transition-colors">
                     {authorName}
                   </h3>
@@ -297,10 +311,13 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
                   </p>
                 </div>
               </HoverCardTrigger>
-              <HoverCardContent side="left" className="w-auto p-0 border-0 bg-transparent shadow-none">
+              <HoverCardContent
+                side="left"
+                className="w-auto p-0 border-0 bg-transparent shadow-none"
+              >
                 {post.profiles ? (
-                  <UserProfilePreview 
-                    userId={post.user_id} 
+                  <UserProfilePreview
+                    userId={post.user_id}
                     onMessageClick={() => setMessageDialogOpen(true)}
                   />
                 ) : post.companies ? (
@@ -308,65 +325,70 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
                 ) : null}
               </HoverCardContent>
             </HoverCard>
-            
+
             <div className="flex items-center gap-2">
               {!isOwnPost && user && (
                 <FollowButton userId={post.user_id} variant="outline" size="sm" />
               )}
-              {user?.id === post.user_id && (
-                <LiveViewerCounter postId={post.id} />
-              )}
+              {user?.id === post.user_id && <LiveViewerCounter postId={post.id} />}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="icon">
                     <MoreHorizontal className="w-4 h-4" />
                   </Button>
                 </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={handleSave}>
-                  <Bookmark className="w-4 h-4 mr-2" />
-                  {isSaved ? t('feed.postcard.removeFromSaved', 'Remove from saved') : t('feed.postcard.savePost', 'Save post')}
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={(e) => { e.preventDefault(); handleShare(); }}>
-                  <Copy className="w-4 h-4 mr-2" />
-                  {t('feed.postcard.copyLink', 'Copy link')}
-                </DropdownMenuItem>
-                {isOwnPost && (
-                  <DropdownMenuItem asChild>
-                    <PostPinning 
-                      postId={post.id} 
-                      isPinned={isPinned} 
-                      onToggle={() => setIsPinned(!isPinned)} 
-                    />
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={handleSave}>
+                    <Bookmark className="w-4 h-4 mr-2" />
+                    {isSaved
+                      ? t('feed.postcard.removeFromSaved', 'Remove from saved')
+                      : t('feed.postcard.savePost', 'Save post')}
                   </DropdownMenuItem>
-                )}
-                {isOwnPost && (
-                  <>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => setEditDialogOpen(true)}>
-                      <Edit className="w-4 h-4 mr-2" />
-                      {t('feed.postcard.editPost', 'Edit post')}
+                  <DropdownMenuItem
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleShare();
+                    }}
+                  >
+                    <Copy className="w-4 h-4 mr-2" />
+                    {t('feed.postcard.copyLink', 'Copy link')}
+                  </DropdownMenuItem>
+                  {isOwnPost && (
+                    <DropdownMenuItem asChild>
+                      <PostPinning
+                        postId={post.id}
+                        isPinned={isPinned}
+                        onToggle={() => setIsPinned(!isPinned)}
+                      />
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={handleDelete} className="text-destructive">
-                      <Trash2 className="w-4 h-4 mr-2" />
-                      {t('feed.postcard.deletePost', 'Delete post')}
-                    </DropdownMenuItem>
-                  </>
-                )}
-                {!isOwnPost && (
-                  <>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={handleReport} className="text-destructive">
-                      <Flag className="w-4 h-4 mr-2" />
-                      {t('feed.postcard.reportPost', 'Report post')}
-                    </DropdownMenuItem>
-                  </>
+                  )}
+                  {isOwnPost && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => setEditDialogOpen(true)}>
+                        <Edit className="w-4 h-4 mr-2" />
+                        {t('feed.postcard.editPost', 'Edit post')}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={handleDelete} className="text-destructive">
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        {t('feed.postcard.deletePost', 'Delete post')}
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                  {!isOwnPost && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={handleReport} className="text-destructive">
+                        <Flag className="w-4 h-4 mr-2" />
+                        {t('feed.postcard.reportPost', 'Report post')}
+                      </DropdownMenuItem>
+                    </>
                   )}
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
           </div>
-          
+
           <div className="flex items-center gap-2 mb-2">
             {userStreak && userStreak >= 3 && (
               <Badge variant="secondary" className="gap-1">
@@ -377,24 +399,25 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
           </div>
 
           <div className="relative">
-            <div 
+            <div
               className={cn(
-                "mt-3 whitespace-pre-wrap break-words prose prose-sm max-w-none",
-                "[&_ul]:list-disc [&_ul]:ml-6",
-                "[&_ol]:list-decimal [&_ol]:ml-6",
-                "[&_a]:text-primary [&_a]:underline [&_a]:break-all",
-                isLongContent && isCollapsed && "line-clamp-4"
+                'mt-3 whitespace-pre-wrap break-words prose prose-sm max-w-none',
+                '[&_ul]:list-disc [&_ul]:ml-6',
+                '[&_ol]:list-decimal [&_ol]:ml-6',
+                '[&_a]:text-primary [&_a]:underline [&_a]:break-all',
+                isLongContent && isCollapsed && 'line-clamp-4'
               )}
               style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}
-              dangerouslySetInnerHTML={{ 
+              dangerouslySetInnerHTML={{
                 __html: DOMPurify.sanitize(post.content, {
                   ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'a', 'ul', 'ol', 'li', 'b', 'i'],
                   ALLOWED_ATTR: ['href', 'target', 'rel'],
-                  ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i
-                })
+                  ALLOWED_URI_REGEXP:
+                    /^(?:(?:(?:f|ht)tps?|mailto|tel):|[^a-z]|[a-z+.-]+(?:[^a-z+.-:]|$))/i,
+                }),
               }}
             />
-            
+
             {isLongContent && (
               <Button
                 variant="ghost"
@@ -402,7 +425,9 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
                 onClick={() => setIsCollapsed(!isCollapsed)}
                 className="mt-2 text-primary hover:text-primary/80"
               >
-                {isCollapsed ? t('feed.postcard.showFullPost', 'Show full post') : t('feed.postcard.showLess', 'Show less')}
+                {isCollapsed
+                  ? t('feed.postcard.showFullPost', 'Show full post')
+                  : t('feed.postcard.showLess', 'Show less')}
               </Button>
             )}
           </div>
@@ -421,8 +446,15 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
                 <CollapsibleTrigger asChild>
                   <Button variant="ghost" size="sm" className="gap-2">
                     <Sparkles className="w-4 h-4" />
-                    {post.repost_of ? t('feed.postcard.aiSummaryOriginalYourThoughts', 'AI Summary (Original + Your Thoughts)') : t('feed.postcard.aiSummary', 'AI Summary')}
-                    <ChevronDown className={`w-4 h-4 transition-transform ${showSummary ? 'rotate-180' : ''}`} />
+                    {post.repost_of
+                      ? t(
+                          'feed.postcard.aiSummaryOriginalYourThoughts',
+                          'AI Summary (Original + Your Thoughts)'
+                        )
+                      : t('feed.postcard.aiSummary', 'AI Summary')}
+                    <ChevronDown
+                      className={`w-4 h-4 transition-transform ${showSummary ? 'rotate-180' : ''}`}
+                    />
                   </Button>
                 </CollapsibleTrigger>
               </div>
@@ -433,7 +465,7 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
               </CollapsibleContent>
             </Collapsible>
           )}
-          
+
           {/* Media Carousel */}
           {mediaUrls.length > 0 && (
             <div className="mt-3 relative">
@@ -452,17 +484,20 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
                     variant="ghost"
                     size="icon"
                     className="absolute right-2 top-1/2 -translate-y-1/2 z-10 bg-background/80 hover:bg-background"
-                    onClick={() => setCurrentMediaIndex(Math.min(mediaUrls.length - 1, currentMediaIndex + 1))}
+                    onClick={() =>
+                      setCurrentMediaIndex(Math.min(mediaUrls.length - 1, currentMediaIndex + 1))
+                    }
                     disabled={currentMediaIndex === mediaUrls.length - 1}
                   >
                     <ChevronRight className="w-6 h-6" />
                   </Button>
                 </>
               )}
-              
+
+              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
               {mediaUrls.map((media: any, index: number) => {
                 if (index !== currentMediaIndex) return null;
-                
+
                 return (
                   <div key={index} className="relative">
                     {media.type === 'youtube' ? (
@@ -474,7 +509,7 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
                         url={media.url}
                       />
                     ) : media.type === 'social_embed' ? (
-                      <SocialEmbed 
+                      <SocialEmbed
                         platform={media.platform}
                         postId={media.embedId}
                         url={media.url}
@@ -498,7 +533,7 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
                         className="w-full max-h-[500px] rounded-lg"
                       />
                     ) : (
-                      <a 
+                      <a
                         href={media.url}
                         target="_blank"
                         rel="noopener noreferrer"
@@ -511,16 +546,15 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
                   </div>
                 );
               })}
-              
+
               {mediaUrls.length > 1 && (
                 <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1">
+                  {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                   {mediaUrls.map((_: any, index: number) => (
                     <div
                       key={index}
                       className={`w-2 h-2 rounded-full transition-all ${
-                        index === currentMediaIndex 
-                          ? 'bg-primary w-4' 
-                          : 'bg-muted-foreground/30'
+                        index === currentMediaIndex ? 'bg-primary w-4' : 'bg-muted-foreground/30'
                       }`}
                     />
                   ))}
@@ -535,11 +569,13 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
               <PollPost
                 pollId={post.id}
                 question={post.poll_question}
-                options={post.poll_options.map((opt: any, idx: number) => ({
-                  id: `option_${idx}`,
-                  text: opt.text,
-                  votes: opt.votes || 0
-                }))}
+                options={post.poll_options.map(
+                  (opt: { text: string; votes: number; image?: string }, idx: number) => ({
+                    id: `option_${idx}`,
+                    text: opt.text,
+                    votes: opt.votes || 0,
+                  })
+                )}
                 totalVotes={pollTotalVotes}
                 onVote={() => {
                   fetchPollVotes();
@@ -548,11 +584,11 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
               />
             </div>
           )}
-          
+
           {/* Algorithm Transparency */}
           {post.feed_type === 'algorithmic' && (
             <div className="mt-3">
-              <AlgorithmTransparency 
+              <AlgorithmTransparency
                 postId={post.id}
                 reasons={{
                   engagement: (post.like_count || 0) > 10,
@@ -560,7 +596,7 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
                   following: !!post.profiles && user?.id !== post.user_id,
                   recent: new Date(post.created_at) > new Date(Date.now() - 24 * 60 * 60 * 1000),
                   interests: post.hashtags || [],
-                  similarContent: true
+                  similarContent: true,
                 }}
               />
             </div>
@@ -570,17 +606,15 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
             <div className="flex items-center gap-2">
               {/* Interactive Reactions */}
               <InteractiveReactions postId={post.id} postAuthorId={post.user_id} />
-              
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowComments(!showComments)}
-              >
+
+              <Button variant="ghost" size="sm" onClick={() => setShowComments(!showComments)}>
                 <MessageCircle className="w-4 h-4 mr-2" />
-                {post.post_comments?.length > 0 && <span className="text-sm">{post.post_comments.length}</span>}
+                {post.post_comments?.length > 0 && (
+                  <span className="text-sm">{post.post_comments.length}</span>
+                )}
               </Button>
 
-              <RepostButton 
+              <RepostButton
                 postId={post.id}
                 repostCount={repostCount}
                 post={post}
@@ -593,28 +627,20 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
               {user?.id === post.user_id && (
                 <PostAnalyticsButton postId={post.id} variant="ghost" size="sm" showLabel={false} />
               )}
-              
+
               {!isOwnPost && user && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setMessageDialogOpen(true)}
-                >
+                <Button variant="ghost" size="sm" onClick={() => setMessageDialogOpen(true)}>
                   <Mail className="w-4 h-4 mr-2" />
-                  <span className="text-sm">{t("message", "Message")}</span>
+                  <span className="text-sm">{t('message', 'Message')}</span>
                 </Button>
               )}
-              
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShareDialogOpen(true)}
-              >
+
+              <Button variant="ghost" size="sm" onClick={() => setShareDialogOpen(true)}>
                 <Share2 className="w-4 h-4 mr-2" />
-                <span className="text-sm">{t("share", "Share")}</span>
+                <span className="text-sm">{t('share', 'Share')}</span>
               </Button>
             </div>
-            
+
             <div className="flex items-center gap-1">
               {isOwnPost && (
                 <PostAnalyticsButton postId={post.id} variant="ghost" size="sm" showLabel={false} />
@@ -623,19 +649,15 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
                 variant="ghost"
                 size="sm"
                 onClick={handleSave}
-                className={isSaved ? "text-primary" : ""}
+                className={isSaved ? 'text-primary' : ''}
               >
-                <Bookmark className={`w-4 h-4 ${isSaved ? "fill-current" : ""}`} />
+                <Bookmark className={`w-4 h-4 ${isSaved ? 'fill-current' : ''}`} />
               </Button>
             </div>
           </div>
-          
+
           {showComments && (
-            <PostComments 
-              postId={post.id}
-              postAuthorId={post.user_id}
-              onCommentAdded={onUpdate}
-            />
+            <PostComments postId={post.id} postAuthorId={post.user_id} onCommentAdded={onUpdate} />
           )}
         </div>
       </div>
